@@ -28,7 +28,7 @@ namespace BiRyeoDo.Editor
         private static void ConfigureAndroid()
         {
             PlayerSettings.companyName = "BiRyeoDo";
-            PlayerSettings.productName = "비려도";
+            PlayerSettings.productName = "비뢰도";
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, "com.biryeodo.game");
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
