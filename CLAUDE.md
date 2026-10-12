@@ -8,6 +8,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Reply to the user in Korean (see `.claude/settings.json`); keep code identifiers and comments in English.
 
+## Story
+
+All lore lives in `Story/` (see `Story/README.md`). The user provides the original text as 28 volumes in `Story/raw/` (`vol01`…`vol28`); never edit those files.
+
+- Before writing any story-dependent content (stage names/`storyText`, enemies, bosses, dialogue, 기화 events, martial-art lore), read `Story/INDEX.md`, then the relevant `Story/analysis/volXX.md`, `Story/CHARACTERS.md` and `Story/GAME_MAPPING.md`. Do not invent canon; if the analysis doesn't cover it, say so and ask.
+- When asked to analyze a volume, follow the procedure in `Story/README.md`: one volume at a time, fill `analysis/_TEMPLATE.md`, split events into main story vs. substories, then update `MAIN_STORY.md`, `SUBSTORIES.md`, `CHARACTERS.md`, `GAME_MAPPING.md` and the `INDEX.md` status table.
+- Record which game assets carry which story beats in `Story/GAME_MAPPING.md` so content stays traceable to the source volume.
+
 ## Environment
 
 - Unity 2022.3 LTS (`ProjectSettings/ProjectVersion.txt` pins 2022.3.62f1; if the installed editor differs, Unity will offer to upgrade). Target: Android, portrait, IL2CPP, ARM64.
