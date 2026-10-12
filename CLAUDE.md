@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-"비려도" (Bi-Ryeo-Do): a personal, single-player Android game in Unity. Genre: wuxia + turn-based battles + incremental growth with reincarnation (제N생). Inspired by the mobile game 수련협객 (ink-wash art, 5-tab layout: 무공/경영/전투/기화/행낭, currency 두). Never published, so copyright/store concerns are out of scope. Design notes and the screenshot analysis live in `Docs/GAME_DESIGN.md`; the user supplies the story separately (goes into `StageDef.storyText`).
+"비뢰도" (Bi-Ryeo-Do): a personal, single-player Android game in Unity. Genre: wuxia + turn-based battles + incremental growth with reincarnation (제N생). Inspired by the mobile game 수련협객 (ink-wash art, 5-tab layout: 무공/경영/전투/기화/행낭, currency 두). Never published, so copyright/store concerns are out of scope. Design notes and the screenshot analysis live in `Docs/GAME_DESIGN.md`; the user supplies the story separately (goes into `StageDef.storyText`).
 
 Reply to the user in Korean (see `.claude/settings.json`); keep code identifiers and comments in English.
 
