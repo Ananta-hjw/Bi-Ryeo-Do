@@ -1,0 +1,14 @@
+{
+  "name": "BiRyeoDo.Editor",
+  "rootNamespace": "BiRyeoDo.Editor",
+  "references": ["BiRyeoDo.Core", "BiRyeoDo.Game"],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
