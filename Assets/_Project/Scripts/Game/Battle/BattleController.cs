@@ -9,7 +9,7 @@ namespace BiRyeoDo.Game.Battle
 {
     /// <summary>
     /// Bridges the pure-C# BattleEngine to the scene: resolves the fight, then plays the events back with delays.
-    /// Hook <see cref="EventPlayed"/> to drive animations, damage numbers and HP bars.
+    /// The UI listens to <see cref="EventPlayed"/> / <see cref="BattleFinished"/>; this class never touches UI.
     /// </summary>
     public class BattleController : MonoBehaviour
     {
@@ -17,21 +17,35 @@ namespace BiRyeoDo.Game.Battle
         public System.Action<BattleEvent> EventPlayed;
         public System.Action<BattleResult> BattleFinished;
 
+        public Combatant Player { get; private set; }
+        public Combatant Enemy { get; private set; }
+        public bool IsBusy { get; private set; }
+
         public void StartBattle(EnemyDef enemy, IEnumerable<MartialArtDef> equippedArts)
         {
+            if (IsBusy) return;
             var save = GameManager.Instance.Save;
             var specs = new List<SkillSpec>();
-            foreach (var a in equippedArts) specs.Add(a.ToSpec());
+            foreach (var a in equippedArts) if (a != null) specs.Add(a.ToSpec());
 
-            var player = new Combatant("player", "협객", Team.Player, Progression.StatsFor(save.Level, save.Life), specs);
-            var engine = new BattleEngine(new[] { player }, new[] { enemy.Create() }, new SeededRandom(System.Environment.TickCount));
+            Player = new Combatant("player", "협객", Team.Player, Progression.StatsFor(save.Level, save.Life), specs);
+            Enemy = enemy.Create();
+            var engine = new BattleEngine(new[] { Player }, new[] { Enemy }, new SeededRandom(System.Environment.TickCount));
+            IsBusy = true;
             StartCoroutine(Play(engine.Run(), enemy));
+        }
+
+        public string SkillName(Combatant who, string skillId)
+        {
+            foreach (var s in who.Skills) if (s.Id == skillId) return s.Name;
+            return skillId;
         }
 
         private IEnumerator Play(BattleResult result, EnemyDef enemy)
         {
             foreach (var ev in result.Events)
             {
+                // Replay is precomputed, so HP shown to the UI comes from the event, not from the live combatants.
                 if (EventPlayed != null) EventPlayed(ev);
                 yield return new WaitForSeconds(secondsPerAction);
             }
@@ -43,6 +57,7 @@ namespace BiRyeoDo.Game.Battle
                 Progression.AddExp(save, enemy.expReward);
                 GameManager.Instance.SaveNow();
             }
+            IsBusy = false;
             if (BattleFinished != null) BattleFinished(result);
         }
     }

@@ -11,11 +11,12 @@ namespace BiRyeoDo.Game.UI
         public GameObject[] panels;
         public Tab startTab = Tab.Battle;
 
-        private void Start() { Show((int)startTab); }
+        private void Start() { Show((int)startTab); } // no-op until MainScreen has assigned panels
 
         /// <summary>Wire each tab button's OnClick to this with its enum index.</summary>
         public void Show(int index)
         {
+            if (panels == null) return;
             for (int i = 0; i < panels.Length; i++)
                 if (panels[i] != null) panels[i].SetActive(i == index);
         }

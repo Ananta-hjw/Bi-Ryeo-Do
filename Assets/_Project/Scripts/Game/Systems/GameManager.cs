@@ -16,6 +16,13 @@ namespace BiRyeoDo.Game.Systems
             Instance = this;
             DontDestroyOnLoad(gameObject);
             Save = SaveService.Load();
+            EnsureStarterArt();
+        }
+
+        private void EnsureStarterArt()
+        {
+            if (Save.LearnedArts.Count == 0) Save.LearnedArts.Add(ContentDatabase.StarterArtId);
+            if (Save.EquippedArts.Count == 0) Save.EquippedArts.Add(ContentDatabase.StarterArtId);
         }
 
         public void SaveNow() { SaveService.Save(Save); }
