@@ -10,6 +10,8 @@ Reply to the user in Korean (see `.claude/settings.json`); keep code identifiers
 
 ## Story
 
+Confirmed by the user: the protagonist is 비류연 and the heroine is 나예린 (the 빙백봉 of volume 3).
+
 All lore lives in `Story/` (see `Story/README.md`). The user provides the original text as 28 volumes in `Story/raw/` (`vol01`…`vol28`); never edit those files.
 
 - Before writing any story-dependent content (stage names/`storyText`, enemies, bosses, dialogue, 기화 events, martial-art lore), read `Story/INDEX.md`, then the relevant `Story/analysis/volXX.md`, `Story/CHARACTERS.md` and `Story/GAME_MAPPING.md`. Do not invent canon; if the analysis doesn't cover it, say so and ask.

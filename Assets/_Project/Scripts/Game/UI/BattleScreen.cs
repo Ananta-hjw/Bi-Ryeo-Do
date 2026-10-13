@@ -47,7 +47,7 @@ namespace BiRyeoDo.Game.UI
 
             // Header: portrait + 제N생 (left), 두 (right)
             UiFactory.Panel("PortraitFrame", root, new Vector2(0.03f, 0.905f), new Vector2(0.19f, 0.985f), UiFactory.Ink);
-            UiFactory.Label("PortraitText", root, new Vector2(0.03f, 0.905f), new Vector2(0.19f, 0.985f), "협객", 36, UiFactory.PaperText);
+            UiFactory.Label("PortraitText", root, new Vector2(0.03f, 0.905f), new Vector2(0.19f, 0.985f), "비류연", 30, UiFactory.PaperText);
             UiFactory.Panel("LifeBand", root, new Vector2(0.20f, 0.915f), new Vector2(0.50f, 0.975f), UiFactory.Ink);
             _lifeLabel = UiFactory.Label("Life", root, new Vector2(0.21f, 0.915f), new Vector2(0.49f, 0.975f), "", 40, UiFactory.Gold);
             UiFactory.Panel("DooBand", root, new Vector2(0.58f, 0.925f), new Vector2(0.97f, 0.975f), UiFactory.Ink);
@@ -88,7 +88,7 @@ namespace BiRyeoDo.Game.UI
 
             // Player block
             UiFactory.Panel("PlayerFrame", root, new Vector2(0.05f, 0.03f), new Vector2(0.45f, 0.27f), UiFactory.Ink);
-            UiFactory.Label("PlayerPortrait", root, new Vector2(0.05f, 0.03f), new Vector2(0.45f, 0.27f), "협객", 60, UiFactory.PaperText);
+            UiFactory.Label("PlayerPortrait", root, new Vector2(0.05f, 0.03f), new Vector2(0.45f, 0.27f), "비류연", 56, UiFactory.PaperText);
             _playerInfo = UiFactory.Label("PlayerInfo", root, new Vector2(0.48f, 0.15f), new Vector2(0.96f, 0.27f), "", 38, UiFactory.Ink, TextAnchor.MiddleLeft);
             _playerBar = UiFactory.MakeBar("PlayerHp", root, new Vector2(0.48f, 0.115f), new Vector2(0.96f, 0.135f), new Color(0.2f, 0.2f, 0.2f, 0.6f), new Color(0.25f, 0.55f, 0.30f, 1f));
             _playerHpText = UiFactory.Label("PlayerHpText", root, new Vector2(0.48f, 0.06f), new Vector2(0.96f, 0.11f), "", 32, UiFactory.Ink, TextAnchor.MiddleLeft);

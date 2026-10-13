@@ -28,7 +28,7 @@ namespace BiRyeoDo.Game.Battle
             var specs = new List<SkillSpec>();
             foreach (var a in equippedArts) if (a != null) specs.Add(a.ToSpec());
 
-            Player = new Combatant("player", "협객", Team.Player, Progression.StatsFor(save.Level, save.Life), specs);
+            Player = new Combatant("player", "비류연", Team.Player, Progression.StatsFor(save.Level, save.Life), specs);
             Enemy = enemy.Create();
             var engine = new BattleEngine(new[] { Player }, new[] { Enemy }, new SeededRandom(System.Environment.TickCount));
             IsBusy = true;
