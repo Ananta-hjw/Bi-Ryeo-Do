@@ -3,7 +3,14 @@ name: Build Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    paths-ignore:
+      - 'Story/**'
+      - 'Docs/**'
+      - '*.md'
+
+concurrency:
+  group: build-apk-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
