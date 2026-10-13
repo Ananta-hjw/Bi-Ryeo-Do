@@ -30,6 +30,7 @@ namespace BiRyeoDo.Game.UI
         private RectTransform _enemyRect, _floatLayer;
         private GameObject _bossButton;
         private Text _bossButtonLabel;
+        private GameObject _reincarnateButton;
 
         private void Awake()
         {
@@ -81,6 +82,10 @@ namespace BiRyeoDo.Game.UI
             // Battle log
             _log = UiFactory.Label("Log", root, new Vector2(0.06f, 0.285f), new Vector2(0.94f, 0.318f), "", 30, UiFactory.Ink, TextAnchor.MiddleCenter, FontStyle.Normal);
 
+            var reborn = UiFactory.Button("ReincarnateButton", root, new Vector2(0.70f, 0.545f), new Vector2(0.96f, 0.620f), "환생", UiFactory.Gold, OnReincarnatePressed, 38);
+            _reincarnateButton = reborn.gameObject;
+            reborn.GetComponentInChildren<Text>().color = UiFactory.Ink;
+
             // Player block
             UiFactory.Panel("PlayerFrame", root, new Vector2(0.05f, 0.03f), new Vector2(0.45f, 0.27f), UiFactory.Ink);
             UiFactory.Label("PlayerPortrait", root, new Vector2(0.05f, 0.03f), new Vector2(0.45f, 0.27f), "협객", 60, UiFactory.PaperText);
@@ -129,6 +134,7 @@ namespace BiRyeoDo.Game.UI
                 _killsLabel.text = "처치 " + _progress.Kills + " / " + _progress.KillsToBoss;
                 _bossButton.SetActive(_progress.BossReady && !_challengeBoss);
             }
+            _reincarnateButton.SetActive(Progression.CanReincarnate(save));
         }
 
         private string ArtName()
@@ -141,6 +147,16 @@ namespace BiRyeoDo.Game.UI
                 if (a != null && (best == null || a.power > best.power)) best = a;
             }
             return best != null ? best.displayName : "맨손";
+        }
+
+        private void OnReincarnatePressed()
+        {
+            var save = GameManager.Instance.Save;
+            if (!Progression.Reincarnate(save)) return;
+            GameManager.Instance.SaveNow();
+            LoadStage(save.Stage);
+            _log.text = "환생! 제" + save.Life + "생이 시작된다. 두와 무공은 그대로 이어진다.";
+            Refresh();
         }
 
         private void OnBossPressed()

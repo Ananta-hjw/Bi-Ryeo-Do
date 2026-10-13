@@ -1,4 +1,5 @@
 using System.IO;
+using BiRyeoDo.Core;
 using BiRyeoDo.Game.Data;
 using BiRyeoDo.Game.Systems;
 using BiRyeoDo.Game.UI;
@@ -19,7 +20,7 @@ namespace BiRyeoDo.Editor
         public static void Run()
         {
             ConfigureAndroid();
-            CreateSampleData();
+            CreateStoryContent();
             CreateBootScene();
             AssetDatabase.SaveAssets();
             Debug.Log("BiRyeoDo setup done.");
@@ -37,52 +38,62 @@ namespace BiRyeoDo.Editor
             EditorUserBuildSettings.buildAppBundle = false; // sideload APK; personal use only
         }
 
-        private static T Make<T>(string name, System.Action<T> init) where T : ScriptableObject
+        [MenuItem("BiRyeoDo/Rebuild Story Content")]
+        public static void RebuildContent()
         {
-            string path = DataDir + "/" + name + ".asset";
-            var existing = AssetDatabase.LoadAssetAtPath<T>(path);
-            if (existing != null) return existing;
+            CreateStoryContent();
+            AssetDatabase.SaveAssets();
+            Debug.Log("BiRyeoDo story content rebuilt.");
+        }
+
+        private static T Create<T>(string name, System.Action<T> init) where T : ScriptableObject
+        {
             var so = ScriptableObject.CreateInstance<T>();
             init(so);
-            AssetDatabase.CreateAsset(so, path);
+            AssetDatabase.CreateAsset(so, DataDir + "/" + name + ".asset");
             return so;
         }
 
-        private static void CreateSampleData()
+        /// <summary>Regenerates every art/enemy/stage asset from <see cref="EarlyGameContent"/> (volumes 1-3). Old assets in the folder are replaced.</summary>
+        private static void CreateStoryContent()
         {
             Directory.CreateDirectory(DataDir);
             AssetDatabase.Refresh();
-            var basic = Make<MartialArtDef>("Art_BasicSword", a => { a.id = "sword_basic"; a.displayName = "기본 검법"; a.power = 1.2f; });
-            Make<MartialArtDef>("Art_OgwaSword", a => { a.id = "sword_ogwa"; a.displayName = "오과검술"; a.power = 2f; a.qiCost = 15; a.cooldown = 2; a.learnCost = 100; });
+            foreach (var guid in AssetDatabase.FindAssets("t:ScriptableObject", new[] { DataDir }))
+                AssetDatabase.DeleteAsset(AssetDatabase.GUIDToAssetPath(guid));
 
-            var boar = Make<EnemyDef>("Enemy_Boar", e =>
+            foreach (var a in EarlyGameContent.Arts)
             {
-                e.id = "boar"; e.displayName = "맷돼지 괴물";
-                e.stats = new BiRyeoDo.Core.CombatStats { MaxHp = 365, MaxQi = 0, Attack = 8, Defense = 2, Speed = 90, CritRate = 0.01f, CritDamage = 1.5f };
-            });
-            var ape = Make<EnemyDef>("Boss_WhiteApe", e =>
+                var d = a;
+                Create<MartialArtDef>("Art_" + d.Id, x =>
+                {
+                    x.id = d.Id; x.displayName = d.Name; x.description = d.Description; x.power = d.Power;
+                    x.qiCost = d.QiCost; x.cooldown = d.Cooldown; x.learnCost = d.LearnCost; x.unlockStage = d.UnlockStage;
+                });
+            }
+
+            var enemies = new System.Collections.Generic.Dictionary<string, EnemyDef>();
+            foreach (var e in EarlyGameContent.Enemies)
             {
-                e.id = "white_ape"; e.displayName = "백원왕"; e.isBoss = true; e.expReward = 100; e.dooReward = 80;
-                e.stats = new BiRyeoDo.Core.CombatStats { MaxHp = 2500, MaxQi = 0, Attack = 25, Defense = 10, Speed = 105, CritRate = 0.05f, CritDamage = 1.5f };
-            });
-            var guard = Make<EnemyDef>("Enemy_Guard", e =>
+                var d = e;
+                enemies[d.Id] = Create<EnemyDef>("Enemy_" + d.Id, x =>
+                {
+                    x.id = d.Id; x.displayName = d.Name; x.isBoss = d.IsBoss; x.stats = d.BuildStats();
+                    x.expReward = d.ExpReward; x.dooReward = d.DooReward;
+                });
+            }
+
+            foreach (var s in EarlyGameContent.Stages)
             {
-                e.id = "guard"; e.displayName = "갑사";
-                e.stats = new BiRyeoDo.Core.CombatStats { MaxHp = 600, MaxQi = 0, Attack = 15, Defense = 8, Speed = 95, CritRate = 0.02f, CritDamage = 1.5f };
-            });
-            Make<StageDef>("Stage_03_MistBamboo", s =>
-            {
-                s.number = 3; s.displayName = "안개 대숲";
-                s.storyText = "추격자를 피해 이 숲에 들어왔다. (스토리는 추후 교체)";
-                s.enemies = new[] { boar }; s.boss = ape;
-            });
-            Make<StageDef>("Stage_04_ChuFortress", s =>
-            {
-                s.number = 4; s.displayName = "제나라 요새";
-                s.storyText = "제나라의 요새 문은 굳게 닫혔고, 수비군은 성벽에 접근하는 모든 난민을 무차별 사살하고 있다.";
-                s.enemies = new[] { guard }; s.boss = ape; s.killsToBoss = 12;
-            });
-            Debug.Log("Sample data ready (" + basic.displayName + " ...)");
+                var d = s;
+                Create<StageDef>("Stage_" + d.Number.ToString("00"), x =>
+                {
+                    x.number = d.Number; x.displayName = d.Name; x.storyText = d.Story; x.killsToBoss = d.KillsToBoss;
+                    x.boss = enemies[d.BossId];
+                    x.enemies = System.Array.ConvertAll(d.EnemyIds, id => enemies[id]);
+                });
+            }
+            AssetDatabase.Refresh();
         }
 
         private static void CreateBootScene()

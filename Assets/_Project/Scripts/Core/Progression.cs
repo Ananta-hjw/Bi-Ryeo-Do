@@ -7,6 +7,7 @@ namespace BiRyeoDo.Core
     {
         public const int MinLevelToReincarnate = 30;
         public const float LifeBonusPerLife = 0.10f;
+        public const int MaxEquippedArts = 4;
 
         public static long ExpToNext(int level)
         {

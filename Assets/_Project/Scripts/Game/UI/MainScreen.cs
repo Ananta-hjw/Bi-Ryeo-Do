@@ -7,7 +7,7 @@ namespace BiRyeoDo.Game.UI
 {
     /// <summary>
     /// Root of the UI: builds the Canvas (1080x1920 portrait, safe-area aware), the five-tab bottom bar and one panel per tab.
-    /// Only 전투 is implemented; the other tabs are placeholders until their screens exist.
+    /// Only 전투 and 무공 are implemented; the other tabs are placeholders until their screens exist.
     /// </summary>
     [RequireComponent(typeof(TabRouter))]
     public class MainScreen : MonoBehaviour
@@ -51,6 +51,7 @@ namespace BiRyeoDo.Game.UI
                 var panel = UiFactory.Rect("Panel_" + TabNames[i], content, Vector2.zero, Vector2.one);
                 panels[i] = panel.gameObject;
                 if (i == (int)TabRouter.Tab.Battle) BuildBattle(panel);
+                else if (i == (int)TabRouter.Tab.MartialArts) gameObject.AddComponent<MartialArtsScreen>().Build(panel);
                 else UiFactory.Label("Soon", panel, new Vector2(0.1f, 0.4f), new Vector2(0.9f, 0.6f), TabNames[i] + " — 준비 중", 64, UiFactory.Ink);
             }
             _router.panels = panels;

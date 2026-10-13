@@ -14,6 +14,8 @@ namespace BiRyeoDo.Game.Data
         public int qiCost;
         public int cooldown;
         public long learnCost;
+        [Tooltip("Shown in the 무공 tab once the player has reached this stage.")]
+        public int unlockStage = 1;
 
         public SkillSpec ToSpec()
         {
