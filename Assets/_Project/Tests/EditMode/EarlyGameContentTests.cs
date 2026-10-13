@@ -8,9 +8,10 @@ namespace BiRyeoDo.Tests
     public class EarlyGameContentTests
     {
         [Test]
-        public void StarterArtExistsAndIsFree()
+        public void StarterArtsAreFree()
         {
-            var starter = EarlyGameContent.Arts.Single(a => a.Id == EarlyGameContent.StarterArtId);
+            var starter = EarlyGameContent.FindArt(EarlyGameContent.StarterArtId);
+            Assert.IsNotNull(starter);
             Assert.AreEqual(0, starter.LearnCost);
             Assert.AreEqual(0, starter.QiCost);
         }
@@ -23,41 +24,70 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void StagesReferenceExistingEnemiesAndBossIsBoss()
+        public void StagesReferenceExistingEnemiesAndEndWithABoss()
         {
             var numbers = new HashSet<int>();
             foreach (var s in EarlyGameContent.Stages)
             {
                 Assert.IsTrue(numbers.Add(s.Number), "duplicate stage " + s.Number);
-                Assert.IsTrue(s.EnemyIds.Length > 0);
-                foreach (var id in s.EnemyIds)
+                Assert.IsTrue(s.Encounters.Length > 0);
+                Assert.IsTrue(s.Intro.Length > 0 && s.Outro.Length > 0);
+                for (int i = 0; i < s.Encounters.Length; i++)
                 {
-                    var e = EarlyGameContent.FindEnemy(id);
-                    Assert.IsNotNull(e, id);
-                    Assert.IsFalse(e.IsBoss, id + " is a boss used as a normal enemy");
+                    var enc = s.Encounters[i];
+                    Assert.IsTrue(enc.Length >= 1 && enc.Length <= 3, s.Name);
+                    bool hasBoss = false;
+                    foreach (var id in enc)
+                    {
+                        var e = EarlyGameContent.FindEnemy(id);
+                        Assert.IsNotNull(e, id);
+                        if (e.IsBoss) hasBoss = true;
+                    }
+                    Assert.AreEqual(i == s.Encounters.Length - 1, hasBoss, s.Name + " encounter " + i);
                 }
-                var boss = EarlyGameContent.FindEnemy(s.BossId);
-                Assert.IsNotNull(boss, s.BossId);
-                Assert.IsTrue(boss.IsBoss);
             }
         }
 
         [Test]
-        public void BossesAreStrongerThanTheirStageEnemies()
+        public void EnemyScriptsAlwaysFollowAChargeWithAnAttack()
         {
-            foreach (var s in EarlyGameContent.Stages)
+            foreach (var e in EarlyGameContent.Enemies)
             {
-                var boss = EarlyGameContent.FindEnemy(s.BossId);
-                foreach (var id in s.EnemyIds)
-                    Assert.Greater(boss.BuildStats().MaxHp, EarlyGameContent.FindEnemy(id).BuildStats().MaxHp, s.Name);
+                Assert.IsNotNull(e.Moves, e.Id);
+                Assert.IsTrue(e.Moves.Any(m => !m.Charge), e.Id + " never attacks");
+                for (int i = 0; i < e.Moves.Length; i++)
+                    if (e.Moves[i].Charge) Assert.IsFalse(e.Moves[(i + 1) % e.Moves.Length].Charge, e.Id + " charges twice in a row");
             }
         }
 
         [Test]
-        public void ArtsAreUnlockedWithinStageRange()
+        public void StageRewardsPayExactlyTheNextStagesLevel()
+        {
+            foreach (var s in EarlyGameContent.Stages.Take(EarlyGameContent.Stages.Length - 1))
+            {
+                var save = new SaveData { Level = s.RecommendedLevel };
+                foreach (var enc in s.Encounters) foreach (var id in enc) Progression.AddExp(save, EarlyGameContent.ExpReward(s, id));
+                Assert.GreaterOrEqual(save.Level, EarlyGameContent.FindStage(s.Number + 1).RecommendedLevel, s.Name);
+            }
+        }
+
+        [Test]
+        public void ArtsUnlockWithinStageRange()
         {
             int max = EarlyGameContent.Stages.Max(s => s.Number);
             foreach (var a in EarlyGameContent.Arts) Assert.LessOrEqual(a.UnlockStage, max, a.Id);
+        }
+
+        [Test]
+        public void EveryStageIsClearableByASimpleBotAtItsRecommendedLevel()
+        {
+            foreach (var st in EarlyGameContent.Stages)
+            {
+                int wins = 0;
+                for (int seed = 1; seed <= 40; seed++)
+                    if (SimpleBot.ClearStage(st, seed)) wins++;
+                Assert.GreaterOrEqual(wins, 20, st.Name + " is too hard: " + wins + "/40");
+            }
         }
     }
 }

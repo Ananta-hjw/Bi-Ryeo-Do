@@ -1,8 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using BiRyeoDo.Core;
-using BiRyeoDo.Game.Battle;
-using BiRyeoDo.Game.Data;
 using BiRyeoDo.Game.Systems;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,281 +9,573 @@ using UnityEngine.UI;
 namespace BiRyeoDo.Game.UI
 {
     /// <summary>
-    /// 전투 탭. Builds its own uGUI under a parent rect and runs the endless auto-battle loop:
-    /// normal enemy → fight → rewards → repeat; after enough kills the 보스 도전 button appears.
-    /// Layout mirrors the reference: header (제N생, 두), stage title + story, enemy HP, enemy art, player block.
+    /// Full-screen, player-driven battle. A stage is a story intro, a chain of fights and an outro.
+    /// In each fight the player picks a command every turn (attack, a martial art, guard, meditate) and taps an enemy to
+    /// choose the target. Enemies telegraph their heavy moves, so guarding or evading at the right time matters.
+    /// The rules live in <see cref="InteractiveBattle"/>; this class only draws and animates what it reports.
     /// </summary>
-    [RequireComponent(typeof(BattleController))]
     public class BattleScreen : MonoBehaviour
     {
-        private BattleController _controller;
-        private StageDef _stage;
-        private StageProgress _progress;
-        private bool _challengeBoss;
-        private bool _built;
+        private const float StepDelay = 0.42f, HitDelay = 0.16f, SmallDelay = 0.30f;
+        private static readonly Color Backdrop = new Color(0.13f, 0.12f, 0.11f, 1f);
+        private static readonly Color QiBlue = new Color(0.30f, 0.50f, 0.80f, 1f);
+        private static readonly Color HpGreen = new Color(0.30f, 0.62f, 0.34f, 1f);
+        private static readonly Color Disabled = new Color(0.25f, 0.25f, 0.24f, 1f);
 
-        private Image _background;
-        private Text _lifeLabel, _dooLabel, _stageTitle, _story, _enemyName, _enemyPct, _log, _playerInfo, _playerHpText, _killsLabel;
-        private UiFactory.Bar _enemyBar, _playerBar;
-        private Image _enemyImage;
-        private RectTransform _enemyRect, _floatLayer;
-        private GameObject _bossButton;
-        private Text _bossButtonLabel;
-        private GameObject _reincarnateButton;
-
-        private void Awake()
+        private sealed class EnemyCard
         {
-            _controller = GetComponent<BattleController>();
+            public Combatant Unit;
+            public RectTransform Root;
+            public Image Frame, Body;
+            public Text Name, Glyph, Intent, HpText;
+            public UiFactory.Bar Hp;
+            public Vector2 Center;
         }
 
-        /// <summary>Creates the widgets under <paramref name="root"/> (a full-stretch panel) and starts the loop.</summary>
+        private sealed class CommandButton
+        {
+            public Button Button;
+            public Image Image;
+            public Text Label;
+            public GameObject Root;
+        }
+
+        private RectTransform _root, _cardsRoot, _fx, _playerBlock;
+        private Text _stageLabel, _speedLabel, _log, _playerName, _playerHpText, _playerQiText, _playerSpiritText, _status, _banner;
+        private UiFactory.Bar _playerHp, _playerQi, _playerSpirit;
+        private Image _flash, _bannerBg;
+        private readonly List<Image> _turnChips = new List<Image>();
+        private readonly List<Text> _turnLabels = new List<Text>();
+        private readonly List<EnemyCard> _cards = new List<EnemyCard>();
+        private readonly CommandButton[] _commands = new CommandButton[8];
+
+        // story / result panels
+        private GameObject _panel;
+        private Text _panelTitle, _panelText;
+        private GameObject _panelNext, _panelRetry, _panelBack;
+
+        private InteractiveBattle _battle;
+        private Combatant _player;
+        private List<SkillSpec> _skills = new List<SkillSpec>();
+        private EnemyCard _target;
+
+        private bool _hasCommand, _panelDone, _retry, _fled;
+        private PlayerCommand _command;
+        private int _speed = 1;
+        private Action _onClose;
+        private bool _built;
+
         public void Build(RectTransform root)
         {
             if (_built) return;
             _built = true;
+            _root = root;
 
-            _background = UiFactory.Panel("Background", root, Vector2.zero, Vector2.one, UiFactory.Parchment);
+            UiFactory.Panel("Backdrop", root, Vector2.zero, Vector2.one, Backdrop);
 
-            // Header: portrait + 제N생 (left), 두 (right)
-            UiFactory.Panel("PortraitFrame", root, new Vector2(0.03f, 0.905f), new Vector2(0.19f, 0.985f), UiFactory.Ink);
-            UiFactory.Label("PortraitText", root, new Vector2(0.03f, 0.905f), new Vector2(0.19f, 0.985f), "비류연", 30, UiFactory.PaperText);
-            UiFactory.Panel("LifeBand", root, new Vector2(0.20f, 0.915f), new Vector2(0.50f, 0.975f), UiFactory.Ink);
-            _lifeLabel = UiFactory.Label("Life", root, new Vector2(0.21f, 0.915f), new Vector2(0.49f, 0.975f), "", 40, UiFactory.Gold);
-            UiFactory.Panel("DooBand", root, new Vector2(0.58f, 0.925f), new Vector2(0.97f, 0.975f), UiFactory.Ink);
-            _dooLabel = UiFactory.Label("Doo", root, new Vector2(0.60f, 0.925f), new Vector2(0.96f, 0.975f), "", 40, UiFactory.Gold, TextAnchor.MiddleRight);
+            // Top bar
+            UiFactory.Panel("TopBar", root, new Vector2(0f, 0.945f), new Vector2(1f, 1f), UiFactory.Ink);
+            _stageLabel = UiFactory.Label("Stage", root, new Vector2(0.04f, 0.947f), new Vector2(0.60f, 0.998f), "", 34, UiFactory.PaperText, TextAnchor.MiddleLeft);
+            var speed = UiFactory.Button("Speed", root, new Vector2(0.62f, 0.953f), new Vector2(0.80f, 0.992f), "속도 x1", UiFactory.InkSoft, OnSpeedPressed, 28);
+            _speedLabel = speed.GetComponentInChildren<Text>();
+            UiFactory.Button("Flee", root, new Vector2(0.82f, 0.953f), new Vector2(0.97f, 0.992f), "포기", UiFactory.InkSoft, OnFleePressed, 28);
 
-            // Stage title + story
-            UiFactory.Panel("TitleBand", root, new Vector2(0.08f, 0.835f), new Vector2(0.92f, 0.900f), UiFactory.Ink);
-            _stageTitle = UiFactory.Label("StageTitle", root, new Vector2(0.10f, 0.835f), new Vector2(0.90f, 0.900f), "", 50, UiFactory.PaperText);
-            UiFactory.Panel("StoryBand", root, new Vector2(0.08f, 0.745f), new Vector2(0.92f, 0.830f), UiFactory.InkSoft);
-            _story = UiFactory.Label("Story", root, new Vector2(0.10f, 0.748f), new Vector2(0.90f, 0.828f), "", 32, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            // Turn order
+            UiFactory.Label("TurnLabel", root, new Vector2(0.02f, 0.905f), new Vector2(0.14f, 0.940f), "순서", 24, UiFactory.Gold);
+            for (int i = 0; i < 7; i++)
+            {
+                float x0 = 0.15f + i * 0.123f;
+                var chip = UiFactory.Panel("Chip" + i, root, new Vector2(x0, 0.905f), new Vector2(x0 + 0.115f, 0.940f), UiFactory.InkSoft);
+                var label = UiFactory.Label("ChipText", root, new Vector2(x0, 0.905f), new Vector2(x0 + 0.115f, 0.940f), "", 22, UiFactory.PaperText);
+                _turnChips.Add(chip);
+                _turnLabels.Add(label);
+            }
 
-            // Enemy HP row (+ boss challenge on the right)
-            UiFactory.Panel("EnemyNameBand", root, new Vector2(0.06f, 0.675f), new Vector2(0.66f, 0.735f), UiFactory.Ink);
-            _enemyName = UiFactory.Label("EnemyName", root, new Vector2(0.08f, 0.675f), new Vector2(0.50f, 0.735f), "", 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
-            _enemyPct = UiFactory.Label("EnemyPct", root, new Vector2(0.50f, 0.675f), new Vector2(0.64f, 0.735f), "", 36, UiFactory.Red, TextAnchor.MiddleRight);
-            _enemyBar = UiFactory.MakeBar("EnemyHp", root, new Vector2(0.06f, 0.660f), new Vector2(0.66f, 0.675f), new Color(0.2f, 0.2f, 0.2f, 0.6f), UiFactory.Red);
-            _killsLabel = UiFactory.Label("Kills", root, new Vector2(0.06f, 0.628f), new Vector2(0.66f, 0.658f), "", 28, UiFactory.Ink, TextAnchor.MiddleLeft);
+            _cardsRoot = UiFactory.Rect("Cards", root, Vector2.zero, Vector2.one);
 
-            var boss = UiFactory.Button("BossButton", root, new Vector2(0.70f, 0.640f), new Vector2(0.96f, 0.735f), "보스 도전", UiFactory.Red, OnBossPressed, 38);
-            _bossButton = boss.gameObject;
-            _bossButtonLabel = boss.GetComponentInChildren<Text>();
-
-            // Enemy art + floating damage layer
-            var enemyArea = UiFactory.Rect("EnemyArea", root, new Vector2(0.18f, 0.32f), new Vector2(0.82f, 0.625f));
-            _enemyRect = enemyArea;
-            _enemyImage = enemyArea.gameObject.AddComponent<Image>();
-            _enemyImage.color = new Color(0.25f, 0.25f, 0.23f, 0.55f);
-            _enemyImage.raycastTarget = false;
-            _enemyImage.preserveAspect = true;
-            _floatLayer = UiFactory.Rect("FloatLayer", root, new Vector2(0f, 0.25f), new Vector2(1f, 0.70f));
-
-            // Battle log
-            _log = UiFactory.Label("Log", root, new Vector2(0.06f, 0.285f), new Vector2(0.94f, 0.318f), "", 30, UiFactory.Ink, TextAnchor.MiddleCenter, FontStyle.Normal);
-
-            var reborn = UiFactory.Button("ReincarnateButton", root, new Vector2(0.70f, 0.545f), new Vector2(0.96f, 0.620f), "환생", UiFactory.Gold, OnReincarnatePressed, 38);
-            _reincarnateButton = reborn.gameObject;
-            reborn.GetComponentInChildren<Text>().color = UiFactory.Ink;
+            // Log line
+            UiFactory.Panel("LogBand", root, new Vector2(0.04f, 0.468f), new Vector2(0.96f, 0.515f), UiFactory.Ink);
+            _log = UiFactory.Label("Log", root, new Vector2(0.06f, 0.468f), new Vector2(0.94f, 0.515f), "", 32, UiFactory.PaperText);
 
             // Player block
-            UiFactory.Panel("PlayerFrame", root, new Vector2(0.05f, 0.03f), new Vector2(0.45f, 0.27f), UiFactory.Ink);
-            UiFactory.Label("PlayerPortrait", root, new Vector2(0.05f, 0.03f), new Vector2(0.45f, 0.27f), "비류연", 56, UiFactory.PaperText);
-            _playerInfo = UiFactory.Label("PlayerInfo", root, new Vector2(0.48f, 0.15f), new Vector2(0.96f, 0.27f), "", 38, UiFactory.Ink, TextAnchor.MiddleLeft);
-            _playerBar = UiFactory.MakeBar("PlayerHp", root, new Vector2(0.48f, 0.115f), new Vector2(0.96f, 0.135f), new Color(0.2f, 0.2f, 0.2f, 0.6f), new Color(0.25f, 0.55f, 0.30f, 1f));
-            _playerHpText = UiFactory.Label("PlayerHpText", root, new Vector2(0.48f, 0.06f), new Vector2(0.96f, 0.11f), "", 32, UiFactory.Ink, TextAnchor.MiddleLeft);
+            _playerBlock = UiFactory.Rect("PlayerBlock", root, new Vector2(0.04f, 0.300f), new Vector2(0.96f, 0.455f));
+            UiFactory.Panel("PlayerBg", _playerBlock, Vector2.zero, Vector2.one, UiFactory.Ink);
+            _playerName = UiFactory.Label("PlayerName", _playerBlock, new Vector2(0.03f, 0.62f), new Vector2(0.42f, 0.97f), "", 36, UiFactory.Gold, TextAnchor.MiddleLeft);
+            _status = UiFactory.Label("Status", _playerBlock, new Vector2(0.42f, 0.62f), new Vector2(0.97f, 0.97f), "", 30, UiFactory.PaperText, TextAnchor.MiddleRight);
+            MakeStatRow(_playerBlock, "체력", 0.42f, HpGreen, out _playerHp, out _playerHpText);
+            MakeStatRow(_playerBlock, "내공", 0.22f, QiBlue, out _playerQi, out _playerQiText);
+            MakeStatRow(_playerBlock, "기세", 0.02f, UiFactory.Gold, out _playerSpirit, out _playerSpiritText);
 
-            LoadStage(GameManager.Instance.Save.Stage);
-            Refresh();
-            StartCoroutine(Loop());
+            // Commands: 2 rows x 4 columns
+            for (int i = 0; i < _commands.Length; i++)
+            {
+                int index = i;
+                int row = i / 4, col = i % 4;
+                float x0 = 0.03f + col * 0.2425f;
+                float y1 = row == 0 ? 0.285f : 0.150f;
+                float y0 = y1 - 0.130f;
+                var btn = UiFactory.Button("Cmd" + i, root, new Vector2(x0, y0), new Vector2(x0 + 0.2275f, y1), "", UiFactory.Red, () => OnCommandPressed(index), 28);
+                _commands[i] = new CommandButton { Button = btn, Image = btn.GetComponent<Image>(), Label = btn.GetComponentInChildren<Text>(), Root = btn.gameObject };
+            }
+
+            // Effects layers (above everything except panels)
+            _fx = UiFactory.Rect("Fx", root, Vector2.zero, Vector2.one);
+            _flash = UiFactory.Panel("Flash", root, Vector2.zero, Vector2.one, new Color(0.8f, 0.1f, 0.1f, 0f));
+            _bannerBg = UiFactory.Panel("BannerBg", root, new Vector2(0f, 0.60f), new Vector2(1f, 0.70f), new Color(0f, 0f, 0f, 0f));
+            _banner = UiFactory.Label("Banner", root, new Vector2(0f, 0.60f), new Vector2(1f, 0.70f), "", 64, UiFactory.Gold);
+
+            BuildPanel(root);
         }
 
-        private void LoadStage(int number)
+        private void MakeStatRow(RectTransform parent, string label, float y0, Color fill, out UiFactory.Bar bar, out Text value)
         {
-            _stage = ContentDatabase.GetStageAtOrAfter(number);
-            if (_stage == null)
-            {
-                _stageTitle.text = "스테이지 데이터 없음";
-                _story.text = "메뉴 BiRyeoDo ▸ Setup Project 를 실행하세요.";
-                return;
-            }
-            GameManager.Instance.Save.Stage = _stage.number;
-            _progress = new StageProgress(_stage.killsToBoss);
-            _challengeBoss = false;
-            _stageTitle.text = "스테이지 " + _stage.number + " · " + _stage.displayName;
-            _story.text = _stage.storyText;
-            if (_stage.background != null)
-            {
-                _background.sprite = _stage.background;
-                _background.color = Color.white;
-            }
+            UiFactory.Label(label + "Label", parent, new Vector2(0.03f, y0), new Vector2(0.15f, y0 + 0.18f), label, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
+            bar = UiFactory.MakeBar(label + "Bar", parent, new Vector2(0.16f, y0 + 0.03f), new Vector2(0.72f, y0 + 0.15f), new Color(0.2f, 0.2f, 0.2f, 0.9f), fill);
+            value = UiFactory.Label(label + "Value", parent, new Vector2(0.73f, y0), new Vector2(0.97f, y0 + 0.18f), "", 28, UiFactory.PaperText, TextAnchor.MiddleRight);
         }
 
-        private void Refresh()
+        private void BuildPanel(RectTransform root)
+        {
+            var rect = UiFactory.Rect("Panel", root, new Vector2(0.06f, 0.30f), new Vector2(0.94f, 0.72f));
+            _panel = rect.gameObject;
+            var bg = rect.gameObject.AddComponent<Image>();
+            bg.color = new Color(0.07f, 0.07f, 0.07f, 0.96f);
+            _panelTitle = UiFactory.Label("Title", rect, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.97f), "", 46, UiFactory.Gold);
+            _panelText = UiFactory.Label("Text", rect, new Vector2(0.06f, 0.26f), new Vector2(0.94f, 0.80f), "", 36, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            _panelNext = UiFactory.Button("Next", rect, new Vector2(0.30f, 0.05f), new Vector2(0.70f, 0.22f), "다음", UiFactory.Red, () => _panelDone = true, 40).gameObject;
+            _panelRetry = UiFactory.Button("Retry", rect, new Vector2(0.06f, 0.05f), new Vector2(0.48f, 0.22f), "다시 도전", UiFactory.Red, () => { _retry = true; _panelDone = true; }, 36).gameObject;
+            _panelBack = UiFactory.Button("Back", rect, new Vector2(0.52f, 0.05f), new Vector2(0.94f, 0.22f), "강호로", UiFactory.InkSoft, () => { _retry = false; _panelDone = true; }, 36).gameObject;
+            _panel.SetActive(false);
+        }
+
+        // ------------------------------------------------------------------ flow
+
+        public void Open(StageData stage, Action onClose)
+        {
+            _onClose = onClose;
+            StopAllCoroutines();
+            StartCoroutine(RunStage(stage));
+        }
+
+        private IEnumerator RunStage(StageData stage)
         {
             var save = GameManager.Instance.Save;
-            _lifeLabel.text = "제" + save.Life + "생  Lv." + save.Level;
-            _dooLabel.text = save.Doo.ToString("N0") + " 두";
+            _fled = false;
+            _stageLabel.text = "스테이지 " + stage.Number + " · " + stage.Name;
+            ClearCards();
+            SetCommandsVisible(false);
+            _log.text = "";
+            _status.text = "";
 
-            var st = Progression.StatsFor(save.Level, save.Life);
-            string art = ArtName();
-            _playerInfo.text = art + "\n속도 " + st.Speed + " · 치명타 " + (st.CritRate * 100f).ToString("0.0") + "%";
+            yield return ShowStory(stage.Name, stage.Intro);
 
-            if (_progress != null)
+            bool again = !_fled;
+            while (again)
             {
-                _killsLabel.text = "처치 " + _progress.Kills + " / " + _progress.KillsToBoss;
-                _bossButton.SetActive(_progress.BossReady && !_challengeBoss);
-            }
-            _reincarnateButton.SetActive(Progression.CanReincarnate(save));
-        }
+                again = false;
+                BuildPlayer();
+                long gainedExp = 0, gainedDoo = 0;
+                bool cleared = true;
 
-        private string ArtName()
-        {
-            var ids = GameManager.Instance.Save.EquippedArts;
-            MartialArtDef best = null;
-            foreach (var id in ids)
-            {
-                var a = ContentDatabase.GetArt(id);
-                if (a != null && (best == null || a.power > best.power)) best = a;
-            }
-            return best != null ? best.displayName : "맨손";
-        }
-
-        private void OnReincarnatePressed()
-        {
-            var save = GameManager.Instance.Save;
-            if (!Progression.Reincarnate(save)) return;
-            GameManager.Instance.SaveNow();
-            LoadStage(save.Stage);
-            _log.text = "환생! 제" + save.Life + "생이 시작된다. 두와 무공은 그대로 이어진다.";
-            Refresh();
-        }
-
-        private void OnBossPressed()
-        {
-            if (_progress == null || !_progress.BossReady || _stage == null || _stage.boss == null) return;
-            _challengeBoss = true;
-            _bossButton.SetActive(false);
-            _log.text = "보스 도전 준비! 다음 전투에서 " + _stage.boss.displayName + "와(과) 맞붙는다.";
-        }
-
-        private EnemyDef PickEnemy()
-        {
-            if (_challengeBoss && _stage.boss != null) return _stage.boss;
-            if (_stage.enemies == null || _stage.enemies.Length == 0) return _stage.boss;
-            return _stage.enemies[Random.Range(0, _stage.enemies.Length)];
-        }
-
-        private IEnumerator Loop()
-        {
-            while (true)
-            {
-                if (_stage == null) { yield return new WaitForSeconds(1f); continue; }
-
-                var enemy = PickEnemy();
-                if (enemy == null) { _log.text = "적 데이터가 없습니다."; yield return new WaitForSeconds(1f); continue; }
-
-                var arts = new List<MartialArtDef>();
-                foreach (var id in GameManager.Instance.Save.EquippedArts)
+                for (int i = 0; i < stage.Encounters.Length; i++)
                 {
-                    var a = ContentDatabase.GetArt(id);
-                    if (a != null) arts.Add(a);
+                    _stageLabel.text = "스테이지 " + stage.Number + " · " + stage.Name + "  (" + (i + 1) + "/" + stage.Encounters.Length + ")";
+                    yield return Banner(i == stage.Encounters.Length - 1 ? "결전!" : "전투 " + (i + 1), 0.7f);
+                    yield return Fight(stage.Encounters[i]);
+
+                    if (_fled) { cleared = false; break; }
+                    if (!_battle.PlayerWon) { cleared = false; break; }
+
+                    // Rewards
+                    long exp = 0, doo = 0;
+                    foreach (var id in stage.Encounters[i])
+                    {
+                        exp += EarlyGameContent.ExpReward(stage, id);
+                        doo += EarlyGameContent.DooReward(stage, id);
+                    }
+                    int levels = Progression.AddExp(save, exp);
+                    save.Doo += doo;
+                    gainedExp += exp; gainedDoo += doo;
+                    GameManager.Instance.SaveNow();
+                    if (levels > 0) RebuildPlayerForNewLevel();
+                    yield return Banner("승리!  경험 +" + exp + "  두 +" + doo + (levels > 0 ? "\nLv." + save.Level + " 상승!" : ""), levels > 0 ? 1.4f : 0.9f);
+                    _player.RestBetweenFights(0.5f);
+                    RefreshPlayer();
                 }
 
-                ShowEnemy(enemy);
-                BattleResult result = null;
-                _controller.EventPlayed = OnEvent;
-                _controller.BattleFinished = r => result = r;
-                _controller.StartBattle(enemy, arts);
-                _playerBar.SetPct(1f);
-                _playerHpText.text = _controller.Player.Stats.MaxHp + " / " + _controller.Player.Stats.MaxHp;
-
-                while (result == null) yield return null;
-
-                bool wasBoss = enemy.isBoss && _challengeBoss;
-                if (result.PlayerWon)
+                if (_fled)
                 {
-                    _log.text = enemy.displayName + " 처치!  +" + enemy.dooReward + "두  +" + enemy.expReward + " 경험";
-                    if (wasBoss) OnBossCleared(); else _progress.OnNormalWin();
+                    SetCommandsVisible(false);
+                    break;
+                }
+                if (cleared)
+                {
+                    save.ClearedStage = Math.Max(save.ClearedStage, stage.Number);
+                    GameManager.Instance.SaveNow();
+                    yield return ShowStory(stage.Name + " 돌파", stage.Outro);
+                    yield return ShowResult("스테이지 돌파!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo, false);
                 }
                 else
                 {
-                    _log.text = "패배... 다시 수련하고 도전한다.";
-                    _challengeBoss = false;
+                    yield return ShowResult("패배...", "다시 도전하면 이 스테이지의 첫 전투부터 시작한다. (이미 얻은 경험과 두는 그대로 남는다.)", true);
+                    again = _retry;
                 }
-                Refresh();
-                yield return new WaitForSeconds(wasBoss && result.PlayerWon ? 1.5f : 0.9f);
             }
+
+            _panel.SetActive(false);
+            _banner.text = "";
+            _bannerBg.color = new Color(0f, 0f, 0f, 0f);
+            ClearCards();
+            _onClose?.Invoke();
         }
 
-        private void OnBossCleared()
+        private IEnumerator Fight(string[] enemyIds)
+        {
+            SpawnCards(enemyIds);
+            _battle = new InteractiveBattle(_player, _cards.ConvertAll(c => c.Unit), new SeededRandom(Environment.TickCount));
+            _target = _cards[0];
+            RefreshPlayer();
+            RefreshCards();
+
+            yield return PlayEvents(_battle.Begin());
+
+            while (!_battle.IsOver && !_fled)
+            {
+                if (_target == null || !_target.Unit.IsAlive) _target = _cards.Find(c => c.Unit.IsAlive);
+                RefreshCards();
+                RefreshPlayer();
+                RefreshCommands();
+                RefreshTurnOrder();
+
+                _hasCommand = false;
+                while (!_hasCommand && !_fled) yield return null;
+                if (_fled) yield break;
+
+                SetCommandsInteractable(false);
+                var events = _battle.PlayerAct(_command);
+                yield return PlayEvents(events);
+            }
+
+            RefreshPlayer();
+            RefreshCards();
+            SetCommandsVisible(false);
+            yield return new WaitForSeconds(0.25f);
+        }
+
+        // ------------------------------------------------------------------ setup
+
+        private void BuildPlayer()
         {
             var save = GameManager.Instance.Save;
-            var next = ContentDatabase.GetStageAtOrAfter(_stage.number + 1);
-            if (next == null || next.number <= _stage.number)
+            _skills = new List<SkillSpec>();
+            foreach (var id in save.EquippedArts)
             {
-                _log.text = "마지막 스테이지를 돌파했다! (다음 스테이지는 추후 추가)";
-                _challengeBoss = false;
-                _progress.Reset(_stage.killsToBoss);
-                return;
+                var art = EarlyGameContent.FindArt(id);
+                if (art != null && _skills.Count < Progression.MaxEquippedArts) _skills.Add(art.ToSpec());
             }
-            save.Stage = next.number;
-            GameManager.Instance.SaveNow();
-            LoadStage(next.number);
+            _player = new Combatant("player", "비류연", Team.Player, Progression.StatsFor(save.Level, save.Life), _skills);
+            _playerName.text = "비류연  Lv." + save.Level;
         }
 
-        private void ShowEnemy(EnemyDef enemy)
+        private void RebuildPlayerForNewLevel()
         {
-            _enemyName.text = (enemy.isBoss ? "[보스] " : "") + enemy.displayName;
-            _enemyBar.SetPct(1f);
-            _enemyPct.text = "100%";
-            if (enemy.portrait != null)
+            var save = GameManager.Instance.Save;
+            float ratio = (float)_player.Hp / Math.Max(1, _player.Stats.MaxHp);
+            _player = new Combatant("player", "비류연", Team.Player, Progression.StatsFor(save.Level, save.Life), _skills);
+            _player.Hp = Math.Max(1, (int)Math.Round(_player.Stats.MaxHp * ratio));
+            _playerName.text = "비류연  Lv." + save.Level;
+        }
+
+        private void ClearCards()
+        {
+            foreach (var c in _cards) if (c.Root != null) Destroy(c.Root.gameObject);
+            _cards.Clear();
+        }
+
+        private void SpawnCards(string[] enemyIds)
+        {
+            ClearCards();
+            int n = enemyIds.Length;
+            const float w = 0.30f, gap = 0.02f, y0 = 0.535f, y1 = 0.885f;
+            float startX = 0.5f - (n * w + (n - 1) * gap) / 2f;
+            for (int i = 0; i < n; i++)
             {
-                _enemyImage.sprite = enemy.portrait;
-                _enemyImage.color = Color.white;
+                var data = EarlyGameContent.FindEnemy(enemyIds[i]);
+                float x0 = startX + i * (w + gap);
+                var card = new EnemyCard { Unit = data.CreateCombatant(data.Id + "#" + i), Center = new Vector2(x0 + w / 2f, (y0 + y1) / 2f) };
+                card.Root = UiFactory.Rect("Card" + i, _cardsRoot, new Vector2(x0, y0), new Vector2(x0 + w, y1));
+                card.Frame = UiFactory.Panel("Frame", card.Root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0f));
+                card.Body = UiFactory.Panel("Body", card.Root, new Vector2(0.025f, 0.02f), new Vector2(0.975f, 0.98f), data.IsBoss ? new Color(0.35f, 0.10f, 0.09f, 1f) : UiFactory.Ink);
+                card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.97f), data.Name, 30, UiFactory.PaperText);
+                card.Glyph = UiFactory.Label("Glyph", card.Root, new Vector2(0.05f, 0.42f), new Vector2(0.95f, 0.84f), FirstGlyph(data.Name), 150, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
+                card.Hp = UiFactory.MakeBar("Hp", card.Root, new Vector2(0.08f, 0.31f), new Vector2(0.92f, 0.39f), new Color(0.2f, 0.2f, 0.2f, 0.9f), UiFactory.Red);
+                card.HpText = UiFactory.Label("HpText", card.Root, new Vector2(0.05f, 0.22f), new Vector2(0.95f, 0.31f), "", 22, UiFactory.PaperText);
+                card.Intent = UiFactory.Label("Intent", card.Root, new Vector2(0.05f, 0.03f), new Vector2(0.95f, 0.22f), "", 24, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+
+                // Tap to target
+                var tap = card.Root.gameObject.AddComponent<Button>();
+                var tapImg = card.Root.gameObject.AddComponent<Image>();
+                tapImg.color = new Color(0f, 0f, 0f, 0f);
+                tap.targetGraphic = tapImg;
+                var captured = card;
+                tap.onClick.AddListener(() => { if (captured.Unit.IsAlive) { _target = captured; RefreshCards(); } });
+                _cards.Add(card);
+            }
+        }
+
+        private static string FirstGlyph(string name)
+        {
+            // Skip honorific prefixes so the big letter is a meaningful syllable.
+            string[] skip = { "비풍도 ", "일도파쇄 ", "선풍검룡 ", "호아장주 ", "염도 ", "패호 ", "패룡 " };
+            foreach (var s in skip) if (name.StartsWith(s)) name = name.Substring(s.Length);
+            return name.Length > 0 ? name.Substring(0, 1) : "?";
+        }
+
+        // ------------------------------------------------------------------ refresh
+
+        private void RefreshCards()
+        {
+            foreach (var c in _cards)
+            {
+                var u = c.Unit;
+                bool dead = !u.IsAlive;
+                c.Hp.SetPct(u.Stats.MaxHp > 0 ? (float)u.Hp / u.Stats.MaxHp : 0f);
+                c.HpText.text = u.Hp + " / " + u.Stats.MaxHp;
+                c.Frame.color = c == _target && !dead ? UiFactory.Gold : new Color(0f, 0f, 0f, 0f);
+                SetAlpha(c.Body, dead ? 0.25f : 1f);
+                c.Glyph.color = dead ? new Color(1f, 1f, 1f, 0.2f) : c.Glyph.color;
+                if (dead) { c.Intent.text = "쓰러졌다"; continue; }
+                var move = u.PeekMove();
+                if (u.Charging)
+                {
+                    c.Intent.text = "위험! " + move.Name;
+                    c.Intent.color = UiFactory.Red;
+                }
+                else if (move.Charge)
+                {
+                    c.Intent.text = "다음: " + move.Name;
+                    c.Intent.color = UiFactory.Gold;
+                }
+                else
+                {
+                    c.Intent.text = "다음: " + move.Name + (move.Hits > 1 ? " x" + move.Hits : "");
+                    c.Intent.color = UiFactory.PaperText;
+                }
+            }
+        }
+
+        private void RefreshPlayer()
+        {
+            if (_player == null) return;
+            _playerHp.SetPct((float)_player.Hp / Math.Max(1, _player.Stats.MaxHp));
+            _playerQi.SetPct((float)_player.Qi / Math.Max(1, _player.Stats.MaxQi));
+            _playerSpirit.SetPct(_player.Spirit / (float)InteractiveBattle.MaxSpirit);
+            _playerHpText.text = _player.Hp + "/" + _player.Stats.MaxHp;
+            _playerQiText.text = _player.Qi + "/" + _player.Stats.MaxQi;
+            _playerSpiritText.text = _player.Spirit + "/" + InteractiveBattle.MaxSpirit;
+            _status.text = _player.Guarding ? "방어 중" : _player.Evading ? "회피 중" : "";
+        }
+
+        private void RefreshTurnOrder()
+        {
+            var order = _battle.PreviewOrder(_turnChips.Count);
+            for (int i = 0; i < _turnChips.Count; i++)
+            {
+                bool has = i < order.Count;
+                _turnChips[i].gameObject.SetActive(has);
+                _turnLabels[i].gameObject.SetActive(has);
+                if (!has) continue;
+                bool isPlayer = order[i] == _player;
+                _turnChips[i].color = isPlayer ? UiFactory.Gold : new Color(0.55f, 0.16f, 0.14f, 1f);
+                _turnLabels[i].text = isPlayer ? "나" : ShortName(order[i].Name);
+                _turnLabels[i].color = isPlayer ? UiFactory.Ink : UiFactory.PaperText;
+            }
+        }
+
+        private static string ShortName(string name)
+        {
+            int space = name.LastIndexOf(' ');
+            if (space >= 0) name = name.Substring(space + 1);
+            return name.Length > 3 ? name.Substring(0, 3) : name;
+        }
+
+        private void RefreshCommands()
+        {
+            SetCommandsVisible(true);
+            SetCommand(0, "공격", "내공 0", true);
+            for (int i = 0; i < Progression.MaxEquippedArts; i++)
+            {
+                int slot = 1 + i;
+                if (i >= _skills.Count) { _commands[slot].Root.SetActive(false); continue; }
+                var s = _skills[i];
+                int cd = _player.CooldownLeft(s);
+                bool ok = _battle.CanUse(s);
+                string sub = cd > 0 ? "재사용 " + cd + "턴" : s.SpiritCost > 0 ? "기세 " + s.SpiritCost : s.QiCost > 0 ? "내공 " + s.QiCost : "";
+                if (cd == 0 && _player.Qi < s.QiCost) sub = "내공 부족";
+                SetCommand(slot, s.Name, sub, ok);
+            }
+            SetCommand(5, "방어", "피해 60% 감소", true);
+            SetCommand(6, "운기", "내공 +" + InteractiveBattle.MeditateQi + " 체력 소량", true);
+            _commands[7].Root.SetActive(false);
+        }
+
+        private void SetCommand(int slot, string name, string sub, bool enabled)
+        {
+            var c = _commands[slot];
+            c.Root.SetActive(true);
+            c.Label.text = name + (string.IsNullOrEmpty(sub) ? "" : "\n" + sub);
+            c.Button.interactable = enabled;
+            c.Image.color = enabled ? (slot == 5 ? new Color(0.25f, 0.40f, 0.55f, 1f) : slot == 6 ? new Color(0.25f, 0.45f, 0.35f, 1f) : UiFactory.Red) : Disabled;
+        }
+
+        private void SetCommandsVisible(bool visible)
+        {
+            foreach (var c in _commands) if (c != null) c.Root.SetActive(visible);
+        }
+
+        private void SetCommandsInteractable(bool on)
+        {
+            foreach (var c in _commands) if (c != null) c.Button.interactable = on;
+        }
+
+        // ------------------------------------------------------------------ input
+
+        private void OnCommandPressed(int slot)
+        {
+            if (_battle == null || !_battle.IsPlayerTurn || _hasCommand) return;
+            if (_target == null || !_target.Unit.IsAlive) _target = _cards.Find(c => c.Unit.IsAlive);
+            if (slot == 0) _command = PlayerCommand.UseSkill(SkillSpec.BasicAttack(), _target != null ? _target.Unit : null);
+            else if (slot >= 1 && slot <= Progression.MaxEquippedArts)
+            {
+                int i = slot - 1;
+                if (i >= _skills.Count || !_battle.CanUse(_skills[i])) return;
+                _command = PlayerCommand.UseSkill(_skills[i], _target != null ? _target.Unit : null);
+            }
+            else if (slot == 5) _command = PlayerCommand.Guard();
+            else if (slot == 6) _command = PlayerCommand.Meditate();
+            else return;
+            _hasCommand = true;
+        }
+
+        private void OnSpeedPressed()
+        {
+            _speed = _speed == 1 ? 2 : _speed == 2 ? 3 : 1;
+            _speedLabel.text = "속도 x" + _speed;
+        }
+
+        private void OnFleePressed()
+        {
+            _fled = true;
+            _panelDone = true;
+            _retry = false;
+        }
+
+        // ------------------------------------------------------------------ playback
+
+        private float Wait(float seconds) { return seconds / _speed; }
+
+        private IEnumerator PlayEvents(List<BattleEvent> events)
+        {
+            foreach (var ev in events)
+            {
+                if (_fled) yield break;
+                bool byPlayer = ev.ActorId == _player.Id;
+                var actorName = byPlayer ? "비류연" : _cards.Find(c => c.Unit.Id == ev.ActorId)?.Unit.Name ?? "";
+
+                switch (ev.Kind)
+                {
+                    case EventKind.Attack:
+                        if (ev.HitIndex == 0) _log.text = actorName + "의 " + SkillLabel(ev) + (ev.HitCount > 1 ? " (" + ev.HitCount + "연타)" : "");
+                        if (byPlayer) yield return PlayerHit(ev);
+                        else yield return EnemyHit(ev);
+                        break;
+                    case EventKind.Guard:
+                        _log.text = ev.Message;
+                        Float(PlayerPos(), "방어!", new Color(0.5f, 0.7f, 0.95f), 56);
+                        RefreshPlayer();
+                        yield return new WaitForSeconds(Wait(SmallDelay));
+                        break;
+                    case EventKind.Meditate:
+                        _log.text = ev.Message;
+                        Float(PlayerPos(), "+" + ev.Heal, HpGreen, 64);
+                        RefreshPlayer();
+                        yield return new WaitForSeconds(Wait(SmallDelay));
+                        break;
+                    case EventKind.Evade:
+                        _log.text = ev.Message;
+                        Float(PlayerPos(), "회피 태세", new Color(0.7f, 0.9f, 1f), 56);
+                        RefreshPlayer();
+                        yield return new WaitForSeconds(Wait(SmallDelay));
+                        break;
+                    case EventKind.Charge:
+                        _log.text = ev.Message;
+                        var card = _cards.Find(c => c.Unit.Id == ev.ActorId);
+                        if (card != null) { Float(card.Center, "!!", UiFactory.Red, 90); yield return Shake(card.Root, 10f); }
+                        RefreshCards();
+                        yield return new WaitForSeconds(Wait(SmallDelay));
+                        break;
+                }
+            }
+            RefreshPlayer();
+            RefreshCards();
+        }
+
+        private string SkillLabel(BattleEvent ev)
+        {
+            if (ev.ActorId == _player.Id)
+            {
+                var s = _skills.Find(x => x.Id == ev.SkillId);
+                return s != null ? s.Name : "공격";
+            }
+            return ev.SkillId;
+        }
+
+        private IEnumerator PlayerHit(BattleEvent ev)
+        {
+            var card = _cards.Find(c => c.Unit.Id == ev.TargetId);
+            if (card == null) yield break;
+            Float(card.Center + new Vector2(UnityEngine.Random.Range(-0.05f, 0.05f), 0.02f * ev.HitIndex), ev.Damage + (ev.IsCrit ? "!" : ""), ev.IsCrit ? UiFactory.Gold : UiFactory.PaperText, ev.IsCrit ? 84 : 64);
+            card.Hp.SetPct(card.Unit.Stats.MaxHp > 0 ? (float)ev.TargetHpAfter / card.Unit.Stats.MaxHp : 0f);
+            card.HpText.text = ev.TargetHpAfter + " / " + card.Unit.Stats.MaxHp;
+            StartCoroutine(Shake(card.Root, ev.IsCrit ? 22f : 14f));
+            if (ev.TargetDefeated) { SetAlpha(card.Body, 0.25f); card.Intent.text = "쓰러졌다"; }
+            RefreshPlayer();
+            yield return new WaitForSeconds(Wait(ev.HitCount > 1 ? HitDelay : StepDelay));
+        }
+
+        private IEnumerator EnemyHit(BattleEvent ev)
+        {
+            var attacker = _cards.Find(c => c.Unit.Id == ev.ActorId);
+            if (attacker != null) StartCoroutine(Shake(attacker.Root, 8f));
+            if (ev.Dodged)
+            {
+                Float(PlayerPos(), "회피!", new Color(0.7f, 0.9f, 1f), 70);
             }
             else
             {
-                _enemyImage.sprite = null;
-                _enemyImage.color = enemy.isBoss ? new Color(0.45f, 0.12f, 0.10f, 0.6f) : new Color(0.25f, 0.25f, 0.23f, 0.55f);
+                Float(PlayerPos(), "-" + ev.Damage + (ev.Guarded ? " 방어" : ev.IsCrit ? "!" : ""), ev.Guarded ? new Color(0.5f, 0.7f, 0.95f) : UiFactory.Red, ev.IsCrit ? 84 : 66);
+                _playerHp.SetPct((float)ev.TargetHpAfter / Math.Max(1, _player.Stats.MaxHp));
+                _playerHpText.text = ev.TargetHpAfter + "/" + _player.Stats.MaxHp;
+                StartCoroutine(Shake(_playerBlock, ev.Guarded ? 6f : 16f));
+                StartCoroutine(Flash(ev.Guarded ? 0.12f : 0.30f));
             }
+            yield return new WaitForSeconds(Wait(ev.HitCount > 1 ? HitDelay : StepDelay));
         }
 
-        private void OnEvent(BattleEvent ev)
+        private static Vector2 PlayerPos() { return new Vector2(0.50f, 0.40f); }
+
+        // ------------------------------------------------------------------ effects
+
+        private void Float(Vector2 at, string text, Color color, int size)
         {
-            bool onPlayer = ev.TargetId == _controller.Player.Id;
-            var targetMax = onPlayer ? _controller.Player.Stats.MaxHp : _controller.Enemy.Stats.MaxHp;
-            float pct = targetMax > 0 ? (float)ev.TargetHpAfter / targetMax : 0f;
-
-            var actor = ev.ActorId == _controller.Player.Id ? _controller.Player : _controller.Enemy;
-            _log.text = actor.Name + "의 " + _controller.SkillName(actor, ev.SkillId) + (ev.IsCrit ? " (치명타!)" : "");
-
-            if (onPlayer)
-            {
-                _playerBar.SetPct(pct);
-                _playerHpText.text = ev.TargetHpAfter + " / " + targetMax;
-                StartCoroutine(Shake(_floatLayer, 12f));
-                SpawnFloat("-" + ev.Damage, new Vector2(-250f, -330f), false);
-            }
-            else
-            {
-                _enemyBar.SetPct(pct);
-                _enemyPct.text = Mathf.CeilToInt(pct * 100f) + "%";
-                StartCoroutine(Shake(_enemyRect, 16f));
-                SpawnFloat("-" + ev.Damage + (ev.IsCrit ? "!" : ""), Vector2.zero, ev.IsCrit);
-            }
-        }
-
-        private void SpawnFloat(string text, Vector2 offset, bool crit)
-        {
-            var rt = UiFactory.Rect("Dmg", _floatLayer, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
-            rt.sizeDelta = new Vector2(420f, 120f);
-            rt.anchoredPosition = offset + new Vector2(Random.Range(-60f, 60f), 40f);
+            var rt = UiFactory.Rect("Float", _fx, at, at);
+            rt.sizeDelta = new Vector2(520f, 140f);
             var t = rt.gameObject.AddComponent<Text>();
             t.font = UiFactory.KoreanFont;
             t.text = text;
-            t.fontSize = crit ? 96 : 72;
+            t.fontSize = size;
             t.fontStyle = FontStyle.Bold;
-            t.color = crit ? UiFactory.Gold : UiFactory.Red;
+            t.color = color;
             t.alignment = TextAnchor.MiddleCenter;
             t.horizontalOverflow = HorizontalWrapMode.Overflow;
             t.verticalOverflow = VerticalWrapMode.Overflow;
@@ -294,12 +585,12 @@ namespace BiRyeoDo.Game.UI
 
         private IEnumerator FloatUp(RectTransform rt, Text t)
         {
-            const float duration = 0.8f;
+            float duration = 0.7f / _speed;
             Vector2 start = rt.anchoredPosition;
             for (float e = 0f; e < duration; e += Time.deltaTime)
             {
                 float k = e / duration;
-                rt.anchoredPosition = start + new Vector2(0f, 140f * k);
+                rt.anchoredPosition = start + new Vector2(0f, 150f * k);
                 var c = t.color; c.a = 1f - k * k; t.color = c;
                 yield return null;
             }
@@ -308,13 +599,73 @@ namespace BiRyeoDo.Game.UI
 
         private IEnumerator Shake(RectTransform rt, float amount)
         {
+            if (rt == null) yield break;
             Vector2 origin = rt.anchoredPosition;
             for (int i = 0; i < 6; i++)
             {
-                rt.anchoredPosition = origin + new Vector2(Random.Range(-amount, amount), Random.Range(-amount, amount) * 0.5f);
-                yield return new WaitForSeconds(0.025f);
+                if (rt == null) yield break;
+                rt.anchoredPosition = origin + new Vector2(UnityEngine.Random.Range(-amount, amount), UnityEngine.Random.Range(-amount, amount) * 0.5f);
+                yield return new WaitForSeconds(0.02f / _speed);
             }
-            rt.anchoredPosition = origin;
+            if (rt != null) rt.anchoredPosition = origin;
+        }
+
+        private IEnumerator Flash(float peak)
+        {
+            for (float e = 0f; e < 0.25f; e += Time.deltaTime)
+            {
+                var c = _flash.color; c.a = peak * (1f - e / 0.25f); _flash.color = c;
+                yield return null;
+            }
+            var end = _flash.color; end.a = 0f; _flash.color = end;
+        }
+
+        private IEnumerator Banner(string text, float seconds)
+        {
+            _banner.text = text;
+            _bannerBg.color = new Color(0f, 0f, 0f, 0.65f);
+            yield return new WaitForSeconds(seconds / _speed);
+            _banner.text = "";
+            _bannerBg.color = new Color(0f, 0f, 0f, 0f);
+        }
+
+        private static void SetAlpha(Image img, float a)
+        {
+            var c = img.color; c.a = a; img.color = c;
+        }
+
+        // ------------------------------------------------------------------ panels
+
+        private IEnumerator ShowStory(string title, string[] lines)
+        {
+            SetCommandsVisible(false);
+            for (int i = 0; i < lines.Length && !_fled; i++)
+            {
+                _panelTitle.text = title;
+                _panelText.text = lines[i];
+                _panelNext.SetActive(true);
+                _panelRetry.SetActive(false);
+                _panelBack.SetActive(false);
+                _panel.SetActive(true);
+                _panelDone = false;
+                while (!_panelDone) yield return null;
+                _panel.SetActive(false);
+            }
+        }
+
+        private IEnumerator ShowResult(string title, string text, bool defeat)
+        {
+            SetCommandsVisible(false);
+            _panelTitle.text = title;
+            _panelText.text = text;
+            _panelNext.SetActive(!defeat);
+            _panelRetry.SetActive(defeat);
+            _panelBack.SetActive(defeat);
+            _panel.SetActive(true);
+            _panelDone = false;
+            _retry = false;
+            while (!_panelDone) yield return null;
+            _panel.SetActive(false);
         }
     }
 }

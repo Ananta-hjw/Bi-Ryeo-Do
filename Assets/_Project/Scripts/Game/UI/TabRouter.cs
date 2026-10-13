@@ -2,18 +2,17 @@ using UnityEngine;
 
 namespace BiRyeoDo.Game.UI
 {
-    /// <summary>Bottom tab bar: 무공 / 경영 / 전투 / 기화 / 행낭. Shows one panel at a time.</summary>
+    /// <summary>Bottom tab bar: 강호 (stage select) / 무공 (learn and equip). Shows one panel at a time.</summary>
     public class TabRouter : MonoBehaviour
     {
-        public enum Tab { MartialArts, Management, Battle, Fortune, Inventory }
+        public enum Tab { World, MartialArts }
 
         [Tooltip("Panels indexed by the Tab enum order.")]
         public GameObject[] panels;
-        public Tab startTab = Tab.Battle;
+        public Tab startTab = Tab.World;
 
         private void Start() { Show((int)startTab); } // no-op until MainScreen has assigned panels
 
-        /// <summary>Wire each tab button's OnClick to this with its enum index.</summary>
         public void Show(int index)
         {
             if (panels == null) return;

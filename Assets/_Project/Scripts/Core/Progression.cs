@@ -5,7 +5,7 @@ namespace BiRyeoDo.Core
     /// <summary>Growth rules: leveling, stat curve, reincarnation. Numbers are placeholders to tune in Docs/GAME_DESIGN.md.</summary>
     public static class Progression
     {
-        public const int MinLevelToReincarnate = 30;
+        public const int MinLevelToReincarnate = 20;
         public const float LifeBonusPerLife = 0.10f;
         public const int MaxEquippedArts = 4;
 
@@ -50,14 +50,14 @@ namespace BiRyeoDo.Core
             return save.Level >= MinLevelToReincarnate;
         }
 
-        /// <summary>Starts the next life. Keeps currency and learned arts; resets level, exp and stage.</summary>
+        /// <summary>Starts the next life. Keeps currency and learned arts; resets level, exp and stage progress.</summary>
         public static bool Reincarnate(SaveData save)
         {
             if (!CanReincarnate(save)) return false;
             save.Life++;
             save.Level = 1;
             save.Exp = 0;
-            save.Stage = 1;
+            save.ClearedStage = 0;
             return true;
         }
     }

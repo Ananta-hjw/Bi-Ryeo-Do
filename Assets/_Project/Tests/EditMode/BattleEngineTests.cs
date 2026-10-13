@@ -79,20 +79,5 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(2, save.Life);
             Assert.AreEqual(1, save.Level);
         }
-
-        [Test]
-        public void BossUnlocksAfterEnoughKills()
-        {
-            var sp = new StageProgress(3);
-            Assert.IsFalse(sp.BossReady);
-            sp.OnNormalWin(); sp.OnNormalWin();
-            Assert.IsFalse(sp.BossReady);
-            sp.OnNormalWin(); sp.OnNormalWin();
-            Assert.IsTrue(sp.BossReady);
-            Assert.AreEqual(3, sp.Kills);
-            sp.Reset(5);
-            Assert.IsFalse(sp.BossReady);
-            Assert.AreEqual(5, sp.KillsToBoss);
-        }
     }
 }

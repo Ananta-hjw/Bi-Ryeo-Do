@@ -19,10 +19,17 @@ namespace BiRyeoDo.Game.Systems
             EnsureStarterArt();
         }
 
+        /// <summary>Every art that costs nothing is known from the start and equipped (up to the limit).</summary>
         private void EnsureStarterArt()
         {
-            if (Save.LearnedArts.Count == 0) Save.LearnedArts.Add(ContentDatabase.StarterArtId);
-            if (Save.EquippedArts.Count == 0) Save.EquippedArts.Add(ContentDatabase.StarterArtId);
+            foreach (var art in EarlyGameContent.Arts)
+            {
+                if (art.LearnCost > 0) continue;
+                if (!Save.LearnedArts.Contains(art.Id)) Save.LearnedArts.Add(art.Id);
+            }
+            if (Save.EquippedArts.Count == 0)
+                foreach (var id in Save.LearnedArts)
+                    if (Save.EquippedArts.Count < Progression.MaxEquippedArts) Save.EquippedArts.Add(id);
         }
 
         public void SaveNow() { SaveService.Save(Save); }

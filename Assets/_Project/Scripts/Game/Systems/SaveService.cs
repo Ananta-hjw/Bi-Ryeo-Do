@@ -17,7 +17,7 @@ namespace BiRyeoDo.Game.Systems
                 if (File.Exists(Path_))
                 {
                     var data = JsonUtility.FromJson<SaveData>(File.ReadAllText(Path_));
-                    if (data != null) return data;
+                    if (data != null && data.Version == SaveData.CurrentVersion) return data; // older schemas are discarded
                 }
             }
             catch (Exception e)
