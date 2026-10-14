@@ -58,6 +58,7 @@ namespace BiRyeoDo.Core
             save.Level = 1;
             save.Exp = 0;
             save.ClearedStage = 0;
+            save.SwordRank = 1;
             return true;
         }
     }

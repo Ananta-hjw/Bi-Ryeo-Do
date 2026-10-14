@@ -71,7 +71,7 @@ namespace BiRyeoDo.Game.UI
         private List<Combatant> _party = new List<Combatant>();
         private EnemyCard _target;
 
-        private bool _hasCommand, _panelDone, _retry, _fled, _itemMode;
+        private bool _hasCommand, _panelDone, _retry, _fled, _itemMode, _drawn;
         private PlayerCommand _command;
         private int _speed = 1;
         private Action _onClose;
@@ -239,6 +239,84 @@ namespace BiRyeoDo.Game.UI
             _onClose?.Invoke();
         }
 
+        // ------------------------------------------------------------------ 승급 비무
+
+        /// <summary>Opens a 승급 비무: the fee was already paid by the caller. Two solo duels against the offer's opponents.</summary>
+        public void OpenPromotion(PromotionOffer offer, Action onClose)
+        {
+            _onClose = onClose;
+            StopAllCoroutines();
+            StartCoroutine(RunPromotion(offer));
+        }
+
+        private IEnumerator RunPromotion(PromotionOffer offer)
+        {
+            var save = GameManager.Instance.Save;
+            var arena = new StageData { Number = 0, Name = "승급 비무" };   // Number 0 = no companions
+            _fled = false;
+            _backdropImage.sprite = null;
+            _backdropImage.color = new Color(1f, 1f, 1f, 0f);
+            ClearCards();
+            ClearPanels();
+            SetCommandsVisible(false);
+            _log.text = "";
+            _stageLabel.text = offer.Title;
+
+            yield return ShowStory(offer.Title, new[]
+            {
+                "비무대 위에 선 것은 나 혼자다. 동료의 도움은 없다.",
+                Promotion.RankName(offer.TargetRank) + "에 오르려면 상대 둘을 연달아 꺾어야 한다.",
+                "한 판은 " + Promotion.TurnLimit + "턴 안에 끝내야 한다. 시간이 다 되면 무승부로 치되, 상금은 절반이다."
+            });
+
+            bool again = !_fled;
+            while (again)
+            {
+                again = false;
+                BuildParty(arena);
+                bool anyDraw = false, lost = false;
+                for (int i = 0; i < offer.Opponents.Length; i++)
+                {
+                    _stageLabel.text = offer.Title + "  (" + (i + 1) + "/" + offer.Opponents.Length + ")";
+                    yield return Banner(i == offer.Opponents.Length - 1 ? "마지막 비무!" : "비무 " + (i + 1), 0.7f);
+                    yield return Fight(new[] { offer.Opponents[i] }, Promotion.TurnLimit);
+                    if (_fled) break;
+                    if (_drawn)
+                    {
+                        anyDraw = true;
+                        yield return Banner("시간 초과! 무승부", 1.0f);
+                    }
+                    else if (!_battle.PlayerWon) { lost = true; break; }
+                    else yield return Banner("승리!", 0.7f);
+                    foreach (var m in _party) m.RestBetweenFights(0.5f);
+                    RefreshParty();
+                }
+
+                if (_fled) { SetCommandsVisible(false); break; }
+                if (lost)
+                {
+                    bool canRetry = Promotion.CanAfford(save, offer);
+                    yield return ShowResult("패배...", "입장료 " + offer.Fee.ToString("N0") + "두는 돌려받지 못한다." + (canRetry ? "\n다시 도전하려면 입장료를 한 번 더 내야 한다." : "\n두가 모자라 다시 도전할 수 없다."), true, canRetry);
+                    if (_retry && Promotion.Pay(save, offer)) { GameManager.Instance.SaveNow(); again = true; }
+                }
+                else
+                {
+                    long doo = Promotion.Complete(save, offer, anyDraw);
+                    int levels = Progression.AddExp(save, offer.ExpReward);
+                    GameManager.Instance.SaveNow();
+                    yield return ShowResult(Promotion.RankName(offer.TargetRank) + " 승급!",
+                        (anyDraw ? "무승부가 섞여 상금이 절반이다.\n" : "") + "상금 " + doo.ToString("N0") + "두 · 경험 " + offer.ExpReward + (levels > 0 ? "\nLv." + save.Level + " 상승!" : ""), false);
+                }
+            }
+
+            _panel.SetActive(false);
+            _banner.text = "";
+            _bannerBg.color = new Color(0f, 0f, 0f, 0f);
+            ClearCards();
+            ClearPanels();
+            _onClose?.Invoke();
+        }
+
         private List<ItemStack> RollDrops(string[] enemyIds)
         {
             var save = GameManager.Instance.Save;
@@ -262,7 +340,18 @@ namespace BiRyeoDo.Game.UI
 
         private IEnumerator Fight(string[] enemyIds)
         {
-            SpawnCards(enemyIds);
+            var data = new EnemyData[enemyIds.Length];
+            for (int i = 0; i < data.Length; i++) data[i] = EarlyGameContent.FindEnemy(enemyIds[i]);
+            yield return Fight(data, 0);
+        }
+
+        /// <summary>Plays one fight. With <paramref name="turnLimit"/> > 0 the fight is a draw once the player has acted that many times.</summary>
+        private IEnumerator Fight(EnemyData[] enemies, int turnLimit)
+        {
+            _drawn = false;
+            int actions = 0;
+            string label = _stageLabel.text;
+            SpawnCards(enemies);
             _battle = new InteractiveBattle(_party, _cards.ConvertAll(c => c.Unit), new SeededRandom(Environment.TickCount));
             _target = _cards[0];
             RefreshParty();
@@ -274,6 +363,7 @@ namespace BiRyeoDo.Game.UI
             {
                 if (_target == null || !_target.Unit.IsAlive) _target = _cards.Find(c => c.Unit.IsAlive);
                 _itemMode = false;
+                if (turnLimit > 0) _stageLabel.text = label + "   " + actions + "/" + turnLimit + "턴";
                 RefreshCards();
                 RefreshParty();
                 RefreshCommands();
@@ -291,7 +381,10 @@ namespace BiRyeoDo.Game.UI
                     GameManager.Instance.SaveNow();
                 }
                 yield return PlayEvents(events);
+                actions++;
+                if (turnLimit > 0 && actions >= turnLimit && !_battle.IsOver) { _drawn = true; break; }
             }
+            if (turnLimit > 0) _stageLabel.text = label;
 
             RefreshParty();
             RefreshCards();
@@ -386,15 +479,15 @@ namespace BiRyeoDo.Game.UI
             _panels.Clear();
         }
 
-        private void SpawnCards(string[] enemyIds)
+        private void SpawnCards(EnemyData[] enemies)
         {
             ClearCards();
-            int n = enemyIds.Length;
+            int n = enemies.Length;
             const float w = 0.30f, gap = 0.02f, y0 = 0.535f, y1 = 0.885f;
             float startX = 0.5f - (n * w + (n - 1) * gap) / 2f;
             for (int i = 0; i < n; i++)
             {
-                var data = EarlyGameContent.FindEnemy(enemyIds[i]);
+                var data = enemies[i];
                 float x0 = startX + i * (w + gap);
                 var card = new EnemyCard { Unit = data.CreateCombatant(data.Id + "#" + i), Center = new Vector2(x0 + w / 2f, (y0 + y1) / 2f) };
                 card.Root = UiFactory.Rect("Card" + i, _cardsRoot, new Vector2(x0, y0), new Vector2(x0 + w, y1));
@@ -860,13 +953,13 @@ namespace BiRyeoDo.Game.UI
             }
         }
 
-        private IEnumerator ShowResult(string title, string text, bool defeat)
+        private IEnumerator ShowResult(string title, string text, bool defeat, bool allowRetry = true)
         {
             SetCommandsVisible(false);
             _panelTitle.text = title;
             _panelText.text = text;
             _panelNext.SetActive(!defeat);
-            _panelRetry.SetActive(defeat);
+            _panelRetry.SetActive(defeat && allowRetry);
             _panelBack.SetActive(defeat);
             _panel.SetActive(true);
             _panelDone = false;

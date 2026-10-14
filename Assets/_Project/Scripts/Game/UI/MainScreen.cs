@@ -74,6 +74,14 @@ namespace BiRyeoDo.Game.UI
                     overlay.gameObject.SetActive(false);
                     _world.Refresh();
                 });
+            }, offer =>
+            {
+                overlay.gameObject.SetActive(true);
+                _battle.OpenPromotion(offer, () =>
+                {
+                    overlay.gameObject.SetActive(false);
+                    _world.Refresh();
+                });
             });
 
             Select((int)_router.startTab);
