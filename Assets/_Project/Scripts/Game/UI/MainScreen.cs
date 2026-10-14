@@ -6,13 +6,13 @@ using UnityEngine.UI;
 namespace BiRyeoDo.Game.UI
 {
     /// <summary>
-    /// Root of the UI: builds the Canvas (1080x1920 portrait, safe-area aware), a two-tab bottom bar (강호 / 무공)
+    /// Root of the UI: builds the Canvas (1080x1920 portrait, safe-area aware), a three-tab bottom bar (강호 / 무공 / 행낭)
     /// and the full-screen battle overlay that stages open into.
     /// </summary>
     [RequireComponent(typeof(TabRouter))]
     public class MainScreen : MonoBehaviour
     {
-        private static readonly string[] TabNames = { "강호", "무공" };
+        private static readonly string[] TabNames = { "강호", "무공", "행낭" };
         private const float TabBarHeight = 170f;
 
         private TabRouter _router;
@@ -55,6 +55,8 @@ namespace BiRyeoDo.Game.UI
 
             _world = panels[(int)TabRouter.Tab.World].AddComponent<WorldScreen>();
             panels[(int)TabRouter.Tab.MartialArts].AddComponent<MartialArtsScreen>().Build((RectTransform)panels[(int)TabRouter.Tab.MartialArts].transform);
+
+            panels[(int)TabRouter.Tab.Bag].AddComponent<BagScreen>().Build((RectTransform)panels[(int)TabRouter.Tab.Bag].transform);
 
             BuildTabBar(safe);
 

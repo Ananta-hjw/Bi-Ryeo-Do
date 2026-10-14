@@ -16,6 +16,12 @@ namespace BiRyeoDo.Core
         public long Doo;                // 두: main currency
         public int ClearedStage;        // highest stage cleared this life (0 = none); the next one is unlocked
         public int HighestUnlockedStage { get { return ClearedStage + 1; } }
+        // Items (added without a version bump: older saves simply start with empty lists)
+        public List<ItemStack> Items = new List<ItemStack>();
+        public List<string> EquippedGear = new List<string>();
+        public List<int> RewardedStages = new List<int>();   // stages whose first-clear reward was already claimed
+        public bool StartKitGiven;
+
         public List<string> LearnedArts = new List<string>();
         public List<string> EquippedArts = new List<string>();
     }

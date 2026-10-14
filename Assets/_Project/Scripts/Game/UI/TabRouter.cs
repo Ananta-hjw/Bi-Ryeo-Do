@@ -2,10 +2,10 @@ using UnityEngine;
 
 namespace BiRyeoDo.Game.UI
 {
-    /// <summary>Bottom tab bar: 강호 (stage select) / 무공 (learn and equip). Shows one panel at a time.</summary>
+    /// <summary>Bottom tab bar: 강호 (stage select) / 무공 (learn and equip) / 행낭 (items and gear). Shows one panel at a time.</summary>
     public class TabRouter : MonoBehaviour
     {
-        public enum Tab { World, MartialArts }
+        public enum Tab { World, MartialArts, Bag }
 
         [Tooltip("Panels indexed by the Tab enum order.")]
         public GameObject[] panels;

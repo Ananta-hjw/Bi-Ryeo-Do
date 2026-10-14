@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace BiRyeoDo.Core
 {
-    public enum EventKind { Attack, Guard, Meditate, Charge, Evade, Heal, StunSkip }
+    public enum EventKind { Attack, Guard, Meditate, Charge, Evade, Heal, StunSkip, Item }
 
     /// <summary>One action in a battle. UI plays these back; the engine never touches UI.</summary>
     public sealed class BattleEvent

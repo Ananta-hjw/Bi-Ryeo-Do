@@ -17,6 +17,7 @@ namespace BiRyeoDo.Game.Systems
             DontDestroyOnLoad(gameObject);
             Save = SaveService.Load();
             EnsureStarterArt();
+            Inventory.EnsureStartKit(Save);
         }
 
         /// <summary>Every art that costs nothing is known from the start and equipped (up to the limit).</summary>

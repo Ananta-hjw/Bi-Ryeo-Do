@@ -3,18 +3,20 @@ using System.Collections.Generic;
 
 namespace BiRyeoDo.Core
 {
-    public enum CommandKind { Skill, Guard, Meditate }
+    public enum CommandKind { Skill, Guard, Meditate, Item }
 
     public struct PlayerCommand
     {
         public CommandKind Kind;
         public SkillSpec Skill;      // for Kind == Skill
         public Combatant Target;     // single-target skills; null/dead falls back to the first living enemy
+        public ItemData Item;        // for Kind == Item (a consumable; the caller removes it from the bag)
 
         public static PlayerCommand UseSkill(SkillSpec skill, Combatant target)
         {
             return new PlayerCommand { Kind = CommandKind.Skill, Skill = skill, Target = target };
         }
+        public static PlayerCommand UseItem(ItemData item) { return new PlayerCommand { Kind = CommandKind.Item, Item = item }; }
         public static PlayerCommand Guard() { return new PlayerCommand { Kind = CommandKind.Guard }; }
         public static PlayerCommand Meditate() { return new PlayerCommand { Kind = CommandKind.Meditate }; }
     }
@@ -87,6 +89,7 @@ namespace BiRyeoDo.Core
         public List<BattleEvent> PlayerAct(PlayerCommand cmd)
         {
             if (!IsPlayerTurn) throw new InvalidOperationException("Not the player's turn.");
+            if (cmd.Kind == CommandKind.Item && (cmd.Item == null || cmd.Item.Kind != ItemKind.Consumable)) throw new InvalidOperationException("Not a consumable.");
             var actor = Current;
             var events = new List<BattleEvent>();
             Current = null;
@@ -104,6 +107,23 @@ namespace BiRyeoDo.Core
                         actor.Hp = Math.Min(actor.Stats.MaxHp, actor.Hp + heal);
                         actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + MeditateQi);
                         events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = "meditate", Kind = EventKind.Meditate, Heal = heal, TargetHpAfter = actor.Hp, Message = "운기조식. 내공 +" + MeditateQi });
+                        break;
+                    }
+                case CommandKind.Item:
+                    {
+                        var item = cmd.Item;
+                        if (item == null || item.Kind != ItemKind.Consumable) throw new InvalidOperationException("Not a consumable.");
+                        var target = actor;
+                        int heal = 0;
+                        if (item.HealPct > 0f)
+                        {
+                            target = MostWounded();
+                            heal = (int)Math.Round(target.Stats.MaxHp * item.HealPct);
+                            target.Hp = Math.Min(target.Stats.MaxHp, target.Hp + heal);
+                        }
+                        if (item.QiRestore > 0) actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + item.QiRestore);
+                        if (item.SpiritGain > 0) actor.Spirit = Math.Min(MaxSpirit, actor.Spirit + item.SpiritGain);
+                        events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = target.Id, SkillId = item.Id, Kind = EventKind.Item, Heal = heal, TargetHpAfter = target.Hp, Message = actor.Name + ": " + item.Name + " 사용" });
                         break;
                     }
                 default:

@@ -36,5 +36,12 @@
 
 | 3 | 종리학·추가연(화산 구정회) | 스테이지 8 적/보스 | EarlyGameContent 스테이지 8 | 구현(부분, 싸움은 게임 연출) |
 | 1~3 | 삼복구타권법 초복, 여반장, 선풍뇌절 | 습득 가능 무공 | EarlyGameContent.Arts | 구현 |
+| 1 | 인형설삼 | 소모품(완전 회복). 곰 드랍·스테이지 보상 | EarlyGameContent.Items ginseng | 구현 |
+| 1 | 곰/호랑이 사냥(웅담·가죽·발톱 목걸이) | 소모품 웅담, 재료 가죽(판매), 장신구 발톱 목걸이 드랍 | Items bear_gall/leather/claw_necklace | 구현 |
+| 1 | 묵룡환 | 장신구(공·방 증가, 속도 감소). 시작 지급 | Items mukryonghwan | 구현 |
+| 1 | 강철 빨래방망이 | 무기. 시작 지급 | Items laundry_bat | 구현 |
+| 2 | 봉뢰함(진비뢰도 10자루)·뇌금 묵뢰 | 스테이지 5 첫 돌파 보상(무기·장신구) | Items jin_biroedo/roegeum | 구현 |
+| 2 | 옥루주 | 소모품(내공·기세) | Items okruju | 구현 |
+| 2 | 승룡패 | 핵심 아이템. 스테이지 6 첫 돌파 | Items seungryong_pae | 구현 |
 
 확정 설정(사용자): 주인공은 비류연, 히로인은 나예린. 전투 화면의 플레이어 이름은 비류연으로 표시한다. 나머지 표는 후보 또는 부분 구현 상태이다.

@@ -71,7 +71,7 @@ namespace BiRyeoDo.Game.UI
         private List<Combatant> _party = new List<Combatant>();
         private EnemyCard _target;
 
-        private bool _hasCommand, _panelDone, _retry, _fled;
+        private bool _hasCommand, _panelDone, _retry, _fled, _itemMode;
         private PlayerCommand _command;
         private int _speed = 1;
         private Action _onClose;
@@ -196,12 +196,13 @@ namespace BiRyeoDo.Game.UI
                         exp += EarlyGameContent.ExpReward(stage, id);
                         doo += EarlyGameContent.DooReward(stage, id);
                     }
+                    var drops = RollDrops(stage.Encounters[i]);
                     int levels = Progression.AddExp(save, exp);
                     save.Doo += doo;
                     gainedExp += exp; gainedDoo += doo;
                     GameManager.Instance.SaveNow();
                     if (levels > 0) RebuildPartyForNewLevel(stage);
-                    yield return Banner("승리!  경험 +" + exp + "  두 +" + doo + (levels > 0 ? "\nLv." + save.Level + " 상승!" : ""), levels > 0 ? 1.4f : 0.9f);
+                    yield return Banner("승리!  경험 +" + exp + "  두 +" + doo + (drops.Count > 0 ? "\n획득: " + DescribeStacks(drops) : "") + (levels > 0 ? "\nLv." + save.Level + " 상승!" : ""), levels > 0 || drops.Count > 0 ? 1.5f : 0.9f);
                     foreach (var m in _party) m.RestBetweenFights(0.5f);
                     RefreshParty();
                 }
@@ -216,7 +217,9 @@ namespace BiRyeoDo.Game.UI
                     save.ClearedStage = Math.Max(save.ClearedStage, stage.Number);
                     GameManager.Instance.SaveNow();
                     yield return ShowStory(stage.Name + " 돌파", stage.Outro);
-                    yield return ShowResult("스테이지 돌파!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo, false);
+                    var reward = Inventory.GrantStageReward(save, stage.Number);
+                    GameManager.Instance.SaveNow();
+                    yield return ShowResult("스테이지 돌파!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (reward.Count > 0 ? "\n\n첫 돌파 보상\n" + DescribeStacks(reward) : ""), false);
                 }
                 else
                 {
@@ -233,6 +236,27 @@ namespace BiRyeoDo.Game.UI
             _onClose?.Invoke();
         }
 
+        private List<ItemStack> RollDrops(string[] enemyIds)
+        {
+            var save = GameManager.Instance.Save;
+            var rng = new SeededRandom(Environment.TickCount);
+            var all = new List<ItemStack>();
+            foreach (var id in enemyIds)
+                foreach (var stack in Inventory.RollDrops(id, rng))
+                {
+                    Inventory.Add(save, stack.Id, stack.Count);
+                    all.Add(stack);
+                }
+            return all;
+        }
+
+        private static string DescribeStacks(List<ItemStack> stacks)
+        {
+            var names = new List<string>();
+            foreach (var s in stacks) names.Add(Inventory.Describe(s));
+            return string.Join(", ", names);
+        }
+
         private IEnumerator Fight(string[] enemyIds)
         {
             SpawnCards(enemyIds);
@@ -246,6 +270,7 @@ namespace BiRyeoDo.Game.UI
             while (!_battle.IsOver && !_fled)
             {
                 if (_target == null || !_target.Unit.IsAlive) _target = _cards.Find(c => c.Unit.IsAlive);
+                _itemMode = false;
                 RefreshCards();
                 RefreshParty();
                 RefreshCommands();
@@ -257,6 +282,11 @@ namespace BiRyeoDo.Game.UI
 
                 SetCommandsInteractable(false);
                 var events = _battle.PlayerAct(_command);
+                if (_command.Kind == CommandKind.Item)
+                {
+                    Inventory.Remove(GameManager.Instance.Save, _command.Item.Id, 1);
+                    GameManager.Instance.SaveNow();
+                }
                 yield return PlayEvents(events);
             }
 
@@ -284,7 +314,8 @@ namespace BiRyeoDo.Game.UI
                 var art = EarlyGameContent.FindArt(id);
                 if (art != null && art.OwnerId == null && skills.Count < Progression.MaxEquippedArts) skills.Add(art.ToSpec());
             }
-            var party = new List<Combatant> { new Combatant("player", "비류연", Team.Player, Progression.StatsFor(save.Level, save.Life), skills) };
+            var stats = Inventory.ApplyGear(Progression.StatsFor(save.Level, save.Life), save.EquippedGear);
+            var party = new List<Combatant> { new Combatant("player", "비류연", Team.Player, stats, skills) };
             foreach (var c in EarlyGameContent.CompanionsFor(stage.Number)) party.Add(c.CreateCombatant(save.Level, save.Life));
             return party;
         }
@@ -475,11 +506,36 @@ namespace BiRyeoDo.Game.UI
             return name.Length > 3 ? name.Substring(0, 3) : name;
         }
 
+        private static List<ItemData> UsableItems()
+        {
+            var list = new List<ItemData>();
+            foreach (var s in GameManager.Instance.Save.Items)
+            {
+                var item = EarlyGameContent.FindItem(s.Id);
+                if (item != null && item.Kind == ItemKind.Consumable && s.Count > 0) list.Add(item);
+            }
+            return list;
+        }
+
         private void RefreshCommands()
         {
             var me = _battle.Current;
             if (me == null) return;
             SetCommandsVisible(true);
+
+            if (_itemMode)
+            {
+                var items = UsableItems();
+                for (int i = 0; i < 7; i++)
+                {
+                    if (i >= items.Count) { _commands[i].Root.SetActive(false); continue; }
+                    var item = items[i];
+                    SetCommand(i, item.Name + " x" + Inventory.Count(GameManager.Instance.Save, item.Id), ItemHint(item), true);
+                }
+                SetCommand(7, "취소", "", true);
+                return;
+            }
+
             SetCommand(0, "공격", "내공 0", true);
             var arts = ArtsOf(me);
             for (int i = 0; i < Progression.MaxEquippedArts; i++)
@@ -495,7 +551,15 @@ namespace BiRyeoDo.Game.UI
             }
             SetCommand(5, "방어", "피해 60% 감소", true);
             SetCommand(6, "운기", "내공 +" + InteractiveBattle.MeditateQi + " 체력 소량", true);
-            _commands[7].Root.SetActive(false);
+            SetCommand(7, "아이템", UsableItems().Count > 0 ? "" : "없음", UsableItems().Count > 0);
+        }
+
+        private static string ItemHint(ItemData item)
+        {
+            if (item.HealPct >= 1f) return "완전 회복";
+            if (item.HealPct > 0f) return "체력 " + Mathf.RoundToInt(item.HealPct * 100f) + "%";
+            if (item.QiRestore > 0) return "내공 +" + item.QiRestore;
+            return "";
         }
 
         private void SetCommand(int slot, string name, string sub, bool enabled)
@@ -523,6 +587,17 @@ namespace BiRyeoDo.Game.UI
         {
             if (_battle == null || !_battle.IsPlayerTurn || _hasCommand) return;
             var me = _battle.Current;
+
+            if (_itemMode)
+            {
+                if (slot == 7) { _itemMode = false; RefreshCommands(); return; }
+                var items = UsableItems();
+                if (slot >= items.Count) return;
+                _command = PlayerCommand.UseItem(items[slot]);
+                _hasCommand = true;
+                return;
+            }
+
             if (_target == null || !_target.Unit.IsAlive) _target = _cards.Find(c => c.Unit.IsAlive);
             var targetUnit = _target != null ? _target.Unit : null;
             if (slot == 0) _command = PlayerCommand.UseSkill(SkillSpec.BasicAttack(), targetUnit);
@@ -535,6 +610,13 @@ namespace BiRyeoDo.Game.UI
             }
             else if (slot == 5) _command = PlayerCommand.Guard();
             else if (slot == 6) _command = PlayerCommand.Meditate();
+            else if (slot == 7)
+            {
+                if (UsableItems().Count == 0) return;
+                _itemMode = true;
+                RefreshCommands();
+                return;
+            }
             else return;
             _hasCommand = true;
         }
@@ -600,6 +682,14 @@ namespace BiRyeoDo.Game.UI
                         _log.text = ev.Message;
                         var healed = PanelOf(ev.TargetId);
                         if (healed != null) Float(healed.Center, "+" + ev.Heal, HpGreen, 70);
+                        RefreshParty();
+                        yield return new WaitForSeconds(Wait(StepDelay));
+                        break;
+                    case EventKind.Item:
+                        _log.text = ev.Message;
+                        var itemTarget = PanelOf(ev.TargetId);
+                        if (ev.Heal > 0 && itemTarget != null) Float(itemTarget.Center, "+" + ev.Heal, HpGreen, 70);
+                        else if (actorPanel != null) Float(actorPanel.Center, "회복", QiBlue, 56);
                         RefreshParty();
                         yield return new WaitForSeconds(Wait(StepDelay));
                         break;

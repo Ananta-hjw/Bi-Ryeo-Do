@@ -189,6 +189,69 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("절풍검기변", 0.7f, 3), EnemyMove.Attack("절풍검기변", 1.2f), EnemyMove.Wind("검강을 끌어올린다"), EnemyMove.Attack("천원삼절검격", 1.5f, 3) } },
         };
 
+        // Items. Names come from volumes 1-3; effects and numbers are placeholders.
+        public static readonly ItemData[] Items =
+        {
+            new ItemData { Id = "bear_gall", Name = "웅담", Kind = ItemKind.Consumable, HealPct = 0.40f, Description = "곰의 쓸개. 가장 다친 동료의 체력을 40% 회복한다." },
+            new ItemData { Id = "okruju", Name = "옥루주", Kind = ItemKind.Consumable, QiRestore = 60, SpiritGain = 25, Description = "사천제일주. 내공 60과 기세 25를 얻는다." },
+            new ItemData { Id = "ginseng", Name = "인형설삼", Kind = ItemKind.Consumable, HealPct = 1.0f, QiRestore = 999, Description = "사람 모양의 영약 산삼. 가장 다친 동료를 완전히 회복하고 내공을 가득 채운다." },
+            new ItemData { Id = "leather", Name = "가죽", Kind = ItemKind.Material, SellValue = 70, Description = "사냥한 짐승의 가죽. 팔면 두가 된다." },
+            new ItemData { Id = "laundry_bat", Name = "강철 빨래방망이", Kind = ItemKind.Weapon, AtkPct = 0.08f, Description = "수련용 강철 방망이(50근). 무기라기엔 빨래용이다. 공격 +8%." },
+            new ItemData { Id = "jin_biroedo", Name = "진비뢰도", Kind = ItemKind.Weapon, AtkPct = 0.22f, CritAdd = 0.04f, Description = "봉뢰함에 든 진짜 비뢰도 열 자루. 공격 +22%, 치명타 +4%." },
+            new ItemData { Id = "mukryonghwan", Name = "묵룡환", Kind = ItemKind.Accessory, AtkPct = 0.10f, DefPct = 0.10f, SpeedAdd = -6, Description = "사부가 11세부터 채운 증량 족쇄. 몸은 무거워지지만 단련된다. 공격·방어 +10%, 속도 -6." },
+            new ItemData { Id = "roegeum", Name = "뇌금 묵뢰", Kind = ItemKind.Accessory, QiPct = 0.30f, HpPct = 0.05f, Description = "뇌령사 현을 쓴 검은 칠현금. 내공 +30%, 체력 +5%." },
+            new ItemData { Id = "claw_necklace", Name = "발톱 목걸이", Kind = ItemKind.Accessory, CritAdd = 0.05f, SpeedAdd = 2, Description = "사냥한 짐승의 발톱을 꿴 목걸이. 치명타 +5%, 속도 +2." },
+            new ItemData { Id = "seungryong_pae", Name = "승룡패", Kind = ItemKind.Key, Description = "녹옥으로 된 추천패. 천무학관 특별전형 입관의 증표." },
+        };
+
+        public static readonly DropData[] Drops =
+        {
+            new DropData { EnemyId = "tiger", ItemId = "leather", Chance = 0.60f },
+            new DropData { EnemyId = "tiger", ItemId = "claw_necklace", Chance = 0.04f },
+            new DropData { EnemyId = "bear", ItemId = "bear_gall", Chance = 0.35f },
+            new DropData { EnemyId = "bear", ItemId = "leather", Chance = 0.50f },
+            new DropData { EnemyId = "bear", ItemId = "ginseng", Chance = 0.04f },
+            new DropData { EnemyId = "white_tiger", ItemId = "leather", Chance = 1.0f, Count = 3 },
+            new DropData { EnemyId = "white_tiger", ItemId = "bear_gall", Chance = 0.50f },
+            new DropData { EnemyId = "biaosa", ItemId = "okruju", Chance = 0.12f },
+            new DropData { EnemyId = "gang_janghan", ItemId = "okruju", Chance = 0.60f },
+            new DropData { EnemyId = "hogol_bandit", ItemId = "okruju", Chance = 0.15f },
+            new DropData { EnemyId = "paeho_jung_gwang", ItemId = "bear_gall", Chance = 0.60f },
+            new DropData { EnemyId = "yonggol_bandit", ItemId = "okruju", Chance = 0.15f },
+            new DropData { EnemyId = "paeryong_wooak", ItemId = "ginseng", Chance = 0.30f },
+            new DropData { EnemyId = "yeomdo", ItemId = "ginseng", Chance = 0.35f },
+            new DropData { EnemyId = "ho_cheonsang", ItemId = "bear_gall", Chance = 0.60f },
+            new DropData { EnemyId = "ho_cheongang", ItemId = "okruju", Chance = 0.60f },
+            new DropData { EnemyId = "chu_gayeon", ItemId = "ginseng", Chance = 0.30f },
+            new DropData { EnemyId = "wiji_cheon", ItemId = "ginseng", Chance = 0.50f },
+        };
+
+        /// <summary>One-time rewards for clearing a stage for the first time.</summary>
+        public static readonly Dictionary<int, ItemStack[]> StageRewards = new Dictionary<int, ItemStack[]>
+        {
+            { 1, new[] { new ItemStack("bear_gall", 2) } },
+            { 2, new[] { new ItemStack("okruju", 2) } },
+            { 3, new[] { new ItemStack("ginseng", 1) } },
+            { 4, new[] { new ItemStack("bear_gall", 3) } },
+            { 5, new[] { new ItemStack("jin_biroedo", 1), new ItemStack("roegeum", 1) } },   // 봉뢰함과 뇌금을 들고 가출
+            { 6, new[] { new ItemStack("seungryong_pae", 1), new ItemStack("okruju", 2) } },
+            { 7, new[] { new ItemStack("ginseng", 1) } },
+            { 8, new[] { new ItemStack("bear_gall", 3) } },
+            { 9, new[] { new ItemStack("ginseng", 2) } },
+        };
+
+        /// <summary>What the protagonist starts with.</summary>
+        public static readonly ItemStack[] StartKit =
+        {
+            new ItemStack("mukryonghwan", 1), new ItemStack("laundry_bat", 1), new ItemStack("bear_gall", 2), new ItemStack("okruju", 1),
+        };
+
+        public static ItemData FindItem(string id)
+        {
+            foreach (var i in Items) if (i.Id == id) return i;
+            return null;
+        }
+
         public static readonly StageData[] Stages =
         {
             new StageData { Number = 1, Name = "아미산 숲", RecommendedLevel = 1, DooTotal = 300,
