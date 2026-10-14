@@ -32,6 +32,8 @@ namespace BiRyeoDo.Tests
                 Assert.IsTrue(numbers.Add(s.Number), "duplicate stage " + s.Number);
                 Assert.IsTrue(s.Encounters.Length > 0);
                 Assert.IsTrue(s.Intro.Length > 0 && s.Outro.Length > 0);
+                if (s.Prologue != null)
+                    foreach (var sc in s.Prologue) Assert.IsTrue(!string.IsNullOrEmpty(sc.Title) && sc.Lines.Length > 0, s.Name);
                 for (int i = 0; i < s.Encounters.Length; i++)
                 {
                     var enc = s.Encounters[i];

@@ -86,10 +86,19 @@ namespace BiRyeoDo.Core
         }
     }
 
+    /// <summary>A short story-only scene (no fight). Plays before a stage's Intro until the stage is first cleared.</summary>
+    public sealed class StoryScene
+    {
+        public string Title;
+        public string[] Lines;
+    }
+
     public sealed class StageData
     {
         public int Number;
         public string Name;
+        /// <summary>Optional story scenes shown before Intro, only while the stage has not been cleared yet (bridges the volumes' plot between fights).</summary>
+        public StoryScene[] Prologue;
         public string[] Intro, Outro;
         /// <summary>Fights in order; each is a group of enemy ids (1-3). The last one is the boss fight.</summary>
         public string[][] Encounters;
@@ -259,6 +268,20 @@ namespace BiRyeoDo.Core
                 Outro = new[] { "백호를 쓰러뜨렸다. 사부에게는 비밀로 해야 할 두둑한 수확이다." },
                 Encounters = new[] { new[] { "tiger" }, new[] { "bear" }, new[] { "tiger", "tiger" }, new[] { "white_tiger" } } },
             new StageData { Number = 2, Name = "중양표국", RecommendedLevel = 4, DooTotal = 1400,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "진조운의 유품", Lines = new[] {
+                        "열아홉 살 늦봄. 비류연은 폭포 밑에서 수중 수련을 하다 바위를 던졌다. 하필 그때 산을 오르던 사람이 있었다.",
+                        "천무학관이 초빙한 교관 철담비환 진조운. 강호 백대고수급이었던 그는 말 한마디 못 하고 세상을 떠났다.",
+                        "비류연은 시신 곁에서 서찰과 인피면구, 황금 열 냥을 챙겼다. \"내가 진조운이 되면 되겠네.\"",
+                    } },
+                    new StoryScene { Title = "아미산 합숙", Lines = new[] {
+                        "천무아미수련원에 천무학관 주작단 열여섯 명이 도착했다. 남궁상, 현운, 진령, 노학, 당철영... 구파와 팔대세가의 후기지수들이다.",
+                        "'노사부'로 변장한 비류연이 시킨 수련은 단순했다. 자신이 사부 밑에서 하던 그대로 장작을 패고, 빨래를 하고, 밥을 짓는 것.",
+                        "반발하던 개방의 노학이 가장 먼저 삼복구타권법의 시범 대상이 되었다. 그날부터 아무도 노사부의 말에 토를 달지 않았다.",
+                        "다섯 달 뒤, 주작단의 팔다리에는 묵환이 채워졌고 눈빛에는 두려움과 존경이 섞였다. 이별을 앞둔 밤, 남궁상은 진령과 입을 맞췄다고 한다.",
+                    } },
+                },
                 Intro = new[] { "합숙훈련 중 당철영이 강장한 일행에게 집단구타를 당했다.", "비류연은 주작단 열다섯과 함께 중양표국으로 쳐들어간다. 목적은 두둑한 보상이다." },
                 Outro = new[] { "국주 장우양까지 제압하고 거액의 보상을 받아냈다. 표국은 소문이 윤색된 덕에 오히려 호황을 맞는다고 한다." },
                 Encounters = new[] { new[] { "biaosa" }, new[] { "biaosa", "biaosa" }, new[] { "gang_janghan", "biaosa" } } },
@@ -268,9 +291,20 @@ namespace BiRyeoDo.Core
                 Encounters = new[] { new[] { "hogol_bandit", "hogol_bandit" }, new[] { "hogol_bandit", "hogol_bandit", "hogol_bandit" }, new[] { "paeho_jung_gwang", "hogol_bandit" } } },
             new StageData { Number = 4, Name = "용골채 매복", RecommendedLevel = 10, DooTotal = 2300,
                 Intro = new[] { "호골채에 이어 용골채 천 명이 길을 막았다.", "표사 사상자는 한 명도 내서는 안 된다." },
-                Outro = new[] { "표행은 무사히 이어진다. 주작단은 핏빛으로 물든 옷으로 남창 천무학관 정문에 도착한다." },
+                Outro = new[] { "표행은 무사히 이어진다. 주작단은 핏빛으로 물든 옷으로 남창 천무학관 정문에 도착한다.", "이별식에서 사제들을 떠나보낸 비류연은 홀로 아미산으로 돌아간다. 모옥에는 사부가 기다리고 있다." },
                 Encounters = new[] { new[] { "yonggol_bandit", "yonggol_bandit" }, new[] { "yonggol_bandit", "yonggol_bandit", "yonggol_bandit" }, new[] { "paeryong_wooak", "yonggol_bandit" } } },
             new StageData { Number = 5, Name = "주주 윤하루", RecommendedLevel = 13, DooTotal = 4700,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "모옥의 마지막 겨울", Lines = new[] {
+                        "주작단을 보낸 지 한 달 남짓. 모옥의 점심상에서 사부가 수염 '백아'를 쓰다듬으며 눈을 가늘게 떴다.",
+                        "사부: \"류연아, 요즘 밤마다 어디를 쏘다니느냐. 은자는 어디서 났고?\"",
+                        "비류연은 옥루주 한 병을 슬며시 내밀었다. 사부의 의심은 술 한 잔에 녹아내렸다.",
+                        "하지만 비류연의 마음은 정해져 있었다. 사부가 말하는 '뇌신의 힘'에는 아직 손이 닿지 않는다. 이 산에서는 더 배울 것이 없다.",
+                        "새해 원단 새벽, 비류연은 사부 명의로 노후 연금을 들어 둔 뒤 봉뢰함과 뇌금 묵뢰를 짊어지고 모옥을 나섰다. 지금까지 쓰던 비뢰도는 연습용 가짜였다. 진짜 열 자루는 봉뢰함 안에 있다.",
+                        "산 아래에서 중양표국의 남창행 표행과 마주쳤다. 비류연은 그 행렬 끝에 슬쩍 합류했다.",
+                    } },
+                },
                 Intro = new[] { "새해 원단, 비류연은 사부의 봉뢰함과 뇌금을 들고 가출했다.", "주주의 객잔 윤하루에 사천제일 도객 염도가 나타났다. 그의 이름을 입에 담는 것은 금기다." },
                 Outro = new[] { "여반장 한 방. 염도는 비류연의 '제자'가 되어 짐을 지고 따라나선다." },
                 Encounters = new[] { new[] { "jang_ugang" }, new[] { "yeomdo" } } },
@@ -287,8 +321,17 @@ namespace BiRyeoDo.Core
                 Outro = new[] { "모용휘가 나타나 싸움을 말렸다. 윤준호가 검향의 경지에 올랐다는 사실은 아직 본인만 모른다." },
                 Encounters = new[] { new[] { "jongri_hak" }, new[] { "jongri_hak", "jongri_hak" }, new[] { "chu_gayeon", "jongri_hak" } } },
             new StageData { Number = 9, Name = "천무학관 운향정", RecommendedLevel = 23, DooTotal = 4000,
-                Intro = new[] { "수석으로 입관한 천무학관. 오검룡 이상만 드는 정자 운향정에서 밤하늘 같은 눈의 소녀와 마주쳤다.", "마음을 빼앗긴 사이, 칠검룡 위지천이 칼을 뽑았다. 길을 막는 선배들이 먼저 달려든다. (게임 연출)" },
-                Outro = new[] { "선풍뇌절 한 줄기가 위지천의 검을 쳐냈다. 손목은 남겨 두었다. 사람들이 몰려오기 전에 자리를 뜬다." },
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "운향정의 소녀", Lines = new[] {
+                        "학관을 둘러보던 비류연은 오검룡 이상만 드는 정자 운향정에서 걸음을 멈췄다. 밤하늘을 담은 듯한 눈을 한 소녀가 홀로 금을 타고 있었다.",
+                        "소녀의 곡이 끝나자 비류연은 자기도 모르게 다가갔다. 그리고 허락도 없이 그녀의 입술을 훔쳤다.",
+                        "소녀의 검이 번쩍였다. 비류연은 한 걸음 물러났고, 검기는 그의 앞섶만 갈랐다. 소녀는 평소와 달리 눈앞의 남자가 무슨 생각을 하는지 읽을 수 없었다.",
+                        "(훗날 비류연은 그녀가 천하제일미로 불리는 빙백봉 나예린이라는 것을 알게 된다. 지금은 이름도 묻지 못했다.)",
+                    } },
+                },
+                Intro = new[] { "수석으로 입관한 천무학관. 오검룡 이상만 드는 정자 운향정. 방금 일어난 일을 곱씹을 틈도 없이 인기척이 몰려온다.", "소녀의 호위대장 선풍검룡 위지천이 칼을 뽑았다. 길을 막는 선배들이 먼저 달려든다. (게임 연출)" },
+                Outro = new[] { "선풍뇌절 한 줄기가 위지천의 검을 쳐냈다. 손목은 남겨 두었다.", "소녀는 어느새 사라지고 없었다. 이름조차 묻지 못한 것이 못내 아쉽다. 사람들이 몰려오기 전에 자리를 뜬다." },
                 Encounters = new[] { new[] { "gu_chang" }, new[] { "so_cheongun" }, new[] { "gu_chang", "so_cheongun" }, new[] { "wiji_cheon" } } },
         };
 

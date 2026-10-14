@@ -171,6 +171,9 @@ namespace BiRyeoDo.Game.UI
             SetCommandsVisible(false);
             _log.text = "";
 
+            if (stage.Prologue != null && save.ClearedStage < stage.Number)
+                foreach (var scene in stage.Prologue)
+                    yield return ShowStory(scene.Title, scene.Lines);
             yield return ShowStory(stage.Name, stage.Intro);
 
             bool again = !_fled;
