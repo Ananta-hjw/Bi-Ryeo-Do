@@ -220,6 +220,45 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("삼환비선", 0.7f, 3), EnemyMove.Attack("묵편", 1.2f), EnemyMove.Wind("독을 푼다"), EnemyMove.Attack("독편 난무", 2.6f) } },
             new EnemyData { Id = "wiji_cheon_baek", Name = "선풍검룡 위지천(백일연무)", Level = 33, IsBoss = true, HpMul = 3.4f, AtkMul = 5.08f,
                 Moves = new[] { EnemyMove.Attack("선풍우뢰", 0.7f, 3), EnemyMove.Attack("선풍참혼", 1.3f), EnemyMove.Wind("검강을 끌어올린다"), EnemyMove.Attack("천풍마뢰참", 3.2f) } },
+            // Stage 14: 무당산 고립 (7권)
+            new EnemyData { Id = "chohon_gwigeom", Name = "초혼오귀검 귀영살검", Level = 32, HpMul = 1.5f, AtkMul = 2.86f,
+                Moves = new[] { EnemyMove.Attack("암습검", 0.8f, 2), EnemyMove.Attack("소도", 1.2f) } },
+            new EnemyData { Id = "myeongbu_jang", Name = "명부오귀장 명염도 추항", Level = 33, HpMul = 1.7f, AtkMul = 2.86f,
+                Moves = new[] { EnemyMove.Attack("명부도", 1.0f), EnemyMove.Wind("도를 높이 든다"), EnemyMove.Attack("명염참", 2.6f) } },
+            new EnemyData { Id = "gal_hyobong", Name = "혈류도 갈효봉(폭주)", Level = 34, HpMul = 3.2f, AtkMul = 3.05f,
+                Moves = new[] { EnemyMove.Attack("광무쌍도", 0.7f, 3), EnemyMove.Attack("혈풍무", 1.3f), EnemyMove.Wind("혈광을 일으킨다"), EnemyMove.Attack("굉천혈류패왕십자인", 3.2f) } },
+            new EnemyData { Id = "cheonsal", Name = "천살 초혼검", Level = 35, IsBoss = true, HpMul = 3.0f, AtkMul = 3.05f,
+                Moves = new[] { EnemyMove.Attack("초혼귀령검", 0.7f, 3), EnemyMove.Attack("소혼붕렬", 1.3f), EnemyMove.Wind("초혼령을 울린다"), EnemyMove.Attack("귀령압혼", 3.0f) } },
+            new EnemyData { Id = "jisal", Name = "지살 명왕도", Level = 35, IsBoss = true, HpMul = 3.0f, AtkMul = 3.05f,
+                Moves = new[] { EnemyMove.Attack("명왕도", 1.0f), EnemyMove.Attack("명왕도", 1.2f), EnemyMove.Wind("웃는 얼굴이 굳는다"), EnemyMove.Attack("명왕참", 2.8f) } },
+            // Stage 15: 철각비마대 (8권, 회상)
+            new EnemyData { Id = "sadae_jilpung", Name = "사대질풍 철기병", Level = 35, HpMul = 0.96f, AtkMul = 2.67f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("철쇄선풍", 0.8f, 2), EnemyMove.Attack("거창", 1.2f) } },
+            new EnemyData { Id = "cheolbi_gyeok", Name = "철비십이격 창기병", Level = 36, HpMul = 1.02f, AtkMul = 2.67f,
+                Moves = new[] { EnemyMove.Attack("십자투창", 0.7f, 3), EnemyMove.Wind("창을 허리에 건다"), EnemyMove.Attack("기창충격", 2.6f) } },
+            new EnemyData { Id = "wi_musang", Name = "철각비마 위무상", Level = 36, HpMul = 1.2f, AtkMul = 2.67f,
+                Moves = new[] { EnemyMove.Attack("삼단질풍격", 0.7f, 3), EnemyMove.Attack("거창돌격", 1.3f) } },
+            new EnemyData { Id = "gu_cheonhak", Name = "질풍묵흔 구천학", Level = 37, IsBoss = true, HpMul = 1.92f, AtkMul = 2.73f,
+                Moves = new[] { EnemyMove.Attack("허공격상", 0.7f, 3), EnemyMove.Attack("파랑분쇄격", 1.3f), EnemyMove.Wind("창을 머리 위로 든다"), EnemyMove.Attack("무영인", 3.2f) } },
+            // Stage 16: 저잣거리 습격 (8권)
+            new EnemyData { Id = "baegin_jagaek", Name = "백인회 변장 자객", Level = 36, HpMul = 1.4f, AtkMul = 2.4f, SpeedAdd = 6,
+                Moves = new[] { EnemyMove.Attack("암기", 0.6f, 3), EnemyMove.Attack("암습", 1.3f) } },
+            new EnemyData { Id = "ssanggwi", Name = "이인일체 쌍귀 형제", Level = 37, HpMul = 2.0f, AtkMul = 2.45f,
+                Moves = new[] { EnemyMove.Attack("쌍도", 1.0f), EnemyMove.Wind("배 속에서 손이 튀어나온다"), EnemyMove.Attack("이인일체 비수", 2.8f) } },
+            new EnemyData { Id = "baek_tanjeo", Name = "백인회주 관살 백탄저", Level = 37, IsBoss = true, HpMul = 3.0f, AtkMul = 2.45f,
+                Moves = new[] { EnemyMove.Attack("독검", 0.7f, 3), EnemyMove.Attack("극독 일섬", 1.3f), EnemyMove.Wind("독검을 뽑아 든다"), EnemyMove.Attack("맹독 난자", 3.0f) } },
+            // Stage 17: 마하령과 군웅회 (9권)
+            new EnemyData { Id = "sinung_daewon", Name = "신응대 대원", Level = 38, HpMul = 1.6f, AtkMul = 2.84f,
+                Moves = new[] { EnemyMove.Attack("철벽진", 0.8f, 2), EnemyMove.Attack("도격", 1.2f) } },
+            new EnemyData { Id = "pae_hyeokseong", Name = "광풍맹호도 팽혁성", Level = 39, HpMul = 2.0f, AtkMul = 2.84f,
+                Moves = new[] { EnemyMove.Attack("오호단문도", 1.0f), EnemyMove.Wind("맹호출림의 자세"), EnemyMove.Attack("맹호출림", 2.8f) } },
+            new EnemyData { Id = "ma_haryeong", Name = "철옥잠 마하령", Level = 40, IsBoss = true, HpMul = 3.2f, AtkMul = 2.89f,
+                Moves = new[] { EnemyMove.Attack("표류무상도", 0.7f, 3), EnemyMove.Attack("철옥참", 1.3f), EnemyMove.Wind("천축유가신공을 끌어올린다"), EnemyMove.Attack("표류무상참", 3.2f) } },
+            // Stage 18: 태극의 인재 (9권)
+            new EnemyData { Id = "yong_cheonmyeong", Name = "창천룡 용천명", Level = 40, HpMul = 2.5f, AtkMul = 5.59f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("백룡검", 0.7f, 3), EnemyMove.Attack("달마검", 1.3f), EnemyMove.Wind("반야신공을 일으킨다"), EnemyMove.Attack("여래일검", 3.0f) } },
+            new EnemyData { Id = "gwan_cheolsu", Name = "빙검 관철수", Level = 42, IsBoss = true, HpMul = 3.4f, AtkMul = 5.7f,
+                Moves = new[] { EnemyMove.Attack("빙령수혼", 0.7f, 3), EnemyMove.Attack("백빙신침", 1.3f), EnemyMove.Wind("한빙지기를 끌어올린다"), EnemyMove.Attack("백빙신정", 3.4f) } },
         };
 
         // Items. Names come from volumes 1-3; effects and numbers are placeholders.
@@ -262,6 +301,13 @@ namespace BiRyeoDo.Core
             new DropData { EnemyId = "dan_daepung", ItemId = "bear_gall", Chance = 0.60f },
             new DropData { EnemyId = "jeon_okgi", ItemId = "ginseng", Chance = 0.30f },
             new DropData { EnemyId = "wiji_cheon_baek", ItemId = "ginseng", Chance = 0.60f },
+            new DropData { EnemyId = "gal_hyobong", ItemId = "ginseng", Chance = 0.40f },
+            new DropData { EnemyId = "cheonsal", ItemId = "okruju", Chance = 0.60f },
+            new DropData { EnemyId = "jisal", ItemId = "bear_gall", Chance = 0.60f },
+            new DropData { EnemyId = "gu_cheonhak", ItemId = "ginseng", Chance = 0.50f },
+            new DropData { EnemyId = "baek_tanjeo", ItemId = "okruju", Chance = 0.60f },
+            new DropData { EnemyId = "ma_haryeong", ItemId = "ginseng", Chance = 0.50f },
+            new DropData { EnemyId = "gwan_cheolsu", ItemId = "ilgeup_yeongdan", Chance = 0.20f },
         };
 
         /// <summary>One-time rewards for clearing a stage for the first time.</summary>
@@ -280,6 +326,11 @@ namespace BiRyeoDo.Core
             { 11, new[] { new ItemStack("ginseng", 1), new ItemStack("bear_gall", 2) } },
             { 12, new[] { new ItemStack("ginseng", 2) } },
             { 13, new[] { new ItemStack("ilgeup_yeongdan", 1), new ItemStack("ginseng", 2) } },   // 삼성무제 우승 부상
+            { 14, new[] { new ItemStack("ginseng", 2), new ItemStack("okruju", 2) } },
+            { 15, new[] { new ItemStack("ginseng", 2), new ItemStack("bear_gall", 3) } },
+            { 16, new[] { new ItemStack("ginseng", 2), new ItemStack("okruju", 3) } },
+            { 17, new[] { new ItemStack("ilgeup_yeongdan", 1), new ItemStack("bear_gall", 3) } },
+            { 18, new[] { new ItemStack("ilgeup_yeongdan", 2), new ItemStack("ginseng", 3) } },   // 태극의 인재 시험
         };
 
         /// <summary>What the protagonist starts with.</summary>
@@ -489,6 +540,80 @@ namespace BiRyeoDo.Core
                 Intro = new[] { "준결승에서 비류연은 사천당문 독랄수 당문천과 마주쳤다. 독을 쓰면 안 된다는 규칙은 없다.", "결승 상대는 백일연무를 마치고 돌아온 선풍검룡 위지천. 그는 비류연에게 설욕하기 위해 검을 갈았다." },
                 Outro = new[] { "비류연은 운향정에서 나예린이 켠 곡을 연주했다. 위지천의 마음에 틈이 났다. 선풍우뢰, 선풍참혼, 청성의 금지 살초 천풍마뢰참도 보이지 않는 막과 끊기지 않는 뇌령사에 막혔다.", "비뢰도 오의 뢰광류하곡. 왼손에서 은빛 뇌령사 세 줄기가 뻗었다. 위지천의 검이 떨어졌다. 관중석에서 공손일취가 벌떡 일어섰다.", "다른 부문이 모두 무승부여서 비류연은 삼성무제 종합 우승까지 차지했다. 어부지리라는 소문이 돌았다.", "나예린은 약속대로 백향관 의심을 사과했다. 사과 선물로 비류연이 두 번째 입맞춤을 훔쳤다. 이번에는 그녀도 저항하지 않았다.", "그날 밤 효룡은 무흔일호에게 비류연의 사문을 조사하라고 지시했다. 때가 다가오고 있다." },
                 Encounters = new[] { new[] { "eonga_yeong", "dang_munceon" }, new[] { "wiji_cheon_baek" } } },
+            new StageData { Number = 14, Name = "무당산 고립", RecommendedLevel = 33, DooTotal = 6500,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "은하류 개벽검 대 굉천혈영도법", Lines = new[] {
+                        "무당산 합숙지. 모용휘의 은하류 개벽검과 갈효봉의 굉천혈영도법이 백오십 합을 넘겨 부딪친다. 싸움 도중 효룡이 \"회선십자인이 뒤에서 온다!\"라고 외쳐 청흔의 의심을 산다.",
+                        "비류연은 구경만 한다. \"돌아오지 않는 메아리와 회수 없는 투자는 싫어요.\" 날아든 천살의 암습 검기는 남궁상을 던져 피하게 했을 뿐이다.",
+                        "비기 대 비기. 모용휘가 피를 토하고 갈효봉은 초혼섭령술의 금제가 깨져 폭주한다. 천지쌍살은 천라지망으로 합숙지를 고립시키고 물러난다."
+                    } },
+                    new StoryScene { Title = "사면초가를 연주하라", Lines = new[] {
+                        "염도의 \"곧 무당파에서 지원이 온다\"는 거짓말이었다. 비류연은 달빛 아래 묵금을 켠다. \"저쪽에서 초가를 안 불어 주니 이쪽에서라도 연주해야죠.\" 나예린이 금음에 이끌려 찾아온다.",
+                        "\"한 명도 죽지 않을 때까지 굴려요.\" 비류연의 주문으로 이레의 특별 강화 훈련이 시작된다. 내공 없이 오 장 밖 항아리의 물을 뜻으로 움직여라.",
+                        "정작 비류연은 나무 그늘에서 낮잠을 자다가, 노사부와 산적으로 변장해 초혼오귀검과 명부오귀장의 전낭을 털고 옷까지 벗겨 돌려보낸다."
+                    } },
+                },
+                Intro = new[] { "이레째 해가 질 무렵 천지쌍살의 수하들이 다시 쳐들어온다. 항아리를 터뜨린 일곱 명을 비롯해 천관도들은 처음 싸울 때와 다르다.", "마령신단을 먹은 갈효봉이 다시 폭주한다. 천살과 지살이 직접 나선다." },
+                Outro = new[] { "비류연이 손가락질로 천살의 초혼령과 애검과 오른팔을 떨어뜨렸고, 염도는 지살의 오른팔을 베었다. 쌍살은 \"그분께서 용서하지 않으실 것이다\"라는 말만 남기고 도망친다.","비류연의 심뢰가 갈효봉의 마음을 베자 정신이 돌아왔다. 하지만 심맥이 끊어진 몸은 되살릴 수 없었다. 갈효봉이 스스로 일어나 동생에게 말한다. \"너의 공부를 보여 다오.\"","효룡의 검이 형의 목숨을 거두었다. 유언은 \"겁, 하늘의 겁을 조심……\". 효룡은 피의 맹세를 한다.","한편 흑천맹주는 철각비마대를 학관으로 보냈고, 마천각의 대공자는 \"아룡, 오지 마라\"라고 혼잣말을 한다." },
+                Encounters = new[] { new[] { "chohon_gwigeom", "chohon_gwigeom", "myeongbu_jang" }, new[] { "gal_hyobong" }, new[] { "cheonsal", "jisal" } } },
+            new StageData { Number = 15, Name = "철각비마대", RecommendedLevel = 35, DooTotal = 7000,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "진혼제", Lines = new[] {
+                        "천무학관 직속 첩보조 스무 명이 몰살당해 진혼제가 열린다. 마진가는 분노를 누르고 의식을 주관한다.",
+                        "오색 비단으로 꾸민 나예린이 진혼검무를 춘다. 장내가 숨을 멈추었다가 \"천무학관 만세!\" 함성으로 터진다.",
+                        "비류연은 뾰로통하다. \"너무 예뻐서 남과 같이 보기 아깝잖아요.\""
+                    } },
+                },
+                Intro = new[] { "무당산 이후의 일이다. 흑천맹의 철각비마대가 갈효봉의 죽음을 묻겠다며 학관으로 달려온다.", "길목에 한 청년이 서 있다. \"돌아가면 되잖아요?\" 비류연이 묵룡환 두 개를 풀자 눈이 황금빛으로 변한다." },
+                Outro = new[] { "사대질풍의 철쇄선풍은 천지이분에 갈라졌고, 철비십이격의 투창은 진야에 흘렀다. 부대주 위무상은 염도의 칼을 앞에 두고 구천학이 던진 창에 목숨을 건졌다.","구천학이 내기를 걸었다. \"일기승부.\" 비류연은 허공격상과 무영인을 모두 피하고 묵성에 올라타 목에 비뢰도를 겨눈다. \"졌다.\"","철각비마대는 삼십 년 만에 말머리를 돌렸다. 목격한 사람은 모두 입을 다물었다. 거짓말쟁이가 되기 싫었기 때문이다." },
+                Encounters = new[] { new[] { "sadae_jilpung", "sadae_jilpung", "sadae_jilpung" }, new[] { "cheolbi_gyeok", "cheolbi_gyeok", "wi_musang" }, new[] { "gu_cheonhak" } } },
+            new StageData { Number = 16, Name = "저잣거리 습격", RecommendedLevel = 37, DooTotal = 7500,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "흑천맹의 사신", Lines = new[] {
+                        "검마 초월이 흑천맹주의 서신을 들고 학관을 찾는다. 요구는 100년 전 합의문에 따른 진상조사. 마진가는 받아들인다.",
+                        "학관 앞에서 비류연과 어깨를 부딪친 초월이 검을 뽑았으나 머리카락 세 가닥만 날렸다. 눈을 본 초월이 경악하고, 효룡이 \"제 친구입니다\"라 전음하자 물러난다."
+                    } },
+                    new StoryScene { Title = "사중화 은설란", Lines = new[] {
+                        "조사관은 갈효봉의 정혼자 사중화 은설란. 쾌활한 겉모습 뒤에 정체를 알 수 없는 눈이 있다.",
+                        "호위는 모용휘, 그리고 나예린. 은설란이 나예린의 손을 끌고 옷을 사러 남창 저잣거리로 나선다."
+                    } },
+                },
+                Intro = new[] { "번화가 한복판. 노인, 아낙, 문사, 농부, 노부부…… 지나가는 모두가 자객이다.", "오성루에서 술을 마시던 비류연이 맹수의 움직임을 눈치채고 염도의 돈으로 계산을 치르게 한 뒤 달려온다." },
+                Outro = new[] { "백인회주의 손목이 잘렸고, 나예린의 한상옥령신검이 쌍귀 형제를 베었다. 은설란은 비명 한 번 지르지 않고 두 사람의 실력을 가늠했다.","\"도와준 사람은 감사를 받을 자격이 있죠.\" 비류연은 세 번째 입맞춤을 훔친다. 나예린은 이번에도 검을 뽑지 못했다. \"기회를 놓쳤을 뿐입니다.\"","이틀 뒤 비류연은 은설란의 세 번째 호위가 되었다. 조사관의 요청이라 했다." },
+                Encounters = new[] { new[] { "baegin_jagaek", "baegin_jagaek", "baegin_jagaek" }, new[] { "ssanggwi", "baegin_jagaek" }, new[] { "baek_tanjeo" } } },
+            new StageData { Number = 17, Name = "마하령의 분노", RecommendedLevel = 39, DooTotal = 8000,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "화산지회 후보 선발", Lines = new[] {
+                        "5년마다 정사가 겨루는 화산규약지회. 올해는 100주년이다. 마진가는 신분이 불확실한 비류연과 효룡의 서류에도 합격 도장을 찍는다.",
+                        "후보는 백검조(천익검 늑기한)와 흑검조(마검자 고약한)로 나뉜다. 은설란까지 수강생으로 앉은 흑검조 교실에서 고약한이 말한다. \"활검은 위선이다.\""
+                    } },
+                    new StoryScene { Title = "순풍루의 밤", Lines = new[] {
+                        "사흘 전 밤 비류연은 몰래 기숙사를 빠져나가 정보상 나대이의 주루 순풍루를 찾았다. 현상금 은 닷 냥에 눈이 멀어 소문의 미녀를 뒤쫓았다.",
+                        "천축대승유가신공. 몸이 네 배로 부풀었다가 다시 날씬해지는 모습을 엿보고 말았다. \"뚱땡이 소저!\" 비류연은 칼바람을 피해 달아났다."
+                    } },
+                },
+                Intro = new[] { "군웅회주 철옥잠 마하령이 비류연에게 뺨을 맞고도 사과를 거부한다. 신응대가 포위하고 팽혁성이 칼을 뽑는다.", "비류연은 마하령의 손목을 쥔 채 놓지 않는다. \"놓아주세요, 부탁합니다. 이 말을 하기 전에는 안 놓아요.\"" },
+                Outro = new[] { "비류연은 마하령을 방패처럼 세워 팽혁성의 칼끝을 틀게 했다. 구정회주 창천룡 용천명이 나타났다. 마하령은 어린 시절 \"뚱땡이!\"라 불렀던 그를 거부했다.","용천명의 백룡검이 번개처럼 뽑혔다. 비류연은 잔상만 남기고 피했으나 옷이 갈라졌다. 마하령의 허리띠가 끊어지고 사과 요구는 계속된다.","그때 늑기한과 고약한이 나타나 서로 으르렁거렸고, 둘은 중간 평가에서 승부를 보기로 했다." },
+                Encounters = new[] { new[] { "sinung_daewon", "sinung_daewon", "sinung_daewon" }, new[] { "pae_hyeokseong", "sinung_daewon" }, new[] { "ma_haryeong" } } },
+            new StageData { Number = 18, Name = "태극의 인재", RecommendedLevel = 41, DooTotal = 8500,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "혁월린의 유언", Lines = new[] {
+                        "20년 전, 온몸에 거미줄 같은 상처를 입은 태극신문 무신 혁월린이 제자 둘을 불렀다. 염도와 빙검에게 남긴 유언은 이랬다.",
+                        "\"염백과 빙혼. 정과 반을 아우를 인재를 찾아라. 신도 홍염과 신검 빙루가 길을 인도할 것이다. 별의 기운을 가진 자다.\" 흉수의 이름은 끝내 말하지 않았다."
+                    } },
+                    new StoryScene { Title = "싸우려면 돈을 내라", Lines = new[] {
+                        "비류연은 도전자가 늘자 소문을 퍼뜨렸다. \"싸우려면 대전료를 내라. 염도를 이길 실력이 아니면 돈만 날린다.\"",
+                        "소문은 염도의 숙적 빙검의 귀에 들어갔다. 비류연이 염도를 이겼다는 헛소문이라면 빙검은 직접 확인해야 했다."
+                    } },
+                },
+                Intro = new[] { "총 노사 빙검 관철수가 나타난다. \"조건이 맞으면 싸우겠다는 말이 사실이냐?\" 비류연은 \"제가 이기면 부탁 두 가지를 들어주세요\"라 답한다.", "그 전에 용천명이 비류연의 검이 장식품인지 확인하겠다며 길을 막는다." },
+                Outro = new[] { "빙령수혼과 백빙신첨과 백빙신정이 모두 봉황무에 빗나갔다. \"이제야 좀 춥군요.\"","염도가 신원 보증인으로 나타나자 빙검은 말을 잃었다. 비류연이 오른팔의 묵룡환까지 벗자 빙검이 비장절초의 기수식을 잡는다.","\"네가 태극을 하나로 합칠 인재인지 이 일검으로 확인하겠다!\" \"난 그런 사람 아니라니깐요!\" 천지를 집어삼킬 듯한 흰빛이 터져 나왔다. (10권에서 계속)" },
+                Encounters = new[] { new[] { "yong_cheonmyeong" }, new[] { "gwan_cheolsu" } } },
         };
 
         private static long CumulativeExp(int level)

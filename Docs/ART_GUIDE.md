@@ -6,7 +6,7 @@
 
 | 위치 | 파일 이름 | 규격 |
 |---|---|---|
-| `Resources/Art/Backgrounds/` | `stage_01.png` … `stage_13.png` | 세로 1080×1920 (또는 9:16), 전투 화면 배경 |
+| `Resources/Art/Backgrounds/` | `stage_01.png` … `stage_18.png` | 세로 1080×1920 (또는 9:16), 전투 화면 배경 |
 | `Resources/Art/Enemies/` | 아래 표의 id (예: `tiger.png`) | **투명 배경 PNG**, 512~1024px 정사각 |
 | `Resources/Art/Characters/` | `player.png` | 투명 배경 PNG, 512px 정사각 (상반신 권장) |
 
@@ -39,6 +39,23 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 | 파일 | 인물 | 프롬프트 (공통 문구 뒤에 붙이기) |
 |---|---|---|
 | `hyo_ryong.png` | 효룡 | a calm young swordsman holding twin swords, upper body, plain white background |
+| `chohon_gwigeom.png` | 초혼귀검 산적 | wuxia character, upper body, plain white background, ink-wash style |
+| `myeongbu_jang.png` | 명부장 산적 | wuxia character, upper body, plain white background, ink-wash style |
+| `gal_hyobong.png` | 갈효봉(폭주) | wuxia character, upper body, plain white background, ink-wash style |
+| `cheonsal.png` | 천살 | wuxia character, upper body, plain white background, ink-wash style |
+| `jisal.png` | 지살 | wuxia character, upper body, plain white background, ink-wash style |
+| `sadae_jilpung.png` | 사대질풍 철기병 | wuxia character, upper body, plain white background, ink-wash style |
+| `cheolbi_gyeok.png` | 철비십이격 창기병 | wuxia character, upper body, plain white background, ink-wash style |
+| `wi_musang.png` | 위무상 | wuxia character, upper body, plain white background, ink-wash style |
+| `gu_cheonhak.png` | 구천학 | wuxia character, upper body, plain white background, ink-wash style |
+| `baegin_jagaek.png` | 백인회 자객 | wuxia character, upper body, plain white background, ink-wash style |
+| `ssanggwi.png` | 쌍귀 | wuxia character, upper body, plain white background, ink-wash style |
+| `baek_tanjeo.png` | 백탄저 | wuxia character, upper body, plain white background, ink-wash style |
+| `sinung_daewon.png` | 신응대원 | wuxia character, upper body, plain white background, ink-wash style |
+| `pae_hyeokseong.png` | 패혁성 | wuxia character, upper body, plain white background, ink-wash style |
+| `ma_haryeong.png` | 마하령 | wuxia character, upper body, plain white background, ink-wash style |
+| `yong_cheonmyeong.png` | 용천명 | wuxia character, upper body, plain white background, ink-wash style |
+| `gwan_cheolsu.png` | 관철수 | wuxia character, upper body, plain white background, ink-wash style |
 | `jang_hong.png` | 장홍 | a bearded man who looks older than his age, kind but nagging expression, sword at his waist, upper body, plain white background |
 | `yun_junho.png` | 윤준호 | a timid young swordsman of a mountain sect with plum blossom emblem, white and purple robe, upper body, plain white background |
 
@@ -59,8 +76,13 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 | `stage_11.png` | 승급시험 | octagonal stone duel stage with eight pillars inside a martial academy hall, judges' seats, daylight, vertical composition, no characters, 9:16 |
 | `stage_12.png` | 삼성무제 본선 | huge outdoor martial arts tournament arena with banners of many sects, packed spectator stands, bright sky, vertical composition, no characters, 9:16 |
 | `stage_13.png` | 삼성대전 결승 | final tournament arena with cracked stone floor, crowd in the stands, three elders' seats on a dais, dramatic sky, vertical composition, no characters, 9:16 |
+| `stage_14.png` | 무당산 고립 | misty Wudang mountain trail at dusk, mist-covered stone steps, dark pines, ink-wash style, vertical composition, no characters |
+| `stage_15.png` | 철각비마대 | windswept highland road with iron-clad cavalry banners, dust, ink-wash style, vertical composition, no characters |
+| `stage_16.png` | 저잣거리 습격 | crowded old market street at night with paper lanterns, ink-wash style, vertical composition, no characters |
+| `stage_17.png` | 마하령의 분노 | training hall courtyard with scattered shields and torn banners, ink-wash style, vertical composition, no characters |
+| `stage_18.png` | 태극의 인재 | snowy cold training hall with frost on stone floor, taiji pattern on ground, ink-wash style, vertical composition, no characters |
 
-## 적 (19종)
+## 적 (36종)
 
 | 파일 | 대상 | 프롬프트 (공통 문구 뒤에 붙이기) |
 |---|---|---|
