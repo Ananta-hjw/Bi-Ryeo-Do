@@ -352,11 +352,9 @@ namespace BiRyeoDo.Core
             new EnemyData { Id = "sama_heun", Name = "천참마검 사마흔", Level = 63, IsBoss = true, HpMul = 3.68f, AtkMul = 2.037f,
                 Moves = new[] { EnemyMove.Attack("천참검", 0.7f, 3), EnemyMove.Attack("독검", 1.3f), EnemyMove.Wind("검을 뽑아 든다"), EnemyMove.Attack("천겁 일섬", 3.4f) } },
             // Stage 29: 중토관 (16권)
-            new EnemyData { Id = "ma_samhyung", Name = "마천삼흉", Level = 63, HpMul = 1.92f, AtkMul = 1.819f, SpeedAdd = 2,
-                Moves = new[] { EnemyMove.Attack("사악한 칼질", 0.8f, 2), EnemyMove.Attack("난도질", 1.2f) } },
-            new EnemyData { Id = "suda_bokmyeon", Name = "수다쟁이 복면인", Level = 64, HpMul = 2.40f, AtkMul = 1.604f, SpeedAdd = 6,
+            new EnemyData { Id = "suda_bokmyeon", Name = "수다쟁이 복면인", Level = 64, HpMul = 2.40f, AtkMul = 1.747f, SpeedAdd = 6,
                 Moves = new[] { EnemyMove.Attack("가벼운 검", 0.7f, 3), EnemyMove.Wind("호들갑을 떨며 몸을 낮춘다"), EnemyMove.Attack("도우미의 일격", 2.8f) } },
-            new EnemyData { Id = "mu_jeong", Name = "잔무일점혈 무정", Level = 65, IsBoss = true, HpMul = 3.84f, AtkMul = 1.642f, SpeedAdd = 6,
+            new EnemyData { Id = "mu_jeong", Name = "잔무일점혈 무정", Level = 65, IsBoss = true, HpMul = 3.84f, AtkMul = 1.788f, SpeedAdd = 6,
                 Moves = new[] { EnemyMove.Attack("그림자 비수", 0.7f, 3), EnemyMove.Attack("무언독 암기", 1.3f), EnemyMove.Wind("그림자 속으로 스며든다"), EnemyMove.Attack("일점혈", 3.5f) } },
             // Stage 30: 화룡멸겁대진 (16권)
             new EnemyData { Id = "ma_chilgeol_jeoji", Name = "마천칠걸 저지조", Level = 65, HpMul = 2.08f, AtkMul = 1.660f, SpeedAdd = 2,
@@ -366,12 +364,19 @@ namespace BiRyeoDo.Core
             new EnemyData { Id = "bi_daegongja", Name = "대공자 비", Level = 67, IsBoss = true, RetreatHpPct = 0.3f, HpMul = 4.00f, AtkMul = 1.692f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("영뢰 잔흔", 0.7f, 3), EnemyMove.Attack("검기 난무", 1.3f), EnemyMove.Wind("영뢰를 모은다"), EnemyMove.Attack("영뢰 천잔", 3.6f) } },
             // Stage 29 trials: 검후의 십초지적, 수화관 (16권)
-            new EnemyData { Id = "geomhu_ioksang", Name = "검후 이옥상", Level = 66, HpMul = 60.0f, AtkMul = 3.377f, SpeedAdd = 4,
+            new EnemyData { Id = "geomhu_ioksang", Name = "검후 이옥상", Level = 66, HpMul = 60.0f, AtkMul = 3.678f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("체대", 0.8f, 2), EnemyMove.Attack("체대 일격", 1.3f), EnemyMove.Wind("검집에 손을 얹는다"), EnemyMove.Attack("해상비조천참절", 2.8f) } },
-            new EnemyData { Id = "heuksaek_amhyeok", Name = "검은 암벽", Level = 63, HpMul = 2.2f, AtkMul = 0.281f,
+            new EnemyData { Id = "heuksaek_amhyeok", Name = "검은 암벽", Level = 63, HpMul = 2.2f, AtkMul = 0.306f,
                 Moves = new[] { EnemyMove.Attack("진동", 0.5f) } },
-            new EnemyData { Id = "wiji_hyeolpok", Name = "혈폭환 위지천", Level = 64, HpMul = 2.2f, AtkMul = 1.876f, SpeedAdd = 2,
+            new EnemyData { Id = "wiji_hyeolpok", Name = "혈폭환 위지천", Level = 64, HpMul = 2.2f, AtkMul = 2.043f, SpeedAdd = 2,
                 Moves = new[] { EnemyMove.Attack("폭주 진기", 0.7f, 3), EnemyMove.Attack("혈폭 난사", 1.3f), EnemyMove.Wind("혈폭환의 기운이 끓어오른다"), EnemyMove.Attack("생명을 불사른 일격", 3.0f) } },
+            // Stage 29 trial: 은가면 삼성의 습격 (16권). Unkillable; the party only has to endure.
+            new EnemyData { Id = "mask_gongpo", Name = "은가면 「공포」", Level = 66, HpMul = 60.0f, AtkMul = 1.634f,
+                Moves = new[] { EnemyMove.Attack("분신 일검", 0.8f, 2), EnemyMove.Attack("백발의 일검", 1.3f), EnemyMove.Wind("분신이 하나둘 늘어난다"), EnemyMove.Attack("공포의 일검", 2.8f) } },
+            new EnemyData { Id = "mask_jeolmang", Name = "은가면 「절망」", Level = 66, HpMul = 60.0f, AtkMul = 1.634f, SpeedAdd = 2,
+                Moves = new[] { EnemyMove.Attack("나선장", 0.8f, 2), EnemyMove.Attack("나선 돌풍", 1.2f), EnemyMove.Wind("나선의 힘을 모은다"), EnemyMove.Attack("옷을 찢는 나선", 2.6f) } },
+            new EnemyData { Id = "mask_bitan", Name = "은가면 「비탄」", Level = 66, HpMul = 60.0f, AtkMul = 1.634f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("허상 일검", 0.7f, 3), EnemyMove.Attack("나뭇가지 일검", 1.3f), EnemyMove.Wind("심정청도의 검기를 모은다"), EnemyMove.Attack("비탄의 일검", 2.8f) } },
             // Stage 28 trial: 목요관 야간 질주 (15권)
             new EnemyData { Id = "jongri_chu_night", Name = "칠련창 종리추", Level = 59, HpMul = 1.7f, AtkMul = 2.390f,
                 Moves = new[] { EnemyMove.Attack("칠성창", 0.7f, 3), EnemyMove.Attack("일곱 창 투척", 1.2f) } },
@@ -382,9 +387,9 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("언가묵창", 1.1f), EnemyMove.Wind("창을 거둔다"), EnemyMove.Attack("파풍창", 2.6f) } },
             new EnemyData { Id = "hyeolma_dae_b", ArtId = "hyeolma_dae", Name = "십이혈마대 대원", Level = 49, HpMul = 1.8f, AtkMul = 2.015f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("혈검", 0.8f, 2), EnemyMove.Attack("암습", 1.3f) } },
-            new EnemyData { Id = "oh_munchu_b", ArtId = "oh_munchu", Name = "쇄풍겸 오문추", Level = 60, HpMul = 2.08f, AtkMul = 3.114f,
+            new EnemyData { Id = "oh_munchu_b", ArtId = "oh_munchu", Name = "쇄풍겸 오문추", Level = 60, HpMul = 2.08f, AtkMul = 3.391f,
                 Moves = new[] { EnemyMove.Attack("사슬낫", 0.8f, 2), EnemyMove.Wind("사슬을 휘감는다"), EnemyMove.Attack("쇄풍 난무", 2.8f) } },
-            new EnemyData { Id = "baek_sayeong_b", ArtId = "baek_sayeong", Name = "사교검 백사영", Level = 60, HpMul = 2.08f, AtkMul = 3.114f, SpeedAdd = 4,
+            new EnemyData { Id = "baek_sayeong_b", ArtId = "baek_sayeong", Name = "사교검 백사영", Level = 60, HpMul = 2.08f, AtkMul = 3.391f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("사교검", 0.7f, 3), EnemyMove.Wind("뱀처럼 몸을 낮춘다"), EnemyMove.Attack("백사교룡살", 2.9f) } },
         };
 
@@ -940,15 +945,15 @@ namespace BiRyeoDo.Core
                         "위지천이 정체불명의 복면인에게서 혈폭환을 받는다. 수화관은 아홉 명이 내공을 합쳐 검은 암벽을 부수는 시험이다. 위지천이 자청해 비류연의 바로 뒤에 선다."
                     } },
                 },
-                Intro = new[] { "오행관 최종 관문 중토관. 14일 동안 자연에서 생존하고 천율패를 지켜야 한다. 7조는 동굴을 본진으로 삼는다.", "은가면 셋(공포·절망·비탄)이 각 조를 습격해 천율패를 빼앗는다." },
-                Outro = new[] { "삼성각의 안명후를 노린 암살자 무정이 인형을 찌르고 모경을 해친다. 임덕성이 안명후를 업고 도망치고, 임성진이 일점필중으로 복면인을 물리친다.", "7조 동굴에서 깨어난 안명후를 교옥이 \"자장가\"라며 베어 죽인다. 안명후의 손에서 비류연의 피 묻은 천율패가 나온다. 대공자는 7조 안에 범인이 있다고 추리하고, 사람들은 비류연을 의심한다.", "나예린, 장홍, 효룡, 윤준호, 이진설, 모용휘가 비류연을 따라 나선다. \"우리는 자네를 믿어.\" 비류연은 은가면에게 뇌령사 실을 달아 두었다." },
-                Encounters = new[] { new[] { "oh_munchu_b", "baek_sayeong_b" }, new[] { "geomhu_ioksang" }, new[] { "heuksaek_amhyeok", "wiji_hyeolpok" }, new[] { "ma_samhyung", "ma_samhyung", "ma_samhyung" }, new[] { "suda_bokmyeon", "mu_jeong" } },
+                Intro = new[] { "오행관 최종 관문 중토관. 14일 동안 자연에서 생존하고 천율패를 지켜야 한다. 7조는 동굴을 본진으로 삼는다.", "5일째 안개 낀 날, 반면 은가면을 쓴 셋(공포·절망·비탄)이 각 조를 습격해 천율패를 빼앗는다. 마천삼흉은 7조에게 거꾸로 매달린 채 일찌감치 제압되었다." },
+                Outro = new[] { "7조는 은가면 셋의 습격을 끝까지 버텨 냈다. 은가면들은 \"오늘은 이만\" 하고 물러나며 천율패를 빼앗지 못한다. (원작에서는 대부분의 조가 이때 천율패를 잃고 기절한다.)", "삼성각의 안명후를 노린 암살자 무정이 인형을 찌르고 모경을 해친다. 임덕성이 안명후를 업고 도망치고, 임성진이 일점필중으로 복면인을 물리친다.", "7조 동굴에서 깨어난 안명후를 교옥이 \"자장가\"라며 베어 죽인다. 안명후의 손에서 비류연의 피 묻은 천율패가 나온다. 대공자는 7조 안에 범인이 있다고 추리하고, 사람들은 비류연을 의심한다.", "나예린, 장홍, 효룡, 윤준호, 이진설, 모용휘가 비류연을 따라 나선다. \"우리는 자네를 믿어.\" 비류연은 은가면에게 뇌령사 실을 달아 두었다." },
+                Encounters = new[] { new[] { "oh_munchu_b", "baek_sayeong_b" }, new[] { "geomhu_ioksang" }, new[] { "heuksaek_amhyeok", "wiji_hyeolpok" }, new[] { "mask_gongpo", "mask_jeolmang", "mask_bitan" }, new[] { "suda_bokmyeon", "mu_jeong" } },
                 Trials = new[]
                 {
                     TrialRule.Lifeline("금요관", "절벽의 마천칠걸이 줄을 노린다. 힘을 모으는 공격을 끊지 못해 세 번 맞으면 줄이 끊어진다!", 3),
                     TrialRule.Survive("검후의 십초지적", "검후의 공격을 12번 버텨라. 이길 수는 없다. 피하고 막아 살아남아라!", 12),
                     TrialRule.Harmony("수화관 내공합격", "쉬지 않고 모두가 공격을 이으면 다음 일격이 크게 강해진다. 32행동 안에 암벽과 위지천을 쓰러뜨려라!", 32),
-                    null,
+                    TrialRule.Survive("은가면 삼성의 습격", "공포·절망·비탄 셋을 이길 수는 없다. 열두 번의 공격을 버텨 천율패를 지켜라!", 12),
                     null
                 } },
 new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65, DooTotal = 16000,

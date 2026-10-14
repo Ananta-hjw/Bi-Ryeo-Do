@@ -86,7 +86,6 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 | `mulsung_daewon.png` | 멸성대 대원 | faceless black-clad assassin, wuxia character, upper body, plain white background, ink-wash style |
 | `i_gae_bujo.png` | 이개 | grim vice-captain in black, wuxia character, upper body, plain white background, ink-wash style |
 | `sama_heun.png` | 사마흔 | masked swordmaster in black with a long sword, wuxia character, upper body, plain white background, ink-wash style |
-| `ma_samhyung.png` | 마천삼흉 | three villainous bandits with bloodshot eyes, wuxia character, upper body, plain white background, ink-wash style |
 | `suda_bokmyeon.png` | 수다쟁이 복면인 | masked man in dark clothes with a theatrical pose, wuxia character, upper body, plain white background, ink-wash style |
 | `mu_jeong.png` | 무정 | shadow assassin emerging from darkness, wuxia character, upper body, plain white background, ink-wash style |
 | `ma_chilgeol_jeoji.png` | 마천칠걸 저지조 | black-clad guards blocking a canyon exit, wuxia character, upper body, plain white background, ink-wash style |
@@ -95,6 +94,9 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 | `geomhu_ioksang.png` | 검후 이옥상 | elegant ageless swordswoman in white with a silk sash, wuxia character, upper body, plain white background, ink-wash style |
 | `heuksaek_amhyeok.png` | 검은 암벽 | a glossy black rock wall, upper body, plain white background, ink-wash style |
 | `wiji_hyeolpok.png` | 혈폭환 위지천 | pale-haired young swordsman with bulging red veins, wuxia character, upper body, plain white background, ink-wash style |
+| `mask_gongpo.png` | 은가면 공포 | white-haired old swordsman in a half silver mask, wuxia character, upper body, plain white background, ink-wash style |
+| `mask_jeolmang.png` | 은가면 절망 | short stocky old man in a half silver mask, wuxia character, upper body, plain white background, ink-wash style |
+| `mask_bitan.png` | 은가면 비탄 | graceful woman in red with a half silver mask holding a twig, wuxia character, upper body, plain white background, ink-wash style |
 | `jongri_chu_night.png` | 종리추(야간) | spearman with seven spears on his back in the dark, wuxia character, upper body, plain white background, ink-wash style |
 | `do_chuun_night.png` | 도추운(야간) | swordsman with a segmented whip-sword in the dark, wuxia character, upper body, plain white background, ink-wash style |
 | `jang_hong.png` | 장홍 | a bearded man who looks older than his age, kind but nagging expression, sword at his waist, upper body, plain white background |
