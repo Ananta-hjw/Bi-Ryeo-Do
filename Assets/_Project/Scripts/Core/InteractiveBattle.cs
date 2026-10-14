@@ -186,6 +186,13 @@ namespace BiRyeoDo.Core
                         Turn = Turn, ActorId = actor.Id, TargetId = t.Id, SkillId = skill.Id, Kind = EventKind.Attack,
                         Damage = dmg, IsCrit = crit, HitIndex = h, HitCount = hits
                     };
+                    if (t.IsAlive && t.RetreatHpPct > 0f && t.Hp <= t.Stats.MaxHp * t.RetreatHpPct)
+                    {
+                        // Story boss: it escapes rather than dying. The fight ends as a win but nobody is slain.
+                        t.Hp = 0;
+                        ev.Retreated = true;
+                        ev.Message = t.Name + "(이)가 물러난다!";
+                    }
                     if (!t.IsAlive) { t.Charging = false; t.ChargeTarget = null; }
                     else if (skill.Effect == SkillEffect.Stun && h == hits - 1) ApplyStun(t, ev);
                     ev.TargetHpAfter = t.Hp;

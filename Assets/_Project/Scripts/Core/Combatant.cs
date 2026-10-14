@@ -27,6 +27,7 @@ namespace BiRyeoDo.Core
         public Combatant ChargeTarget;     // who the wound-up move will hit
         public bool Stunned;               // loses its next action
         public bool IsBoss;                // bosses cannot be stun-locked, only interrupted
+        public float RetreatHpPct;         // >0: a story boss that flees (leaves the fight) once its HP drops to this fraction of max
         public int MoveIndex;              // enemy script position
         public List<EnemyMove> Moves;      // enemy attack script, cycled in order
         internal readonly Dictionary<string, int> Cooldowns = new Dictionary<string, int>();

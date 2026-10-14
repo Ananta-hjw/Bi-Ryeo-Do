@@ -32,6 +32,20 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void StoryBossRetreatsAtThresholdInsteadOfDying()
+        {
+            var p = Player(Stats(100000, 100, 0, 100));
+            var e = Enemy("boss", Stats(1000, 1, 0, 1));
+            e.RetreatHpPct = 0.3f;
+            var b = Start(p, e);
+            var events = b.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), e));
+            while (!b.IsOver) events.AddRange(b.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), e)));
+            Assert.IsTrue(b.PlayerWon);
+            Assert.IsTrue(events.Any(x => x.Retreated && x.TargetDefeated));
+            Assert.Greater(e.Stats.MaxHp * 0.31f, 0f);
+        }
+
+        [Test]
         public void ActingOutOfTurnThrows()
         {
             var p = Player(Stats(1000, 100, 0, 100));

@@ -835,7 +835,7 @@ namespace BiRyeoDo.Game.UI
             card.Hp.SetPct(card.Unit.Stats.MaxHp > 0 ? (float)ev.TargetHpAfter / card.Unit.Stats.MaxHp : 0f);
             card.HpText.text = ev.TargetHpAfter + " / " + card.Unit.Stats.MaxHp;
             StartCoroutine(Shake(card.Root, ev.IsCrit ? 22f : 14f));
-            if (ev.TargetDefeated) { SetAlpha(card.Body, 0.25f); if (card.Art != null) SetAlpha(card.Art, 0.25f); card.Intent.text = "쓰러졌다"; }
+            if (ev.TargetDefeated) { SetAlpha(card.Body, 0.25f); if (card.Art != null) SetAlpha(card.Art, 0.25f); card.Intent.text = ev.Retreated ? "물러났다" : "쓰러졌다"; if (ev.Retreated) _log.text = ev.Message; }
             RefreshParty();
             yield return new WaitForSeconds(Wait(ev.HitCount > 1 ? HitDelay : StepDelay));
         }

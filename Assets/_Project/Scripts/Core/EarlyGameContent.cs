@@ -30,6 +30,7 @@ namespace BiRyeoDo.Core
     {
         public string Id, Name;
         public bool IsBoss;
+        public float RetreatHpPct;   // >0: story boss that escapes at this HP fraction instead of dying
         public int Level;
         public float HpMul = 1f, AtkMul = 1f, DefMul = 1f;
         public int SpeedAdd;
@@ -54,6 +55,7 @@ namespace BiRyeoDo.Core
         {
             var c = new Combatant(uniqueId, Name, Team.Enemy, BuildStats(), null);
             c.IsBoss = IsBoss;
+            c.RetreatHpPct = RetreatHpPct;
             c.Moves = Moves != null && Moves.Length > 0 ? new List<EnemyMove>(Moves) : new List<EnemyMove> { EnemyMove.Plain };
             return c;
         }
@@ -352,7 +354,7 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("연환 공격", 0.7f, 3), EnemyMove.Attack("협공", 1.3f) } },
             new EnemyData { Id = "hwaryong_hwayeom", Name = "화룡의 불꽃", Level = 66, HpMul = 2.56f, AtkMul = 1.54f,
                 Moves = new[] { EnemyMove.Attack("불의 성벽", 0.8f, 2), EnemyMove.Wind("불길이 솟구친다"), EnemyMove.Attack("화룡의 숨결", 2.9f) } },
-            new EnemyData { Id = "bi_daegongja", Name = "대공자 비", Level = 67, IsBoss = true, HpMul = 4.00f, AtkMul = 1.57f, SpeedAdd = 4,
+            new EnemyData { Id = "bi_daegongja", Name = "대공자 비", Level = 67, IsBoss = true, RetreatHpPct = 0.3f, HpMul = 4.00f, AtkMul = 1.57f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("영뢰 잔흔", 0.7f, 3), EnemyMove.Attack("검기 난무", 1.3f), EnemyMove.Wind("영뢰를 모은다"), EnemyMove.Attack("영뢰 천잔", 3.6f) } },
         };
 
@@ -912,8 +914,8 @@ namespace BiRyeoDo.Core
                         "비류연은 안명후의 잠꼬대 \"용린… 염우\"와 노학의 \"맛있어 보이는 곰 같은 복면인\"을 이어 주방을 추리한다. 염우는 고순도의 휘발성 기름, 용린은 벽력궁의 미세 화약이다. 홍매곡 요리사 서른여섯의 정점, 우 대숙수가 잡힌다."
                     } },
                 },
-                Intro = new[] { "중토관 종료 사흘 뒤 우승 발표. 대공자 비는 \"오늘 용이 날아오른다. 재생을 위한 파괴, 오늘을 기해 신무림기가 시작된다\"고 선언한다.", "천무전 지붕에서 비류연이 \"이의 있음!\"을 외치며 우 대숙수를 단상 앞에 던진다. 대공자가 순순히 인정한다. \"안명후는 내 도구가 죽였다.\"" },
-                Outro = new[] { "\"고인 물은 썩고 쓰지 않는 검은 녹슨다! 화룡이 날아오르고 불의 홍수가 산을 뒤덮으리라! 재 속에서 불사조는 날아오른다! 천겁혈세 혈신재림!\" 화룡멸겁대진이 발동된다.", "단상이 폭발하고 홍매곡 입구가 불의 성벽으로 닫힌다. 대공자와 수하들은 독고령을 들쳐메고 찰나의 생로로 빠져나가고, 입구가 무너져 홍매곡은 고립된다.", "비류연이 \"방법이 있다, 풍신\"이라며 삼성과 혁중의 내력을 구한다. 우승자가 되느냐고 확인하고 나예린의 입맞춤을 부적으로 받은 뒤 묵룡환을 모두 풀고 열 자루 비뢰도와 뇌령사를 나선으로 돌린다. 비뢰도 최종비전오의 풍뢰의 장 나선의 인 용권승룡. 용권풍이 불꽃을 하늘로 밀어 올려 모두 꺼뜨린다.", "비류연은 쓰러져 나예린의 무릎에서 쉰다. 사망 3, 중상 13, 경상 25. 원문은 대공자 비가 \"한때 은명이라 불렸던 남자\"임을 밝히고, 비류연의 사부로 보이는 백염백발의 노인이 불타는 청룡은장에서 제자를 찾아 길을 나서며 1부가 끝난다." },
+                Intro = new[] { "중토관 종료 사흘 뒤 우승 발표. 대공자 비는 \"오늘 용이 날아오른다. 재생을 위한 파괴, 오늘을 기해 신무림기가 시작된다\"고 선언한다.", "천무전 지붕에서 비류연이 \"이의 있음!\"을 외치며 우 대숙수를 단상 앞에 던진다. 대공자가 순순히 인정한다. \"안명후는 내 도구가 죽였다.\"", "\"고인 물은 썩고 쓰지 않는 검은 녹슨다! 화룡이 날아오르고 불의 홍수가 산을 뒤덮으리라! 재 속에서 불사조는 날아오른다! 천겁혈세 혈신재림!\" 화룡멸겁대진이 발동되고 단상이 폭발한다. 마천칠걸과 불의 성벽이 비류연의 길을 막는다." },
+                Outro = new[] { "비류연의 유성호접검이 대공자를 몰아붙이지만 대공자는 삼첩영을 닮은 분신 영뢰 잔흔으로 맞서다 물러선다. \"미안하지만 더 이상 놀아줄 수 없겠군. 용이 날아오를 시간이다!\" 이 대진은 아무도 멈출 수 없다. 대공자는 쓰러지지 않았다.", "불의 성벽이 닫히는 찰나 생로가 열린다. 대공자와 수하들은 독고령을 들쳐메고 빠져나가고, 홍매곡 입구가 무너져 고립된다.", "비류연이 \"방법이 있다, 풍신\"이라며 삼성과 혁중의 내력을 구한다. 우승자가 되느냐고 확인하고 나예린의 입맞춤을 부적으로 받은 뒤 묵룡환을 모두 풀고 열 자루 비뢰도와 뇌령사를 나선으로 돌린다. 비뢰도 최종비전오의 풍뢰의 장 나선의 인 용권승룡. 용권풍이 불꽃을 하늘로 밀어 올려 모두 꺼뜨린다.", "비류연은 쓰러져 나예린의 무릎에서 쉰다. 사망 3, 중상 13, 경상 25. 원문은 대공자 비가 \"한때 은명이라 불렸던 남자\"임을 밝히고, 비류연의 사부로 보이는 백염백발의 노인이 불타는 청룡은장에서 제자를 찾아 길을 나서며 1부가 끝난다." },
                 Encounters = new[] { new[] { "ma_chilgeol_jeoji", "ma_chilgeol_jeoji", "ma_chilgeol_jeoji" }, new[] { "hwaryong_hwayeom", "ma_chilgeol_jeoji" }, new[] { "bi_daegongja" } } },
         };
 
