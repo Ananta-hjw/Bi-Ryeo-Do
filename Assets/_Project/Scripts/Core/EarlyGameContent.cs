@@ -196,6 +196,30 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("청성검", 0.7f, 3), EnemyMove.Attack("청성검", 1.3f), EnemyMove.Wind("무형지기를 끌어올린다"), EnemyMove.Attack("검풍", 2.6f) } },
             new EnemyData { Id = "wiji_cheon", Name = "선풍검룡 위지천", Level = 26, IsBoss = true, HpMul = 2.85f, AtkMul = 5.08f,
                 Moves = new[] { EnemyMove.Attack("절풍검기변", 0.7f, 3), EnemyMove.Attack("절풍검기변", 1.2f), EnemyMove.Wind("검강을 끌어올린다"), EnemyMove.Attack("천원삼절검격", 1.5f, 3) } },
+            // Stage 10: 백향관 (4권)
+            new EnemyData { Id = "sunyeo", Name = "독한녀 십이선녀", Level = 25, HpMul = 1.5f, AtkMul = 4.52f,
+                Moves = new[] { EnemyMove.Attack("독침", 0.7f, 3), EnemyMove.Attack("난향장", 1.2f), EnemyMove.Wind("독향을 퍼뜨린다"), EnemyMove.Attack("절독난무", 2.6f) } },
+            new EnemyData { Id = "na_yerin", Name = "빙백봉 나예린", Level = 27, IsBoss = true, HpMul = 3.0f, AtkMul = 4.70f,
+                Moves = new[] { EnemyMove.Attack("백뢰낙화", 0.7f, 3), EnemyMove.Attack("섬뢰관일", 1.3f), EnemyMove.Wind("백광검뢰를 모은다"), EnemyMove.Attack("참천무뢰", 3.0f) } },
+            // Stage 11: 승급시험 (4권)
+            new EnemyData { Id = "ha_sein", Name = "철검비룡 하세인", Level = 27, HpMul = 1.6f, AtkMul = 3.92f,
+                Moves = new[] { EnemyMove.Attack("철비룡검", 1.0f), EnemyMove.Wind("검기를 맺는다"), EnemyMove.Attack("징계의 일검", 2.6f) } },
+            new EnemyData { Id = "gang_hyeonchu", Name = "영취검 강현추", Level = 28, HpMul = 1.5f, AtkMul = 3.92f,
+                Moves = new[] { EnemyMove.Attack("무산검", 0.8f, 2), EnemyMove.Attack("무산검", 1.2f) } },
+            new EnemyData { Id = "dan_daepung", Name = "철검비룡 단대풍", Level = 29, IsBoss = true, HpMul = 3.0f, AtkMul = 4.14f,
+                Moves = new[] { EnemyMove.Attack("점창검", 0.7f, 3), EnemyMove.Attack("점창검", 1.2f), EnemyMove.Wind("살기를 끌어올린다"), EnemyMove.Attack("살기 어린 일검", 3.0f) } },
+            // Stage 12: 삼성무제 본선 (5권)
+            new EnemyData { Id = "dan_pyeong", Name = "쾌환검 단평", Level = 29, HpMul = 1.5f, AtkMul = 4.35f, SpeedAdd = 6,
+                Moves = new[] { EnemyMove.Attack("남해 36검", 0.6f, 3), EnemyMove.Attack("쾌검살초", 1.3f) } },
+            new EnemyData { Id = "eonga_yeong", Name = "파풍창 언가영", Level = 30, HpMul = 1.6f, AtkMul = 3.25f,
+                Moves = new[] { EnemyMove.Attack("언가묵창", 1.1f), EnemyMove.Wind("창을 거둔다"), EnemyMove.Attack("파풍창", 2.6f) } },
+            new EnemyData { Id = "jeon_okgi", Name = "팔비신검 전옥기", Level = 31, IsBoss = true, HpMul = 3.0f, AtkMul = 4.49f,
+                Moves = new[] { EnemyMove.Attack("팔비검", 0.6f, 4), EnemyMove.Attack("점창검", 1.2f), EnemyMove.Wind("검을 모은다"), EnemyMove.Attack("팔비신검", 3.0f) } },
+            // Stage 13: 삼성대전 결승 (5권)
+            new EnemyData { Id = "dang_munceon", Name = "독랄수 당문천", Level = 31, HpMul = 1.7f, AtkMul = 4.86f,
+                Moves = new[] { EnemyMove.Attack("삼환비선", 0.7f, 3), EnemyMove.Attack("묵편", 1.2f), EnemyMove.Wind("독을 푼다"), EnemyMove.Attack("독편 난무", 2.6f) } },
+            new EnemyData { Id = "wiji_cheon_baek", Name = "선풍검룡 위지천(백일연무)", Level = 33, IsBoss = true, HpMul = 3.4f, AtkMul = 5.08f,
+                Moves = new[] { EnemyMove.Attack("선풍우뢰", 0.7f, 3), EnemyMove.Attack("선풍참혼", 1.3f), EnemyMove.Wind("검강을 끌어올린다"), EnemyMove.Attack("천풍마뢰참", 3.2f) } },
         };
 
         // Items. Names come from volumes 1-3; effects and numbers are placeholders.
@@ -210,6 +234,7 @@ namespace BiRyeoDo.Core
             new ItemData { Id = "mukryonghwan", Name = "묵룡환", Kind = ItemKind.Accessory, AtkPct = 0.10f, DefPct = 0.10f, SpeedAdd = -6, Description = "사부가 11세부터 채운 증량 족쇄. 몸은 무거워지지만 단련된다. 공격·방어 +10%, 속도 -6." },
             new ItemData { Id = "roegeum", Name = "뇌금 묵뢰", Kind = ItemKind.Accessory, QiPct = 0.30f, HpPct = 0.05f, Description = "뇌령사 현을 쓴 검은 칠현금. 내공 +30%, 체력 +5%." },
             new ItemData { Id = "claw_necklace", Name = "발톱 목걸이", Kind = ItemKind.Accessory, CritAdd = 0.05f, SpeedAdd = 2, Description = "사냥한 짐승의 발톱을 꿴 목걸이. 치명타 +5%, 속도 +2." },
+            new ItemData { Id = "ilgeup_yeongdan", Name = "일급영단", Kind = ItemKind.Consumable, HealPct = 1.0f, QiRestore = 999, SpiritGain = 100, Description = "삼성무제 우승 부상. 가장 다친 동료를 완전히 회복하고 내공을 채우며 기세를 100까지 끌어올린다." },
             new ItemData { Id = "seungryong_pae", Name = "승룡패", Kind = ItemKind.Key, Description = "녹옥으로 된 추천패. 천무학관 특별전형 입관의 증표." },
         };
 
@@ -233,6 +258,10 @@ namespace BiRyeoDo.Core
             new DropData { EnemyId = "ho_cheongang", ItemId = "okruju", Chance = 0.60f },
             new DropData { EnemyId = "chu_gayeon", ItemId = "ginseng", Chance = 0.30f },
             new DropData { EnemyId = "wiji_cheon", ItemId = "ginseng", Chance = 0.50f },
+            new DropData { EnemyId = "na_yerin", ItemId = "okruju", Chance = 0.50f },
+            new DropData { EnemyId = "dan_daepung", ItemId = "bear_gall", Chance = 0.60f },
+            new DropData { EnemyId = "jeon_okgi", ItemId = "ginseng", Chance = 0.30f },
+            new DropData { EnemyId = "wiji_cheon_baek", ItemId = "ginseng", Chance = 0.60f },
         };
 
         /// <summary>One-time rewards for clearing a stage for the first time.</summary>
@@ -247,6 +276,10 @@ namespace BiRyeoDo.Core
             { 7, new[] { new ItemStack("ginseng", 1) } },
             { 8, new[] { new ItemStack("bear_gall", 3) } },
             { 9, new[] { new ItemStack("ginseng", 2) } },
+            { 10, new[] { new ItemStack("okruju", 3) } },
+            { 11, new[] { new ItemStack("ginseng", 1), new ItemStack("bear_gall", 2) } },
+            { 12, new[] { new ItemStack("ginseng", 2) } },
+            { 13, new[] { new ItemStack("ilgeup_yeongdan", 1), new ItemStack("ginseng", 2) } },   // 삼성무제 우승 부상
         };
 
         /// <summary>What the protagonist starts with.</summary>
@@ -309,20 +342,49 @@ namespace BiRyeoDo.Core
                 Outro = new[] { "여반장 한 방. 염도는 비류연의 '제자'가 되어 짐을 지고 따라나선다." },
                 Encounters = new[] { new[] { "jang_ugang" }, new[] { "yeomdo" } } },
             new StageData { Number = 6, Name = "남창 호아장", RecommendedLevel = 16, DooTotal = 3000,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "접수 마감", Lines = new[] {
+                        "표행을 따라 남창에 도착한 비류연과 염도. 그런데 천무학관 승천무제(입관시험) 접수는 한 달 전에 마감되었고, 응시자는 만 스물다섯 살까지다.",
+                        "비류연은 남창 정보조직 순풍당의 주인 경순이 나중해를 찾아가 '쌍낭이'라는 별명을 입에 올렸다. 금기를 건드린 대가로 나중해는 해법을 내놓았다.",
+                        "염도는 학관이 모시고 싶어 하는 무사부로, 비류연은 추천패 승룡패를 쥔 특별전형으로 들어가면 된다. 문제는 승룡패가 호아장에 있다는 것이다.",
+                    } },
+                },
                 Intro = new[] { "천무학관에 들어가려면 승룡패가 필요하다.", "염도는 무사부로, 비류연은 특별전형으로 입관한다. 호아장이 쥔 승룡패를 빼앗으러 간다." },
                 Outro = new[] { "후견인 빙검 관철수가 나타났다. 염도와 일검을 나눈 끝에 승룡패가 넘어온다." },
                 Encounters = new[] { new[] { "hoajang_disciple", "hoajang_disciple" }, new[] { "hoajang_disciple", "hoajang_disciple", "hoajang_disciple" }, new[] { "ho_cheonsang", "hoajang_disciple" } } },
             new StageData { Number = 7, Name = "천무학관 검혼관", RecommendedLevel = 19, DooTotal = 3500,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "특별전형", Lines = new[] {
+                        "학관은 염도를 무사부로 맞이했다. 비류연은 승룡패를 내밀고 특별전형을 치렀다.",
+                        "시건방진 응시생 네 명이 시비를 걸었다. 비류연은 그들을 일어나지 못하게 만든 채 수석으로 합격했다.",
+                        "대가로 비류연은 '요주의 인물'로 분류되었다. 본인은 별로 신경 쓰지 않았다.",
+                    } },
+                },
                 Intro = new[] { "입관식 날, 지붕에서 낮잠을 자다 효룡과 친구가 되었다. 기숙사 검혼관으로 가는 길에 신입 장홍이 따라붙는다.", "효룡과 장홍이 함께한다. 기숙사 앞 기관 노방에서 호아장의 호천강이 복수의 칼을 뽑았다." },
-                Outro = new[] { "호천강의 패왕노호검이 반 토막 났다. 기관이 3단계까지 가동되어 은자 1500냥의 피해가 났지만 정당방위로 무죄다." },
+                Outro = new[] { "호천강의 패왕노호검이 반 토막 났다. 기관이 3단계까지 가동되어 은자 1500냥의 피해가 났지만 정당방위로 무죄다.", "방 배정 결과, 701호의 룸메이트는 승천무제 수석 칠절신검 모용휘. 먼지 하나 못 참는 결벽증 천재다.", "비류연은 이 깔끔한 룸메이트를 어떻게 골려 줄지 벌써 궁리하기 시작했다. 일행은 저녁을 먹으러 공동식당으로 향한다." },
                 Encounters = new[] { new[] { "trap_arrow" }, new[] { "trap_needle", "trap_arrow" }, new[] { "trap_log", "trap_needle" }, new[] { "ho_cheongang" } } },
             new StageData { Number = 8, Name = "천무식당", RecommendedLevel = 21, DooTotal = 3500,
                 Intro = new[] { "첫 저녁, 천무식당. 화산파의 윤준호가 선배들에게 조롱을 당하고 있다. 매화검법도 칠매검도 쓰지 못한다는 이유다.", "비류연은 식판을 쥐었다. 윤준호가 일행에 합류한다. (싸움은 게임 연출)" },
-                Outro = new[] { "모용휘가 나타나 싸움을 말렸다. 윤준호가 검향의 경지에 올랐다는 사실은 아직 본인만 모른다." },
+                Outro = new[] { "모용휘가 나타나 싸움을 말렸다. 종리학과 추가연은 이를 갈며 물러났다.", "윤준호가 털어놓았다. 칠매동에서 검보를 얻어 수련하다 매화 향기를 보고 두드러기가 난 뒤로, 매화검법은 물론 칠매검도 쓸 수 없다고.", "효룡과 장홍이 말했다. 그것은 병이 아니라 검기검화 너머, 검향의 경지에 올랐다는 증거라고.", "비류연이 처방을 내렸다. \"알레르기를 고치려 하지 마. 검향을 넘어서는 이미지를 그려 봐. 약보다 낫다.\" 윤준호는 얼떨떨한 얼굴로 고개를 끄덕였다." },
                 Encounters = new[] { new[] { "jongri_hak" }, new[] { "jongri_hak", "jongri_hak" }, new[] { "chu_gayeon", "jongri_hak" } } },
             new StageData { Number = 9, Name = "천무학관 운향정", RecommendedLevel = 23, DooTotal = 4000,
                 Prologue = new[]
                 {
+                    new StoryScene { Title = "수강신청과 우뢰", Lines = new[] {
+                        "수강편람은 베개만큼 두껍다. 비류연이 고른 전공은 음공. 사문에서 가져온 묵금을 쓰기 위해서고, 효룡도 따라 들었다. 담당은 천음선자 홍란이다.",
+                        "천응방 분타에서 30명이 넘게 실패한 푸른 깃털의 고려산 해동청을 비류연은 순순히 길들였다. 이름은 '우뢰'. 전서응이 생겼다.",
+                    } },
+                    new StoryScene { Title = "무도총론", Lines = new[] {
+                        "무당의 옥현진인이 백 년 전 이야기를 꺼냈다. 흑백을 가리지 않고 짓밟은 절대자 위천무, 천겁혈신.",
+                        "백도의 무림맹과 흑도의 흑천맹이 연합했지만 크게 패했다. 태극신군 무신 혁월린과 패천도 무신마 갈중혁이 끝까지 맞섰고, 혈신은 부상을 입고 종적을 감췄다.",
+                        "이후 혁월린은 천무삼성과 천무학관을, 갈중혁은 마천각을 세웠다. 비류연은 천겁령도 위천무도 몰라서 숙제로 백 년사 조사를 받았다.",
+                    } },
+                    new StoryScene { Title = "애소저회", Lines = new[] {
+                        "동호회 거리에서 구정회의 그림자 검혼회와 도백회가 으르렁거렸다. 그 틈에서 3학년 진성곤 임성진이 곤으로 둘을 갈라놓고 비류연 일행을 끌고 갔다.",
+                        "간판은 애소저회. 천관 미인들의 정보를 수집하는 동호회다. '정보가 돈이 된다'는 말에 비류연은 그 자리에서 가입했고, 효룡·장홍·윤준호도 반강제로 따라 들어갔다.",
+                    } },
                     new StoryScene { Title = "운향정의 소녀", Lines = new[] {
                         "학관을 둘러보던 비류연은 오검룡 이상만 드는 정자 운향정에서 걸음을 멈췄다. 밤하늘을 담은 듯한 눈을 한 소녀가 홀로 금을 타고 있었다.",
                         "소녀의 곡이 끝나자 비류연은 자기도 모르게 다가갔다. 그리고 허락도 없이 그녀의 입술을 훔쳤다.",
@@ -331,8 +393,73 @@ namespace BiRyeoDo.Core
                     } },
                 },
                 Intro = new[] { "수석으로 입관한 천무학관. 오검룡 이상만 드는 정자 운향정. 방금 일어난 일을 곱씹을 틈도 없이 인기척이 몰려온다.", "소녀의 호위대장 선풍검룡 위지천이 칼을 뽑았다. 길을 막는 선배들이 먼저 달려든다. (게임 연출)" },
-                Outro = new[] { "선풍뇌절 한 줄기가 위지천의 검을 쳐냈다. 손목은 남겨 두었다.", "소녀는 어느새 사라지고 없었다. 이름조차 묻지 못한 것이 못내 아쉽다. 사람들이 몰려오기 전에 자리를 뜬다." },
+                Outro = new[] { "선풍뇌절 한 줄기가 위지천의 검을 쳐냈다. 손목은 남겨 두었다.", "소녀는 어느새 사라지고 없었다. 이름조차 묻지 못한 것이 못내 아쉽다. 사람들이 몰려오기 전에 자리를 뜬다.", "며칠 뒤 학관 정문. 3개월 과제를 마친 청룡단과 주작단 열여섯이 반 각 차로 귀환했다. 비류연은 제자들을 다시 철저히 단련시키기로 마음먹는다." },
                 Encounters = new[] { new[] { "gu_chang" }, new[] { "so_cheongun" }, new[] { "gu_chang", "so_cheongun" }, new[] { "wiji_cheon" } } },
+            new StageData { Number = 10, Name = "백향관 침투", RecommendedLevel = 25, DooTotal = 4200,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "빙백봉의 정체", Lines = new[] {
+                        "운향정 사건 이후 일주일. 위지천이 빙봉영화수호대를 소집해 나예린의 초상화를 내리고 비류연의 수배 초상화를 걸어 검기로 찢었다. 모두의 공적이 된 것이다.",
+                        "비류연은 애소저회 비연태에게서 소녀의 정체를 알아냈다. 천하제일미 빙백봉 나예린. 무림맹주 나백천의 손녀이자 검후 이옥상의 의발전인이다.",
+                        "\"포기할 마음은 없는데요. 오히려 해볼 마음이 드네.\" 비류연이 씩 웃었다.",
+                    } },
+                    new StoryScene { Title = "추일태의 내기", Lines = new[] {
+                        "구정회 상부의 명을 받은 일은무영 추일태가 비류연에게 은신 내기를 걸었다. 금남의 성지, 여성 전용 기숙사 백향관에 잠입해 정해진 물건을 가져오는 것이다.",
+                        "내기 돈은 은자 이백 냥. \"돈이 적게 걸린 내기는 안 한다\"던 비류연이 이를 마다할 리 없다. 목표는 나예린의 방, 301호.",
+                    } },
+                },
+                Intro = new[] { "신월야. 백향관을 두른 난화백무진이 어둠 속에서 움직이기 시작한다. 30년간 백여 번 뚫으려 했지만 한 번도 성공하지 못한 곳이다.", "독한녀라 불리는 절독난향십이선녀가 3교대로 길목을 지킨다. 복면을 쓴 비류연은 봉황무로 그림자를 탄다. (동료들은 밖에서 망을 본다. 게임 연출)" },
+                Outro = new[] { "301호 문이 열렸다. 무기도 없이 달려온 나예린이 허공섭물로 애검 봉루를 쥐고 백광검뢰를 날린다.", "비류연은 방에 쓰러져 있던 진령에게 뇌령사를 감아 둔 터였다. 괴뢰처럼 일어선 진령이 나예린의 손을 묶는 틈에, 분뢰수와 검기가 부딪치는 폭풍 속으로 빠져나간다.", "백 장 밖에서 뇌령사를 당기자 목표물이 손으로 날아왔다. 내기는 비류연의 승리다.", "그런데 이상하다. 같은 밤 검후처의 비상종이 울렸다. 그곳에 닿은 또 다른 그림자는 비류연이 아니었다." },
+                Encounters = new[] { new[] { "sunyeo" }, new[] { "sunyeo", "sunyeo" }, new[] { "na_yerin" } } },
+            new StageData { Number = 11, Name = "승급시험", RecommendedLevel = 27, DooTotal = 4600,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "삼성제 약속", Lines = new[] {
+                        "다음 날 나예린이 애소저회를 직접 찾아와 비류연의 목에 검을 겨눴다. \"어제 백향관에 침입한 사람이 소협인가요?\" 비류연은 \"글쎄요\"라고 웃었다.",
+                        "나예린: \"올해 삼성무제에서 우승해 보세요. 그러면 당신의 말을 믿어드리죠.\"",
+                        "비류연은 삼성제가 뭔지도 모른 채 \"우승하면 저를 다른 눈으로 봐 주세요\"라고 답했다. 같은 때 검존 공손일취도 모용휘에게 검성전 우승을 요구했다.",
+                    } },
+                    new StoryScene { Title = "대사형의 귀환", Lines = new[] {
+                        "비류연은 염도를 찾아가 '주작단은 내 제자니 네 사제'라고 폭탄선언을 했다. 단, 주작단에게는 비밀이다.",
+                        "다음 날 연무장. 인피면구 없이 나타난 비류연이 \"내가 너희들의 대사형이다\"라고 선언했다. 달려든 노학은 삼복구타권법에 날아갔고, 묵룡환을 본 주작단은 일제히 포권했다.",
+                        "염도가 능청스럽게 보증을 섰다. 비류연의 빚은 점점 늘어난다.",
+                    } },
+                },
+                Intro = new[] { "삼성제에 나가려면 오검룡 이상이 되어야 한다. 승급시험은 같은 등급 두 명을 이기거나 삼백 초 동안 비기면 되고, 실력만 되면 등급을 건너뛸 수 있다.", "비류연은 사물함에 쌓인 빙봉수호대의 비무첩 가운데 복도에서 시비를 건 청룡단 하세인과, 소매에 백호수를 단 단대풍·강현추를 상대로 골랐다." },
+                Outro = new[] { "단대풍의 살기 어린 일검은 비류연의 정수리 한 치 앞에서 보이지 않는 막에 튕겨 나갔다. 일권에 흉곽이 부서진 단대풍은 쓰러졌고, 강현추는 기권했다.", "비류연은 육검룡이 되었고, 모용휘도 곤륜쌍검의 도발을 은하섬광으로 물리치고 오검룡이 되었다. 둘 다 삼성제 참가 자격을 얻었다." },
+                Encounters = new[] { new[] { "ha_sein" }, new[] { "gang_hyeonchu" }, new[] { "dan_daepung", "gang_hyeonchu" } } },
+            new StageData { Number = 12, Name = "삼성무제 본선", RecommendedLevel = 29, DooTotal = 5200,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "삼성무제 개막", Lines = new[] {
+                        "제30회 천무삼성무제 개막식. 검성 모용정천, 도성 하후식, 검후 이옥상이 참관석에 앉았다. 관주 마진가가 대회를 선언하고 삼절검 청흔이 관도 대표로 선서했다.",
+                        "삼성무제는 반년에 걸쳐 열린다. 검성전·도성전·검후전·삼성대전의 결승 여덟 명은 마지막에 몰아서 싸운다. 우승자에게는 일급영단과 전대 고수의 무공 심득이 주어진다.",
+                        "비류연이 등에 멘 것은 뇌금 묵뢰. 음공을 배운 지 반년이다. 장홍이 눈을 감았다.",
+                    } },
+                    new StoryScene { Title = "나 소저, 올 줄 알았어요", Lines = new[] {
+                        "첫 공식전. 비류연은 해남파 쾌환검 단평을 앞에 두고 관중석의 나예린에게 손을 흔들었다. 비무장이 질투의 야유로 가득 찼다.",
+                        "\"여긴 바보들이 많네요.\" 비류연이 중얼거렸다.",
+                    } },
+                },
+                Intro = new[] { "음공이 비무대에 어울리지 않는다는 사실을 비류연은 첫판에서 깨달았다. 거리가 너무 가깝다. 그래서 묵금을 들고 직접 때리기로 했다.", "천음선자 홍란은 음문의 명예가 땅에 떨어졌다며 이를 갈았다. 별명은 '운수대통 격타금'이 된다." },
+                Outro = new[] { "전옥기가 송풍루에서 비류연을 험담했다는 사실을 효룡이 알고 있었다. 비류연은 뇌령사 현으로 콧등을 베고, '충격요법'으로 이빨까지 부러뜨려 장외로 날려 보냈다.", "비류연은 연승을 이어 간다. 아무도 이 1학년의 음공을 본 적이 없다." },
+                Encounters = new[] { new[] { "dan_pyeong" }, new[] { "eonga_yeong", "dan_pyeong" }, new[] { "jeon_okgi" } } },
+            new StageData { Number = 13, Name = "삼성대전 결승", RecommendedLevel = 31, DooTotal = 6000,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "안목품평회", Lines = new[] {
+                        "학관이 묵인하는 내기판 '안목품평회'. 주작단은 한 달 생활비를 가죽 주머니에 담아 금영호에게 맡겼다. 전부 비류연에게 건다.",
+                        "염도도 자기 돈을 던졌다. \"무조건 이겨야 해. 얼음땡이 제자들보다 잘해야 한다.\" 금영호는 도광서와 삼고구배를 건 내기까지 했다.",
+                    } },
+                    new StoryScene { Title = "세 개의 무승부", Lines = new[] {
+                        "검후전 결승은 나예린과 빙검의 딸 관설지의 무승부로 끝났다. 시합 뒤 염도가 관설지의 어깨를 잡고 외쳤다. \"소운!\" 관설지의 어머니 이름은 혁소운이었다.",
+                        "도성전은 청성 비전 도법 청류흔을 쓴 유엽성과 신도문 하윤명의 무승부. 검성전은 모용휘 대 청흔. 은하류 개벽검과 삼정태극검혜의 무극검이 부딪쳐 둘 다 쓰러졌다.",
+                        "세 부문이 한꺼번에 무승부가 된 것은 48년 만이다. 무승부자는 종합 결승에 나가지 못한다. 길이 열렸다.",
+                    } },
+                },
+                Intro = new[] { "준결승에서 비류연은 사천당문 독랄수 당문천과 마주쳤다. 독을 쓰면 안 된다는 규칙은 없다.", "결승 상대는 백일연무를 마치고 돌아온 선풍검룡 위지천. 그는 비류연에게 설욕하기 위해 검을 갈았다." },
+                Outro = new[] { "비류연은 운향정에서 나예린이 켠 곡을 연주했다. 위지천의 마음에 틈이 났다. 선풍우뢰, 선풍참혼, 청성의 금지 살초 천풍마뢰참도 보이지 않는 막과 끊기지 않는 뇌령사에 막혔다.", "비뢰도 오의 뢰광류하곡. 왼손에서 은빛 뇌령사 세 줄기가 뻗었다. 위지천의 검이 떨어졌다. 관중석에서 공손일취가 벌떡 일어섰다.", "다른 부문이 모두 무승부여서 비류연은 삼성무제 종합 우승까지 차지했다. 어부지리라는 소문이 돌았다.", "나예린은 약속대로 백향관 의심을 사과했다. 사과 선물로 비류연이 두 번째 입맞춤을 훔쳤다. 이번에는 그녀도 저항하지 않았다.", "그날 밤 효룡은 무흔일호에게 비류연의 사문을 조사하라고 지시했다. 때가 다가오고 있다." },
+                Encounters = new[] { new[] { "eonga_yeong", "dang_munceon" }, new[] { "wiji_cheon_baek" } } },
         };
 
         private static long CumulativeExp(int level)

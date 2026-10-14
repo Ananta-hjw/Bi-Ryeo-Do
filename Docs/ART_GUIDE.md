@@ -6,7 +6,7 @@
 
 | 위치 | 파일 이름 | 규격 |
 |---|---|---|
-| `Resources/Art/Backgrounds/` | `stage_01.png` … `stage_09.png` | 세로 1080×1920 (또는 9:16), 전투 화면 배경 |
+| `Resources/Art/Backgrounds/` | `stage_01.png` … `stage_13.png` | 세로 1080×1920 (또는 9:16), 전투 화면 배경 |
 | `Resources/Art/Enemies/` | 아래 표의 id (예: `tiger.png`) | **투명 배경 PNG**, 512~1024px 정사각 |
 | `Resources/Art/Characters/` | `player.png` | 투명 배경 PNG, 512px 정사각 (상반신 권장) |
 
@@ -55,6 +55,10 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 | `stage_07.png` | 천무학관 검혼관 | dormitory approach path inside a Chinese martial academy, wooden corridor with hidden trap mechanisms, arrow slits and a row of swords in the ground, tense atmosphere, vertical composition, no characters, 9:16 |
 | `stage_08.png` | 천무식당 | large dining hall of a Chinese martial academy, long wooden tables, warm lantern light, evening, vertical composition, no characters, 9:16 |
 | `stage_09.png` | 천무학관 운향정 | elegant pavilion beside a calm artificial lake, stalagmite-like garden rocks, lush green trees, moonlit, vertical composition, no characters, 9:16 |
+| `stage_10.png` | 백향관 침투 | dormitory tower of a Chinese martial academy for women at night, new moon, fragrant flower garden with hidden formation stones, lanterns off, vertical composition, no characters, 9:16 |
+| `stage_11.png` | 승급시험 | octagonal stone duel stage with eight pillars inside a martial academy hall, judges' seats, daylight, vertical composition, no characters, 9:16 |
+| `stage_12.png` | 삼성무제 본선 | huge outdoor martial arts tournament arena with banners of many sects, packed spectator stands, bright sky, vertical composition, no characters, 9:16 |
+| `stage_13.png` | 삼성대전 결승 | final tournament arena with cracked stone floor, crowd in the stands, three elders' seats on a dais, dramatic sky, vertical composition, no characters, 9:16 |
 
 ## 적 (19종)
 
