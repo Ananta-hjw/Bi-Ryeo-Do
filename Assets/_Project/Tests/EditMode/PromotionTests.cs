@@ -71,17 +71,12 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void GateStagesNeedFifthRankAndReincarnationResetsRank()
+        public void GateStagesNeedFifthRank()
         {
             Assert.IsTrue(Promotion.StageAllowed(Save(1), 11));
             Assert.IsFalse(Promotion.StageAllowed(Save(4), 12));
             Assert.IsFalse(Promotion.StageAllowed(Save(4), 13));
             Assert.IsTrue(Promotion.StageAllowed(Save(5), 12));
-
-            var save = Save(7);
-            save.Level = Progression.MinLevelToReincarnate;
-            Assert.IsTrue(Progression.Reincarnate(save));
-            Assert.AreEqual(1, save.SwordRank);
         }
 
         private static double NotLostRate(int rank, int tier, int runs)
@@ -89,7 +84,7 @@ namespace BiRyeoDo.Tests
             int ok = 0;
             for (int r = 0; r < runs; r++)
             {
-                var player = new Combatant("p", "비류연", Team.Player, Progression.StatsFor(Promotion.OpponentLevel(rank), 1), SimpleBot.BestLoadout(13));
+                var player = new Combatant("p", "비류연", Team.Player, Progression.StatsFor(Promotion.OpponentLevel(rank)), SimpleBot.BestLoadout(13));
                 bool lost = false;
                 for (int k = 0; k < 2 && !lost; k++)
                 {

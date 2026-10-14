@@ -10,7 +10,6 @@ namespace BiRyeoDo.Core
         public const int CurrentVersion = 2;
 
         public int Version = CurrentVersion;
-        public int Life = 1;            // 제N생: reincarnation count
         public int Level = 1;           // 경지/수련 단계 within the current life
         public long Exp;
         public long Doo;                // 두: main currency

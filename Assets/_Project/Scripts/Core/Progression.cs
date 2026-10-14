@@ -2,11 +2,9 @@ using System;
 
 namespace BiRyeoDo.Core
 {
-    /// <summary>Growth rules: leveling, stat curve, reincarnation. Numbers are placeholders to tune in Docs/GAME_DESIGN.md.</summary>
+    /// <summary>Growth rules: leveling and the stat curve. Numbers are placeholders to tune in Docs/GAME_DESIGN.md.</summary>
     public static class Progression
     {
-        public const int MinLevelToReincarnate = 20;
-        public const float LifeBonusPerLife = 0.10f;
         public const int MaxEquippedArts = 4;
 
         public static long ExpToNext(int level)
@@ -14,7 +12,7 @@ namespace BiRyeoDo.Core
             return (long)Math.Round(50 * Math.Pow(level, 1.5));
         }
 
-        public static CombatStats StatsFor(int level, int life)
+        public static CombatStats StatsFor(int level)
         {
             int l = Math.Max(1, level) - 1;
             var s = new CombatStats
@@ -27,7 +25,7 @@ namespace BiRyeoDo.Core
                 CritRate = 0.01f,
                 CritDamage = 1.5f
             };
-            return CombatStats.Scale(s, 1f + LifeBonusPerLife * (Math.Max(1, life) - 1));
+            return s;
         }
 
         /// <summary>Adds exp and applies any level-ups. Returns number of levels gained.</summary>
@@ -43,23 +41,6 @@ namespace BiRyeoDo.Core
                 gained++;
             }
             return gained;
-        }
-
-        public static bool CanReincarnate(SaveData save)
-        {
-            return save.Level >= MinLevelToReincarnate;
-        }
-
-        /// <summary>Starts the next life. Keeps currency and learned arts; resets level, exp and stage progress.</summary>
-        public static bool Reincarnate(SaveData save)
-        {
-            if (!CanReincarnate(save)) return false;
-            save.Life++;
-            save.Level = 1;
-            save.Exp = 0;
-            save.ClearedStage = 0;
-            save.SwordRank = 1;
-            return true;
         }
     }
 }

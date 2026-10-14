@@ -70,14 +70,12 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void LevelUpAndReincarnate()
+        public void LevelUpFromExp()
         {
             var save = new SaveData();
-            Progression.AddExp(save, 1000000);
-            Assert.IsTrue(Progression.CanReincarnate(save));
-            Assert.IsTrue(Progression.Reincarnate(save));
-            Assert.AreEqual(2, save.Life);
-            Assert.AreEqual(1, save.Level);
+            int gained = Progression.AddExp(save, Progression.ExpToNext(1) + Progression.ExpToNext(2));
+            Assert.AreEqual(2, gained);
+            Assert.AreEqual(3, save.Level);
         }
     }
 }

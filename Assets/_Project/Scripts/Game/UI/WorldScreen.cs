@@ -20,7 +20,6 @@ namespace BiRyeoDo.Game.UI
 
         private readonly List<Row> _rows = new List<Row>();
         private Text _header, _hint, _promoRowDetail, _partyRowDetail;
-        private GameObject _rebornButton;
         private RectTransform _promoOverlay, _partyOverlay;
         private Action<PromotionOffer> _onPromote;
         private bool _built;
@@ -32,10 +31,7 @@ namespace BiRyeoDo.Game.UI
             _onPromote = onPromote;
 
             UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink);
-            _header = UiFactory.Label("Header", root, new Vector2(0.06f, 0.925f), new Vector2(0.62f, 0.985f), "", 34, UiFactory.Gold, TextAnchor.MiddleLeft);
-            var reborn = UiFactory.Button("Reincarnate", root, new Vector2(0.66f, 0.932f), new Vector2(0.95f, 0.978f), "환생", UiFactory.Gold, OnRebornPressed, 36);
-            reborn.GetComponentInChildren<Text>().color = UiFactory.Ink;
-            _rebornButton = reborn.gameObject;
+            _header = UiFactory.Label("Header", root, new Vector2(0.06f, 0.925f), new Vector2(0.94f, 0.985f), "", 34, UiFactory.Gold, TextAnchor.MiddleLeft);
             _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "스테이지를 골라 출전하자. 전투는 직접 무공을 골라 싸운다.", 28, UiFactory.Ink, TextAnchor.MiddleCenter, FontStyle.Normal);
 
             // The stage list scrolls: 13 stages plus the 승급 시험장 do not fit on one screen.
@@ -217,15 +213,6 @@ namespace BiRyeoDo.Game.UI
             onStart(st);
         }
 
-        private void OnRebornPressed()
-        {
-            var save = GameManager.Instance.Save;
-            if (!Progression.Reincarnate(save)) return;
-            GameManager.Instance.SaveNow();
-            _hint.text = "환생! 제" + save.Life + "생이 시작된다. 두와 배운 무공은 그대로 이어진다.";
-            Refresh();
-        }
-
         private static string PartyText(StageData st)
         {
             var companions = EarlyGameContent.SelectCompanions(st.Number, GameManager.Instance.Save.ActiveCompanions);
@@ -239,14 +226,13 @@ namespace BiRyeoDo.Game.UI
         {
             if (!_built) return;
             var save = GameManager.Instance.Save;
-            _header.text = "제" + save.Life + "생 · " + Promotion.RankName(Promotion.EffectiveRank(save)) + " · Lv." + save.Level + " · " + save.Doo.ToString("N0") + "두";
+            _header.text = Promotion.RankName(Promotion.EffectiveRank(save)) + " · Lv." + save.Level + " · " + save.Doo.ToString("N0") + "두";
             _promoRowDetail.text = Promotion.RankName(Promotion.EffectiveRank(save)) + (Promotion.EffectiveRank(save) >= Promotion.MaxRank ? " · 최고 경지" : " · 한 계단 또는 두 계단 승급 도전")
                 + (Promotion.EffectiveRank(save) < Promotion.GateRank ? "\n(" + Promotion.RankName(Promotion.GateRank) + " 이상이어야 삼성무제 참가)" : "");
             var current = new List<string>();
             foreach (var c in EarlyGameContent.SelectCompanions(Math.Max(1, save.HighestUnlockedStage), save.ActiveCompanions)) current.Add(c.Name);
             _partyRowDetail.text = current.Count == 0 ? "아직 함께할 동료가 없다" : "출전 동료: " + string.Join(", ", current)
                 + (AvailableCompanions(save).Count > EarlyGameContent.MaxCompanions ? "\n(동료 " + AvailableCompanions(save).Count + "명 중 " + EarlyGameContent.MaxCompanions + "명만 출전)" : "");
-            _rebornButton.SetActive(Progression.CanReincarnate(save));
 
             foreach (var r in _rows)
             {

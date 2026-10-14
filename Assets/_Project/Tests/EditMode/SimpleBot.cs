@@ -57,16 +57,16 @@ namespace BiRyeoDo.Tests
             return eq.Select(a => a.ToSpec()).ToList();
         }
 
-        public static List<Combatant> BuildParty(int stageNumber, int level, int life)
+        public static List<Combatant> BuildParty(int stageNumber, int level)
         {
-            var party = new List<Combatant> { new Combatant("p", "비류연", Team.Player, Progression.StatsFor(level, life), BestLoadout(stageNumber)) };
-            foreach (var c in EarlyGameContent.SelectCompanions(stageNumber, null)) party.Add(c.CreateCombatant(level, life));
+            var party = new List<Combatant> { new Combatant("p", "비류연", Team.Player, Progression.StatsFor(level), BestLoadout(stageNumber)) };
+            foreach (var c in EarlyGameContent.SelectCompanions(stageNumber, null)) party.Add(c.CreateCombatant(level));
             return party;
         }
 
         public static bool ClearStage(StageData st, int seed)
         {
-            var party = BuildParty(st.Number, st.RecommendedLevel, 1);
+            var party = BuildParty(st.Number, st.RecommendedLevel);
             for (int k = 0; k < st.Encounters.Length; k++)
             {
                 var enemies = st.Encounters[k].Select((id, i) => EarlyGameContent.FindEnemy(id).CreateCombatant(id + i)).ToList();

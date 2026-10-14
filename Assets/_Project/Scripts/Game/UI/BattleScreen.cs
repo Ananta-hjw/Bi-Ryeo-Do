@@ -413,9 +413,9 @@ namespace BiRyeoDo.Game.UI
                 var art = EarlyGameContent.FindArt(id);
                 if (art != null && art.OwnerId == null && skills.Count < Progression.MaxEquippedArts) skills.Add(art.ToSpec());
             }
-            var stats = Inventory.ApplyGear(Progression.StatsFor(save.Level, save.Life), save.EquippedGear);
+            var stats = Inventory.ApplyGear(Progression.StatsFor(save.Level), save.EquippedGear);
             var party = new List<Combatant> { new Combatant("player", "비류연", Team.Player, stats, skills) };
-            foreach (var c in EarlyGameContent.SelectCompanions(stage.Number, save.ActiveCompanions)) party.Add(c.CreateCombatant(save.Level, save.Life));
+            foreach (var c in EarlyGameContent.SelectCompanions(stage.Number, save.ActiveCompanions)) party.Add(c.CreateCombatant(save.Level));
             return party;
         }
 

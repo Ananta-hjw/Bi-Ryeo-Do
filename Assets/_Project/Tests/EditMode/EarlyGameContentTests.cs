@@ -59,7 +59,7 @@ namespace BiRyeoDo.Tests
                 CollectionAssert.Contains(stages, c.JoinStage, c.Id);
                 var arts = EarlyGameContent.Arts.Where(a => a.OwnerId == c.Id).ToList();
                 Assert.IsTrue(arts.Count >= 2 && arts.Count <= Progression.MaxEquippedArts, c.Id);
-                var unit = c.CreateCombatant(10, 1);
+                var unit = c.CreateCombatant(10);
                 Assert.AreEqual(Team.Player, unit.Team);
                 Assert.IsTrue(unit.Skills.Count > arts.Count, "basic attack plus arts");
             }
