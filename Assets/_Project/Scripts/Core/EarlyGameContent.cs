@@ -989,12 +989,19 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
             return w;
         }
 
-        /// <summary>Exp for one enemy: the stage pays out exactly the levels between its recommended level and the next stage's.</summary>
+        /// <summary>Levels a first-clear-only run stays above the recommended level from stage 2 on (a small cushion).</summary>
+        public const int LevelHeadroom = 1;
+
+        /// <summary>Share of exp (not 두) paid when replaying an already cleared stage.</summary>
+        public const double ReplayExpFactor = 0.5;
+
+        /// <summary>Exp for one enemy: clearing stages in order keeps the player <see cref="LevelHeadroom"/> above each stage's recommended level (stage 1 pays the cushion up front).</summary>
         public static long ExpReward(StageData st, string enemyId)
         {
             var next = FindStage(st.Number + 1);
-            int to = next != null ? next.RecommendedLevel : st.RecommendedLevel + 3;
-            long total = CumulativeExp(to) - CumulativeExp(st.RecommendedLevel);
+            int to = (next != null ? next.RecommendedLevel : st.RecommendedLevel + 3) + LevelHeadroom;
+            int from = st.RecommendedLevel + (st.Number > 1 ? LevelHeadroom : 0);
+            long total = CumulativeExp(to) - CumulativeExp(from);
             return (long)Math.Ceiling((double)total * RewardWeight(enemyId) / TotalWeight(st));
         }
 

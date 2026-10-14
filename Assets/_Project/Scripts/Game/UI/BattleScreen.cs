@@ -183,6 +183,7 @@ namespace BiRyeoDo.Game.UI
                 BuildParty(stage);
                 long gainedExp = 0, gainedDoo = 0;
                 bool cleared = true;
+                bool replay = save.ClearedStage >= stage.Number;
 
                 for (int i = 0; i < stage.Encounters.Length; i++)
                 {
@@ -199,6 +200,7 @@ namespace BiRyeoDo.Game.UI
                         exp += EarlyGameContent.ExpReward(stage, id);
                         doo += EarlyGameContent.DooReward(stage, id);
                     }
+                    if (replay) exp = (long)Math.Round(exp * EarlyGameContent.ReplayExpFactor);
                     var drops = RollDrops(stage.Encounters[i]);
                     int levels = Progression.AddExp(save, exp);
                     save.Doo += doo;
