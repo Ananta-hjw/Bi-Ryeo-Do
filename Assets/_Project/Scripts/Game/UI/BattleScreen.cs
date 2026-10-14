@@ -26,7 +26,7 @@ namespace BiRyeoDo.Game.UI
         {
             public Combatant Unit;
             public RectTransform Root;
-            public Image Frame, Body;
+            public Image Frame, Body, Art;
             public Text Name, Glyph, Intent, HpText;
             public UiFactory.Bar Hp;
             public Vector2 Center;
@@ -41,6 +41,7 @@ namespace BiRyeoDo.Game.UI
         }
 
         private RectTransform _root, _cardsRoot, _fx, _playerBlock;
+        private Image _backdropImage, _playerPortrait;
         private Text _stageLabel, _speedLabel, _log, _playerName, _playerHpText, _playerQiText, _playerSpiritText, _status, _banner;
         private UiFactory.Bar _playerHp, _playerQi, _playerSpirit;
         private Image _flash, _bannerBg;
@@ -72,6 +73,9 @@ namespace BiRyeoDo.Game.UI
             _root = root;
 
             UiFactory.Panel("Backdrop", root, Vector2.zero, Vector2.one, Backdrop);
+            _backdropImage = UiFactory.Panel("StageArt", root, Vector2.zero, Vector2.one, new Color(1f, 1f, 1f, 0f));
+            _backdropImage.preserveAspect = false;
+            UiFactory.Panel("Dim", root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.35f)); // keeps text readable over artwork
 
             // Top bar
             UiFactory.Panel("TopBar", root, new Vector2(0f, 0.945f), new Vector2(1f, 1f), UiFactory.Ink);
@@ -100,8 +104,10 @@ namespace BiRyeoDo.Game.UI
             // Player block
             _playerBlock = UiFactory.Rect("PlayerBlock", root, new Vector2(0.04f, 0.300f), new Vector2(0.96f, 0.455f));
             UiFactory.Panel("PlayerBg", _playerBlock, Vector2.zero, Vector2.one, UiFactory.Ink);
-            _playerName = UiFactory.Label("PlayerName", _playerBlock, new Vector2(0.03f, 0.62f), new Vector2(0.42f, 0.97f), "", 36, UiFactory.Gold, TextAnchor.MiddleLeft);
-            _status = UiFactory.Label("Status", _playerBlock, new Vector2(0.42f, 0.62f), new Vector2(0.97f, 0.97f), "", 30, UiFactory.PaperText, TextAnchor.MiddleRight);
+            _playerPortrait = UiFactory.Panel("Portrait", _playerBlock, new Vector2(0.015f, 0.05f), new Vector2(0.20f, 0.95f), new Color(0.25f, 0.25f, 0.23f, 1f));
+            _playerPortrait.preserveAspect = true;
+            _playerName = UiFactory.Label("PlayerName", _playerBlock, new Vector2(0.22f, 0.62f), new Vector2(0.50f, 0.97f), "", 34, UiFactory.Gold, TextAnchor.MiddleLeft);
+            _status = UiFactory.Label("Status", _playerBlock, new Vector2(0.50f, 0.62f), new Vector2(0.97f, 0.97f), "", 30, UiFactory.PaperText, TextAnchor.MiddleRight);
             MakeStatRow(_playerBlock, "체력", 0.42f, HpGreen, out _playerHp, out _playerHpText);
             MakeStatRow(_playerBlock, "내공", 0.22f, QiBlue, out _playerQi, out _playerQiText);
             MakeStatRow(_playerBlock, "기세", 0.02f, UiFactory.Gold, out _playerSpirit, out _playerSpiritText);
@@ -129,9 +135,9 @@ namespace BiRyeoDo.Game.UI
 
         private void MakeStatRow(RectTransform parent, string label, float y0, Color fill, out UiFactory.Bar bar, out Text value)
         {
-            UiFactory.Label(label + "Label", parent, new Vector2(0.03f, y0), new Vector2(0.15f, y0 + 0.18f), label, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
-            bar = UiFactory.MakeBar(label + "Bar", parent, new Vector2(0.16f, y0 + 0.03f), new Vector2(0.72f, y0 + 0.15f), new Color(0.2f, 0.2f, 0.2f, 0.9f), fill);
-            value = UiFactory.Label(label + "Value", parent, new Vector2(0.73f, y0), new Vector2(0.97f, y0 + 0.18f), "", 28, UiFactory.PaperText, TextAnchor.MiddleRight);
+            UiFactory.Label(label + "Label", parent, new Vector2(0.22f, y0), new Vector2(0.33f, y0 + 0.18f), label, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
+            bar = UiFactory.MakeBar(label + "Bar", parent, new Vector2(0.34f, y0 + 0.03f), new Vector2(0.75f, y0 + 0.15f), new Color(0.2f, 0.2f, 0.2f, 0.9f), fill);
+            value = UiFactory.Label(label + "Value", parent, new Vector2(0.76f, y0), new Vector2(0.97f, y0 + 0.18f), "", 28, UiFactory.PaperText, TextAnchor.MiddleRight);
         }
 
         private void BuildPanel(RectTransform root)
@@ -162,6 +168,12 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             _fled = false;
             _stageLabel.text = "스테이지 " + stage.Number + " · " + stage.Name;
+            var bg = ArtLibrary.Background(stage.Number);
+            _backdropImage.sprite = bg;
+            _backdropImage.color = bg != null ? Color.white : new Color(1f, 1f, 1f, 0f);
+            var portrait = ArtLibrary.Player();
+            _playerPortrait.sprite = portrait;
+            _playerPortrait.color = portrait != null ? Color.white : new Color(0.25f, 0.25f, 0.23f, 1f);
             ClearCards();
             SetCommandsVisible(false);
             _log.text = "";
@@ -307,7 +319,15 @@ namespace BiRyeoDo.Game.UI
                 card.Frame = UiFactory.Panel("Frame", card.Root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0f));
                 card.Body = UiFactory.Panel("Body", card.Root, new Vector2(0.025f, 0.02f), new Vector2(0.975f, 0.98f), data.IsBoss ? new Color(0.35f, 0.10f, 0.09f, 1f) : UiFactory.Ink);
                 card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.97f), data.Name, 30, UiFactory.PaperText);
-                card.Glyph = UiFactory.Label("Glyph", card.Root, new Vector2(0.05f, 0.42f), new Vector2(0.95f, 0.84f), FirstGlyph(data.Name), 150, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
+                var art = ArtLibrary.Enemy(data.Id);
+                if (art != null)
+                {
+                    var pic = UiFactory.Panel("Art", card.Root, new Vector2(0.06f, 0.40f), new Vector2(0.94f, 0.85f), Color.white);
+                    pic.sprite = art;
+                    pic.preserveAspect = true;
+                    card.Art = pic;
+                }
+                card.Glyph = UiFactory.Label("Glyph", card.Root, new Vector2(0.05f, 0.42f), new Vector2(0.95f, 0.84f), art != null ? "" : FirstGlyph(data.Name), 150, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
                 card.Hp = UiFactory.MakeBar("Hp", card.Root, new Vector2(0.08f, 0.31f), new Vector2(0.92f, 0.39f), new Color(0.2f, 0.2f, 0.2f, 0.9f), UiFactory.Red);
                 card.HpText = UiFactory.Label("HpText", card.Root, new Vector2(0.05f, 0.22f), new Vector2(0.95f, 0.31f), "", 22, UiFactory.PaperText);
                 card.Intent = UiFactory.Label("Intent", card.Root, new Vector2(0.05f, 0.03f), new Vector2(0.95f, 0.22f), "", 24, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
@@ -343,6 +363,7 @@ namespace BiRyeoDo.Game.UI
                 c.HpText.text = u.Hp + " / " + u.Stats.MaxHp;
                 c.Frame.color = c == _target && !dead ? UiFactory.Gold : new Color(0f, 0f, 0f, 0f);
                 SetAlpha(c.Body, dead ? 0.25f : 1f);
+                if (c.Art != null) SetAlpha(c.Art, dead ? 0.25f : 1f);
                 c.Glyph.color = dead ? new Color(1f, 1f, 1f, 0.2f) : c.Glyph.color;
                 if (dead) { c.Intent.text = "쓰러졌다"; continue; }
                 var move = u.PeekMove();
@@ -538,7 +559,7 @@ namespace BiRyeoDo.Game.UI
             card.Hp.SetPct(card.Unit.Stats.MaxHp > 0 ? (float)ev.TargetHpAfter / card.Unit.Stats.MaxHp : 0f);
             card.HpText.text = ev.TargetHpAfter + " / " + card.Unit.Stats.MaxHp;
             StartCoroutine(Shake(card.Root, ev.IsCrit ? 22f : 14f));
-            if (ev.TargetDefeated) { SetAlpha(card.Body, 0.25f); card.Intent.text = "쓰러졌다"; }
+            if (ev.TargetDefeated) { SetAlpha(card.Body, 0.25f); if (card.Art != null) SetAlpha(card.Art, 0.25f); card.Intent.text = "쓰러졌다"; }
             RefreshPlayer();
             yield return new WaitForSeconds(Wait(ev.HitCount > 1 ? HitDelay : StepDelay));
         }

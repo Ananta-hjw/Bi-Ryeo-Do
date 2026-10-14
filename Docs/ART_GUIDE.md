@@ -1,0 +1,74 @@
+# 아트 제작 가이드 (AI 이미지 생성)
+
+게임은 `Assets/_Project/Resources/Art` 아래에 **파일 이름이 맞는 이미지**를 넣으면 자동으로 적용한다. 파일이 없으면 지금처럼 색 블록과 큰 글자로 표시되므로 하나씩 채워 넣어도 된다. 코드는 건드릴 필요가 없다.
+
+## 폴더와 파일 이름
+
+| 위치 | 파일 이름 | 규격 |
+|---|---|---|
+| `Resources/Art/Backgrounds/` | `stage_01.png` … `stage_07.png` | 세로 1080×1920 (또는 9:16), 전투 화면 배경 |
+| `Resources/Art/Enemies/` | 아래 표의 id (예: `tiger.png`) | **투명 배경 PNG**, 512~1024px 정사각 |
+| `Resources/Art/Characters/` | `player.png` | 투명 배경 PNG, 512px 정사각 (상반신 권장) |
+
+- PNG/JPG 모두 된다. 배경은 JPG로 해도 된다(이름만 `.jpg`).
+- 파일 크기가 클수록 앱 용량과 메모리가 늘어난다. 적은 1024px 이하, 배경은 1080×1920 정도가 적당하다.
+- 이미지를 넣은 뒤 Unity에서 별도 설정은 필요 없다(런타임에 스프라이트로 변환한다). GitHub에 올리면 CI가 APK에 포함해 빌드한다.
+
+## 화풍을 통일하는 법
+모든 프롬프트 맨 앞에 같은 **공통 문구**를 붙이면 그림 스타일이 맞는다.
+
+```
+ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, traditional Chinese, high quality
+```
+
+- 캐릭터는 `plain white background`를 같이 쓰면 배경 제거가 쉽다. 배경 제거는 remove.bg나 이미지 도구의 배경 제거 기능을 쓰면 된다.
+- 화면 비율은 배경 `9:16`, 캐릭터 `1:1`로 지정한다.
+- 마음에 드는 첫 결과가 나오면 같은 모델·같은 설정으로 이어서 뽑아야 통일감이 유지된다.
+- 원작 인물의 얼굴은 생성할 때마다 달라진다. 외형 묘사는 원작에 나온 특징(머리색, 옷, 무기)만 적었고 얼굴은 정하지 않았다. 마음에 드는 결과를 고르면 된다.
+
+## 주인공 (`player.png`)
+원작에서 확인된 특징: 자칭 우아한 미소년, 천재, 자신만만. 사부에게서 받은 묵룡환(검은 쇠고리 족쇄)과 묵금(검은 칠현금)을 지님.
+
+```
+ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, traditional Chinese, high quality, a handsome young martial artist around 19 years old, confident smile, simple dark traditional robe, black iron rings on his wrists, a black guqin on his back, upper body, plain white background
+```
+
+## 배경 (스테이지 7개)
+
+| 파일 | 스테이지 | 프롬프트 (공통 문구 뒤에 붙이기) |
+|---|---|---|
+| `stage_01.png` | 아미산 숲 | misty pine forest on a steep mountain slope, a small wooden hut in the distance, morning fog, vertical composition, no characters, 9:16 |
+| `stage_02.png` | 중양표국 | courtyard gate of a Chinese escort agency compound, wooden gate with a banner flag, stone paving, vertical composition, no characters, 9:16 |
+| `stage_03.png` | 호골채 매복 | narrow mountain road between steep cliffs, ambush spot, dusk light, vertical composition, no characters, 9:16 |
+| `stage_04.png` | 용골채 매복 | wide mountain pass with rocky cliffs and scattered boulders, tense atmosphere, overcast sky, vertical composition, no characters, 9:16 |
+| `stage_05.png` | 주주 윤하루 | traditional Chinese inn exterior at night, red lanterns, wooden two-story building, quiet street, vertical composition, no characters, 9:16 |
+| `stage_06.png` | 남창 호아장 | martial arts manor courtyard, weapon racks, stone training ground, large hall in the background, vertical composition, no characters, 9:16 |
+| `stage_07.png` | 천무학관 운향정 | elegant pavilion beside a calm artificial lake, stalagmite-like garden rocks, lush green trees, moonlit, vertical composition, no characters, 9:16 |
+
+## 적 (16종)
+
+| 파일 | 대상 | 프롬프트 (공통 문구 뒤에 붙이기) |
+|---|---|---|
+| `tiger.png` | 호랑이 | a fierce tiger in an aggressive stance, full body, plain white background |
+| `bear.png` | 곰 | a huge black bear rearing up on its hind legs, full body, plain white background |
+| `white_tiger.png` | 백호 (보스) | a large white tiger with black stripes, majestic and menacing, full body, plain white background |
+| `biaosa.png` | 표사 | a Chinese escort guard in plain dark work clothes holding a straight sword, full body, plain white background |
+| `gang_janghan.png` | 비풍도 강장한 (보스) | a burly Chinese escort chief wielding a broad saber, confident glare, full body, plain white background |
+| `hogol_bandit.png` | 호골채 산적 | a mountain bandit in ragged clothes with a crude blade, full body, plain white background |
+| `paeho_jung_gwang.png` | 패호 중광 (보스) | a bandit chieftain, large and muscular, heavy blade, fur-trimmed clothes, full body, plain white background |
+| `yonggol_bandit.png` | 용골채 산적 | a mountain bandit in ragged clothes with a spear, full body, plain white background |
+| `paeryong_wooak.png` | 패룡 우악 (보스) | a huge bandit chieftain with a massive weapon, scarred face, full body, plain white background |
+| `jang_ugang.png` | 장우강 | a proud young swordsman from a Taoist sword sect (Qingcheng), blue-grey robe, arrogant look, full body, plain white background |
+| `yeomdo.png` | 염도 곽영희 (보스) | a tall saber master with red hair, red eyebrows and red beard, crimson aura, fiery saber, full body, plain white background |
+| `hoajang_disciple.png` | 호아장 제자 | a disciple of a martial arts manor in matching robes with a sword, full body, plain white background |
+| `ho_cheonsang.png` | 호아장주 호천상 (보스) | a middle-aged master of a martial arts manor, tiger-themed robe, sword, stern, full body, plain white background |
+| `jongri_hak.png` | 종리학 | a young swordsman of a mountain sect with plum blossom emblem, white and purple robe, sword, full body, plain white background |
+| `gu_chang.png` | 일도파쇄 구창 (보스급) | a rough young saber fighter in black clothes, thick dark eyebrows, strong jaw, crude heavy saber, overbearing aura, full body, plain white background |
+| `wiji_cheon.png` | 선풍검룡 위지천 (보스) | a handsome young swordsman in blue silk martial robe, ornate sword with white tassel, wind swirling around him, full body, plain white background |
+
+원작에서 외형이 확인된 것은 염도(붉은 머리·눈썹·수염), 구창(흑삼, 굵고 짙은 눈썹, 강인한 턱, 투박한 도), 위지천(청색 비단 무복, 흰 술이 달린 보검, 칠검룡 문양)이다. 나머지(표사, 산적, 호아장 인물, 종리학 등)는 원작에 구체적인 묘사가 없어 일반적인 모습으로 적었다.
+
+## 작업 순서 제안
+1. 배경 1장과 적 1장(예: `stage_01.png`, `tiger.png`)을 먼저 만들어 넣고 폰에서 화면이 어떻게 보이는지 확인한다.
+2. 마음에 들면 나머지를 같은 방식으로 채운다.
+3. 앱 아이콘이나 타이틀 이미지는 나중에 따로 만든다.
