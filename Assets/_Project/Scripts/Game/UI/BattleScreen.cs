@@ -497,7 +497,7 @@ namespace BiRyeoDo.Game.UI
                 card.Frame = UiFactory.Panel("Frame", card.Root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0f));
                 card.Body = UiFactory.Panel("Body", card.Root, new Vector2(0.025f, 0.02f), new Vector2(0.975f, 0.98f), data.IsBoss ? new Color(0.35f, 0.10f, 0.09f, 1f) : UiFactory.Ink);
                 card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.97f), data.Name, 30, UiFactory.PaperText);
-                var art = ArtLibrary.Enemy(data.Id);
+                var art = ArtLibrary.Enemy(data.ArtKey);
                 if (art != null)
                 {
                     var pic = UiFactory.Panel("Art", card.Root, new Vector2(0.06f, 0.40f), new Vector2(0.94f, 0.85f), Color.white);

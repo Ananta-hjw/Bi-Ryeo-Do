@@ -70,7 +70,7 @@ namespace BiRyeoDo.Tests
             for (int k = 0; k < st.Encounters.Length; k++)
             {
                 var enemies = st.Encounters[k].Select((id, i) => EarlyGameContent.FindEnemy(id).CreateCombatant(id + i)).ToList();
-                var battle = new InteractiveBattle(party, enemies, new SeededRandom(seed * 100 + st.Number)) { Trial = st.TrialFor(k) };
+                var battle = new InteractiveBattle(party, enemies, new SeededRandom(seed * 1000 + st.Number * 10 + k)) { Trial = st.TrialFor(k) };
                 battle.Begin();
                 for (int guard = 0; !battle.IsOver && guard < 3000; guard++) battle.PlayerAct(Choose(battle));
                 if (!battle.PlayerWon) return false;
