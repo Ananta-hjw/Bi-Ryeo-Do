@@ -6,7 +6,7 @@
 
 | 위치 | 파일 이름 | 규격 |
 |---|---|---|
-| `Resources/Art/Backgrounds/` | `stage_01.png` … `stage_24.png` | 세로 1080×1920 (또는 9:16), 전투 화면 배경 |
+| `Resources/Art/Backgrounds/` | `stage_01.png` … `stage_30.png` | 세로 1080×1920 (또는 9:16), 전투 화면 배경 |
 | `Resources/Art/Enemies/` | 아래 표의 id (예: `tiger.png`) | **투명 배경 PNG**, 512~1024px 정사각 |
 | `Resources/Art/Characters/` | `player.png` | 투명 배경 PNG, 512px 정사각 (상반신 권장) |
 
@@ -72,6 +72,25 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 | `mo_saryeong.png` | 모사령 | green-robed old snake master, wuxia character, upper body, plain white background, ink-wash style |
 | `dongbang_hak.png` | 동방학 | blue-robed thin old swordsman, wuxia character, upper body, plain white background, ink-wash style |
 | `gong_pae.png` | 공패 | grey-robed fat old saber master, wuxia character, upper body, plain white background, ink-wash style |
+| `hwapyeong_soldier.png` | 화평장 훈련병 | black-clad trained guards with swords, wuxia character, upper body, plain white background, ink-wash style |
+| `ssangsal_hapgyeok.png` | 천지쌍살 | thin one-armed swordsman and fat one-armed saber master standing back to back, wuxia character, upper body, plain white background, ink-wash style |
+| `baek_son_gosu.png` | 하얀 손의 고수 | shadowy figure in the dark with pale glowing hands, wuxia character, upper body, plain white background, ink-wash style |
+| `salgwi_daewon.png` | 살귀대원 | black-clad pursuit assassin, wuxia character, upper body, plain white background, ink-wash style |
+| `ho_yugwang.png` | 호유광 | middle-aged manor lord in dark robes, wuxia character, upper body, plain white background, ink-wash style |
+| `jongri_chu.png` | 종리추 | spearman with seven spears on his back, wuxia character, upper body, plain white background, ink-wash style |
+| `do_chuun.png` | 도추운 | swordsman with a segmented whip-sword, wuxia character, upper body, plain white background, ink-wash style |
+| `oh_munchu.png` | 오문추 | tall rough man with a chain sickle, wuxia character, upper body, plain white background, ink-wash style |
+| `baek_sayeong.png` | 백사영 | lean swordsman with a snake-like curved sword, wuxia character, upper body, plain white background, ink-wash style |
+| `chu_myeong.png` | 추명 | stern leader in black with wing-like blades, wuxia character, upper body, plain white background, ink-wash style |
+| `mulsung_daewon.png` | 멸성대 대원 | faceless black-clad assassin, wuxia character, upper body, plain white background, ink-wash style |
+| `i_gae_bujo.png` | 이개 | grim vice-captain in black, wuxia character, upper body, plain white background, ink-wash style |
+| `sama_heun.png` | 사마흔 | masked swordmaster in black with a long sword, wuxia character, upper body, plain white background, ink-wash style |
+| `ma_samhyung.png` | 마천삼흉 | three villainous bandits with bloodshot eyes, wuxia character, upper body, plain white background, ink-wash style |
+| `suda_bokmyeon.png` | 수다쟁이 복면인 | masked man in dark clothes with a theatrical pose, wuxia character, upper body, plain white background, ink-wash style |
+| `mu_jeong.png` | 무정 | shadow assassin emerging from darkness, wuxia character, upper body, plain white background, ink-wash style |
+| `ma_chilgeol_jeoji.png` | 마천칠걸 저지조 | black-clad guards blocking a canyon exit, wuxia character, upper body, plain white background, ink-wash style |
+| `hwaryong_hwayeom.png` | 화룡의 불꽃 | a dragon made of flames coiling through a valley, ink-wash style, upper body, plain white background, ink-wash style |
+| `bi_daegongja.png` | 대공자 비 | cold young man in black robes with a long sword, silver glints, wuxia character, upper body, plain white background, ink-wash style |
 | `jang_hong.png` | 장홍 | a bearded man who looks older than his age, kind but nagging expression, sword at his waist, upper body, plain white background |
 | `yun_junho.png` | 윤준호 | a timid young swordsman of a mountain sect with plum blossom emblem, white and purple robe, upper body, plain white background |
 
@@ -103,6 +122,12 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 | `stage_22.png` | 낙뢰곡 철쇄봉혼진 | narrow canyon crisscrossed with iron chains and falling arrows, ink-wash style, vertical composition, no characters |
 | `stage_23.png` | 비사진 | canyon floor swarming with snakes under a stormy sky, ink-wash style, vertical composition, no characters |
 | `stage_24.png` | 비뢰쌍마 | scorched canyon battlefield with smoke and two elderly silhouettes, ink-wash style, vertical composition, no characters |
+| `stage_25.png` | 화평장 | old manor at night with torchlight and dark guards, ink-wash style, vertical composition, no characters |
+| `stage_26.png` | 살귀대 | tavern street at dusk with pursuers on rooftops, ink-wash style, vertical composition, no characters |
+| `stage_27.png` | 마천칠걸 | red plum valley entrance with seven silhouettes, ink-wash style, vertical composition, no characters |
+| `stage_28.png` | 멸성대 | small roadside inn at noon surrounded by dark silhouettes, ink-wash style, vertical composition, no characters |
+| `stage_29.png` | 중토관 | dense wilderness mountain at dawn with mist, ink-wash style, vertical composition, no characters |
+| `stage_30.png` | 화룡멸겁대진 | red plum valley engulfed by a ring of fire and smoke, ink-wash style, vertical composition, no characters |
 
 ## 적 (36종)
 

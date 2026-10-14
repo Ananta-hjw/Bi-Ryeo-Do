@@ -135,6 +135,9 @@ namespace BiRyeoDo.Core
             new ArtData { Id = "eunseompung", Name = "은검풍인의 장 은섬풍", Description = "검기가 은빛 바람이 되어 사방의 적을 찢는다. 적 전체를 친다.", Power = 4.2f, AllEnemies = true, QiCost = 66, Cooldown = 4, LearnCost = 24000, UnlockStage = 23 },
             new ArtData { Id = "goengroe", Name = "굉천광뢰의 장 굉뢰", Description = "작은 은빛 물방울이 도와 무기를 박살내는 비뢰도의 오의.", Power = 10.5f, QiCost = 74, Cooldown = 4, LearnCost = 30000, UnlockStage = 24 },
             new ArtData { Id = "seomroe", Name = "섬뢰", Description = "비기. 빛을 뒤쫓는 쾌. 눈 깜짝할 새 미간을 꿰뚫는다.", Power = 17.0f, SpiritCost = 100, LearnCost = 22000, UnlockStage = 24 },
+            // Learned in volumes 13-16
+            new ArtData { Id = "jikji_jilju", Name = "직지질주", Description = "봉황무의 오의. 절벽을 평지처럼 달리며 적을 세 번 벤다.", Power = 3.6f, Hits = 3, QiCost = 70, Cooldown = 4, LearnCost = 34000, UnlockStage = 28 },
+            new ArtData { Id = "pungsin", Name = "풍신(風神)", Description = "비기. 열 자루 비뢰도와 뇌령사가 나선을 그리며 용권풍이 되어 적 전체를 휩쓴다.", Power = 9.5f, AllEnemies = true, SpiritCost = 100, LearnCost = 44000, UnlockStage = 30 },
             // Companions' fixed arts (names are descriptive unless the original text names the technique)
             new ArtData { Id = "xr_twin", Name = "쌍검 연격", Description = "쌍둥이 검으로 두 번 벤다.", Power = 1.5f, Hits = 2, QiCost = 18, Cooldown = 1, OwnerId = "hyo_ryong" },
             new ArtData { Id = "xr_barrier", Name = "태을천강벽", Description = "검막을 펼쳐 모두를 방어 태세로 만든다.", Effect = SkillEffect.GuardParty, QiCost = 30, Cooldown = 4, OwnerId = "hyo_ryong" },
@@ -307,6 +310,50 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("붉은 검", 0.7f, 3), EnemyMove.Attack("섬뢰", 1.3f), EnemyMove.Wind("쾌검의 자세를 취한다"), EnemyMove.Attack("섬뢰일섬", 3.0f) } },
             new EnemyData { Id = "gong_pae", Name = "잔뢰마도 공패", Level = 55, IsBoss = true, HpMul = 4.2f, AtkMul = 3.26f,
                 Moves = new[] { EnemyMove.Attack("잔뢰도", 0.8f, 2), EnemyMove.Attack("잔뢰삼십육패", 1.3f), EnemyMove.Wind("도를 높이 든다"), EnemyMove.Attack("잔뢰번천지", 3.4f) } },
+            // Stage 25: 화평장 (13권)
+            new EnemyData { Id = "hwapyeong_soldier", Name = "화평장 훈련병", Level = 55, HpMul = 1.52f, AtkMul = 2.31f,
+                Moves = new[] { EnemyMove.Attack("연환검", 0.8f, 2), EnemyMove.Attack("포위 돌격", 1.2f) } },
+            new EnemyData { Id = "ssangsal_hapgyeok", Name = "천지쌍살 합격술(한 팔씩)", Level = 56, HpMul = 2.56f, AtkMul = 2.31f, SpeedAdd = 2,
+                Moves = new[] { EnemyMove.Attack("초혼귀령검", 0.7f, 3), EnemyMove.Attack("명왕도", 1.3f), EnemyMove.Wind("쌍살이 서로의 빈 팔을 맞댄다"), EnemyMove.Attack("쌍살 합격", 3.0f) } },
+            new EnemyData { Id = "baek_son_gosu", Name = "하얀 손의 고수", Level = 57, IsBoss = true, HpMul = 3.36f, AtkMul = 2.38f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("단월인", 0.7f, 3), EnemyMove.Attack("무형 칼날", 1.3f), EnemyMove.Wind("하얀 손을 편다"), EnemyMove.Attack("단월인 극의", 3.3f) } },
+            // Stage 26: 살귀대 (14권)
+            new EnemyData { Id = "salgwi_daewon", Name = "살귀대원", Level = 57, HpMul = 1.60f, AtkMul = 2.11f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("추격검", 0.8f, 2), EnemyMove.Attack("암살", 1.3f) } },
+            new EnemyData { Id = "ho_yugwang", Name = "화평장주 호유광", Level = 58, IsBoss = true, HpMul = 3.36f, AtkMul = 2.11f,
+                Moves = new[] { EnemyMove.Attack("살귀 지휘검", 0.7f, 3), EnemyMove.Attack("독조", 1.3f), EnemyMove.Wind("살귀대에 신호를 보낸다"), EnemyMove.Attack("살귀 일제 공격", 3.2f) } },
+            // Stage 27: 마천칠걸 (14권)
+            new EnemyData { Id = "jongri_chu", Name = "칠련창 종리추", Level = 59, HpMul = 2.08f, AtkMul = 3.23f,
+                Moves = new[] { EnemyMove.Attack("칠성창", 0.7f, 3), EnemyMove.Wind("일곱 번째 창을 겨눈다"), EnemyMove.Attack("북두칠성 투창", 2.7f) } },
+            new EnemyData { Id = "do_chuun", Name = "사갈검편 도추운", Level = 59, HpMul = 1.92f, AtkMul = 3.23f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("검편 채찍", 0.7f, 3), EnemyMove.Attack("사갈편", 1.3f) } },
+            new EnemyData { Id = "oh_munchu", Name = "쇄풍겸 오문추", Level = 60, HpMul = 2.08f, AtkMul = 3.32f,
+                Moves = new[] { EnemyMove.Attack("사슬낫", 0.8f, 2), EnemyMove.Wind("사슬을 휘감는다"), EnemyMove.Attack("쇄풍 난무", 2.8f) } },
+            new EnemyData { Id = "baek_sayeong", Name = "사교검 백사영", Level = 60, HpMul = 2.08f, AtkMul = 3.32f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("사교검", 0.7f, 3), EnemyMove.Wind("뱀처럼 몸을 낮춘다"), EnemyMove.Attack("백사교룡살", 2.9f) } },
+            new EnemyData { Id = "chu_myeong", Name = "마검익 추명", Level = 61, IsBoss = true, HpMul = 3.52f, AtkMul = 3.32f,
+                Moves = new[] { EnemyMove.Attack("회선인", 0.7f, 3), EnemyMove.Attack("흑응익", 1.3f), EnemyMove.Wind("흑풍을 일으킨다"), EnemyMove.Attack("흑풍난무", 3.3f) } },
+            // Stage 28: 멸성대 (15권)
+            new EnemyData { Id = "mulsung_daewon", Name = "멸성대 대원", Level = 61, HpMul = 1.76f, AtkMul = 2.13f,
+                Moves = new[] { EnemyMove.Attack("살인검", 0.8f, 2), EnemyMove.Attack("검익진", 1.3f) } },
+            new EnemyData { Id = "i_gae_bujo", Name = "멸성대 부조장 이개", Level = 62, HpMul = 2.24f, AtkMul = 2.18f,
+                Moves = new[] { EnemyMove.Attack("호위검", 0.8f, 2), EnemyMove.Wind("만근검익진을 펼친다"), EnemyMove.Attack("만근추", 2.7f) } },
+            new EnemyData { Id = "sama_heun", Name = "천참마검 사마흔", Level = 63, IsBoss = true, HpMul = 3.68f, AtkMul = 2.18f,
+                Moves = new[] { EnemyMove.Attack("천참검", 0.7f, 3), EnemyMove.Attack("독검", 1.3f), EnemyMove.Wind("검을 뽑아 든다"), EnemyMove.Attack("천겁 일섬", 3.4f) } },
+            // Stage 29: 중토관 (16권)
+            new EnemyData { Id = "ma_samhyung", Name = "마천삼흉", Level = 63, HpMul = 1.92f, AtkMul = 1.94f, SpeedAdd = 2,
+                Moves = new[] { EnemyMove.Attack("사악한 칼질", 0.8f, 2), EnemyMove.Attack("난도질", 1.2f) } },
+            new EnemyData { Id = "suda_bokmyeon", Name = "수다쟁이 복면인", Level = 64, HpMul = 2.40f, AtkMul = 1.94f, SpeedAdd = 6,
+                Moves = new[] { EnemyMove.Attack("가벼운 검", 0.7f, 3), EnemyMove.Wind("호들갑을 떨며 몸을 낮춘다"), EnemyMove.Attack("도우미의 일격", 2.8f) } },
+            new EnemyData { Id = "mu_jeong", Name = "잔무일점혈 무정", Level = 65, IsBoss = true, HpMul = 3.84f, AtkMul = 1.99f, SpeedAdd = 6,
+                Moves = new[] { EnemyMove.Attack("그림자 비수", 0.7f, 3), EnemyMove.Attack("무언독 암기", 1.3f), EnemyMove.Wind("그림자 속으로 스며든다"), EnemyMove.Attack("일점혈", 3.5f) } },
+            // Stage 30: 화룡멸겁대진 (16권)
+            new EnemyData { Id = "ma_chilgeol_jeoji", Name = "마천칠걸 저지조", Level = 65, HpMul = 2.08f, AtkMul = 1.54f, SpeedAdd = 2,
+                Moves = new[] { EnemyMove.Attack("연환 공격", 0.7f, 3), EnemyMove.Attack("협공", 1.3f) } },
+            new EnemyData { Id = "hwaryong_hwayeom", Name = "화룡의 불꽃", Level = 66, HpMul = 2.56f, AtkMul = 1.54f,
+                Moves = new[] { EnemyMove.Attack("불의 성벽", 0.8f, 2), EnemyMove.Wind("불길이 솟구친다"), EnemyMove.Attack("화룡의 숨결", 2.9f) } },
+            new EnemyData { Id = "bi_daegongja", Name = "대공자 비", Level = 67, IsBoss = true, HpMul = 4.00f, AtkMul = 1.57f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("영뢰 잔흔", 0.7f, 3), EnemyMove.Attack("검기 난무", 1.3f), EnemyMove.Wind("영뢰를 모은다"), EnemyMove.Attack("영뢰 천잔", 3.6f) } },
         };
 
         // Items. Names come from volumes 1-3; effects and numbers are placeholders.
@@ -324,6 +371,7 @@ namespace BiRyeoDo.Core
             new ItemData { Id = "ilgeup_yeongdan", Name = "일급영단", Kind = ItemKind.Consumable, HealPct = 1.0f, QiRestore = 999, SpiritGain = 100, Description = "삼성무제 우승 부상. 가장 다친 동료를 완전히 회복하고 내공을 채우며 기세를 100까지 끌어올린다." },
             new ItemData { Id = "seungryong_pae", Name = "승룡패", Kind = ItemKind.Key, Description = "녹옥으로 된 추천패. 천무학관 특별전형 입관의 증표." },
             new ItemData { Id = "mukrin_talisman", Name = "묵린혈망 독아 부적", Kind = ItemKind.Accessory, DefPct = 0.12f, HpPct = 0.05f, Description = "묵린혈망의 독아를 은세공한 초승달 장신구. 뱀이 다가오지 못한다. 방어 +12%, 체력 +5%." },
+            new ItemData { Id = "cheonyul_pae", Name = "천율패", Kind = ItemKind.Key, Description = "화산규약지회 중토관의 신분 패. 조와 이름과 천율인이 새겨져 있다. 잃으면 탈락이다." },
         };
 
         public static readonly DropData[] Drops =
@@ -365,6 +413,12 @@ namespace BiRyeoDo.Core
             new DropData { EnemyId = "mo_saryeong", ItemId = "ginseng", Chance = 0.50f },
             new DropData { EnemyId = "dongbang_hak", ItemId = "okruju", Chance = 0.50f },
             new DropData { EnemyId = "gong_pae", ItemId = "ilgeup_yeongdan", Chance = 0.20f },
+            new DropData { EnemyId = "baek_son_gosu", ItemId = "ginseng", Chance = 0.50f },
+            new DropData { EnemyId = "ho_yugwang", ItemId = "ginseng", Chance = 0.50f },
+            new DropData { EnemyId = "chu_myeong", ItemId = "okruju", Chance = 0.50f },
+            new DropData { EnemyId = "sama_heun", ItemId = "ilgeup_yeongdan", Chance = 0.20f },
+            new DropData { EnemyId = "mu_jeong", ItemId = "ginseng", Chance = 0.50f },
+            new DropData { EnemyId = "bi_daegongja", ItemId = "ilgeup_yeongdan", Chance = 0.20f },
         };
 
         /// <summary>One-time rewards for clearing a stage for the first time.</summary>
@@ -394,6 +448,12 @@ namespace BiRyeoDo.Core
             { 22, new[] { new ItemStack("ilgeup_yeongdan", 1), new ItemStack("ginseng", 2) } },
             { 23, new[] { new ItemStack("ginseng", 3), new ItemStack("okruju", 3) } },
             { 24, new[] { new ItemStack("ilgeup_yeongdan", 2), new ItemStack("ginseng", 3) } },
+            { 25, new[] { new ItemStack("ginseng", 2), new ItemStack("okruju", 3) } },
+            { 26, new[] { new ItemStack("ilgeup_yeongdan", 1), new ItemStack("bear_gall", 3) } },
+            { 27, new[] { new ItemStack("ginseng", 3), new ItemStack("okruju", 3) } },
+            { 28, new[] { new ItemStack("ilgeup_yeongdan", 2), new ItemStack("ginseng", 2) } },
+            { 29, new[] { new ItemStack("cheonyul_pae", 1), new ItemStack("ginseng", 3) } },   // 중토관 천율패
+            { 30, new[] { new ItemStack("ilgeup_yeongdan", 3), new ItemStack("ginseng", 3) } },   // 화산규약지회 우승
         };
 
         /// <summary>What the protagonist starts with.</summary>
@@ -623,7 +683,7 @@ namespace BiRyeoDo.Core
                     } },
                 },
                 Intro = new[] { "이레째 해가 질 무렵 천지쌍살의 수하들이 다시 쳐들어온다. 항아리를 터뜨린 일곱 명을 비롯해 천관도들은 처음 싸울 때와 다르다.", "마령신단을 먹은 갈효봉이 다시 폭주한다. 천살과 지살이 직접 나선다." },
-                Outro = new[] { "비류연이 손가락질로 천살의 초혼령과 애검과 오른팔을 떨어뜨렸고, 염도는 지살의 오른팔을 베었다. 쌍살은 \"그분께서 용서하지 않으실 것이다\"라는 말만 남기고 도망친다.","비류연의 심뢰가 갈효봉의 마음을 베자 정신이 돌아왔다. 하지만 심맥이 끊어진 몸은 되살릴 수 없었다. 갈효봉이 스스로 일어나 동생에게 말한다. \"너의 공부를 보여 다오.\"","효룡의 검이 형의 목숨을 거두었다. 유언은 \"겁, 하늘의 겁을 조심……\". 효룡은 피의 맹세를 한다.","한편 흑천맹주는 철각비마대를 학관으로 보냈고, 마천각의 대공자는 \"아룡, 오지 마라\"라고 혼잣말을 한다." },
+                Outro = new[] { "비류연이 손가락질로 천살의 초혼령과 애검과 오른팔을 떨어뜨렸고, 염도는 지살의 왼팔을 베었다. 쌍살은 \"그분께서 용서하지 않으실 것이다\"라는 말만 남기고 도망친다.","비류연의 심뢰가 갈효봉의 마음을 베자 정신이 돌아왔다. 하지만 심맥이 끊어진 몸은 되살릴 수 없었다. 갈효봉이 스스로 일어나 동생에게 말한다. \"너의 공부를 보여 다오.\"","효룡의 검이 형의 목숨을 거두었다. 유언은 \"겁, 하늘의 겁을 조심……\". 효룡은 피의 맹세를 한다.","한편 흑천맹주는 철각비마대를 학관으로 보냈고, 마천각의 대공자는 \"아룡, 오지 마라\"라고 혼잣말을 한다." },
                 Encounters = new[] { new[] { "chohon_gwigeom", "chohon_gwigeom", "myeongbu_jang" }, new[] { "gal_hyobong" }, new[] { "cheonsal", "jisal" } } },
             new StageData { Number = 15, Name = "철각비마대", RecommendedLevel = 35, DooTotal = 7000,
                 Prologue = new[]
@@ -772,6 +832,89 @@ namespace BiRyeoDo.Core
                 Intro = new[] { "적혈의 퇴각 명령 직후, 남의노인과 갈의노인이 나타난다. 섬뢰마검 동방학과 잔뢰마도 공패, 백 년 전 천겁령 편에서 정사 양도를 휩쓴 비뢰쌍마다.", "이진설을 구하려던 효룡이 동방학의 붉은 검에 이마를 베인다. 동방학은 효룡의 쌍검 검로에서 굉천혈영도를 느낀다.", "두 노인이 염도와 빙검의 검한기와 검염기에서 태극신군의 흔적을 알아본다. \"돌아가신 사부님을 모욕하지 마라!\" 염도가 외치는 순간 혁월린의 죽음이 쌍마에게 누설된다." },
                 Outro = new[] { "비류연이 무형지기 한가운데로 걸어 들어간다. \"비뢰라는 이름을 쓸 자격이 있는지, 사문의 계율에 따라 심사하겠습니다.\" 묵룡환을 풀고 동방학과 쾌를 겨뤄 섬뢰로 미간을 꿰뚫는다. \"뇌의 이름은 인정하죠.\"", "공패가 잔뢰번천지로 덤비지만 비뢰도 오의 굉천광뢰의 장 굉뢰가 도를 박살내고, 도편이 두 눈을 찌른다. 가짜 연막 뇌탄이 터지고 적혈이 공패를 업고 사라진다. \"환마동 폭발도 우리가 터뜨렸다. 우리를 건드리면 진짜 뇌탄을 던지겠다.\"", "모사령은 풀려났다. 비류연은 압수한 사충적을 당삼에게, 사충음보를 당문혜에게 판다. 효룡은 말수가 줄고 이마에 뇌인 모양의 상처가 남았다. 혁월린의 죽음이 천겁령에 알려진 파장을 아무도 짐작하지 못한다.", "화산에 도착한 대표단을 화산파 장문인 풍매검 양유중과 12장로가 맞이한다. 화음현 매화객잔에서 다음 날, 복면을 쓴 매화가면이 윤준호를 지명해 겨루고, 윤준호는 검향지경으로 붉은 매화를 피워 올린 뒤 이십사수 매화검법 매염토망을 알아보고 \"태사부님\"이라 절한다.", "다음 날 아침, 회색 옷의 정체불명의 노인이 동행해 천무봉에 오른다. 샛길의 첫 관문에서 두 다리가 없는 노인 비공답운 종쾌가 천겁혈신과 천무봉의 비밀을 들려주고, 첫 시험 장소 \"천겁간\"을 가리킨다. (13권에서 계속)" },
                 Encounters = new[] { new[] { "hyeolma_dae", "hyeolma_dae", "hyeolma_dae" }, new[] { "dongbang_hak", "hyeolma_dae" }, new[] { "gong_pae" } } },
+            new StageData { Number = 25, Name = "화평장", RecommendedLevel = 55, DooTotal = 13000,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "멸겁삼관", Lines = new[] {
+                        "종쾌가 백 년 전 천겁혈신 위천무에게 두 다리를 잃은 이야기를 마친다. 첫 관문 혈신일보는 20장 폭의 협곡이었다. 비류연이 지명한 남궁상이 묵룡환을 풀고 협곡의 새 머리 위를 밟아 건너고, 염도는 은 열 냥을 걸어 177전 177패를 기록한다.",
+                        "두 번째 관문 앞에는 거울 같은 검은 벽 겁흔벽이 서 있다. 비류연은 벽을 만지며 처음으로 동요하고, 나예린이 용안으로 그 흔들림을 읽는다. 세 번째 관문은 부러진 검 108자루가 꽂힌 땅이다. 묘지기 검치 섭운명 앞에서 비류연은 간합 세 치를 증명해 통과한다."
+                    } },
+                    new StoryScene { Title = "홍매곡과 은설란의 납치", Lines = new[] {
+                        "계절을 잊고 붉은 매화가 만개한 홍매곡에 도착한다. 마천각 대표단이 기세 싸움을 걸어 오고 검마 초월과 삿갓 쓴 사내가 모습을 드러낸다.",
+                        "은설란은 중원표국이 전세 낸 풍매객잔에 잠입해 \"작전 2단계\", \"간세\", \"붉은 꽃이 만개한 화산\"이라는 대화를 엿듣다 납치된다. 비류연은 외부 접촉 금지 규칙을 깨고 구출대를 꾸린다. 나예린, 독고령, 이진설, 효룡, 모용휘, 남궁상, 진령, 장홍, 윤준호, 노학, 염도, 석류화, 개방의 오개. 개방의 마차 이동 기록이 화평장을 가리킨다."
+                    } },
+                },
+                Intro = new[] { "깊은 밤, 마을 외곽의 오래된 장원 화평장. 구출대는 훈련된 병사들에게 포위된다. 귀빈실에는 눈이 차가운 젊은 사내가 있었지만 은설란에게서 얻을 정보가 없다는 것을 확인하고 자리를 비웠다.", "천지쌍살은 매일 악몽에 시달린다. 효룡이 형 갈효봉의 죽음을 떠올리며 쌍검을 들고 천살에게 돌진한다. 염도가 효룡의 뺨을 때려 꾸짖는다. \"오랜 잠에서 깨어난 걸 축하한다.\"" },
+                Outro = new[] { "염도가 불꽃 통로를 만들어 모용휘가 은설란을 업고 먼저 탈출한다. 비류연은 천살의 요검 귀곡을 묵룡환으로 돌바닥에 박아 굴복시키지만 직접 싸우지는 않는다. \"그 생명 며칠 더 맡겨두죠. 빚을 받을 당사자가 처리할 때까지.\"", "한 팔씩 남은 쌍살이 수천 번 연습한 합격술로 두 사람을 몰아붙이는 사이, 모용휘 쪽에서 쌍살보다 위험한 존재가 느껴진다. 어둠 속의 하얀 손이 \"너의 목숨을 가져갈 자\"라며 단월인을 날렸다. 모용휘는 검성의 방어 자세 극안으로 버티지만 검막이 찢어진다.", "\"선수교체를 해도 될까요?\" 비류연이 모용휘 앞에 나타난다. (14권에서 계속)" },
+                Encounters = new[] { new[] { "hwapyeong_soldier", "hwapyeong_soldier", "hwapyeong_soldier" }, new[] { "hwapyeong_soldier", "ssangsal_hapgyeok" }, new[] { "baek_son_gosu" } } },
+            new StageData { Number = 26, Name = "살귀대", RecommendedLevel = 57, DooTotal = 13500,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "시야와 심안", Lines = new[] {
+                        "비류연은 모용휘를 보내고 어둠 속 괴인과 맞선다. \"상대를 인지 속에 넣고 자신은 상대의 인지에서 벗어나는 것이 승리의 1단계다.\" 괴인은 마천각 대공자 비였다. 그가 \"나의 일초를 피하면 살려주겠다\"며 쓴 오의 영뢰 천잔에 비류연은 심안을 열고도 가슴을 베이고, 공간에서 사라져 피한다.",
+                        "비는 \"류연이라 했던가, 다시 만나면 반드시\" 하고 이름을 기억한다. 비류연은 \"성혈을 외출시킨 대가는 비싸다\"고 중얼거린다."
+                    } },
+                    new StoryScene { Title = "두 노인의 술판", Lines = new[] {
+                        "화음현 매령주루에서 매화검선 유환권(매화가면)과 무당 현검자가 며칠째 술을 마시고 있다. \"이번 대회의 실상을 알면 아이들이 낙담할 것이다.\" \"그분께서 아우까지 부르셨다.\""
+                    } },
+                },
+                Intro = new[] { "화평장에서 놓친 은설란을 되찾으라는 대공자의 명령으로 살귀대가 풀린다. 화평장주 호유광은 \"누구에게나 두 번의 기회\"를 받았다.", "염도의 구출대가 매령주루 앞에서 살귀대에게 포위된다." },
+                Outro = new[] { "매화검선과 현검자가 살귀대를 제압하고 \"우리는 만난 적이 없는 거네\"라며 염도 일행을 보낸다.", "홍매곡 입구에서 율령자 세 사람과 위지천이 구출대를 막는다. 비류연은 은설란을 \"호환을 당한 조난자\"라 우기고, 빙검이 밤새 잡아 온 대호가 증거가 된다. 위지천의 고자질은 용서하지 않기로 한다.", "사흘 뒤 불탄 화평장에서 정천맹 감찰조사관 안명후와 개코 왕견이 고순도의 위험한 물품 냄새를 맡는다." },
+                Encounters = new[] { new[] { "salgwi_daewon", "salgwi_daewon", "salgwi_daewon" }, new[] { "salgwi_daewon", "salgwi_daewon" }, new[] { "ho_yugwang" } } },
+            new StageData { Number = 27, Name = "마천칠걸", RecommendedLevel = 59, DooTotal = 14000,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "대공자의 멸겁삼관", Lines = new[] {
+                        "대공자 비가 입산기한 내에 합법적으로 시험만 치르겠다며 홀로 천무봉에 오른다. 새를 밟지 않고 혈신일보를 뛰어넘고, 겁흔벽에는 새 도강의 흔적을, 세 번째 관문에는 일검에 말라 죽은 야생화를 남긴다. 종쾌는 그의 정중한 말에서 \"마인을 부려본 자의 위엄\"을 느낀다."
+                    } },
+                    new StoryScene { Title = "깨어난 은설란", Lines = new[] {
+                        "홍매곡 의무실에서 깨어난 은설란은 풍매객잔에 간 것은 기억하지만 \"누군가를 따라간\" 이유가 심령금제로 막혀 있다. 비류연은 \"죽이기가 쉬운데 왜 심령금제인가\"라며 은설란이 아는 고위 인물이었을 거라 추론한다."
+                    } },
+                },
+                Intro = new[] { "홍매곡 입구에 대공자와 비류연이 10장 거리에서 대치한다. 나예린은 그의 기운에 오한을 느끼고 비류연의 눈은 황금빛이 된다. \"그놈의 기.\"", "마천칠걸이 주군의 허락 없이 비류연을 처단하려 연환 공격을 펼친다." },
+                Outro = new[] { "칠걸의 공격은 모두 빗나간다. 추명은 \"봉인을 푸는 것이 허가되지 않았다\"고 말한다.", "은설란이 \"대공자!\"라고 부르자 대공자가 처음으로 놀라며 \"아란 소저\"라 대답한다. 그는 물러나며 비류연의 이름을 되묻는다. \"댁 이름은? 철수나 영희?\" 대공자는 교옥에게 \"비류연의 영혼을 사로잡아 그 안의 모든 것을 알아내라\"고 명한다.", "운영 총책임자 혁중이 화산규약지회의 진짜 목적이 우정·화합·평화이며 천겁령 부활에 대비한다고 선언한다. 일주일간 흑백 혼합 공동 숙소 생활을 하고, 흑백 5:5의 조로 오행관에 도전한다.", "태양관과 월음관의 소동 끝에 조 추첨이 시작된다. 비류연은 \"나는 반드시 나예린과 한 조가 된다\"고 장담한다." },
+                Encounters = new[] { new[] { "jongri_chu", "do_chuun" }, new[] { "oh_munchu", "baek_sayeong" }, new[] { "chu_myeong" } } },
+            new StageData { Number = 28, Name = "멸성대", RecommendedLevel = 61, DooTotal = 14500,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "오행 제1관 목요관", Lines = new[] {
+                        "화산오봉 전체를 아홉 구간으로 나눠 달리는 경공계주. 교옥은 \"저도 같은 7조가 되었어요\"라고 선언하고 나예린과 마주친다. 독고령은 대공자 비와 같은 1조가 되어 당황한다.",
+                        "비류연은 윤준호에게 \"화산과 하나가 된다\"는 경공의 이치를 가르친다. 윤준호는 껍질을 깨고 마하령을 추월한다. 그러나 마천칠걸의 암수로 옥녀봉을 굴러 떨어지고, 절뚝이며 도착해 \"분해요\"라 운다.",
+                        "\"넌 늦지 않았어.\" 비류연은 묵룡환을 윤준호에게 맡기고 \"맡겨두라고, 친구!\" 하고 달린다. 밤의 낙안봉에서 종리추와 도추운의 암습을 격파하고, 대공자 비와 거의 동시에 결승선을 넘는다. 공동 1위. \"그것이 자기 자신을 속이는 일일지라도?\" 비는 \"판정에 승복한다\"고만 대답한다."
+                    } },
+                    new StoryScene { Title = "천무삼성의 여로", Lines = new[] {
+                        "백의 학창의 노인이 검 대신 나뭇가지에 \"은하\"라는 이름을 붙이고 석등을 벤다. 아들에게 비싼 석등이라고 혼나고 도망치듯 길을 떠난다. 오랜 친구들과의 \"동창회\"다.",
+                        "화음객잔에는 녹림왕 임덕성과 모경이 아들 임성진을 보러 왔고, 수다스러운 중년 여인과 두 노인이 들어와 엄청난 양의 요리를 주문한다."
+                    } },
+                },
+                Intro = new[] { "화음객잔에 거지 차림의 안명후가 도착한다. 그를 쫓던 마천각 군사 치사한의 멸성대가 객잔을 포위한다.", "개코 왕견의 수급이 던져진다. \"천무삼성이라 할지라도 우리 손에 걸리면 죽음을 피하지 못한다.\"" },
+                Outro = new[] { "청의 노인이 검지로 기류를 휘저어 멸성대원을 뒤집어 박고, 오의 나선용권풍으로 만근검익진을 박살낸다. 여인은 젓가락으로 검을 분지르고, 백의 노인은 나뭇가지로 이마를 쳐 쓰러뜨린다. 도성 하후식, 검후 이옥상, 검성 모용정천이다.", "사마흔은 \"천겁혈세 혈신재림!\"을 외치고 자결하고, 멸성대 전원이 따라 죽는다. 도성은 목숨을 가볍게 버린 것에 분노한다.", "독에 중독된 안명후는 삼성의 합력 내공으로 살아나 \"음모… 화산… 위험… 용…\" 이라는 말을 남기고 쓰러진다. 임덕성과 모경이 짐꾼을 자원한다." },
+                Encounters = new[] { new[] { "mulsung_daewon", "mulsung_daewon", "mulsung_daewon" }, new[] { "mulsung_daewon", "i_gae_bujo" }, new[] { "sama_heun" } } },
+            new StageData { Number = 29, Name = "중토관", RecommendedLevel = 63, DooTotal = 15000,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "금요관과 검후", Lines = new[] {
+                        "금요관에서 마천칠걸 오문추가 노학의 줄을 끊는다. 비류연이 자기 줄을 끊고 직지질주로 절벽을 달려 노학을 구하지만 7조와 1조는 실격한다. 나예린은 걱정 끝에 화를 낸다.",
+                        "검후 이옥상이 나예린과의 관계를 걸고 비류연에게 십 초 내기를 청한다. 비류연은 검후의 신오의 해상비조천참절을 봉황무 우중거 불점의로 피해 내고, 검후는 \"일단은 인정\"한다. 단, 나예린을 넘기려면 \"적어도 날 이길 정도는 되어야 한다\"고 한다."
+                    } },
+                    new StoryScene { Title = "수화관", Lines = new[] {
+                        "위지천이 정체불명의 복면인에게서 혈폭환을 받는다. 수화관은 아홉 명이 내공을 합쳐 암벽을 부수는 시험이다. 위지천이 폭주 진기를 비류연에게 쏟아붓지만 비류연은 공저물사로 아홉 가닥의 기를 하나로 조화시킨다. 암벽은 먼지가 되어 흩어지고 위지천은 백발 폐인이 된다."
+                    } },
+                },
+                Intro = new[] { "오행관 최종 관문 중토관. 14일 동안 자연에서 생존하고 천율패를 지켜야 한다. 7조는 동굴을 본진으로 삼는다.", "마천삼흉이 인간 사냥을 하러 7조를 덮치지만 비류연에게 제압되어 나무에 거꾸로 매달린다. 은가면 셋(공포·절망·비탄)이 각 조를 습격해 천율패를 빼앗는다." },
+                Outro = new[] { "삼성각의 안명후를 노린 암살자 무정이 인형을 찌르고 모경을 해친다. 임덕성이 안명후를 업고 도망치고, 임성진이 일점필중으로 복면인을 물리친다.", "7조 동굴에서 깨어난 안명후를 교옥이 \"자장가\"라며 베어 죽인다. 안명후의 손에서 비류연의 피 묻은 천율패가 나온다. 대공자는 7조 안에 범인이 있다고 추리하고, 사람들은 비류연을 의심한다.", "나예린, 장홍, 효룡, 윤준호, 이진설, 모용휘가 비류연을 따라 나선다. \"우리는 자네를 믿어.\" 비류연은 은가면에게 뇌령사 실을 달아 두었다." },
+                Encounters = new[] { new[] { "ma_samhyung", "ma_samhyung", "ma_samhyung" }, new[] { "suda_bokmyeon" }, new[] { "mu_jeong" } } },
+            new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65, DooTotal = 16000,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "은가면의 정체", Lines = new[] {
+                        "비류연이 실을 따라가자 은가면 셋이 멧돼지를 굽고 있다. 정체는 천무삼성이었다. 혁중이 \"저 아이들에게 압도적인 공포를 가르쳐 달라\"고 부탁했던 것이다. 삼성은 안명후가 살해되었다는 말에 경악한다.",
+                        "비류연은 안명후의 잠꼬대 \"용린… 염우\"와 노학의 \"맛있어 보이는 곰 같은 복면인\"을 이어 주방을 추리한다. 염우는 고순도의 휘발성 기름, 용린은 벽력궁의 미세 화약이다. 홍매곡 요리사 서른여섯의 정점, 우 대숙수가 잡힌다."
+                    } },
+                },
+                Intro = new[] { "중토관 종료 사흘 뒤 우승 발표. 대공자 비는 \"오늘 용이 날아오른다. 재생을 위한 파괴, 오늘을 기해 신무림기가 시작된다\"고 선언한다.", "천무전 지붕에서 비류연이 \"이의 있음!\"을 외치며 우 대숙수를 단상 앞에 던진다. 대공자가 순순히 인정한다. \"안명후는 내 도구가 죽였다.\"" },
+                Outro = new[] { "\"고인 물은 썩고 쓰지 않는 검은 녹슨다! 화룡이 날아오르고 불의 홍수가 산을 뒤덮으리라! 재 속에서 불사조는 날아오른다! 천겁혈세 혈신재림!\" 화룡멸겁대진이 발동된다.", "단상이 폭발하고 홍매곡 입구가 불의 성벽으로 닫힌다. 대공자와 수하들은 독고령을 들쳐메고 찰나의 생로로 빠져나가고, 입구가 무너져 홍매곡은 고립된다.", "비류연이 \"방법이 있다, 풍신\"이라며 삼성과 혁중의 내력을 구한다. 우승자가 되느냐고 확인하고 나예린의 입맞춤을 부적으로 받은 뒤 묵룡환을 모두 풀고 열 자루 비뢰도와 뇌령사를 나선으로 돌린다. 비뢰도 최종비전오의 풍뢰의 장 나선의 인 용권승룡. 용권풍이 불꽃을 하늘로 밀어 올려 모두 꺼뜨린다.", "비류연은 쓰러져 나예린의 무릎에서 쉰다. 사망 3, 중상 13, 경상 25. 원문은 대공자 비가 \"한때 은명이라 불렸던 남자\"임을 밝히고, 비류연의 사부로 보이는 백염백발의 노인이 불타는 청룡은장에서 제자를 찾아 길을 나서며 1부가 끝난다." },
+                Encounters = new[] { new[] { "ma_chilgeol_jeoji", "ma_chilgeol_jeoji", "ma_chilgeol_jeoji" }, new[] { "hwaryong_hwayeom", "ma_chilgeol_jeoji" }, new[] { "bi_daegongja" } } },
         };
 
         private static long CumulativeExp(int level)
