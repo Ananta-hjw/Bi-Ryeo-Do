@@ -125,6 +125,11 @@ namespace BiRyeoDo.Core
             new ArtData { Id = "yeobanjang", Name = "여반장", Description = "손바닥을 뒤집는 회전력으로 일격에 제압하는 일장법.", Power = 5.2f, QiCost = 38, Cooldown = 3, LearnCost = 2200, UnlockStage = 5 },
             new ArtData { Id = "roegwang_ryuhagok", Name = "뢰광류하곡", Description = "여섯 자루를 동시에 운용해 적 전체를 벤다.", Power = 2.6f, AllEnemies = true, QiCost = 46, Cooldown = 4, LearnCost = 4500, UnlockStage = 6 },
             new ArtData { Id = "seonpung_roejeol", Name = "선풍뇌절", Description = "비기. 기세를 모두 쏟아 은빛 섬광으로 적을 쓰러뜨린다.", Power = 9.5f, SpiritCost = 100, LearnCost = 1500, UnlockStage = 4 },
+            // Learned in volumes 7-9 (names from the original text)
+            new ArtData { Id = "cheongeun_roe", Name = "뇌격타 천근뢰", Description = "천 근의 무게를 실은 뇌전의 일격. 철각비마대의 창을 꺾은 기술.", Power = 6.4f, QiCost = 44, Cooldown = 3, LearnCost = 7000, UnlockStage = 14 },
+            new ArtData { Id = "cheonji_ibun", Name = "참단절영의 장 천지이분", Description = "손날로 말과 기수를 한꺼번에 가르는 절삭의 장.", Power = 7.8f, QiCost = 52, Cooldown = 4, LearnCost = 11000, UnlockStage = 15 },
+            new ArtData { Id = "bongik_bisang", Name = "사신무 봉익비상", Description = "봉황이 날개를 펴듯 사방으로 쏟아내는 일격. 적 전체를 친다.", Power = 3.6f, AllEnemies = true, QiCost = 58, Cooldown = 4, LearnCost = 15000, UnlockStage = 16 },
+            new ArtData { Id = "simroe", Name = "단심무형의 장 심뢰", Description = "비기. 마음을 베는 검기의 오의가 적의 중심을 꿰뚫는다.", Power = 13.0f, SpiritCost = 100, LearnCost = 9000, UnlockStage = 18 },
             // Companions' fixed arts (names are descriptive unless the original text names the technique)
             new ArtData { Id = "xr_twin", Name = "쌍검 연격", Description = "쌍둥이 검으로 두 번 벤다.", Power = 1.5f, Hits = 2, QiCost = 18, Cooldown = 1, OwnerId = "hyo_ryong" },
             new ArtData { Id = "xr_barrier", Name = "태을천강벽", Description = "검막을 펼쳐 모두를 방어 태세로 만든다.", Effect = SkillEffect.GuardParty, QiCost = 30, Cooldown = 4, OwnerId = "hyo_ryong" },
@@ -548,6 +553,11 @@ namespace BiRyeoDo.Core
                         "비류연은 구경만 한다. \"돌아오지 않는 메아리와 회수 없는 투자는 싫어요.\" 날아든 천살의 암습 검기는 남궁상을 던져 피하게 했을 뿐이다.",
                         "비기 대 비기. 모용휘가 피를 토하고 갈효봉은 초혼섭령술의 금제가 깨져 폭주한다. 천지쌍살은 천라지망으로 합숙지를 고립시키고 물러난다."
                     } },
+                    new StoryScene { Title = "효룡의 고민", Lines = new[] {
+                        "효룡은 무흔 일호를 만나 따진다. 칠 년 전 참극 뒤 천마뢰에 갇혀 있어야 할 형이 어떻게 무당산에 나타났느냐고. 천지쌍살을 사적으로 부릴 사람은 대공자뿐이다.",
+                        "청흔이 효룡의 정체를 추궁하며 검기점혈을 쏘지만 비류연이 막는다. 신분이 불확실한 사람은 비류연, 효룡, 장홍 셋뿐이라고 청흔이 말한다.",
+                        "윤준호는 이십 일 전 산속에서 해진 도복의 도사에게 왕따 이야기를 털어놓았다. 염도는 그것을 기연이라 평한다."
+                    } },
                     new StoryScene { Title = "사면초가를 연주하라", Lines = new[] {
                         "염도의 \"곧 무당파에서 지원이 온다\"는 거짓말이었다. 비류연은 달빛 아래 묵금을 켠다. \"저쪽에서 초가를 안 불어 주니 이쪽에서라도 연주해야죠.\" 나예린이 금음에 이끌려 찾아온다.",
                         "\"한 명도 죽지 않을 때까지 굴려요.\" 비류연의 주문으로 이레의 특별 강화 훈련이 시작된다. 내공 없이 오 장 밖 항아리의 물을 뜻으로 움직여라.",
@@ -591,19 +601,28 @@ namespace BiRyeoDo.Core
                         "5년마다 정사가 겨루는 화산규약지회. 올해는 100주년이다. 마진가는 신분이 불확실한 비류연과 효룡의 서류에도 합격 도장을 찍는다.",
                         "후보는 백검조(천익검 늑기한)와 흑검조(마검자 고약한)로 나뉜다. 은설란까지 수강생으로 앉은 흑검조 교실에서 고약한이 말한다. \"활검은 위선이다.\""
                     } },
+                    new StoryScene { Title = "줄 위의 비무", Lines = new[] {
+                        "고약한의 수업은 가는 줄을 불규칙하게 걸고 그 위에서 비무를 하는 것이다. 견학하던 은설란이 나예린과 겨루고, 칠채윤무와 월하비연이 부딪치자 둘 다 감탄한다. 나예린이 웃는다.",
+                        "효룡 대 비류연은 비류연의 승리로 끝났다. 고약한은 비류연을 '주의 대상'으로 올린다."
+                    } },
+                    new StoryScene { Title = "운향정의 눈물", Lines = new[] {
+                        "은설란은 운향정에서 죽은 정혼자 갈효봉을 그리워하다 효룡과 마주친다. \"형을 제 손으로 죽였다\"는 죄책감에 효룡은 말을 못 하고 운다.",
+                        "은설란이 그를 안아 주는 모습을 이진설이 보고 오해해 달아난다. 다음 날 이진설은 은설란에게 효룡을 좋아한다고 고백한다.",
+                        "염도와 비류연의 제자연장결정전은 이번에도 비류연의 승리. 봉황무 오의 비경에 뒤통수를 맞은 염도는 181일 뒤를 기약한다."
+                    } },
                     new StoryScene { Title = "순풍루의 밤", Lines = new[] {
                         "사흘 전 밤 비류연은 몰래 기숙사를 빠져나가 정보상 나대이의 주루 순풍루를 찾았다. 현상금 은 닷 냥에 눈이 멀어 소문의 미녀를 뒤쫓았다.",
                         "천축대승유가신공. 몸이 네 배로 부풀었다가 다시 날씬해지는 모습을 엿보고 말았다. \"뚱땡이 소저!\" 비류연은 칼바람을 피해 달아났다."
                     } },
                 },
                 Intro = new[] { "군웅회주 철옥잠 마하령이 비류연에게 뺨을 맞고도 사과를 거부한다. 신응대가 포위하고 팽혁성이 칼을 뽑는다.", "비류연은 마하령의 손목을 쥔 채 놓지 않는다. \"놓아주세요, 부탁합니다. 이 말을 하기 전에는 안 놓아요.\"" },
-                Outro = new[] { "비류연은 마하령을 방패처럼 세워 팽혁성의 칼끝을 틀게 했다. 구정회주 창천룡 용천명이 나타났다. 마하령은 어린 시절 \"뚱땡이!\"라 불렀던 그를 거부했다.","용천명의 백룡검이 번개처럼 뽑혔다. 비류연은 잔상만 남기고 피했으나 옷이 갈라졌다. 마하령의 허리띠가 끊어지고 사과 요구는 계속된다.","그때 늑기한과 고약한이 나타나 서로 으르렁거렸고, 둘은 중간 평가에서 승부를 보기로 했다." },
+                Outro = new[] { "비류연은 마하령을 방패처럼 세워 팽혁성의 칼끝을 틀게 했다. 구정회주 창천룡 용천명이 나타났다. 마하령은 어린 시절 \"뚱땡이!\"라 불렀던 그를 거부했다.","용천명의 백룡검이 번개처럼 뽑혔다. 비류연은 잔상만 남기고 피했으나 옷이 갈라졌다. 마하령의 허리띠가 끊어지고 사과 요구는 계속된다.","그때 늑기한과 고약한이 나타나 서로 으르렁거렸고, 둘은 중간 평가에서 승부를 보기로 했다.","마진가는 총 노사 빙검에게 마천각의 전력 분석을 보여 주며, 십팔 년 봉인된 환마동의 개방을 결정한다." },
                 Encounters = new[] { new[] { "sinung_daewon", "sinung_daewon", "sinung_daewon" }, new[] { "pae_hyeokseong", "sinung_daewon" }, new[] { "ma_haryeong" } } },
             new StageData { Number = 18, Name = "태극의 인재", RecommendedLevel = 41, DooTotal = 8500,
                 Prologue = new[]
                 {
                     new StoryScene { Title = "혁월린의 유언", Lines = new[] {
-                        "20년 전, 온몸에 거미줄 같은 상처를 입은 태극신문 무신 혁월린이 제자 둘을 불렀다. 염도와 빙검에게 남긴 유언은 이랬다.",
+                        "오래전, 온몸에 거미줄 같은 상처를 입은 태극신문 무신 혁월린이 제자 둘을 불렀다. 염도와 빙검에게 남긴 유언은 이랬다.",
                         "\"염백과 빙혼. 정과 반을 아우를 인재를 찾아라. 신도 홍염과 신검 빙루가 길을 인도할 것이다. 별의 기운을 가진 자다.\" 흉수의 이름은 끝내 말하지 않았다."
                     } },
                     new StoryScene { Title = "싸우려면 돈을 내라", Lines = new[] {
