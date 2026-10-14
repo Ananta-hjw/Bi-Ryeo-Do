@@ -24,6 +24,9 @@ namespace BiRyeoDo.Core
         public bool Guarding;              // damage taken is reduced until this unit's next turn
         public bool Evading;               // all hits miss until this unit's next turn
         public bool Charging;              // enemy is winding up its next move (telegraph)
+        public Combatant ChargeTarget;     // who the wound-up move will hit
+        public bool Stunned;               // loses its next action
+        public bool IsBoss;                // bosses cannot be stun-locked, only interrupted
         public int MoveIndex;              // enemy script position
         public List<EnemyMove> Moves;      // enemy attack script, cycled in order
         internal readonly Dictionary<string, int> Cooldowns = new Dictionary<string, int>();
@@ -58,6 +61,7 @@ namespace BiRyeoDo.Core
             Spirit = 0;
             Guarding = false;
             Evading = false;
+            Stunned = false;
             Cooldowns.Clear();
         }
 

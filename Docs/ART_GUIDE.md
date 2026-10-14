@@ -6,7 +6,7 @@
 
 | 위치 | 파일 이름 | 규격 |
 |---|---|---|
-| `Resources/Art/Backgrounds/` | `stage_01.png` … `stage_07.png` | 세로 1080×1920 (또는 9:16), 전투 화면 배경 |
+| `Resources/Art/Backgrounds/` | `stage_01.png` … `stage_09.png` | 세로 1080×1920 (또는 9:16), 전투 화면 배경 |
 | `Resources/Art/Enemies/` | 아래 표의 id (예: `tiger.png`) | **투명 배경 PNG**, 512~1024px 정사각 |
 | `Resources/Art/Characters/` | `player.png` | 투명 배경 PNG, 512px 정사각 (상반신 권장) |
 
@@ -33,7 +33,16 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, traditional Chinese, high quality, a handsome young martial artist around 19 years old, confident smile, simple dark traditional robe, black iron rings on his wrists, a black guqin on his back, upper body, plain white background
 ```
 
-## 배경 (스테이지 7개)
+## 동료 (`Characters/<id>.png`)
+동료 초상은 파티 패널 배경에 깔린다. 얼굴보다 상반신 구도를 권장한다. 원작에서 확인된 특징만 적었다.
+
+| 파일 | 인물 | 프롬프트 (공통 문구 뒤에 붙이기) |
+|---|---|---|
+| `hyo_ryong.png` | 효룡 | a calm young swordsman holding twin swords, upper body, plain white background |
+| `jang_hong.png` | 장홍 | a bearded man who looks older than his age, kind but nagging expression, sword at his waist, upper body, plain white background |
+| `yun_junho.png` | 윤준호 | a timid young swordsman of a mountain sect with plum blossom emblem, white and purple robe, upper body, plain white background |
+
+## 배경 (스테이지 9개)
 
 | 파일 | 스테이지 | 프롬프트 (공통 문구 뒤에 붙이기) |
 |---|---|---|
@@ -43,9 +52,11 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 | `stage_04.png` | 용골채 매복 | wide mountain pass with rocky cliffs and scattered boulders, tense atmosphere, overcast sky, vertical composition, no characters, 9:16 |
 | `stage_05.png` | 주주 윤하루 | traditional Chinese inn exterior at night, red lanterns, wooden two-story building, quiet street, vertical composition, no characters, 9:16 |
 | `stage_06.png` | 남창 호아장 | martial arts manor courtyard, weapon racks, stone training ground, large hall in the background, vertical composition, no characters, 9:16 |
-| `stage_07.png` | 천무학관 운향정 | elegant pavilion beside a calm artificial lake, stalagmite-like garden rocks, lush green trees, moonlit, vertical composition, no characters, 9:16 |
+| `stage_07.png` | 천무학관 검혼관 | dormitory approach path inside a Chinese martial academy, wooden corridor with hidden trap mechanisms, arrow slits and a row of swords in the ground, tense atmosphere, vertical composition, no characters, 9:16 |
+| `stage_08.png` | 천무식당 | large dining hall of a Chinese martial academy, long wooden tables, warm lantern light, evening, vertical composition, no characters, 9:16 |
+| `stage_09.png` | 천무학관 운향정 | elegant pavilion beside a calm artificial lake, stalagmite-like garden rocks, lush green trees, moonlit, vertical composition, no characters, 9:16 |
 
-## 적 (16종)
+## 적 (19종)
 
 | 파일 | 대상 | 프롬프트 (공통 문구 뒤에 붙이기) |
 |---|---|---|
@@ -62,8 +73,14 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 | `yeomdo.png` | 염도 곽영희 (보스) | a tall saber master with red hair, red eyebrows and red beard, crimson aura, fiery saber, full body, plain white background |
 | `hoajang_disciple.png` | 호아장 제자 | a disciple of a martial arts manor in matching robes with a sword, full body, plain white background |
 | `ho_cheonsang.png` | 호아장주 호천상 (보스) | a middle-aged master of a martial arts manor, tiger-themed robe, sword, stern, full body, plain white background |
+| `trap_arrow.png` | 기관 화살대 | a wooden trap contraption with a crossbow-like arrow launcher, mechanical, full body, plain white background |
+| `trap_needle.png` | 기관 비침대 | a trap contraption firing many thin needles, mechanical, full body, plain white background |
+| `trap_log.png` | 기관 통나무 | a heavy swinging log trap with ropes, mechanical, full body, plain white background |
+| `ho_cheongang.png` | 호아장 대사형 호천강 (보스) | an arrogant young swordsman of a martial manor, tiger-themed robe, thick heavy sword, aggressive stance, full body, plain white background |
 | `jongri_hak.png` | 종리학 | a young swordsman of a mountain sect with plum blossom emblem, white and purple robe, sword, full body, plain white background |
-| `gu_chang.png` | 일도파쇄 구창 (보스급) | a rough young saber fighter in black clothes, thick dark eyebrows, strong jaw, crude heavy saber, overbearing aura, full body, plain white background |
+| `chu_gayeon.png` | 추가연 (보스) | a young woman swordsman of a mountain sect with plum blossom emblem, white and purple robe, sword, cold expression, full body, plain white background |
+| `gu_chang.png` | 일도파쇄 구창 | a rough young saber fighter in black clothes, thick dark eyebrows, strong jaw, crude heavy saber, overbearing aura, full body, plain white background |
+| `so_cheongun.png` | 청풍검 소천군 | a calm young swordsman from a Taoist sword sect (Qingcheng), yellow martial robe, ornate sword with red tassel, cold clear eyes, full body, plain white background |
 | `wiji_cheon.png` | 선풍검룡 위지천 (보스) | a handsome young swordsman in blue silk martial robe, ornate sword with white tassel, wind swirling around him, full body, plain white background |
 
 원작에서 외형이 확인된 것은 염도(붉은 머리·눈썹·수염), 구창(흑삼, 굵고 짙은 눈썹, 강인한 턱, 투박한 도), 위지천(청색 비단 무복, 흰 술이 달린 보검, 칠검룡 문양)이다. 나머지(표사, 산적, 호아장 인물, 종리학 등)는 원작에 구체적인 묘사가 없어 일반적인 모습으로 적었다.

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace BiRyeoDo.Core
 {
-    public enum EventKind { Attack, Guard, Meditate, Charge, Evade }
+    public enum EventKind { Attack, Guard, Meditate, Charge, Evade, Heal, StunSkip }
 
     /// <summary>One action in a battle. UI plays these back; the engine never touches UI.</summary>
     public sealed class BattleEvent
@@ -23,7 +23,9 @@ namespace BiRyeoDo.Core
         public bool Guarded;         // damage was reduced by a guard
         public int HitIndex;         // 0-based within a multi-hit skill
         public int HitCount = 1;
-        public int Heal;             // HP restored to the actor (meditate)
+        public int Heal;             // HP restored (meditate heals the actor, Heal events heal TargetId)
+        public bool Stunned;         // the hit stunned the target
+        public bool Interrupted;     // the hit cancelled a charging move
     }
 
     public sealed class BattleResult

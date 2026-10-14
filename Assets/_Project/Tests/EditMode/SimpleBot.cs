@@ -7,25 +7,44 @@ namespace BiRyeoDo.Tests
     /// <summary>A reasonable (not perfect) player used to check that stages are winnable. Mirrors what a person would do.</summary>
     public static class SimpleBot
     {
-        public static PlayerCommand Choose(InteractiveBattle b, List<SkillSpec> equipped)
+        /// <summary>Decision for <see cref="InteractiveBattle.Current"/>: stop wind-ups, protect whoever is targeted, heal, then hit hardest.</summary>
+        public static PlayerCommand Choose(InteractiveBattle b)
         {
+            var me = b.Current;
             var alive = b.Enemies.Where(e => e.IsAlive).ToList();
             var target = alive.OrderBy(e => e.Hp).First();
-            if (alive.Any(e => e.Charging))
+            var skills = me.Skills.Where(s => s.Id != "basic" && b.CanUse(s)).ToList();
+            var charging = alive.Where(e => e.Charging).ToList();
+
+            if (charging.Count > 0)
             {
-                var evade = equipped.FirstOrDefault(s => s.Effect == SkillEffect.Evade && b.CanUse(s));
-                return evade != null ? PlayerCommand.UseSkill(evade, null) : PlayerCommand.Guard();
+                var stun = skills.FirstOrDefault(s => s.Effect == SkillEffect.Stun);
+                if (stun != null) return PlayerCommand.UseSkill(stun, charging[0]);
+                bool targeted = charging.Any(e => e.ChargeTarget == me);
+                if (targeted)
+                {
+                    var evade = skills.FirstOrDefault(s => s.Effect == SkillEffect.Evade);
+                    if (evade != null) return PlayerCommand.UseSkill(evade, null);
+                    var barrier = skills.FirstOrDefault(s => s.Effect == SkillEffect.GuardParty);
+                    if (barrier != null) return PlayerCommand.UseSkill(barrier, null);
+                    return PlayerCommand.Guard();
+                }
             }
-            var best = equipped.Where(s => s.Effect == SkillEffect.None && b.CanUse(s))
+
+            var heal = skills.FirstOrDefault(s => s.Effect == SkillEffect.HealAlly);
+            if (heal != null && b.Party.Any(m => m.IsAlive && m.Hp < m.Stats.MaxHp * 0.55f)) return PlayerCommand.UseSkill(heal, null);
+
+            var best = skills.Where(s => s.Effect == SkillEffect.None || s.Effect == SkillEffect.Stun)
+                .Where(s => s.Effect != SkillEffect.Stun)
                 .OrderByDescending(s => s.Power * s.Hits * (s.AllEnemies ? alive.Count : 1)).FirstOrDefault();
             if (best != null) return PlayerCommand.UseSkill(best, target);
-            if (b.Player.Qi < 20 && b.Player.Hp < b.Player.Stats.MaxHp * 0.8) return PlayerCommand.Meditate();
+            if (me.Qi < 20 && me.Hp < me.Stats.MaxHp * 0.8) return PlayerCommand.Meditate();
             return PlayerCommand.UseSkill(SkillSpec.BasicAttack(), target);
         }
 
         public static List<SkillSpec> BestLoadout(int stageNumber)
         {
-            var learned = EarlyGameContent.Arts.Where(a => a.UnlockStage <= stageNumber).ToList();
+            var learned = EarlyGameContent.Arts.Where(a => a.OwnerId == null && a.UnlockStage <= stageNumber).ToList();
             var eq = new List<ArtData>();
             foreach (var id in new[] { "seonpung_roejeol", "samcheopyeong" })
             {
@@ -38,18 +57,24 @@ namespace BiRyeoDo.Tests
             return eq.Select(a => a.ToSpec()).ToList();
         }
 
+        public static List<Combatant> BuildParty(int stageNumber, int level, int life)
+        {
+            var party = new List<Combatant> { new Combatant("p", "비류연", Team.Player, Progression.StatsFor(level, life), BestLoadout(stageNumber)) };
+            foreach (var c in EarlyGameContent.CompanionsFor(stageNumber)) party.Add(c.CreateCombatant(level, life));
+            return party;
+        }
+
         public static bool ClearStage(StageData st, int seed)
         {
-            var specs = BestLoadout(st.Number);
-            var player = new Combatant("p", "비류연", Team.Player, Progression.StatsFor(st.RecommendedLevel, 1), specs);
+            var party = BuildParty(st.Number, st.RecommendedLevel, 1);
             foreach (var enc in st.Encounters)
             {
                 var enemies = enc.Select((id, i) => EarlyGameContent.FindEnemy(id).CreateCombatant(id + i)).ToList();
-                var battle = new InteractiveBattle(player, enemies, new SeededRandom(seed * 100 + st.Number));
+                var battle = new InteractiveBattle(party, enemies, new SeededRandom(seed * 100 + st.Number));
                 battle.Begin();
-                for (int guard = 0; !battle.IsOver && guard < 2000; guard++) battle.PlayerAct(Choose(battle, specs));
+                for (int guard = 0; !battle.IsOver && guard < 3000; guard++) battle.PlayerAct(Choose(battle));
                 if (!battle.PlayerWon) return false;
-                player.RestBetweenFights(0.5f);
+                foreach (var m in party) m.RestBetweenFights(0.5f);
             }
             return true;
         }

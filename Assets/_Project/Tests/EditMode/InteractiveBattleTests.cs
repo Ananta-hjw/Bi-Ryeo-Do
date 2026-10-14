@@ -189,5 +189,126 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(100, p.Qi);
             Assert.AreEqual(0, p.Spirit);
         }
+
+        // ---- party battles
+
+        private static Combatant Ally(string id, CombatStats s, params SkillSpec[] skills)
+        {
+            return new Combatant(id, id, Team.Player, s, skills);
+        }
+
+        [Test]
+        public void EveryLivingPartyMemberGetsATurn()
+        {
+            var a = Ally("a", Stats(1000, 1, 0, 100));
+            var b = Ally("b", Stats(1000, 1, 0, 90));
+            var e = Enemy("e", Stats(100000, 1, 0, 1));
+            var battle = new InteractiveBattle(new[] { a, b }, new[] { e }, new SeededRandom(1));
+            battle.Begin();
+            var seen = new HashSet<string>();
+            for (int i = 0; i < 12; i++) { seen.Add(battle.Current.Id); battle.PlayerAct(PlayerCommand.Guard()); }
+            CollectionAssert.AreEquivalent(new[] { "a", "b" }, seen);
+        }
+
+        [Test]
+        public void BattleIsLostOnlyWhenWholePartyFalls()
+        {
+            var a = Ally("a", Stats(5, 1, 0, 100));
+            var b = Ally("b", Stats(100000, 1, 0, 100));
+            var e = Enemy("e", Stats(100000, 500, 0, 300), EnemyMove.Attack("강타", 5f));
+            var battle = new InteractiveBattle(new[] { a, b }, new[] { e }, new SeededRandom(3));
+            battle.Begin();
+            for (int i = 0; i < 20 && !battle.IsOver; i++) battle.PlayerAct(PlayerCommand.Guard());
+            Assert.IsFalse(battle.IsOver, "one survivor keeps the fight going");
+            Assert.IsFalse(a.IsAlive && b.IsAlive);
+        }
+
+        [Test]
+        public void StunSkipsTheTargetsNextTurnAndInterruptsACharge()
+        {
+            var stun = new SkillSpec { Id = "stun", Name = "점혈", Power = 0.5f, Effect = SkillEffect.Stun };
+            var a = Ally("a", Stats(100000, 5, 0, 100), stun);
+            var e = Enemy("e", Stats(100000, 50, 0, 100), EnemyMove.Wind("준비"), EnemyMove.Attack("강타", 9f), EnemyMove.Attack("약타", 0.1f));
+            var battle = new InteractiveBattle(new[] { a }, new[] { e }, new SeededRandom(1));
+            battle.Begin();
+            // Let the enemy start its charge.
+            for (int i = 0; i < 6 && !e.Charging; i++) battle.PlayerAct(PlayerCommand.Guard());
+            Assert.IsTrue(e.Charging);
+            var ev = battle.PlayerAct(PlayerCommand.UseSkill(stun, e));
+            Assert.IsTrue(ev.Any(x => x.Interrupted));
+            Assert.IsFalse(e.Charging);
+            Assert.IsTrue(ev.Any(x => x.Kind == EventKind.StunSkip), "stunned enemy loses its turn");
+            Assert.IsFalse(ev.Any(x => x.Kind == EventKind.Attack && x.ActorId == "e" && x.Damage > 1000), "the heavy move never lands");
+        }
+
+        [Test]
+        public void BossesAreInterruptedButNotStunLocked()
+        {
+            var stun = new SkillSpec { Id = "stun", Name = "점혈", Power = 0.5f, Effect = SkillEffect.Stun };
+            var a = Ally("a", Stats(100000, 5, 0, 100), stun);
+            var e = Enemy("e", Stats(100000, 50, 0, 100), EnemyMove.Wind("준비"), EnemyMove.Attack("강타", 9f));
+            e.IsBoss = true;
+            var battle = new InteractiveBattle(new[] { a }, new[] { e }, new SeededRandom(1));
+            battle.Begin();
+            for (int i = 0; i < 6 && !e.Charging; i++) battle.PlayerAct(PlayerCommand.Guard());
+            var ev = battle.PlayerAct(PlayerCommand.UseSkill(stun, e));
+            Assert.IsTrue(ev.Any(x => x.Interrupted));
+            Assert.IsFalse(ev.Any(x => x.Stunned));
+            Assert.IsFalse(ev.Any(x => x.Kind == EventKind.StunSkip));
+        }
+
+        [Test]
+        public void GuardPartyProtectsEveryone()
+        {
+            var barrier = new SkillSpec { Id = "wall", Name = "벽", Effect = SkillEffect.GuardParty };
+            var a = Ally("a", Stats(100000, 1, 0, 100), barrier);
+            var b = Ally("b", Stats(100000, 1, 0, 1));
+            var e = Enemy("e", Stats(100000, 100, 0, 100), EnemyMove.Attack("강타", 1f));
+            var battle = new InteractiveBattle(new[] { a, b }, new[] { e }, new SeededRandom(2));
+            battle.Begin();
+            Assert.AreSame(a, battle.Current);
+            var ev = battle.PlayerAct(PlayerCommand.UseSkill(barrier, null));
+            Assert.IsTrue(ev.Where(x => x.Kind == EventKind.Attack && x.Damage > 0).All(x => x.Guarded));
+        }
+
+        [Test]
+        public void HealAllyRestoresTheMostWoundedMember()
+        {
+            var heal = new SkillSpec { Id = "heal", Name = "치유", Effect = SkillEffect.HealAlly, HealPct = 0.5f };
+            var a = Ally("a", Stats(1000, 1, 0, 100), heal);
+            var b = Ally("b", Stats(1000, 1, 0, 1));
+            var e = Enemy("e", Stats(100000, 1, 0, 1));
+            var battle = new InteractiveBattle(new[] { a, b }, new[] { e }, new SeededRandom(1));
+            battle.Begin();
+            b.Hp = 100;
+            var ev = battle.PlayerAct(PlayerCommand.UseSkill(heal, null));
+            Assert.AreEqual(600, b.Hp);
+            Assert.IsTrue(ev.Any(x => x.Kind == EventKind.Heal && x.TargetId == "b"));
+        }
+
+        [Test]
+        public void ChargedMoveHitsTheMemberItAnnounced()
+        {
+            var a = Ally("a", Stats(100000, 1, 0, 100));
+            var b = Ally("b", Stats(100000, 1, 0, 100));
+            var e = Enemy("e", Stats(100000, 100, 0, 200), EnemyMove.Wind("준비"), EnemyMove.Attack("강타", 3f));
+            var battle = new InteractiveBattle(new[] { a, b }, new[] { e }, new SeededRandom(5));
+            battle.Begin();
+            Combatant announced = null;
+            for (int i = 0; i < 20 && announced == null; i++)
+            {
+                battle.PlayerAct(PlayerCommand.Guard());
+                if (e.Charging) announced = e.ChargeTarget;
+            }
+            Assert.IsNotNull(announced);
+            List<BattleEvent> after = null;
+            for (int i = 0; i < 6 && after == null; i++)
+            {
+                var ev = battle.PlayerAct(PlayerCommand.Guard());
+                if (ev.Any(x => x.Kind == EventKind.Attack && x.ActorId == "e")) after = ev;
+            }
+            Assert.IsNotNull(after);
+            Assert.AreEqual(announced.Id, after.First(x => x.Kind == EventKind.Attack && x.ActorId == "e").TargetId);
+        }
     }
 }

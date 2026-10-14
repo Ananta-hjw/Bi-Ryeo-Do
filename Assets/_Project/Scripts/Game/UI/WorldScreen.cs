@@ -70,6 +70,15 @@ namespace BiRyeoDo.Game.UI
             Refresh();
         }
 
+        private static string PartyText(StageData st)
+        {
+            var companions = EarlyGameContent.CompanionsFor(st.Number);
+            if (companions.Count == 0) return "";
+            var names = new List<string>();
+            foreach (var c in companions) names.Add(c.Name);
+            return " · 동료 " + string.Join(", ", names);
+        }
+
         public void Refresh()
         {
             if (!_built) return;
@@ -83,7 +92,7 @@ namespace BiRyeoDo.Game.UI
                 bool unlocked = save.HighestUnlockedStage >= st.Number;
                 bool cleared = save.ClearedStage >= st.Number;
                 r.Title.text = "스테이지 " + st.Number + " · " + st.Name;
-                r.Detail.text = unlocked ? "권장 Lv." + st.RecommendedLevel + " · 전투 " + st.Encounters.Length + "회" + (cleared ? " · 돌파" : "") : "이전 스테이지를 돌파하면 열린다";
+                r.Detail.text = unlocked ? "권장 Lv." + st.RecommendedLevel + " · 전투 " + st.Encounters.Length + "회" + PartyText(st) + (cleared ? " · 돌파" : "") : "이전 스테이지를 돌파하면 열린다";
                 r.ButtonLabel.text = !unlocked ? "잠김" : cleared ? "재도전" : "출전";
                 r.ButtonImage.color = !unlocked ? UiFactory.InkSoft : cleared ? new Color(0.35f, 0.35f, 0.32f, 1f) : UiFactory.Red;
                 r.Button.interactable = unlocked;

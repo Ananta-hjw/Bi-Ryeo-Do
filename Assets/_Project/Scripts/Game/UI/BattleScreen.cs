@@ -10,8 +10,9 @@ namespace BiRyeoDo.Game.UI
 {
     /// <summary>
     /// Full-screen, player-driven battle. A stage is a story intro, a chain of fights and an outro.
-    /// In each fight the player picks a command every turn (attack, a martial art, guard, meditate) and taps an enemy to
-    /// choose the target. Enemies telegraph their heavy moves, so guarding or evading at the right time matters.
+    /// In each fight every living party member gets a turn in which the player picks a command (attack, one of that member's
+    /// martial arts, guard, meditate) and taps an enemy to choose the target. Enemies telegraph their heavy moves and who
+    /// they will hit, so guarding, evading, healing or interrupting at the right time matters.
     /// The rules live in <see cref="InteractiveBattle"/>; this class only draws and animates what it reports.
     /// </summary>
     public class BattleScreen : MonoBehaviour
@@ -20,6 +21,7 @@ namespace BiRyeoDo.Game.UI
         private static readonly Color Backdrop = new Color(0.13f, 0.12f, 0.11f, 1f);
         private static readonly Color QiBlue = new Color(0.30f, 0.50f, 0.80f, 1f);
         private static readonly Color HpGreen = new Color(0.30f, 0.62f, 0.34f, 1f);
+        private static readonly Color GuardBlue = new Color(0.5f, 0.7f, 0.95f, 1f);
         private static readonly Color Disabled = new Color(0.25f, 0.25f, 0.24f, 1f);
 
         private sealed class EnemyCard
@@ -32,6 +34,16 @@ namespace BiRyeoDo.Game.UI
             public Vector2 Center;
         }
 
+        private sealed class PartyPanel
+        {
+            public Combatant Unit;
+            public RectTransform Root;
+            public Image Frame, Art;
+            public Text Name, Status, HpText, QiText, SpiritText;
+            public UiFactory.Bar Hp, Qi, Spirit;
+            public Vector2 Center;
+        }
+
         private sealed class CommandButton
         {
             public Button Button;
@@ -40,14 +52,14 @@ namespace BiRyeoDo.Game.UI
             public GameObject Root;
         }
 
-        private RectTransform _root, _cardsRoot, _fx, _playerBlock;
-        private Image _backdropImage, _playerPortrait;
-        private Text _stageLabel, _speedLabel, _log, _playerName, _playerHpText, _playerQiText, _playerSpiritText, _status, _banner;
-        private UiFactory.Bar _playerHp, _playerQi, _playerSpirit;
+        private RectTransform _cardsRoot, _partyRoot, _fx;
+        private Image _backdropImage;
+        private Text _stageLabel, _speedLabel, _log, _banner;
         private Image _flash, _bannerBg;
         private readonly List<Image> _turnChips = new List<Image>();
         private readonly List<Text> _turnLabels = new List<Text>();
         private readonly List<EnemyCard> _cards = new List<EnemyCard>();
+        private readonly List<PartyPanel> _panels = new List<PartyPanel>();
         private readonly CommandButton[] _commands = new CommandButton[8];
 
         // story / result panels
@@ -56,8 +68,7 @@ namespace BiRyeoDo.Game.UI
         private GameObject _panelNext, _panelRetry, _panelBack;
 
         private InteractiveBattle _battle;
-        private Combatant _player;
-        private List<SkillSpec> _skills = new List<SkillSpec>();
+        private List<Combatant> _party = new List<Combatant>();
         private EnemyCard _target;
 
         private bool _hasCommand, _panelDone, _retry, _fled;
@@ -70,7 +81,6 @@ namespace BiRyeoDo.Game.UI
         {
             if (_built) return;
             _built = true;
-            _root = root;
 
             UiFactory.Panel("Backdrop", root, Vector2.zero, Vector2.one, Backdrop);
             _backdropImage = UiFactory.Panel("StageArt", root, Vector2.zero, Vector2.one, new Color(1f, 1f, 1f, 0f));
@@ -99,18 +109,10 @@ namespace BiRyeoDo.Game.UI
 
             // Log line
             UiFactory.Panel("LogBand", root, new Vector2(0.04f, 0.468f), new Vector2(0.96f, 0.515f), UiFactory.Ink);
-            _log = UiFactory.Label("Log", root, new Vector2(0.06f, 0.468f), new Vector2(0.94f, 0.515f), "", 32, UiFactory.PaperText);
+            _log = UiFactory.Label("Log", root, new Vector2(0.06f, 0.468f), new Vector2(0.94f, 0.515f), "", 30, UiFactory.PaperText);
 
-            // Player block
-            _playerBlock = UiFactory.Rect("PlayerBlock", root, new Vector2(0.04f, 0.300f), new Vector2(0.96f, 0.455f));
-            UiFactory.Panel("PlayerBg", _playerBlock, Vector2.zero, Vector2.one, UiFactory.Ink);
-            _playerPortrait = UiFactory.Panel("Portrait", _playerBlock, new Vector2(0.015f, 0.05f), new Vector2(0.20f, 0.95f), new Color(0.25f, 0.25f, 0.23f, 1f));
-            _playerPortrait.preserveAspect = true;
-            _playerName = UiFactory.Label("PlayerName", _playerBlock, new Vector2(0.22f, 0.62f), new Vector2(0.50f, 0.97f), "", 34, UiFactory.Gold, TextAnchor.MiddleLeft);
-            _status = UiFactory.Label("Status", _playerBlock, new Vector2(0.50f, 0.62f), new Vector2(0.97f, 0.97f), "", 30, UiFactory.PaperText, TextAnchor.MiddleRight);
-            MakeStatRow(_playerBlock, "체력", 0.42f, HpGreen, out _playerHp, out _playerHpText);
-            MakeStatRow(_playerBlock, "내공", 0.22f, QiBlue, out _playerQi, out _playerQiText);
-            MakeStatRow(_playerBlock, "기세", 0.02f, UiFactory.Gold, out _playerSpirit, out _playerSpiritText);
+            // Party panels are created per stage (their count depends on who has joined)
+            _partyRoot = UiFactory.Rect("Party", root, Vector2.zero, Vector2.one);
 
             // Commands: 2 rows x 4 columns
             for (int i = 0; i < _commands.Length; i++)
@@ -131,13 +133,6 @@ namespace BiRyeoDo.Game.UI
             _banner = UiFactory.Label("Banner", root, new Vector2(0f, 0.60f), new Vector2(1f, 0.70f), "", 64, UiFactory.Gold);
 
             BuildPanel(root);
-        }
-
-        private void MakeStatRow(RectTransform parent, string label, float y0, Color fill, out UiFactory.Bar bar, out Text value)
-        {
-            UiFactory.Label(label + "Label", parent, new Vector2(0.22f, y0), new Vector2(0.33f, y0 + 0.18f), label, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
-            bar = UiFactory.MakeBar(label + "Bar", parent, new Vector2(0.34f, y0 + 0.03f), new Vector2(0.75f, y0 + 0.15f), new Color(0.2f, 0.2f, 0.2f, 0.9f), fill);
-            value = UiFactory.Label(label + "Value", parent, new Vector2(0.76f, y0), new Vector2(0.97f, y0 + 0.18f), "", 28, UiFactory.PaperText, TextAnchor.MiddleRight);
         }
 
         private void BuildPanel(RectTransform root)
@@ -171,13 +166,10 @@ namespace BiRyeoDo.Game.UI
             var bg = ArtLibrary.Background(stage.Number);
             _backdropImage.sprite = bg;
             _backdropImage.color = bg != null ? Color.white : new Color(1f, 1f, 1f, 0f);
-            var portrait = ArtLibrary.Player();
-            _playerPortrait.sprite = portrait;
-            _playerPortrait.color = portrait != null ? Color.white : new Color(0.25f, 0.25f, 0.23f, 1f);
             ClearCards();
+            ClearPanels();
             SetCommandsVisible(false);
             _log.text = "";
-            _status.text = "";
 
             yield return ShowStory(stage.Name, stage.Intro);
 
@@ -185,7 +177,7 @@ namespace BiRyeoDo.Game.UI
             while (again)
             {
                 again = false;
-                BuildPlayer();
+                BuildParty(stage);
                 long gainedExp = 0, gainedDoo = 0;
                 bool cleared = true;
 
@@ -198,7 +190,6 @@ namespace BiRyeoDo.Game.UI
                     if (_fled) { cleared = false; break; }
                     if (!_battle.PlayerWon) { cleared = false; break; }
 
-                    // Rewards
                     long exp = 0, doo = 0;
                     foreach (var id in stage.Encounters[i])
                     {
@@ -209,10 +200,10 @@ namespace BiRyeoDo.Game.UI
                     save.Doo += doo;
                     gainedExp += exp; gainedDoo += doo;
                     GameManager.Instance.SaveNow();
-                    if (levels > 0) RebuildPlayerForNewLevel();
+                    if (levels > 0) RebuildPartyForNewLevel(stage);
                     yield return Banner("승리!  경험 +" + exp + "  두 +" + doo + (levels > 0 ? "\nLv." + save.Level + " 상승!" : ""), levels > 0 ? 1.4f : 0.9f);
-                    _player.RestBetweenFights(0.5f);
-                    RefreshPlayer();
+                    foreach (var m in _party) m.RestBetweenFights(0.5f);
+                    RefreshParty();
                 }
 
                 if (_fled)
@@ -238,15 +229,16 @@ namespace BiRyeoDo.Game.UI
             _banner.text = "";
             _bannerBg.color = new Color(0f, 0f, 0f, 0f);
             ClearCards();
+            ClearPanels();
             _onClose?.Invoke();
         }
 
         private IEnumerator Fight(string[] enemyIds)
         {
             SpawnCards(enemyIds);
-            _battle = new InteractiveBattle(_player, _cards.ConvertAll(c => c.Unit), new SeededRandom(Environment.TickCount));
+            _battle = new InteractiveBattle(_party, _cards.ConvertAll(c => c.Unit), new SeededRandom(Environment.TickCount));
             _target = _cards[0];
-            RefreshPlayer();
+            RefreshParty();
             RefreshCards();
 
             yield return PlayEvents(_battle.Begin());
@@ -255,7 +247,7 @@ namespace BiRyeoDo.Game.UI
             {
                 if (_target == null || !_target.Unit.IsAlive) _target = _cards.Find(c => c.Unit.IsAlive);
                 RefreshCards();
-                RefreshPlayer();
+                RefreshParty();
                 RefreshCommands();
                 RefreshTurnOrder();
 
@@ -268,7 +260,7 @@ namespace BiRyeoDo.Game.UI
                 yield return PlayEvents(events);
             }
 
-            RefreshPlayer();
+            RefreshParty();
             RefreshCards();
             SetCommandsVisible(false);
             yield return new WaitForSeconds(0.25f);
@@ -276,32 +268,88 @@ namespace BiRyeoDo.Game.UI
 
         // ------------------------------------------------------------------ setup
 
-        private void BuildPlayer()
+        private static List<SkillSpec> ArtsOf(Combatant member)
+        {
+            var list = new List<SkillSpec>();
+            foreach (var s in member.Skills) if (s.Id != "basic") list.Add(s);
+            return list;
+        }
+
+        private List<Combatant> CreateParty(StageData stage)
         {
             var save = GameManager.Instance.Save;
-            _skills = new List<SkillSpec>();
+            var skills = new List<SkillSpec>();
             foreach (var id in save.EquippedArts)
             {
                 var art = EarlyGameContent.FindArt(id);
-                if (art != null && _skills.Count < Progression.MaxEquippedArts) _skills.Add(art.ToSpec());
+                if (art != null && art.OwnerId == null && skills.Count < Progression.MaxEquippedArts) skills.Add(art.ToSpec());
             }
-            _player = new Combatant("player", "비류연", Team.Player, Progression.StatsFor(save.Level, save.Life), _skills);
-            _playerName.text = "비류연  Lv." + save.Level;
+            var party = new List<Combatant> { new Combatant("player", "비류연", Team.Player, Progression.StatsFor(save.Level, save.Life), skills) };
+            foreach (var c in EarlyGameContent.CompanionsFor(stage.Number)) party.Add(c.CreateCombatant(save.Level, save.Life));
+            return party;
         }
 
-        private void RebuildPlayerForNewLevel()
+        private void BuildParty(StageData stage)
         {
-            var save = GameManager.Instance.Save;
-            float ratio = (float)_player.Hp / Math.Max(1, _player.Stats.MaxHp);
-            _player = new Combatant("player", "비류연", Team.Player, Progression.StatsFor(save.Level, save.Life), _skills);
-            _player.Hp = Math.Max(1, (int)Math.Round(_player.Stats.MaxHp * ratio));
-            _playerName.text = "비류연  Lv." + save.Level;
+            _party = CreateParty(stage);
+            ClearPanels();
+            int n = _party.Count;
+            const float gap = 0.02f, y0 = 0.300f, y1 = 0.455f;
+            float w = (0.92f - gap * (n - 1)) / n;
+            for (int i = 0; i < n; i++)
+            {
+                float x0 = 0.04f + i * (w + gap);
+                var unit = _party[i];
+                var p = new PartyPanel { Unit = unit, Center = new Vector2(x0 + w / 2f, (y0 + y1) / 2f) };
+                p.Root = UiFactory.Rect("Member" + i, _partyRoot, new Vector2(x0, y0), new Vector2(x0 + w, y1));
+                p.Frame = UiFactory.Panel("Frame", p.Root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0f));
+                UiFactory.Panel("Bg", p.Root, new Vector2(0.02f, 0.03f), new Vector2(0.98f, 0.97f), UiFactory.Ink);
+                var sprite = i == 0 ? ArtLibrary.Player() : ArtLibrary.Companion(unit.Id);
+                if (sprite != null)
+                {
+                    p.Art = UiFactory.Panel("Art", p.Root, new Vector2(0.02f, 0.03f), new Vector2(0.98f, 0.97f), new Color(1f, 1f, 1f, 0.35f));
+                    p.Art.sprite = sprite;
+                    p.Art.preserveAspect = true;
+                }
+                int fs = n >= 3 ? 28 : 34;
+                p.Name = UiFactory.Label("Name", p.Root, new Vector2(0.05f, 0.70f), new Vector2(0.62f, 0.97f), unit.Name, fs, UiFactory.Gold, TextAnchor.MiddleLeft);
+                p.Status = UiFactory.Label("Status", p.Root, new Vector2(0.55f, 0.70f), new Vector2(0.97f, 0.97f), "", n >= 3 ? 22 : 28, UiFactory.PaperText, TextAnchor.MiddleRight);
+                MakeStatRow(p.Root, "체력", 0.47f, HpGreen, out p.Hp, out p.HpText);
+                MakeStatRow(p.Root, "내공", 0.26f, QiBlue, out p.Qi, out p.QiText);
+                MakeStatRow(p.Root, "기세", 0.05f, UiFactory.Gold, out p.Spirit, out p.SpiritText);
+                _panels.Add(p);
+            }
+        }
+
+        private static void MakeStatRow(RectTransform parent, string label, float y0, Color fill, out UiFactory.Bar bar, out Text value)
+        {
+            UiFactory.Label(label + "Label", parent, new Vector2(0.05f, y0), new Vector2(0.24f, y0 + 0.19f), label, 22, UiFactory.PaperText, TextAnchor.MiddleLeft);
+            bar = UiFactory.MakeBar(label + "Bar", parent, new Vector2(0.25f, y0 + 0.02f), new Vector2(0.96f, y0 + 0.17f), new Color(0.2f, 0.2f, 0.2f, 0.9f), fill);
+            value = UiFactory.Label(label + "Value", parent, new Vector2(0.25f, y0), new Vector2(0.96f, y0 + 0.19f), "", 20, UiFactory.PaperText);
+        }
+
+        private void RebuildPartyForNewLevel(StageData stage)
+        {
+            var fresh = CreateParty(stage);
+            for (int i = 0; i < fresh.Count && i < _party.Count; i++)
+            {
+                float ratio = (float)_party[i].Hp / Math.Max(1, _party[i].Stats.MaxHp);
+                fresh[i].Hp = _party[i].IsAlive ? Math.Max(1, (int)Math.Round(fresh[i].Stats.MaxHp * ratio)) : 0;
+                if (i < _panels.Count) _panels[i].Unit = fresh[i];
+            }
+            _party = fresh;
         }
 
         private void ClearCards()
         {
             foreach (var c in _cards) if (c.Root != null) Destroy(c.Root.gameObject);
             _cards.Clear();
+        }
+
+        private void ClearPanels()
+        {
+            foreach (var p in _panels) if (p.Root != null) Destroy(p.Root.gameObject);
+            _panels.Clear();
         }
 
         private void SpawnCards(string[] enemyIds)
@@ -330,7 +378,7 @@ namespace BiRyeoDo.Game.UI
                 card.Glyph = UiFactory.Label("Glyph", card.Root, new Vector2(0.05f, 0.42f), new Vector2(0.95f, 0.84f), art != null ? "" : FirstGlyph(data.Name), 150, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
                 card.Hp = UiFactory.MakeBar("Hp", card.Root, new Vector2(0.08f, 0.31f), new Vector2(0.92f, 0.39f), new Color(0.2f, 0.2f, 0.2f, 0.9f), UiFactory.Red);
                 card.HpText = UiFactory.Label("HpText", card.Root, new Vector2(0.05f, 0.22f), new Vector2(0.95f, 0.31f), "", 22, UiFactory.PaperText);
-                card.Intent = UiFactory.Label("Intent", card.Root, new Vector2(0.05f, 0.03f), new Vector2(0.95f, 0.22f), "", 24, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+                card.Intent = UiFactory.Label("Intent", card.Root, new Vector2(0.05f, 0.03f), new Vector2(0.95f, 0.22f), "", 22, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
                 // Tap to target
                 var tap = card.Root.gameObject.AddComponent<Button>();
@@ -346,7 +394,7 @@ namespace BiRyeoDo.Game.UI
         private static string FirstGlyph(string name)
         {
             // Skip honorific prefixes so the big letter is a meaningful syllable.
-            string[] skip = { "비풍도 ", "일도파쇄 ", "선풍검룡 ", "호아장주 ", "염도 ", "패호 ", "패룡 " };
+            string[] skip = { "비풍도 ", "일도파쇄 ", "선풍검룡 ", "호아장주 ", "호아장 대사형 ", "청풍검 ", "기관 ", "염도 ", "패호 ", "패룡 " };
             foreach (var s in skip) if (name.StartsWith(s)) name = name.Substring(s.Length);
             return name.Length > 0 ? name.Substring(0, 1) : "?";
         }
@@ -366,10 +414,11 @@ namespace BiRyeoDo.Game.UI
                 if (c.Art != null) SetAlpha(c.Art, dead ? 0.25f : 1f);
                 c.Glyph.color = dead ? new Color(1f, 1f, 1f, 0.2f) : c.Glyph.color;
                 if (dead) { c.Intent.text = "쓰러졌다"; continue; }
+                if (u.Stunned) { c.Intent.text = "행동 불능"; c.Intent.color = GuardBlue; continue; }
                 var move = u.PeekMove();
                 if (u.Charging)
                 {
-                    c.Intent.text = "위험! " + move.Name;
+                    c.Intent.text = "위험! " + move.Name + (u.ChargeTarget != null ? "\n→ " + u.ChargeTarget.Name : "");
                     c.Intent.color = UiFactory.Red;
                 }
                 else if (move.Charge)
@@ -385,16 +434,22 @@ namespace BiRyeoDo.Game.UI
             }
         }
 
-        private void RefreshPlayer()
+        private void RefreshParty()
         {
-            if (_player == null) return;
-            _playerHp.SetPct((float)_player.Hp / Math.Max(1, _player.Stats.MaxHp));
-            _playerQi.SetPct((float)_player.Qi / Math.Max(1, _player.Stats.MaxQi));
-            _playerSpirit.SetPct(_player.Spirit / (float)InteractiveBattle.MaxSpirit);
-            _playerHpText.text = _player.Hp + "/" + _player.Stats.MaxHp;
-            _playerQiText.text = _player.Qi + "/" + _player.Stats.MaxQi;
-            _playerSpiritText.text = _player.Spirit + "/" + InteractiveBattle.MaxSpirit;
-            _status.text = _player.Guarding ? "방어 중" : _player.Evading ? "회피 중" : "";
+            foreach (var p in _panels)
+            {
+                var u = p.Unit;
+                p.Hp.SetPct((float)u.Hp / Math.Max(1, u.Stats.MaxHp));
+                p.Qi.SetPct((float)u.Qi / Math.Max(1, u.Stats.MaxQi));
+                p.Spirit.SetPct(u.Spirit / (float)InteractiveBattle.MaxSpirit);
+                p.HpText.text = u.Hp + "/" + u.Stats.MaxHp;
+                p.QiText.text = u.Qi + "/" + u.Stats.MaxQi;
+                p.SpiritText.text = u.Spirit + "/" + InteractiveBattle.MaxSpirit;
+                p.Status.text = !u.IsAlive ? "쓰러짐" : u.Guarding ? "방어" : u.Evading ? "회피" : "";
+                p.Name.color = u.IsAlive ? UiFactory.Gold : new Color(0.5f, 0.5f, 0.5f, 1f);
+                bool current = _battle != null && _battle.Current == u && _battle.IsPlayerTurn;
+                p.Frame.color = current ? UiFactory.Gold : new Color(0f, 0f, 0f, 0f);
+            }
         }
 
         private void RefreshTurnOrder()
@@ -406,10 +461,10 @@ namespace BiRyeoDo.Game.UI
                 _turnChips[i].gameObject.SetActive(has);
                 _turnLabels[i].gameObject.SetActive(has);
                 if (!has) continue;
-                bool isPlayer = order[i] == _player;
-                _turnChips[i].color = isPlayer ? UiFactory.Gold : new Color(0.55f, 0.16f, 0.14f, 1f);
-                _turnLabels[i].text = isPlayer ? "나" : ShortName(order[i].Name);
-                _turnLabels[i].color = isPlayer ? UiFactory.Ink : UiFactory.PaperText;
+                bool ours = order[i].Team == Team.Player;
+                _turnChips[i].color = ours ? UiFactory.Gold : new Color(0.55f, 0.16f, 0.14f, 1f);
+                _turnLabels[i].text = ShortName(order[i].Name);
+                _turnLabels[i].color = ours ? UiFactory.Ink : UiFactory.PaperText;
             }
         }
 
@@ -422,17 +477,20 @@ namespace BiRyeoDo.Game.UI
 
         private void RefreshCommands()
         {
+            var me = _battle.Current;
+            if (me == null) return;
             SetCommandsVisible(true);
             SetCommand(0, "공격", "내공 0", true);
+            var arts = ArtsOf(me);
             for (int i = 0; i < Progression.MaxEquippedArts; i++)
             {
                 int slot = 1 + i;
-                if (i >= _skills.Count) { _commands[slot].Root.SetActive(false); continue; }
-                var s = _skills[i];
-                int cd = _player.CooldownLeft(s);
+                if (i >= arts.Count) { _commands[slot].Root.SetActive(false); continue; }
+                var s = arts[i];
+                int cd = me.CooldownLeft(s);
                 bool ok = _battle.CanUse(s);
                 string sub = cd > 0 ? "재사용 " + cd + "턴" : s.SpiritCost > 0 ? "기세 " + s.SpiritCost : s.QiCost > 0 ? "내공 " + s.QiCost : "";
-                if (cd == 0 && _player.Qi < s.QiCost) sub = "내공 부족";
+                if (cd == 0 && me.Qi < s.QiCost) sub = "내공 부족";
                 SetCommand(slot, s.Name, sub, ok);
             }
             SetCommand(5, "방어", "피해 60% 감소", true);
@@ -464,13 +522,16 @@ namespace BiRyeoDo.Game.UI
         private void OnCommandPressed(int slot)
         {
             if (_battle == null || !_battle.IsPlayerTurn || _hasCommand) return;
+            var me = _battle.Current;
             if (_target == null || !_target.Unit.IsAlive) _target = _cards.Find(c => c.Unit.IsAlive);
-            if (slot == 0) _command = PlayerCommand.UseSkill(SkillSpec.BasicAttack(), _target != null ? _target.Unit : null);
+            var targetUnit = _target != null ? _target.Unit : null;
+            if (slot == 0) _command = PlayerCommand.UseSkill(SkillSpec.BasicAttack(), targetUnit);
             else if (slot >= 1 && slot <= Progression.MaxEquippedArts)
             {
+                var arts = ArtsOf(me);
                 int i = slot - 1;
-                if (i >= _skills.Count || !_battle.CanUse(_skills[i])) return;
-                _command = PlayerCommand.UseSkill(_skills[i], _target != null ? _target.Unit : null);
+                if (i >= arts.Count || !_battle.CanUse(arts[i])) return;
+                _command = PlayerCommand.UseSkill(arts[i], targetUnit);
             }
             else if (slot == 5) _command = PlayerCommand.Guard();
             else if (slot == 6) _command = PlayerCommand.Meditate();
@@ -495,95 +556,127 @@ namespace BiRyeoDo.Game.UI
 
         private float Wait(float seconds) { return seconds / _speed; }
 
+        private PartyPanel PanelOf(string unitId) { return _panels.Find(p => p.Unit.Id == unitId); }
+
+        private EnemyCard CardOf(string unitId) { return _cards.Find(c => c.Unit.Id == unitId); }
+
+        private string NameOf(string unitId)
+        {
+            var p = PanelOf(unitId);
+            if (p != null) return p.Unit.Name;
+            var c = CardOf(unitId);
+            return c != null ? c.Unit.Name : "";
+        }
+
         private IEnumerator PlayEvents(List<BattleEvent> events)
         {
             foreach (var ev in events)
             {
                 if (_fled) yield break;
-                bool byPlayer = ev.ActorId == _player.Id;
-                var actorName = byPlayer ? "비류연" : _cards.Find(c => c.Unit.Id == ev.ActorId)?.Unit.Name ?? "";
+                var actorPanel = PanelOf(ev.ActorId);
+                bool byParty = actorPanel != null;
+                string actorName = NameOf(ev.ActorId);
 
                 switch (ev.Kind)
                 {
                     case EventKind.Attack:
-                        if (ev.HitIndex == 0) _log.text = actorName + "의 " + SkillLabel(ev) + (ev.HitCount > 1 ? " (" + ev.HitCount + "연타)" : "");
-                        if (byPlayer) yield return PlayerHit(ev);
+                        if (ev.HitIndex == 0) _log.text = actorName + "의 " + SkillLabel(ev, actorPanel) + (ev.HitCount > 1 ? " (" + ev.HitCount + "연타)" : "");
+                        if (byParty) yield return PartyHit(ev);
                         else yield return EnemyHit(ev);
                         break;
                     case EventKind.Guard:
                         _log.text = ev.Message;
-                        Float(PlayerPos(), "방어!", new Color(0.5f, 0.7f, 0.95f), 56);
-                        RefreshPlayer();
+                        foreach (var p in _panels) if (p.Unit.Guarding) Float(p.Center, "방어!", GuardBlue, 52);
+                        RefreshParty();
                         yield return new WaitForSeconds(Wait(SmallDelay));
                         break;
                     case EventKind.Meditate:
                         _log.text = ev.Message;
-                        Float(PlayerPos(), "+" + ev.Heal, HpGreen, 64);
-                        RefreshPlayer();
+                        if (actorPanel != null) Float(actorPanel.Center, "+" + ev.Heal, HpGreen, 60);
+                        RefreshParty();
                         yield return new WaitForSeconds(Wait(SmallDelay));
+                        break;
+                    case EventKind.Heal:
+                        _log.text = ev.Message;
+                        var healed = PanelOf(ev.TargetId);
+                        if (healed != null) Float(healed.Center, "+" + ev.Heal, HpGreen, 70);
+                        RefreshParty();
+                        yield return new WaitForSeconds(Wait(StepDelay));
                         break;
                     case EventKind.Evade:
                         _log.text = ev.Message;
-                        Float(PlayerPos(), "회피 태세", new Color(0.7f, 0.9f, 1f), 56);
-                        RefreshPlayer();
+                        if (actorPanel != null) Float(actorPanel.Center, "회피 태세", new Color(0.7f, 0.9f, 1f), 52);
+                        RefreshParty();
                         yield return new WaitForSeconds(Wait(SmallDelay));
                         break;
                     case EventKind.Charge:
                         _log.text = ev.Message;
-                        var card = _cards.Find(c => c.Unit.Id == ev.ActorId);
+                        var card = CardOf(ev.ActorId);
                         if (card != null) { Float(card.Center, "!!", UiFactory.Red, 90); yield return Shake(card.Root, 10f); }
+                        RefreshCards();
+                        yield return new WaitForSeconds(Wait(SmallDelay));
+                        break;
+                    case EventKind.StunSkip:
+                        _log.text = ev.Message;
+                        var frozen = CardOf(ev.ActorId);
+                        if (frozen != null) Float(frozen.Center, "굳음", GuardBlue, 64);
                         RefreshCards();
                         yield return new WaitForSeconds(Wait(SmallDelay));
                         break;
                 }
             }
-            RefreshPlayer();
+            RefreshParty();
             RefreshCards();
         }
 
-        private string SkillLabel(BattleEvent ev)
+        private string SkillLabel(BattleEvent ev, PartyPanel actor)
         {
-            if (ev.ActorId == _player.Id)
+            if (actor != null)
             {
-                var s = _skills.Find(x => x.Id == ev.SkillId);
+                var s = actor.Unit.Skills.Find(x => x.Id == ev.SkillId);
                 return s != null ? s.Name : "공격";
             }
             return ev.SkillId;
         }
 
-        private IEnumerator PlayerHit(BattleEvent ev)
+        private IEnumerator PartyHit(BattleEvent ev)
         {
-            var card = _cards.Find(c => c.Unit.Id == ev.TargetId);
+            var card = CardOf(ev.TargetId);
             if (card == null) yield break;
             Float(card.Center + new Vector2(UnityEngine.Random.Range(-0.05f, 0.05f), 0.02f * ev.HitIndex), ev.Damage + (ev.IsCrit ? "!" : ""), ev.IsCrit ? UiFactory.Gold : UiFactory.PaperText, ev.IsCrit ? 84 : 64);
+            if (ev.Interrupted) Float(card.Center + new Vector2(0f, -0.07f), "차단!", UiFactory.Gold, 72);
+            else if (ev.Stunned) Float(card.Center + new Vector2(0f, -0.07f), "굳음", GuardBlue, 60);
             card.Hp.SetPct(card.Unit.Stats.MaxHp > 0 ? (float)ev.TargetHpAfter / card.Unit.Stats.MaxHp : 0f);
             card.HpText.text = ev.TargetHpAfter + " / " + card.Unit.Stats.MaxHp;
             StartCoroutine(Shake(card.Root, ev.IsCrit ? 22f : 14f));
             if (ev.TargetDefeated) { SetAlpha(card.Body, 0.25f); if (card.Art != null) SetAlpha(card.Art, 0.25f); card.Intent.text = "쓰러졌다"; }
-            RefreshPlayer();
+            RefreshParty();
             yield return new WaitForSeconds(Wait(ev.HitCount > 1 ? HitDelay : StepDelay));
         }
 
         private IEnumerator EnemyHit(BattleEvent ev)
         {
-            var attacker = _cards.Find(c => c.Unit.Id == ev.ActorId);
+            var attacker = CardOf(ev.ActorId);
             if (attacker != null) StartCoroutine(Shake(attacker.Root, 8f));
-            if (ev.Dodged)
+            var victim = PanelOf(ev.TargetId);
+            if (victim != null)
             {
-                Float(PlayerPos(), "회피!", new Color(0.7f, 0.9f, 1f), 70);
-            }
-            else
-            {
-                Float(PlayerPos(), "-" + ev.Damage + (ev.Guarded ? " 방어" : ev.IsCrit ? "!" : ""), ev.Guarded ? new Color(0.5f, 0.7f, 0.95f) : UiFactory.Red, ev.IsCrit ? 84 : 66);
-                _playerHp.SetPct((float)ev.TargetHpAfter / Math.Max(1, _player.Stats.MaxHp));
-                _playerHpText.text = ev.TargetHpAfter + "/" + _player.Stats.MaxHp;
-                StartCoroutine(Shake(_playerBlock, ev.Guarded ? 6f : 16f));
-                StartCoroutine(Flash(ev.Guarded ? 0.12f : 0.30f));
+                if (ev.Dodged)
+                {
+                    Float(victim.Center, "회피!", new Color(0.7f, 0.9f, 1f), 70);
+                }
+                else
+                {
+                    Float(victim.Center, "-" + ev.Damage + (ev.Guarded ? " 방어" : ev.IsCrit ? "!" : ""), ev.Guarded ? GuardBlue : UiFactory.Red, ev.IsCrit ? 84 : 66);
+                    victim.Hp.SetPct((float)ev.TargetHpAfter / Math.Max(1, victim.Unit.Stats.MaxHp));
+                    victim.HpText.text = ev.TargetHpAfter + "/" + victim.Unit.Stats.MaxHp;
+                    StartCoroutine(Shake(victim.Root, ev.Guarded ? 6f : 16f));
+                    StartCoroutine(Flash(ev.Guarded ? 0.12f : 0.30f));
+                    if (ev.TargetDefeated) victim.Status.text = "쓰러짐";
+                }
             }
             yield return new WaitForSeconds(Wait(ev.HitCount > 1 ? HitDelay : StepDelay));
         }
-
-        private static Vector2 PlayerPos() { return new Vector2(0.50f, 0.40f); }
 
         // ------------------------------------------------------------------ effects
 

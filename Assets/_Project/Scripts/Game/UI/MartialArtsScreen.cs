@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using BiRyeoDo.Core;
 using BiRyeoDo.Game.Systems;
 using UnityEngine;
@@ -30,7 +31,7 @@ namespace BiRyeoDo.Game.UI
             _header = UiFactory.Label("Header", root, new Vector2(0.06f, 0.925f), new Vector2(0.94f, 0.985f), "", 42, UiFactory.Gold);
             _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "", 28, UiFactory.Ink, TextAnchor.MiddleCenter, FontStyle.Normal);
 
-            var arts = EarlyGameContent.Arts;
+            var arts = EarlyGameContent.Arts.Where(a => a.OwnerId == null).ToArray();
             const float top = 0.875f, rowH = 0.098f, gap = 0.007f;
             for (int i = 0; i < arts.Length; i++)
             {

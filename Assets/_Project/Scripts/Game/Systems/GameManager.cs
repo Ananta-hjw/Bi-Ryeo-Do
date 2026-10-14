@@ -24,7 +24,7 @@ namespace BiRyeoDo.Game.Systems
         {
             foreach (var art in EarlyGameContent.Arts)
             {
-                if (art.LearnCost > 0) continue;
+                if (art.OwnerId != null || art.LearnCost > 0) continue;
                 if (!Save.LearnedArts.Contains(art.Id)) Save.LearnedArts.Add(art.Id);
             }
             if (Save.EquippedArts.Count == 0)

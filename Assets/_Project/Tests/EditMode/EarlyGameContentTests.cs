@@ -49,6 +49,35 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void CompanionsHaveArtsAndJoinAtExistingStages()
+        {
+            var stages = EarlyGameContent.Stages.Select(s => s.Number).ToList();
+            foreach (var c in EarlyGameContent.Companions)
+            {
+                CollectionAssert.Contains(stages, c.JoinStage, c.Id);
+                var arts = EarlyGameContent.Arts.Where(a => a.OwnerId == c.Id).ToList();
+                Assert.IsTrue(arts.Count >= 2 && arts.Count <= Progression.MaxEquippedArts, c.Id);
+                var unit = c.CreateCombatant(10, 1);
+                Assert.AreEqual(Team.Player, unit.Team);
+                Assert.IsTrue(unit.Skills.Count > arts.Count, "basic attack plus arts");
+            }
+        }
+
+        [Test]
+        public void PartyGrowsAsCompanionsJoin()
+        {
+            Assert.AreEqual(0, EarlyGameContent.CompanionsFor(1).Count);
+            Assert.AreEqual(2, EarlyGameContent.CompanionsFor(7).Count);
+            Assert.AreEqual(3, EarlyGameContent.CompanionsFor(8).Count);
+        }
+
+        [Test]
+        public void ProtagonistArtsExcludeCompanionArts()
+        {
+            Assert.IsTrue(EarlyGameContent.Arts.Where(a => a.OwnerId == null).All(a => a.Effect != SkillEffect.Stun && a.Effect != SkillEffect.HealAlly));
+        }
+
+        [Test]
         public void EnemyScriptsAlwaysFollowAChargeWithAnAttack()
         {
             foreach (var e in EarlyGameContent.Enemies)

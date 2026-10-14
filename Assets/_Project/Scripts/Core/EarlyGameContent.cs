@@ -11,14 +11,16 @@ namespace BiRyeoDo.Core
         public int Hits = 1, QiCost, SpiritCost, Cooldown, UnlockStage;
         public bool AllEnemies;
         public SkillEffect Effect;
+        public float HealPct;
         public long LearnCost;
+        public string OwnerId;   // null = a martial art the protagonist can learn; otherwise a companion's fixed art
 
         public SkillSpec ToSpec()
         {
             return new SkillSpec
             {
                 Id = Id, Name = Name, Description = Description, Power = Power, Hits = Hits, QiCost = QiCost,
-                SpiritCost = SpiritCost, Cooldown = Cooldown, AllEnemies = AllEnemies, Effect = Effect
+                SpiritCost = SpiritCost, Cooldown = Cooldown, AllEnemies = AllEnemies, Effect = Effect, HealPct = HealPct
             };
         }
     }
@@ -51,10 +53,37 @@ namespace BiRyeoDo.Core
         public Combatant CreateCombatant(string uniqueId)
         {
             var c = new Combatant(uniqueId, Name, Team.Enemy, BuildStats(), null);
+            c.IsBoss = IsBoss;
             c.Moves = Moves != null && Moves.Length > 0 ? new List<EnemyMove>(Moves) : new List<EnemyMove> { EnemyMove.Plain };
             return c;
         }
 
+    }
+
+    /// <summary>A party member who joins at <see cref="JoinStage"/>. Stats follow the protagonist's level; arts are fixed.</summary>
+    public sealed class CompanionData
+    {
+        public string Id, Name, Role;
+        public int JoinStage, SpeedAdd;
+        public float HpMul = 1f, AtkMul = 1f, DefMul = 1f;
+
+        public Combatant CreateCombatant(int level, int life)
+        {
+            var b = Progression.StatsFor(level, life);
+            var stats = new CombatStats
+            {
+                MaxHp = (int)Math.Round(b.MaxHp * HpMul),
+                MaxQi = b.MaxQi,
+                Attack = (int)Math.Round(b.Attack * AtkMul),
+                Defense = (int)Math.Round(b.Defense * DefMul),
+                Speed = b.Speed + SpeedAdd,
+                CritRate = 0.02f,
+                CritDamage = 1.5f
+            };
+            var skills = new List<SkillSpec>();
+            foreach (var a in EarlyGameContent.Arts) if (a.OwnerId == Id) skills.Add(a.ToSpec());
+            return new Combatant(Id, Name, Team.Player, stats, skills);
+        }
     }
 
     public sealed class StageData
@@ -87,6 +116,20 @@ namespace BiRyeoDo.Core
             new ArtData { Id = "yeobanjang", Name = "여반장", Description = "손바닥을 뒤집는 회전력으로 일격에 제압하는 일장법.", Power = 5.2f, QiCost = 38, Cooldown = 3, LearnCost = 2200, UnlockStage = 5 },
             new ArtData { Id = "roegwang_ryuhagok", Name = "뢰광류하곡", Description = "여섯 자루를 동시에 운용해 적 전체를 벤다.", Power = 2.6f, AllEnemies = true, QiCost = 46, Cooldown = 4, LearnCost = 4500, UnlockStage = 6 },
             new ArtData { Id = "seonpung_roejeol", Name = "선풍뇌절", Description = "비기. 기세를 모두 쏟아 은빛 섬광으로 적을 쓰러뜨린다.", Power = 9.5f, SpiritCost = 100, LearnCost = 1500, UnlockStage = 4 },
+            // Companions' fixed arts (names are descriptive unless the original text names the technique)
+            new ArtData { Id = "xr_twin", Name = "쌍검 연격", Description = "쌍둥이 검으로 두 번 벤다.", Power = 1.5f, Hits = 2, QiCost = 18, Cooldown = 1, OwnerId = "hyo_ryong" },
+            new ArtData { Id = "xr_barrier", Name = "태을천강벽", Description = "검막을 펼쳐 모두를 방어 태세로 만든다.", Effect = SkillEffect.GuardParty, QiCost = 30, Cooldown = 4, OwnerId = "hyo_ryong" },
+            new ArtData { Id = "jh_slash", Name = "검", Description = "정석적인 검격.", Power = 1.9f, QiCost = 14, Cooldown = 1, OwnerId = "jang_hong" },
+            new ArtData { Id = "jh_stun", Name = "점혈", Description = "혈도를 짚어 상대를 굳힌다. 기를 모으는 중이면 끊는다.", Power = 0.8f, Effect = SkillEffect.Stun, QiCost = 20, Cooldown = 3, OwnerId = "jang_hong" },
+            new ArtData { Id = "yj_slash", Name = "화산의 검", Description = "화산파의 기본 검격. 매화검법은 알레르기 때문에 쓰지 못한다.", Power = 2.2f, QiCost = 16, Cooldown = 1, OwnerId = "yun_junho" },
+            new ArtData { Id = "yj_heal", Name = "자하신공", Description = "화산의 자색 기운으로 가장 다친 동료를 치유한다.", Effect = SkillEffect.HealAlly, HealPct = 0.35f, QiCost = 28, Cooldown = 3, OwnerId = "yun_junho" },
+        };
+
+        public static readonly CompanionData[] Companions =
+        {
+            new CompanionData { Id = "hyo_ryong", Name = "효룡", Role = "쌍검, 검막으로 파티를 지킨다", JoinStage = 7, HpMul = 1.0f, AtkMul = 1.0f, DefMul = 1.0f, SpeedAdd = 4 },
+            new CompanionData { Id = "jang_hong", Name = "장홍", Role = "점혈로 적의 강타를 끊는다", JoinStage = 7, HpMul = 1.1f, AtkMul = 0.85f, DefMul = 1.1f, SpeedAdd = 0 },
+            new CompanionData { Id = "yun_junho", Name = "윤준호", Role = "자하신공으로 동료를 치유한다", JoinStage = 8, HpMul = 0.9f, AtkMul = 0.95f, DefMul = 0.85f, SpeedAdd = 2 },
         };
 
         public static readonly EnemyData[] Enemies =
@@ -123,13 +166,27 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("맹호비격검", 1.0f), EnemyMove.Attack("맹호비격검", 1.1f) } },
             new EnemyData { Id = "ho_cheonsang", Name = "호아장주 호천상", Level = 17, IsBoss = true, HpMul = 1.7f, AtkMul = 0.86f,
                 Moves = new[] { EnemyMove.Attack("맹호비격검", 1.0f, 2), EnemyMove.Attack("맹호비격검", 1.3f), EnemyMove.Wind("검기를 모은다"), EnemyMove.Attack("맹호삼십육검", 3.0f) } },
-            // Stage 7: 운향정 (3권)
-            new EnemyData { Id = "jongri_hak", Name = "종리학", Level = 18, HpMul = 0.9f, AtkMul = 0.84f,
-                Moves = new[] { EnemyMove.Attack("매화검법", 1.0f, 2), EnemyMove.Attack("매화검법", 1.2f) } },
-            new EnemyData { Id = "gu_chang", Name = "일도파쇄 구창", Level = 19, HpMul = 1.0f, AtkMul = 0.88f,
+            // Stage 7: 검혼관 기관 노방 (2권)
+            new EnemyData { Id = "trap_arrow", Name = "기관 화살대", Level = 19, HpMul = 1.20f, AtkMul = 2.79f, SpeedAdd = 6,
+                Moves = new[] { EnemyMove.Attack("화살 연사", 0.6f, 3), EnemyMove.Attack("화살", 1.0f) } },
+            new EnemyData { Id = "trap_needle", Name = "기관 비침대", Level = 19, HpMul = 1.20f, AtkMul = 2.79f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("비침", 0.8f, 2), EnemyMove.Wind("비침을 장전한다"), EnemyMove.Attack("비침 난사", 0.9f, 4) } },
+            new EnemyData { Id = "trap_log", Name = "기관 통나무", Level = 20, HpMul = 1.80f, AtkMul = 3.11f, SpeedAdd = -8,
+                Moves = new[] { EnemyMove.Wind("통나무가 흔들린다"), EnemyMove.Attack("통나무 휘두르기", 2.4f) } },
+            new EnemyData { Id = "ho_cheongang", Name = "호아장 대사형 호천강", Level = 21, IsBoss = true, HpMul = 2.70f, AtkMul = 3.11f,
+                Moves = new[] { EnemyMove.Attack("맹호삼십육검", 0.7f, 3), EnemyMove.Attack("패왕노호검", 1.3f), EnemyMove.Wind("패왕노호검을 치켜든다"), EnemyMove.Attack("패왕노호검 일격", 3.0f) } },
+            // Stage 8: 천무식당 (3권)
+            new EnemyData { Id = "jongri_hak", Name = "종리학", Level = 21, HpMul = 1.35f, AtkMul = 3.22f,
+                Moves = new[] { EnemyMove.Attack("매화검법", 0.8f, 2), EnemyMove.Attack("매화검법", 1.2f) } },
+            new EnemyData { Id = "chu_gayeon", Name = "추가연", Level = 23, IsBoss = true, HpMul = 2.55f, AtkMul = 3.39f,
+                Moves = new[] { EnemyMove.Attack("매화검법", 0.8f, 3), EnemyMove.Attack("매화검법", 1.2f), EnemyMove.Wind("검을 모은다"), EnemyMove.Attack("매화만개", 3.0f) } },
+            // Stage 9: 운향정 (3권)
+            new EnemyData { Id = "gu_chang", Name = "일도파쇄 구창", Level = 23, HpMul = 1.50f, AtkMul = 4.83f,
                 Moves = new[] { EnemyMove.Attack("도", 1.1f), EnemyMove.Wind("도를 치켜든다"), EnemyMove.Attack("일도파쇄", 2.6f) } },
-            new EnemyData { Id = "wiji_cheon", Name = "선풍검룡 위지천", Level = 21, IsBoss = true, HpMul = 1.9f, AtkMul = 0.97f,
-                Moves = new[] { EnemyMove.Attack("절풍검기변", 0.8f, 3), EnemyMove.Attack("절풍검기변", 1.2f), EnemyMove.Wind("검강을 끌어올린다"), EnemyMove.Attack("천원삼절검격", 1.5f, 3) } },
+            new EnemyData { Id = "so_cheongun", Name = "청풍검 소천군", Level = 24, HpMul = 1.43f, AtkMul = 4.83f,
+                Moves = new[] { EnemyMove.Attack("청성검", 0.7f, 3), EnemyMove.Attack("청성검", 1.3f), EnemyMove.Wind("무형지기를 끌어올린다"), EnemyMove.Attack("검풍", 2.6f) } },
+            new EnemyData { Id = "wiji_cheon", Name = "선풍검룡 위지천", Level = 26, IsBoss = true, HpMul = 2.85f, AtkMul = 5.08f,
+                Moves = new[] { EnemyMove.Attack("절풍검기변", 0.7f, 3), EnemyMove.Attack("절풍검기변", 1.2f), EnemyMove.Wind("검강을 끌어올린다"), EnemyMove.Attack("천원삼절검격", 1.5f, 3) } },
         };
 
         public static readonly StageData[] Stages =
@@ -158,10 +215,18 @@ namespace BiRyeoDo.Core
                 Intro = new[] { "천무학관에 들어가려면 승룡패가 필요하다.", "염도는 무사부로, 비류연은 특별전형으로 입관한다. 호아장이 쥔 승룡패를 빼앗으러 간다." },
                 Outro = new[] { "후견인 빙검 관철수가 나타났다. 염도와 일검을 나눈 끝에 승룡패가 넘어온다." },
                 Encounters = new[] { new[] { "hoajang_disciple", "hoajang_disciple" }, new[] { "hoajang_disciple", "hoajang_disciple", "hoajang_disciple" }, new[] { "ho_cheonsang", "hoajang_disciple" } } },
-            new StageData { Number = 7, Name = "천무학관 운향정", RecommendedLevel = 20, DooTotal = 3000,
-                Intro = new[] { "수석으로 입관한 천무학관. 오검룡 이상만 드는 정자 운향정에서 밤하늘 같은 눈의 소녀와 마주쳤다.", "마음을 빼앗긴 사이, 칠검룡 위지천이 칼을 뽑았다." },
+            new StageData { Number = 7, Name = "천무학관 검혼관", RecommendedLevel = 19, DooTotal = 3500,
+                Intro = new[] { "입관식 날, 지붕에서 낮잠을 자다 효룡과 친구가 되었다. 기숙사 검혼관으로 가는 길에 신입 장홍이 따라붙는다.", "효룡과 장홍이 함께한다. 기숙사 앞 기관 노방에서 호아장의 호천강이 복수의 칼을 뽑았다." },
+                Outro = new[] { "호천강의 패왕노호검이 반 토막 났다. 기관이 3단계까지 가동되어 은자 1500냥의 피해가 났지만 정당방위로 무죄다." },
+                Encounters = new[] { new[] { "trap_arrow" }, new[] { "trap_needle", "trap_arrow" }, new[] { "trap_log", "trap_needle" }, new[] { "ho_cheongang" } } },
+            new StageData { Number = 8, Name = "천무식당", RecommendedLevel = 21, DooTotal = 3500,
+                Intro = new[] { "첫 저녁, 천무식당. 화산파의 윤준호가 선배들에게 조롱을 당하고 있다. 매화검법도 칠매검도 쓰지 못한다는 이유다.", "비류연은 식판을 쥐었다. 윤준호가 일행에 합류한다. (싸움은 게임 연출)" },
+                Outro = new[] { "모용휘가 나타나 싸움을 말렸다. 윤준호가 검향의 경지에 올랐다는 사실은 아직 본인만 모른다." },
+                Encounters = new[] { new[] { "jongri_hak" }, new[] { "jongri_hak", "jongri_hak" }, new[] { "chu_gayeon", "jongri_hak" } } },
+            new StageData { Number = 9, Name = "천무학관 운향정", RecommendedLevel = 23, DooTotal = 4000,
+                Intro = new[] { "수석으로 입관한 천무학관. 오검룡 이상만 드는 정자 운향정에서 밤하늘 같은 눈의 소녀와 마주쳤다.", "마음을 빼앗긴 사이, 칠검룡 위지천이 칼을 뽑았다. 길을 막는 선배들이 먼저 달려든다. (게임 연출)" },
                 Outro = new[] { "선풍뇌절 한 줄기가 위지천의 검을 쳐냈다. 손목은 남겨 두었다. 사람들이 몰려오기 전에 자리를 뜬다." },
-                Encounters = new[] { new[] { "jongri_hak" }, new[] { "gu_chang" }, new[] { "jongri_hak", "gu_chang" }, new[] { "wiji_cheon" } } },
+                Encounters = new[] { new[] { "gu_chang" }, new[] { "so_cheongun" }, new[] { "gu_chang", "so_cheongun" }, new[] { "wiji_cheon" } } },
         };
 
         private static long CumulativeExp(int level)
@@ -208,6 +273,20 @@ namespace BiRyeoDo.Core
         {
             foreach (var a in Arts) if (a.Id == id) return a;
             return null;
+        }
+
+        public static CompanionData FindCompanion(string id)
+        {
+            foreach (var c in Companions) if (c.Id == id) return c;
+            return null;
+        }
+
+        /// <summary>Companions travelling with the protagonist in the given stage (those who have joined by then).</summary>
+        public static List<CompanionData> CompanionsFor(int stageNumber)
+        {
+            var list = new List<CompanionData>();
+            foreach (var c in Companions) if (c.JoinStage <= stageNumber) list.Add(c);
+            return list;
         }
 
         public static StageData FindStage(int number)
