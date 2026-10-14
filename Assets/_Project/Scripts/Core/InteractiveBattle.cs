@@ -37,6 +37,7 @@ namespace BiRyeoDo.Core
         public const float MeditateHealPct = 0.08f;
         public const float GuardDamageFactor = 0.4f;
         public const int SpiritOnDealt = 10, SpiritOnTaken = 8, SpiritOnGuard = 12;
+        public const float HarmonyDamageFactor = 2.5f;
 
         private readonly List<Combatant> _units = new List<Combatant>();
         private readonly List<Combatant> _party = new List<Combatant>();
@@ -50,6 +51,15 @@ namespace BiRyeoDo.Core
         /// <summary>The party member whose turn it is, or null while the battle is resolving or over.</summary>
         public Combatant Current { get; private set; }
         public int Turn { get; private set; }
+
+        // Story-trial rule (set before Begin). Null = a normal fight.
+        public TrialRule Trial { get; set; }
+        public int PartyActions { get; private set; }
+        public int EnemyActions { get; private set; }
+        public int LifelinesCut { get; private set; }
+        public int Combo { get; private set; }
+        public bool TrialFailed { get; private set; }
+        private bool _harmonyBoost;
 
         public InteractiveBattle(Combatant player, IEnumerable<Combatant> enemies, IRandom rng)
             : this(new[] { player }, enemies, rng)
@@ -67,8 +77,43 @@ namespace BiRyeoDo.Core
         public bool AnyEnemyAlive { get { foreach (var e in _enemies) if (e.IsAlive) return true; return false; } }
         public bool AnyPartyAlive { get { foreach (var p in _party) if (p.IsAlive) return true; return false; } }
 
-        public bool IsOver { get { return !AnyPartyAlive || !AnyEnemyAlive || Turn >= MaxTurns; } }
-        public bool PlayerWon { get { return AnyPartyAlive && !AnyEnemyAlive; } }
+        public bool SurvivedTrial { get { return Trial != null && Trial.Kind == TrialKind.Survive && EnemyActions >= Trial.Limit; } }
+        public bool IsOver { get { return !AnyPartyAlive || !AnyEnemyAlive || TrialFailed || SurvivedTrial || Turn >= MaxTurns; } }
+        public bool PlayerWon { get { return AnyPartyAlive && !TrialFailed && (!AnyEnemyAlive || SurvivedTrial); } }
+
+        /// <summary>One-line trial progress for the UI ("" for a normal fight).</summary>
+        public string TrialStatus
+        {
+            get
+            {
+                if (Trial == null) return "";
+                switch (Trial.Kind)
+                {
+                    case TrialKind.Survive: return "버텨라 " + Math.Min(EnemyActions, Trial.Limit) + "/" + Trial.Limit;
+                    case TrialKind.Deadline: return "제한 " + PartyActions + "/" + Trial.Limit + "행동";
+                    case TrialKind.Lifeline:
+                        {
+                            var sb = new System.Text.StringBuilder("생명줄 ");
+                            for (int i = 0; i < Trial.Limit; i++) sb.Append(i < Trial.Limit - LifelinesCut ? "●" : "○");
+                            return sb.ToString();
+                        }
+                    case TrialKind.Harmony:
+                        {
+                            int alive = 0; foreach (var m in _party) if (m.IsAlive) alive++;
+                            return "합격 " + Math.Min(Combo, alive) + "/" + alive + (Combo >= alive ? " 다음 일격 강화!" : "") + "  " + PartyActions + "/" + Trial.Limit + "행동";
+                        }
+                }
+                return "";
+            }
+        }
+        public string TrialFailReason
+        {
+            get
+            {
+                if (!TrialFailed || Trial == null) return "";
+                return Trial.Kind == TrialKind.Lifeline ? "생명줄이 끊어졌다!" : "제한 시간이 지났다!";
+            }
+        }
         public bool IsPlayerTurn { get { return Current != null && !IsOver; } }
 
         /// <summary>Runs enemy turns until a party member may act. Call once at the start of the fight.</summary>
@@ -93,6 +138,20 @@ namespace BiRyeoDo.Core
             var actor = Current;
             var events = new List<BattleEvent>();
             Current = null;
+            PartyActions++;
+            _harmonyBoost = false;
+            if (Trial != null && Trial.Kind == TrialKind.Harmony)
+            {
+                bool attacking = cmd.Kind == CommandKind.Skill && cmd.Skill != null && cmd.Skill.Effect != SkillEffect.Evade
+                    && cmd.Skill.Effect != SkillEffect.GuardParty && cmd.Skill.Effect != SkillEffect.HealAlly;
+                if (attacking)
+                {
+                    int alive = 0; foreach (var m in _party) if (m.IsAlive) alive++;
+                    _harmonyBoost = Combo >= alive;
+                    Combo = _harmonyBoost ? 0 : Combo + 1;
+                }
+                else Combo = 0;
+            }
 
             switch (cmd.Kind)
             {
@@ -132,6 +191,7 @@ namespace BiRyeoDo.Core
                     break;
             }
 
+            if (Trial != null && (Trial.Kind == TrialKind.Deadline || Trial.Kind == TrialKind.Harmony) && PartyActions >= Trial.Limit && AnyEnemyAlive) TrialFailed = true;
             if (IsOver) return events;
             events.AddRange(RunUntilParty());
             return events;
@@ -180,11 +240,12 @@ namespace BiRyeoDo.Core
                     if (!t.IsAlive) continue;
                     bool crit = _rng.NextDouble() < actor.Stats.CritRate;
                     int dmg = BattleEngine.CalcDamage(actor.Stats, t.Stats, skill, crit);
+                    if (_harmonyBoost) dmg = (int)Math.Round(dmg * HarmonyDamageFactor);
                     t.Hp = Math.Max(0, t.Hp - dmg);
                     var ev = new BattleEvent
                     {
                         Turn = Turn, ActorId = actor.Id, TargetId = t.Id, SkillId = skill.Id, Kind = EventKind.Attack,
-                        Damage = dmg, IsCrit = crit, HitIndex = h, HitCount = hits
+                        Damage = dmg, IsCrit = crit, HitIndex = h, HitCount = hits, Harmony = _harmonyBoost
                     };
                     if (t.IsAlive && t.RetreatHpPct > 0f && t.Hp <= t.Stats.MaxHp * t.RetreatHpPct)
                     {
@@ -266,6 +327,7 @@ namespace BiRyeoDo.Core
 
         private void EnemyAct(Combatant enemy, List<BattleEvent> events)
         {
+            EnemyActions++;
             if (enemy.Stunned)
             {
                 enemy.Stunned = false;
@@ -285,6 +347,12 @@ namespace BiRyeoDo.Core
                 return;
             }
 
+            bool heavy = enemy.Charging;
+            if (heavy && Trial != null && Trial.Kind == TrialKind.Lifeline)
+            {
+                LifelinesCut++;
+                if (LifelinesCut >= Trial.Limit) TrialFailed = true;
+            }
             var target = enemy.Charging && enemy.ChargeTarget != null && enemy.ChargeTarget.IsAlive ? enemy.ChargeTarget : RandomLivingMember();
             enemy.Charging = false;
             enemy.ChargeTarget = null;

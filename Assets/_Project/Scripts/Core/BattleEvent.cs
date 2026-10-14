@@ -26,6 +26,7 @@ namespace BiRyeoDo.Core
         public int Heal;             // HP restored (meditate heals the actor, Heal events heal TargetId)
         public bool Stunned;         // the hit stunned the target
         public bool Interrupted;     // the hit cancelled a charging move
+        public bool Harmony;         // 내공합격: this hit was powered up by an unbroken chain of attacks
         public bool Retreated;       // the target fled the fight (story boss) instead of being slain; TargetDefeated is also true
     }
 

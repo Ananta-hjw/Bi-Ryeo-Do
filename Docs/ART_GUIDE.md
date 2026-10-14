@@ -92,6 +92,11 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 | `ma_chilgeol_jeoji.png` | 마천칠걸 저지조 | black-clad guards blocking a canyon exit, wuxia character, upper body, plain white background, ink-wash style |
 | `hwaryong_hwayeom.png` | 화룡의 불꽃 | a dragon made of flames coiling through a valley, ink-wash style, upper body, plain white background, ink-wash style |
 | `bi_daegongja.png` | 대공자 비 | cold young man in black robes with a long sword, silver glints, wuxia character, upper body, plain white background, ink-wash style |
+| `geomhu_ioksang.png` | 검후 이옥상 | elegant ageless swordswoman in white with a silk sash, wuxia character, upper body, plain white background, ink-wash style |
+| `heuksaek_amhyeok.png` | 검은 암벽 | a glossy black rock wall, upper body, plain white background, ink-wash style |
+| `wiji_hyeolpok.png` | 혈폭환 위지천 | pale-haired young swordsman with bulging red veins, wuxia character, upper body, plain white background, ink-wash style |
+| `jongri_chu_night.png` | 종리추(야간) | spearman with seven spears on his back in the dark, wuxia character, upper body, plain white background, ink-wash style |
+| `do_chuun_night.png` | 도추운(야간) | swordsman with a segmented whip-sword in the dark, wuxia character, upper body, plain white background, ink-wash style |
 | `jang_hong.png` | 장홍 | a bearded man who looks older than his age, kind but nagging expression, sword at his waist, upper body, plain white background |
 | `yun_junho.png` | 윤준호 | a timid young swordsman of a mountain sect with plum blossom emblem, white and purple robe, upper body, plain white background |
 

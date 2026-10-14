@@ -46,6 +46,71 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void SurviveTrialIsWonByEnduringEnoughEnemyActions()
+        {
+            var p = Player(Stats(1000000, 100, 0, 100));
+            var e = Enemy("boss", Stats(1000000, 1, 0, 100));
+            var b = new InteractiveBattle(p, new[] { e }, new SeededRandom(1)) { Trial = TrialRule.Survive("t", "b", 4) };
+            b.Begin();
+            for (int i = 0; i < 50 && !b.IsOver; i++) b.PlayerAct(PlayerCommand.Guard());
+            Assert.IsTrue(b.IsOver);
+            Assert.IsTrue(b.PlayerWon);
+            Assert.IsTrue(e.IsAlive);
+        }
+
+        [Test]
+        public void DeadlineTrialFailsWhenEnemiesSurviveTheActionLimit()
+        {
+            var p = Player(Stats(1000000, 100, 0, 100));
+            var e = Enemy("wall", Stats(1000000, 1, 0, 1));
+            var b = new InteractiveBattle(p, new[] { e }, new SeededRandom(1)) { Trial = TrialRule.Deadline("t", "b", 3) };
+            b.Begin();
+            for (int i = 0; i < 10 && !b.IsOver; i++) b.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), e));
+            Assert.IsTrue(b.TrialFailed);
+            Assert.IsFalse(b.PlayerWon);
+            Assert.AreEqual(3, b.PartyActions);
+        }
+
+        [Test]
+        public void DeadlineTrialStillWinsWhenEnemiesFallInTime()
+        {
+            var p = Player(Stats(1000, 1000, 0, 100));
+            var e = Enemy("weak", Stats(10, 1, 0, 1));
+            var b = new InteractiveBattle(p, new[] { e }, new SeededRandom(1)) { Trial = TrialRule.Deadline("t", "b", 3) };
+            b.Begin();
+            b.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), e));
+            Assert.IsTrue(b.PlayerWon);
+            Assert.IsFalse(b.TrialFailed);
+        }
+
+        [Test]
+        public void LifelineTrialCutsOnlyWhenAChargedMoveLands()
+        {
+            var p = Player(Stats(1000000, 1, 0, 1));
+            var e = Enemy("chain", Stats(1000000, 1, 0, 100), EnemyMove.Attack("a", 0.1f), EnemyMove.Wind("w"), EnemyMove.Attack("h", 0.1f));
+            var b = new InteractiveBattle(p, new[] { e }, new SeededRandom(1)) { Trial = TrialRule.Lifeline("t", "b", 2) };
+            b.Begin();
+            for (int i = 0; i < 40 && !b.IsOver; i++) b.PlayerAct(PlayerCommand.Guard());
+            Assert.IsTrue(b.TrialFailed);
+            Assert.AreEqual(2, b.LifelinesCut);
+            Assert.IsFalse(b.PlayerWon);
+        }
+
+        [Test]
+        public void HarmonyChainBoostsTheNextHit()
+        {
+            var p = Player(Stats(1000000, 100, 0, 100));
+            var e = Enemy("wall", Stats(1000000, 1, 0, 1));
+            var b = new InteractiveBattle(p, new[] { e }, new SeededRandom(1)) { Trial = TrialRule.Harmony("t", "b", 50) };
+            b.Begin();
+            var first = b.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), e)).First(x => x.ActorId == "p" && x.Kind == EventKind.Attack);
+            var second = b.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), e)).First(x => x.ActorId == "p" && x.Kind == EventKind.Attack);
+            Assert.IsFalse(first.Harmony);
+            Assert.IsTrue(second.Harmony);
+            Assert.Greater(second.Damage, first.Damage * 2);
+        }
+
+        [Test]
         public void ActingOutOfTurnThrows()
         {
             var p = Player(Stats(1000, 100, 0, 100));

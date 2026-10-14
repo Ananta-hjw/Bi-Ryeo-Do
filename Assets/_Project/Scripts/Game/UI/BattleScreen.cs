@@ -188,7 +188,7 @@ namespace BiRyeoDo.Game.UI
                 {
                     _stageLabel.text = "스테이지 " + stage.Number + " · " + stage.Name + "  (" + (i + 1) + "/" + stage.Encounters.Length + ")";
                     yield return Banner(i == stage.Encounters.Length - 1 ? "결전!" : "전투 " + (i + 1), 0.7f);
-                    yield return Fight(stage.Encounters[i]);
+                    yield return Fight(stage.Encounters[i], stage.TrialFor(i));
 
                     if (_fled) { cleared = false; break; }
                     if (!_battle.PlayerWon) { cleared = false; break; }
@@ -338,21 +338,22 @@ namespace BiRyeoDo.Game.UI
             return string.Join(", ", names);
         }
 
-        private IEnumerator Fight(string[] enemyIds)
+        private IEnumerator Fight(string[] enemyIds, TrialRule trial)
         {
             var data = new EnemyData[enemyIds.Length];
             for (int i = 0; i < data.Length; i++) data[i] = EarlyGameContent.FindEnemy(enemyIds[i]);
-            yield return Fight(data, 0);
+            if (trial != null) yield return Banner("[" + trial.Title + "]\n" + trial.Brief, 2.4f);
+            yield return Fight(data, 0, trial);
         }
 
         /// <summary>Plays one fight. With <paramref name="turnLimit"/> > 0 the fight is a draw once the player has acted that many times.</summary>
-        private IEnumerator Fight(EnemyData[] enemies, int turnLimit)
+        private IEnumerator Fight(EnemyData[] enemies, int turnLimit, TrialRule trial = null)
         {
             _drawn = false;
             int actions = 0;
             string label = _stageLabel.text;
             SpawnCards(enemies);
-            _battle = new InteractiveBattle(_party, _cards.ConvertAll(c => c.Unit), new SeededRandom(Environment.TickCount));
+            _battle = new InteractiveBattle(_party, _cards.ConvertAll(c => c.Unit), new SeededRandom(Environment.TickCount)) { Trial = trial };
             _target = _cards[0];
             RefreshParty();
             RefreshCards();
@@ -364,6 +365,7 @@ namespace BiRyeoDo.Game.UI
                 if (_target == null || !_target.Unit.IsAlive) _target = _cards.Find(c => c.Unit.IsAlive);
                 _itemMode = false;
                 if (turnLimit > 0) _stageLabel.text = label + "   " + actions + "/" + turnLimit + "턴";
+                else if (trial != null) _stageLabel.text = label + "   " + _battle.TrialStatus;
                 RefreshCards();
                 RefreshParty();
                 RefreshCommands();
@@ -384,7 +386,8 @@ namespace BiRyeoDo.Game.UI
                 actions++;
                 if (turnLimit > 0 && actions >= turnLimit && !_battle.IsOver) { _drawn = true; break; }
             }
-            if (turnLimit > 0) _stageLabel.text = label;
+            if (trial != null && _battle.TrialFailed) _log.text = _battle.TrialFailReason;
+            if (turnLimit > 0 || trial != null) _stageLabel.text = label;
 
             RefreshParty();
             RefreshCards();
@@ -830,6 +833,7 @@ namespace BiRyeoDo.Game.UI
             var card = CardOf(ev.TargetId);
             if (card == null) yield break;
             Float(card.Center + new Vector2(UnityEngine.Random.Range(-0.05f, 0.05f), 0.02f * ev.HitIndex), ev.Damage + (ev.IsCrit ? "!" : ""), ev.IsCrit ? UiFactory.Gold : UiFactory.PaperText, ev.IsCrit ? 84 : 64);
+            if (ev.Harmony) Float(card.Center + new Vector2(0f, 0.08f), "합격!", UiFactory.Gold, 80);
             if (ev.Interrupted) Float(card.Center + new Vector2(0f, -0.07f), "차단!", UiFactory.Gold, 72);
             else if (ev.Stunned) Float(card.Center + new Vector2(0f, -0.07f), "굳음", GuardBlue, 60);
             card.Hp.SetPct(card.Unit.Stats.MaxHp > 0 ? (float)ev.TargetHpAfter / card.Unit.Stats.MaxHp : 0f);
