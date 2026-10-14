@@ -6,7 +6,7 @@
 
 | 위치 | 파일 이름 | 규격 |
 |---|---|---|
-| `Resources/Art/Backgrounds/` | `stage_01.png` … `stage_18.png` | 세로 1080×1920 (또는 9:16), 전투 화면 배경 |
+| `Resources/Art/Backgrounds/` | `stage_01.png` … `stage_24.png` | 세로 1080×1920 (또는 9:16), 전투 화면 배경 |
 | `Resources/Art/Enemies/` | 아래 표의 id (예: `tiger.png`) | **투명 배경 PNG**, 512~1024px 정사각 |
 | `Resources/Art/Characters/` | `player.png` | 투명 배경 PNG, 512px 정사각 (상반신 권장) |
 
@@ -56,6 +56,22 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 | `ma_haryeong.png` | 마하령 | wuxia character, upper body, plain white background, ink-wash style |
 | `yong_cheonmyeong.png` | 용천명 | wuxia character, upper body, plain white background, ink-wash style |
 | `gwan_cheolsu.png` | 관철수 | wuxia character, upper body, plain white background, ink-wash style |
+| `hwan_ying.png` | 환마동 환영 | shadowy phantom figure, wuxia character, upper body, plain white background, ink-wash style |
+| `hwan_sukbu.png` | 환영 속 광풍장 | sinister uncle phantom, wuxia character, upper body, plain white background, ink-wash style |
+| `hwan_sabu.png` | 환영 속 사부 | white-haired old master phantom with silver beard, wuxia character, upper body, plain white background, ink-wash style |
+| `cave_viper.png` | 동굴 독충 | venomous cave serpent, no human, wuxia character, upper body, plain white background, ink-wash style |
+| `mukrin_hyeolmang.png` | 묵린혈망 | giant black-scaled ancient serpent, wuxia character, upper body, plain white background, ink-wash style |
+| `heukrang_bandit.png` | 흑랑채 산적 | axe bandit, wuxia character, upper body, plain white background, ink-wash style |
+| `lee_songhak.png` | 이송학 | gentleman swordsman, wuxia character, upper body, plain white background, ink-wash style |
+| `im_gae.png` | 임개 | burly bandit chief with twin axes, wuxia character, upper body, plain white background, ink-wash style |
+| `hyeolma_dae.png` | 십이혈마대 대원 | masked red-clad assassin, wuxia character, upper body, plain white background, ink-wash style |
+| `hyeol_gung.png` | 혈궁 | masked red archer, wuxia character, upper body, plain white background, ink-wash style |
+| `hyeol_swae.png` | 혈쇄 | masked chain assassin, wuxia character, upper body, plain white background, ink-wash style |
+| `bisa_snake.png` | 비사진의 독사 떼 | swarm of snakes, wuxia character, upper body, plain white background, ink-wash style |
+| `cheonghong_ssanggaksa.png` | 청홍쌍각사 | blue and red horned snakes, wuxia character, upper body, plain white background, ink-wash style |
+| `mo_saryeong.png` | 모사령 | green-robed old snake master, wuxia character, upper body, plain white background, ink-wash style |
+| `dongbang_hak.png` | 동방학 | blue-robed thin old swordsman, wuxia character, upper body, plain white background, ink-wash style |
+| `gong_pae.png` | 공패 | grey-robed fat old saber master, wuxia character, upper body, plain white background, ink-wash style |
 | `jang_hong.png` | 장홍 | a bearded man who looks older than his age, kind but nagging expression, sword at his waist, upper body, plain white background |
 | `yun_junho.png` | 윤준호 | a timid young swordsman of a mountain sect with plum blossom emblem, white and purple robe, upper body, plain white background |
 
@@ -81,6 +97,12 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 | `stage_16.png` | 저잣거리 습격 | crowded old market street at night with paper lanterns, ink-wash style, vertical composition, no characters |
 | `stage_17.png` | 마하령의 분노 | training hall courtyard with scattered shields and torn banners, ink-wash style, vertical composition, no characters |
 | `stage_18.png` | 태극의 인재 | snowy cold training hall with frost on stone floor, taiji pattern on ground, ink-wash style, vertical composition, no characters |
+| `stage_19.png` | 환마동 시험 | dim cave hall with eight stone doors and drifting incense smoke, ink-wash style, vertical composition, no characters |
+| `stage_20.png` | 매몰 44일 | underground cave with glowing blue minerals like stars, ink-wash style, vertical composition, no characters |
+| `stage_21.png` | 흑랑채 청혼 | mountain bandit fortress at dusk with black wolf banners, ink-wash style, vertical composition, no characters |
+| `stage_22.png` | 낙뢰곡 철쇄봉혼진 | narrow canyon crisscrossed with iron chains and falling arrows, ink-wash style, vertical composition, no characters |
+| `stage_23.png` | 비사진 | canyon floor swarming with snakes under a stormy sky, ink-wash style, vertical composition, no characters |
+| `stage_24.png` | 비뢰쌍마 | scorched canyon battlefield with smoke and two elderly silhouettes, ink-wash style, vertical composition, no characters |
 
 ## 적 (36종)
 

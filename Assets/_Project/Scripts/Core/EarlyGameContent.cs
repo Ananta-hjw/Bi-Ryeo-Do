@@ -130,6 +130,11 @@ namespace BiRyeoDo.Core
             new ArtData { Id = "cheonji_ibun", Name = "참단절영의 장 천지이분", Description = "손날로 말과 기수를 한꺼번에 가르는 절삭의 장.", Power = 7.8f, QiCost = 52, Cooldown = 4, LearnCost = 11000, UnlockStage = 15 },
             new ArtData { Id = "bongik_bisang", Name = "사신무 봉익비상", Description = "봉황이 날개를 펴듯 사방으로 쏟아내는 일격. 적 전체를 친다.", Power = 3.6f, AllEnemies = true, QiCost = 58, Cooldown = 4, LearnCost = 15000, UnlockStage = 16 },
             new ArtData { Id = "simroe", Name = "단심무형의 장 심뢰", Description = "비기. 마음을 베는 검기의 오의가 적의 중심을 꿰뚫는다.", Power = 13.0f, SpiritCost = 100, LearnCost = 9000, UnlockStage = 18 },
+            // Learned in volumes 10-12 (names from the original text)
+            new ArtData { Id = "saengsa_seomroe", Name = "생사결 섬뢰창", Description = "비뢰도 오의 검기. 뇌전의 창이 거대한 영물의 비늘을 꿰뚫는다.", Power = 8.8f, QiCost = 60, Cooldown = 4, LearnCost = 16000, UnlockStage = 20 },
+            new ArtData { Id = "eunseompung", Name = "은검풍인의 장 은섬풍", Description = "검기가 은빛 바람이 되어 사방의 적을 찢는다. 적 전체를 친다.", Power = 4.2f, AllEnemies = true, QiCost = 66, Cooldown = 4, LearnCost = 24000, UnlockStage = 23 },
+            new ArtData { Id = "goengroe", Name = "굉천광뢰의 장 굉뢰", Description = "작은 은빛 물방울이 도와 무기를 박살내는 비뢰도의 오의.", Power = 10.5f, QiCost = 74, Cooldown = 4, LearnCost = 30000, UnlockStage = 24 },
+            new ArtData { Id = "seomroe", Name = "섬뢰", Description = "비기. 빛을 뒤쫓는 쾌. 눈 깜짝할 새 미간을 꿰뚫는다.", Power = 17.0f, SpiritCost = 100, LearnCost = 22000, UnlockStage = 24 },
             // Companions' fixed arts (names are descriptive unless the original text names the technique)
             new ArtData { Id = "xr_twin", Name = "쌍검 연격", Description = "쌍둥이 검으로 두 번 벤다.", Power = 1.5f, Hits = 2, QiCost = 18, Cooldown = 1, OwnerId = "hyo_ryong" },
             new ArtData { Id = "xr_barrier", Name = "태을천강벽", Description = "검막을 펼쳐 모두를 방어 태세로 만든다.", Effect = SkillEffect.GuardParty, QiCost = 30, Cooldown = 4, OwnerId = "hyo_ryong" },
@@ -264,6 +269,44 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("백룡검", 0.7f, 3), EnemyMove.Attack("달마검", 1.3f), EnemyMove.Wind("반야신공을 일으킨다"), EnemyMove.Attack("여래일검", 3.0f) } },
             new EnemyData { Id = "gwan_cheolsu", Name = "빙검 관철수", Level = 42, IsBoss = true, HpMul = 3.4f, AtkMul = 5.7f,
                 Moves = new[] { EnemyMove.Attack("빙령수혼", 0.7f, 3), EnemyMove.Attack("백빙신침", 1.3f), EnemyMove.Wind("한빙지기를 끌어올린다"), EnemyMove.Attack("백빙신정", 3.4f) } },
+            // Stage 19: 환마동 시험 (10권)
+            new EnemyData { Id = "hwan_ying", Name = "환마동 환영", Level = 43, HpMul = 1.6f, AtkMul = 2.75f,
+                Moves = new[] { EnemyMove.Attack("조롱", 0.8f, 2), EnemyMove.Attack("덮치기", 1.2f) } },
+            new EnemyData { Id = "hwan_sukbu", Name = "환영 속 광풍장", Level = 44, HpMul = 2.2f, AtkMul = 2.75f,
+                Moves = new[] { EnemyMove.Attack("음습한 손길", 1.0f), EnemyMove.Wind("눈을 번뜩인다"), EnemyMove.Attack("광풍장", 2.8f) } },
+            new EnemyData { Id = "hwan_sabu", Name = "환영 속 사부", Level = 45, IsBoss = true, HpMul = 3.6f, AtkMul = 2.84f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("낚싯줄", 0.7f, 3), EnemyMove.Attack("뇌신의 일격", 1.3f), EnemyMove.Wind("백발이 곤두선다"), EnemyMove.Attack("풍신의 일격", 3.2f) } },
+            // Stage 20: 매몰 44일 (10권)
+            new EnemyData { Id = "cave_viper", Name = "동굴 독충", Level = 45, HpMul = 1.5f, AtkMul = 2.59f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("독니", 0.8f, 2), EnemyMove.Attack("휘감기", 1.2f) } },
+            new EnemyData { Id = "mukrin_hyeolmang", Name = "묵린혈망", Level = 47, IsBoss = true, HpMul = 3.8f, AtkMul = 2.68f,
+                Moves = new[] { EnemyMove.Attack("꼬리치기", 0.7f, 3), EnemyMove.Attack("독액", 1.3f), EnemyMove.Wind("바위를 녹이는 침을 모은다"), EnemyMove.Attack("묵린 강타", 3.3f) } },
+            // Stage 21: 흑랑채 청혼 (11권)
+            new EnemyData { Id = "heukrang_bandit", Name = "흑랑채 산적", Level = 47, HpMul = 1.7f, AtkMul = 2.79f,
+                Moves = new[] { EnemyMove.Attack("흑랑조", 0.8f, 2), EnemyMove.Attack("도끼질", 1.2f) } },
+            new EnemyData { Id = "lee_songhak", Name = "군자소요검 이송학", Level = 48, HpMul = 2.2f, AtkMul = 2.79f,
+                Moves = new[] { EnemyMove.Attack("소요검", 0.8f, 2), EnemyMove.Wind("수비 자세를 푼다"), EnemyMove.Attack("군자일검", 2.6f) } },
+            new EnemyData { Id = "im_gae", Name = "흑랑부 임개", Level = 49, IsBoss = true, HpMul = 3.6f, AtkMul = 2.87f,
+                Moves = new[] { EnemyMove.Attack("흑랑십이부", 0.7f, 3), EnemyMove.Attack("쌍아격", 1.3f), EnemyMove.Wind("도끼를 치켜든다"), EnemyMove.Attack("태산양분", 3.3f) } },
+            // Stage 22: 낙뢰곡 철쇄봉혼진 (11~12권)
+            new EnemyData { Id = "hyeolma_dae", Name = "십이혈마대 대원", Level = 49, HpMul = 1.8f, AtkMul = 2.00f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("혈검", 0.8f, 2), EnemyMove.Attack("암습", 1.3f) } },
+            new EnemyData { Id = "hyeol_gung", Name = "9대 조장 혈궁", Level = 50, HpMul = 2.4f, AtkMul = 2.27f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("혈마전", 0.7f, 3), EnemyMove.Wind("혈마궁을 당긴다"), EnemyMove.Attack("혈야구성", 2.8f) } },
+            new EnemyData { Id = "hyeol_swae", Name = "10대 조장 혈쇄", Level = 51, IsBoss = true, HpMul = 3.8f, AtkMul = 2.27f,
+                Moves = new[] { EnemyMove.Attack("철쇄", 0.8f, 2), EnemyMove.Attack("비차륜", 1.3f), EnemyMove.Wind("철쇄봉혼진을 펼친다"), EnemyMove.Attack("혈겁쇄법 노룡분쇄", 3.3f) } },
+            // Stage 23: 비사진 (12권)
+            new EnemyData { Id = "bisa_snake", Name = "비사진의 독사 떼", Level = 51, HpMul = 1.7f, AtkMul = 2.54f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("독니", 0.8f, 2), EnemyMove.Attack("휘감기", 1.2f) } },
+            new EnemyData { Id = "cheonghong_ssanggaksa", Name = "청홍쌍각사", Level = 52, HpMul = 2.4f, AtkMul = 2.61f, SpeedAdd = 6,
+                Moves = new[] { EnemyMove.Attack("독니", 0.7f, 3), EnemyMove.Wind("요광을 모은다"), EnemyMove.Attack("요광", 2.6f) } },
+            new EnemyData { Id = "mo_saryeong", Name = "비사마군 모사령", Level = 53, IsBoss = true, HpMul = 3.9f, AtkMul = 2.61f,
+                Moves = new[] { EnemyMove.Attack("만사혈장", 0.7f, 3), EnemyMove.Attack("비사진", 1.3f), EnemyMove.Wind("사충적을 입에 문다"), EnemyMove.Attack("지사진", 3.3f) } },
+            // Stage 24: 비뢰쌍마 (12권)
+            new EnemyData { Id = "dongbang_hak", Name = "섬뢰마검 동방학", Level = 54, HpMul = 3.0f, AtkMul = 3.26f, SpeedAdd = 6,
+                Moves = new[] { EnemyMove.Attack("붉은 검", 0.7f, 3), EnemyMove.Attack("섬뢰", 1.3f), EnemyMove.Wind("쾌검의 자세를 취한다"), EnemyMove.Attack("섬뢰일섬", 3.0f) } },
+            new EnemyData { Id = "gong_pae", Name = "잔뢰마도 공패", Level = 55, IsBoss = true, HpMul = 4.2f, AtkMul = 3.26f,
+                Moves = new[] { EnemyMove.Attack("잔뢰도", 0.8f, 2), EnemyMove.Attack("잔뢰삼십육패", 1.3f), EnemyMove.Wind("도를 높이 든다"), EnemyMove.Attack("잔뢰번천지", 3.4f) } },
         };
 
         // Items. Names come from volumes 1-3; effects and numbers are placeholders.
@@ -280,6 +323,7 @@ namespace BiRyeoDo.Core
             new ItemData { Id = "claw_necklace", Name = "발톱 목걸이", Kind = ItemKind.Accessory, CritAdd = 0.05f, SpeedAdd = 2, Description = "사냥한 짐승의 발톱을 꿴 목걸이. 치명타 +5%, 속도 +2." },
             new ItemData { Id = "ilgeup_yeongdan", Name = "일급영단", Kind = ItemKind.Consumable, HealPct = 1.0f, QiRestore = 999, SpiritGain = 100, Description = "삼성무제 우승 부상. 가장 다친 동료를 완전히 회복하고 내공을 채우며 기세를 100까지 끌어올린다." },
             new ItemData { Id = "seungryong_pae", Name = "승룡패", Kind = ItemKind.Key, Description = "녹옥으로 된 추천패. 천무학관 특별전형 입관의 증표." },
+            new ItemData { Id = "mukrin_talisman", Name = "묵린혈망 독아 부적", Kind = ItemKind.Accessory, DefPct = 0.12f, HpPct = 0.05f, Description = "묵린혈망의 독아를 은세공한 초승달 장신구. 뱀이 다가오지 못한다. 방어 +12%, 체력 +5%." },
         };
 
         public static readonly DropData[] Drops =
@@ -313,6 +357,14 @@ namespace BiRyeoDo.Core
             new DropData { EnemyId = "baek_tanjeo", ItemId = "okruju", Chance = 0.60f },
             new DropData { EnemyId = "ma_haryeong", ItemId = "ginseng", Chance = 0.50f },
             new DropData { EnemyId = "gwan_cheolsu", ItemId = "ilgeup_yeongdan", Chance = 0.20f },
+            new DropData { EnemyId = "hwan_sabu", ItemId = "ginseng", Chance = 0.50f },
+            new DropData { EnemyId = "mukrin_hyeolmang", ItemId = "ginseng", Chance = 0.50f },
+            new DropData { EnemyId = "im_gae", ItemId = "bear_gall", Chance = 0.50f },
+            new DropData { EnemyId = "hyeol_gung", ItemId = "okruju", Chance = 0.50f },
+            new DropData { EnemyId = "hyeol_swae", ItemId = "ginseng", Chance = 0.50f },
+            new DropData { EnemyId = "mo_saryeong", ItemId = "ginseng", Chance = 0.50f },
+            new DropData { EnemyId = "dongbang_hak", ItemId = "okruju", Chance = 0.50f },
+            new DropData { EnemyId = "gong_pae", ItemId = "ilgeup_yeongdan", Chance = 0.20f },
         };
 
         /// <summary>One-time rewards for clearing a stage for the first time.</summary>
@@ -336,6 +388,12 @@ namespace BiRyeoDo.Core
             { 16, new[] { new ItemStack("ginseng", 2), new ItemStack("okruju", 3) } },
             { 17, new[] { new ItemStack("ilgeup_yeongdan", 1), new ItemStack("bear_gall", 3) } },
             { 18, new[] { new ItemStack("ilgeup_yeongdan", 2), new ItemStack("ginseng", 3) } },   // 태극의 인재 시험
+            { 19, new[] { new ItemStack("ginseng", 2), new ItemStack("okruju", 3) } },
+            { 20, new[] { new ItemStack("mukrin_talisman", 1), new ItemStack("ginseng", 2) } },   // 묵린혈망의 독아
+            { 21, new[] { new ItemStack("ginseng", 2), new ItemStack("bear_gall", 3) } },
+            { 22, new[] { new ItemStack("ilgeup_yeongdan", 1), new ItemStack("ginseng", 2) } },
+            { 23, new[] { new ItemStack("ginseng", 3), new ItemStack("okruju", 3) } },
+            { 24, new[] { new ItemStack("ilgeup_yeongdan", 2), new ItemStack("ginseng", 3) } },
         };
 
         /// <summary>What the protagonist starts with.</summary>
@@ -631,8 +689,89 @@ namespace BiRyeoDo.Core
                     } },
                 },
                 Intro = new[] { "총 노사 빙검 관철수가 나타난다. \"조건이 맞으면 싸우겠다는 말이 사실이냐?\" 비류연은 \"제가 이기면 부탁 두 가지를 들어주세요\"라 답한다.", "그 전에 용천명이 비류연의 검이 장식품인지 확인하겠다며 길을 막는다." },
-                Outro = new[] { "빙령수혼과 백빙신첨과 백빙신정이 모두 봉황무에 빗나갔다. \"이제야 좀 춥군요.\"","염도가 신원 보증인으로 나타나자 빙검은 말을 잃었다. 비류연이 오른팔의 묵룡환까지 벗자 빙검이 비장절초의 기수식을 잡는다.","\"네가 태극을 하나로 합칠 인재인지 이 일검으로 확인하겠다!\" \"난 그런 사람 아니라니깐요!\" 천지를 집어삼킬 듯한 흰빛이 터져 나왔다. (10권에서 계속)" },
+                Outro = new[] { "빙령수혼과 백빙신첨과 백빙신정이 모두 봉황무에 빗나갔다. \"이제야 좀 춥군요.\"","염도가 신원 보증인으로 나타나자 빙검은 말을 잃었다. 비류연이 오른팔의 묵룡환까지 벗자 빙검이 비장절초 무영무흔비월인의 기수식을 잡는다.","\"네가 태극을 하나로 합칠 인재인지 이 일검으로 확인하겠다!\" \"난 그런 사람 아니라니깐요!\" 눈을 감은 비류연은 홀황경으로 두 개의 얼음 칼날을 읽어 두 손가락으로 부수고, 삼복구타권법 중복의 무한연환구타로 빙검을 쓰러뜨린다.","빙검의 가슴에 푸른 멍이 남았다. 약속한 부탁 셋 가운데 첫째로 비류연은 빙검이 자기 제자가 되는 것을 요구한다. 염도가 \"사부님!\" 하고 부르자 빙검은 입을 다물 수밖에 없었다. 둘째와 셋째 부탁은 나중에 청산하기로 한다." },
                 Encounters = new[] { new[] { "yong_cheonmyeong" }, new[] { "gwan_cheolsu" } } },
+            new StageData { Number = 19, Name = "환마동 시험", RecommendedLevel = 43, DooTotal = 9000,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "제자가 된 사형", Lines = new[] {
+                        "비류연은 빙검에게 이긴 뒤 승자를 빙검으로 소문내고, 심장이 멈춘 듯 보이는 심전귀면대법으로 의약전의 허주운까지 속여 독실에 입원한다. 수업과 호위를 피하려는 꾀병이다.",
+                        "병문안을 온 나예린은 염도가 사부에게 바칠 음식 바구니를 들고 서 있는 모습을 본다. 염도와 빙검은 \"사제가 사형에게 대든다\"며 서로를 외면한다. 비류연은 나예린 앞에서만 병약한 척한다."
+                    } },
+                    new StoryScene { Title = "환마동의 개문", Lines = new[] {
+                        "전서응이 정파 각 문파로 날아간다. 화산규약지회 대표 선발전의 참가자는 모두 환마동 시험을 통과해야 한다. 현 관도 108명과 30세 이하 졸업생 213명, 모두 321명이다.",
+                        "환마동은 몽환소혼향과 환영봉마진으로 각자의 가장 두려운 것을 환상으로 보여 준다. 환상에 먹히면 백치나 광인이 된다. 마진가는 말한다. \"출구를 대신 찾아 줄 수 없다. 두려운 자는 나서라.\"",
+                        "순번표 44번, 여덟 갈래 문 중 네 번째 문. 위지천은 정체불명의 인물에게서 받은 비황신침과 염마뢰를 품고 비류연의 뒤를 따른다. 대공자는 \"축하 선물로 관을 보낸다\"고 속삭인다."
+                    } },
+                },
+                Intro = new[] { "환마동 안. 사람마다 다른 환상이 펼쳐진다. 윤준호는 사형제들의 조롱을, 효룡은 형 갈효봉의 환영을, 나예린은 열 살 때의 악몽을 본다.", "비류연의 앞에는 사부가 나타난다. \"뇌신의 힘은 손에 넣었느냐? 풍신의 힘은?\"" },
+                Outro = new[] { "\"직접 시험해 보시죠.\" 비류연이 날린 일격에 사부의 환영이 흩어진다.", "나예린이 \"도와줘요, 비류연!\" 하고 외치자 비류연이 나타난다. 옷자락에 미리 매달아 둔 뇌령사 덕분이었다.", "그러나 그때 위지천이 던진 염마뢰가 터진다. 나예린은 비류연을 구하려 뛰어들고, 환마동이 연쇄 붕괴한다. 비류연과 나예린은 흙더미 아래로 사라진다. 범인이 위지천임을 아는 사람은 아직 없다." },
+                Encounters = new[] { new[] { "hwan_ying", "hwan_ying", "hwan_ying" }, new[] { "hwan_sukbu", "hwan_ying" }, new[] { "hwan_sabu" } } },
+            new StageData { Number = 20, Name = "매몰 44일", RecommendedLevel = 45, DooTotal = 9500,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "흙더미 속의 두 사람", Lines = new[] {
+                        "매몰 직후 나예린이 비류연의 팔꿈치 부상을 치료한다. 한상옥령이 어둠 속에서 빛나 등불이 되었다. 비류연은 장우양에게 받은 침낭포와 벽곡단 사십 알을 갖고 있었다.",
+                        "칠 일째 나예린이 절망하자 비류연이 몰래 가져온 천일취를 건넨다. 취한 나예린이 \"류연\"이라 부른다. 그날부터 두 사람은 서로 이름을 부르게 된다.",
+                        "열흘째, 비류연이 뇌령신공 극성으로 벽을 뚫어 자연동굴로 길을 낸다. 구조대가 찾지 못한 이유다."
+                    } },
+                    new StoryScene { Title = "별의 강 사이로 흐르는 음률", Lines = new[] {
+                        "푸른 광물이 별처럼 빛나는 동굴에서 비류연이 처음으로 누군가를 위해 묵금을 연주한다. 나예린은 그의 어깨에 기대어 잠든다."
+                    } },
+                },
+                Intro = new[] { "매몰 이십육 일째. 동굴 깊은 곳에서 팔백 년 가까이 산 영물 묵린혈망이 깨어난다. 검은 비늘과 바위를 녹이는 침.", "\"음식이 제 발로 걸어왔군요.\" 비류연이 묵룡환을 푼다." },
+                Outro = new[] { "비뢰도 오의 검기 생사결 섬뢰창이 묵린혈망을 꿰뚫었다. 내단은 없었고 묵린혈망은 죽으며 출입구를 막는다. 두 사람은 그 피로 연명한다.", "사십사 일째, 비류연은 벽 너머의 수맥을 감지하고 \"목숨을 다시 맡기라\"고 말한 뒤 벽을 뚫는다. 나예린이 먼저 입을 맞춘다. 물에 휩쓸려 파양호로 빠져나간다.", "학관은 빈 관 둘로 장례식을 치르고 있었다. 나백천이 통곡하며 천겁우를 몰살하겠다고 맹세한 직후, 비류연이 나예린과 함께 나타난다. \"조의금은 많이 걷혔어요?\"", "두 사람 모두 환마동 시험에 합격한다. 비류연은 죽은 묵린혈망의 독아로 은세공 부적 한 쌍을 만들었다. 하나는 나예린의 것이다." },
+                Encounters = new[] { new[] { "cave_viper", "cave_viper", "cave_viper" }, new[] { "cave_viper", "cave_viper" }, new[] { "mukrin_hyeolmang" } } },
+            new StageData { Number = 21, Name = "흑랑채 청혼", RecommendedLevel = 47, DooTotal = 10000,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "화산을 향해", Lines = new[] {
+                        "후보는 역대 최다인 오십 명. 인솔자는 늑기한, 고약한, 염도, 빙검. 규칙은 동행과 호위 금지, 한 달 전까지 화산에 도착하는 것. 대공자는 길잡이로 십이혈마대를 흑천맹 몰래 보낸다.",
+                        "학관에서는 나백천이 비류연을 불러 44일의 일을 캐묻다가 \"류연은 제 생명의 은인이에요\"라는 딸의 항의에 물러선다. 비영각 신견대는 비류연의 출신을 조사하러 아미산으로 떠난다.",
+                        "행군 중 염도는 주작단에게 향 다섯 개가 타기 전에 먼 산을 왕복하라고 몰아붙인다. 비류연이 향을 세 개로 줄이자 주작단은 마침내 해낸다."
+                    } },
+                },
+                Intro = new[] { "구궁산. 녹림오패의 하나인 흑랑채주 흑랑부 임개가 나타나 나예린을 아내로 달라고 청혼한다. 비류연이 격노한다.", "부채주 군자도 이송은 정의문 장로인 하북십검 군자소요검 이송학이었다. 몇 년 전 어떤 소년에게 손 한번 못 쓰고 패한 뒤 실종된 사람이다." },
+                Outro = new[] { "염도와 빙검이 정체를 밝히자 산적들은 길을 연다. 이송학은 비류연을 알아보지 못한다.", "그러나 학관 일행이 떠난 뒤 십이혈마대가 흑랑채를 몰살한다. 임개는 자폭했고 이송학은 도망친다. 십이혈마대는 학관 대표단을 범인으로 몰려 한다." },
+                Encounters = new[] { new[] { "heukrang_bandit", "heukrang_bandit", "heukrang_bandit" }, new[] { "lee_songhak", "heukrang_bandit" }, new[] { "im_gae" } } },
+            new StageData { Number = 22, Name = "낙뢰곡 철쇄봉혼진", RecommendedLevel = 49, DooTotal = 10500,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "녹림왕의 누명", Lines = new[] {
+                        "은설란이 마부 장노와 함께 대표단에 합류한다. 중양표국을 호위하며 대홍산에 이르자 녹림왕 임덕성과 삼천 녹림도가 흑랑채 몰살의 혈채를 요구한다.",
+                        "임성진이 나서 아버지와 결투를 벌인다. 승부가 나지 않은 채 부자는 화해에 가까워지고, 은설란이 흑랑채 현장의 도흔을 증언하자 삼천 녹림도가 검례로 길을 연다.",
+                        "대공자는 실패를 인정하고 \"최후의 방법\"을 쓰기로 한다. 십이혈마대와 \"옛분들\"을 낙뢰곡에 매복시킨다."
+                    } },
+                    new StoryScene { Title = "윤준호의 칠매검", Lines = new[] {
+                        "숲에서 십이혈마대 8대에게 쫓기던 이송학을 윤준호가 만난다. 도망치지 않고 맞서다 위기에 빠지자 비류연이 나타난다. \"윤준호가 이긴다에 은 열 냥을 걸었어.\"",
+                        "윤준호는 칠매검으로 혈마대원 다섯을 쓰러뜨린다. 그의 첫 살인이었다."
+                    } },
+                },
+                Intro = new[] { "호북과 섬서의 경계 낙뢰곡. 늑기한은 배탈을 핑계로 일행에서 빠졌다. 협곡 위에 십이혈마대가 매복해 있다.", "9대 조장 혈궁의 혈마전이 염도의 볼을 스치고, 화살비가 쏟아진다." },
+                Outro = new[] { "혈궁이 구궁연환사로 나예린과 빙검을 노리자 비류연이 화살을 손으로 잡아 되던져 혈궁의 활을 부순다. 10대 조장 혈쇄가 만년한철 철쇄봉혼진으로 협곡을 거미줄처럼 막는다.", "비류연이 쇠사슬을 타고 봉무등천으로 협곡 위에 올라 혈쇄조 열 명을 쓰러뜨리고 혈쇄의 쇠사슬을 끊는다. 아래에서 나예린이 얼음 가면이 부서지듯 외친다. \"류여어언!\"", "십이혈마대 총대주 적혈이 \"그분들\"에게 도움을 청한다." },
+                Encounters = new[] { new[] { "hyeolma_dae", "hyeolma_dae", "hyeolma_dae" }, new[] { "hyeol_gung", "hyeolma_dae" }, new[] { "hyeol_swae" } } },
+            new StageData { Number = 23, Name = "비사진", RecommendedLevel = 51, DooTotal = 11000,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "질투의 불꽃", Lines = new[] {
+                        "낙뢰곡 아래에서 위지천은 자기 두 손이 붉게 보이는 듯 멍하니 서 있다. 독사가 덮치자 천룡삼우 청흔이 구한다. 그러나 위지천은 \"비류연의 피로 물들였으면\" 하는 증오에 사로잡혀 정신의 끈이 끊어진다.",
+                        "용천명은 뱀 공포증이 있는 마하령에게 \"도와줄까요\" 묻고, 마하령이 체면을 접고 청하자 달마여래십삼검 불광만조로 뱀을 쓸어낸다."
+                    } },
+                },
+                Intro = new[] { "녹의 노인이 협곡 위에 선다. 비사신군, 백도에서는 비사마군이라 부르는 모사령. 백 년 전 선혈해 대혈전에서 정사연합군 삼백 명을 뱀 먹이로 만든 마인이다.", "염도가 \"뱀 땅꾼\"이라 도발하자 모사령이 격분해 예비 뱀 전부를 푼다. 나예린 곁에는 비류연이 준 독아 부적 덕에 뱀이 반 장 안에 접근하지 못한다." },
+                Outro = new[] { "청흔의 삼정태극검혜와 모용휘의 은하류가 하늘의 뱀과 화살을 쓸어낸다. 모사령이 청홍쌍각사를 혈마전에 얹어 나예린을 겨누자 비류연이 대갈성으로 모사령을 멈추고 뇌령사로 혈마전을 던져 버린다.", "비류연은 쌍각사를 직접 잡아 협박해 복종시킨다. 모사령의 지사진은 은검풍인의 장 은섬풍에 찢겼다.", "비류연이 내기를 건다. 쌍각사를 땅에 놓았을 때 누구에게 가는가. 쌍각사가 비류연에게 오자 모사령이 패배를 인정한다. 세 질문에 대한 답: 배후는 \"천겁령\", 근거지는 \"당신들이 믿고 있는 거울의 그림자\", 목적은 \"붉은 꽃이 만개한 화산\"." },
+                Encounters = new[] { new[] { "bisa_snake", "bisa_snake", "bisa_snake" }, new[] { "cheonghong_ssanggaksa", "bisa_snake" }, new[] { "mo_saryeong" } } },
+            new StageData { Number = 24, Name = "비뢰쌍마", RecommendedLevel = 53, DooTotal = 12000,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "운해 낚시", Lines = new[] {
+                        "오 년 전 뇌운봉 은백평 운해암. 비류연과 사부가 구름바다에서 맹금을 낚는 수련을 한다. 사부는 과거를 묻자 \"나는 내가 누구인지도 잊었다\"고 한다.",
+                        "\"비뢰라는 이름은 비뢰문 후예 외엔 아무도 쓰지 못한다. 어중이들이 남용하면 주제를 가르쳐라. 이름에 대한 책임이 곧 명예다.\""
+                    } },
+                },
+                Intro = new[] { "적혈의 퇴각 명령 직후, 남의노인과 갈의노인이 나타난다. 섬뢰마검 동방학과 잔뢰마도 공패, 백 년 전 천겁령 편에서 정사 양도를 휩쓴 비뢰쌍마다.", "이진설을 구하려던 효룡이 동방학의 붉은 검에 이마를 베인다. 동방학은 효룡의 쌍검 검로에서 굉천혈영도를 느낀다.", "두 노인이 염도와 빙검의 검한기와 검염기에서 태극신군의 흔적을 알아본다. \"돌아가신 사부님을 모욕하지 마라!\" 염도가 외치는 순간 혁월린의 죽음이 쌍마에게 누설된다." },
+                Outro = new[] { "비류연이 무형지기 한가운데로 걸어 들어간다. \"비뢰라는 이름을 쓸 자격이 있는지, 사문의 계율에 따라 심사하겠습니다.\" 묵룡환을 풀고 동방학과 쾌를 겨뤄 섬뢰로 미간을 꿰뚫는다. \"뇌의 이름은 인정하죠.\"", "공패가 잔뢰번천지로 덤비지만 비뢰도 오의 굉천광뢰의 장 굉뢰가 도를 박살내고, 도편이 두 눈을 찌른다. 가짜 연막 뇌탄이 터지고 적혈이 공패를 업고 사라진다. \"환마동 폭발도 우리가 터뜨렸다. 우리를 건드리면 진짜 뇌탄을 던지겠다.\"", "모사령은 풀려났다. 비류연은 압수한 사충적을 당삼에게, 사충음보를 당문혜에게 판다. 효룡은 말수가 줄고 이마에 뇌인 모양의 상처가 남았다. 혁월린의 죽음이 천겁령에 알려진 파장을 아무도 짐작하지 못한다.", "화산에 도착한 대표단을 화산파 장문인 풍매검 양유중과 12장로가 맞이한다. 화음현 매화객잔에서 다음 날, 복면을 쓴 매화가면이 윤준호를 지명해 겨루고, 윤준호는 검향지경으로 붉은 매화를 피워 올린 뒤 이십사수 매화검법 매염토망을 알아보고 \"태사부님\"이라 절한다.", "다음 날 아침, 회색 옷의 정체불명의 노인이 동행해 천무봉에 오른다. 샛길의 첫 관문에서 두 다리가 없는 노인 비공답운 종쾌가 천겁혈신과 천무봉의 비밀을 들려주고, 첫 시험 장소 \"천겁간\"을 가리킨다. (13권에서 계속)" },
+                Encounters = new[] { new[] { "hyeolma_dae", "hyeolma_dae", "hyeolma_dae" }, new[] { "dongbang_hak", "hyeolma_dae" }, new[] { "gong_pae" } } },
         };
 
         private static long CumulativeExp(int level)
