@@ -21,6 +21,7 @@ namespace BiRyeoDo.Core
         public List<string> EquippedGear = new List<string>();
         public List<int> RewardedStages = new List<int>();   // stages whose first-clear reward was already claimed
         public bool StartKitGiven;
+        public List<string> ActiveCompanions = new List<string>();   // chosen party members (max EarlyGameContent.MaxCompanions); empty = join order
         public int SwordRank;           // 검룡위 (1-10), see Promotion; 0 in older saves counts as 1
 
         public List<string> LearnedArts = new List<string>();

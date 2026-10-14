@@ -39,6 +39,7 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 | 파일 | 인물 | 프롬프트 (공통 문구 뒤에 붙이기) |
 |---|---|---|
 | `hyo_ryong.png` | 효룡 | a calm young swordsman holding twin swords, upper body, plain white background |
+| `im_seongjin.png` | 임성진 | a sturdy young staff fighter with a thick build, holding a long wooden staff, wuxia character, upper body, plain white background, ink-wash style |
 | `chohon_gwigeom.png` | 초혼귀검 산적 | wuxia character, upper body, plain white background, ink-wash style |
 | `myeongbu_jang.png` | 명부장 산적 | wuxia character, upper body, plain white background, ink-wash style |
 | `gal_hyobong.png` | 갈효봉(폭주) | wuxia character, upper body, plain white background, ink-wash style |

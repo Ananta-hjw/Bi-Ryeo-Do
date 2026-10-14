@@ -19,9 +19,9 @@ namespace BiRyeoDo.Game.UI
         }
 
         private readonly List<Row> _rows = new List<Row>();
-        private Text _header, _hint, _promoRowDetail;
+        private Text _header, _hint, _promoRowDetail, _partyRowDetail;
         private GameObject _rebornButton;
-        private RectTransform _promoOverlay;
+        private RectTransform _promoOverlay, _partyOverlay;
         private Action<PromotionOffer> _onPromote;
         private bool _built;
 
@@ -54,7 +54,7 @@ namespace BiRyeoDo.Game.UI
 
             const float rowH = 190f, gap = 14f;
             var stages = EarlyGameContent.Stages;
-            int total = stages.Length + 1;
+            int total = stages.Length + 2;
             content.sizeDelta = new Vector2(0f, total * (rowH + gap) + gap);
 
             // Row 0: 승급 시험장
@@ -64,10 +64,16 @@ namespace BiRyeoDo.Game.UI
             var promoBtn = UiFactory.Button("Promo", promo, new Vector2(0.66f, 0.12f), new Vector2(0.97f, 0.88f), "비무첩", UiFactory.Red, OpenPromotionOverlay, 36);
             promoBtn.GetComponent<Image>().color = UiFactory.Red;
 
+            // Row 1: 파티 편성 (only three companions fight at once)
+            var partyRow = NewRow(content, 1, rowH, gap, new Color(0.10f, 0.20f, 0.24f, 0.92f));
+            UiFactory.Label("Title", partyRow, new Vector2(0.03f, 0.50f), new Vector2(0.64f, 0.97f), "파티 편성", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
+            _partyRowDetail = UiFactory.Label("Detail", partyRow, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.50f), "", 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Button("Party", partyRow, new Vector2(0.66f, 0.12f), new Vector2(0.97f, 0.88f), "편성", UiFactory.Red, OpenPartyOverlay, 36);
+
             for (int i = 0; i < stages.Length; i++)
             {
                 var st = stages[i];
-                var rt = NewRow(content, i + 1, rowH, gap, UiFactory.Ink);
+                var rt = NewRow(content, i + 2, rowH, gap, UiFactory.Ink);
                 var row = new Row { Stage = st };
                 row.Title = UiFactory.Label("Title", rt, new Vector2(0.03f, 0.50f), new Vector2(0.64f, 0.97f), "", 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
                 row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.50f), "", 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
@@ -81,6 +87,11 @@ namespace BiRyeoDo.Game.UI
             var overlayBg = _promoOverlay.gameObject.AddComponent<Image>();
             overlayBg.color = new Color(0.06f, 0.05f, 0.04f, 0.97f);
             _promoOverlay.gameObject.SetActive(false);
+
+            _partyOverlay = UiFactory.Rect("PartyOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
+            var partyBg = _partyOverlay.gameObject.AddComponent<Image>();
+            partyBg.color = new Color(0.06f, 0.05f, 0.04f, 0.97f);
+            _partyOverlay.gameObject.SetActive(false);
             Refresh();
         }
 
@@ -138,6 +149,56 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Button("Close", _promoOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => _promoOverlay.gameObject.SetActive(false), 36);
         }
 
+        /// <summary>Companions available now: everyone who has joined by the furthest stage reached.</summary>
+        private static List<CompanionData> AvailableCompanions(SaveData save)
+        {
+            return EarlyGameContent.CompanionsFor(Math.Max(1, save.HighestUnlockedStage));
+        }
+
+        private void OpenPartyOverlay()
+        {
+            var save = GameManager.Instance.Save;
+            for (int i = _partyOverlay.childCount - 1; i >= 0; i--) Destroy(_partyOverlay.GetChild(i).gameObject);
+            _partyOverlay.gameObject.SetActive(true);
+
+            var available = AvailableCompanions(save);
+            var active = EarlyGameContent.SelectCompanions(Math.Max(1, save.HighestUnlockedStage), save.ActiveCompanions);
+            UiFactory.Label("Title", _partyOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "파티 편성", 44, UiFactory.Gold);
+            UiFactory.Label("Rules", _partyOverlay, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.92f),
+                "비류연과 함께 싸울 동료는 최대 " + EarlyGameContent.MaxCompanions + "명이다. 눌러서 출전과 대기를 바꾼다.", 28, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+
+            if (available.Count == 0)
+                UiFactory.Label("None", _partyOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "아직 함께할 동료가 없다.", 40, UiFactory.PaperText);
+
+            float y = 0.82f;
+            foreach (var c in available)
+            {
+                bool on = active.Contains(c);
+                var band = UiFactory.Panel("Card", _partyOverlay, new Vector2(0.05f, y - 0.10f), new Vector2(0.95f, y), UiFactory.Ink);
+                UiFactory.Label("Name", band.transform, new Vector2(0.03f, 0.52f), new Vector2(0.64f, 0.97f), c.Name, 36, on ? UiFactory.Gold : UiFactory.PaperText, TextAnchor.MiddleLeft);
+                UiFactory.Label("Role", band.transform, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.52f), c.Role, 24, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                var companion = c;
+                UiFactory.Button("Toggle", band.transform, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), on ? "출전" : "대기", on ? UiFactory.Red : UiFactory.InkSoft, () => ToggleCompanion(companion), 32);
+                y -= 0.11f;
+            }
+
+            UiFactory.Button("Close", _partyOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _partyOverlay.gameObject.SetActive(false); Refresh(); }, 36);
+        }
+
+        private void ToggleCompanion(CompanionData c)
+        {
+            var save = GameManager.Instance.Save;
+            int stage = Math.Max(1, save.HighestUnlockedStage);
+            var picked = new List<string>();
+            foreach (var x in EarlyGameContent.SelectCompanions(stage, save.ActiveCompanions)) picked.Add(x.Id);
+            if (picked.Contains(c.Id)) picked.Remove(c.Id);
+            else if (picked.Count < EarlyGameContent.MaxCompanions) picked.Add(c.Id);
+            else return;   // already full: bench someone first
+            save.ActiveCompanions = picked;
+            GameManager.Instance.SaveNow();
+            OpenPartyOverlay();
+        }
+
         private void OnChallenge(PromotionOffer offer)
         {
             var save = GameManager.Instance.Save;
@@ -167,7 +228,7 @@ namespace BiRyeoDo.Game.UI
 
         private static string PartyText(StageData st)
         {
-            var companions = EarlyGameContent.CompanionsFor(st.Number);
+            var companions = EarlyGameContent.SelectCompanions(st.Number, GameManager.Instance.Save.ActiveCompanions);
             if (companions.Count == 0) return "";
             var names = new List<string>();
             foreach (var c in companions) names.Add(c.Name);
@@ -181,6 +242,10 @@ namespace BiRyeoDo.Game.UI
             _header.text = "제" + save.Life + "생 · " + Promotion.RankName(Promotion.EffectiveRank(save)) + " · Lv." + save.Level + " · " + save.Doo.ToString("N0") + "두";
             _promoRowDetail.text = Promotion.RankName(Promotion.EffectiveRank(save)) + (Promotion.EffectiveRank(save) >= Promotion.MaxRank ? " · 최고 경지" : " · 한 계단 또는 두 계단 승급 도전")
                 + (Promotion.EffectiveRank(save) < Promotion.GateRank ? "\n(" + Promotion.RankName(Promotion.GateRank) + " 이상이어야 삼성무제 참가)" : "");
+            var current = new List<string>();
+            foreach (var c in EarlyGameContent.SelectCompanions(Math.Max(1, save.HighestUnlockedStage), save.ActiveCompanions)) current.Add(c.Name);
+            _partyRowDetail.text = current.Count == 0 ? "아직 함께할 동료가 없다" : "출전 동료: " + string.Join(", ", current)
+                + (AvailableCompanions(save).Count > EarlyGameContent.MaxCompanions ? "\n(동료 " + AvailableCompanions(save).Count + "명 중 " + EarlyGameContent.MaxCompanions + "명만 출전)" : "");
             _rebornButton.SetActive(Progression.CanReincarnate(save));
 
             foreach (var r in _rows)

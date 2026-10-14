@@ -74,6 +74,21 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void CompanionSelectionCapsAtThreeAndHonorsPicks()
+        {
+            // Before 임성진 joins, everyone fights.
+            Assert.AreEqual(3, EarlyGameContent.SelectCompanions(21, null).Count);
+            // After, only three fit: default is join order.
+            var def = EarlyGameContent.SelectCompanions(25, null).Select(c => c.Id).ToList();
+            CollectionAssert.AreEqual(new[] { "hyo_ryong", "jang_hong", "yun_junho" }, def);
+            // Picks win, in order, and unknown or not-yet-joined ids are ignored.
+            var picked = EarlyGameContent.SelectCompanions(25, new[] { "im_seongjin", "nobody", "jang_hong" }).Select(c => c.Id).ToList();
+            CollectionAssert.AreEqual(new[] { "im_seongjin", "jang_hong", "hyo_ryong" }, picked);
+            Assert.AreEqual(0, EarlyGameContent.SelectCompanions(1, new[] { "im_seongjin" }).Count);
+            Assert.AreEqual(EarlyGameContent.MaxCompanions, EarlyGameContent.SelectCompanions(30, new[] { "a", "b", "c", "d" }).Count);
+        }
+
+        [Test]
         public void ProtagonistArtsExcludeCompanionArts()
         {
             Assert.IsTrue(EarlyGameContent.Arts.Where(a => a.OwnerId == null).All(a => a.Effect != SkillEffect.Stun && a.Effect != SkillEffect.HealAlly));

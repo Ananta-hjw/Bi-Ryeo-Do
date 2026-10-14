@@ -147,6 +147,9 @@ namespace BiRyeoDo.Core
             new ArtData { Id = "jh_stun", Name = "점혈", Description = "혈도를 짚어 상대를 굳힌다. 기를 모으는 중이면 끊는다.", Power = 0.8f, Effect = SkillEffect.Stun, QiCost = 20, Cooldown = 3, OwnerId = "jang_hong" },
             new ArtData { Id = "yj_slash", Name = "화산의 검", Description = "화산파의 기본 검격. 매화검법은 알레르기 때문에 쓰지 못한다.", Power = 2.2f, QiCost = 16, Cooldown = 1, OwnerId = "yun_junho" },
             new ArtData { Id = "yj_heal", Name = "자하신공", Description = "화산의 자색 기운으로 가장 다친 동료를 치유한다.", Effect = SkillEffect.HealAlly, HealPct = 0.35f, QiCost = 28, Cooldown = 3, OwnerId = "yun_junho" },
+            new ArtData { Id = "isj_gon", Name = "진성십이곤", Description = "녹림 진성곤의 곤법. 방어는 원, 공격은 점, 힘의 이동은 나선.", Power = 2.0f, QiCost = 16, Cooldown = 1, OwnerId = "im_seongjin" },
+            new ArtData { Id = "isj_seonggwang", Name = "성광일시", Description = "곤을 별처럼 흩뿌려 네 번 찌른다.", Power = 0.9f, Hits = 4, QiCost = 30, Cooldown = 3, OwnerId = "im_seongjin" },
+            new ArtData { Id = "isj_iljeom", Name = "일점필중", Description = "진성십이곤 최종오의. 한 줄기 섬광이 되어 한 점을 꿰뚫는다.", Power = 5.0f, QiCost = 45, Cooldown = 4, OwnerId = "im_seongjin" },
         };
 
         public static readonly CompanionData[] Companions =
@@ -154,6 +157,7 @@ namespace BiRyeoDo.Core
             new CompanionData { Id = "hyo_ryong", Name = "효룡", Role = "쌍검, 검막으로 파티를 지킨다", JoinStage = 7, HpMul = 1.0f, AtkMul = 1.0f, DefMul = 1.0f, SpeedAdd = 4 },
             new CompanionData { Id = "jang_hong", Name = "장홍", Role = "점혈로 적의 강타를 끊는다", JoinStage = 7, HpMul = 1.1f, AtkMul = 0.85f, DefMul = 1.1f, SpeedAdd = 0 },
             new CompanionData { Id = "yun_junho", Name = "윤준호", Role = "자하신공으로 동료를 치유한다", JoinStage = 8, HpMul = 0.9f, AtkMul = 0.95f, DefMul = 0.85f, SpeedAdd = 2 },
+            new CompanionData { Id = "im_seongjin", Name = "임성진", Role = "곤으로 한 점을 꿰뚫는다 (굼뜨지만 묵직하다)", JoinStage = 22, HpMul = 1.15f, AtkMul = 0.9f, DefMul = 1.0f, SpeedAdd = -2 },
         };
 
         public static readonly EnemyData[] Enemies =
@@ -810,7 +814,7 @@ namespace BiRyeoDo.Core
                     } },
                 },
                 Intro = new[] { "호북과 섬서의 경계 낙뢰곡. 늑기한은 배탈을 핑계로 일행에서 빠졌다. 협곡 위에 십이혈마대가 매복해 있다.", "9대 조장 혈궁의 혈마전이 염도의 볼을 스치고, 화살비가 쏟아진다." },
-                Outro = new[] { "혈궁이 구궁연환사로 나예린과 빙검을 노리자 비류연이 화살을 손으로 잡아 되던져 혈궁의 활을 부순다. 10대 조장 혈쇄가 만년한철 철쇄봉혼진으로 협곡을 거미줄처럼 막는다.", "비류연이 쇠사슬을 타고 봉무등천으로 협곡 위에 올라 혈쇄조 열 명을 쓰러뜨리고 혈쇄의 쇠사슬을 끊는다. 아래에서 나예린이 얼음 가면이 부서지듯 외친다. \"류여어언!\"", "십이혈마대 총대주 적혈이 \"그분들\"에게 도움을 청한다." },
+                Outro = new[] { "혈궁이 구궁연환사로 나예린과 빙검을 노리자 비류연이 화살을 손으로 잡아 되던져 혈궁의 활을 부순다. 10대 조장 혈쇄가 만년한철 철쇄봉혼진으로 협곡을 거미줄처럼 막는다.", "비류연이 쇠사슬을 타고 봉무등천으로 협곡 위에 올라 혈쇄조 열 명을 쓰러뜨리고 혈쇄의 쇠사슬을 끊는다. 아래에서 나예린이 얼음 가면이 부서지듯 외친다. \"류여어언!\"", "십이혈마대 총대주 적혈이 \"그분들\"에게 도움을 청한다.", "아버지와 화해한 임성진이 곤을 들고 일행의 곁에 선다. 굼뜨지만 묵직한 곤법이다. (동료 합류: 임성진 — 파티는 최대 넷이라 강호 탭의 \"파티 편성\"에서 동료 셋을 고른다.)" },
                 Encounters = new[] { new[] { "hyeolma_dae", "hyeolma_dae", "hyeolma_dae" }, new[] { "hyeol_gung", "hyeolma_dae" }, new[] { "hyeol_swae" } } },
             new StageData { Number = 23, Name = "비사진", RecommendedLevel = 51, DooTotal = 11000,
                 Prologue = new[]
@@ -977,6 +981,25 @@ namespace BiRyeoDo.Core
             var list = new List<CompanionData>();
             foreach (var c in Companions) if (c.JoinStage <= stageNumber) list.Add(c);
             return list;
+        }
+
+        /// <summary>Most companions that can fight at once (the protagonist plus these fills the party of four).</summary>
+        public const int MaxCompanions = 3;
+
+        /// <summary>The companions who actually fight in a stage: the player's picks that have joined, then the rest in join order, up to <see cref="MaxCompanions"/>.</summary>
+        public static List<CompanionData> SelectCompanions(int stageNumber, IList<string> preferred)
+        {
+            var available = CompanionsFor(stageNumber);
+            var result = new List<CompanionData>();
+            if (preferred != null)
+                foreach (var id in preferred)
+                {
+                    var c = available.Find(x => x.Id == id);
+                    if (c != null && !result.Contains(c) && result.Count < MaxCompanions) result.Add(c);
+                }
+            foreach (var c in available)
+                if (!result.Contains(c) && result.Count < MaxCompanions) result.Add(c);
+            return result;
         }
 
         public static StageData FindStage(int number)
