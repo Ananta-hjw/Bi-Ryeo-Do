@@ -111,14 +111,14 @@ namespace BiRyeoDo.Core
             {
                 case ArtVariant.Power:
                     spec.Power *= 1.25f;
-                    spec.QiCost = (int)Math.Ceiling(spec.QiCost * 1.2);
+                    spec.QiCost = (spec.QiCost * 12 + 9) / 10;   // x1.2 rounded up, in integers
                     break;
                 case ArtVariant.Swift:
-                    spec.QiCost = (int)Math.Floor(spec.QiCost * 0.7);
+                    spec.QiCost = spec.QiCost * 7 / 10;          // x0.7 rounded down, in integers
                     spec.Cooldown = Math.Max(0, spec.Cooldown - 1);
                     break;
                 case ArtVariant.Flurry:
-                    spec.Hits += 1;
+                    spec.Hits = Math.Max(1, spec.Hits) + 1;
                     spec.Power *= 0.7f;
                     break;
             }

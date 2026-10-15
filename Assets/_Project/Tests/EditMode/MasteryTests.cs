@@ -64,5 +64,19 @@ namespace BiRyeoDo.Tests
         {
             return EarlyGameContent.Arts.First(a => a.OwnerId == null && a.SpiritCost == 0 && a.Effect == SkillEffect.None && a.QiCost > 0);
         }
+
+        [Test]
+        public void VariantCostsUseExactIntegerRounding()
+        {
+            var save = new SaveData();
+            var art = new ArtData { Id = "t", Name = "t", Power = 2f, QiCost = 20, Cooldown = 2 };
+            for (int i = 0; i < 30; i++) Mastery.RecordUse(save, art.Id);
+            Mastery.Find(save, art.Id).Variant = (int)ArtVariant.Power;
+            Assert.AreEqual(24, Mastery.Apply(save, art).QiCost);   // 20 x 1.2, never 25
+            Mastery.Find(save, art.Id).Variant = (int)ArtVariant.Swift;
+            Assert.AreEqual(14, Mastery.Apply(save, art).QiCost);   // 20 x 0.7
+            Mastery.Find(save, art.Id).Variant = (int)ArtVariant.Flurry;
+            Assert.AreEqual(2, Mastery.Apply(save, art).Hits);      // unset Hits counts as one
+        }
     }
 }

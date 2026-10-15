@@ -37,12 +37,27 @@ namespace BiRyeoDo.Core
             save.ProgressHp = new List<MemberHp>();
         }
 
-        /// <summary>Applies the stored HP to the rebuilt party (never above max, never dead).</summary>
+        /// <summary>
+        /// Applies the stored HP to the rebuilt party (never above max, never dead). A member who was not in the stored party
+        /// (the player changed companions while stepping back) starts at the average wound level of the others instead of full health.
+        /// </summary>
         public static void Restore(SaveData save, IEnumerable<Combatant> party)
         {
-            foreach (var m in party)
-                foreach (var h in save.ProgressHp)
-                    if (h.Id == m.Id) m.Hp = Math.Max(1, Math.Min(m.Stats.MaxHp, h.Hp));
+            var members = new List<Combatant>(party);
+            double ratioSum = 0; int ratioCount = 0;
+            var unmatched = new List<Combatant>();
+            foreach (var m in members)
+            {
+                MemberHp found = null;
+                foreach (var h in save.ProgressHp) if (h.Id == m.Id) found = h;
+                if (found == null) { unmatched.Add(m); continue; }
+                m.Hp = Math.Max(1, Math.Min(m.Stats.MaxHp, found.Hp));
+                ratioSum += (double)m.Hp / Math.Max(1, m.Stats.MaxHp);
+                ratioCount++;
+            }
+            if (ratioCount == 0) return;
+            double avg = ratioSum / ratioCount;
+            foreach (var m in unmatched) m.Hp = Math.Max(1, (int)Math.Round(m.Stats.MaxHp * avg));
         }
     }
 }

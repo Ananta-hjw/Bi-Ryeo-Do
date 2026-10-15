@@ -148,7 +148,9 @@ namespace BiRyeoDo.Core
         {
             if (!IsPlayerTurn) throw new InvalidOperationException("Not the player's turn.");
             if (cmd.Kind == CommandKind.Item && (cmd.Item == null || cmd.Item.Kind != ItemKind.Consumable)) throw new InvalidOperationException("Not a consumable.");
-            if (cmd.Kind == CommandKind.Joint && !CanJoint(cmd.Partner)) throw new InvalidOperationException("Joint attack unavailable.");
+            // Validate everything before touching any state, so a rejected command leaves the turn intact.
+            if (cmd.Kind == CommandKind.Joint && (cmd.Skill == null || !CanJoint(cmd.Partner))) throw new InvalidOperationException("Joint attack unavailable.");
+            if (cmd.Kind == CommandKind.Skill && (cmd.Skill == null || !Current.CanUse(cmd.Skill))) throw new InvalidOperationException("Skill unavailable.");
             var actor = Current;
             var events = new List<BattleEvent>();
             Current = null;
@@ -291,10 +293,10 @@ namespace BiRyeoDo.Core
         {
             var spec = cmd.Skill;
             var partner = cmd.Partner;
+            var t = cmd.Target != null && cmd.Target.IsAlive && cmd.Target.Team == Team.Enemy ? cmd.Target : FirstLivingEnemy();
+            if (t == null) return;   // nothing to hit: nothing is paid
             actor.Spirit -= JointSpiritCost;
             partner.Gauge -= GaugeThreshold;   // the partner spends their next action on this strike
-            var t = cmd.Target != null && cmd.Target.IsAlive && cmd.Target.Team == Team.Enemy ? cmd.Target : FirstLivingEnemy();
-            if (t == null) return;
 
             var first = DealHit(actor, t, spec, 0, 1, false, events);
             first.Joint = true;

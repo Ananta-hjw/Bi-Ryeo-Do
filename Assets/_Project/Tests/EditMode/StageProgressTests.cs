@@ -40,5 +40,17 @@ namespace BiRyeoDo.Tests
             StageProgress.Restore(save, new[] { a });
             Assert.AreEqual(100, a.Hp);
         }
+
+        [Test]
+        public void NewcomerStartsAtTheAverageWoundLevel()
+        {
+            var save = new SaveData();
+            var hero = Member("player", 100); hero.Hp = 50;
+            StageProgress.Store(save, 9, 1, new[] { hero });
+            var party = new[] { Member("player", 100), Member("jang_hong", 200) };
+            StageProgress.Restore(save, party);
+            Assert.AreEqual(50, party[0].Hp);
+            Assert.AreEqual(100, party[1].Hp);   // 50% of 200, not full health
+        }
     }
 }

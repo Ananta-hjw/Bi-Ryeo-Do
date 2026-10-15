@@ -389,5 +389,21 @@ namespace BiRyeoDo.Tests
             Assert.IsNotNull(after);
             Assert.AreEqual(announced.Id, after.First(x => x.Kind == EventKind.Attack && x.ActorId == "e").TargetId);
         }
+
+        [Test]
+        public void RejectedCommandDoesNotCorruptTheTurn()
+        {
+            var spell = new SkillSpec { Id = "big", Name = "big", Power = 5f, QiCost = 999 };
+            var p = Player(Stats(1000, 50, 0, 100), spell);
+            var e = Enemy("e", Stats(1000, 1, 0, 1));
+            var b = Start(p, e);
+            Assert.AreSame(p, b.Current);
+            int actions = b.PartyActions;
+            Assert.Throws<System.InvalidOperationException>(() => b.PlayerAct(PlayerCommand.UseSkill(spell, e)));   // not enough 내공
+            Assert.Throws<System.InvalidOperationException>(() => b.PlayerAct(new PlayerCommand { Kind = CommandKind.Skill }));   // no skill at all
+            Assert.AreSame(p, b.Current);
+            Assert.AreEqual(actions, b.PartyActions);
+            Assert.DoesNotThrow(() => b.PlayerAct(PlayerCommand.Guard()));   // the battle still works afterwards
+        }
     }
 }
