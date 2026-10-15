@@ -237,21 +237,30 @@ namespace BiRyeoDo.Game.UI
             SetCommandsVisible(false);
             _log.text = "";
 
-            if (stage.Prologue != null && save.ClearedStage < stage.Number)
-                foreach (var scene in stage.Prologue)
-                    yield return ShowStory(scene.Title, scene.Lines);
-            yield return ShowStory(stage.Name, stage.Intro);
+            // Continue a stage the player stepped back from; anything else starts fresh (and drops an old resume point).
+            bool resume = !stage.IsQuest && StageProgress.Has(save, stage.Number);
+            int startIndex = resume ? Math.Min(save.ProgressNext, stage.Encounters.Length - 1) : 0;
+            if (!resume && !stage.IsQuest && save.ProgressStage != 0) { StageProgress.Clear(save); GameManager.Instance.SaveNow(); }
+
+            if (!resume)
+            {
+                if (stage.Prologue != null && save.ClearedStage < stage.Number)
+                    foreach (var scene in stage.Prologue)
+                        yield return ShowStory(scene.Title, scene.Lines);
+                yield return ShowStory(stage.Name, stage.Intro);
+            }
 
             bool again = !_fled;
             while (again)
             {
                 again = false;
                 BuildParty(stage);
+                if (resume) { StageProgress.Restore(save, _party); RefreshParty(); }
                 long gainedExp = 0, gainedDoo = 0;
                 bool cleared = true;
                 bool replay = !stage.IsQuest && save.ClearedStage >= stage.Number;
 
-                for (int i = 0; i < stage.Encounters.Length; i++)
+                for (int i = startIndex; i < stage.Encounters.Length; i++)
                 {
                     _stageLabel.text = "스테이지 " + stage.Number + " · " + stage.Name + "  (" + (i + 1) + "/" + stage.Encounters.Length + ")";
                     yield return Banner(i == stage.Encounters.Length - 1 ? "결전!" : "전투 " + (i + 1), 0.7f);
@@ -282,7 +291,12 @@ namespace BiRyeoDo.Game.UI
                     if (i < stage.Encounters.Length - 1)
                     {
                         yield return ShowHub(stage, i);
-                        if (_leave) { _fled = true; cleared = false; break; }
+                        if (_leave)
+                        {
+                            StageProgress.Store(save, stage.Number, i + 1, _party);
+                            GameManager.Instance.SaveNow();
+                            _fled = true; cleared = false; break;
+                        }
                     }
                 }
 
@@ -291,6 +305,7 @@ namespace BiRyeoDo.Game.UI
                     SetCommandsVisible(false);
                     break;
                 }
+                if (!_fled && !stage.IsQuest) { StageProgress.Clear(save); GameManager.Instance.SaveNow(); }
                 if (cleared && stage.IsQuest)
                 {
                     var quest = Quests.Find(stage.QuestId);
@@ -313,6 +328,8 @@ namespace BiRyeoDo.Game.UI
                 {
                     yield return ShowResult("패배...", "다시 도전하면 이 스테이지의 첫 전투부터 시작한다. (이미 얻은 경험과 두는 그대로 남는다.)", true);
                     again = _retry;
+                    resume = false;
+                    startIndex = 0;
                 }
             }
 
@@ -1311,7 +1328,7 @@ namespace BiRyeoDo.Game.UI
             sb.Append("\n다음은 ").Append(boss ? "결전이다." : "전투 " + (next + 1) + "이다.");
             var trial = stage.TrialFor(next);
             if (trial != null) sb.Append("\n[").Append(trial.Title).Append("] ").Append(trial.Brief);
-            sb.Append("\n준비가 되면 도전하자. 물러나면 이 스테이지는 처음부터 다시 해야 한다.");
+            sb.Append("\n준비가 되면 도전하자. 물러나도 여기서부터 이어서 할 수 있다.");
 
             _panelTitle.text = stage.Name;
             _panelText.text = sb.ToString();
@@ -1319,7 +1336,7 @@ namespace BiRyeoDo.Game.UI
             var backLabel = _panelBack.GetComponentInChildren<Text>();
             string nextOld = nextLabel.text, backOld = backLabel.text;
             nextLabel.text = boss ? "결전에 도전" : "다음 전투 도전";
-            backLabel.text = "물러나기";
+            backLabel.text = "물러나기 (저장)";
             _panelNext.SetActive(true);
             _panelBack.SetActive(true);
             _panelRetry.SetActive(false);

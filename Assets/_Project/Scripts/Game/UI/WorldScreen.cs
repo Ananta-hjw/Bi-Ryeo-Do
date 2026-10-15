@@ -367,7 +367,7 @@ namespace BiRyeoDo.Game.UI
                 bool cleared = save.ClearedStage >= st.Number;
                 r.Title.text = "스테이지 " + st.Number + " · " + st.Name;
                 r.Detail.text = reached && !rankOk ? Promotion.RankName(Promotion.GateRank) + " 이상이 되어야 참가할 수 있다 (승급 시험장)" : unlocked ? "권장 Lv." + st.RecommendedLevel + " · 전투 " + st.Encounters.Length + "회" + PartyText(st) + (cleared ? " · 돌파" : "") : "이전 스테이지를 돌파하면 열린다";
-                r.ButtonLabel.text = !unlocked ? (reached ? "승급 필요" : "잠김") : cleared ? "재도전" : "출전";
+                r.ButtonLabel.text = !unlocked ? (reached ? "승급 필요" : "잠김") : StageProgress.Has(save, st.Number) ? "이어하기" : cleared ? "재도전" : "출전";
                 r.ButtonImage.color = !unlocked ? UiFactory.InkSoft : cleared ? new Color(0.35f, 0.35f, 0.32f, 1f) : UiFactory.Red;
                 r.Button.interactable = unlocked;
             }

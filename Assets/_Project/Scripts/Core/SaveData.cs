@@ -25,6 +25,8 @@ namespace BiRyeoDo.Core
         public List<BondEntry> Bonds = new List<BondEntry>();   // 인연 per companion (additive field)
         public List<string> DoneQuests = new List<string>();     // 의뢰 already completed (additive field)
         public List<string> DoneFortunes = new List<string>();   // 기연 already resolved (additive field)
+        public int ProgressStage, ProgressNext;                    // resume point inside a stage (see StageProgress)
+        public List<MemberHp> ProgressHp = new List<MemberHp>();
         public int SwordRank;           // 검룡위 (1-10), see Promotion; 0 in older saves counts as 1
 
         public List<string> LearnedArts = new List<string>();
