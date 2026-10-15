@@ -563,6 +563,14 @@ namespace BiRyeoDo.Game.UI
                 RefreshCommands();
                 RefreshTurnOrder();
 
+                // First-time hints (battle controls, 합공) appear right when they become relevant.
+                if (!_fled && HelpPanel.Instance != null)
+                {
+                    var save0 = GameManager.Instance.Save;
+                    string hint = !Tutorial.IsDone(save0, "battle") ? "battle" : _jointPartners.Count > 0 && !Tutorial.IsDone(save0, "joint") ? "joint" : null;
+                    if (hint != null) yield return HelpPanel.Instance.ShowOnce(hint);
+                }
+
                 _hasCommand = false;
                 while (!_hasCommand && !_fled) yield return null;
                 if (_fled) yield break;
@@ -583,7 +591,12 @@ namespace BiRyeoDo.Game.UI
                     GameManager.Instance.SaveNow();
                 }
                 yield return PlayEvents(events);
-                if (_masteryNotice != null) { string note = _masteryNotice; _masteryNotice = null; yield return Banner(note, 1.2f); }
+                if (_masteryNotice != null)
+                {
+                    string note = _masteryNotice; _masteryNotice = null;
+                    yield return Banner(note, 1.2f);
+                    if (HelpPanel.Instance != null) yield return HelpPanel.Instance.ShowOnce("mastery");
+                }
                 actions++;
                 if (turnLimit > 0 && actions >= turnLimit && !_battle.IsOver) { _drawn = true; break; }
             }

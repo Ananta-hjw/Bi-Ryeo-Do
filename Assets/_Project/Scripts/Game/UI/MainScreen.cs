@@ -84,8 +84,13 @@ namespace BiRyeoDo.Game.UI
                 });
             });
 
+            // Help card sits above everything (tutorial hints and the help list)
+            var helpHost = UiFactory.Rect("HelpHost", safe, Vector2.zero, Vector2.one);
+            helpHost.gameObject.AddComponent<HelpPanel>().Build(helpHost);
+
             Select((int)_router.startTab);
             SoundManager.Bgm("lobby");
+            StartCoroutine(HelpPanel.Instance.ShowOnce("intro"));
         }
 
         private void BuildTabBar(RectTransform parent)

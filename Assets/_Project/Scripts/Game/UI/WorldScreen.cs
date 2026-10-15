@@ -274,7 +274,9 @@ namespace BiRyeoDo.Game.UI
             ToggleRow("진동", st.Vibration ? "켜짐" : "꺼짐", ref y, () => { st.Vibration = !st.Vibration; if (st.Vibration) SoundManager.Haptic(60); });
             ToggleRow("전투 시작 속도", "x" + st.BattleSpeed, ref y, () => { st.BattleSpeed = st.NextSpeed(); });
 
-            y -= 0.04f;
+            var help = UiFactory.Button("Help", _settingsOverlay, new Vector2(0.08f, y - 0.09f), new Vector2(0.92f, y), "도움말", UiFactory.Red, OpenHelpList, 34);
+            help.interactable = true;
+            y -= 0.14f;
             var reset = UiFactory.Button("Reset", _settingsOverlay, new Vector2(0.08f, y - 0.09f), new Vector2(0.92f, y),
                 _confirmReset ? "정말 초기화할까요? 한 번 더 누르면 모든 진행이 사라집니다" : "저장 데이터 초기화", _confirmReset ? UiFactory.Red : UiFactory.InkSoft, OnResetPressed, 28);
             reset.interactable = true;
@@ -282,6 +284,20 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Info", _settingsOverlay, new Vector2(0.06f, 0.12f), new Vector2(0.94f, 0.22f),
                 "소리 파일(Resources/Audio)을 넣으면 효과음과 배경음이 자동으로 나온다. 파일이 없으면 조용히 넘어간다.", 22, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
             UiFactory.Button("Close", _settingsOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { GameManager.Instance.SaveNow(); _settingsOverlay.gameObject.SetActive(false); Refresh(); }, 36);
+        }
+
+        private void OpenHelpList()
+        {
+            ClearChildren(_settingsOverlay);
+            UiFactory.Label("Title", _settingsOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "도움말", 44, UiFactory.Gold);
+            float y = 0.88f;
+            foreach (var topic in Tutorial.All)
+            {
+                var id = topic.Id;
+                UiFactory.Button("Topic_" + id, _settingsOverlay, new Vector2(0.08f, y - 0.085f), new Vector2(0.92f, y), topic.Title, UiFactory.InkSoft, () => HelpPanel.Instance.Show(id), 34);
+                y -= 0.10f;
+            }
+            UiFactory.Button("Back", _settingsOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "돌아가기", UiFactory.InkSoft, BuildSettings, 36);
         }
 
         private void VolumeRow(string label, float value, ref float y, Action<int> change)
@@ -522,6 +538,9 @@ namespace BiRyeoDo.Game.UI
             int openQuests = Quests.Open(save).Count, openFortunes = Fortunes.Open(save).Count;
             _questRowDetail.text = openQuests > 0 ? "받을 수 있는 의뢰 " + openQuests + "건" : "새 의뢰 없음 (스테이지를 돌파하면 늘어난다)";
             _fortuneRowDetail.text = openFortunes > 0 ? "마주칠 기연 " + openFortunes + "건" : "새 기연 없음";
+            if (openQuests + openFortunes > 0 && HelpPanel.Instance != null && !HelpPanel.Instance.IsOpen && !Tutorial.IsDone(save, "board")
+                && Tutorial.IsDone(save, "intro"))
+                HelpPanel.Instance.Show("board", true);
             SetBadge(_questBadge, openQuests);
             SetBadge(_fortuneBadge, openFortunes);
             SetBadge(_promoBadge, 0);

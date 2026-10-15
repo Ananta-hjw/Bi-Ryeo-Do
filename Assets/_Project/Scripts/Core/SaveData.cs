@@ -28,6 +28,7 @@ namespace BiRyeoDo.Core
         public int ProgressStage, ProgressNext;                    // resume point inside a stage (see StageProgress)
         public List<MemberHp> ProgressHp = new List<MemberHp>();
         public GameSettings Settings = new GameSettings();         // options (additive field)
+        public List<string> TutorialDone = new List<string>();     // help topics already shown (additive field)
         public int SwordRank;           // 검룡위 (1-10), see Promotion; 0 in older saves counts as 1
 
         public List<string> LearnedArts = new List<string>();
