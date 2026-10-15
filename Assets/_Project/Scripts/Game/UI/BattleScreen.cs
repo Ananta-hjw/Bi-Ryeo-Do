@@ -60,7 +60,7 @@ namespace BiRyeoDo.Game.UI
         private readonly List<Text> _turnLabels = new List<Text>();
         private readonly List<EnemyCard> _cards = new List<EnemyCard>();
         private readonly List<PartyPanel> _panels = new List<PartyPanel>();
-        private readonly CommandButton[] _commands = new CommandButton[9];
+        private readonly CommandButton[] _commands = new CommandButton[10];   // 0 attack, 1-4 arts, 5 guard, 6 meditate, 7 item, 8 joint, 9 필살기
 
         // story / result panels
         private GameObject _panel;
@@ -615,8 +615,15 @@ namespace BiRyeoDo.Game.UI
         private static List<SkillSpec> ArtsOf(Combatant member)
         {
             var list = new List<SkillSpec>();
-            foreach (var s in member.Skills) if (s.Id != "basic") list.Add(s);
+            foreach (var s in member.Skills) if (s.Id != "basic" && s.SpiritCost <= 0) list.Add(s);
             return list;
+        }
+
+        /// <summary>The unit's 기세 100 art (shown on the dedicated 필살기 button), or null.</summary>
+        private static SkillSpec UltimateOf(Combatant member)
+        {
+            foreach (var s in member.Skills) if (s.Id != "basic" && s.SpiritCost > 0) return s;
+            return null;
         }
 
         private List<Combatant> CreateParty(StageData stage)
@@ -626,7 +633,12 @@ namespace BiRyeoDo.Game.UI
             foreach (var id in save.EquippedArts)
             {
                 var art = EarlyGameContent.FindArt(id);
-                if (art != null && art.OwnerId == null && skills.Count < Progression.MaxEquippedArts) skills.Add(Mastery.Apply(save, art));
+                if (art == null || art.OwnerId != null) continue;
+                // Ordinary arts fill four slots; one 비기 gets the dedicated 필살기 button (saves from older versions may hold more).
+                bool ultimate = Progression.IsUltimate(art);
+                int have = 0;
+                foreach (var s in skills) if ((s.SpiritCost > 0) == ultimate) have++;
+                if (have < (ultimate ? Progression.MaxEquippedUltimates : Progression.MaxEquippedArts)) skills.Add(Mastery.Apply(save, art));
             }
             var stats = InnerArts.HeroStats(save);
             var hero = new Combatant("player", "비류연", Team.Player, stats, skills);
@@ -889,12 +901,14 @@ namespace BiRyeoDo.Game.UI
                 }
                 SetCommand(7, "취소", "", true);
                 _commands[8].Root.SetActive(false);
+                _commands[9].Root.SetActive(false);
                 return;
             }
 
             if (_itemMode)
             {
                 _commands[8].Root.SetActive(false);
+                _commands[9].Root.SetActive(false);
                 var items = UsableItems();
                 for (int i = 0; i < 7; i++)
                 {
@@ -924,6 +938,13 @@ namespace BiRyeoDo.Game.UI
             SetCommand(7, "아이템", UsableItems().Count > 0 ? "" : "없음", UsableItems().Count > 0);
 
             RefreshJointPartners();
+            var ult = UltimateOf(me);
+            if (ult == null) _commands[9].Root.SetActive(false);
+            else
+            {
+                bool ready = _battle.CanUse(ult);
+                SetCommand(9, "필살기\n" + ult.Name, ready ? "기세 " + ult.SpiritCost : "기세 " + Mathf.Min(me.Spirit, ult.SpiritCost) + "/" + ult.SpiritCost, ready);
+            }
             if (_jointPartners.Count == 0) _commands[8].Root.SetActive(false);
             else SetCommand(8, "합공", me.Spirit >= InteractiveBattle.JointSpiritCost ? "기세 " + InteractiveBattle.JointSpiritCost : "기세 부족", me.Spirit >= InteractiveBattle.JointSpiritCost);
         }
@@ -966,7 +987,7 @@ namespace BiRyeoDo.Game.UI
             c.Root.SetActive(true);
             c.Label.text = name + (string.IsNullOrEmpty(sub) ? "" : "\n" + sub);
             c.Button.interactable = enabled;
-            c.Image.color = enabled ? (slot == 5 ? new Color(0.25f, 0.40f, 0.55f, 1f) : slot == 6 ? new Color(0.25f, 0.45f, 0.35f, 1f) : UiFactory.Red) : Disabled;
+            c.Image.color = enabled ? (slot == 5 ? new Color(0.25f, 0.40f, 0.55f, 1f) : slot == 6 ? new Color(0.25f, 0.45f, 0.35f, 1f) : slot == 9 ? new Color(0.72f, 0.50f, 0.10f, 1f) : UiFactory.Red) : Disabled;
         }
 
         // ------------------------------------------------------------------ long-press tips
@@ -1049,6 +1070,11 @@ namespace BiRyeoDo.Game.UI
             {
                 var arts = ArtsOf(me);
                 if (slot - 1 < arts.Count) ShowTip(arts[slot - 1].Name, SkillBody(arts[slot - 1]));
+            }
+            else if (slot == 9)
+            {
+                var ultimateSkill = UltimateOf(me);
+                if (ultimateSkill != null) ShowTip("필살기 · " + ultimateSkill.Name, SkillBody(ultimateSkill) + "\n기세가 가득 차면 쓸 수 있다.");
             }
             else if (slot == 5) ShowTip("방어", "다음 차례까지 받는 피해가 크게 줄어든다(피해 60% 감소). 기세가 조금 오른다.");
             else if (slot == 6) ShowTip("운기", "내공 +" + InteractiveBattle.MeditateQi + "과 체력을 조금 회복한다.");
@@ -1136,6 +1162,12 @@ namespace BiRyeoDo.Game.UI
                 int i = slot - 1;
                 if (i >= arts.Count || !_battle.CanUse(arts[i])) return;
                 _command = PlayerCommand.UseSkill(arts[i], targetUnit);
+            }
+            else if (slot == 9)
+            {
+                var ultimateSkill = UltimateOf(me);
+                if (ultimateSkill == null || !_battle.CanUse(ultimateSkill)) return;
+                _command = PlayerCommand.UseSkill(ultimateSkill, targetUnit);
             }
             else if (slot == 8)
             {

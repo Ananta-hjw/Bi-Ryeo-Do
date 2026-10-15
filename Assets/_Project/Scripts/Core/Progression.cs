@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 
 namespace BiRyeoDo.Core
@@ -5,7 +6,43 @@ namespace BiRyeoDo.Core
     /// <summary>Growth rules: leveling and the stat curve. Numbers are placeholders to tune in Docs/GAME_DESIGN.md.</summary>
     public static class Progression
     {
-        public const int MaxEquippedArts = 4;
+        public const int MaxEquippedArts = 4;            // ordinary arts (the 필살기 has its own slot)
+        public const int MaxEquippedUltimates = 1;       // one 비기 (기세 100) in the dedicated 필살기 button
+
+        public static bool IsUltimate(ArtData art) { return art != null && art.SpiritCost > 0; }
+
+        public static int EquippedCount(SaveData save, bool ultimates)
+        {
+            int n = 0;
+            foreach (var id in save.EquippedArts)
+            {
+                var art = EarlyGameContent.FindArt(id);
+                if (art != null && art.OwnerId == null && IsUltimate(art) == ultimates) n++;
+            }
+            return n;
+        }
+
+        /// <summary>Equips an art into its slot kind. A new 비기 replaces the equipped one (returned in <paramref name="replacedId"/>); ordinary arts stop at the cap and return false.</summary>
+        public static bool EquipArt(SaveData save, ArtData art, out string replacedId)
+        {
+            replacedId = null;
+            if (art == null || art.OwnerId != null || save.EquippedArts.Contains(art.Id)) return false;
+            if (IsUltimate(art))
+            {
+                foreach (var id in new List<string>(save.EquippedArts))
+                {
+                    var other = EarlyGameContent.FindArt(id);
+                    if (other != null && other.OwnerId == null && IsUltimate(other) && EquippedCount(save, true) >= MaxEquippedUltimates)
+                    {
+                        save.EquippedArts.Remove(id);
+                        replacedId = id;
+                    }
+                }
+            }
+            else if (EquippedCount(save, false) >= MaxEquippedArts) return false;
+            save.EquippedArts.Add(art.Id);
+            return true;
+        }
 
         public static long ExpToNext(int level)
         {

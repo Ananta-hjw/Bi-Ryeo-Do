@@ -41,7 +41,10 @@ namespace BiRyeoDo.Game.Systems
             }
             if (Save.EquippedArts.Count == 0)
                 foreach (var id in Save.LearnedArts)
-                    if (Save.EquippedArts.Count < Progression.MaxEquippedArts) Save.EquippedArts.Add(id);
+                {
+                    string replaced;
+                    Progression.EquipArt(Save, EarlyGameContent.FindArt(id), out replaced);
+                }
         }
 
         public void SaveNow() { SaveService.Save(Save); }

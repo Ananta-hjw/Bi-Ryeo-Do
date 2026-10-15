@@ -86,7 +86,8 @@ namespace BiRyeoDo.Game.UI
                 if (save.HighestUnlockedStage < art.UnlockStage || save.Doo < art.LearnCost) return;
                 save.Doo -= art.LearnCost;
                 save.LearnedArts.Add(art.Id);
-                if (save.EquippedArts.Count < Progression.MaxEquippedArts) save.EquippedArts.Add(art.Id);
+                string learnedReplaced;
+                Progression.EquipArt(save, art, out learnedReplaced);
                 _hint.text = art.Name + " 습득!";
             }
             else if (save.EquippedArts.Contains(art.Id))
@@ -94,14 +95,15 @@ namespace BiRyeoDo.Game.UI
                 save.EquippedArts.Remove(art.Id);
                 _hint.text = art.Name + " 장착 해제";
             }
-            else if (save.EquippedArts.Count < Progression.MaxEquippedArts)
-            {
-                save.EquippedArts.Add(art.Id);
-                _hint.text = art.Name + " 장착";
-            }
             else
             {
-                _hint.text = "장착 한도(" + Progression.MaxEquippedArts + "개) 초과 — 먼저 하나를 해제하세요.";
+                string replaced;
+                if (Progression.EquipArt(save, art, out replaced))
+                {
+                    var old = replaced != null ? EarlyGameContent.FindArt(replaced) : null;
+                    _hint.text = art.Name + " 장착" + (old != null ? " (필살기 " + old.Name + " 해제)" : "");
+                }
+                else _hint.text = "장착 한도(" + Progression.MaxEquippedArts + "개) 초과 — 먼저 하나를 해제하세요.";
             }
             GameManager.Instance.SaveNow();
             Refresh();
@@ -157,7 +159,7 @@ namespace BiRyeoDo.Game.UI
         private void Refresh()
         {
             var save = GameManager.Instance.Save;
-            _header.text = "무공 · 장착 " + save.EquippedArts.Count + "/" + Progression.MaxEquippedArts + " · " + save.Doo.ToString("N0") + "두";
+            _header.text = "무공 · 장착 " + Progression.EquippedCount(save, false) + "/" + Progression.MaxEquippedArts + " · 필살 " + Progression.EquippedCount(save, true) + "/" + Progression.MaxEquippedUltimates + " · " + save.Doo.ToString("N0") + "두";
             if (string.IsNullOrEmpty(_hint.text)) _hint.text = "숙련(사용 횟수): " + Mastery.ConditionText();
 
             foreach (var r in _rows)
