@@ -21,6 +21,7 @@ namespace BiRyeoDo.Core
         public static readonly string[] LevelNames = { "서먹", "친분", "신뢰", "의기투합" };
         public const float PowerPerLevel = 0.10f;
         public const float JointBasePower = 1.1f;
+        public const float JointReferenceFactor = 0.5f;   // each strike is half of the protagonist's strongest art, so 합공 keeps up with later arts
 
         public static int LevelOf(int points)
         {
@@ -50,13 +51,27 @@ namespace BiRyeoDo.Core
             return after > before ? after : -1;
         }
 
-        /// <summary>The 합공 skill for a companion at a bond level (null below 친분).</summary>
-        public static SkillSpec JointSpec(CompanionData companion, int level)
+        /// <summary>Strongest single-skill power (power x hits) among a member's non-ultimate attack arts; 0 when there are none.</summary>
+        public static float ReferencePower(System.Collections.Generic.IEnumerable<SkillSpec> skills)
+        {
+            float best = 0f;
+            foreach (var sk in skills)
+            {
+                if (sk.SpiritCost > 0 || sk.Id == "basic") continue;
+                if (sk.Effect != SkillEffect.None && sk.Effect != SkillEffect.Stun) continue;
+                best = Math.Max(best, sk.Power * Math.Max(1, sk.Hits));
+            }
+            return best;
+        }
+
+        /// <summary>The 합공 skill for a companion at a bond level (null below 친분). <paramref name="referencePower"/> scales it with the protagonist's best art.</summary>
+        public static SkillSpec JointSpec(CompanionData companion, int level, float referencePower = 0f)
         {
             if (companion == null || level < 1 || string.IsNullOrEmpty(companion.JointName)) return null;
+            float basePower = Math.Max(JointBasePower, referencePower * JointReferenceFactor);
             return new SkillSpec
             {
-                Id = "joint", Name = companion.JointName, Power = JointBasePower * companion.JointPower * (1f + PowerPerLevel * (level - 1)),
+                Id = "joint", Name = companion.JointName, Power = basePower * companion.JointPower * (1f + PowerPerLevel * (level - 1)),
                 Effect = companion.JointEffect, HealPct = 0.20f
             };
         }

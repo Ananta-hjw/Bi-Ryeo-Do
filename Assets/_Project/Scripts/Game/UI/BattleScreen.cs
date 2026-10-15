@@ -919,7 +919,7 @@ namespace BiRyeoDo.Game.UI
         private void IssueJoint(Combatant partner, Combatant target)
         {
             var companion = EarlyGameContent.FindCompanion(partner.Id);
-            var spec = Bonds.JointSpec(companion, Bonds.Level(GameManager.Instance.Save, partner.Id));
+            var spec = Bonds.JointSpec(companion, Bonds.Level(GameManager.Instance.Save, partner.Id), Bonds.ReferencePower(_battle.Player.Skills));
             if (spec == null || !_battle.CanJoint(partner)) return;
             _jointName = spec.Name;
             _command = PlayerCommand.Joint(spec, partner, target);

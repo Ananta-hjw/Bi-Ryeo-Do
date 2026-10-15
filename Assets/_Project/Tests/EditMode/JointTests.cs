@@ -84,5 +84,17 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(1, events.Count(e => e.Joint && e.Kind == EventKind.Attack));
             Assert.IsTrue(b.PlayerWon);
         }
+
+        [Test]
+        public void JointPowerScalesWithTheProtagonistsBestArt()
+        {
+            var hyo = EarlyGameContent.FindCompanion("hyo_ryong");
+            var strong = new[] { new SkillSpec { Id = "a", Power = 8f }, new SkillSpec { Id = "b", Power = 3f, Hits = 2 }, new SkillSpec { Id = "u", Power = 20f, SpiritCost = 100 } };
+            Assert.AreEqual(8f, Bonds.ReferencePower(strong), 0.001f);   // ultimates are ignored
+            var early = Bonds.JointSpec(hyo, 1);
+            var late = Bonds.JointSpec(hyo, 1, 8f);
+            Assert.Greater(late.Power, early.Power);
+            Assert.AreEqual(4f, late.Power, 0.001f);
+        }
     }
 }
