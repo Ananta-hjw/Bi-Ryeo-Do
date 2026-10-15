@@ -70,8 +70,8 @@ namespace BiRyeoDo.Core
 
         // Attack multipliers per floor (index = floor, 0..TunedFloors), fitted with the balance bot so that a party whose level equals
         // the floor level wins most of the time on normal floors and about half the time on bosses.
-        public static float[] NormalAtk = { 6.6f, 6.6f, 6.6f, 6.6f, 6.6f, 6.6f, 6.16f, 5.5f, 3.3f, 3.3f, 3.3f, 3.41f, 3.41f, 3.41f, 3.41f, 3.41f, 3.41f, 3.3f, 2.53f, 2.53f, 2.53f, 2.64f, 2.64f, 2.64f, 2.64f };
-        public static float[] BossAtk = { 5.5f, 5.5f, 5.5f, 5.5f, 5.5f, 4.73f, 4.73f, 4.73f, 4.73f, 4.73f, 5.28f, 4.4f, 3.85f, 3.52f, 3.3f, 3.19f, 3.08f, 2.86f, 2.64f, 2.53f, 2.42f, 2.53f, 2.53f, 2.53f, 2.53f };
+        public static float[] NormalAtk = { 16.5f, 16.5f, 16.5f, 16.5f, 16.5f, 16.5f, 15.4f, 13.75f, 8.25f, 8.25f, 8.25f, 8.53f, 8.53f, 8.53f, 8.53f, 8.53f, 8.53f, 8.25f, 6.32f, 6.32f, 6.32f, 6.6f, 6.6f, 6.6f, 6.6f };
+        public static float[] BossAtk = { 13.75f, 13.75f, 13.75f, 13.75f, 13.75f, 11.83f, 11.83f, 11.83f, 11.83f, 11.83f, 13.2f, 11f, 9.62f, 8.8f, 8.25f, 7.97f, 7.7f, 7.15f, 6.6f, 6.32f, 6.05f, 6.32f, 6.32f, 6.32f, 6.32f };
 
         /// <summary>Test hook for tuning: when set, replaces the fitted attack multiplier of a floor.</summary>
         public static Dictionary<int, float> AtkOverride;

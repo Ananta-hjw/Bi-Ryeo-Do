@@ -74,6 +74,9 @@ namespace BiRyeoDo.Core
         public SkillEffect JointEffect;          // None, Stun, GuardParty or HealAlly riding on the joint strike
         public float JointPower = 1f;
 
+        /// <summary>Companions' own arts hit and heal harder than the listed numbers (they were too weak next to the protagonist).</summary>
+        public const float ArtPowerFactor = 1.4f;
+
         public Combatant CreateCombatant(int level)
         {
             var b = Progression.AllyStatsFor(level);
@@ -88,7 +91,14 @@ namespace BiRyeoDo.Core
                 CritDamage = 1.5f
             };
             var skills = new List<SkillSpec>();
-            foreach (var a in EarlyGameContent.Arts) if (a.OwnerId == Id) skills.Add(a.ToSpec());
+            foreach (var a in EarlyGameContent.Arts)
+            {
+                if (a.OwnerId != Id) continue;
+                var spec = a.ToSpec();
+                spec.Power *= ArtPowerFactor;
+                spec.HealPct *= ArtPowerFactor;
+                skills.Add(spec);
+            }
             return new Combatant(Id, Name, Team.Player, stats, skills);
         }
     }

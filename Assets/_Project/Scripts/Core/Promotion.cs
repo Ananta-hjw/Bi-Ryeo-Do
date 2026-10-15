@@ -72,7 +72,7 @@ namespace BiRyeoDo.Core
             return stageNumber < GateStage || EffectiveRank(save) >= GateRank;
         }
 
-        public static long BaseDoo(int rank) { return (long)Math.Round(150 * Math.Pow(rank, 1.5)); }
+        public static long BaseDoo(int rank) { return (long)Math.Round(500 * Math.Pow(rank, 1.6)); }
 
         public static List<int> TargetRanks(SaveData save)
         {
@@ -96,8 +96,8 @@ namespace BiRyeoDo.Core
                 TargetRank = targetRank, Tier = tier, Skip = skip,
                 Title = RankName(targetRank) + " 승급 · " + TierName[tier] + (skip ? " (월반)" : ""),
                 DooReward = doo,
-                Fee = doo / 4,
-                ExpReward = (long)Math.Round(Progression.ExpToNext(Math.Max(lvl, save.Level)) * 0.12 * TierPay[tier]),
+                Fee = doo / 6,
+                ExpReward = (long)Math.Round(Progression.ExpToNext(Math.Max(lvl, save.Level)) * 0.45 * TierPay[tier]),
                 Opponents = new[] { MakeOpponent(targetRank, tier, 0, save.Level), MakeOpponent(targetRank, tier, 1, save.Level) }
             };
         }
