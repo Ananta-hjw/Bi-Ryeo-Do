@@ -11,7 +11,7 @@ namespace BiRyeoDo.Core
         public static readonly double[] Rates = { 0.60, 0.20, 0.10, 0.06, 0.03, 0.01 };
 
         /// <summary>두 gained when a duplicate piece of gear is pulled (it is dismantled instead of stacking).</summary>
-        public static readonly long[] DismantleDoo = { 100, 300, 800, 2000, 5000, 12000 };
+        public static readonly long[] DismantleDoo = { 20, 60, 160, 400, 1000, 2400 };
 
         public static string NameOf(ItemGrade grade) { return Names[(int)grade]; }
     }
