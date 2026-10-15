@@ -29,6 +29,11 @@ namespace BiRyeoDo.Game.UI
         private RectTransform _content;
         private int _filter;                       // 0 all, 1 gear, 2 consumables, 3 materials & keys
         private readonly Image[] _filterTabs = new Image[4];
+        private int _gearFilter;                   // within 장비: 0 all, 1 weapon, 2 armor, 3 accessory
+        private readonly Image[] _gearTabs = new Image[4];
+        private static readonly string[] GearFilterNames = { "전체", "무기", "방어구", "장신구" };
+        private RectTransform _viewport;
+        private GameObject _gearTabRow;
         private static readonly string[] FilterNames = { "전체", "장비", "소모품", "재료" };
         private bool _built;
 
@@ -51,8 +56,19 @@ namespace BiRyeoDo.Game.UI
                 _filterTabs[t] = btn.GetComponent<Image>();
             }
 
+            // Second row, only on the 장비 tab: weapon / armor / accessory
+            _gearTabRow = UiFactory.Rect("GearTabs", root, new Vector2(0f, 0.718f), new Vector2(1f, 0.774f)).gameObject;
+            for (int t = 0; t < GearFilterNames.Length; t++)
+            {
+                int tab = t;
+                float x0 = 0.04f + t * 0.24f;
+                var btn = UiFactory.Button("GearFilter" + t, _gearTabRow.transform, new Vector2(x0, 0.04f), new Vector2(x0 + 0.225f, 0.96f), GearFilterNames[t], UiFactory.InkSoft, () => { _gearFilter = tab; Refresh(); }, 26);
+                _gearTabs[t] = btn.GetComponent<Image>();
+            }
+
             // The bag scrolls: it can hold more stacks than fit on one screen.
             var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, 0.772f));
+            _viewport = viewport;
             viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
             viewport.gameObject.AddComponent<RectMask2D>();
             _content = UiFactory.Rect("Content", viewport, new Vector2(0f, 1f), new Vector2(1f, 1f));
@@ -181,7 +197,9 @@ namespace BiRyeoDo.Game.UI
         {
             switch (_filter)
             {
-                case 1: return item.IsGear;
+                case 1:
+                    if (!item.IsGear) return false;
+                    return _gearFilter == 0 || (_gearFilter == 1 && item.Kind == ItemKind.Weapon) || (_gearFilter == 2 && item.Kind == ItemKind.Armor) || (_gearFilter == 3 && item.Kind == ItemKind.Accessory);
                 case 2: return item.Kind == ItemKind.Consumable;
                 case 3: return item.Kind == ItemKind.Material || item.Kind == ItemKind.Key;
                 default: return true;
@@ -218,6 +236,9 @@ namespace BiRyeoDo.Game.UI
                 .ThenBy(s => EarlyGameContent.FindItem(s.Id).Name)
                 .Where(s => PassesFilter(EarlyGameContent.FindItem(s.Id)))
                 .ToList();
+            _gearTabRow.SetActive(_filter == 1);
+            _viewport.anchorMax = new Vector2(1f, _filter == 1 ? 0.714f : 0.772f);
+            for (int t = 0; t < _gearTabs.Length; t++) _gearTabs[t].color = t == _gearFilter ? new Color(0.56f, 0.44f, 0.22f, 1f) : UiFactory.InkSoft;
             for (int t = 0; t < _filterTabs.Length; t++) _filterTabs[t].color = t == _filter ? new Color(0.56f, 0.44f, 0.22f, 1f) : UiFactory.InkSoft;
 
             _content.sizeDelta = new Vector2(0f, Mathf.Min(stacks.Count, MaxRows) * (RowH + RowGap) + RowGap);
