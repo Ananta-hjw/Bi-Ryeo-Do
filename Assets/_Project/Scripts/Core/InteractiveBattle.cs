@@ -125,6 +125,7 @@ namespace BiRyeoDo.Core
         /// <summary>Runs enemy turns until a party member may act. Call once at the start of the fight.</summary>
         public List<BattleEvent> Begin()
         {
+            foreach (var m in _party) m.RescueUsed = false;
             foreach (var m in _party) if (m.Spirit < m.StartSpirit) m.Spirit = m.StartSpirit;
             return RunUntilParty();
         }
@@ -437,6 +438,7 @@ namespace BiRyeoDo.Core
                     int dmg = BattleEngine.CalcDamage(enemy.Stats, target.Stats, spec, ev.IsCrit);
                     if (target.Guarding) { dmg = Math.Max(1, (int)Math.Round(dmg * GuardDamageFactor)); ev.Guarded = true; }
                     target.Hp = Math.Max(0, target.Hp - dmg);
+                    if (target.Hp == 0) TryRescue(target, ev);
                     ev.Damage = dmg;
                     ev.TargetHpAfter = target.Hp;
                     ev.TargetDefeated = !target.IsAlive;
@@ -445,6 +447,20 @@ namespace BiRyeoDo.Core
                 events.Add(ev);
             }
             if (hurt) target.Spirit = Math.Min(MaxSpirit, target.Spirit + SpiritOnTaken + target.SpiritTakenBonus);
+        }
+
+        /// <summary>A bonded companion (의기투합) throws herself between the protagonist and a killing blow, once per fight.</summary>
+        private bool TryRescue(Combatant victim, BattleEvent ev)
+        {
+            if (victim.RescueUsed || string.IsNullOrEmpty(victim.RescuerId)) return false;
+            Combatant rescuer = null;
+            foreach (var m in _party) if (m.Id == victim.RescuerId && m.IsAlive && m != victim) rescuer = m;
+            if (rescuer == null) return false;
+            victim.RescueUsed = true;
+            victim.Hp = Math.Max(1, (int)Math.Round(victim.Stats.MaxHp * Bonds.RescueHpPct));
+            ev.Rescued = true;
+            ev.Message = rescuer.Name + "(이)가 몸을 던져 구했다!";
+            return true;
         }
 
         private Combatant NextActor()

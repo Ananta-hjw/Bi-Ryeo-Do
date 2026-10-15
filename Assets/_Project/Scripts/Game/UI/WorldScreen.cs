@@ -428,7 +428,7 @@ namespace BiRyeoDo.Game.UI
                 gy -= 0.038f;
                 foreach (var c in party)
                 {
-                    var l = StatusSheet.Ally(c, save.Level);
+                    var l = StatusSheet.Ally(c, save.Level, Bonds.Level(save, c.Id));
                     UiFactory.Label("Ally_" + c.Id, _statusOverlay, new Vector2(0.06f, gy - 0.033f), new Vector2(0.94f, gy),
                         c.Name + "   체력 " + l[0].Value + "  내공 " + l[1].Value + "  공격 " + l[2].Value + "  방어 " + l[3].Value, 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
                     gy -= 0.033f;
@@ -721,7 +721,7 @@ namespace BiRyeoDo.Game.UI
                 bool on = active.Contains(c);
                 var band = UiFactory.Panel("Card", _partyOverlay, new Vector2(0.05f, y - 0.10f), new Vector2(0.95f, y), UiFactory.Ink);
                 UiFactory.Label("Name", band.transform, new Vector2(0.03f, 0.52f), new Vector2(0.64f, 0.97f), c.Name, 36, on ? UiFactory.Gold : UiFactory.PaperText, TextAnchor.MiddleLeft);
-                UiFactory.Label("Role", band.transform, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.52f), c.Role, 24, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Role", band.transform, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.52f), c.Role + "  ·  인연 " + Bonds.LevelNames[Bonds.Level(save, c.Id)] + " (" + Bonds.BonusText(Bonds.Level(save, c.Id)) + ")", 20, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var companion = c;
                 UiFactory.Button("Toggle", band.transform, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), on ? "출전" : "대기", on ? UiFactory.Red : UiFactory.InkSoft, () => ToggleCompanion(companion), 32);
                 y -= 0.11f;

@@ -24,6 +24,8 @@ namespace BiRyeoDo.Core
         // 심법 perks (protagonist only, see InnerArts)
         public int QiRegenBonus, SpiritDealtBonus, SpiritTakenBonus, StartSpirit;
         public float Lifesteal;            // share of dealt damage healed
+        public string RescuerId;           // 의기투합 companion who can save this unit once per fight (protagonist only)
+        public bool RescueUsed;
         public bool Guarding;              // damage taken is reduced until this unit's next turn
         public bool Evading;               // all hits miss until this unit's next turn
         public bool Charging;              // enemy is winding up its next move (telegraph)

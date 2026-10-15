@@ -77,17 +77,18 @@ namespace BiRyeoDo.Core
         /// <summary>Companions' own arts hit and heal harder than the listed numbers (they were too weak next to the protagonist).</summary>
         public const float ArtPowerFactor = 1.4f;
 
-        public Combatant CreateCombatant(int level)
+        public Combatant CreateCombatant(int level, int bondLevel = 0)
         {
             var b = Progression.AllyStatsFor(level);
+            float bond = Bonds.StatMultiplier(bondLevel);
             var stats = new CombatStats
             {
-                MaxHp = (int)Math.Round(b.MaxHp * HpMul),
+                MaxHp = (int)Math.Round(b.MaxHp * HpMul * bond),
                 MaxQi = b.MaxQi,
-                Attack = (int)Math.Round(b.Attack * AtkMul),
-                Defense = (int)Math.Round(b.Defense * DefMul),
+                Attack = (int)Math.Round(b.Attack * AtkMul * bond),
+                Defense = (int)Math.Round(b.Defense * DefMul * bond),
                 Speed = b.Speed + SpeedAdd,
-                CritRate = 0.02f,
+                CritRate = 0.02f + Bonds.CritBonus(bondLevel),
                 CritDamage = 1.5f
             };
             var skills = new List<SkillSpec>();

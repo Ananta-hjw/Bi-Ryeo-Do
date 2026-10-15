@@ -23,6 +23,25 @@ namespace BiRyeoDo.Core
         public const float JointBasePower = 2.0f;
         public const float JointReferenceFactor = 0.8f;   // each strike is 80% of the protagonist's strongest art, so 합공 keeps up with later arts
 
+        // What a deeper bond gives the companion himself (on top of the 합공 power above)
+        public const float StatPerLevel = 0.05f;      // 체력·공격·방어 +5% per bond level (친분 5%, 신뢰 10%, 의기투합 15%)
+        public const float CritFromTrust = 0.03f;      // 신뢰 and above: +3% 치명타
+        public const int RescueLevel = 3;             // 의기투합: once per fight the companion saves the protagonist from a killing blow
+        public const float RescueHpPct = 0.25f;
+
+        public static float StatMultiplier(int level) { return 1f + StatPerLevel * Math.Max(0, Math.Min(3, level)); }
+        public static float CritBonus(int level) { return level >= 2 ? CritFromTrust : 0f; }
+
+        /// <summary>One line describing what the current level gives, for the UI ("체력·공격·방어 +10%, 치명타 +3%").</summary>
+        public static string BonusText(int level)
+        {
+            if (level <= 0) return "인연이 쌓이면 능력이 오른다";
+            string t = "체력·공격·방어 +" + Math.Round(StatPerLevel * level * 100f) + "%";
+            if (level >= 2) t += ", 치명타 +" + Math.Round(CritFromTrust * 100f) + "%";
+            if (level >= RescueLevel) t += ", 위기 구원";
+            return t;
+        }
+
         public static int LevelOf(int points)
         {
             int level = 0;

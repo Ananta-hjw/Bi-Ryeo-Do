@@ -630,7 +630,12 @@ namespace BiRyeoDo.Game.UI
             var hero = new Combatant("player", "비류연", Team.Player, stats, skills);
             InnerArts.ApplyPerks(hero, save.EquippedInner);
             var party = new List<Combatant> { hero };
-            foreach (var c in EarlyGameContent.SelectCompanionsFor(stage.Number, save)) party.Add(c.CreateCombatant(save.Level));
+            foreach (var c in EarlyGameContent.SelectCompanionsFor(stage.Number, save))
+            {
+                int bondLevel = Bonds.Level(save, c.Id);
+                party.Add(c.CreateCombatant(save.Level, bondLevel));
+                if (bondLevel >= Bonds.RescueLevel && string.IsNullOrEmpty(hero.RescuerId)) hero.RescuerId = c.Id;
+            }
             return party;
         }
 
@@ -1204,6 +1209,12 @@ namespace BiRyeoDo.Game.UI
                     StartCoroutine(Shake(victim.Root, ev.Guarded ? 6f : 16f));
                     StartCoroutine(Flash(ev.Guarded ? 0.12f : 0.30f));
                     if (ev.TargetDefeated) victim.Status.text = "쓰러짐";
+                    if (ev.Rescued)
+                    {
+                        Float(victim.Center + new Vector2(0f, 0.07f), "구원!", UiFactory.Gold, 84);
+                        _log.text = ev.Message;
+                        SoundManager.Sfx("levelup");
+                    }
                 }
             }
             yield return new WaitForSeconds(Wait(ev.HitCount > 1 ? HitDelay : StepDelay));
