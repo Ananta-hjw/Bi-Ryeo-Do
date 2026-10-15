@@ -30,6 +30,7 @@ namespace BiRyeoDo.Core
         public GameSettings Settings = new GameSettings();         // options (additive field)
         public List<string> TutorialDone = new List<string>();     // help topics already shown (additive field)
         public List<string> BenchedCompanions = new List<string>();   // companions the player explicitly sat out (never auto-filled)
+        public int TowerBest;                                       // highest 무한 비무대 floor cleared (additive field)
         public int SwordRank;           // 검룡위 (1-10), see Promotion; 0 in older saves counts as 1
 
         public List<string> LearnedArts = new List<string>();

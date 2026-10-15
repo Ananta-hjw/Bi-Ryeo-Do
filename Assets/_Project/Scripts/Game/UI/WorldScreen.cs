@@ -19,7 +19,7 @@ namespace BiRyeoDo.Game.UI
         }
 
         private readonly List<Row> _rows = new List<Row>();
-        private Text _statusRowDetail, _lvText, _dooText, _rankText, _promoRowDetail, _partyRowDetail, _questRowDetail, _fortuneRowDetail;
+        private Text _towerRowDetail, _statusRowDetail, _lvText, _dooText, _rankText, _promoRowDetail, _partyRowDetail, _questRowDetail, _fortuneRowDetail;
         private Text _promoBadge, _partyBadge, _questBadge, _fortuneBadge, _featTitle, _featSub, _featBtnLabel;
         private UiFactory.Bar _expBar;
         private Image _featArt;
@@ -31,7 +31,7 @@ namespace BiRyeoDo.Game.UI
         private Text _lobbyGlyph, _lobbyName, _lobbyLine;
         private int _lobbyStep;
         private float _lobbyTimer;
-        private RectTransform _promoOverlay, _partyOverlay, _questOverlay, _fortuneOverlay, _settingsOverlay, _statusOverlay;
+        private RectTransform _promoOverlay, _partyOverlay, _questOverlay, _fortuneOverlay, _settingsOverlay, _statusOverlay, _towerOverlay;
         private bool _confirmReset;
         private Action<StageData> _onStart;
         private Action<PromotionOffer> _onPromote;
@@ -109,6 +109,10 @@ namespace BiRyeoDo.Game.UI
             _statusRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "상태창", OpenStatusOverlay, out statusBadge);
             statusBadge.transform.parent.gameObject.SetActive(false);
             y += 150f + gap;
+            Text towerBadge;
+            _towerRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "무한 비무대", OpenTowerOverlay, out towerBadge);
+            towerBadge.transform.parent.gameObject.SetActive(false);
+            y += 150f + gap;
 
             var sectionLabel = Place(content, 0.04f, 0.96f, y, labelH, new Color(0f, 0f, 0f, 0f));
             UiFactory.Label("Stages", sectionLabel, new Vector2(0f, 0f), new Vector2(1f, 1f), "— 스테이지 —", 36, UiFactory.Gold, TextAnchor.MiddleLeft);
@@ -159,6 +163,10 @@ namespace BiRyeoDo.Game.UI
             _statusOverlay = UiFactory.Rect("StatusOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
             _statusOverlay.gameObject.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
             _statusOverlay.gameObject.SetActive(false);
+
+            _towerOverlay = UiFactory.Rect("TowerOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
+            _towerOverlay.gameObject.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
+            _towerOverlay.gameObject.SetActive(false);
             Refresh();
         }
 
@@ -543,6 +551,54 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Button("Close", _questOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _questOverlay.gameObject.SetActive(false); Refresh(); }, 36);
         }
 
+        // ------------------------------------------------------------------ 무한 비무대
+
+        private void OpenTowerOverlay()
+        {
+            var save = GameManager.Instance.Save;
+            ClearChildren(_towerOverlay);
+            _towerOverlay.gameObject.SetActive(true);
+            UiFactory.Label("Title", _towerOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "무한 비무대", 44, UiFactory.Gold);
+            if (!Tower.Unlocked(save))
+            {
+                UiFactory.Label("Locked", _towerOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.75f),
+                    "스테이지 " + Tower.UnlockStage + "를 돌파하면 열린다.", 34, UiFactory.PaperText);
+            }
+            else
+            {
+                int floor = Tower.NextFloor(save);
+                bool boss = Tower.IsBossFloor(floor);
+                UiFactory.Label("Best", _towerOverlay, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.92f),
+                    "최고 기록 " + save.TowerBest + "층", 38, UiFactory.PaperText);
+                var card = UiFactory.Panel("Card", _towerOverlay, new Vector2(0.05f, 0.48f), new Vector2(0.95f, 0.82f), UiFactory.Ink);
+                UiFactory.Frame(card.transform, boss ? UiFactory.Red : UiFactory.Gold, 3f);
+                UiFactory.Label("Floor", card.transform, new Vector2(0.05f, 0.62f), new Vector2(0.95f, 0.96f), floor + "층" + (boss ? "  (우두머리)" : ""), 56, boss ? UiFactory.Red : UiFactory.Gold);
+                var enemies = Tower.BuildEnemies(floor);
+                var names = new List<string>();
+                foreach (var e in enemies) names.Add(e.Name);
+                var items = new List<string>();
+                foreach (var s in Tower.RewardItems(floor)) { var it = EarlyGameContent.FindItem(s.Id); if (it != null) items.Add(it.Name); }
+                UiFactory.Label("Info", card.transform, new Vector2(0.05f, 0.08f), new Vector2(0.95f, 0.62f),
+                    "상대: " + string.Join(", ", names) + "\n권장 Lv." + Tower.FloorLevel(floor)
+                    + "\n첫 돌파 보상: 두 " + Tower.RewardDoo(floor).ToString("N0") + (items.Count > 0 ? ", " + string.Join(", ", items) : "")
+                    + " + 경험", 28, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+                UiFactory.Button("Go", _towerOverlay, new Vector2(0.25f, 0.34f), new Vector2(0.75f, 0.44f), "도전", UiFactory.Red, () => StartTower(floor), 44);
+                if (save.TowerBest > 0)
+                {
+                    UiFactory.Label("Again", _towerOverlay, new Vector2(0.05f, 0.24f), new Vector2(0.95f, 0.30f), "이미 돌파한 층은 보상 없이 다시 겨룰 수 있다", 24, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+                    UiFactory.Button("Prev", _towerOverlay, new Vector2(0.25f, 0.15f), new Vector2(0.75f, 0.23f), save.TowerBest + "층 다시 도전", UiFactory.InkSoft, () => StartTower(save.TowerBest), 30);
+                }
+            }
+            UiFactory.Button("Close", _towerOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _towerOverlay.gameObject.SetActive(false); Refresh(); }, 36);
+            if (!Tutorial.IsDone(save, "tower") && HelpPanel.Instance != null && Tower.Unlocked(save)) HelpPanel.Instance.Show("tower", true);
+        }
+
+        private void StartTower(int floor)
+        {
+            _towerOverlay.gameObject.SetActive(false);
+            _onStart(Tower.ToStage(GameManager.Instance.Save, floor));
+        }
+
         private void AcceptQuest(QuestData q)
         {
             if (Quests.IsDone(GameManager.Instance.Save, q.Id)) return;
@@ -728,6 +784,7 @@ namespace BiRyeoDo.Game.UI
                 + (Promotion.EffectiveRank(save) < Promotion.GateRank ? "\n(" + Promotion.RankName(Promotion.GateRank) + " 이상이어야 삼성무제 참가)" : "");
             int openQuests = Quests.Open(save).Count, openFortunes = Fortunes.Open(save).Count;
             _questRowDetail.text = openQuests > 0 ? "받을 수 있는 의뢰 " + openQuests + "건" : "새 의뢰 없음 (스테이지를 돌파하면 늘어난다)";
+            _towerRowDetail.text = Tower.Unlocked(save) ? "최고 " + save.TowerBest + "층 · 다음 " + Tower.NextFloor(save) + "층" : "스테이지 " + Tower.UnlockStage + " 돌파 시 열린다";
             _fortuneRowDetail.text = openFortunes > 0 ? "마주칠 기연 " + openFortunes + "건" : "새 기연 없음";
             if (openQuests + openFortunes > 0 && HelpPanel.Instance != null && !HelpPanel.Instance.IsOpen && !Tutorial.IsDone(save, "board")
                 && Tutorial.IsDone(save, "intro"))

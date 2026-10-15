@@ -285,7 +285,7 @@ namespace BiRyeoDo.Game.UI
         {
             var save = GameManager.Instance.Save;
             _fled = false;
-            _stageLabel.text = "스테이지 " + stage.Number + " · " + stage.Name;
+            _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + stage.Name;
             var bg = ArtLibrary.Background(stage.Number);
             _backdropImage.sprite = bg;
             _backdropImage.color = bg != null ? Color.white : new Color(1f, 1f, 1f, 0f);
@@ -295,16 +295,16 @@ namespace BiRyeoDo.Game.UI
             _log.text = "";
 
             // Continue a stage the player stepped back from; anything else starts fresh (and drops an old resume point).
-            bool resume = !stage.IsQuest && StageProgress.Has(save, stage.Number);
+            bool resume = !stage.IsQuest && !stage.IsTower && StageProgress.Has(save, stage.Number);
             int startIndex = resume ? Math.Min(save.ProgressNext, stage.Encounters.Length - 1) : 0;
-            if (!resume && !stage.IsQuest && save.ProgressStage != 0) { StageProgress.Clear(save); GameManager.Instance.SaveNow(); }
+            if (!resume && !stage.IsQuest && !stage.IsTower && save.ProgressStage != 0) { StageProgress.Clear(save); GameManager.Instance.SaveNow(); }
 
             if (!resume)
             {
                 if (stage.Prologue != null && save.ClearedStage < stage.Number)
                     foreach (var scene in stage.Prologue)
                         yield return ShowStory(scene.Title, scene.Lines);
-                yield return ShowStory(stage.Name, stage.Intro);
+                if (!stage.IsTower) yield return ShowStory(stage.Name, stage.Intro);
             }
 
             bool again = !_fled;
@@ -315,11 +315,12 @@ namespace BiRyeoDo.Game.UI
                 if (resume) { StageProgress.Restore(save, _party); RefreshParty(); }
                 long gainedExp = 0, gainedDoo = 0;
                 bool cleared = true;
-                bool replay = !stage.IsQuest && save.ClearedStage >= stage.Number;
+                bool replay = !stage.IsQuest && !stage.IsTower && save.ClearedStage >= stage.Number;
+                bool towerFirst = stage.IsTower && stage.TowerFloor > save.TowerBest;
 
                 for (int i = startIndex; i < stage.Encounters.Length; i++)
                 {
-                    _stageLabel.text = "스테이지 " + stage.Number + " · " + stage.Name + "  (" + (i + 1) + "/" + stage.Encounters.Length + ")";
+                    _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + stage.Name + "  (" + (i + 1) + "/" + stage.Encounters.Length + ")";
                     yield return Banner(i == stage.Encounters.Length - 1 ? "결전!" : "전투 " + (i + 1), 0.7f);
                     yield return Fight(stage.Encounters[i], stage.TrialFor(i));
 
@@ -333,8 +334,9 @@ namespace BiRyeoDo.Game.UI
                         doo += EarlyGameContent.DooReward(stage, id);
                     }
                     if (stage.IsQuest) exp = Quests.ExpReward(save);
+                    if (stage.IsTower) { exp = towerFirst ? Tower.ExpReward(save, stage.TowerFloor) : 0; if (!towerFirst) doo = 0; }
                     if (replay) exp = (long)Math.Round(exp * EarlyGameContent.ReplayExpFactor);
-                    var drops = stage.IsQuest ? new List<ItemStack>() : RollDrops(stage.Encounters[i]);
+                    var drops = stage.IsQuest || stage.IsTower ? new List<ItemStack>() : RollDrops(stage.Encounters[i]);
                     int levels = Progression.AddExp(save, exp);
                     save.Doo += doo;
                     gainedExp += exp; gainedDoo += doo;
@@ -363,7 +365,7 @@ namespace BiRyeoDo.Game.UI
                     SetCommandsVisible(false);
                     break;
                 }
-                if (!_fled && !stage.IsQuest) { StageProgress.Clear(save); GameManager.Instance.SaveNow(); }
+                if (!_fled && !stage.IsQuest && !stage.IsTower) { StageProgress.Clear(save); GameManager.Instance.SaveNow(); }
                 if (cleared && stage.IsQuest)
                 {
                     var quest = Quests.Find(stage.QuestId);
@@ -371,6 +373,14 @@ namespace BiRyeoDo.Game.UI
                     string bonds = AwardBonds(save, quest != null ? quest.BondPoints : 1);
                     GameManager.Instance.SaveNow();
                     yield return ShowResult("의뢰 완수!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (questNote.Length > 0 ? "\n" + questNote : "") + (bonds.Length > 0 ? "\n" + bonds : ""), false);
+                }
+                else if (cleared && stage.IsTower)
+                {
+                    string towerNote = Tower.Complete(save, stage.TowerFloor);
+                    GameManager.Instance.SaveNow();
+                    yield return ShowResult(stage.TowerFloor + "층 돌파!", towerFirst
+                        ? "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (towerNote.Length > 0 ? "\n" + towerNote : "")
+                        : "이미 돌파한 층이다. (보상 없음)", false);
                 }
                 else if (cleared)
                 {

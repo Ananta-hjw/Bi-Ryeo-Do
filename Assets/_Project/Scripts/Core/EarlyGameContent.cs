@@ -115,6 +115,8 @@ namespace BiRyeoDo.Core
 
         public int RecommendedLevel;
         public long DooTotal;   // 두 for clearing the stage once (split by enemy weight)
+        public bool IsTower;    // a 무한 비무대 floor (see Tower): no stage progress, own rewards
+        public int TowerFloor;
         public bool IsQuest;    // a 의뢰 built from an earlier stage's fight (see Quests): no stage progress, own exp and rewards
         public string QuestId;
     }
@@ -1492,10 +1494,16 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
             return (long)Math.Round((double)st.DooTotal * StageDooFactor * RewardWeight(enemyId) / TotalWeight(st));
         }
 
+        private static readonly Dictionary<string, EnemyData> DynamicEnemies = new Dictionary<string, EnemyData>();
+
+        /// <summary>Makes a generated enemy (tower floors) findable by id.</summary>
+        public static void RegisterDynamicEnemy(EnemyData enemy) { DynamicEnemies[enemy.Id] = enemy; }
+
         public static EnemyData FindEnemy(string id)
         {
             foreach (var e in Enemies) if (e.Id == id) return e;
-            return null;
+            EnemyData dynamicEnemy;
+            return DynamicEnemies.TryGetValue(id, out dynamicEnemy) ? dynamicEnemy : null;
         }
 
         public static ArtData FindArt(string id)
