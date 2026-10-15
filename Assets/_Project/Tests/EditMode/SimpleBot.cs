@@ -59,7 +59,7 @@ namespace BiRyeoDo.Tests
 
         public static List<Combatant> BuildParty(int stageNumber, int level)
         {
-            var party = new List<Combatant> { new Combatant("p", "비류연", Team.Player, Progression.StatsFor(level), BestLoadout(stageNumber)) };
+            var party = new List<Combatant> { new Combatant("p", "비류연", Team.Player, Progression.HeroStatsFor(level), BestLoadout(stageNumber)) };
             foreach (var c in EarlyGameContent.SelectCompanions(stageNumber, null)) party.Add(c.CreateCombatant(level));
             return party;
         }

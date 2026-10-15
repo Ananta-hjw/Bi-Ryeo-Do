@@ -19,9 +19,9 @@ namespace BiRyeoDo.Core
     {
         public static readonly int[] Thresholds = { 0, 3, 8, 15 };
         public static readonly string[] LevelNames = { "서먹", "친분", "신뢰", "의기투합" };
-        public const float PowerPerLevel = 0.10f;
-        public const float JointBasePower = 1.1f;
-        public const float JointReferenceFactor = 0.5f;   // each strike is half of the protagonist's strongest art, so 합공 keeps up with later arts
+        public const float PowerPerLevel = 0.15f;
+        public const float JointBasePower = 1.6f;
+        public const float JointReferenceFactor = 0.8f;   // each strike is 80% of the protagonist's strongest art, so 합공 keeps up with later arts
 
         public static int LevelOf(int points)
         {

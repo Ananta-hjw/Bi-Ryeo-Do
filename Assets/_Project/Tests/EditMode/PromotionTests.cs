@@ -84,7 +84,7 @@ namespace BiRyeoDo.Tests
             int ok = 0;
             for (int r = 0; r < runs; r++)
             {
-                var player = new Combatant("p", "비류연", Team.Player, Progression.StatsFor(Promotion.OpponentLevel(rank)), SimpleBot.BestLoadout(13));
+                var player = new Combatant("p", "비류연", Team.Player, Progression.HeroStatsFor(Promotion.OpponentLevel(rank)), SimpleBot.BestLoadout(13));
                 bool lost = false;
                 for (int k = 0; k < 2 && !lost; k++)
                 {

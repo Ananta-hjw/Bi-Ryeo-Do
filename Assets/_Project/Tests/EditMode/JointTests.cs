@@ -94,7 +94,7 @@ namespace BiRyeoDo.Tests
             var early = Bonds.JointSpec(hyo, 1);
             var late = Bonds.JointSpec(hyo, 1, 8f);
             Assert.Greater(late.Power, early.Power);
-            Assert.AreEqual(4f, late.Power, 0.001f);
+            Assert.AreEqual(6.4f, late.Power, 0.001f);   // 8 x 0.8
         }
     }
 }

@@ -76,7 +76,7 @@ namespace BiRyeoDo.Core
 
         public Combatant CreateCombatant(int level)
         {
-            var b = Progression.StatsFor(level);
+            var b = Progression.AllyStatsFor(level);
             var stats = new CombatStats
             {
                 MaxHp = (int)Math.Round(b.MaxHp * HpMul),
@@ -362,11 +362,11 @@ namespace BiRyeoDo.Core
             new EnemyData { Id = "mu_jeong", Name = "잔무일점혈 무정", Level = 65, IsBoss = true, HpMul = 3.84f, AtkMul = 1.788f, SpeedAdd = 6,
                 Moves = new[] { EnemyMove.Attack("그림자 비수", 0.7f, 3), EnemyMove.Attack("무언독 암기", 1.3f), EnemyMove.Wind("그림자 속으로 스며든다"), EnemyMove.Attack("일점혈", 3.5f) } },
             // Stage 30: 화룡멸겁대진 (16권)
-            new EnemyData { Id = "ma_chilgeol_jeoji", Name = "마천칠걸 저지조", Level = 65, HpMul = 2.08f, AtkMul = 1.660f, SpeedAdd = 2,
+            new EnemyData { Id = "ma_chilgeol_jeoji", Name = "마천칠걸 저지조", Level = 65, HpMul = 2.08f, AtkMul = 1.725f, SpeedAdd = 2,
                 Moves = new[] { EnemyMove.Attack("연환 공격", 0.7f, 3), EnemyMove.Attack("협공", 1.3f) } },
-            new EnemyData { Id = "hwaryong_hwayeom", Name = "화룡의 불꽃", Level = 66, HpMul = 2.56f, AtkMul = 1.660f,
+            new EnemyData { Id = "hwaryong_hwayeom", Name = "화룡의 불꽃", Level = 66, HpMul = 2.56f, AtkMul = 1.725f,
                 Moves = new[] { EnemyMove.Attack("불의 성벽", 0.8f, 2), EnemyMove.Wind("불길이 솟구친다"), EnemyMove.Attack("화룡의 숨결", 2.9f) } },
-            new EnemyData { Id = "bi_daegongja", Name = "대공자 비", Level = 67, IsBoss = true, RetreatHpPct = 0.3f, HpMul = 4.00f, AtkMul = 1.692f, SpeedAdd = 4,
+            new EnemyData { Id = "bi_daegongja", Name = "대공자 비", Level = 67, IsBoss = true, RetreatHpPct = 0.3f, HpMul = 4.00f, AtkMul = 1.758f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("영뢰 잔흔", 0.7f, 3), EnemyMove.Attack("검기 난무", 1.3f), EnemyMove.Wind("영뢰를 모은다"), EnemyMove.Attack("영뢰 천잔", 3.6f) } },
             // Stage 29 trials: 검후의 십초지적, 수화관 (16권)
             new EnemyData { Id = "geomhu_ioksang", Name = "검후 이옥상", Level = 66, HpMul = 60.0f, AtkMul = 3.678f, SpeedAdd = 4,
