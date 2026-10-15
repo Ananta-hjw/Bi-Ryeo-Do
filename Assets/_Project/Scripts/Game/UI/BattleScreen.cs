@@ -751,11 +751,15 @@ namespace BiRyeoDo.Game.UI
             return c != null ? c.Unit.Name : "";
         }
 
+        private string _cutInKey = "";
+
         private IEnumerator PlayEvents(List<BattleEvent> events)
         {
+            _cutInKey = "";
             foreach (var ev in events)
             {
                 if (_fled) yield break;
+                if (ev.Kind != EventKind.Attack) _cutInKey = "";
                 var actorPanel = PanelOf(ev.ActorId);
                 bool byParty = actorPanel != null;
                 string actorName = NameOf(ev.ActorId);
@@ -764,6 +768,16 @@ namespace BiRyeoDo.Game.UI
                 {
                     case EventKind.Attack:
                         if (ev.HitIndex == 0) _log.text = actorName + "의 " + SkillLabel(ev, actorPanel) + (ev.HitCount > 1 ? " (" + ev.HitCount + "연타)" : "");
+                        if (byParty && ev.HitIndex == 0)
+                        {
+                            string key = ev.ActorId + "|" + ev.SkillId;
+                            if (key != _cutInKey)
+                            {
+                                _cutInKey = key;
+                                var spec = actorPanel.Unit.Skills.Find(x => x.Id == ev.SkillId);
+                                if (spec != null && spec.Id != "basic") yield return SkillCutIn(spec.Name, spec.SpiritCost >= 100);
+                            }
+                        }
                         if (byParty) yield return PartyHit(ev);
                         else yield return EnemyHit(ev);
                         break;
@@ -834,6 +848,10 @@ namespace BiRyeoDo.Game.UI
         {
             var card = CardOf(ev.TargetId);
             if (card == null) yield break;
+            var striker = PanelOf(ev.ActorId);
+            if (striker != null && ev.HitIndex == 0) StartCoroutine(Lunge(striker.Root, new Vector2(0f, 110f)));
+            SlashFx(card.Center, ev.HitIndex, ev.IsCrit, striker != null && striker.Unit.Skills.Find(x => x.Id == ev.SkillId) is SkillSpec sp && sp.SpiritCost >= 100);
+            if (ev.IsCrit) { StartCoroutine(Punch(1.06f)); yield return new WaitForSeconds(Wait(0.07f)); }
             Float(card.Center + new Vector2(UnityEngine.Random.Range(-0.05f, 0.05f), 0.02f * ev.HitIndex), ev.Damage + (ev.IsCrit ? "!" : ""), ev.IsCrit ? UiFactory.Gold : UiFactory.PaperText, ev.IsCrit ? 84 : 64);
             if (ev.Harmony) Float(card.Center + new Vector2(0f, 0.08f), "합격!", UiFactory.Gold, 80);
             if (ev.Interrupted) Float(card.Center + new Vector2(0f, -0.07f), "차단!", UiFactory.Gold, 72);
@@ -841,7 +859,7 @@ namespace BiRyeoDo.Game.UI
             card.Hp.SetPct(card.Unit.Stats.MaxHp > 0 ? (float)ev.TargetHpAfter / card.Unit.Stats.MaxHp : 0f);
             card.HpText.text = ev.TargetHpAfter + " / " + card.Unit.Stats.MaxHp;
             StartCoroutine(Shake(card.Root, ev.IsCrit ? 22f : 14f));
-            if (ev.TargetDefeated) { SetAlpha(card.Body, 0.25f); if (card.Art != null) SetAlpha(card.Art, 0.25f); card.Intent.text = ev.Retreated ? "물러났다" : "쓰러졌다"; if (ev.Retreated) _log.text = ev.Message; }
+            if (ev.TargetDefeated) { StartCoroutine(Collapse(card)); card.Intent.text = ev.Retreated ? "물러났다" : "쓰러졌다"; if (ev.Retreated) _log.text = ev.Message; }
             RefreshParty();
             yield return new WaitForSeconds(Wait(ev.HitCount > 1 ? HitDelay : StepDelay));
         }
@@ -849,8 +867,9 @@ namespace BiRyeoDo.Game.UI
         private IEnumerator EnemyHit(BattleEvent ev)
         {
             var attacker = CardOf(ev.ActorId);
-            if (attacker != null) StartCoroutine(Shake(attacker.Root, 8f));
+            if (attacker != null && ev.HitIndex == 0) StartCoroutine(Lunge(attacker.Root, new Vector2(0f, -110f)));
             var victim = PanelOf(ev.TargetId);
+            if (victim != null && !ev.Dodged) SlashFx(victim.Center, ev.HitIndex, ev.IsCrit, false, true);
             if (victim != null)
             {
                 if (ev.Dodged)
@@ -924,6 +943,134 @@ namespace BiRyeoDo.Game.UI
                 yield return null;
             }
             var end = _flash.color; end.a = 0f; _flash.color = end;
+        }
+
+        // ------------------------------------------------------------------ strike effects
+
+        private IEnumerator Lunge(RectTransform rt, Vector2 delta)
+        {
+            if (rt == null) yield break;
+            Vector2 origin = rt.anchoredPosition;
+            float out_ = 0.09f / _speed, back = 0.14f / _speed;
+            for (float e = 0f; e < out_; e += Time.deltaTime)
+            {
+                if (rt == null) yield break;
+                rt.anchoredPosition = origin + delta * Mathf.SmoothStep(0f, 1f, e / out_);
+                yield return null;
+            }
+            for (float e = 0f; e < back; e += Time.deltaTime)
+            {
+                if (rt == null) yield break;
+                rt.anchoredPosition = origin + delta * (1f - Mathf.SmoothStep(0f, 1f, e / back));
+                yield return null;
+            }
+            if (rt != null) rt.anchoredPosition = origin;
+        }
+
+        /// <summary>Slashing streaks plus a spark burst at the hit point; drawn from plain rectangles so no art is needed.</summary>
+        private void SlashFx(Vector2 at, int hitIndex, bool crit, bool ultimate, bool enemySide = false)
+        {
+            Color main = enemySide ? new Color(1f, 0.45f, 0.35f) : ultimate ? UiFactory.Gold : crit ? new Color(1f, 0.92f, 0.6f) : new Color(0.95f, 0.97f, 1f);
+            float baseAngle = (hitIndex % 2 == 0 ? -35f : 35f) + UnityEngine.Random.Range(-12f, 12f);
+            int streaks = ultimate ? 3 : crit ? 2 : 1;
+            for (int i = 0; i < streaks; i++)
+            {
+                var rt = UiFactory.Rect("Slash", _fx, at, at);
+                rt.sizeDelta = new Vector2(ultimate ? 560f : 400f, crit ? 16f : 10f);
+                rt.localRotation = Quaternion.Euler(0f, 0f, baseAngle + i * 22f);
+                var img = rt.gameObject.AddComponent<Image>();
+                img.color = main; img.raycastTarget = false;
+                StartCoroutine(StreakAnim(rt, img));
+            }
+            for (int i = 0; i < (crit ? 8 : 4); i++)
+            {
+                var rt = UiFactory.Rect("Spark", _fx, at, at);
+                rt.sizeDelta = new Vector2(UnityEngine.Random.Range(14f, 30f), 6f);
+                float a = UnityEngine.Random.Range(0f, 360f);
+                rt.localRotation = Quaternion.Euler(0f, 0f, a);
+                var img = rt.gameObject.AddComponent<Image>();
+                img.color = main; img.raycastTarget = false;
+                StartCoroutine(SparkAnim(rt, img, a * Mathf.Deg2Rad));
+            }
+        }
+
+        private IEnumerator StreakAnim(RectTransform rt, Image img)
+        {
+            float d = 0.22f / _speed;
+            for (float e = 0f; e < d; e += Time.deltaTime)
+            {
+                if (rt == null) yield break;
+                float k = e / d;
+                rt.localScale = new Vector3(Mathf.Min(1f, k * 4f), 1f - k * 0.6f, 1f);
+                var c = img.color; c.a = 1f - k * k; img.color = c;
+                yield return null;
+            }
+            if (rt != null) Destroy(rt.gameObject);
+        }
+
+        private IEnumerator SparkAnim(RectTransform rt, Image img, float angle)
+        {
+            float d = 0.30f / _speed;
+            Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+            float dist = UnityEngine.Random.Range(90f, 190f);
+            for (float e = 0f; e < d; e += Time.deltaTime)
+            {
+                if (rt == null) yield break;
+                float k = e / d;
+                rt.anchoredPosition = dir * dist * (1f - (1f - k) * (1f - k));
+                var c = img.color; c.a = 1f - k; img.color = c;
+                yield return null;
+            }
+            if (rt != null) Destroy(rt.gameObject);
+        }
+
+        /// <summary>Brief zoom of the enemy field on a critical hit.</summary>
+        private IEnumerator Punch(float scale)
+        {
+            float d = 0.18f / _speed;
+            for (float e = 0f; e < d; e += Time.deltaTime)
+            {
+                float k = e / d;
+                float s = 1f + (scale - 1f) * (1f - k);
+                _cardsRoot.localScale = new Vector3(s, s, 1f);
+                yield return null;
+            }
+            _cardsRoot.localScale = Vector3.one;
+        }
+
+        /// <summary>Defeated enemy staggers, sinks and fades instead of just dimming.</summary>
+        private IEnumerator Collapse(EnemyCard card)
+        {
+            float d = 0.45f / _speed;
+            Vector2 origin = card.Root.anchoredPosition;
+            for (float e = 0f; e < d; e += Time.deltaTime)
+            {
+                if (card.Root == null) yield break;
+                float k = e / d;
+                card.Root.anchoredPosition = origin + new Vector2(Mathf.Sin(k * 40f) * 10f * (1f - k), -40f * k);
+                float a = Mathf.Lerp(1f, 0.25f, k);
+                SetAlpha(card.Body, a);
+                if (card.Art != null) SetAlpha(card.Art, a);
+                yield return null;
+            }
+            if (card.Root != null) card.Root.anchoredPosition = origin + new Vector2(0f, -40f);
+            SetAlpha(card.Body, 0.25f);
+            if (card.Art != null) SetAlpha(card.Art, 0.25f);
+        }
+
+        /// <summary>Skill-name flash before the strike; 비기 get a full-width gold cut-in with a dark flash.</summary>
+        private IEnumerator SkillCutIn(string skillName, bool ultimate)
+        {
+            _banner.fontSize = ultimate ? 96 : 72;
+            _banner.color = ultimate ? UiFactory.Gold : UiFactory.PaperText;
+            _banner.text = ultimate ? "\u300e " + skillName + " \u300f" : skillName;
+            _bannerBg.color = new Color(0f, 0f, 0f, ultimate ? 0.85f : 0.55f);
+            if (ultimate) StartCoroutine(Punch(1.12f));
+            yield return new WaitForSeconds(Wait(ultimate ? 0.75f : 0.35f));
+            _banner.text = "";
+            _banner.fontSize = 64;
+            _banner.color = UiFactory.Gold;
+            _bannerBg.color = new Color(0f, 0f, 0f, 0f);
         }
 
         private IEnumerator Banner(string text, float seconds)
