@@ -559,22 +559,21 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Rules", _questOverlay, new Vector2(0.05f, 0.85f), new Vector2(0.95f, 0.92f),
                 "이미 지나온 싸움에 조건이 붙어 다시 나온다. 한 번씩만 받을 수 있고, 두와 보상을 얻는다.", 26, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
-            float y = 0.84f;
+            var questList = CodexPanel.Scroller(_questOverlay, 0.10f, 0.84f);
             int shown = 0;
             foreach (var q in Quests.All)
             {
                 if (!Quests.IsUnlocked(save, q)) continue;
                 bool done = Quests.IsDone(save, q.Id);
-                if (y < 0.14f) break;
-                var band = UiFactory.Panel("Card", _questOverlay, new Vector2(0.05f, y - 0.10f), new Vector2(0.95f, y), UiFactory.Ink);
-                UiFactory.Label("Name", band.transform, new Vector2(0.03f, 0.54f), new Vector2(0.66f, 0.97f), q.Name + (done ? "  (완료)" : ""), 32, done ? UiFactory.InkSoft : UiFactory.PaperText, TextAnchor.MiddleLeft);
-                UiFactory.Label("Info", band.transform, new Vector2(0.03f, 0.03f), new Vector2(0.66f, 0.54f), q.Trial.Brief + " · 보상 " + q.RewardDoo.ToString("N0") + "두", 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                var band = CodexPanel.Band(questList, shown);
+                UiFactory.Label("Name", band, new Vector2(0.03f, 0.54f), new Vector2(0.66f, 0.97f), q.Name + (done ? "  (완료)" : ""), 32, done ? UiFactory.InkSoft : UiFactory.PaperText, TextAnchor.MiddleLeft);
+                UiFactory.Label("Info", band, new Vector2(0.03f, 0.03f), new Vector2(0.66f, 0.54f), q.Trial.Brief + " · 보상 " + q.RewardDoo.ToString("N0") + "두", 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var quest = q;
-                var go = UiFactory.Button("Go", band.transform, new Vector2(0.69f, 0.12f), new Vector2(0.97f, 0.88f), done ? "완료" : "수락", done ? UiFactory.InkSoft : UiFactory.Red, () => AcceptQuest(quest), 32);
+                var go = UiFactory.Button("Go", band, new Vector2(0.69f, 0.12f), new Vector2(0.97f, 0.88f), done ? "완료" : "수락", done ? UiFactory.InkSoft : UiFactory.Red, () => AcceptQuest(quest), 32);
                 go.interactable = !done;
-                y -= 0.11f;
                 shown++;
             }
+            questList.sizeDelta = new Vector2(0f, CodexPanel.RowGap + shown * (CodexPanel.RowH + CodexPanel.RowGap));
             if (shown == 0)
                 UiFactory.Label("None", _questOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "아직 받을 수 있는 의뢰가 없다. 스테이지를 돌파하면 의뢰가 붙는다.", 34, UiFactory.PaperText);
 
@@ -647,16 +646,15 @@ namespace BiRyeoDo.Game.UI
             {
                 UiFactory.Label("None", _fortuneOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "지금은 마주칠 인연이 없다. 스테이지를 돌파하면 새로운 기연이 찾아온다.", 34, UiFactory.PaperText);
             }
-            float y = 0.88f;
-            foreach (var ev in open)
+            var fortuneList = CodexPanel.Scroller(_fortuneOverlay, 0.10f, 0.90f);
+            for (int i = 0; i < open.Count; i++)
             {
-                if (y < 0.14f) break;
-                var e = ev;
-                var band = UiFactory.Panel("Card", _fortuneOverlay, new Vector2(0.05f, y - 0.09f), new Vector2(0.95f, y), UiFactory.Ink);
-                UiFactory.Label("Name", band.transform, new Vector2(0.03f, 0.10f), new Vector2(0.64f, 0.90f), e.Title, 34, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                UiFactory.Button("Go", band.transform, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), "마주치다", UiFactory.Red, () => ShowFortune(e), 30);
-                y -= 0.10f;
+                var e = open[i];
+                var band = CodexPanel.Band(fortuneList, i);
+                UiFactory.Label("Name", band, new Vector2(0.03f, 0.10f), new Vector2(0.64f, 0.90f), e.Title, 34, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                UiFactory.Button("Go", band, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), "마주치다", UiFactory.Red, () => ShowFortune(e), 30);
             }
+            fortuneList.sizeDelta = new Vector2(0f, CodexPanel.RowGap + open.Count * (CodexPanel.RowH + CodexPanel.RowGap));
             UiFactory.Button("Close", _fortuneOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _fortuneOverlay.gameObject.SetActive(false); Refresh(); }, 36);
         }
 

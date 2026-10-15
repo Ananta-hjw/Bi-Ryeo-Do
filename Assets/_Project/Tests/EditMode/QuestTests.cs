@@ -81,5 +81,28 @@ namespace BiRyeoDo.Tests
                 foreach (var c in ev.Choices) if (c.ItemId != null) Assert.IsNotNull(EarlyGameContent.FindItem(c.ItemId), ev.Id);
             }
         }
+
+        [Test]
+        public void FortunesAreWellFormed()
+        {
+            Assert.AreEqual(12, Fortunes.All.Length);
+            Assert.AreEqual(Fortunes.All.Length, Fortunes.All.Select(f => f.Id).Distinct().Count());
+            int max = EarlyGameContent.Stages.Max(st => st.Number);
+            foreach (var f in Fortunes.All)
+            {
+                Assert.LessOrEqual(f.UnlockStage, max, f.Id);
+                Assert.IsTrue(f.Choices.Length >= 2 && f.Choices.Length <= 3, f.Id);
+                foreach (var c in f.Choices)
+                    if (c.ItemId != null) Assert.IsNotNull(EarlyGameContent.FindItem(c.ItemId), f.Id);
+            }
+        }
+
+        [Test]
+        public void QuestRewardsAreTripled()
+        {
+            Assert.AreEqual(1800, Quests.Find("q_hogol").RewardDoo);
+            var save = new SaveData { Level = 10 };
+            Assert.AreEqual(System.Math.Round(Progression.ExpToNext(10) * 0.75), Quests.ExpReward(save));
+        }
     }
 }
