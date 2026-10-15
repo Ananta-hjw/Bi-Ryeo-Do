@@ -22,6 +22,7 @@ namespace BiRyeoDo.Core
         public bool StartKitGiven;
         public List<string> ActiveCompanions = new List<string>();   // chosen party members (max EarlyGameContent.MaxCompanions); empty = join order
         public List<ArtMasteryEntry> ArtMastery = new List<ArtMasteryEntry>();   // 무공 숙련 (additive field, no version bump)
+        public List<BondEntry> Bonds = new List<BondEntry>();   // 인연 per companion (additive field)
         public int SwordRank;           // 검룡위 (1-10), see Promotion; 0 in older saves counts as 1
 
         public List<string> LearnedArts = new List<string>();

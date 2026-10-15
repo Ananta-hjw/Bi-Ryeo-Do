@@ -60,7 +60,7 @@ namespace BiRyeoDo.Game.UI
         private readonly List<Text> _turnLabels = new List<Text>();
         private readonly List<EnemyCard> _cards = new List<EnemyCard>();
         private readonly List<PartyPanel> _panels = new List<PartyPanel>();
-        private readonly CommandButton[] _commands = new CommandButton[8];
+        private readonly CommandButton[] _commands = new CommandButton[9];
 
         // story / result panels
         private GameObject _panel;
@@ -71,7 +71,9 @@ namespace BiRyeoDo.Game.UI
         private List<Combatant> _party = new List<Combatant>();
         private EnemyCard _target;
 
-        private bool _hasCommand, _panelDone, _retry, _fled, _itemMode, _drawn;
+        private bool _hasCommand, _panelDone, _retry, _fled, _itemMode, _jointMode, _drawn;
+        private readonly List<Combatant> _jointPartners = new List<Combatant>();
+        private string _jointName = "합공";
         private PlayerCommand _command;
         private int _speed = 1;
         private Action _onClose;
@@ -120,8 +122,8 @@ namespace BiRyeoDo.Game.UI
                 int index = i;
                 int row = i / 4, col = i % 4;
                 float x0 = 0.03f + col * 0.2425f;
-                float y1 = row == 0 ? 0.285f : 0.150f;
-                float y0 = y1 - 0.130f;
+                float y1 = 0.285f - row * 0.087f;
+                float y0 = y1 - 0.083f;
                 var btn = UiFactory.Button("Cmd" + i, root, new Vector2(x0, y0), new Vector2(x0 + 0.2275f, y1), "", UiFactory.Red, () => OnCommandPressed(index), 28);
                 _commands[i] = new CommandButton { Button = btn, Image = btn.GetComponent<Image>(), Label = btn.GetComponentInChildren<Text>(), Root = btn.gameObject };
             }
@@ -222,9 +224,10 @@ namespace BiRyeoDo.Game.UI
                     save.ClearedStage = Math.Max(save.ClearedStage, stage.Number);
                     GameManager.Instance.SaveNow();
                     yield return ShowStory(stage.Name + " 돌파", stage.Outro);
+                    string bondNote = AwardBonds(save);
                     var reward = Inventory.GrantStageReward(save, stage.Number);
                     GameManager.Instance.SaveNow();
-                    yield return ShowResult("스테이지 돌파!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (reward.Count > 0 ? "\n\n첫 돌파 보상\n" + DescribeStacks(reward) : ""), false);
+                    yield return ShowResult("스테이지 돌파!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (bondNote.Length > 0 ? "\n" + bondNote : "") + (reward.Count > 0 ? "\n\n첫 돌파 보상\n" + DescribeStacks(reward) : ""), false);
                 }
                 else
                 {
@@ -239,6 +242,20 @@ namespace BiRyeoDo.Game.UI
             ClearCards();
             ClearPanels();
             _onClose?.Invoke();
+        }
+
+        /// <summary>+1 인연 for every companion who fought in this stage; returns a note when a bond level rose.</summary>
+        private string AwardBonds(SaveData save)
+        {
+            var notes = new List<string>();
+            foreach (var m in _party)
+            {
+                if (m.Id == "player") continue;
+                int rose = Bonds.Add(save, m.Id, 1);
+                if (rose >= 0) notes.Add(m.Name + "와(과)의 인연: " + Bonds.LevelNames[rose] + (rose == 1 ? " — 합공 가능!" : ""));
+            }
+            GameManager.Instance.SaveNow();
+            return string.Join("\n", notes);
         }
 
         // ------------------------------------------------------------------ 승급 비무
@@ -366,6 +383,7 @@ namespace BiRyeoDo.Game.UI
             {
                 if (_target == null || !_target.Unit.IsAlive) _target = _cards.Find(c => c.Unit.IsAlive);
                 _itemMode = false;
+                _jointMode = false;
                 if (turnLimit > 0) _stageLabel.text = label + "   " + actions + "/" + turnLimit + "턴";
                 else if (trial != null) _stageLabel.text = label + "   " + _battle.TrialStatus;
                 RefreshCards();
@@ -632,8 +650,22 @@ namespace BiRyeoDo.Game.UI
             if (me == null) return;
             SetCommandsVisible(true);
 
+            if (_jointMode)
+            {
+                for (int i = 0; i < 7; i++)
+                {
+                    if (i >= _jointPartners.Count) { _commands[i].Root.SetActive(false); continue; }
+                    var c = EarlyGameContent.FindCompanion(_jointPartners[i].Id);
+                    SetCommand(i, c != null ? c.JointName : "합공", _jointPartners[i].Name, true);
+                }
+                SetCommand(7, "취소", "", true);
+                _commands[8].Root.SetActive(false);
+                return;
+            }
+
             if (_itemMode)
             {
+                _commands[8].Root.SetActive(false);
                 var items = UsableItems();
                 for (int i = 0; i < 7; i++)
                 {
@@ -661,6 +693,34 @@ namespace BiRyeoDo.Game.UI
             SetCommand(5, "방어", "피해 60% 감소", true);
             SetCommand(6, "운기", "내공 +" + InteractiveBattle.MeditateQi + " 체력 소량", true);
             SetCommand(7, "아이템", UsableItems().Count > 0 ? "" : "없음", UsableItems().Count > 0);
+
+            RefreshJointPartners();
+            if (_jointPartners.Count == 0) _commands[8].Root.SetActive(false);
+            else SetCommand(8, "합공", me.Spirit >= InteractiveBattle.JointSpiritCost ? "기세 " + InteractiveBattle.JointSpiritCost : "기세 부족", me.Spirit >= InteractiveBattle.JointSpiritCost);
+        }
+
+        /// <summary>Living companions whose bond with the protagonist allows a 합공 (only on the protagonist's turn).</summary>
+        private void RefreshJointPartners()
+        {
+            _jointPartners.Clear();
+            var me = _battle.Current;
+            if (me == null || me != _battle.Player) return;
+            var save = GameManager.Instance.Save;
+            foreach (var m in _battle.Party)
+            {
+                if (m == me || !m.IsAlive) continue;
+                if (Bonds.Level(save, m.Id) >= 1) _jointPartners.Add(m);
+            }
+        }
+
+        private void IssueJoint(Combatant partner, Combatant target)
+        {
+            var companion = EarlyGameContent.FindCompanion(partner.Id);
+            var spec = Bonds.JointSpec(companion, Bonds.Level(GameManager.Instance.Save, partner.Id));
+            if (spec == null || !_battle.CanJoint(partner)) return;
+            _jointName = spec.Name;
+            _command = PlayerCommand.Joint(spec, partner, target);
+            _hasCommand = true;
         }
 
         private static string ItemHint(ItemData item)
@@ -697,6 +757,15 @@ namespace BiRyeoDo.Game.UI
             if (_battle == null || !_battle.IsPlayerTurn || _hasCommand) return;
             var me = _battle.Current;
 
+            if (_jointMode)
+            {
+                if (slot == 7) { _jointMode = false; RefreshCommands(); return; }
+                if (slot >= _jointPartners.Count) return;
+                if (_target == null || !_target.Unit.IsAlive) _target = _cards.Find(c => c.Unit.IsAlive);
+                IssueJoint(_jointPartners[slot], _target != null ? _target.Unit : null);
+                return;
+            }
+
             if (_itemMode)
             {
                 if (slot == 7) { _itemMode = false; RefreshCommands(); return; }
@@ -716,6 +785,14 @@ namespace BiRyeoDo.Game.UI
                 int i = slot - 1;
                 if (i >= arts.Count || !_battle.CanUse(arts[i])) return;
                 _command = PlayerCommand.UseSkill(arts[i], targetUnit);
+            }
+            else if (slot == 8)
+            {
+                if (me.Spirit < InteractiveBattle.JointSpiritCost || _jointPartners.Count == 0) return;
+                if (_jointPartners.Count == 1) { IssueJoint(_jointPartners[0], targetUnit); return; }
+                _jointMode = true;
+                RefreshCommands();
+                return;
             }
             else if (slot == 5) _command = PlayerCommand.Guard();
             else if (slot == 6) _command = PlayerCommand.Meditate();
@@ -776,7 +853,12 @@ namespace BiRyeoDo.Game.UI
                 {
                     case EventKind.Attack:
                         if (ev.HitIndex == 0) _log.text = actorName + "의 " + SkillLabel(ev, actorPanel) + (ev.HitCount > 1 ? " (" + ev.HitCount + "연타)" : "");
-                        if (byParty && ev.HitIndex == 0)
+                        if (ev.Joint && _cutInKey != "joint")
+                        {
+                            _cutInKey = "joint";
+                            yield return SkillCutIn(_jointName, true);
+                        }
+                        else if (byParty && ev.HitIndex == 0 && !ev.Joint)
                         {
                             string key = ev.ActorId + "|" + ev.SkillId;
                             if (key != _cutInKey)
@@ -844,6 +926,7 @@ namespace BiRyeoDo.Game.UI
 
         private string SkillLabel(BattleEvent ev, PartyPanel actor)
         {
+            if (ev.Joint) return _jointName;
             if (actor != null)
             {
                 var s = actor.Unit.Skills.Find(x => x.Id == ev.SkillId);

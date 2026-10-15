@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace BiRyeoDo.Core
 {
-    public enum CommandKind { Skill, Guard, Meditate, Item }
+    public enum CommandKind { Skill, Guard, Meditate, Item, Joint }
 
     public struct PlayerCommand
     {
@@ -11,10 +11,15 @@ namespace BiRyeoDo.Core
         public SkillSpec Skill;      // for Kind == Skill
         public Combatant Target;     // single-target skills; null/dead falls back to the first living enemy
         public ItemData Item;        // for Kind == Item (a consumable; the caller removes it from the bag)
+        public Combatant Partner;    // for Kind == Joint: the ally who strikes together with the protagonist (Skill holds the joint spec)
 
         public static PlayerCommand UseSkill(SkillSpec skill, Combatant target)
         {
             return new PlayerCommand { Kind = CommandKind.Skill, Skill = skill, Target = target };
+        }
+        public static PlayerCommand Joint(SkillSpec spec, Combatant partner, Combatant target)
+        {
+            return new PlayerCommand { Kind = CommandKind.Joint, Skill = spec, Partner = partner, Target = target };
         }
         public static PlayerCommand UseItem(ItemData item) { return new PlayerCommand { Kind = CommandKind.Item, Item = item }; }
         public static PlayerCommand Guard() { return new PlayerCommand { Kind = CommandKind.Guard }; }
@@ -38,6 +43,7 @@ namespace BiRyeoDo.Core
         public const float GuardDamageFactor = 0.4f;
         public const int SpiritOnDealt = 10, SpiritOnTaken = 8, SpiritOnGuard = 12;
         public const float HarmonyDamageFactor = 2.5f;
+        public const int JointSpiritCost = 50;
 
         private readonly List<Combatant> _units = new List<Combatant>();
         private readonly List<Combatant> _party = new List<Combatant>();
@@ -124,6 +130,13 @@ namespace BiRyeoDo.Core
 
         public bool CanUse(SkillSpec skill) { return IsPlayerTurn && Current.CanUse(skill); }
 
+        /// <summary>합공: the protagonist (on their turn) strikes together with a living ally for 기세 <see cref="JointSpiritCost"/>; the ally loses their next action.</summary>
+        public bool CanJoint(Combatant partner)
+        {
+            return IsPlayerTurn && Current == _party[0] && partner != null && partner != Current && partner.IsAlive
+                && _party.Contains(partner) && Current.Spirit >= JointSpiritCost && AnyEnemyAlive;
+        }
+
         public Combatant FirstLivingEnemy()
         {
             foreach (var e in _enemies) if (e.IsAlive) return e;
@@ -135,6 +148,7 @@ namespace BiRyeoDo.Core
         {
             if (!IsPlayerTurn) throw new InvalidOperationException("Not the player's turn.");
             if (cmd.Kind == CommandKind.Item && (cmd.Item == null || cmd.Item.Kind != ItemKind.Consumable)) throw new InvalidOperationException("Not a consumable.");
+            if (cmd.Kind == CommandKind.Joint && !CanJoint(cmd.Partner)) throw new InvalidOperationException("Joint attack unavailable.");
             var actor = Current;
             var events = new List<BattleEvent>();
             Current = null;
@@ -142,8 +156,8 @@ namespace BiRyeoDo.Core
             _harmonyBoost = false;
             if (Trial != null && Trial.Kind == TrialKind.Harmony)
             {
-                bool attacking = cmd.Kind == CommandKind.Skill && cmd.Skill != null && cmd.Skill.Effect != SkillEffect.Evade
-                    && cmd.Skill.Effect != SkillEffect.GuardParty && cmd.Skill.Effect != SkillEffect.HealAlly;
+                bool attacking = cmd.Kind == CommandKind.Joint || (cmd.Kind == CommandKind.Skill && cmd.Skill != null && cmd.Skill.Effect != SkillEffect.Evade
+                    && cmd.Skill.Effect != SkillEffect.GuardParty && cmd.Skill.Effect != SkillEffect.HealAlly);
                 if (attacking)
                 {
                     int alive = 0; foreach (var m in _party) if (m.IsAlive) alive++;
@@ -185,6 +199,9 @@ namespace BiRyeoDo.Core
                         events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = target.Id, SkillId = item.Id, Kind = EventKind.Item, Heal = heal, TargetHpAfter = target.Hp, Message = actor.Name + ": " + item.Name + " 사용" });
                         break;
                     }
+                case CommandKind.Joint:
+                    UseJoint(actor, cmd, events);
+                    break;
                 default:
                     if (cmd.Skill == null || !actor.CanUse(cmd.Skill)) throw new InvalidOperationException("Skill unavailable.");
                     UseSkill(actor, cmd, events);
@@ -238,30 +255,67 @@ namespace BiRyeoDo.Core
                 foreach (var t in targets)
                 {
                     if (!t.IsAlive) continue;
-                    bool crit = _rng.NextDouble() < actor.Stats.CritRate;
-                    int dmg = BattleEngine.CalcDamage(actor.Stats, t.Stats, skill, crit);
-                    if (_harmonyBoost) dmg = (int)Math.Round(dmg * HarmonyDamageFactor);
-                    t.Hp = Math.Max(0, t.Hp - dmg);
-                    var ev = new BattleEvent
-                    {
-                        Turn = Turn, ActorId = actor.Id, TargetId = t.Id, SkillId = skill.Id, Kind = EventKind.Attack,
-                        Damage = dmg, IsCrit = crit, HitIndex = h, HitCount = hits, Harmony = _harmonyBoost
-                    };
-                    if (t.IsAlive && t.RetreatHpPct > 0f && t.Hp <= t.Stats.MaxHp * t.RetreatHpPct)
-                    {
-                        // Story boss: it escapes rather than dying. The fight ends as a win but nobody is slain.
-                        t.Hp = 0;
-                        ev.Retreated = true;
-                        ev.Message = t.Name + "(이)가 물러난다!";
-                    }
-                    if (!t.IsAlive) { t.Charging = false; t.ChargeTarget = null; }
-                    else if (skill.Effect == SkillEffect.Stun && h == hits - 1) ApplyStun(t, ev);
-                    ev.TargetHpAfter = t.Hp;
-                    ev.TargetDefeated = !t.IsAlive;
-                    events.Add(ev);
+                    DealHit(actor, t, skill, h, hits, skill.Effect == SkillEffect.Stun && h == hits - 1, events);
                 }
             }
             if (skill.SpiritCost == 0) actor.Spirit = Math.Min(MaxSpirit, actor.Spirit + SpiritOnDealt);
+        }
+
+        private BattleEvent DealHit(Combatant actor, Combatant t, SkillSpec skill, int h, int hits, bool stun, List<BattleEvent> events)
+        {
+            bool crit = _rng.NextDouble() < actor.Stats.CritRate;
+            int dmg = BattleEngine.CalcDamage(actor.Stats, t.Stats, skill, crit);
+            if (_harmonyBoost) dmg = (int)Math.Round(dmg * HarmonyDamageFactor);
+            t.Hp = Math.Max(0, t.Hp - dmg);
+            var ev = new BattleEvent
+            {
+                Turn = Turn, ActorId = actor.Id, TargetId = t.Id, SkillId = skill.Id, Kind = EventKind.Attack,
+                Damage = dmg, IsCrit = crit, HitIndex = h, HitCount = hits, Harmony = _harmonyBoost
+            };
+            if (t.IsAlive && t.RetreatHpPct > 0f && t.Hp <= t.Stats.MaxHp * t.RetreatHpPct)
+            {
+                // Story boss: it escapes rather than dying. The fight ends as a win but nobody is slain.
+                t.Hp = 0;
+                ev.Retreated = true;
+                ev.Message = t.Name + "(이)가 물러난다!";
+            }
+            if (!t.IsAlive) { t.Charging = false; t.ChargeTarget = null; }
+            else if (stun) ApplyStun(t, ev);
+            ev.TargetHpAfter = t.Hp;
+            ev.TargetDefeated = !t.IsAlive;
+            events.Add(ev);
+            return ev;
+        }
+
+        private void UseJoint(Combatant actor, PlayerCommand cmd, List<BattleEvent> events)
+        {
+            var spec = cmd.Skill;
+            var partner = cmd.Partner;
+            actor.Spirit -= JointSpiritCost;
+            partner.Gauge -= GaugeThreshold;   // the partner spends their next action on this strike
+            var t = cmd.Target != null && cmd.Target.IsAlive && cmd.Target.Team == Team.Enemy ? cmd.Target : FirstLivingEnemy();
+            if (t == null) return;
+
+            var first = DealHit(actor, t, spec, 0, 1, false, events);
+            first.Joint = true;
+            var next = t.IsAlive ? t : FirstLivingEnemy();
+            if (next != null) DealHit(partner, next, spec, 0, 1, spec.Effect == SkillEffect.Stun, events).Joint = true;
+
+            switch (spec.Effect)
+            {
+                case SkillEffect.GuardParty:
+                    foreach (var m in _party) if (m.IsAlive) m.Guarding = true;
+                    events.Add(new BattleEvent { Turn = Turn, ActorId = partner.Id, TargetId = partner.Id, SkillId = spec.Id, Kind = EventKind.Guard, Joint = true, TargetHpAfter = partner.Hp, Message = spec.Name + "! \ubaa8\ub450\uac00 \ubc29\uc5b4 \ud0dc\uc138." });
+                    break;
+                case SkillEffect.HealAlly:
+                    {
+                        var weakest = MostWounded();
+                        int heal = (int)Math.Round(weakest.Stats.MaxHp * spec.HealPct);
+                        weakest.Hp = Math.Min(weakest.Stats.MaxHp, weakest.Hp + heal);
+                        events.Add(new BattleEvent { Turn = Turn, ActorId = partner.Id, TargetId = weakest.Id, SkillId = spec.Id, Kind = EventKind.Heal, Joint = true, Heal = heal, TargetHpAfter = weakest.Hp, Message = spec.Name + "! " + weakest.Name + " \ud68c\ubcf5." });
+                        break;
+                    }
+            }
         }
 
         private void ApplyStun(Combatant target, BattleEvent ev)

@@ -70,6 +70,9 @@ namespace BiRyeoDo.Core
         public string Id, Name, Role;
         public int JoinStage, SpeedAdd;
         public float HpMul = 1f, AtkMul = 1f, DefMul = 1f;
+        public string JointName;                 // 합공 with the protagonist
+        public SkillEffect JointEffect;          // None, Stun, GuardParty or HealAlly riding on the joint strike
+        public float JointPower = 1f;
 
         public Combatant CreateCombatant(int level)
         {
@@ -159,10 +162,10 @@ namespace BiRyeoDo.Core
 
         public static readonly CompanionData[] Companions =
         {
-            new CompanionData { Id = "hyo_ryong", Name = "효룡", Role = "쌍검, 검막으로 파티를 지킨다", JoinStage = 7, HpMul = 1.0f, AtkMul = 1.0f, DefMul = 1.0f, SpeedAdd = 4 },
-            new CompanionData { Id = "jang_hong", Name = "장홍", Role = "점혈로 적의 강타를 끊는다", JoinStage = 7, HpMul = 1.1f, AtkMul = 0.85f, DefMul = 1.1f, SpeedAdd = 0 },
-            new CompanionData { Id = "yun_junho", Name = "윤준호", Role = "자하신공으로 동료를 치유한다", JoinStage = 8, HpMul = 0.9f, AtkMul = 0.95f, DefMul = 0.85f, SpeedAdd = 2 },
-            new CompanionData { Id = "im_seongjin", Name = "임성진", Role = "곤으로 한 점을 꿰뚫는다 (굼뜨지만 묵직하다)", JoinStage = 22, HpMul = 1.15f, AtkMul = 0.9f, DefMul = 1.0f, SpeedAdd = -2 },
+            new CompanionData { Id = "hyo_ryong", Name = "효룡", Role = "쌍검, 검막으로 파티를 지킨다", JoinStage = 7, HpMul = 1.0f, AtkMul = 1.0f, DefMul = 1.0f, SpeedAdd = 4, JointName = "쌍검합벽", JointEffect = SkillEffect.GuardParty },
+            new CompanionData { Id = "jang_hong", Name = "장홍", Role = "점혈로 적의 강타를 끊는다", JoinStage = 7, HpMul = 1.1f, AtkMul = 0.85f, DefMul = 1.1f, SpeedAdd = 0, JointName = "점혈합격", JointEffect = SkillEffect.Stun },
+            new CompanionData { Id = "yun_junho", Name = "윤준호", Role = "자하신공으로 동료를 치유한다", JoinStage = 8, HpMul = 0.9f, AtkMul = 0.95f, DefMul = 0.85f, SpeedAdd = 2, JointName = "자하합격", JointEffect = SkillEffect.HealAlly },
+            new CompanionData { Id = "im_seongjin", Name = "임성진", Role = "곤으로 한 점을 꿰뚫는다 (굼뜨지만 묵직하다)", JoinStage = 22, HpMul = 1.15f, AtkMul = 0.9f, DefMul = 1.0f, SpeedAdd = -2, JointName = "관통합격", JointPower = 1.4f },
         };
 
         public static readonly EnemyData[] Enemies =

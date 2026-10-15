@@ -230,7 +230,7 @@ namespace BiRyeoDo.Game.UI
             _promoRowDetail.text = Promotion.RankName(Promotion.EffectiveRank(save)) + (Promotion.EffectiveRank(save) >= Promotion.MaxRank ? " · 최고 경지" : " · 한 계단 또는 두 계단 승급 도전")
                 + (Promotion.EffectiveRank(save) < Promotion.GateRank ? "\n(" + Promotion.RankName(Promotion.GateRank) + " 이상이어야 삼성무제 참가)" : "");
             var current = new List<string>();
-            foreach (var c in EarlyGameContent.SelectCompanions(Math.Max(1, save.HighestUnlockedStage), save.ActiveCompanions)) current.Add(c.Name);
+            foreach (var c in EarlyGameContent.SelectCompanions(Math.Max(1, save.HighestUnlockedStage), save.ActiveCompanions)) current.Add(c.Name + "(인연 " + Bonds.LevelNames[Bonds.Level(save, c.Id)] + ")");
             _partyRowDetail.text = current.Count == 0 ? "아직 함께할 동료가 없다" : "출전 동료: " + string.Join(", ", current)
                 + (AvailableCompanions(save).Count > EarlyGameContent.MaxCompanions ? "\n(동료 " + AvailableCompanions(save).Count + "명 중 " + EarlyGameContent.MaxCompanions + "명만 출전)" : "");
 
