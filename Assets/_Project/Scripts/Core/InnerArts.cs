@@ -22,17 +22,17 @@ namespace BiRyeoDo.Core
         public static readonly InnerArt[] All =
         {
             new InnerArt { Id = "breath", Name = "기초 호흡법", UnlockStage = 1, LearnCost = 0, Description = "기본 호흡. 오래 싸워도 숨이 차지 않는다.", QiPct = 0.10f, QiRegen = 2 },
-            new InnerArt { Id = "vigor", Name = "강건심법", UnlockStage = 3, LearnCost = 1800, Description = "몸을 단단히 다지는 수련.", HpPct = 0.10f, DefPct = 0.04f },
-            new InnerArt { Id = "tiger", Name = "맹호심법", UnlockStage = 5, LearnCost = 3000, Description = "공격에 모든 기운을 싣는다. 방어는 허술해진다.", AtkPct = 0.10f, DefPct = -0.04f },
-            new InnerArt { Id = "swift", Name = "경공심법", UnlockStage = 7, LearnCost = 4200, Description = "가볍게 움직여 먼저 치고 급소를 노린다.", SpeedAdd = 4, CritAdd = 0.03f },
-            new InnerArt { Id = "life", Name = "생기심법", UnlockStage = 9, LearnCost = 5400, Description = "때릴 때마다 상대의 기운을 조금 빼앗아 회복한다.", Lifesteal = 0.08f, HpPct = 0.04f },
-            new InnerArt { Id = "spirit", Name = "투지심법", UnlockStage = 11, LearnCost = 6600, Description = "기세가 빨리 오른다. 싸움을 기세 20으로 시작한다.", SpiritDealt = 4, SpiritTaken = 3, StartSpirit = 20 },
-            new InnerArt { Id = "calm", Name = "명경지수", UnlockStage = 13, LearnCost = 7800, Description = "마음이 고요해 내공이 넘친다. 공격은 다소 무뎌진다.", QiPct = 0.25f, QiRegen = 4, AtkPct = -0.05f },
-            new InnerArt { Id = "fury", Name = "광폭심법", UnlockStage = 15, LearnCost = 9000, Description = "급소를 노린 일격에 모든 것을 건다. 몸은 상한다.", CritDmgAdd = 0.4f, CritAdd = 0.04f, HpPct = -0.08f },
-            new InnerArt { Id = "wall", Name = "철벽심법", UnlockStage = 17, LearnCost = 10200, Description = "어떤 공격도 버텨 내는 수비의 심법. 몸놀림은 느려진다.", DefPct = 0.12f, SpeedAdd = -2 },
-            new InnerArt { Id = "blood", Name = "혈투심법", UnlockStage = 19, LearnCost = 11400, Description = "피를 흘리며 싸울수록 강해지는 거친 심법. 방어를 버린다.", AtkPct = 0.12f, Lifesteal = 0.05f, DefPct = -0.08f },
-            new InnerArt { Id = "unity", Name = "천지합일", UnlockStage = 22, LearnCost = 13200, Description = "몸과 기운이 하나가 되어 모든 면이 고르게 오른다.", HpPct = 0.06f, QiPct = 0.06f, AtkPct = 0.06f, DefPct = 0.06f, QiRegen = 2 },
-            new InnerArt { Id = "thunder", Name = "뇌정심법", UnlockStage = 25, LearnCost = 15000, Description = "번개 같은 선공. 몸은 약해지지만 기세를 품고 시작한다.", SpeedAdd = 6, CritAdd = 0.06f, StartSpirit = 30, HpPct = -0.06f },
+            new InnerArt { Id = "vigor", Name = "강건심법", UnlockStage = 3, LearnCost = 2000, Description = "몸을 단단히 다지는 수련.", HpPct = 0.10f, DefPct = 0.04f },
+            new InnerArt { Id = "tiger", Name = "맹호심법", UnlockStage = 5, LearnCost = 4000, Description = "공격에 모든 기운을 싣는다. 방어는 허술해진다.", AtkPct = 0.10f, DefPct = -0.04f },
+            new InnerArt { Id = "swift", Name = "경공심법", UnlockStage = 7, LearnCost = 6000, Description = "가볍게 움직여 먼저 치고 급소를 노린다.", SpeedAdd = 4, CritAdd = 0.03f },
+            new InnerArt { Id = "life", Name = "생기심법", UnlockStage = 9, LearnCost = 7000, Description = "때릴 때마다 상대의 기운을 조금 빼앗아 회복한다.", Lifesteal = 0.08f, HpPct = 0.04f },
+            new InnerArt { Id = "spirit", Name = "투지심법", UnlockStage = 11, LearnCost = 3500, Description = "기세가 빨리 오른다. 싸움을 기세 20으로 시작한다.", SpiritDealt = 4, SpiritTaken = 3, StartSpirit = 20 },
+            new InnerArt { Id = "calm", Name = "명경지수", UnlockStage = 13, LearnCost = 4000, Description = "마음이 고요해 내공이 넘친다. 공격은 다소 무뎌진다.", QiPct = 0.25f, QiRegen = 4, AtkPct = -0.05f },
+            new InnerArt { Id = "fury", Name = "광폭심법", UnlockStage = 15, LearnCost = 8000, Description = "급소를 노린 일격에 모든 것을 건다. 몸은 상한다.", CritDmgAdd = 0.4f, CritAdd = 0.04f, HpPct = -0.08f },
+            new InnerArt { Id = "wall", Name = "철벽심법", UnlockStage = 17, LearnCost = 5000, Description = "어떤 공격도 버텨 내는 수비의 심법. 몸놀림은 느려진다.", DefPct = 0.12f, SpeedAdd = -2 },
+            new InnerArt { Id = "blood", Name = "혈투심법", UnlockStage = 19, LearnCost = 12000, Description = "피를 흘리며 싸울수록 강해지는 거친 심법. 방어를 버린다.", AtkPct = 0.12f, Lifesteal = 0.05f, DefPct = -0.08f },
+            new InnerArt { Id = "unity", Name = "천지합일", UnlockStage = 22, LearnCost = 20000, Description = "몸과 기운이 하나가 되어 모든 면이 고르게 오른다.", HpPct = 0.06f, QiPct = 0.06f, AtkPct = 0.06f, DefPct = 0.06f, QiRegen = 2 },
+            new InnerArt { Id = "thunder", Name = "뇌정심법", UnlockStage = 25, LearnCost = 14000, Description = "번개 같은 선공. 몸은 약해지지만 기세를 품고 시작한다.", SpeedAdd = 6, CritAdd = 0.06f, StartSpirit = 30, HpPct = -0.06f },
         };
 
         public static InnerArt Find(string id)

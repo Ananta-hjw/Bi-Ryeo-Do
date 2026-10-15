@@ -25,6 +25,15 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void CostsAreFixedAndTheBestMethodIsTheMostExpensive()
+        {
+            var unity = InnerArts.Find("unity");
+            foreach (var a in InnerArts.All) Assert.LessOrEqual(a.LearnCost, unity.LearnCost, a.Id);
+            Assert.AreEqual(20000, unity.LearnCost);
+            Assert.Greater(InnerArts.Find("blood").LearnCost, InnerArts.Find("tiger").LearnCost);
+        }
+
+        [Test]
         public void LearningNeedsStageAndDoo()
         {
             var save = new SaveData { ClearedStage = 0, Doo = 100000 };
@@ -35,7 +44,7 @@ namespace BiRyeoDo.Tests
             Assert.IsFalse(InnerArts.Learn(save, "tiger", out err));   // too poor
             save.Doo = 5000;
             Assert.IsTrue(InnerArts.Learn(save, "tiger", out err));
-            Assert.AreEqual(5000 - InnerArts.Find("tiger").LearnCost, save.Doo);
+            Assert.AreEqual(1000, save.Doo);
             Assert.IsFalse(InnerArts.Learn(save, "tiger", out err));   // already learned
         }
 
