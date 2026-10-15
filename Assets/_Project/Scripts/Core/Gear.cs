@@ -34,7 +34,7 @@ namespace BiRyeoDo.Core
     {
         public const int MaxLevel = 10;
         public const float PerLevel = 0.10f;
-        private static readonly long[] CostBase = { 150, 300, 600, 1200, 2400, 4800 };   // by grade; the n-th level costs base x n
+        private static readonly long[] CostBase = { 75, 150, 300, 600, 1200, 2400 };   // by grade; the n-th level costs base x n
 
         public static int LevelOf(IList<GearLevel> levels, string id)
         {

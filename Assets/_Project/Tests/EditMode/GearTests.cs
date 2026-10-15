@@ -40,7 +40,7 @@ namespace BiRyeoDo.Tests
             long before = save.Doo;
             Assert.IsTrue(Gear.Enhance(save, "iron_sword", out err));
             Assert.AreEqual(1, Gear.Level(save, "iron_sword"));
-            Assert.AreEqual(150, before - save.Doo);
+            Assert.AreEqual(75, before - save.Doo);
             var plain = Inventory.ApplyGear(Base(), new[] { "iron_sword" });
             var plus = Inventory.ApplyGear(Base(), new[] { "iron_sword" }, save.GearLevels);
             Assert.AreEqual(104, plain.Attack);
