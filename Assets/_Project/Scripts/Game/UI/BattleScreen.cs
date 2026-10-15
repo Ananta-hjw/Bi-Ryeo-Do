@@ -328,8 +328,10 @@ namespace BiRyeoDo.Game.UI
                     if (!_battle.PlayerWon) { cleared = false; break; }
 
                     long exp = 0, doo = 0;
+                    save.BattleWins++;
                     foreach (var id in stage.Encounters[i])
                     {
+                        Codex.SeeEnemy(save, id);
                         exp += EarlyGameContent.ExpReward(stage, id);
                         doo += EarlyGameContent.DooReward(stage, id);
                     }

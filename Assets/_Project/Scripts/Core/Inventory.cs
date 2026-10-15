@@ -19,6 +19,7 @@ namespace BiRyeoDo.Core
             if (count <= 0) return;
             var item = EarlyGameContent.FindItem(id);
             if (item == null) return;
+            Codex.SeeItem(save, id);
             foreach (var s in save.Items)
             {
                 if (s.Id != id) continue;

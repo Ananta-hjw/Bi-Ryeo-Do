@@ -19,7 +19,8 @@ namespace BiRyeoDo.Game.UI
         }
 
         private readonly List<Row> _rows = new List<Row>();
-        private Text _towerRowDetail, _statusRowDetail, _lvText, _dooText, _rankText, _promoRowDetail, _partyRowDetail, _questRowDetail, _fortuneRowDetail;
+        private CodexPanel _codex;
+        private Text _codexRowDetail, _achRowDetail, _achBadge, _towerRowDetail, _statusRowDetail, _lvText, _dooText, _rankText, _promoRowDetail, _partyRowDetail, _questRowDetail, _fortuneRowDetail;
         private Text _promoBadge, _partyBadge, _questBadge, _fortuneBadge, _featTitle, _featSub, _featBtnLabel;
         private UiFactory.Bar _expBar;
         private Image _featArt;
@@ -109,6 +110,11 @@ namespace BiRyeoDo.Game.UI
             _statusRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "상태창", OpenStatusOverlay, out statusBadge);
             statusBadge.transform.parent.gameObject.SetActive(false);
             y += 150f + gap;
+            Text codexBadge;
+            _codexRowDetail = Tile(content, 0.04f, 0.49f, y, tileH, "도감", () => _codex.OpenCodex(), out codexBadge);
+            codexBadge.transform.parent.gameObject.SetActive(false);
+            _achRowDetail = Tile(content, 0.51f, 0.96f, y, tileH, "업적", () => _codex.OpenAchievements(), out _achBadge);
+            y += tileH + gap;
             Text towerBadge;
             _towerRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "무한 비무대", OpenTowerOverlay, out towerBadge);
             towerBadge.transform.parent.gameObject.SetActive(false);
@@ -167,6 +173,10 @@ namespace BiRyeoDo.Game.UI
             _towerOverlay = UiFactory.Rect("TowerOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
             _towerOverlay.gameObject.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
             _towerOverlay.gameObject.SetActive(false);
+
+            var codexRoot = UiFactory.Rect("CodexOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
+            var achRoot = UiFactory.Rect("AchievementOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
+            _codex = new CodexPanel(codexRoot, achRoot, Refresh);
             Refresh();
         }
 
@@ -784,6 +794,10 @@ namespace BiRyeoDo.Game.UI
                 + (Promotion.EffectiveRank(save) < Promotion.GateRank ? "\n(" + Promotion.RankName(Promotion.GateRank) + " 이상이어야 삼성무제 참가)" : "");
             int openQuests = Quests.Open(save).Count, openFortunes = Fortunes.Open(save).Count;
             _questRowDetail.text = openQuests > 0 ? "받을 수 있는 의뢰 " + openQuests + "건" : "새 의뢰 없음 (스테이지를 돌파하면 늘어난다)";
+            Codex.Sync(save);
+            _codexRowDetail.text = "적 " + save.SeenEnemies.Count + "/" + Codex.EnemyTotal + " · 물품 " + save.SeenItems.Count + "/" + Codex.ItemTotal;
+            _achRowDetail.text = "달성 " + Achievements.ClaimedCount(save) + "/" + Achievements.All.Length;
+            SetBadge(_achBadge, Achievements.ClaimableCount(save));
             _towerRowDetail.text = Tower.Unlocked(save) ? "최고 " + save.TowerBest + "층 · 다음 " + Tower.NextFloor(save) + "층" : "스테이지 " + Tower.UnlockStage + " 돌파 시 열린다";
             _fortuneRowDetail.text = openFortunes > 0 ? "마주칠 기연 " + openFortunes + "건" : "새 기연 없음";
             if (openQuests + openFortunes > 0 && HelpPanel.Instance != null && !HelpPanel.Instance.IsOpen && !Tutorial.IsDone(save, "board")

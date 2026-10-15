@@ -69,6 +69,7 @@ namespace BiRyeoDo.Core
         {
             if (count <= 0 || !CanAfford(save, count)) return null;
             save.Doo -= CostFor(count);
+            save.GachaPulls += count;
             var results = new List<PullResult>();
             for (int i = 0; i < count; i++)
             {
@@ -77,6 +78,7 @@ namespace BiRyeoDo.Core
                 if (item.IsGear && Inventory.Count(save, item.Id) > 0)
                 {
                     r.Duplicate = true;
+                    Codex.SeeItem(save, item.Id);
                     r.Doo = Grades.DismantleDoo[(int)item.Grade];
                     save.Doo += r.Doo;
                 }
