@@ -26,7 +26,8 @@ namespace BiRyeoDo.Game.UI
         private Button _featBtn;
         private StageData _featStage;
         private Action<StageData> _onStartRef;
-        private RectTransform _promoOverlay, _partyOverlay, _questOverlay, _fortuneOverlay;
+        private RectTransform _promoOverlay, _partyOverlay, _questOverlay, _fortuneOverlay, _settingsOverlay;
+        private bool _confirmReset;
         private Action<StageData> _onStart;
         private Action<PromotionOffer> _onPromote;
         private bool _built;
@@ -119,6 +120,10 @@ namespace BiRyeoDo.Game.UI
             _fortuneOverlay = UiFactory.Rect("FortuneOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
             _fortuneOverlay.gameObject.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
             _fortuneOverlay.gameObject.SetActive(false);
+
+            _settingsOverlay = UiFactory.Rect("SettingsOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
+            _settingsOverlay.gameObject.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
+            _settingsOverlay.gameObject.SetActive(false);
             Refresh();
         }
 
@@ -135,9 +140,10 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Icon", doo.transform, new Vector2(0.04f, 0f), new Vector2(0.28f, 1f), "두", 30, UiFactory.Gold);
             _dooText = UiFactory.Label("Doo", doo.transform, new Vector2(0.28f, 0f), new Vector2(0.96f, 1f), "", 30, UiFactory.PaperText, TextAnchor.MiddleRight);
 
-            var rank = UiFactory.Panel("RankChip", root, new Vector2(0.71f, 0.932f), new Vector2(0.97f, 0.988f), UiFactory.Ink);
+            var rank = UiFactory.Panel("RankChip", root, new Vector2(0.71f, 0.932f), new Vector2(0.865f, 0.988f), UiFactory.Ink);
             UiFactory.Frame(rank.transform, UiFactory.GoldDim, 2f);
-            _rankText = UiFactory.Label("Rank", rank.transform, new Vector2(0.04f, 0f), new Vector2(0.96f, 1f), "", 28, UiFactory.PaperText);
+            _rankText = UiFactory.Label("Rank", rank.transform, new Vector2(0.04f, 0f), new Vector2(0.96f, 1f), "", 22, UiFactory.PaperText);
+            UiFactory.Button("Settings", root, new Vector2(0.88f, 0.932f), new Vector2(0.97f, 0.988f), "설정", UiFactory.InkSoft, OpenSettingsOverlay, 22);
         }
 
         /// <summary>A row-like rectangle placed in the scroll content at a pixel offset from the top.</summary>
@@ -244,6 +250,68 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Button("Close", _promoOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => _promoOverlay.gameObject.SetActive(false), 36);
         }
 
+
+        // ------------------------------------------------------------------ 설정
+
+        private void OpenSettingsOverlay()
+        {
+            _confirmReset = false;
+            BuildSettings();
+        }
+
+        private void BuildSettings()
+        {
+            var save = GameManager.Instance.Save;
+            if (save.Settings == null) save.Settings = new GameSettings();
+            var st = save.Settings;
+            ClearChildren(_settingsOverlay);
+            _settingsOverlay.gameObject.SetActive(true);
+            UiFactory.Label("Title", _settingsOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "설정", 44, UiFactory.Gold);
+
+            float y = 0.88f;
+            VolumeRow("배경음", st.BgmVolume, ref y, d => { st.BgmVolume = GameSettings.StepVolume(st.BgmVolume, d); SoundManager.RefreshVolumes(); });
+            VolumeRow("효과음", st.SfxVolume, ref y, d => { st.SfxVolume = GameSettings.StepVolume(st.SfxVolume, d); });
+            ToggleRow("진동", st.Vibration ? "켜짐" : "꺼짐", ref y, () => { st.Vibration = !st.Vibration; if (st.Vibration) SoundManager.Haptic(60); });
+            ToggleRow("전투 시작 속도", "x" + st.BattleSpeed, ref y, () => { st.BattleSpeed = st.NextSpeed(); });
+
+            y -= 0.04f;
+            var reset = UiFactory.Button("Reset", _settingsOverlay, new Vector2(0.08f, y - 0.09f), new Vector2(0.92f, y),
+                _confirmReset ? "정말 초기화할까요? 한 번 더 누르면 모든 진행이 사라집니다" : "저장 데이터 초기화", _confirmReset ? UiFactory.Red : UiFactory.InkSoft, OnResetPressed, 28);
+            reset.interactable = true;
+
+            UiFactory.Label("Info", _settingsOverlay, new Vector2(0.06f, 0.12f), new Vector2(0.94f, 0.22f),
+                "소리 파일(Resources/Audio)을 넣으면 효과음과 배경음이 자동으로 나온다. 파일이 없으면 조용히 넘어간다.", 22, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.Button("Close", _settingsOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { GameManager.Instance.SaveNow(); _settingsOverlay.gameObject.SetActive(false); Refresh(); }, 36);
+        }
+
+        private void VolumeRow(string label, float value, ref float y, Action<int> change)
+        {
+            var band = UiFactory.Panel("Row", _settingsOverlay, new Vector2(0.05f, y - 0.09f), new Vector2(0.95f, y), UiFactory.Ink);
+            UiFactory.Frame(band.transform, UiFactory.GoldDim, 2f);
+            UiFactory.Label("Name", band.transform, new Vector2(0.04f, 0.1f), new Vector2(0.40f, 0.9f), label, 34, UiFactory.Gold, TextAnchor.MiddleLeft);
+            UiFactory.Button("Minus", band.transform, new Vector2(0.44f, 0.15f), new Vector2(0.58f, 0.85f), "-", UiFactory.InkSoft, () => { change(-1); BuildSettings(); }, 40);
+            UiFactory.Label("Value", band.transform, new Vector2(0.58f, 0.1f), new Vector2(0.80f, 0.9f), Mathf.RoundToInt(value * 100f) + "%", 34, UiFactory.PaperText);
+            UiFactory.Button("Plus", band.transform, new Vector2(0.80f, 0.15f), new Vector2(0.94f, 0.85f), "+", UiFactory.InkSoft, () => { change(1); BuildSettings(); }, 40);
+            y -= 0.105f;
+        }
+
+        private void ToggleRow(string label, string value, ref float y, Action toggle)
+        {
+            var band = UiFactory.Panel("Row", _settingsOverlay, new Vector2(0.05f, y - 0.09f), new Vector2(0.95f, y), UiFactory.Ink);
+            UiFactory.Frame(band.transform, UiFactory.GoldDim, 2f);
+            UiFactory.Label("Name", band.transform, new Vector2(0.04f, 0.1f), new Vector2(0.50f, 0.9f), label, 34, UiFactory.Gold, TextAnchor.MiddleLeft);
+            UiFactory.Button("Toggle", band.transform, new Vector2(0.60f, 0.15f), new Vector2(0.94f, 0.85f), value, UiFactory.Red, () => { toggle(); BuildSettings(); }, 34);
+            y -= 0.105f;
+        }
+
+        private void OnResetPressed()
+        {
+            if (!_confirmReset) { _confirmReset = true; BuildSettings(); return; }
+            _confirmReset = false;
+            GameManager.Instance.ResetSave();
+            _settingsOverlay.gameObject.SetActive(false);
+            Refresh();
+        }
 
         // ------------------------------------------------------------------ 의뢰 / 기연
 

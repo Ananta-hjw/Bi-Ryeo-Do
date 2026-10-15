@@ -18,6 +18,17 @@ namespace BiRyeoDo.Game.Systems
             Save = SaveService.Load();
             EnsureStarterArt();
             Inventory.EnsureStartKit(Save);
+            gameObject.AddComponent<SoundManager>();
+        }
+
+        /// <summary>Throws the whole save away and starts a fresh game (options are kept).</summary>
+        public void ResetSave()
+        {
+            var settings = Save.Settings;
+            Save = new SaveData { Settings = settings ?? new GameSettings() };
+            EnsureStarterArt();
+            Inventory.EnsureStartKit(Save);
+            SaveNow();
         }
 
         /// <summary>Every art that costs nothing is known from the start and equipped (up to the limit).</summary>

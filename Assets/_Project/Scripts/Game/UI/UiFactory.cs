@@ -132,6 +132,7 @@ namespace BiRyeoDo.Game.UI
             var btn = img.gameObject.AddComponent<Button>();
             btn.targetGraphic = img;
             if (onClick != null) btn.onClick.AddListener(onClick);
+            btn.onClick.AddListener(() => Systems.SoundManager.Sfx("ui_click"));
             if (bg.a > 0.05f) Frame(img.transform, GoldDim, 2f);
             Label("Label", img.transform, Vector2.zero, Vector2.one, label, fontSize, PaperText);
             return btn;

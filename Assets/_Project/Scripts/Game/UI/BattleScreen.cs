@@ -279,10 +279,18 @@ namespace BiRyeoDo.Game.UI
 
         // ------------------------------------------------------------------ flow
 
+        private void ApplySavedSpeed()
+        {
+            var settings = GameManager.Instance.Save.Settings;
+            _speed = settings != null ? Mathf.Clamp(settings.BattleSpeed, 1, 3) : 1;
+            _speedLabel.text = "속도 x" + _speed;
+        }
+
         public void Open(StageData stage, Action onClose)
         {
             _onClose = onClose;
             StopAllCoroutines();
+            ApplySavedSpeed();
             StartCoroutine(RunStage(stage));
         }
 
@@ -345,6 +353,7 @@ namespace BiRyeoDo.Game.UI
                     gainedExp += exp; gainedDoo += doo;
                     GameManager.Instance.SaveNow();
                     if (levels > 0) RebuildPartyForNewLevel(stage);
+                    SoundManager.Sfx(levels > 0 ? "levelup" : "win");
                     yield return Banner("승리!  경험 +" + exp + "  두 +" + doo + (drops.Count > 0 ? "\n획득: " + DescribeStacks(drops) : "") + (levels > 0 ? "\nLv." + save.Level + " 상승!" : ""), levels > 0 || drops.Count > 0 ? 1.5f : 0.9f);
                     foreach (var m in _party) m.RestBetweenFights(0.5f);
                     RefreshParty();
@@ -400,6 +409,7 @@ namespace BiRyeoDo.Game.UI
             _bannerBg.color = new Color(0f, 0f, 0f, 0f);
             ClearCards();
             ClearPanels();
+            SoundManager.Bgm("lobby");
             _onClose?.Invoke();
         }
 
@@ -527,6 +537,9 @@ namespace BiRyeoDo.Game.UI
         /// <summary>Plays one fight. With <paramref name="turnLimit"/> > 0 the fight is a draw once the player has acted that many times.</summary>
         private IEnumerator Fight(EnemyData[] enemies, int turnLimit, TrialRule trial = null)
         {
+            bool bossFight = false;
+            foreach (var en in enemies) if (en.IsBoss) bossFight = true;
+            SoundManager.Bgm(bossFight ? "boss" : "battle");
             _drawn = false;
             int actions = 0;
             string label = _stageLabel.text;
@@ -561,6 +574,7 @@ namespace BiRyeoDo.Game.UI
                 {
                     int rose = Mastery.RecordUse(GameManager.Instance.Save, _command.Skill.Id);
                     GameManager.Instance.SaveNow();
+                    if (rose >= 0) SoundManager.Sfx("levelup");
                     if (rose >= 0) _masteryNotice = _command.Skill.Name + " 숙련 " + Mastery.LevelNames[rose] + "!" + (rose == Mastery.VariantLevel ? "  변초 해금 (무공 탭)" : "");
                 }
                 if (_command.Kind == CommandKind.Item)
@@ -1000,6 +1014,7 @@ namespace BiRyeoDo.Game.UI
         {
             _speed = _speed == 1 ? 2 : _speed == 2 ? 3 : 1;
             _speedLabel.text = "속도 x" + _speed;
+            GameManager.Instance.Save.Settings.BattleSpeed = _speed;
         }
 
         private void OnFleePressed()
@@ -1061,18 +1076,21 @@ namespace BiRyeoDo.Game.UI
                         else yield return EnemyHit(ev);
                         break;
                     case EventKind.Guard:
+                        SoundManager.Sfx("guard");
                         _log.text = ev.Message;
                         foreach (var p in _panels) if (p.Unit.Guarding) Float(p.Center, "방어!", GuardBlue, 52);
                         RefreshParty();
                         yield return new WaitForSeconds(Wait(SmallDelay));
                         break;
                     case EventKind.Meditate:
+                        SoundManager.Sfx("heal");
                         _log.text = ev.Message;
                         if (actorPanel != null) Float(actorPanel.Center, "+" + ev.Heal, HpGreen, 60);
                         RefreshParty();
                         yield return new WaitForSeconds(Wait(SmallDelay));
                         break;
                     case EventKind.Heal:
+                        SoundManager.Sfx("heal");
                         _log.text = ev.Message;
                         var healed = PanelOf(ev.TargetId);
                         if (healed != null) Float(healed.Center, "+" + ev.Heal, HpGreen, 70);
@@ -1080,6 +1098,7 @@ namespace BiRyeoDo.Game.UI
                         yield return new WaitForSeconds(Wait(StepDelay));
                         break;
                     case EventKind.Item:
+                        SoundManager.Sfx("heal");
                         _log.text = ev.Message;
                         var itemTarget = PanelOf(ev.TargetId);
                         if (ev.Heal > 0 && itemTarget != null) Float(itemTarget.Center, "+" + ev.Heal, HpGreen, 70);
@@ -1088,12 +1107,14 @@ namespace BiRyeoDo.Game.UI
                         yield return new WaitForSeconds(Wait(StepDelay));
                         break;
                     case EventKind.Evade:
+                        SoundManager.Sfx("dodge");
                         _log.text = ev.Message;
                         if (actorPanel != null) Float(actorPanel.Center, "회피 태세", new Color(0.7f, 0.9f, 1f), 52);
                         RefreshParty();
                         yield return new WaitForSeconds(Wait(SmallDelay));
                         break;
                     case EventKind.Charge:
+                        SoundManager.Sfx("charge");
                         _log.text = ev.Message;
                         var card = CardOf(ev.ActorId);
                         if (card != null) { Float(card.Center, "!!", UiFactory.Red, 90); yield return Shake(card.Root, 10f); }
@@ -1132,6 +1153,8 @@ namespace BiRyeoDo.Game.UI
             if (striker != null && ev.HitIndex == 0) StartCoroutine(Lunge(striker.Root, new Vector2(130f, 0f)));
             SlashFx(card.Center, ev.HitIndex, ev.IsCrit, striker != null && striker.Unit.Skills.Find(x => x.Id == ev.SkillId) is SkillSpec sp && sp.SpiritCost >= 100);
             if (ev.IsCrit) { StartCoroutine(Punch(1.06f)); yield return new WaitForSeconds(Wait(0.07f)); }
+            SoundManager.Sfx(ev.IsCrit ? "hit_crit" : "hit");
+            if (ev.IsCrit) SoundManager.Haptic(40);
             Float(card.Center + new Vector2(UnityEngine.Random.Range(-0.05f, 0.05f), 0.02f * ev.HitIndex), ev.Damage + (ev.IsCrit ? "!" : ""), ev.IsCrit ? UiFactory.Gold : UiFactory.PaperText, ev.IsCrit ? 84 : 64);
             if (ev.Harmony) Float(card.Center + new Vector2(0f, 0.08f), "합격!", UiFactory.Gold, 80);
             if (ev.Interrupted) Float(card.Center + new Vector2(0f, -0.07f), "차단!", UiFactory.Gold, 72);
@@ -1154,10 +1177,13 @@ namespace BiRyeoDo.Game.UI
             {
                 if (ev.Dodged)
                 {
+                    SoundManager.Sfx("dodge");
                     Float(victim.Center, "회피!", new Color(0.7f, 0.9f, 1f), 70);
                 }
                 else
                 {
+                    SoundManager.Sfx(ev.Guarded ? "block" : "hit_taken");
+                    if (!ev.Guarded) SoundManager.Haptic(ev.IsCrit ? 60 : 25);
                     Float(victim.Center, "-" + ev.Damage + (ev.Guarded ? " 방어" : ev.IsCrit ? "!" : ""), ev.Guarded ? GuardBlue : UiFactory.Red, ev.IsCrit ? 84 : 66);
                     victim.Hp.SetPct((float)ev.TargetHpAfter / Math.Max(1, victim.Unit.Stats.MaxHp));
                     victim.HpText.text = ev.TargetHpAfter + "/" + victim.Unit.Stats.MaxHp;
@@ -1321,6 +1347,7 @@ namespace BiRyeoDo.Game.UI
         /// <summary>Defeated enemy staggers, sinks and fades instead of just dimming.</summary>
         private IEnumerator Collapse(EnemyCard card)
         {
+            SoundManager.Sfx("enemy_down");
             float d = 0.45f / _speed;
             Vector2 origin = card.Root.anchoredPosition;
             for (float e = 0f; e < d; e += Time.deltaTime)
@@ -1340,6 +1367,8 @@ namespace BiRyeoDo.Game.UI
         /// <summary>Skill-name flash before the strike; 비기 get a full-width gold cut-in with a dark flash.</summary>
         private IEnumerator SkillCutIn(string skillName, bool ultimate)
         {
+            SoundManager.Sfx(ultimate ? "ultimate" : "skill");
+            if (ultimate) SoundManager.Haptic(120);
             _banner.fontSize = ultimate ? 96 : 72;
             _banner.color = ultimate ? UiFactory.Gold : UiFactory.PaperText;
             _banner.text = ultimate ? "\u300e " + skillName + " \u300f" : skillName;
@@ -1456,6 +1485,8 @@ namespace BiRyeoDo.Game.UI
         {
             SetCommandsVisible(false);
             SetPanelMode(false);
+            SoundManager.Sfx(defeat ? "lose" : "clear");
+            if (defeat) SoundManager.Haptic(200);
             _panelTitle.text = title;
             _panelText.text = text;
             _panelNext.SetActive(!defeat);

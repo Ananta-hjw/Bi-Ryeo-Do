@@ -85,6 +85,7 @@ namespace BiRyeoDo.Game.UI
             });
 
             Select((int)_router.startTab);
+            SoundManager.Bgm("lobby");
         }
 
         private void BuildTabBar(RectTransform parent)
