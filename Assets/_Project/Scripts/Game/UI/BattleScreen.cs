@@ -75,7 +75,7 @@ namespace BiRyeoDo.Game.UI
         private List<Combatant> _party = new List<Combatant>();
         private EnemyCard _target;
 
-        private bool _hasCommand, _panelDone, _retry, _fled, _itemMode, _jointMode, _drawn;
+        private bool _hasCommand, _panelDone, _retry, _leave, _fled, _itemMode, _jointMode, _drawn;
         private readonly List<Combatant> _jointPartners = new List<Combatant>();
         private string _jointName = "합공";
         private PlayerCommand _command;
@@ -164,7 +164,7 @@ namespace BiRyeoDo.Game.UI
             _panelTextRect = text.rectTransform;
             _panelNext = UiFactory.Button("Next", rect, new Vector2(0.30f, 0.05f), new Vector2(0.70f, 0.20f), "다음", UiFactory.Red, () => _panelDone = true, 40).gameObject;
             _panelRetry = UiFactory.Button("Retry", rect, new Vector2(0.06f, 0.05f), new Vector2(0.48f, 0.20f), "다시 도전", UiFactory.Red, () => { _retry = true; _panelDone = true; }, 36).gameObject;
-            _panelBack = UiFactory.Button("Back", rect, new Vector2(0.52f, 0.05f), new Vector2(0.94f, 0.20f), "강호로", UiFactory.InkSoft, () => { _retry = false; _panelDone = true; }, 36).gameObject;
+            _panelBack = UiFactory.Button("Back", rect, new Vector2(0.52f, 0.05f), new Vector2(0.94f, 0.20f), "강호로", UiFactory.InkSoft, () => { _retry = false; _leave = true; _panelDone = true; }, 36).gameObject;
             _panel.SetActive(false);
         }
 
@@ -277,6 +277,13 @@ namespace BiRyeoDo.Game.UI
                     yield return Banner("승리!  경험 +" + exp + "  두 +" + doo + (drops.Count > 0 ? "\n획득: " + DescribeStacks(drops) : "") + (levels > 0 ? "\nLv." + save.Level + " 상승!" : ""), levels > 0 || drops.Count > 0 ? 1.5f : 0.9f);
                     foreach (var m in _party) m.RestBetweenFights(0.5f);
                     RefreshParty();
+
+                    // Between fights the player decides when to go on (the next fight may be the boss).
+                    if (i < stage.Encounters.Length - 1)
+                    {
+                        yield return ShowHub(stage, i);
+                        if (_leave) { _fled = true; cleared = false; break; }
+                    }
                 }
 
                 if (_fled)
@@ -1291,6 +1298,49 @@ namespace BiRyeoDo.Game.UI
             _panelText.color = UiFactory.PaperText;
         }
 
+        /// <summary>Pause between the fights of a stage: shows the party's state and waits for the player to challenge the next fight or step back.</summary>
+        private IEnumerator ShowHub(StageData stage, int doneIndex)
+        {
+            SetCommandsVisible(false);
+            SetPanelMode(false);
+            int next = doneIndex + 1;
+            bool boss = next == stage.Encounters.Length - 1;
+            var sb = new System.Text.StringBuilder();
+            sb.Append("전투 ").Append(doneIndex + 1).Append("/").Append(stage.Encounters.Length).Append(" 승리!\n");
+            foreach (var m in _party) sb.Append(m.Name).Append("  체력 ").Append(m.Hp).Append("/").Append(m.Stats.MaxHp).Append("  내공 ").Append(m.Qi).Append("\n");
+            sb.Append("\n다음은 ").Append(boss ? "결전이다." : "전투 " + (next + 1) + "이다.");
+            var trial = stage.TrialFor(next);
+            if (trial != null) sb.Append("\n[").Append(trial.Title).Append("] ").Append(trial.Brief);
+            sb.Append("\n준비가 되면 도전하자. 물러나면 이 스테이지는 처음부터 다시 해야 한다.");
+
+            _panelTitle.text = stage.Name;
+            _panelText.text = sb.ToString();
+            var nextLabel = _panelNext.GetComponentInChildren<Text>();
+            var backLabel = _panelBack.GetComponentInChildren<Text>();
+            string nextOld = nextLabel.text, backOld = backLabel.text;
+            nextLabel.text = boss ? "결전에 도전" : "다음 전투 도전";
+            backLabel.text = "물러나기";
+            _panelNext.SetActive(true);
+            _panelBack.SetActive(true);
+            _panelRetry.SetActive(false);
+            // Next and Back share the row: shrink Next to the left half while the hub is up.
+            var nextRt = (RectTransform)_panelNext.transform;
+            var oldMin = nextRt.anchorMin; var oldMax = nextRt.anchorMax;
+            nextRt.anchorMin = new Vector2(0.06f, 0.05f); nextRt.anchorMax = new Vector2(0.62f, 0.20f);
+            var backRt = (RectTransform)_panelBack.transform;
+            var backMin = backRt.anchorMin; var backMax = backRt.anchorMax;
+            backRt.anchorMin = new Vector2(0.66f, 0.05f); backRt.anchorMax = new Vector2(0.94f, 0.20f);
+            _panel.SetActive(true);
+            _panelDone = false;
+            _leave = false;
+            while (!_panelDone) yield return null;
+            _panel.SetActive(false);
+            nextRt.anchorMin = oldMin; nextRt.anchorMax = oldMax;
+            backRt.anchorMin = backMin; backRt.anchorMax = backMax;
+            nextLabel.text = nextOld; backLabel.text = backOld;
+            _panelBack.SetActive(false);
+        }
+
         private IEnumerator ShowResult(string title, string text, bool defeat, bool allowRetry = true)
         {
             SetCommandsVisible(false);
@@ -1303,6 +1353,7 @@ namespace BiRyeoDo.Game.UI
             _panel.SetActive(true);
             _panelDone = false;
             _retry = false;
+            _leave = false;
             while (!_panelDone) yield return null;
             _panel.SetActive(false);
         }
