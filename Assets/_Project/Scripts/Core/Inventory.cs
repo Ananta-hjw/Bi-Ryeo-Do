@@ -60,7 +60,7 @@ namespace BiRyeoDo.Core
 
         public static bool IsEquipped(SaveData save, string id) { return save.EquippedGear.Contains(id); }
 
-        /// <summary>Equips owned gear: one weapon, <see cref="AccessorySlots"/> accessories. A new weapon replaces the old one.</summary>
+        /// <summary>Equips owned gear: one weapon, one armor, <see cref="AccessorySlots"/> accessories. A new weapon replaces the old one.</summary>
         public static bool Equip(SaveData save, string id, out string error)
         {
             error = null;
@@ -69,12 +69,13 @@ namespace BiRyeoDo.Core
             if (Count(save, id) == 0) { error = "가지고 있지 않다."; return false; }
             if (IsEquipped(save, id)) return true;
 
-            if (item.Kind == ItemKind.Weapon)
+            if (item.Kind == ItemKind.Weapon || item.Kind == ItemKind.Armor)
             {
+                // one weapon and one armor: a new piece replaces the old one of the same kind
                 foreach (var other in new List<string>(save.EquippedGear))
                 {
                     var o = EarlyGameContent.FindItem(other);
-                    if (o != null && o.Kind == ItemKind.Weapon) save.EquippedGear.Remove(other);
+                    if (o != null && o.Kind == item.Kind) save.EquippedGear.Remove(other);
                 }
             }
             else

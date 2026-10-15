@@ -41,6 +41,7 @@ namespace BiRyeoDo.Tests
                 {
                     case ItemKind.Consumable: Assert.IsTrue(i.HealPct > 0 || i.QiRestore > 0 || i.SpiritGain > 0, i.Id); break;
                     case ItemKind.Weapon:
+                    case ItemKind.Armor:
                     case ItemKind.Accessory: Assert.IsTrue(i.AtkPct != 0 || i.DefPct != 0 || i.HpPct != 0 || i.QiPct != 0 || i.CritAdd != 0 || i.SpeedAdd != 0, i.Id); break;
                     case ItemKind.Material: Assert.Greater(i.SellValue, 0, i.Id); break;
                 }
@@ -131,7 +132,7 @@ namespace BiRyeoDo.Tests
             var save = new SaveData();
             var first = Inventory.GrantStageReward(save, 5);
             Assert.AreEqual(2, first.Count);
-            Assert.AreEqual(1, Inventory.Count(save, "jin_biroedo"));
+            Assert.AreEqual(1, Inventory.Count(save, "ginseng"));
             Assert.AreEqual(0, Inventory.GrantStageReward(save, 5).Count);
         }
 

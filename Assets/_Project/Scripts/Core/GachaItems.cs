@@ -1,0 +1,72 @@
+namespace BiRyeoDo.Core
+{
+    /// <summary>
+    /// Gear and potions that come out of the 뽑기. Names and effects are game design (not from the novel).
+    /// Stat budget per grade (main stat): 일반 ~4%, 고급 ~7%, 희귀 ~11%, 영웅 ~16%, 전설 ~22%, 신화 ~30%.
+    /// </summary>
+    public static class GachaItems
+    {
+        public static readonly ItemData[] All =
+        {
+            new ItemData { Id = "iron_sword", Name = "낡은 철검", Kind = ItemKind.Weapon, Grade = ItemGrade.Normal, AtkPct = 0.04f, Description = "대장간에서 막 나온 평범한 철검. 공격 +4%." },
+            new ItemData { Id = "oak_club", Name = "박달나무 곤봉", Kind = ItemKind.Weapon, Grade = ItemGrade.Normal, AtkPct = 0.03f, HpPct = 0.03f, Description = "단단한 박달나무를 깎아 만든 곤봉. 체력 +3%, 공격 +3%." },
+            new ItemData { Id = "hunter_knife", Name = "사냥꾼 단도", Kind = ItemKind.Weapon, Grade = ItemGrade.Normal, AtkPct = 0.03f, CritAdd = 0.01f, Description = "산짐승을 잡던 날 선 단도. 공격 +3%, 치명타 +1%." },
+            new ItemData { Id = "cheonggang_sword", Name = "청강검", Kind = ItemKind.Weapon, Grade = ItemGrade.Fine, AtkPct = 0.07f, Description = "푸른 빛이 도는 정련강 검. 공격 +7%." },
+            new ItemData { Id = "twin_daggers", Name = "쌍비수", Kind = ItemKind.Weapon, Grade = ItemGrade.Fine, AtkPct = 0.06f, CritAdd = 0.02f, SpeedAdd = 1, Description = "양손에 쥐는 한 쌍의 비수. 공격 +6%, 치명타 +2%, 속도 +1." },
+            new ItemData { Id = "dumok_spear", Name = "단목창", Kind = ItemKind.Weapon, Grade = ItemGrade.Fine, AtkPct = 0.06f, DefPct = 0.02f, Description = "가볍고 길게 뻗는 창. 공격 +6%, 방어 +2%." },
+            new ItemData { Id = "blackiron_blade", Name = "흑철도", Kind = ItemKind.Weapon, Grade = ItemGrade.Rare, AtkPct = 0.11f, Description = "검은 철을 두드려 만든 묵직한 도. 공격 +11%." },
+            new ItemData { Id = "windcut_sword", Name = "풍절검", Kind = ItemKind.Weapon, Grade = ItemGrade.Rare, AtkPct = 0.09f, SpeedAdd = 3, Description = "휘두르면 바람 소리가 나는 얇은 검. 공격 +9%, 속도 +3." },
+            new ItemData { Id = "thunder_dagger", Name = "뇌문 비수", Kind = ItemKind.Weapon, Grade = ItemGrade.Rare, AtkPct = 0.1f, CritAdd = 0.03f, Description = "칼날에 번개 무늬가 새겨진 비수. 공격 +10%, 치명타 +3%." },
+            new ItemData { Id = "frost_sword", Name = "한철검", Kind = ItemKind.Weapon, Grade = ItemGrade.Epic, AtkPct = 0.15f, CritAdd = 0.03f, Description = "차가운 기운이 서린 한철 검. 공격 +15%, 치명타 +3%." },
+            new ItemData { Id = "crimson_saber", Name = "적염도", Kind = ItemKind.Weapon, Grade = ItemGrade.Epic, AtkPct = 0.16f, HpPct = 0.03f, Description = "칼끝에 열기가 맺힌 붉은 도. 체력 +3%, 공격 +16%." },
+            new ItemData { Id = "crescent_glaive", Name = "월아극", Kind = ItemKind.Weapon, Grade = ItemGrade.Epic, AtkPct = 0.14f, CritAdd = 0.04f, SpeedAdd = 2, Description = "초승달 모양 날이 달린 장병기. 공격 +14%, 치명타 +4%, 속도 +2." },
+            new ItemData { Id = "storm_blade", Name = "폭풍도", Kind = ItemKind.Weapon, Grade = ItemGrade.Legendary, AtkPct = 0.22f, SpeedAdd = 3, CritAdd = 0.03f, Description = "휘두를 때마다 돌풍이 이는 명도. 공격 +22%, 치명타 +3%, 속도 +3." },
+            new ItemData { Id = "dragonfang_sword", Name = "용아검", Kind = ItemKind.Weapon, Grade = ItemGrade.Legendary, AtkPct = 0.21f, HpPct = 0.06f, CritAdd = 0.04f, Description = "영물의 이빨을 갈아 벼린 검. 체력 +6%, 공격 +21%, 치명타 +4%." },
+            new ItemData { Id = "starfall_sword", Name = "성락검", Kind = ItemKind.Weapon, Grade = ItemGrade.Mythic, AtkPct = 0.3f, CritAdd = 0.06f, SpeedAdd = 4, Description = "별이 떨어지듯 빠르고 날카로운 신검. 공격 +30%, 치명타 +6%, 속도 +4." },
+            new ItemData { Id = "heaven_cutter", Name = "참천도", Kind = ItemKind.Weapon, Grade = ItemGrade.Mythic, AtkPct = 0.32f, HpPct = 0.08f, CritAdd = 0.04f, Description = "하늘마저 가른다는 전설의 도. 체력 +8%, 공격 +32%, 치명타 +4%." },
+            new ItemData { Id = "cloth_robe", Name = "무명 도복", Kind = ItemKind.Armor, Grade = ItemGrade.Normal, HpPct = 0.04f, Description = "빨아 입기 좋은 무명 도복. 체력 +4%." },
+            new ItemData { Id = "leather_vest", Name = "가죽 조끼", Kind = ItemKind.Armor, Grade = ItemGrade.Normal, DefPct = 0.04f, Description = "질긴 가죽으로 만든 조끼. 방어 +4%." },
+            new ItemData { Id = "padded_coat", Name = "솜누비 겉옷", Kind = ItemKind.Armor, Grade = ItemGrade.Normal, HpPct = 0.03f, DefPct = 0.02f, Description = "추위와 가벼운 타격을 막아 준다. 체력 +3%, 방어 +2%." },
+            new ItemData { Id = "chain_shirt", Name = "쇠사슬 속옷", Kind = ItemKind.Armor, Grade = ItemGrade.Fine, DefPct = 0.07f, Description = "옷 속에 입는 가는 쇠사슬 갑옷. 방어 +7%." },
+            new ItemData { Id = "scholar_robe", Name = "유삼", Kind = ItemKind.Armor, Grade = ItemGrade.Fine, HpPct = 0.07f, Description = "넉넉하고 튼튼한 문사의 겉옷. 체력 +7%." },
+            new ItemData { Id = "tigerhide_coat", Name = "호피 외투", Kind = ItemKind.Armor, Grade = ItemGrade.Fine, DefPct = 0.05f, HpPct = 0.03f, AtkPct = 0.01f, Description = "호랑이 가죽으로 지은 외투. 체력 +3%, 공격 +1%, 방어 +5%." },
+            new ItemData { Id = "mountain_armor", Name = "산문 철갑", Kind = ItemKind.Armor, Grade = ItemGrade.Rare, DefPct = 0.11f, HpPct = 0.03f, Description = "산문의 무사들이 입는 두꺼운 철갑. 체력 +3%, 방어 +11%." },
+            new ItemData { Id = "silk_battle_robe", Name = "비단 전포", Kind = ItemKind.Armor, Grade = ItemGrade.Rare, HpPct = 0.11f, Description = "가볍고 질긴 비단 전투복. 체력 +11%." },
+            new ItemData { Id = "snakescale_vest", Name = "사린 갑옷", Kind = ItemKind.Armor, Grade = ItemGrade.Rare, DefPct = 0.09f, HpPct = 0.05f, Description = "뱀 비늘을 겹쳐 만든 갑옷. 체력 +5%, 방어 +9%." },
+            new ItemData { Id = "jade_scale_armor", Name = "옥린갑", Kind = ItemKind.Armor, Grade = ItemGrade.Epic, DefPct = 0.15f, HpPct = 0.06f, Description = "옥 비늘이 촘촘히 박힌 갑옷. 체력 +6%, 방어 +15%." },
+            new ItemData { Id = "crimson_longcoat", Name = "적운 장포", Kind = ItemKind.Armor, Grade = ItemGrade.Epic, HpPct = 0.16f, DefPct = 0.04f, Description = "붉은 구름 무늬의 긴 도포. 체력 +16%, 방어 +4%." },
+            new ItemData { Id = "blackturtle_cloak", Name = "현무 망토", Kind = ItemKind.Armor, Grade = ItemGrade.Epic, DefPct = 0.13f, HpPct = 0.08f, SpeedAdd = 1, Description = "거북 등껍질처럼 단단한 망토. 체력 +8%, 방어 +13%, 속도 +1." },
+            new ItemData { Id = "dragonscale_armor", Name = "용린 전갑", Kind = ItemKind.Armor, Grade = ItemGrade.Legendary, DefPct = 0.22f, HpPct = 0.1f, Description = "용의 비늘을 이어 만든 전갑. 체력 +10%, 방어 +22%." },
+            new ItemData { Id = "phoenix_robe", Name = "봉황 우의", Kind = ItemKind.Armor, Grade = ItemGrade.Legendary, HpPct = 0.22f, DefPct = 0.08f, SpeedAdd = 3, Description = "불길 속에서도 타지 않는 우의. 체력 +22%, 방어 +8%, 속도 +3." },
+            new ItemData { Id = "heavensilk_robe", Name = "천잠보의", Kind = ItemKind.Armor, Grade = ItemGrade.Mythic, DefPct = 0.3f, HpPct = 0.15f, Description = "천년 누에고치 실로 짠 보의. 체력 +15%, 방어 +30%." },
+            new ItemData { Id = "vajra_armor", Name = "금강불괴갑", Kind = ItemKind.Armor, Grade = ItemGrade.Mythic, HpPct = 0.3f, DefPct = 0.18f, Description = "어떤 칼도 상처 내지 못한다는 갑옷. 체력 +30%, 방어 +18%." },
+            new ItemData { Id = "jade_ring", Name = "옥가락지", Kind = ItemKind.Accessory, Grade = ItemGrade.Normal, HpPct = 0.03f, Description = "손가락에 끼는 평범한 옥가락지. 체력 +3%." },
+            new ItemData { Id = "wooden_charm", Name = "목각 부적", Kind = ItemKind.Accessory, Grade = ItemGrade.Normal, DefPct = 0.03f, Description = "나무에 소원을 새긴 작은 부적. 방어 +3%." },
+            new ItemData { Id = "copper_bell", Name = "구리 방울", Kind = ItemKind.Accessory, Grade = ItemGrade.Normal, CritAdd = 0.02f, Description = "딸랑이는 소리가 기분을 북돋운다. 치명타 +2%." },
+            new ItemData { Id = "straw_sandals", Name = "짚신 한 켤레", Kind = ItemKind.Accessory, Grade = ItemGrade.Normal, SpeedAdd = 2, Description = "발이 가벼워지는 튼튼한 짚신. 속도 +2." },
+            new ItemData { Id = "silver_hairpin", Name = "은비녀", Kind = ItemKind.Accessory, Grade = ItemGrade.Fine, QiPct = 0.07f, Description = "머리를 단정히 묶어 주는 은비녀. 내공 +7%." },
+            new ItemData { Id = "jade_pendant", Name = "비취 패옥", Kind = ItemKind.Accessory, Grade = ItemGrade.Fine, HpPct = 0.04f, DefPct = 0.03f, Description = "허리에 차는 푸른 옥패. 체력 +4%, 방어 +3%." },
+            new ItemData { Id = "iron_bracer", Name = "철완갑", Kind = ItemKind.Accessory, Grade = ItemGrade.Fine, DefPct = 0.05f, AtkPct = 0.02f, Description = "팔뚝을 감싸는 얇은 철판. 공격 +2%, 방어 +5%." },
+            new ItemData { Id = "wind_boots", Name = "바람신", Kind = ItemKind.Accessory, Grade = ItemGrade.Fine, SpeedAdd = 4, Description = "발끝이 가벼워지는 가죽신. 속도 +4." },
+            new ItemData { Id = "cinnabar_amulet", Name = "주사 부적", Kind = ItemKind.Accessory, Grade = ItemGrade.Rare, HpPct = 0.08f, AtkPct = 0.03f, Description = "붉은 주사로 쓴 호신 부적. 체력 +8%, 공격 +3%." },
+            new ItemData { Id = "thunder_beads", Name = "뇌정 염주", Kind = ItemKind.Accessory, Grade = ItemGrade.Rare, QiPct = 0.12f, CritAdd = 0.03f, Description = "뇌기가 어린 나무 염주. 내공 +12%, 치명타 +3%." },
+            new ItemData { Id = "moonlight_pendant", Name = "월광 노리개", Kind = ItemKind.Accessory, Grade = ItemGrade.Rare, DefPct = 0.06f, QiPct = 0.06f, SpeedAdd = 2, Description = "달빛 같은 은은한 빛이 난다. 내공 +6%, 방어 +6%, 속도 +2." },
+            new ItemData { Id = "bronze_gauntlet", Name = "청동 장갑", Kind = ItemKind.Accessory, Grade = ItemGrade.Rare, AtkPct = 0.07f, DefPct = 0.05f, Description = "주먹을 단단히 감싸는 청동 장갑. 공격 +7%, 방어 +5%." },
+            new ItemData { Id = "sapphire_ring", Name = "청옥 반지", Kind = ItemKind.Accessory, Grade = ItemGrade.Epic, QiPct = 0.18f, CritAdd = 0.04f, Description = "푸른 보석이 박힌 반지. 내공 +18%, 치명타 +4%." },
+            new ItemData { Id = "bloodjade_bracelet", Name = "혈옥 팔찌", Kind = ItemKind.Accessory, Grade = ItemGrade.Epic, AtkPct = 0.1f, HpPct = 0.08f, Description = "핏빛 옥으로 깎은 팔찌. 체력 +8%, 공격 +10%." },
+            new ItemData { Id = "starlight_necklace", Name = "성광 목걸이", Kind = ItemKind.Accessory, Grade = ItemGrade.Epic, CritAdd = 0.08f, SpeedAdd = 3, AtkPct = 0.05f, Description = "별빛을 가둔 듯한 목걸이. 공격 +5%, 치명타 +8%, 속도 +3." },
+            new ItemData { Id = "ninetail_charm", Name = "구미 부적", Kind = ItemKind.Accessory, Grade = ItemGrade.Epic, SpeedAdd = 6, CritAdd = 0.05f, AtkPct = 0.06f, Description = "아홉 꼬리 여우가 그려진 부적. 공격 +6%, 치명타 +5%, 속도 +6." },
+            new ItemData { Id = "dragon_pearl", Name = "여의주", Kind = ItemKind.Accessory, Grade = ItemGrade.Legendary, QiPct = 0.26f, AtkPct = 0.1f, HpPct = 0.08f, Description = "용이 품었다는 신비한 구슬. 체력 +8%, 내공 +26%, 공격 +10%." },
+            new ItemData { Id = "thunder_crown", Name = "뇌제관", Kind = ItemKind.Accessory, Grade = ItemGrade.Legendary, AtkPct = 0.15f, CritAdd = 0.06f, QiPct = 0.15f, Description = "번개를 다스리는 자의 관. 내공 +15%, 공격 +15%, 치명타 +6%." },
+            new ItemData { Id = "snowlotus_charm", Name = "설련 패", Kind = ItemKind.Accessory, Grade = ItemGrade.Legendary, DefPct = 0.12f, HpPct = 0.16f, QiPct = 0.15f, Description = "눈 속에 핀 연꽃을 새긴 패. 체력 +16%, 내공 +15%, 방어 +12%." },
+            new ItemData { Id = "phoenix_feather", Name = "봉황 깃털", Kind = ItemKind.Accessory, Grade = ItemGrade.Legendary, SpeedAdd = 8, CritAdd = 0.08f, AtkPct = 0.12f, Description = "불사조가 남기고 간 깃털. 공격 +12%, 치명타 +8%, 속도 +8." },
+            new ItemData { Id = "heavenly_demon_core", Name = "천마심주", Kind = ItemKind.Accessory, Grade = ItemGrade.Mythic, AtkPct = 0.22f, CritAdd = 0.1f, QiPct = 0.25f, Description = "마의 힘이 응축된 붉은 구슬. 내공 +25%, 공격 +22%, 치명타 +10%." },
+            new ItemData { Id = "taegeuk_jade", Name = "태극 옥패", Kind = ItemKind.Accessory, Grade = ItemGrade.Mythic, AtkPct = 0.15f, DefPct = 0.15f, HpPct = 0.15f, QiPct = 0.15f, Description = "음과 양이 맞물린 옥패. 체력 +15%, 내공 +15%, 공격 +15%, 방어 +15%." },
+            new ItemData { Id = "emperor_seal", Name = "제왕금인", Kind = ItemKind.Accessory, Grade = ItemGrade.Mythic, HpPct = 0.25f, DefPct = 0.18f, AtkPct = 0.15f, Description = "군림하는 자의 금빛 도장. 체력 +25%, 공격 +15%, 방어 +18%." },
+            new ItemData { Id = "herbal_tea", Name = "약초차", Kind = ItemKind.Consumable, Grade = ItemGrade.Normal, InGacha = true, HealPct = 0.25f, Description = "따뜻하게 우려낸 약초차. 가장 다친 동료의 체력을 25% 회복한다." },
+            new ItemData { Id = "rice_cake", Name = "영양 떡", Kind = ItemKind.Consumable, Grade = ItemGrade.Normal, InGacha = true, QiRestore = 30, SpiritGain = 10, Description = "든든한 떡 한 덩이. 내공 30과 기세 10을 얻는다." },
+            new ItemData { Id = "snow_ginseng", Name = "설삼", Kind = ItemKind.Consumable, Grade = ItemGrade.Rare, InGacha = true, HealPct = 0.6f, QiRestore = 40, Description = "눈 덮인 산에서 캔 삼. 체력을 60% 회복하고 내공 40을 얻는다." },
+            new ItemData { Id = "thunder_wine", Name = "뇌주", Kind = ItemKind.Consumable, Grade = ItemGrade.Rare, InGacha = true, QiRestore = 80, SpiritGain = 40, Description = "마시면 뇌기가 솟는 독한 술. 내공 80과 기세 40을 얻는다." },
+        };
+    }
+}

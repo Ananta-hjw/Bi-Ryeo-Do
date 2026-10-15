@@ -72,6 +72,13 @@ namespace BiRyeoDo.Core
             return null;
         }
 
+        /// <summary>The equipped armor (null when none).</summary>
+        public static ItemData Armor(SaveData save)
+        {
+            foreach (var id in save.EquippedGear) { var it = EarlyGameContent.FindItem(id); if (it != null && it.Kind == ItemKind.Armor) return it; }
+            return null;
+        }
+
         /// <summary>Equipped accessories in equip order (at most <see cref="Inventory.AccessorySlots"/>).</summary>
         public static List<ItemData> Accessories(SaveData save)
         {

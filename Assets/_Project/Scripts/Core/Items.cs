@@ -2,13 +2,15 @@ using System;
 
 namespace BiRyeoDo.Core
 {
-    public enum ItemKind { Consumable, Weapon, Accessory, Material, Key }
+    public enum ItemKind { Consumable, Weapon, Accessory, Material, Key, Armor }
 
     /// <summary>Static item definition. Percent fields are fractions (0.10 = +10%).</summary>
     public sealed class ItemData
     {
         public string Id, Name, Description;
         public ItemKind Kind;
+        public ItemGrade Grade;   // rarity (defaults to 일반)
+        public bool InGacha;      // consumables that can come out of the 뽑기 (all gear can)
         public long SellValue;
 
         // Consumables (used on a party member's turn)
@@ -20,7 +22,8 @@ namespace BiRyeoDo.Core
         public float AtkPct, DefPct, HpPct, QiPct, CritAdd;
         public int SpeedAdd;
 
-        public bool IsGear { get { return Kind == ItemKind.Weapon || Kind == ItemKind.Accessory; } }
+        public bool IsGear { get { return Kind == ItemKind.Weapon || Kind == ItemKind.Accessory || Kind == ItemKind.Armor; } }
+        public bool InPool { get { return IsGear || InGacha; } }
     }
 
     /// <summary>A stack in the bag. Public fields so JsonUtility can persist it.</summary>
