@@ -1,0 +1,117 @@
+using System;
+using System.Collections.Generic;
+
+namespace BiRyeoDo.Core
+{
+    /// <summary>One option of a 기연. Costs and gains apply together; a choice with Cost > 두 owned is unavailable.</summary>
+    public sealed class FortuneChoice
+    {
+        public string Label, Result;
+        public long Doo;            // gained (negative = price)
+        public double ExpLevels;    // exp as a fraction of the current level-up cost
+        public string ItemId;
+        public int BondPoints;      // to every companion that has joined
+        public int MasteryUses;     // free practice for each equipped art
+    }
+
+    /// <summary>A short choice scene between stages. Flavour is game-layer (not canon); each event happens once.</summary>
+    public sealed class FortuneEvent
+    {
+        public string Id, Title;
+        public int UnlockStage;     // available after clearing this stage
+        public string[] Text;
+        public FortuneChoice[] Choices;
+    }
+
+    public static class Fortunes
+    {
+        public static readonly FortuneEvent[] All =
+        {
+            new FortuneEvent { Id = "f_waterfall", Title = "폭포 아래의 밤", UnlockStage = 1,
+                Text = new[] { "달빛이 쏟아지는 폭포 아래. 물소리 때문에 잠이 오지 않는다.", "이 시간을 어떻게 쓸까?" },
+                Choices = new[]
+                {
+                    new FortuneChoice { Label = "폭포를 맞으며 수련한다", Result = "물살을 버텨내며 호흡이 한결 안정되었다. 경험 +", ExpLevels = 0.5 },
+                    new FortuneChoice { Label = "무공 초식을 반복해 익힌다", Result = "장착한 무공을 밤새 반복했다. 숙련이 올랐다.", MasteryUses = 6 },
+                    new FortuneChoice { Label = "그냥 푹 잔다", Result = "개운하게 잤다. 일어나 보니 머리맡에 약간의 두가 놓여 있다.", Doo = 300 },
+                } },
+            new FortuneEvent { Id = "f_peddler", Title = "수상한 행상", UnlockStage = 4,
+                Text = new[] { "길가에서 행상이 보따리를 펼친다. \"귀한 영약이오. 지금 아니면 못 구하오.\"", "믿을 만한 물건일까?" },
+                Choices = new[]
+                {
+                    new FortuneChoice { Label = "영약을 산다 (-800두)", Result = "한 병을 샀다. 진짜 영약이었다!", Doo = -800, ItemId = "ginseng" },
+                    new FortuneChoice { Label = "흥정해서 약초만 산다 (-200두)", Result = "약초 한 뿌리를 싸게 샀다.", Doo = -200, ItemId = "bear_gall" },
+                    new FortuneChoice { Label = "지나친다", Result = "행상은 아쉬운 얼굴로 보따리를 쌌다." },
+                } },
+            new FortuneEvent { Id = "f_campfire", Title = "모닥불 곁의 밤", UnlockStage = 7,
+                Text = new[] { "동료들과 모닥불을 둘러싸고 앉았다. 오늘은 별이 유난히 많다.", "남은 밤을 어떻게 보낼까?" },
+                Choices = new[]
+                {
+                    new FortuneChoice { Label = "다 같이 술과 이야기를 나눈다", Result = "웃음이 오가며 서로를 한결 편하게 대하게 되었다.", BondPoints = 2 },
+                    new FortuneChoice { Label = "차분히 합동 수련을 한다", Result = "함께 호흡을 맞춰 보았다. 경험을 얻었고 서로를 알게 되었다. 경험 +", ExpLevels = 0.35, BondPoints = 1 },
+                } },
+            new FortuneEvent { Id = "f_cave", Title = "이름 모를 동굴", UnlockStage = 12,
+                Text = new[] { "산길 옆에 오래된 동굴이 입을 벌리고 있다. 안쪽에서 희미한 기운이 느껴진다.", "들어가 볼까?" },
+                Choices = new[]
+                {
+                    new FortuneChoice { Label = "깊이 들어가 조사한다", Result = "한참 헤맸지만 선인의 흔적에서 깨달음을 얻었다. 경험 +", ExpLevels = 0.9 },
+                    new FortuneChoice { Label = "입구 근처만 살핀다", Result = "버려진 짐 속에서 쓸 만한 약병을 찾았다.", ItemId = "okruju" },
+                    new FortuneChoice { Label = "위험하니 돌아선다", Result = "무사히 돌아왔다. 길에서 두 몇 푼을 주웠다.", Doo = 500 },
+                } },
+            new FortuneEvent { Id = "f_master_scroll", Title = "낡은 비급 조각", UnlockStage = 17,
+                Text = new[] { "헌책방 구석에서 낡은 비급 조각을 발견했다. 내용은 알아볼 수 없다.", "어떻게 할까?" },
+                Choices = new[]
+                {
+                    new FortuneChoice { Label = "풀이를 사서 깊이 연구한다 (-3000두)", Result = "며칠 밤을 새워 연구했다. 모든 장착 무공이 크게 숙련되었다.", Doo = -3000, MasteryUses = 25 },
+                    new FortuneChoice { Label = "되팔아 돈으로 바꾼다", Result = "수집가가 후하게 값을 쳐주었다.", Doo = 2500 },
+                } },
+            new FortuneEvent { Id = "f_reunion", Title = "오랜 동료와의 술자리", UnlockStage = 22,
+                Text = new[] { "싸움이 잠시 잦아든 밤, 일행이 한자리에 모였다.", "오늘만큼은 마음을 터놓을 수 있을 것 같다." },
+                Choices = new[]
+                {
+                    new FortuneChoice { Label = "속마음을 이야기한다", Result = "서로의 이야기를 들으며 신뢰가 한 단계 깊어졌다.", BondPoints = 4 },
+                    new FortuneChoice { Label = "함께 합공 수련을 한다", Result = "호흡을 맞추는 연습에 땀을 흘렸다. 경험과 인연을 얻었다. 경험 +", ExpLevels = 0.5, BondPoints = 2 },
+                } },
+        };
+
+        public static FortuneEvent Find(string id)
+        {
+            foreach (var e in All) if (e.Id == id) return e;
+            return null;
+        }
+
+        public static List<FortuneEvent> Open(SaveData save)
+        {
+            var list = new List<FortuneEvent>();
+            foreach (var e in All) if (save.ClearedStage >= e.UnlockStage && !save.DoneFortunes.Contains(e.Id)) list.Add(e);
+            return list;
+        }
+
+        public static bool CanChoose(SaveData save, FortuneChoice c) { return c.Doo >= 0 || save.Doo >= -c.Doo; }
+
+        /// <summary>Applies a choice, marks the event done, returns the result text.</summary>
+        public static string Resolve(SaveData save, FortuneEvent ev, FortuneChoice c, IEnumerable<string> companionIds)
+        {
+            if (save.DoneFortunes.Contains(ev.Id) || !CanChoose(save, c)) return "";
+            save.DoneFortunes.Add(ev.Id);
+            save.Doo += c.Doo;
+            string text = c.Result;
+            if (c.ExpLevels > 0)
+            {
+                long exp = (long)Math.Round(Progression.ExpToNext(save.Level) * c.ExpLevels);
+                int levels = Progression.AddExp(save, exp);
+                text += exp + (levels > 0 ? " (Lv." + save.Level + " 상승!)" : "");
+            }
+            if (!string.IsNullOrEmpty(c.ItemId))
+            {
+                var item = EarlyGameContent.FindItem(c.ItemId);
+                if (item != null) { Inventory.Add(save, c.ItemId, 1); text += "\n획득: " + item.Name; }
+            }
+            if (c.BondPoints > 0 && companionIds != null)
+                foreach (var id in companionIds) Bonds.Add(save, id, c.BondPoints);
+            if (c.MasteryUses > 0)
+                foreach (var artId in save.EquippedArts) { var art = EarlyGameContent.FindArt(artId); if (art != null && art.OwnerId == null) for (int i = 0; i < c.MasteryUses; i++) Mastery.RecordUse(save, artId); }
+            return text;
+        }
+    }
+}

@@ -115,6 +115,8 @@ namespace BiRyeoDo.Core
 
         public int RecommendedLevel;
         public long DooTotal;   // 두 for clearing the stage once (split by enemy weight)
+        public bool IsQuest;    // a 의뢰 built from an earlier stage's fight (see Quests): no stage progress, own exp and rewards
+        public string QuestId;
     }
 
     /// <summary>

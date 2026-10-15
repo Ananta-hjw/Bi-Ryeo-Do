@@ -19,8 +19,9 @@ namespace BiRyeoDo.Game.UI
         }
 
         private readonly List<Row> _rows = new List<Row>();
-        private Text _header, _hint, _promoRowDetail, _partyRowDetail;
-        private RectTransform _promoOverlay, _partyOverlay;
+        private Text _header, _hint, _promoRowDetail, _partyRowDetail, _questRowDetail, _fortuneRowDetail;
+        private RectTransform _promoOverlay, _partyOverlay, _questOverlay, _fortuneOverlay;
+        private Action<StageData> _onStart;
         private Action<PromotionOffer> _onPromote;
         private bool _built;
 
@@ -29,6 +30,7 @@ namespace BiRyeoDo.Game.UI
             if (_built) return;
             _built = true;
             _onPromote = onPromote;
+            _onStart = onStart;
 
             UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink);
             _header = UiFactory.Label("Header", root, new Vector2(0.06f, 0.925f), new Vector2(0.94f, 0.985f), "", 34, UiFactory.Gold, TextAnchor.MiddleLeft);
@@ -50,7 +52,7 @@ namespace BiRyeoDo.Game.UI
 
             const float rowH = 190f, gap = 14f;
             var stages = EarlyGameContent.Stages;
-            int total = stages.Length + 2;
+            int total = stages.Length + 4;
             content.sizeDelta = new Vector2(0f, total * (rowH + gap) + gap);
 
             // Row 0: 승급 시험장
@@ -66,10 +68,21 @@ namespace BiRyeoDo.Game.UI
             _partyRowDetail = UiFactory.Label("Detail", partyRow, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.50f), "", 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
             UiFactory.Button("Party", partyRow, new Vector2(0.66f, 0.12f), new Vector2(0.97f, 0.88f), "편성", UiFactory.Red, OpenPartyOverlay, 36);
 
+            // Row 2: 의뢰 게시판, Row 3: 기연
+            var questRow = NewRow(content, 2, rowH, gap, new Color(0.20f, 0.16f, 0.08f, 0.92f));
+            UiFactory.Label("Title", questRow, new Vector2(0.03f, 0.50f), new Vector2(0.64f, 0.97f), "의뢰 게시판", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
+            _questRowDetail = UiFactory.Label("Detail", questRow, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.50f), "", 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Button("Quests", questRow, new Vector2(0.66f, 0.12f), new Vector2(0.97f, 0.88f), "의뢰", UiFactory.Red, OpenQuestOverlay, 36);
+
+            var fortuneRow = NewRow(content, 3, rowH, gap, new Color(0.14f, 0.12f, 0.22f, 0.92f));
+            UiFactory.Label("Title", fortuneRow, new Vector2(0.03f, 0.50f), new Vector2(0.64f, 0.97f), "기연", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
+            _fortuneRowDetail = UiFactory.Label("Detail", fortuneRow, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.50f), "", 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Button("Fortunes", fortuneRow, new Vector2(0.66f, 0.12f), new Vector2(0.97f, 0.88f), "만나다", UiFactory.Red, OpenFortuneOverlay, 36);
+
             for (int i = 0; i < stages.Length; i++)
             {
                 var st = stages[i];
-                var rt = NewRow(content, i + 2, rowH, gap, UiFactory.Ink);
+                var rt = NewRow(content, i + 4, rowH, gap, UiFactory.Ink);
                 var row = new Row { Stage = st };
                 row.Title = UiFactory.Label("Title", rt, new Vector2(0.03f, 0.50f), new Vector2(0.64f, 0.97f), "", 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
                 row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.50f), "", 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
@@ -88,6 +101,14 @@ namespace BiRyeoDo.Game.UI
             var partyBg = _partyOverlay.gameObject.AddComponent<Image>();
             partyBg.color = new Color(0.06f, 0.05f, 0.04f, 0.97f);
             _partyOverlay.gameObject.SetActive(false);
+
+            _questOverlay = UiFactory.Rect("QuestOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
+            _questOverlay.gameObject.AddComponent<Image>().color = new Color(0.06f, 0.05f, 0.04f, 0.97f);
+            _questOverlay.gameObject.SetActive(false);
+
+            _fortuneOverlay = UiFactory.Rect("FortuneOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
+            _fortuneOverlay.gameObject.AddComponent<Image>().color = new Color(0.06f, 0.05f, 0.04f, 0.97f);
+            _fortuneOverlay.gameObject.SetActive(false);
             Refresh();
         }
 
@@ -143,6 +164,106 @@ namespace BiRyeoDo.Game.UI
             }
 
             UiFactory.Button("Close", _promoOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => _promoOverlay.gameObject.SetActive(false), 36);
+        }
+
+
+        // ------------------------------------------------------------------ 의뢰 / 기연
+
+        private void OpenQuestOverlay()
+        {
+            var save = GameManager.Instance.Save;
+            ClearChildren(_questOverlay);
+            _questOverlay.gameObject.SetActive(true);
+            UiFactory.Label("Title", _questOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "의뢰 게시판", 44, UiFactory.Gold);
+            UiFactory.Label("Rules", _questOverlay, new Vector2(0.05f, 0.85f), new Vector2(0.95f, 0.92f),
+                "이미 지나온 싸움에 조건이 붙어 다시 나온다. 한 번씩만 받을 수 있고, 두와 보상을 얻는다.", 26, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+
+            float y = 0.84f;
+            int shown = 0;
+            foreach (var q in Quests.All)
+            {
+                if (!Quests.IsUnlocked(save, q)) continue;
+                bool done = Quests.IsDone(save, q.Id);
+                if (y < 0.14f) break;
+                var band = UiFactory.Panel("Card", _questOverlay, new Vector2(0.05f, y - 0.10f), new Vector2(0.95f, y), UiFactory.Ink);
+                UiFactory.Label("Name", band.transform, new Vector2(0.03f, 0.54f), new Vector2(0.66f, 0.97f), q.Name + (done ? "  (완료)" : ""), 32, done ? UiFactory.InkSoft : UiFactory.PaperText, TextAnchor.MiddleLeft);
+                UiFactory.Label("Info", band.transform, new Vector2(0.03f, 0.03f), new Vector2(0.66f, 0.54f), q.Trial.Brief + " · 보상 " + q.RewardDoo.ToString("N0") + "두", 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                var quest = q;
+                var go = UiFactory.Button("Go", band.transform, new Vector2(0.69f, 0.12f), new Vector2(0.97f, 0.88f), done ? "완료" : "수락", done ? UiFactory.InkSoft : UiFactory.Red, () => AcceptQuest(quest), 32);
+                go.interactable = !done;
+                y -= 0.11f;
+                shown++;
+            }
+            if (shown == 0)
+                UiFactory.Label("None", _questOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "아직 받을 수 있는 의뢰가 없다. 스테이지를 돌파하면 의뢰가 붙는다.", 34, UiFactory.PaperText);
+
+            UiFactory.Button("Close", _questOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _questOverlay.gameObject.SetActive(false); Refresh(); }, 36);
+        }
+
+        private void AcceptQuest(QuestData q)
+        {
+            if (Quests.IsDone(GameManager.Instance.Save, q.Id)) return;
+            _questOverlay.gameObject.SetActive(false);
+            _onStart(Quests.ToStage(q));
+        }
+
+        private void OpenFortuneOverlay()
+        {
+            ClearChildren(_fortuneOverlay);
+            _fortuneOverlay.gameObject.SetActive(true);
+            var save = GameManager.Instance.Save;
+            var open = Fortunes.Open(save);
+            UiFactory.Label("Title", _fortuneOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "기연", 44, UiFactory.Gold);
+            if (open.Count == 0)
+            {
+                UiFactory.Label("None", _fortuneOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "지금은 마주칠 인연이 없다. 스테이지를 돌파하면 새로운 기연이 찾아온다.", 34, UiFactory.PaperText);
+            }
+            float y = 0.88f;
+            foreach (var ev in open)
+            {
+                if (y < 0.14f) break;
+                var e = ev;
+                var band = UiFactory.Panel("Card", _fortuneOverlay, new Vector2(0.05f, y - 0.09f), new Vector2(0.95f, y), UiFactory.Ink);
+                UiFactory.Label("Name", band.transform, new Vector2(0.03f, 0.10f), new Vector2(0.64f, 0.90f), e.Title, 34, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                UiFactory.Button("Go", band.transform, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), "마주치다", UiFactory.Red, () => ShowFortune(e), 30);
+                y -= 0.10f;
+            }
+            UiFactory.Button("Close", _fortuneOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _fortuneOverlay.gameObject.SetActive(false); Refresh(); }, 36);
+        }
+
+        private void ShowFortune(FortuneEvent ev)
+        {
+            var save = GameManager.Instance.Save;
+            ClearChildren(_fortuneOverlay);
+            UiFactory.Label("Title", _fortuneOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), ev.Title, 44, UiFactory.Gold);
+            UiFactory.Label("Text", _fortuneOverlay, new Vector2(0.07f, 0.52f), new Vector2(0.93f, 0.90f), string.Join("\n\n", ev.Text), 34, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            float y = 0.46f;
+            foreach (var ch in ev.Choices)
+            {
+                var choice = ch;
+                bool ok = Fortunes.CanChoose(save, choice);
+                var btn = UiFactory.Button("Choice", _fortuneOverlay, new Vector2(0.08f, y - 0.09f), new Vector2(0.92f, y), choice.Label + (ok ? "" : " (두 부족)"), ok ? UiFactory.Red : UiFactory.InkSoft, () => ResolveFortune(ev, choice), 30);
+                btn.interactable = ok;
+                y -= 0.11f;
+            }
+        }
+
+        private void ResolveFortune(FortuneEvent ev, FortuneChoice choice)
+        {
+            var save = GameManager.Instance.Save;
+            var companions = new List<string>();
+            foreach (var c in AvailableCompanions(save)) companions.Add(c.Id);
+            string result = Fortunes.Resolve(save, ev, choice, companions);
+            GameManager.Instance.SaveNow();
+            ClearChildren(_fortuneOverlay);
+            UiFactory.Label("Title", _fortuneOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), ev.Title, 44, UiFactory.Gold);
+            UiFactory.Label("Result", _fortuneOverlay, new Vector2(0.07f, 0.35f), new Vector2(0.93f, 0.85f), result, 36, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.Button("Done", _fortuneOverlay, new Vector2(0.3f, 0.12f), new Vector2(0.7f, 0.22f), "확인", UiFactory.Red, OpenFortuneOverlay, 40);
+        }
+
+        private static void ClearChildren(RectTransform rt)
+        {
+            for (int i = rt.childCount - 1; i >= 0; i--) Destroy(rt.GetChild(i).gameObject);
         }
 
         /// <summary>Companions available now: everyone who has joined by the furthest stage reached.</summary>
@@ -229,6 +350,9 @@ namespace BiRyeoDo.Game.UI
             _header.text = Promotion.RankName(Promotion.EffectiveRank(save)) + " · Lv." + save.Level + " · " + save.Doo.ToString("N0") + "두";
             _promoRowDetail.text = Promotion.RankName(Promotion.EffectiveRank(save)) + (Promotion.EffectiveRank(save) >= Promotion.MaxRank ? " · 최고 경지" : " · 한 계단 또는 두 계단 승급 도전")
                 + (Promotion.EffectiveRank(save) < Promotion.GateRank ? "\n(" + Promotion.RankName(Promotion.GateRank) + " 이상이어야 삼성무제 참가)" : "");
+            int openQuests = Quests.Open(save).Count, openFortunes = Fortunes.Open(save).Count;
+            _questRowDetail.text = openQuests > 0 ? "받을 수 있는 의뢰 " + openQuests + "건" : "새 의뢰 없음 (스테이지를 돌파하면 늘어난다)";
+            _fortuneRowDetail.text = openFortunes > 0 ? "마주칠 기연 " + openFortunes + "건" : "새 기연 없음";
             var current = new List<string>();
             foreach (var c in EarlyGameContent.SelectCompanions(Math.Max(1, save.HighestUnlockedStage), save.ActiveCompanions)) current.Add(c.Name + "(인연 " + Bonds.LevelNames[Bonds.Level(save, c.Id)] + ")");
             _partyRowDetail.text = current.Count == 0 ? "아직 함께할 동료가 없다" : "출전 동료: " + string.Join(", ", current)

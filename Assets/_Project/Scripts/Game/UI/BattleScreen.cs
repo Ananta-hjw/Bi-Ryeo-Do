@@ -185,7 +185,7 @@ namespace BiRyeoDo.Game.UI
                 BuildParty(stage);
                 long gainedExp = 0, gainedDoo = 0;
                 bool cleared = true;
-                bool replay = save.ClearedStage >= stage.Number;
+                bool replay = !stage.IsQuest && save.ClearedStage >= stage.Number;
 
                 for (int i = 0; i < stage.Encounters.Length; i++)
                 {
@@ -202,8 +202,9 @@ namespace BiRyeoDo.Game.UI
                         exp += EarlyGameContent.ExpReward(stage, id);
                         doo += EarlyGameContent.DooReward(stage, id);
                     }
+                    if (stage.IsQuest) exp = Quests.ExpReward(save);
                     if (replay) exp = (long)Math.Round(exp * EarlyGameContent.ReplayExpFactor);
-                    var drops = RollDrops(stage.Encounters[i]);
+                    var drops = stage.IsQuest ? new List<ItemStack>() : RollDrops(stage.Encounters[i]);
                     int levels = Progression.AddExp(save, exp);
                     save.Doo += doo;
                     gainedExp += exp; gainedDoo += doo;
@@ -219,7 +220,15 @@ namespace BiRyeoDo.Game.UI
                     SetCommandsVisible(false);
                     break;
                 }
-                if (cleared)
+                if (cleared && stage.IsQuest)
+                {
+                    var quest = Quests.Find(stage.QuestId);
+                    string questNote = quest != null ? Quests.Complete(save, quest) : "";
+                    string bonds = AwardBonds(save, quest != null ? quest.BondPoints : 1);
+                    GameManager.Instance.SaveNow();
+                    yield return ShowResult("의뢰 완수!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (questNote.Length > 0 ? "\n" + questNote : "") + (bonds.Length > 0 ? "\n" + bonds : ""), false);
+                }
+                else if (cleared)
                 {
                     save.ClearedStage = Math.Max(save.ClearedStage, stage.Number);
                     GameManager.Instance.SaveNow();
@@ -245,13 +254,13 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <summary>+1 인연 for every companion who fought in this stage; returns a note when a bond level rose.</summary>
-        private string AwardBonds(SaveData save)
+        private string AwardBonds(SaveData save, int points = 1)
         {
             var notes = new List<string>();
             foreach (var m in _party)
             {
                 if (m.Id == "player") continue;
-                int rose = Bonds.Add(save, m.Id, 1);
+                int rose = Bonds.Add(save, m.Id, points);
                 if (rose >= 0) notes.Add(m.Name + "와(과)의 인연: " + Bonds.LevelNames[rose] + (rose == 1 ? " — 합공 가능!" : ""));
             }
             GameManager.Instance.SaveNow();
