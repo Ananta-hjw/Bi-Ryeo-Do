@@ -19,7 +19,13 @@ namespace BiRyeoDo.Game.UI
         }
 
         private readonly List<Row> _rows = new List<Row>();
-        private Text _header, _hint, _promoRowDetail, _partyRowDetail, _questRowDetail, _fortuneRowDetail;
+        private Text _lvText, _dooText, _rankText, _promoRowDetail, _partyRowDetail, _questRowDetail, _fortuneRowDetail;
+        private Text _promoBadge, _partyBadge, _questBadge, _fortuneBadge, _featTitle, _featSub, _featBtnLabel;
+        private UiFactory.Bar _expBar;
+        private Image _featArt;
+        private Button _featBtn;
+        private StageData _featStage;
+        private Action<StageData> _onStartRef;
         private RectTransform _promoOverlay, _partyOverlay, _questOverlay, _fortuneOverlay;
         private Action<StageData> _onStart;
         private Action<PromotionOffer> _onPromote;
@@ -32,14 +38,11 @@ namespace BiRyeoDo.Game.UI
             _onPromote = onPromote;
             _onStart = onStart;
 
-            UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
-            _header = UiFactory.Label("Header", root, new Vector2(0.06f, 0.925f), new Vector2(0.94f, 0.985f), "", 34, UiFactory.Gold, TextAnchor.MiddleLeft);
-            _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "스테이지를 골라 출전하자. 전투는 직접 무공을 골라 싸운다.", 28, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+            BuildStatusBar(root);
 
-            // The stage list scrolls: 13 stages plus the 승급 시험장 do not fit on one screen.
-            var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, 0.88f));
-            var vpImage = viewport.gameObject.AddComponent<Image>();
-            vpImage.color = new Color(0f, 0f, 0f, 0f);
+            // Everything below the status bar scrolls: featured stage, quick menu, stage list.
+            var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, 0.915f));
+            viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
             viewport.gameObject.AddComponent<RectMask2D>();
             var content = UiFactory.Rect("Content", viewport, new Vector2(0f, 1f), new Vector2(1f, 1f));
             content.pivot = new Vector2(0.5f, 1f);
@@ -50,47 +53,54 @@ namespace BiRyeoDo.Game.UI
             scroll.movementType = ScrollRect.MovementType.Clamped;
             scroll.scrollSensitivity = 40f;
 
-            const float rowH = 190f, gap = 14f;
+            const float gap = 16f, featH = 380f, tileH = 190f, cardH = 150f, labelH = 70f;
             var stages = EarlyGameContent.Stages;
-            int total = stages.Length + 4;
-            content.sizeDelta = new Vector2(0f, total * (rowH + gap) + gap);
+            float y = gap;
 
-            // Row 0: 승급 시험장
-            var promo = NewRow(content, 0, rowH, gap, new Color(0.30f, 0.22f, 0.06f, 0.92f));
-            UiFactory.Label("Title", promo, new Vector2(0.03f, 0.50f), new Vector2(0.64f, 0.97f), "승급 시험장", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
-            _promoRowDetail = UiFactory.Label("Detail", promo, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.50f), "", 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-            var promoBtn = UiFactory.Button("Promo", promo, new Vector2(0.66f, 0.12f), new Vector2(0.97f, 0.88f), "비무첩", UiFactory.Red, OpenPromotionOverlay, 36);
-            promoBtn.GetComponent<Image>().color = UiFactory.Red;
+            // Featured card: the next stage to play, with one big button.
+            var feat = Place(content, 0.04f, 0.96f, y, featH, new Color(0.08f, 0.10f, 0.15f, 0.97f));
+            _featArt = UiFactory.Panel("Art", feat, Vector2.zero, Vector2.one, new Color(1f, 1f, 1f, 0f));
+            _featArt.preserveAspect = false;
+            UiFactory.Panel("Shade", feat, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.45f));
+            UiFactory.Label("Tag", feat, new Vector2(0.04f, 0.82f), new Vector2(0.60f, 0.96f), "다음 목적지", 28, UiFactory.Gold, TextAnchor.MiddleLeft);
+            _featTitle = UiFactory.Label("Title", feat, new Vector2(0.04f, 0.50f), new Vector2(0.96f, 0.82f), "", 58, UiFactory.PaperText, TextAnchor.MiddleLeft);
+            _featSub = UiFactory.Label("Sub", feat, new Vector2(0.04f, 0.34f), new Vector2(0.96f, 0.52f), "", 28, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            _featBtn = UiFactory.Button("Go", feat, new Vector2(0.55f, 0.05f), new Vector2(0.96f, 0.30f), "출전", UiFactory.Red, OnFeaturedPressed, 44);
+            _featBtnLabel = _featBtn.GetComponentInChildren<Text>();
+            UiFactory.Frame(feat, UiFactory.Gold, 2f);
+            y += featH + gap;
 
-            // Row 1: 파티 편성 (only three companions fight at once)
-            var partyRow = NewRow(content, 1, rowH, gap, new Color(0.10f, 0.20f, 0.24f, 0.92f));
-            UiFactory.Label("Title", partyRow, new Vector2(0.03f, 0.50f), new Vector2(0.64f, 0.97f), "파티 편성", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
-            _partyRowDetail = UiFactory.Label("Detail", partyRow, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.50f), "", 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-            UiFactory.Button("Party", partyRow, new Vector2(0.66f, 0.12f), new Vector2(0.97f, 0.88f), "편성", UiFactory.Red, OpenPartyOverlay, 36);
+            // Quick menu: 승급 / 편성 / 의뢰 / 기연.
+            _promoRowDetail = Tile(content, 0.04f, 0.49f, y, tileH, "승급 시험장", OpenPromotionOverlay, out _promoBadge);
+            _partyRowDetail = Tile(content, 0.51f, 0.96f, y, tileH, "파티 편성", OpenPartyOverlay, out _partyBadge);
+            y += tileH + gap;
+            _questRowDetail = Tile(content, 0.04f, 0.49f, y, tileH, "의뢰 게시판", OpenQuestOverlay, out _questBadge);
+            _fortuneRowDetail = Tile(content, 0.51f, 0.96f, y, tileH, "기연", OpenFortuneOverlay, out _fortuneBadge);
+            y += tileH + gap;
 
-            // Row 2: 의뢰 게시판, Row 3: 기연
-            var questRow = NewRow(content, 2, rowH, gap, new Color(0.20f, 0.16f, 0.08f, 0.92f));
-            UiFactory.Label("Title", questRow, new Vector2(0.03f, 0.50f), new Vector2(0.64f, 0.97f), "의뢰 게시판", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
-            _questRowDetail = UiFactory.Label("Detail", questRow, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.50f), "", 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-            UiFactory.Button("Quests", questRow, new Vector2(0.66f, 0.12f), new Vector2(0.97f, 0.88f), "의뢰", UiFactory.Red, OpenQuestOverlay, 36);
-
-            var fortuneRow = NewRow(content, 3, rowH, gap, new Color(0.14f, 0.12f, 0.22f, 0.92f));
-            UiFactory.Label("Title", fortuneRow, new Vector2(0.03f, 0.50f), new Vector2(0.64f, 0.97f), "기연", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
-            _fortuneRowDetail = UiFactory.Label("Detail", fortuneRow, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.50f), "", 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-            UiFactory.Button("Fortunes", fortuneRow, new Vector2(0.66f, 0.12f), new Vector2(0.97f, 0.88f), "만나다", UiFactory.Red, OpenFortuneOverlay, 36);
+            var sectionLabel = Place(content, 0.04f, 0.96f, y, labelH, new Color(0f, 0f, 0f, 0f));
+            UiFactory.Label("Stages", sectionLabel, new Vector2(0f, 0f), new Vector2(1f, 1f), "— 스테이지 —", 36, UiFactory.Gold, TextAnchor.MiddleLeft);
+            y += labelH;
 
             for (int i = 0; i < stages.Length; i++)
             {
                 var st = stages[i];
-                var rt = NewRow(content, i + 4, rowH, gap, UiFactory.Ink);
+                var rt = Place(content, 0.04f, 0.96f, y, cardH, UiFactory.Ink);
+                UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
                 var row = new Row { Stage = st };
-                row.Title = UiFactory.Label("Title", rt, new Vector2(0.03f, 0.50f), new Vector2(0.64f, 0.97f), "", 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.50f), "", 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-                row.Button = UiFactory.Button("Go" + i, rt, new Vector2(0.66f, 0.12f), new Vector2(0.97f, 0.88f), "", UiFactory.Red, () => OnStagePressed(st, onStart), 36);
+                var badge = UiFactory.Panel("Badge", rt, new Vector2(0.025f, 0.14f), new Vector2(0.135f, 0.86f), new Color(0.20f, 0.17f, 0.10f, 1f));
+                UiFactory.Frame(badge.transform, UiFactory.Gold, 2f);
+                UiFactory.Label("Num", badge.transform, Vector2.zero, Vector2.one, st.Number.ToString(), 46, UiFactory.Gold);
+                row.Title = UiFactory.Label("Title", rt, new Vector2(0.16f, 0.50f), new Vector2(0.64f, 0.96f), "", 36, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.16f, 0.04f), new Vector2(0.64f, 0.50f), "", 22, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                row.Button = UiFactory.Button("Go" + i, rt, new Vector2(0.66f, 0.15f), new Vector2(0.97f, 0.85f), "", UiFactory.Red, () => OnStagePressed(st, onStart), 34);
                 row.ButtonImage = row.Button.GetComponent<Image>();
                 row.ButtonLabel = row.Button.GetComponentInChildren<Text>();
                 _rows.Add(row);
+                y += cardH + gap;
             }
+            content.sizeDelta = new Vector2(0f, y + gap);
+            _onStartRef = onStart;
 
             _promoOverlay = UiFactory.Rect("PromotionOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
             var overlayBg = _promoOverlay.gameObject.AddComponent<Image>();
@@ -110,6 +120,73 @@ namespace BiRyeoDo.Game.UI
             _fortuneOverlay.gameObject.AddComponent<Image>().color = new Color(0.06f, 0.05f, 0.04f, 0.97f);
             _fortuneOverlay.gameObject.SetActive(false);
             Refresh();
+        }
+
+        private void BuildStatusBar(RectTransform root)
+        {
+            // Lv + exp bar | 두 | 검룡위
+            var lv = UiFactory.Panel("LvChip", root, new Vector2(0.03f, 0.932f), new Vector2(0.40f, 0.988f), UiFactory.Ink);
+            UiFactory.Frame(lv.transform, UiFactory.GoldDim, 2f);
+            _lvText = UiFactory.Label("Lv", lv.transform, new Vector2(0.06f, 0.35f), new Vector2(0.94f, 1f), "", 34, UiFactory.Gold, TextAnchor.MiddleLeft);
+            _expBar = UiFactory.MakeBar("Exp", lv.transform, new Vector2(0.06f, 0.14f), new Vector2(0.94f, 0.30f), new Color(0f, 0f, 0f, 0.6f), new Color(0.38f, 0.62f, 0.95f, 1f));
+
+            var doo = UiFactory.Panel("DooChip", root, new Vector2(0.42f, 0.932f), new Vector2(0.69f, 0.988f), UiFactory.Ink);
+            UiFactory.Frame(doo.transform, UiFactory.GoldDim, 2f);
+            UiFactory.Label("Icon", doo.transform, new Vector2(0.04f, 0f), new Vector2(0.28f, 1f), "두", 30, UiFactory.Gold);
+            _dooText = UiFactory.Label("Doo", doo.transform, new Vector2(0.28f, 0f), new Vector2(0.96f, 1f), "", 30, UiFactory.PaperText, TextAnchor.MiddleRight);
+
+            var rank = UiFactory.Panel("RankChip", root, new Vector2(0.71f, 0.932f), new Vector2(0.97f, 0.988f), UiFactory.Ink);
+            UiFactory.Frame(rank.transform, UiFactory.GoldDim, 2f);
+            _rankText = UiFactory.Label("Rank", rank.transform, new Vector2(0.04f, 0f), new Vector2(0.96f, 1f), "", 28, UiFactory.PaperText);
+        }
+
+        /// <summary>A row-like rectangle placed in the scroll content at a pixel offset from the top.</summary>
+        private static RectTransform Place(RectTransform content, float x0, float x1, float top, float height, Color color)
+        {
+            var rt = UiFactory.Rect("Item", content, new Vector2(x0, 1f), new Vector2(x1, 1f));
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = new Vector2(0f, -top);
+            rt.sizeDelta = new Vector2(0f, height);
+            var img = rt.gameObject.AddComponent<Image>();
+            img.color = color;
+            img.raycastTarget = true;   // lets a drag that starts here still scroll
+            return rt;
+        }
+
+        /// <summary>A square-ish menu tile (whole tile is the button) with a title, a detail line and a count badge; returns the detail label.</summary>
+        private Text Tile(RectTransform content, float x0, float x1, float top, float height, string title, UnityEngine.Events.UnityAction onClick, out Text badge)
+        {
+            var rt = UiFactory.Rect("Tile", content, new Vector2(x0, 1f), new Vector2(x1, 1f));
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = new Vector2(0f, -top);
+            rt.sizeDelta = new Vector2(0f, height);
+            var img = rt.gameObject.AddComponent<Image>();
+            img.sprite = UiFactory.Gradient;
+            img.color = new Color(0.16f, 0.19f, 0.27f, 1f);
+            var btn = rt.gameObject.AddComponent<Button>();
+            btn.targetGraphic = img;
+            btn.onClick.AddListener(onClick);
+            UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
+            UiFactory.Label("Title", rt, new Vector2(0.08f, 0.62f), new Vector2(0.80f, 0.94f), title, 38, UiFactory.Gold, TextAnchor.MiddleLeft);
+            var detail = UiFactory.Label("Detail", rt, new Vector2(0.08f, 0.06f), new Vector2(0.94f, 0.62f), "", 22, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal);
+            var dot = UiFactory.Panel("Dot", rt, new Vector2(0.80f, 0.70f), new Vector2(0.95f, 0.94f), UiFactory.Red);
+            badge = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 28, UiFactory.PaperText);
+            badgeRoots.Add(dot.gameObject);
+            return detail;
+        }
+
+        private readonly List<GameObject> badgeRoots = new List<GameObject>();
+
+        private static void SetBadge(Text badge, int count)
+        {
+            if (badge == null) return;
+            badge.text = count.ToString();
+            badge.transform.parent.gameObject.SetActive(count > 0);
+        }
+
+        private void OnFeaturedPressed()
+        {
+            if (_featStage != null) OnStagePressed(_featStage, _onStartRef);
         }
 
         private static RectTransform NewRow(RectTransform content, int index, float h, float gap, Color color)
@@ -348,12 +425,38 @@ namespace BiRyeoDo.Game.UI
         {
             if (!_built) return;
             var save = GameManager.Instance.Save;
-            _header.text = Promotion.RankName(Promotion.EffectiveRank(save)) + " · Lv." + save.Level + " · " + save.Doo.ToString("N0") + "두";
+            int rankNow = Promotion.EffectiveRank(save);
+            _lvText.text = "Lv." + save.Level;
+            long need = Progression.ExpToNext(save.Level);
+            _expBar.SetPct(need > 0 ? Mathf.Clamp01((float)save.Exp / need) : 0f);
+            _dooText.text = save.Doo.ToString("N0");
+            _rankText.text = Promotion.RankName(rankNow);
+
+            // Featured card = the furthest stage the player can attempt.
+            var stagesAll = EarlyGameContent.Stages;
+            _featStage = EarlyGameContent.FindStage(Math.Min(save.HighestUnlockedStage, stagesAll[stagesAll.Length - 1].Number));
+            if (_featStage != null)
+            {
+                bool featCleared = save.ClearedStage >= _featStage.Number;
+                bool featOk = Promotion.StageAllowed(save, _featStage.Number);
+                _featTitle.text = "스테이지 " + _featStage.Number + " · " + _featStage.Name;
+                _featSub.text = "권장 Lv." + _featStage.RecommendedLevel + " · 전투 " + _featStage.Encounters.Length + "회" + PartyText(_featStage)
+                    + (featOk ? "" : "\n" + Promotion.RankName(Promotion.GateRank) + " 이상이어야 참가할 수 있다");
+                _featBtnLabel.text = !featOk ? "승급 필요" : StageProgress.Has(save, _featStage.Number) ? "이어하기" : featCleared ? "재도전" : "출전";
+                _featBtn.interactable = featOk;
+                var art = ArtLibrary.Background(_featStage.Number);
+                _featArt.sprite = art;
+                _featArt.color = art != null ? Color.white : new Color(1f, 1f, 1f, 0f);
+            }
             _promoRowDetail.text = Promotion.RankName(Promotion.EffectiveRank(save)) + (Promotion.EffectiveRank(save) >= Promotion.MaxRank ? " · 최고 경지" : " · 한 계단 또는 두 계단 승급 도전")
                 + (Promotion.EffectiveRank(save) < Promotion.GateRank ? "\n(" + Promotion.RankName(Promotion.GateRank) + " 이상이어야 삼성무제 참가)" : "");
             int openQuests = Quests.Open(save).Count, openFortunes = Fortunes.Open(save).Count;
             _questRowDetail.text = openQuests > 0 ? "받을 수 있는 의뢰 " + openQuests + "건" : "새 의뢰 없음 (스테이지를 돌파하면 늘어난다)";
             _fortuneRowDetail.text = openFortunes > 0 ? "마주칠 기연 " + openFortunes + "건" : "새 기연 없음";
+            SetBadge(_questBadge, openQuests);
+            SetBadge(_fortuneBadge, openFortunes);
+            SetBadge(_promoBadge, 0);
+            SetBadge(_partyBadge, 0);
             var current = new List<string>();
             foreach (var c in EarlyGameContent.SelectCompanions(Math.Max(1, save.HighestUnlockedStage), save.ActiveCompanions)) current.Add(c.Name + "(인연 " + Bonds.LevelNames[Bonds.Level(save, c.Id)] + ")");
             _partyRowDetail.text = current.Count == 0 ? "아직 함께할 동료가 없다" : "출전 동료: " + string.Join(", ", current)
