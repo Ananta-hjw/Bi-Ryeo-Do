@@ -48,12 +48,10 @@ namespace BiRyeoDo.Core
             L("윤준호", "형들 덕분에 힘이 나요!", 0, 1),
             L("윤준호", "칠매검, 조금씩 익숙해지고 있어요.", 22),
 
-            L("임성진", "곤은 느려도 확실하게 닿는 법이다."),
-            L("임성진", "아버지가 또 찾아오시지 않으면 좋겠군.", 0, 1),
-
             L("나예린", "수련은 거르지 마세요."),
             L("나예린", "무리하지 말아요. 다친 곳은 없나요?", 15),
             L("나예린", "무사해서 다행이에요, 류연.", 20),
+            L("나예린", "당신 곁에서라면 검이 흔들리지 않아요.", 16, 2),
         };
 
         /// <summary>Who can appear now: the protagonist, companions that have joined, and the heroine once she is part of the story.</summary>
@@ -61,7 +59,7 @@ namespace BiRyeoDo.Core
         {
             var list = new List<string> { StoryLine.Protagonist };
             foreach (var c in EarlyGameContent.CompanionsFor(Math.Max(1, save.HighestUnlockedStage))) list.Add(c.Name);
-            if (save.ClearedStage >= HeroineUnlockStage) list.Add(Heroine);
+            if (save.ClearedStage >= HeroineUnlockStage && !list.Contains(Heroine)) list.Add(Heroine);
             return list;
         }
 

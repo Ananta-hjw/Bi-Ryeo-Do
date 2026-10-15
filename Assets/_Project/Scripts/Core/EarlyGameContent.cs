@@ -170,9 +170,9 @@ namespace BiRyeoDo.Core
             new ArtData { Id = "jh_stun", Name = "점혈", Description = "혈도를 짚어 상대를 굳힌다. 기를 모으는 중이면 끊는다.", Power = 0.8f, Effect = SkillEffect.Stun, QiCost = 20, Cooldown = 3, OwnerId = "jang_hong" },
             new ArtData { Id = "yj_slash", Name = "화산의 검", Description = "화산파의 기본 검격. 매화검법은 알레르기 때문에 쓰지 못한다.", Power = 2.2f, QiCost = 16, Cooldown = 1, OwnerId = "yun_junho" },
             new ArtData { Id = "yj_heal", Name = "자하신공", Description = "화산의 자색 기운으로 가장 다친 동료를 치유한다.", Effect = SkillEffect.HealAlly, HealPct = 0.35f, QiCost = 28, Cooldown = 3, OwnerId = "yun_junho" },
-            new ArtData { Id = "isj_gon", Name = "진성십이곤", Description = "녹림 진성곤의 곤법. 방어는 원, 공격은 점, 힘의 이동은 나선.", Power = 2.0f, QiCost = 16, Cooldown = 1, OwnerId = "im_seongjin" },
-            new ArtData { Id = "isj_seonggwang", Name = "성광일시", Description = "곤을 별처럼 흩뿌려 네 번 찌른다.", Power = 0.9f, Hits = 4, QiCost = 30, Cooldown = 3, OwnerId = "im_seongjin" },
-            new ArtData { Id = "isj_iljeom", Name = "일점필중", Description = "진성십이곤 최종오의. 한 줄기 섬광이 되어 한 점을 꿰뚫는다.", Power = 5.0f, QiCost = 45, Cooldown = 4, OwnerId = "im_seongjin" },
+            new ArtData { Id = "ny_baekhon", Name = "백혼검뢰천검식", Description = "나예린의 공격 검법. 흰 검뢰가 한 줄기로 내리꽂힌다.", Power = 2.4f, QiCost = 16, Cooldown = 1, OwnerId = "na_yerin" },
+            new ArtData { Id = "ny_hansang", Name = "한상옥령신검", Description = "얼음처럼 차가운 검기가 세 번 스친다.", Power = 1.2f, Hits = 3, QiCost = 30, Cooldown = 3, OwnerId = "na_yerin" },
+            new ArtData { Id = "ny_simahn", Name = "심안검", Description = "용안으로 허점을 읽고 마음의 눈으로 한 점을 꿰뚫는다.", Power = 5.4f, QiCost = 42, Cooldown = 4, OwnerId = "na_yerin" },
         };
 
         public static readonly CompanionData[] Companions =
@@ -180,7 +180,7 @@ namespace BiRyeoDo.Core
             new CompanionData { Id = "hyo_ryong", Name = "효룡", Role = "쌍검, 검막으로 파티를 지킨다", JoinStage = 7, HpMul = 1.0f, AtkMul = 1.0f, DefMul = 1.0f, SpeedAdd = 4, JointName = "쌍검합벽", JointEffect = SkillEffect.GuardParty },
             new CompanionData { Id = "jang_hong", Name = "장홍", Role = "점혈로 적의 강타를 끊는다", JoinStage = 7, HpMul = 1.1f, AtkMul = 0.85f, DefMul = 1.1f, SpeedAdd = 0, JointName = "점혈합격", JointEffect = SkillEffect.Stun },
             new CompanionData { Id = "yun_junho", Name = "윤준호", Role = "자하신공으로 동료를 치유한다", JoinStage = 8, HpMul = 0.9f, AtkMul = 0.95f, DefMul = 0.85f, SpeedAdd = 2, JointName = "자하합격", JointEffect = SkillEffect.HealAlly },
-            new CompanionData { Id = "im_seongjin", Name = "임성진", Role = "곤으로 한 점을 꿰뚫는다 (굼뜨지만 묵직하다)", JoinStage = 22, HpMul = 1.15f, AtkMul = 0.9f, DefMul = 1.0f, SpeedAdd = -2, JointName = "관통합격", JointPower = 1.4f },
+            new CompanionData { Id = "na_yerin", Name = "나예린", Role = "빙백봉. 검기로 적을 연달아 벤다", JoinStage = 16, HpMul = 0.9f, AtkMul = 1.1f, DefMul = 0.9f, SpeedAdd = 3, JointName = "백혼합벽", JointEffect = SkillEffect.Stun, JointPower = 1.2f },
         };
 
         public static readonly EnemyData[] Enemies =
@@ -991,6 +991,7 @@ namespace BiRyeoDo.Core
                     "비류연은 세 번째 입맞춤을 훔친다. 나예린은 이번에도 검을 뽑지 못했다.",
                     "나예린|… 기회를 놓쳤을 뿐입니다.",
                     "이틀 뒤 비류연은 은설란의 세 번째 호위가 되었다. 조사관의 요청이라 했다.",
+                    "호위로 나선 나예린도 일행과 함께 움직이게 되었다. (동료 합류: 나예린 — 파티는 최대 셋이라 강호 탭의 \"파티 편성\"에서 동료 셋을 고른다.)",
                 },
                 Encounters = new[] { new[] { "baegin_jagaek", "baegin_jagaek", "baegin_jagaek" }, new[] { "ssanggwi", "baegin_jagaek" }, new[] { "baek_tanjeo" } } },
             new StageData { Number = 17, Name = "마하령의 분노", RecommendedLevel = 39, DooTotal = 8000,
@@ -1177,8 +1178,6 @@ namespace BiRyeoDo.Core
                     "비류연이 쇠사슬을 타고 봉무등천으로 협곡 위에 올라 혈쇄조 열 명을 쓰러뜨리고 혈쇄의 쇠사슬을 끊는다. 아래에서 나예린이 얼음 가면이 부서지듯 외친다.",
                     "나예린|류여어언!",
                     "십이혈마대 총대주 적혈이 \"그분들\"에게 도움을 청한다.",
-                    "임성진|아버지와는 화해했다. 이제 내 곤으로 여러분 곁에 서겠다.",
-                    "아버지와 화해한 임성진이 곤을 들고 일행의 곁에 선다. 굼뜨지만 묵직한 곤법이다. (동료 합류: 임성진 — 파티는 최대 넷이라 강호 탭의 \"파티 편성\"에서 동료 셋을 고른다.)",
                 },
                 Encounters = new[] { new[] { "hyeolma_dae", "hyeolma_dae", "hyeolma_dae" }, new[] { "hyeol_gung", "hyeolma_dae" }, new[] { "hyeol_swae" } } },
             new StageData { Number = 23, Name = "비사진", RecommendedLevel = 51, DooTotal = 11000,
