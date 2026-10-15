@@ -17,6 +17,29 @@ namespace BiRyeoDo.Game.UI
         public static readonly Color PaperText = new Color(0.93f, 0.94f, 0.96f, 1f);    // body text
         public static readonly Color Dim = new Color(0.64f, 0.68f, 0.76f, 1f);          // hints on the backdrop
 
+        /// <summary>Colour of an item grade: 일반 grey, 고급 green, 희귀 blue, 영웅 purple, 전설 orange, 신화 red.</summary>
+        public static Color GradeColor(BiRyeoDo.Core.ItemGrade grade)
+        {
+            switch (grade)
+            {
+                case BiRyeoDo.Core.ItemGrade.Fine: return new Color(0.45f, 0.85f, 0.45f, 1f);
+                case BiRyeoDo.Core.ItemGrade.Rare: return new Color(0.40f, 0.65f, 1.00f, 1f);
+                case BiRyeoDo.Core.ItemGrade.Epic: return new Color(0.75f, 0.50f, 1.00f, 1f);
+                case BiRyeoDo.Core.ItemGrade.Legendary: return new Color(1.00f, 0.65f, 0.20f, 1f);
+                case BiRyeoDo.Core.ItemGrade.Mythic: return new Color(1.00f, 0.30f, 0.35f, 1f);
+                default: return new Color(0.75f, 0.76f, 0.80f, 1f);
+            }
+        }
+
+        /// <summary>Rich-text hex such as "#66A6FF" for a grade colour.</summary>
+        public static string GradeHex(BiRyeoDo.Core.ItemGrade grade) { return "#" + ColorUtility.ToHtmlStringRGB(GradeColor(grade)); }
+
+        /// <summary>"[희귀] 이름" with the grade tag coloured.</summary>
+        public static string GradedName(BiRyeoDo.Core.ItemData item)
+        {
+            return "<color=" + GradeHex(item.Grade) + ">[" + BiRyeoDo.Core.Grades.NameOf(item.Grade) + "]</color> " + item.Name;
+        }
+
         private static Sprite _gradient;
 
         /// <summary>1x64 white-to-grey vertical gradient; tinted by Image.color it gives every button a subtle lit top edge.</summary>

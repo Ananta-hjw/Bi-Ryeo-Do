@@ -124,15 +124,29 @@ namespace BiRyeoDo.Game.UI
 
         private static string GearLine(SaveData save)
         {
-            string weapon = "없음";
+            string weapon = "없음", armor = "없음";
             var acc = new List<string>();
             foreach (var id in save.EquippedGear)
             {
                 var it = EarlyGameContent.FindItem(id);
                 if (it == null) continue;
-                if (it.Kind == ItemKind.Weapon) weapon = it.Name; else acc.Add(it.Name);
+                if (it.Kind == ItemKind.Weapon) weapon = it.Name; else if (it.Kind == ItemKind.Armor) armor = it.Name; else acc.Add(it.Name);
             }
-            return "무기: " + weapon + "  ·  장신구: " + (acc.Count == 0 ? "없음" : string.Join(", ", acc)) + " (" + acc.Count + "/" + Inventory.AccessorySlots + ")";
+            return "무기: " + weapon + "  ·  방어구: " + armor + "  ·  장신구: " + (acc.Count == 0 ? "없음" : string.Join(", ", acc)) + " (" + acc.Count + "/" + Inventory.AccessorySlots + ")";
+        }
+
+        /// <summary>Gear first (weapon, armor, accessory), then consumables, materials and keys.</summary>
+        private static int KindOrder(ItemData item)
+        {
+            switch (item.Kind)
+            {
+                case ItemKind.Weapon: return 0;
+                case ItemKind.Armor: return 1;
+                case ItemKind.Accessory: return 2;
+                case ItemKind.Consumable: return 3;
+                case ItemKind.Material: return 4;
+                default: return 5;
+            }
         }
 
         private bool PassesFilter(ItemData item)
@@ -151,6 +165,7 @@ namespace BiRyeoDo.Game.UI
             switch (item.Kind)
             {
                 case ItemKind.Weapon: return new Color(0.55f, 0.18f, 0.18f, 1f);
+                case ItemKind.Armor: return new Color(0.18f, 0.34f, 0.58f, 1f);
                 case ItemKind.Accessory: return new Color(0.38f, 0.22f, 0.55f, 1f);
                 case ItemKind.Consumable: return new Color(0.20f, 0.46f, 0.30f, 1f);
                 case ItemKind.Key: return new Color(0.62f, 0.44f, 0.12f, 1f);
@@ -168,7 +183,8 @@ namespace BiRyeoDo.Game.UI
 
             var stacks = save.Items
                 .Where(s => EarlyGameContent.FindItem(s.Id) != null)
-                .OrderBy(s => (int)EarlyGameContent.FindItem(s.Id).Kind)
+                .OrderBy(s => KindOrder(EarlyGameContent.FindItem(s.Id)))
+                .ThenByDescending(s => (int)EarlyGameContent.FindItem(s.Id).Grade)
                 .ThenBy(s => EarlyGameContent.FindItem(s.Id).Name)
                 .Where(s => PassesFilter(EarlyGameContent.FindItem(s.Id)))
                 .ToList();
@@ -188,8 +204,8 @@ namespace BiRyeoDo.Game.UI
                 bool equipped = Inventory.IsEquipped(save, item.Id);
                 row.Icon.color = KindColor(item);
                 row.IconGlyph.text = item.Name.Substring(0, 1);
-                row.Title.text = item.Name + (stack.Count > 1 ? " x" + stack.Count : "") + (equipped ? "  [착용]" : "");
-                row.Detail.text = item.Description;
+                row.Title.text = UiFactory.GradedName(item) + (stack.Count > 1 ? " x" + stack.Count : "") + (equipped ? "  [착용]" : "");
+                row.Detail.text = item.IsGear ? StatusSheet.EffectText(item) + "  —  " + item.Description : item.Description;
 
                 if (item.IsGear)
                 {

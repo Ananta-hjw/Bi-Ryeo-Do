@@ -1,3 +1,4 @@
+using BiRyeoDo.Core;
 using BiRyeoDo.Game.Systems;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -12,7 +13,7 @@ namespace BiRyeoDo.Game.UI
     [RequireComponent(typeof(TabRouter))]
     public class MainScreen : MonoBehaviour
     {
-        private static readonly string[] TabNames = { "강호", "무공", "행낭" };
+        private static readonly string[] TabNames = { "강호", "무공", "행낭", "뽑기" };
         private const float TabBarHeight = 170f;
 
         private TabRouter _router;
@@ -57,6 +58,7 @@ namespace BiRyeoDo.Game.UI
             panels[(int)TabRouter.Tab.MartialArts].AddComponent<MartialArtsScreen>().Build((RectTransform)panels[(int)TabRouter.Tab.MartialArts].transform);
 
             panels[(int)TabRouter.Tab.Bag].AddComponent<BagScreen>().Build((RectTransform)panels[(int)TabRouter.Tab.Bag].transform);
+            panels[(int)TabRouter.Tab.Gacha].AddComponent<GachaScreen>().Build((RectTransform)panels[(int)TabRouter.Tab.Gacha].transform);
 
             BuildTabBar(safe);
 
@@ -115,6 +117,8 @@ namespace BiRyeoDo.Game.UI
         private void Select(int index)
         {
             _router.Show(index);
+            if (index == (int)TabRouter.Tab.Gacha && HelpPanel.Instance != null && !Tutorial.IsDone(GameManager.Instance.Save, "gacha"))
+                HelpPanel.Instance.Show("gacha", true);
             for (int i = 0; i < _tabButtons.Length; i++)
                 _tabButtons[i].color = i == index ? new Color(0.56f, 0.44f, 0.22f, 1f) : new Color(0f, 0f, 0f, 0f);
         }
