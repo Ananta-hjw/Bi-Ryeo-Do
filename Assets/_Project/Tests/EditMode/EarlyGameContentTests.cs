@@ -78,12 +78,13 @@ namespace BiRyeoDo.Tests
         {
             // Before 나예린 joins, everyone fights.
             Assert.AreEqual(3, EarlyGameContent.SelectCompanions(15, null).Count);
+            Assert.AreEqual(5, EarlyGameContent.CompanionsFor(30).Count);
             // After, only three fit: default is join order.
             var def = EarlyGameContent.SelectCompanions(25, null).Select(c => c.Id).ToList();
             CollectionAssert.AreEqual(new[] { "hyo_ryong", "jang_hong", "yun_junho" }, def);
             // Picks win, in order, and unknown or not-yet-joined ids are ignored.
-            var picked = EarlyGameContent.SelectCompanions(25, new[] { "na_yerin", "nobody", "jang_hong" }).Select(c => c.Id).ToList();
-            CollectionAssert.AreEqual(new[] { "na_yerin", "jang_hong", "hyo_ryong" }, picked);
+            var picked = EarlyGameContent.SelectCompanions(25, new[] { "na_yerin", "nobody", "im_seongjin" }).Select(c => c.Id).ToList();
+            CollectionAssert.AreEqual(new[] { "na_yerin", "im_seongjin", "hyo_ryong" }, picked);
             Assert.AreEqual(0, EarlyGameContent.SelectCompanions(1, new[] { "na_yerin" }).Count);
             Assert.AreEqual(EarlyGameContent.MaxCompanions, EarlyGameContent.SelectCompanions(30, new[] { "a", "b", "c", "d" }).Count);
         }
@@ -152,8 +153,9 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(0, EarlyGameContent.SelectCompanionsFor(8, save).Count);
             // A newly joined companion is not benched, so he fills a free slot.
             save.BenchedCompanions.Clear();
-            save.BenchedCompanions.Add("hyo_ryong");
-            Assert.IsTrue(EarlyGameContent.SelectCompanionsFor(22, save).Any(c => c.Id == "na_yerin"));
+            save.BenchedCompanions.AddRange(new[] { "hyo_ryong", "jang_hong" });
+            var late = EarlyGameContent.SelectCompanionsFor(22, save).Select(c => c.Id).ToList();
+            CollectionAssert.AreEqual(new[] { "yun_junho", "na_yerin", "im_seongjin" }, late);
         }
     }
 }

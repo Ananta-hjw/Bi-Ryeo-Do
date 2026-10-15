@@ -138,6 +138,7 @@ namespace BiRyeoDo.Game.UI
                 float y0 = y1 - 0.083f;
                 var btn = UiFactory.Button("Cmd" + i, root, new Vector2(x0, y0), new Vector2(x0 + 0.2275f, y1), "", UiFactory.Red, () => OnCommandPressed(index), 28);
                 _commands[i] = new CommandButton { Button = btn, Image = btn.GetComponent<Image>(), Label = btn.GetComponentInChildren<Text>(), Root = btn.gameObject };
+                btn.gameObject.AddComponent<LongPress>().OnLong = () => ShowCommandTip(index);
             }
 
             // Effects layers (above everything except panels)
@@ -148,6 +149,7 @@ namespace BiRyeoDo.Game.UI
 
             BuildPanel(root);
             BuildStory(root);
+            BuildTip(root);
         }
 
         private void BuildPanel(RectTransform root)
@@ -699,6 +701,9 @@ namespace BiRyeoDo.Game.UI
                 p.SpiritText = UiFactory.Label("SpiritText", p.Root, new Vector2(0.06f, 0.04f), new Vector2(0.94f, 0.085f), "", 14, UiFactory.PaperText);
                 p.QiText.gameObject.SetActive(false);
                 p.SpiritText.gameObject.SetActive(false);
+                var panelUnit = unit;
+                p.Root.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);   // catches the press
+                p.Root.gameObject.AddComponent<LongPress>().OnLong = () => ShowMemberTip(panelUnit);
                 _panels.Add(p);
             }
         }
@@ -962,6 +967,127 @@ namespace BiRyeoDo.Game.UI
             c.Image.color = enabled ? (slot == 5 ? new Color(0.25f, 0.40f, 0.55f, 1f) : slot == 6 ? new Color(0.25f, 0.45f, 0.35f, 1f) : UiFactory.Red) : Disabled;
         }
 
+        // ------------------------------------------------------------------ long-press tips
+
+        private GameObject _tipRoot;
+        private Text _tipTitle, _tipBody;
+
+        private void BuildTip(RectTransform root)
+        {
+            var rt = UiFactory.Rect("Tip", root, Vector2.zero, Vector2.one);
+            _tipRoot = rt.gameObject;
+            var dim = rt.gameObject.AddComponent<Image>();
+            dim.color = new Color(0f, 0f, 0f, 0.6f);
+            var close = rt.gameObject.AddComponent<Button>();
+            close.targetGraphic = dim;
+            close.transition = Selectable.Transition.None;
+            close.onClick.AddListener(() => _tipRoot.SetActive(false));
+            var card = UiFactory.Panel("Card", rt, new Vector2(0.06f, 0.28f), new Vector2(0.94f, 0.72f), new Color(0.05f, 0.07f, 0.11f, 0.98f));
+            UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
+            _tipTitle = UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.86f), new Vector2(0.95f, 0.98f), "", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
+            _tipBody = UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.10f), new Vector2(0.94f, 0.85f), "", 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal);
+            UiFactory.Label("Hint", card.transform, new Vector2(0.05f, 0.01f), new Vector2(0.95f, 0.09f), "아무 곳이나 누르면 닫힌다", 20, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+            _tipRoot.SetActive(false);
+        }
+
+        private void ShowTip(string title, string body)
+        {
+            if (_tipRoot == null) return;
+            _tipTitle.text = title;
+            _tipBody.text = body;
+            _tipRoot.transform.SetAsLastSibling();
+            _tipRoot.SetActive(true);
+            SoundManager.Sfx("ui_click");
+        }
+
+        /// <summary>"위력 x2.4 · 3타 · 내공 30 · 재사용 3턴" plus what the effect does.</summary>
+        private static string SkillDetails(SkillSpec s)
+        {
+            var parts = new List<string>();
+            if (s.Effect == SkillEffect.Evade) parts.Add("다음 차례까지 모든 공격 회피");
+            else if (s.Effect == SkillEffect.GuardParty) parts.Add("파티 전체 방어 태세");
+            else if (s.Effect == SkillEffect.HealAlly) parts.Add("가장 다친 동료 체력 " + Mathf.RoundToInt(s.HealPct * 100f) + "% 회복");
+            else
+            {
+                parts.Add("위력 ×" + s.Power.ToString("0.0") + (s.Hits > 1 ? " · " + s.Hits + "타" : ""));
+                if (s.AllEnemies) parts.Add("적 전체");
+                if (s.Effect == SkillEffect.Stun) parts.Add("굳힘 (기를 모으는 적의 강타를 끊는다)");
+            }
+            parts.Add(s.SpiritCost > 0 ? "기세 " + s.SpiritCost : s.QiCost > 0 ? "내공 " + s.QiCost : "내공 0");
+            if (s.Cooldown > 0) parts.Add("재사용 " + s.Cooldown + "턴");
+            return string.Join(" · ", parts);
+        }
+
+        private static string SkillBody(SkillSpec s)
+        {
+            string desc = s.Id == "basic" ? "기본 공격." : s.Description;
+            return SkillDetails(s) + (string.IsNullOrEmpty(desc) ? "" : "\n" + desc);
+        }
+
+        private static string SkillBlock(SkillSpec s) { return s.Name + "\n" + SkillBody(s); }
+
+        /// <summary>Long press on a command button: what that command does.</summary>
+        private void ShowCommandTip(int slot)
+        {
+            if (_battle == null || _battle.Current == null || !_commands[slot].Root.activeSelf) return;
+            var me = _battle.Current;
+            if (_jointMode)
+            {
+                if (slot < _jointPartners.Count) ShowJointTip(_jointPartners[slot]);
+                return;
+            }
+            if (_itemMode)
+            {
+                var items = UsableItems();
+                if (slot < items.Count) ShowTip(items[slot].Name, ItemTipText(items[slot]));
+                return;
+            }
+            if (slot == 0) ShowTip("공격", "기본 공격. 내공을 쓰지 않고 기세가 오른다.");
+            else if (slot >= 1 && slot <= Progression.MaxEquippedArts)
+            {
+                var arts = ArtsOf(me);
+                if (slot - 1 < arts.Count) ShowTip(arts[slot - 1].Name, SkillBody(arts[slot - 1]));
+            }
+            else if (slot == 5) ShowTip("방어", "다음 차례까지 받는 피해가 크게 줄어든다(피해 60% 감소). 기세가 조금 오른다.");
+            else if (slot == 6) ShowTip("운기", "내공 +" + InteractiveBattle.MeditateQi + "과 체력을 조금 회복한다.");
+            else if (slot == 7) ShowTip("아이템", "행낭의 소모품을 쓴다. 가장 다친 동료의 체력이 회복된다.");
+            else if (slot == 8 && _jointPartners.Count > 0)
+            {
+                if (_jointPartners.Count == 1) ShowJointTip(_jointPartners[0]);
+                else ShowTip("합공", "기세 " + InteractiveBattle.JointSpiritCost + "를 쓰고 인연 있는 동료와 함께 연달아 친다. 동료는 다음 행동을 쓴다.");
+            }
+        }
+
+        private static string ItemTipText(ItemData item)
+        {
+            var fx = new List<string>();
+            if (item.HealPct > 0f) fx.Add("체력 " + Mathf.RoundToInt(item.HealPct * 100f) + "% 회복");
+            if (item.QiRestore > 0) fx.Add("내공 " + (item.QiRestore >= 999 ? "가득" : "+" + item.QiRestore));
+            if (item.SpiritGain > 0) fx.Add("기세 +" + item.SpiritGain);
+            return (fx.Count > 0 ? string.Join(" · ", fx) + "\n" : "") + item.Description;
+        }
+
+        private void ShowJointTip(Combatant partner)
+        {
+            var companion = EarlyGameContent.FindCompanion(partner.Id);
+            var spec = companion != null ? Bonds.JointSpec(companion, Bonds.Level(GameManager.Instance.Save, partner.Id), Bonds.ReferencePower(_battle.Player.Skills)) : null;
+            string name = companion != null && !string.IsNullOrEmpty(companion.JointName) ? companion.JointName : "합공";
+            string extra = spec == null ? "" : spec.Effect == SkillEffect.Stun ? "\n적을 굳혀 강타를 끊는다." : spec.Effect == SkillEffect.GuardParty ? "\n파티 전체가 방어 태세를 취한다." : spec.Effect == SkillEffect.HealAlly ? "\n가장 다친 동료를 치유한다." : "";
+            ShowTip(name + " (" + partner.Name + ")", "기세 " + InteractiveBattle.JointSpiritCost + " · 위력 ×" + (spec != null ? spec.Power.ToString("0.0") : "?") + "\n비류연과 " + partner.Name + "이(가) 연달아 친다. " + partner.Name + "은(는) 다음 행동을 쓴다." + extra);
+        }
+
+        /// <summary>Long press on a party member's panel: every skill they have.</summary>
+        private void ShowMemberTip(Combatant unit)
+        {
+            if (unit == null) return;
+            var lines = new List<string>();
+            foreach (var s in unit.Skills) lines.Add(SkillBlock(s));
+            var companion = EarlyGameContent.FindCompanion(unit.Id);
+            if (companion != null && !string.IsNullOrEmpty(companion.JointName))
+                lines.Add("합공: " + companion.JointName + " (인연 " + Bonds.LevelNames[Bonds.Level(GameManager.Instance.Save, companion.Id)] + ", " + Bonds.BonusText(Bonds.Level(GameManager.Instance.Save, companion.Id)) + ")");
+            ShowTip(unit.Name + " — 스킬", string.Join("\n\n", lines));
+        }
+
         private void SetCommandsVisible(bool visible)
         {
             foreach (var c in _commands) if (c != null) c.Root.SetActive(visible);
@@ -976,6 +1102,7 @@ namespace BiRyeoDo.Game.UI
 
         private void OnCommandPressed(int slot)
         {
+            if (LongPress.JustFired) return;
             if (_battle == null || !_battle.IsPlayerTurn || _hasCommand) return;
             var me = _battle.Current;
 
