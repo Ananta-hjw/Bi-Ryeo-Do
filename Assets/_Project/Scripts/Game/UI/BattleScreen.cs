@@ -66,6 +66,10 @@ namespace BiRyeoDo.Game.UI
         private GameObject _panel;
         private Text _panelTitle, _panelText;
         private GameObject _panelNext, _panelRetry, _panelBack;
+        private readonly Image[] _portrait = new Image[2];
+        private readonly Text[] _portraitGlyph = new Text[2];
+        private Text _nameTag;
+        private RectTransform _panelTextRect;
 
         private InteractiveBattle _battle;
         private List<Combatant> _party = new List<Combatant>();
@@ -139,16 +143,75 @@ namespace BiRyeoDo.Game.UI
 
         private void BuildPanel(RectTransform root)
         {
-            var rect = UiFactory.Rect("Panel", root, new Vector2(0.06f, 0.30f), new Vector2(0.94f, 0.72f));
+            var rect = UiFactory.Rect("Panel", root, new Vector2(0.05f, 0.27f), new Vector2(0.95f, 0.75f));
             _panel = rect.gameObject;
             var bg = rect.gameObject.AddComponent<Image>();
             bg.color = new Color(0.07f, 0.07f, 0.07f, 0.96f);
-            _panelTitle = UiFactory.Label("Title", rect, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.97f), "", 46, UiFactory.Gold);
-            _panelText = UiFactory.Label("Text", rect, new Vector2(0.06f, 0.26f), new Vector2(0.94f, 0.80f), "", 36, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
-            _panelNext = UiFactory.Button("Next", rect, new Vector2(0.30f, 0.05f), new Vector2(0.70f, 0.22f), "다음", UiFactory.Red, () => _panelDone = true, 40).gameObject;
-            _panelRetry = UiFactory.Button("Retry", rect, new Vector2(0.06f, 0.05f), new Vector2(0.48f, 0.22f), "다시 도전", UiFactory.Red, () => { _retry = true; _panelDone = true; }, 36).gameObject;
-            _panelBack = UiFactory.Button("Back", rect, new Vector2(0.52f, 0.05f), new Vector2(0.94f, 0.22f), "강호로", UiFactory.InkSoft, () => { _retry = false; _panelDone = true; }, 36).gameObject;
+            _panelTitle = UiFactory.Label("Title", rect, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.99f), "", 38, UiFactory.Gold);
+
+            // Two portrait slots for dialogue scenes: left = protagonist, right = whoever else is talking.
+            for (int side = 0; side < 2; side++)
+            {
+                float x0 = side == 0 ? 0.04f : 0.62f;
+                var holder = UiFactory.Panel("Portrait" + side, rect, new Vector2(x0, 0.48f), new Vector2(x0 + 0.34f, 0.89f), new Color(0.22f, 0.20f, 0.17f, 1f));
+                holder.preserveAspect = true;
+                _portrait[side] = holder;
+                _portraitGlyph[side] = UiFactory.Label("Glyph", holder.transform, Vector2.zero, Vector2.one, "", 120, UiFactory.PaperText);
+            }
+            _nameTag = UiFactory.Label("Name", rect, new Vector2(0.05f, 0.40f), new Vector2(0.95f, 0.48f), "", 36, UiFactory.Gold, TextAnchor.MiddleLeft);
+            var text = UiFactory.Label("Text", rect, new Vector2(0.06f, 0.26f), new Vector2(0.94f, 0.80f), "", 36, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            _panelText = text;
+            _panelTextRect = text.rectTransform;
+            _panelNext = UiFactory.Button("Next", rect, new Vector2(0.30f, 0.05f), new Vector2(0.70f, 0.20f), "다음", UiFactory.Red, () => _panelDone = true, 40).gameObject;
+            _panelRetry = UiFactory.Button("Retry", rect, new Vector2(0.06f, 0.05f), new Vector2(0.48f, 0.20f), "다시 도전", UiFactory.Red, () => { _retry = true; _panelDone = true; }, 36).gameObject;
+            _panelBack = UiFactory.Button("Back", rect, new Vector2(0.52f, 0.05f), new Vector2(0.94f, 0.20f), "강호로", UiFactory.InkSoft, () => { _retry = false; _panelDone = true; }, 36).gameObject;
             _panel.SetActive(false);
+        }
+
+        /// <summary>Story mode shows portraits and a name tag above the text; result mode is a plain centred message.</summary>
+        private void SetPanelMode(bool story)
+        {
+            foreach (var p in _portrait) p.gameObject.SetActive(story);
+            _nameTag.gameObject.SetActive(story);
+            _panelTextRect.anchorMin = story ? new Vector2(0.06f, 0.22f) : new Vector2(0.06f, 0.26f);
+            _panelTextRect.anchorMax = story ? new Vector2(0.94f, 0.40f) : new Vector2(0.94f, 0.88f);
+            _panelText.alignment = story ? TextAnchor.UpperLeft : TextAnchor.MiddleCenter;
+            _panelText.fontSize = story ? 34 : 36;
+            _panelText.resizeTextMaxSize = _panelText.fontSize;
+        }
+
+        private static Sprite PortraitFor(string name)
+        {
+            if (name == StoryLine.Protagonist) return ArtLibrary.Player();
+            foreach (var c in EarlyGameContent.Companions) if (c.Name == name) return ArtLibrary.Companion(c.Id);
+            foreach (var e in EarlyGameContent.Enemies) if (e.Name == name) return ArtLibrary.Enemy(e.ArtKey);
+            return null;
+        }
+
+        private static Color PortraitTint(string name)
+        {
+            int h = 17;
+            foreach (char ch in name) h = h * 31 + ch;
+            float hue = Mathf.Abs(h % 360) / 360f;
+            return Color.HSVToRGB(hue, 0.35f, 0.45f);
+        }
+
+        private void ShowPortrait(int side, string name, bool speaking)
+        {
+            var img = _portrait[side];
+            var glyph = _portraitGlyph[side];
+            if (string.IsNullOrEmpty(name))
+            {
+                img.color = new Color(0.22f, 0.20f, 0.17f, 0.25f);
+                glyph.text = "";
+                img.sprite = null;
+                return;
+            }
+            var sprite = PortraitFor(name);
+            img.sprite = sprite;
+            float a = speaking ? 1f : 0.4f;
+            if (sprite != null) { img.color = new Color(1f, 1f, 1f, a); glyph.text = ""; }
+            else { var c = PortraitTint(name); c.a = a; img.color = c; glyph.text = name.Substring(0, 1); glyph.color = new Color(1f, 1f, 1f, a); }
         }
 
         // ------------------------------------------------------------------ flow
@@ -1192,23 +1255,45 @@ namespace BiRyeoDo.Game.UI
         private IEnumerator ShowStory(string title, string[] lines)
         {
             SetCommandsVisible(false);
+            SetPanelMode(true);
+            string left = StoryLine.Protagonist, right = null;
             for (int i = 0; i < lines.Length && !_fled; i++)
             {
+                var line = StoryLine.Parse(lines[i]);
+                if (line.IsDialogue && !line.IsProtagonist) right = line.Speaker;
                 _panelTitle.text = title;
-                _panelText.text = lines[i];
+                ShowPortrait(0, line.IsDialogue || right != null ? left : null, line.IsProtagonist);
+                ShowPortrait(1, right, line.IsDialogue && !line.IsProtagonist);
+                _nameTag.text = line.IsDialogue ? line.Speaker : "";
+                _nameTag.color = line.IsProtagonist ? UiFactory.Gold : UiFactory.PaperText;
+                _panelText.fontStyle = line.IsDialogue ? FontStyle.Bold : FontStyle.Italic;
+                _panelText.color = line.IsDialogue ? UiFactory.PaperText : new Color(0.8f, 0.78f, 0.7f, 1f);
+                _panelText.text = "";
                 _panelNext.SetActive(true);
                 _panelRetry.SetActive(false);
                 _panelBack.SetActive(false);
                 _panel.SetActive(true);
                 _panelDone = false;
+
+                // Typewriter: a tap while it types shows the full line; the next tap moves on.
+                for (int c = 1; c <= line.Text.Length && !_panelDone; c++)
+                {
+                    _panelText.text = line.Text.Substring(0, c);
+                    yield return new WaitForSeconds(0.022f);
+                }
+                _panelText.text = line.Text;
+                _panelDone = false;
                 while (!_panelDone) yield return null;
                 _panel.SetActive(false);
             }
+            _panelText.fontStyle = FontStyle.Normal;
+            _panelText.color = UiFactory.PaperText;
         }
 
         private IEnumerator ShowResult(string title, string text, bool defeat, bool allowRetry = true)
         {
             SetCommandsVisible(false);
+            SetPanelMode(false);
             _panelTitle.text = title;
             _panelText.text = text;
             _panelNext.SetActive(!defeat);

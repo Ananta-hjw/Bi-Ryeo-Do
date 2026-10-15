@@ -31,20 +31,39 @@ namespace BiRyeoDo.Game.UI
             _header = UiFactory.Label("Header", root, new Vector2(0.06f, 0.925f), new Vector2(0.94f, 0.985f), "", 42, UiFactory.Gold);
             _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "", 28, UiFactory.Ink, TextAnchor.MiddleCenter, FontStyle.Normal);
 
+            // The list scrolls: the protagonist has far more arts than fit on one screen.
+            var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, 0.88f));
+            viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
+            viewport.gameObject.AddComponent<RectMask2D>();
+            var content = UiFactory.Rect("Content", viewport, new Vector2(0f, 1f), new Vector2(1f, 1f));
+            content.pivot = new Vector2(0.5f, 1f);
+            var scroll = viewport.gameObject.AddComponent<ScrollRect>();
+            scroll.viewport = viewport;
+            scroll.content = content;
+            scroll.horizontal = false;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 40f;
+
             var arts = EarlyGameContent.Arts.Where(a => a.OwnerId == null).ToArray();
-            const float top = 0.875f, rowH = 0.098f, gap = 0.007f;
+            const float rowH = 170f, gap = 12f;
+            content.sizeDelta = new Vector2(0f, arts.Length * (rowH + gap) + gap);
             for (int i = 0; i < arts.Length; i++)
             {
-                float y1 = top - i * (rowH + gap), y0 = y1 - rowH;
                 var art = arts[i];
                 var row = new Row { Art = art };
-                UiFactory.Panel("Row" + i, root, new Vector2(0.04f, y0), new Vector2(0.96f, y1), UiFactory.Ink);
-                row.Title = UiFactory.Label("Title", root, new Vector2(0.06f, y0 + rowH * 0.52f), new Vector2(0.50f, y1 - 0.003f), "", 34, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                row.Detail = UiFactory.Label("Detail", root, new Vector2(0.06f, y0 + 0.003f), new Vector2(0.50f, y0 + rowH * 0.52f), "", 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-                row.Button = UiFactory.Button("Btn" + i, root, new Vector2(0.52f, y0 + 0.010f), new Vector2(0.72f, y1 - 0.010f), "", UiFactory.Red, () => OnPressed(art), 28);
+                var rt = UiFactory.Rect("Row" + i, content, new Vector2(0.04f, 1f), new Vector2(0.96f, 1f));
+                rt.pivot = new Vector2(0.5f, 1f);
+                rt.anchoredPosition = new Vector2(0f, -(gap + i * (rowH + gap)));
+                rt.sizeDelta = new Vector2(0f, rowH);
+                var bg = rt.gameObject.AddComponent<Image>();
+                bg.color = UiFactory.Ink;
+                bg.raycastTarget = true;   // lets a drag that starts on a row still scroll
+                row.Title = UiFactory.Label("Title", rt, new Vector2(0.03f, 0.50f), new Vector2(0.50f, 0.97f), "", 34, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.03f, 0.03f), new Vector2(0.50f, 0.50f), "", 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(0.52f, 0.12f), new Vector2(0.73f, 0.88f), "", UiFactory.Red, () => OnPressed(art), 28);
                 row.ButtonImage = row.Button.GetComponent<Image>();
                 row.ButtonLabel = row.Button.GetComponentInChildren<Text>();
-                row.MasteryButton = UiFactory.Button("Mastery" + i, root, new Vector2(0.74f, y0 + 0.010f), new Vector2(0.94f, y1 - 0.010f), "", UiFactory.InkSoft, () => OnMastery(art), 24);
+                row.MasteryButton = UiFactory.Button("Mastery" + i, rt, new Vector2(0.75f, 0.12f), new Vector2(0.97f, 0.88f), "", UiFactory.InkSoft, () => OnMastery(art), 24);
                 row.MasteryImage = row.MasteryButton.GetComponent<Image>();
                 row.MasteryLabel = row.MasteryButton.GetComponentInChildren<Text>();
                 _rows.Add(row);
