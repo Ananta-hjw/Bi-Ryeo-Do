@@ -11,10 +11,10 @@ namespace BiRyeoDo.Tests
         {
             var save = new SaveData { Level = 10 };
             var lines = StatusSheet.Hero(save);
-            var b = Progression.HeroStatsFor(10);
+            var b = Promotion.ApplyRankBonus(Progression.HeroStatsFor(10), 1);   // 일검룡 already gives +3%
             Assert.AreEqual(b.MaxHp.ToString("N0"), lines.First(l => l.Label == "체력").Value);
             Assert.AreEqual(b.Attack.ToString("N0"), lines.First(l => l.Label == "공격력").Value);
-            Assert.IsTrue(lines.All(l => l.Bonus == ""));   // no gear, no bonus
+            Assert.AreEqual(InnerArts.HeroStats(save).Attack, b.Attack);
         }
 
         [Test]

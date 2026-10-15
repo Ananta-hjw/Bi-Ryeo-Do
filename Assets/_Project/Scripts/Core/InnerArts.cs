@@ -109,7 +109,7 @@ namespace BiRyeoDo.Core
         /// <summary>The protagonist's stats with gear and 심법 applied (what battles and the 상태창 use).</summary>
         public static CombatStats HeroStats(SaveData save)
         {
-            return Apply(Inventory.ApplyGear(Progression.HeroStatsFor(save.Level), save.EquippedGear, save.GearLevels), save.EquippedInner);
+            return Apply(Promotion.ApplyRankBonus(Inventory.ApplyGear(Progression.HeroStatsFor(save.Level), save.EquippedGear, save.GearLevels), Promotion.EffectiveRank(save)), save.EquippedInner);
         }
 
         /// <summary>"체력 +10%  방어 +4%  내공 회복 +2"</summary>

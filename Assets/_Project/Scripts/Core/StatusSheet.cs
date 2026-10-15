@@ -22,7 +22,7 @@ namespace BiRyeoDo.Core
         public static List<StatLine> Hero(SaveData save)
         {
             var b = Progression.HeroStatsFor(save.Level);
-            var f = InnerArts.Apply(Inventory.ApplyGear(b, save.EquippedGear, save.GearLevels), save.EquippedInner);
+            var f = InnerArts.Apply(Promotion.ApplyRankBonus(Inventory.ApplyGear(b, save.EquippedGear, save.GearLevels), Promotion.EffectiveRank(save)), save.EquippedInner);
             var list = new List<StatLine>
             {
                 Line("체력", b.MaxHp, f.MaxHp),

@@ -453,7 +453,7 @@ namespace BiRyeoDo.Game.UI
             {
                 "비무대 위에 선 것은 나 혼자다. 동료의 도움은 없다.",
                 Promotion.RankName(offer.TargetRank) + "에 오르려면 상대 둘을 연달아 꺾어야 한다.",
-                "한 판은 " + Promotion.TurnLimit + "턴 안에 끝내야 한다. 시간이 다 되면 무승부로 치되, 상금은 절반이다."
+                "한 판은 " + Promotion.TurnLimitFor(offer.TargetRank) + "턴 안에 끝내야 한다. 시간이 다 되면 무승부로 치되, 상금은 절반이다."
             });
 
             bool again = !_fled;
@@ -466,7 +466,7 @@ namespace BiRyeoDo.Game.UI
                 {
                     _stageLabel.text = offer.Title + "  (" + (i + 1) + "/" + offer.Opponents.Length + ")";
                     yield return Banner(i == offer.Opponents.Length - 1 ? "마지막 비무!" : "비무 " + (i + 1), 0.7f);
-                    yield return Fight(new[] { offer.Opponents[i] }, Promotion.TurnLimit);
+                    yield return Fight(new[] { offer.Opponents[i] }, Promotion.TurnLimitFor(offer.TargetRank));
                     if (_fled) break;
                     if (_drawn)
                     {

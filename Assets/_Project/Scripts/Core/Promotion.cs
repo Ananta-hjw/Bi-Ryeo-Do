@@ -42,6 +42,30 @@ namespace BiRyeoDo.Core
 
         public static int OpponentLevel(int rank) { return 5 + 4 * rank; }
 
+        /// <summary>Opponents never fall below the player's own level, so out-levelling a rank does not make its duels trivial.</summary>
+        public static int OpponentLevelFor(int rank, int playerLevel) { return Math.Max(OpponentLevel(rank), playerLevel); }
+
+        /// <summary>HP and attack multiplier of a rank's opponents on top of the base tuning: gentle at the bottom, steep at the top (rank 2 x1.02, rank 6 x1.22, rank 10 x1.54, on both HP and attack).</summary>
+        public static float HardnessCoef = 0.02f;
+        public static float HardnessFor(int rank) { return 1f + HardnessCoef * (float)Math.Pow(Math.Max(1, rank) - 1, 1.5); }
+
+        /// <summary>Player actions allowed per duel; harder ranks get a little longer so a win stays possible.</summary>
+        public static int TurnLimitFor(int rank) { return TurnLimit + Math.Max(0, rank - 1); }
+
+        public const float StatBonusPerRank = 0.03f;
+
+        /// <summary>The reward for rising: every stat of the protagonist grows 3% per 검룡위 (rank 10 = +30%).</summary>
+        public static CombatStats ApplyRankBonus(CombatStats stats, int rank)
+        {
+            float m = 1f + StatBonusPerRank * Math.Max(1, Math.Min(MaxRank, rank));
+            stats.MaxHp = (int)Math.Round(stats.MaxHp * m);
+            stats.MaxQi = (int)Math.Round(stats.MaxQi * m);
+            stats.Attack = (int)Math.Round(stats.Attack * m);
+            stats.Defense = (int)Math.Round(stats.Defense * m);
+            stats.Speed = Math.Max(1, (int)Math.Round(stats.Speed * m));
+            return stats;
+        }
+
         /// <summary>True when the stage is open to the player's rank (only the 삼성무제 stages are gated for now).</summary>
         public static bool StageAllowed(SaveData save, int stageNumber)
         {
@@ -73,25 +97,27 @@ namespace BiRyeoDo.Core
                 Title = RankName(targetRank) + " 승급 · " + TierName[tier] + (skip ? " (월반)" : ""),
                 DooReward = doo,
                 Fee = doo / 4,
-                ExpReward = (long)Math.Round(Progression.ExpToNext(lvl) * 0.12 * TierPay[tier]),
-                Opponents = new[] { MakeOpponent(targetRank, tier, 0), MakeOpponent(targetRank, tier, 1) }
+                ExpReward = (long)Math.Round(Progression.ExpToNext(Math.Max(lvl, save.Level)) * 0.12 * TierPay[tier]),
+                Opponents = new[] { MakeOpponent(targetRank, tier, 0, save.Level), MakeOpponent(targetRank, tier, 1, save.Level) }
             };
         }
 
         /// <summary>Two archetypes: a fast 쾌검수 and a slow, wind-up 중검수.</summary>
-        public static EnemyData MakeOpponent(int rank, int tier, int index)
+        public static EnemyData MakeOpponent(int rank, int tier, int index, int playerLevel = 0)
         {
-            float atk = AtkMulByRank[rank] * TierAtk[tier];
+            float hard = HardnessFor(rank);
+            int level = OpponentLevelFor(rank, playerLevel);
+            float atk = AtkMulByRank[rank] * TierAtk[tier] * hard;
             string t = TierName[tier];
             if (index == 0)
                 return new EnemyData
                 {
-                    Id = "duel_fast_" + rank, Name = t + " 쾌검수", Level = OpponentLevel(rank), HpMul = 1.0f * TierHp[tier], AtkMul = atk, SpeedAdd = 8,
+                    Id = "duel_fast_" + rank, Name = t + " 쾌검수", Level = level, HpMul = 1.0f * TierHp[tier] * hard, AtkMul = atk, SpeedAdd = 8,
                     Moves = new[] { EnemyMove.Attack("쾌검", 0.8f, 2), EnemyMove.Attack("찌르기", 1.1f) }
                 };
             return new EnemyData
             {
-                Id = "duel_heavy_" + rank, Name = t + " 중검수", Level = OpponentLevel(rank), HpMul = 1.4f * TierHp[tier], AtkMul = atk, SpeedAdd = -4,
+                Id = "duel_heavy_" + rank, Name = t + " 중검수", Level = level, HpMul = 1.4f * TierHp[tier] * hard, AtkMul = atk, SpeedAdd = -4,
                 Moves = new[] { EnemyMove.Attack("베기", 1.0f), EnemyMove.Wind("검을 높이 든다"), EnemyMove.Attack("중검 내려치기", 2.6f) }
             };
         }

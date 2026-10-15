@@ -101,13 +101,45 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void BotPassesNormalAndWeakDuelsAtEveryRank()
+        public void BotPassesTheLowerRanksButTheTopIsAWall()
         {
-            for (int rank = 2; rank <= Promotion.MaxRank; rank++)
-            {
-                Assert.GreaterOrEqual(NotLostRate(rank, 1, 20), 0.8, "normal rank " + rank);
-                Assert.GreaterOrEqual(NotLostRate(rank, 0, 20), 0.8, "weak rank " + rank);
-            }
+            // The bot has no gear, 심법 or rank bonus, so the upper ranks are meant to be out of its reach.
+            for (int rank = 2; rank <= 4; rank++) Assert.GreaterOrEqual(NotLostRate(rank, 1, 20), 0.8, "normal rank " + rank);
+            for (int rank = 2; rank <= 6; rank++) Assert.GreaterOrEqual(NotLostRate(rank, 0, 20), 0.8, "weak rank " + rank);
+            Assert.Less(NotLostRate(10, 1, 20), 0.5, "normal rank 10");
+        }
+
+        [Test]
+        public void OpponentsGetHarderWithRankAndFollowThePlayersLevel()
+        {
+            for (int r = 3; r <= Promotion.MaxRank; r++) Assert.Greater(Promotion.HardnessFor(r), Promotion.HardnessFor(r - 1));
+            Assert.Less(Promotion.HardnessFor(2), 1.05f);
+            Assert.Greater(Promotion.HardnessFor(10), 1.4f);
+            Assert.AreEqual(Promotion.OpponentLevel(3), Promotion.OpponentLevelFor(3, 1));
+            Assert.AreEqual(40, Promotion.OpponentLevelFor(3, 40));
+            Assert.AreEqual(40, Promotion.BuildOffer(new SaveData { SwordRank = 2, Level = 40, Doo = 1 }, 3, 1).Opponents[0].Level);
+            Assert.Greater(Promotion.TurnLimitFor(10), Promotion.TurnLimitFor(2));
+        }
+
+        [Test]
+        public void EverySwordRankAddsThreePercentToAllStats()
+        {
+            var b = new CombatStats { MaxHp = 1000, MaxQi = 200, Attack = 100, Defense = 100, Speed = 100, CritRate = 0.05f, CritDamage = 1.5f };
+            var r1 = Promotion.ApplyRankBonus(b, 1);
+            Assert.AreEqual(1030, r1.MaxHp);
+            Assert.AreEqual(103, r1.Attack);
+            var r10 = Promotion.ApplyRankBonus(b, 10);
+            Assert.AreEqual(1300, r10.MaxHp);
+            Assert.AreEqual(260, r10.MaxQi);
+            Assert.AreEqual(130, r10.Attack);
+            Assert.AreEqual(130, r10.Defense);
+            Assert.AreEqual(130, r10.Speed);
+            Assert.AreEqual(0.05f, r10.CritRate, 0.0001f);
+            // The bonus reaches what battles and the 상태창 use.
+            var low = new SaveData { Level = 20, SwordRank = 1 };
+            var high = new SaveData { Level = 20, SwordRank = 10 };
+            Assert.Greater(InnerArts.HeroStats(high).Attack, InnerArts.HeroStats(low).Attack);
+            Assert.AreEqual(InnerArts.HeroStats(high).Attack, int.Parse(StatusSheet.Hero(high)[2].Value.Replace(",", "")));
         }
     }
 }
