@@ -155,7 +155,9 @@ namespace BiRyeoDo.Game.UI
             var rect = UiFactory.Rect("Panel", root, new Vector2(0.05f, 0.27f), new Vector2(0.95f, 0.75f));
             _panel = rect.gameObject;
             var bg = rect.gameObject.AddComponent<Image>();
-            bg.color = new Color(0.07f, 0.07f, 0.07f, 0.96f);
+            bg.color = new Color(0.05f, 0.07f, 0.11f, 0.97f);
+            UiFactory.Frame(rect, UiFactory.Gold, 3f);
+            UiFactory.Panel("TitleLine", rect, new Vector2(0.06f, 0.895f), new Vector2(0.94f, 0.899f), UiFactory.GoldDim);
             _panelTitle = UiFactory.Label("Title", rect, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.99f), "", 38, UiFactory.Gold);
 
             var text = UiFactory.Label("Text", rect, new Vector2(0.06f, 0.26f), new Vector2(0.94f, 0.80f), "", 36, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);

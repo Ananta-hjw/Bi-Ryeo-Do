@@ -104,20 +104,20 @@ namespace BiRyeoDo.Game.UI
 
             _promoOverlay = UiFactory.Rect("PromotionOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
             var overlayBg = _promoOverlay.gameObject.AddComponent<Image>();
-            overlayBg.color = new Color(0.06f, 0.05f, 0.04f, 0.97f);
+            overlayBg.color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
             _promoOverlay.gameObject.SetActive(false);
 
             _partyOverlay = UiFactory.Rect("PartyOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
             var partyBg = _partyOverlay.gameObject.AddComponent<Image>();
-            partyBg.color = new Color(0.06f, 0.05f, 0.04f, 0.97f);
+            partyBg.color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
             _partyOverlay.gameObject.SetActive(false);
 
             _questOverlay = UiFactory.Rect("QuestOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
-            _questOverlay.gameObject.AddComponent<Image>().color = new Color(0.06f, 0.05f, 0.04f, 0.97f);
+            _questOverlay.gameObject.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
             _questOverlay.gameObject.SetActive(false);
 
             _fortuneOverlay = UiFactory.Rect("FortuneOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
-            _fortuneOverlay.gameObject.AddComponent<Image>().color = new Color(0.06f, 0.05f, 0.04f, 0.97f);
+            _fortuneOverlay.gameObject.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
             _fortuneOverlay.gameObject.SetActive(false);
             Refresh();
         }
@@ -205,7 +205,7 @@ namespace BiRyeoDo.Game.UI
         private void OpenPromotionOverlay()
         {
             var save = GameManager.Instance.Save;
-            for (int i = _promoOverlay.childCount - 1; i >= 0; i--) Destroy(_promoOverlay.GetChild(i).gameObject);
+            ClearChildren(_promoOverlay);
             _promoOverlay.gameObject.SetActive(true);
 
             int rank = Promotion.EffectiveRank(save);
@@ -342,6 +342,7 @@ namespace BiRyeoDo.Game.UI
         private static void ClearChildren(RectTransform rt)
         {
             for (int i = rt.childCount - 1; i >= 0; i--) Destroy(rt.GetChild(i).gameObject);
+            UiFactory.Frame(rt, UiFactory.GoldDim, 3f);   // panel border, re-added after every rebuild
         }
 
         /// <summary>Companions available now: everyone who has joined by the furthest stage reached.</summary>
@@ -353,7 +354,7 @@ namespace BiRyeoDo.Game.UI
         private void OpenPartyOverlay()
         {
             var save = GameManager.Instance.Save;
-            for (int i = _partyOverlay.childCount - 1; i >= 0; i--) Destroy(_partyOverlay.GetChild(i).gameObject);
+            ClearChildren(_partyOverlay);
             _partyOverlay.gameObject.SetActive(true);
 
             var available = AvailableCompanions(save);

@@ -15,7 +15,8 @@ namespace BiRyeoDo.Game.UI
             public ArtData Art;
             public Text Title, Detail, ButtonLabel, MasteryLabel;
             public Button Button, MasteryButton;
-            public Image ButtonImage, MasteryImage;
+            public Image ButtonImage, MasteryImage, Icon;
+            public Text IconGlyph;
         }
 
         private readonly List<Row> _rows = new List<Row>();
@@ -59,8 +60,11 @@ namespace BiRyeoDo.Game.UI
                 bg.color = UiFactory.Ink;
                 bg.raycastTarget = true;   // lets a drag that starts on a row still scroll
                 UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
-                row.Title = UiFactory.Label("Title", rt, new Vector2(0.03f, 0.50f), new Vector2(0.50f, 0.97f), "", 34, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.03f, 0.03f), new Vector2(0.50f, 0.50f), "", 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                row.Icon = UiFactory.Panel("Icon", rt, new Vector2(0.025f, 0.14f), new Vector2(0.135f, 0.86f), IconColor(art));
+                UiFactory.Frame(row.Icon.transform, UiFactory.Gold, 2f);
+                row.IconGlyph = UiFactory.Label("Glyph", row.Icon.transform, Vector2.zero, Vector2.one, art.Name.Substring(0, 1), 50, UiFactory.PaperText);
+                row.Title = UiFactory.Label("Title", rt, new Vector2(0.15f, 0.50f), new Vector2(0.51f, 0.97f), "", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.15f, 0.03f), new Vector2(0.51f, 0.50f), "", 20, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(0.52f, 0.12f), new Vector2(0.73f, 0.88f), "", UiFactory.Red, () => OnPressed(art), 28);
                 row.ButtonImage = row.Button.GetComponent<Image>();
                 row.ButtonLabel = row.Button.GetComponentInChildren<Text>();
@@ -101,6 +105,24 @@ namespace BiRyeoDo.Game.UI
             }
             GameManager.Instance.SaveNow();
             Refresh();
+        }
+
+        /// <summary>Icon colour by kind of art: 비기 gold, area purple, evade/guard blue, heal green, stun teal, otherwise red.</summary>
+        private static Color IconColor(ArtData a)
+        {
+            if (a.SpiritCost > 0) return new Color(0.62f, 0.44f, 0.12f, 1f);
+            if (a.AllEnemies) return new Color(0.38f, 0.22f, 0.55f, 1f);
+            if (a.Effect == SkillEffect.Evade || a.Effect == SkillEffect.GuardParty) return new Color(0.18f, 0.34f, 0.58f, 1f);
+            if (a.Effect == SkillEffect.HealAlly) return new Color(0.20f, 0.46f, 0.30f, 1f);
+            if (a.Effect == SkillEffect.Stun) return new Color(0.16f, 0.46f, 0.50f, 1f);
+            return new Color(0.55f, 0.18f, 0.18f, 1f);
+        }
+
+        private static string Stars(int level)
+        {
+            var sb = new System.Text.StringBuilder();
+            for (int i = 0; i < Mastery.Thresholds.Length; i++) sb.Append(i <= level ? "★" : "☆");
+            return sb.ToString();
         }
 
         private void OnMastery(ArtData art)
@@ -147,12 +169,13 @@ namespace BiRyeoDo.Game.UI
 
                 int mLevel = Mastery.Level(save, a.Id);
                 var variant = Mastery.VariantOf(save, a.Id);
+                r.Icon.color = (learned || unlocked) ? IconColor(a) : new Color(0.2f, 0.2f, 0.22f, 1f);
                 r.Title.text = a.Name + (variant != ArtVariant.None ? "(" + Mastery.VariantName(variant) + ")" : "") + (equipped ? "  [장착]" : "");
                 bool canVariant = Mastery.AvailableVariants(a).Count > 0;
                 r.MasteryButton.gameObject.SetActive(learned);
                 r.MasteryLabel.text = Mastery.LevelNames[mLevel] + (mLevel >= Mastery.VariantLevel && canVariant ? "\n변초 바꾸기" : "\n" + Mastery.Uses(save, a.Id) + "회");
                 r.MasteryImage.color = mLevel >= Mastery.VariantLevel && canVariant ? UiFactory.Gold : UiFactory.InkSoft;
-                r.Detail.text = learned || unlocked ? Describe(a) : "스테이지 " + a.UnlockStage + "에 도달하면 열린다";
+                r.Detail.text = learned || unlocked ? (learned && a.OwnerId == null ? Stars(mLevel) + "  " : "") + Describe(a) : "스테이지 " + a.UnlockStage + "에 도달하면 열린다";
 
                 if (learned)
                 {

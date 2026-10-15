@@ -18,13 +18,17 @@ namespace BiRyeoDo.Game.UI
             public GameObject Band;
             public Text Title, Detail, ButtonLabel;
             public Button Button;
-            public Image ButtonImage;
+            public Image ButtonImage, Icon;
+            public Text IconGlyph;
             public string ItemId;
         }
 
         private readonly List<Row> _rows = new List<Row>();
         private Text _header, _gear, _hint;
         private RectTransform _content;
+        private int _filter;                       // 0 all, 1 gear, 2 consumables, 3 materials & keys
+        private readonly Image[] _filterTabs = new Image[4];
+        private static readonly string[] FilterNames = { "전체", "장비", "소모품", "재료" };
         private bool _built;
 
         public void Build(RectTransform root)
@@ -37,8 +41,17 @@ namespace BiRyeoDo.Game.UI
             _gear = UiFactory.Label("Gear", root, new Vector2(0.05f, 0.875f), new Vector2(0.95f, 0.922f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter);
             _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.840f), new Vector2(0.95f, 0.875f), "", 24, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
 
+            // Filter tabs
+            for (int t = 0; t < FilterNames.Length; t++)
+            {
+                int tab = t;
+                float x0 = 0.04f + t * 0.24f;
+                var btn = UiFactory.Button("Filter" + t, root, new Vector2(x0, 0.778f), new Vector2(x0 + 0.225f, 0.832f), FilterNames[t], UiFactory.InkSoft, () => { _filter = tab; Refresh(); }, 28);
+                _filterTabs[t] = btn.GetComponent<Image>();
+            }
+
             // The bag scrolls: it can hold more stacks than fit on one screen.
-            var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, 0.835f));
+            var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, 0.772f));
             viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
             viewport.gameObject.AddComponent<RectMask2D>();
             _content = UiFactory.Rect("Content", viewport, new Vector2(0f, 1f), new Vector2(1f, 1f));
@@ -62,8 +75,11 @@ namespace BiRyeoDo.Game.UI
                 bg.color = UiFactory.Ink;
                 bg.raycastTarget = true;   // lets a drag that starts on a row still scroll
                 UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
-                row.Title = UiFactory.Label("Title", rt, new Vector2(0.03f, 0.50f), new Vector2(0.66f, 0.98f), "", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.03f, 0.02f), new Vector2(0.66f, 0.50f), "", 20, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                row.Icon = UiFactory.Panel("Icon", rt, new Vector2(0.025f, 0.14f), new Vector2(0.125f, 0.86f), new Color(0.3f, 0.3f, 0.3f, 1f));
+                UiFactory.Frame(row.Icon.transform, UiFactory.Gold, 2f);
+                row.IconGlyph = UiFactory.Label("Glyph", row.Icon.transform, Vector2.zero, Vector2.one, "", 44, UiFactory.PaperText);
+                row.Title = UiFactory.Label("Title", rt, new Vector2(0.14f, 0.50f), new Vector2(0.66f, 0.98f), "", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.14f, 0.02f), new Vector2(0.66f, 0.50f), "", 20, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 int index = i;
                 row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), "", UiFactory.Red, () => OnPressed(index), 26);
                 row.ButtonImage = row.Button.GetComponent<Image>();
@@ -119,6 +135,29 @@ namespace BiRyeoDo.Game.UI
             return "무기: " + weapon + "  ·  장신구: " + (acc.Count == 0 ? "없음" : string.Join(", ", acc)) + " (" + acc.Count + "/" + Inventory.AccessorySlots + ")";
         }
 
+        private bool PassesFilter(ItemData item)
+        {
+            switch (_filter)
+            {
+                case 1: return item.IsGear;
+                case 2: return item.Kind == ItemKind.Consumable;
+                case 3: return item.Kind == ItemKind.Material || item.Kind == ItemKind.Key;
+                default: return true;
+            }
+        }
+
+        private static Color KindColor(ItemData item)
+        {
+            switch (item.Kind)
+            {
+                case ItemKind.Weapon: return new Color(0.55f, 0.18f, 0.18f, 1f);
+                case ItemKind.Accessory: return new Color(0.38f, 0.22f, 0.55f, 1f);
+                case ItemKind.Consumable: return new Color(0.20f, 0.46f, 0.30f, 1f);
+                case ItemKind.Key: return new Color(0.62f, 0.44f, 0.12f, 1f);
+                default: return new Color(0.40f, 0.30f, 0.20f, 1f);
+            }
+        }
+
         public void Refresh()
         {
             if (!_built) return;
@@ -131,7 +170,9 @@ namespace BiRyeoDo.Game.UI
                 .Where(s => EarlyGameContent.FindItem(s.Id) != null)
                 .OrderBy(s => (int)EarlyGameContent.FindItem(s.Id).Kind)
                 .ThenBy(s => EarlyGameContent.FindItem(s.Id).Name)
+                .Where(s => PassesFilter(EarlyGameContent.FindItem(s.Id)))
                 .ToList();
+            for (int t = 0; t < _filterTabs.Length; t++) _filterTabs[t].color = t == _filter ? new Color(0.56f, 0.44f, 0.22f, 1f) : UiFactory.InkSoft;
 
             _content.sizeDelta = new Vector2(0f, Mathf.Min(stacks.Count, MaxRows) * (RowH + RowGap) + RowGap);
             for (int i = 0; i < _rows.Count; i++)
@@ -145,6 +186,8 @@ namespace BiRyeoDo.Game.UI
                 var stack = stacks[i];
                 var item = EarlyGameContent.FindItem(stack.Id);
                 bool equipped = Inventory.IsEquipped(save, item.Id);
+                row.Icon.color = KindColor(item);
+                row.IconGlyph.text = item.Name.Substring(0, 1);
                 row.Title.text = item.Name + (stack.Count > 1 ? " x" + stack.Count : "") + (equipped ? "  [착용]" : "");
                 row.Detail.text = item.Description;
 
