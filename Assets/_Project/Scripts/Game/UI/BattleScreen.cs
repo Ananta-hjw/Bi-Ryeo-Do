@@ -70,6 +70,11 @@ namespace BiRyeoDo.Game.UI
         private readonly Text[] _portraitGlyph = new Text[2];
         private Text _nameTag;
         private RectTransform _panelTextRect;
+        // Visual-novel style story layer (full screen): tap anywhere to advance.
+        private GameObject _storyRoot;
+        private Text _storyTitle, _storyText;
+        private RectTransform _namePlate;
+        private bool _storySkip;
 
         private InteractiveBattle _battle;
         private List<Combatant> _party = new List<Combatant>();
@@ -142,6 +147,7 @@ namespace BiRyeoDo.Game.UI
             _banner = UiFactory.Label("Banner", root, new Vector2(0f, 0.60f), new Vector2(1f, 0.70f), "", 64, UiFactory.Gold);
 
             BuildPanel(root);
+            BuildStory(root);
         }
 
         private void BuildPanel(RectTransform root)
@@ -152,16 +158,6 @@ namespace BiRyeoDo.Game.UI
             bg.color = new Color(0.07f, 0.07f, 0.07f, 0.96f);
             _panelTitle = UiFactory.Label("Title", rect, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.99f), "", 38, UiFactory.Gold);
 
-            // Two portrait slots for dialogue scenes: left = protagonist, right = whoever else is talking.
-            for (int side = 0; side < 2; side++)
-            {
-                float x0 = side == 0 ? 0.04f : 0.62f;
-                var holder = UiFactory.Panel("Portrait" + side, rect, new Vector2(x0, 0.48f), new Vector2(x0 + 0.34f, 0.89f), new Color(0.22f, 0.20f, 0.17f, 1f));
-                holder.preserveAspect = true;
-                _portrait[side] = holder;
-                _portraitGlyph[side] = UiFactory.Label("Glyph", holder.transform, Vector2.zero, Vector2.one, "", 120, UiFactory.PaperText);
-            }
-            _nameTag = UiFactory.Label("Name", rect, new Vector2(0.05f, 0.40f), new Vector2(0.95f, 0.48f), "", 36, UiFactory.Gold, TextAnchor.MiddleLeft);
             var text = UiFactory.Label("Text", rect, new Vector2(0.06f, 0.26f), new Vector2(0.94f, 0.80f), "", 36, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
             _panelText = text;
             _panelTextRect = text.rectTransform;
@@ -171,16 +167,75 @@ namespace BiRyeoDo.Game.UI
             _panel.SetActive(false);
         }
 
-        /// <summary>Story mode shows portraits and a name tag above the text; result mode is a plain centred message.</summary>
+        /// <summary>Result / hub panels: plain centred message in the middle panel.</summary>
         private void SetPanelMode(bool story)
         {
-            foreach (var p in _portrait) p.gameObject.SetActive(story);
-            _nameTag.gameObject.SetActive(story);
-            _panelTextRect.anchorMin = story ? new Vector2(0.06f, 0.22f) : new Vector2(0.06f, 0.26f);
-            _panelTextRect.anchorMax = story ? new Vector2(0.94f, 0.40f) : new Vector2(0.94f, 0.88f);
-            _panelText.alignment = story ? TextAnchor.UpperLeft : TextAnchor.MiddleCenter;
-            _panelText.fontSize = story ? 34 : 36;
-            _panelText.resizeTextMaxSize = _panelText.fontSize;
+            _panelTextRect.anchorMin = new Vector2(0.06f, 0.26f);
+            _panelTextRect.anchorMax = new Vector2(0.94f, 0.88f);
+            _panelText.alignment = TextAnchor.MiddleCenter;
+            _panelText.fontSize = 36;
+            _panelText.resizeTextMaxSize = 36;
+        }
+
+        /// <summary>Builds the full-screen story layer: large portraits on both sides, a dialogue box with a name plate at the bottom.</summary>
+        private void BuildStory(RectTransform root)
+        {
+            var rect = UiFactory.Rect("Story", root, Vector2.zero, Vector2.one);
+            _storyRoot = rect.gameObject;
+
+            // Whole screen is the "next" button (added first so everything else sits on top of it).
+            var tapImg = rect.gameObject.AddComponent<Image>();
+            tapImg.color = new Color(0f, 0f, 0f, 0.30f);
+            var tap = rect.gameObject.AddComponent<Button>();
+            tap.targetGraphic = tapImg;
+            tap.transition = Selectable.Transition.None;
+            tap.onClick.AddListener(() => _panelDone = true);
+
+            _storyTitle = UiFactory.Label("Chapter", rect, new Vector2(0.04f, 0.925f), new Vector2(0.72f, 0.985f), "", 34, UiFactory.Gold, TextAnchor.MiddleLeft);
+            UiFactory.Panel("ChapterLine", rect, new Vector2(0.04f, 0.922f), new Vector2(0.72f, 0.925f), UiFactory.GoldDim);
+            UiFactory.Button("Skip", rect, new Vector2(0.78f, 0.932f), new Vector2(0.97f, 0.985f), "건너뛰기", UiFactory.InkSoft, () => { _storySkip = true; _panelDone = true; }, 28);
+
+            // Portraits (left = protagonist, right = whoever else is talking)
+            for (int side = 0; side < 2; side++)
+            {
+                var holder = UiFactory.Panel("Portrait" + side, rect, Vector2.zero, Vector2.one, new Color(1f, 1f, 1f, 0f));
+                holder.preserveAspect = true;
+                _portrait[side] = holder;
+                _portraitGlyph[side] = UiFactory.Label("Glyph", holder.transform, Vector2.zero, Vector2.one, "", 220, UiFactory.PaperText);
+                PlacePortrait(side, true);
+            }
+
+            // Dialogue box
+            var box = UiFactory.Panel("Box", rect, new Vector2(0.03f, 0.04f), new Vector2(0.97f, 0.285f), new Color(0.04f, 0.06f, 0.10f, 0.92f));
+            UiFactory.Frame(box.transform, UiFactory.Gold, 3f);
+            _storyText = UiFactory.Label("Text", rect, new Vector2(0.06f, 0.055f), new Vector2(0.94f, 0.255f), "", 36, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal);
+            UiFactory.Label("Arrow", rect, new Vector2(0.88f, 0.045f), new Vector2(0.95f, 0.09f), "▼", 30, UiFactory.Gold);
+
+            // Name plate sits on the top edge of the box; moves to the right for the other speaker.
+            var plate = UiFactory.Panel("NamePlate", rect, new Vector2(0.05f, 0.268f), new Vector2(0.40f, 0.330f), new Color(0.20f, 0.16f, 0.07f, 0.97f));
+            UiFactory.Frame(plate.transform, UiFactory.Gold, 3f);
+            _namePlate = plate.rectTransform;
+            _nameTag = UiFactory.Label("Name", plate.transform, new Vector2(0.04f, 0f), new Vector2(0.96f, 1f), "", 34, UiFactory.Gold);
+
+            _storyRoot.SetActive(false);
+        }
+
+        /// <summary>Full-height artwork area when a portrait image exists; a smaller placeholder block otherwise.</summary>
+        private void PlacePortrait(int side, bool hasSprite)
+        {
+            var rt = _portrait[side].rectTransform;
+            if (hasSprite)
+            {
+                rt.anchorMin = side == 0 ? new Vector2(0.00f, 0.27f) : new Vector2(0.42f, 0.27f);
+                rt.anchorMax = side == 0 ? new Vector2(0.58f, 0.93f) : new Vector2(1.00f, 0.93f);
+            }
+            else
+            {
+                rt.anchorMin = side == 0 ? new Vector2(0.06f, 0.34f) : new Vector2(0.58f, 0.34f);
+                rt.anchorMax = side == 0 ? new Vector2(0.42f, 0.84f) : new Vector2(0.94f, 0.84f);
+            }
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
         }
 
         private static Sprite PortraitFor(string name)
@@ -206,15 +261,17 @@ namespace BiRyeoDo.Game.UI
             var glyph = _portraitGlyph[side];
             if (string.IsNullOrEmpty(name))
             {
-                img.color = new Color(0.22f, 0.20f, 0.17f, 0.25f);
+                img.color = new Color(1f, 1f, 1f, 0f);
                 glyph.text = "";
                 img.sprite = null;
                 return;
             }
             var sprite = PortraitFor(name);
             img.sprite = sprite;
-            float a = speaking ? 1f : 0.4f;
-            if (sprite != null) { img.color = new Color(1f, 1f, 1f, a); glyph.text = ""; }
+            PlacePortrait(side, sprite != null);
+            float a = speaking ? 1f : 0.45f;
+            img.rectTransform.localScale = Vector3.one * (speaking ? 1.03f : 0.96f);
+            if (sprite != null) { img.color = new Color(speaking ? 1f : 0.6f, speaking ? 1f : 0.6f, speaking ? 1f : 0.7f, 1f); glyph.text = ""; }
             else { var c = PortraitTint(name); c.a = a; img.color = c; glyph.text = name.Substring(0, 1); glyph.color = new Color(1f, 1f, 1f, a); }
         }
 
@@ -1312,39 +1369,42 @@ namespace BiRyeoDo.Game.UI
         private IEnumerator ShowStory(string title, string[] lines)
         {
             SetCommandsVisible(false);
-            SetPanelMode(true);
+            _panel.SetActive(false);
+            _storySkip = false;
             string left = StoryLine.Protagonist, right = null;
-            for (int i = 0; i < lines.Length && !_fled; i++)
+            _storyRoot.SetActive(true);
+            for (int i = 0; i < lines.Length && !_fled && !_storySkip; i++)
             {
                 var line = StoryLine.Parse(lines[i]);
                 if (line.IsDialogue && !line.IsProtagonist) right = line.Speaker;
-                _panelTitle.text = title;
+                _storyTitle.text = title;
                 ShowPortrait(0, line.IsDialogue || right != null ? left : null, line.IsProtagonist);
                 ShowPortrait(1, right, line.IsDialogue && !line.IsProtagonist);
+
+                bool rightSide = line.IsDialogue && !line.IsProtagonist;
+                _namePlate.gameObject.SetActive(line.IsDialogue);
+                _namePlate.anchorMin = new Vector2(rightSide ? 0.60f : 0.05f, 0.268f);
+                _namePlate.anchorMax = new Vector2(rightSide ? 0.95f : 0.40f, 0.330f);
                 _nameTag.text = line.IsDialogue ? line.Speaker : "";
                 _nameTag.color = line.IsProtagonist ? UiFactory.Gold : UiFactory.PaperText;
-                _panelText.fontStyle = line.IsDialogue ? FontStyle.Bold : FontStyle.Italic;
-                _panelText.color = line.IsDialogue ? UiFactory.PaperText : new Color(0.8f, 0.78f, 0.7f, 1f);
-                _panelText.text = "";
-                _panelNext.SetActive(true);
-                _panelRetry.SetActive(false);
-                _panelBack.SetActive(false);
-                _panel.SetActive(true);
+                _storyText.fontStyle = line.IsDialogue ? FontStyle.Bold : FontStyle.Italic;
+                _storyText.color = line.IsDialogue ? UiFactory.PaperText : new Color(0.80f, 0.78f, 0.70f, 1f);
+                _storyText.text = "";
                 _panelDone = false;
 
                 // Typewriter: a tap while it types shows the full line; the next tap moves on.
                 for (int c = 1; c <= line.Text.Length && !_panelDone; c++)
                 {
-                    _panelText.text = line.Text.Substring(0, c);
+                    _storyText.text = line.Text.Substring(0, c);
                     yield return new WaitForSeconds(0.022f);
                 }
-                _panelText.text = line.Text;
+                if (_storySkip) break;
+                _storyText.text = line.Text;
                 _panelDone = false;
                 while (!_panelDone) yield return null;
-                _panel.SetActive(false);
             }
-            _panelText.fontStyle = FontStyle.Normal;
-            _panelText.color = UiFactory.PaperText;
+            _storyRoot.SetActive(false);
+            _storySkip = false;
         }
 
         /// <summary>Pause between the fights of a stage: shows the party's state and waits for the player to challenge the next fight or step back.</summary>
