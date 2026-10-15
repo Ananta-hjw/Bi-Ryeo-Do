@@ -21,10 +21,11 @@ namespace BiRyeoDo.Core
     /// </summary>
     public static class Mastery
     {
-        public static readonly int[] Thresholds = { 0, 10, 30, 70 };
+        public static readonly int[] Thresholds = { 0, 10, 20, 50 };
         public static readonly string[] LevelNames = { "입문", "소성", "대성", "극의" };
         public const int VariantLevel = 2;
         public const float PowerPerLevel = 0.05f;
+        public const int MasterLevel = 3;   // 극의: every art of this level recharges one turn faster (never below 0)
 
         public static int LevelOf(int uses)
         {
@@ -37,6 +38,19 @@ namespace BiRyeoDo.Core
         {
             foreach (var e in save.ArtMastery) if (e.Id == artId) return e;
             return null;
+        }
+
+        /// <summary>Uses still needed for the next step, or -1 at 극의.</summary>
+        public static int UsesToNext(SaveData save, string artId)
+        {
+            int lv = Level(save, artId);
+            return lv >= Thresholds.Length - 1 ? -1 : Thresholds[lv + 1] - Uses(save, artId);
+        }
+
+        /// <summary>One line listing every step for the 무공 tab: "소성 10회(위력 +5%) · 대성 20회(+10%, 변초) · 극의 50회(+15%, 재사용 -1턴)".</summary>
+        public static string ConditionText()
+        {
+            return LevelNames[1] + " " + Thresholds[1] + "회(위력 +5%) · " + LevelNames[2] + " " + Thresholds[2] + "회(+10%, 변초) · " + LevelNames[3] + " " + Thresholds[3] + "회(+15%, 재사용 -1턴)";
         }
 
         public static int Uses(SaveData save, string artId) { var e = Find(save, artId); return e != null ? e.Uses : 0; }
@@ -106,6 +120,7 @@ namespace BiRyeoDo.Core
             var spec = art.ToSpec();
             if (art.OwnerId != null) return spec;
             spec.Power *= 1f + PowerPerLevel * Level(save, art.Id);
+            if (Level(save, art.Id) >= MasterLevel) spec.Cooldown = Math.Max(0, spec.Cooldown - 1);
             var v = Level(save, art.Id) >= VariantLevel && AvailableVariants(art).Contains(VariantOf(save, art.Id)) ? VariantOf(save, art.Id) : ArtVariant.None;
             switch (v)
             {

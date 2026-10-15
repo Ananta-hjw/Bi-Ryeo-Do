@@ -158,7 +158,7 @@ namespace BiRyeoDo.Game.UI
         {
             var save = GameManager.Instance.Save;
             _header.text = "무공 · 장착 " + save.EquippedArts.Count + "/" + Progression.MaxEquippedArts + " · " + save.Doo.ToString("N0") + "두";
-            if (string.IsNullOrEmpty(_hint.text)) _hint.text = "장착한 무공이 전투 명령에 나타난다. 비기는 기세 100이 차면 쓸 수 있다.";
+            if (string.IsNullOrEmpty(_hint.text)) _hint.text = "숙련(사용 횟수): " + Mastery.ConditionText();
 
             foreach (var r in _rows)
             {
@@ -175,7 +175,7 @@ namespace BiRyeoDo.Game.UI
                 r.MasteryButton.gameObject.SetActive(learned);
                 r.MasteryLabel.text = Mastery.LevelNames[mLevel] + (mLevel >= Mastery.VariantLevel && canVariant ? "\n변초 바꾸기" : "\n" + Mastery.Uses(save, a.Id) + "회");
                 r.MasteryImage.color = mLevel >= Mastery.VariantLevel && canVariant ? UiFactory.Gold : UiFactory.InkSoft;
-                r.Detail.text = learned || unlocked ? (learned && a.OwnerId == null ? Stars(mLevel) + "  " : "") + Describe(a) : "스테이지 " + a.UnlockStage + "에 도달하면 열린다";
+                r.Detail.text = learned || unlocked ? (learned && a.OwnerId == null ? Stars(mLevel) + " " + (Mastery.UsesToNext(save, a.Id) < 0 ? "극의" : Mastery.Uses(save, a.Id) + "/" + Mastery.Thresholds[mLevel + 1] + "회") + "  " : "") + Describe(a) : "스테이지 " + a.UnlockStage + "에 도달하면 열린다";
 
                 if (learned)
                 {

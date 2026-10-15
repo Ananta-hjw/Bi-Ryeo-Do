@@ -78,5 +78,35 @@ namespace BiRyeoDo.Tests
             Mastery.Find(save, art.Id).Variant = (int)ArtVariant.Flurry;
             Assert.AreEqual(2, Mastery.Apply(save, art).Hits);      // unset Hits counts as one
         }
+
+        [Test]
+        public void ThresholdsAreTenTwentyFifty()
+        {
+            CollectionAssert.AreEqual(new[] { 0, 10, 20, 50 }, Mastery.Thresholds);
+            var save = new SaveData();
+            for (int i = 0; i < 19; i++) Mastery.RecordUse(save, "samcheopyeong");
+            Assert.AreEqual(1, Mastery.Level(save, "samcheopyeong"));
+            Assert.AreEqual(1, Mastery.UsesToNext(save, "samcheopyeong"));
+            Mastery.RecordUse(save, "samcheopyeong");
+            Assert.AreEqual(2, Mastery.Level(save, "samcheopyeong"));
+            for (int i = 0; i < 30; i++) Mastery.RecordUse(save, "samcheopyeong");
+            Assert.AreEqual(3, Mastery.Level(save, "samcheopyeong"));
+            Assert.AreEqual(-1, Mastery.UsesToNext(save, "samcheopyeong"));
+            StringAssert.Contains("50회", Mastery.ConditionText());
+        }
+
+        [Test]
+        public void MasterLevelShortensTheCooldownByOne()
+        {
+            var art = EarlyGameContent.Arts.First(a => a.OwnerId == null && a.Cooldown >= 2 && a.SpiritCost == 0);
+            var save = new SaveData();
+            for (int i = 0; i < 19; i++) Mastery.RecordUse(save, art.Id);
+            Assert.AreEqual(art.Cooldown, Mastery.Apply(save, art).Cooldown);
+            for (int i = 0; i < 31; i++) Mastery.RecordUse(save, art.Id);
+            Assert.AreEqual(art.Cooldown - 1, Mastery.Apply(save, art).Cooldown);
+            var instant = EarlyGameContent.Arts.First(a => a.OwnerId == null && a.Cooldown == 0);
+            for (int i = 0; i < 50; i++) Mastery.RecordUse(save, instant.Id);
+            Assert.AreEqual(0, Mastery.Apply(save, instant).Cooldown);
+        }
     }
 }
