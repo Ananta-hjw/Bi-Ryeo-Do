@@ -102,7 +102,7 @@ namespace BiRyeoDo.Tests
         {
             Assert.AreEqual(1800, Quests.Find("q_hogol").RewardDoo);
             var save = new SaveData { Level = 10 };
-            Assert.AreEqual(System.Math.Round(Progression.ExpToNext(10) * 0.25), Quests.ExpReward(save));
+            Assert.AreEqual(System.Math.Round(Progression.ExpToNext(10) * 0.30), Quests.ExpReward(save));
         }
     }
 }
