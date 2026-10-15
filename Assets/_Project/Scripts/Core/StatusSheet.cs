@@ -64,6 +64,18 @@ namespace BiRyeoDo.Core
             return parts.Count == 0 ? "특별한 효과 없음" : string.Join("  ", parts);
         }
 
+        /// <summary>The flavor part of a description. Gear descriptions end with their own effect sentence ("공격 +8%."), which the UI already shows separately.</summary>
+        public static string Flavor(ItemData item)
+        {
+            string d = (item.Description ?? "").Trim();
+            if (!item.IsGear) return d;
+            string body = d.TrimEnd('.');
+            int cut = body.LastIndexOf(". ", StringComparison.Ordinal);
+            string last = cut >= 0 ? body.Substring(cut + 2) : body;
+            if (last.IndexOf('%') < 0 && last.IndexOf('+') < 0 && last.IndexOf('-') < 0) return d;
+            return cut >= 0 ? body.Substring(0, cut) + "." : "";
+        }
+
         private static string Pct(float v) { return (v > 0 ? "+" : "") + Math.Round(v * 100f, 1) + "%"; }
 
         /// <summary>The equipped weapon (null when none).</summary>

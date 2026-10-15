@@ -63,5 +63,18 @@ namespace BiRyeoDo.Tests
             var high = StatusSheet.Ally(c, 40).First(l => l.Label == "체력").Value;
             Assert.AreNotEqual(low, high);
         }
+
+        [Test]
+        public void GearFlavorDropsTheTrailingEffectSentence()
+        {
+            Assert.AreEqual("수련용 강철 방망이(50근). 무기라기엔 빨래용이다.", StatusSheet.Flavor(EarlyGameContent.FindItem("laundry_bat")));
+            Assert.AreEqual("", StatusSheet.Flavor(new ItemData { Kind = ItemKind.Weapon, Description = "공격 +4%." }));
+            Assert.AreEqual("튼튼한 갑옷.", StatusSheet.Flavor(new ItemData { Kind = ItemKind.Armor, Description = "튼튼한 갑옷. 방어 +5%." }));
+            // Non-gear descriptions are untouched (they describe the effect in words).
+            var potion = EarlyGameContent.FindItem("bear_gall");
+            Assert.AreEqual(potion.Description, StatusSheet.Flavor(potion));
+            foreach (var it in EarlyGameContent.Items.Where(x => x.IsGear))
+                StringAssert.DoesNotContain("%", StatusSheet.Flavor(it), it.Id);
+        }
     }
 }

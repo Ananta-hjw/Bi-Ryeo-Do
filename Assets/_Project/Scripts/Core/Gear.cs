@@ -144,6 +144,24 @@ namespace BiRyeoDo.Core
             return string.Join("  ", parts);
         }
 
+        /// <summary>Multi-line description of a set for the item window: each piece with its state, then every tier bonus.</summary>
+        public static string SetDetail(GearSet set, IEnumerable<string> equipped, SaveData save)
+        {
+            var worn = new List<string>(equipped);
+            var sb = new System.Text.StringBuilder();
+            sb.Append("[").Append(set.Name).Append(" 세트]  착용 ").Append(WornPieces(set, worn)).Append("/").Append(set.Items.Length).Append("\n");
+            var names = new List<string>();
+            foreach (var id in set.Items)
+            {
+                var it = EarlyGameContent.FindItem(id);
+                string mark = worn.Contains(id) ? "●" : Inventory.Count(save, id) > 0 ? "○" : "·";
+                names.Add(mark + " " + (it != null ? it.Name : id));
+            }
+            sb.Append(string.Join("   ", names)).Append("\n");
+            foreach (var t in set.Tiers) sb.Append(t.Pieces).Append("개: ").Append(TierText(t)).Append("\n");
+            return sb.ToString().TrimEnd('\n');
+        }
+
         /// <summary>One line per set that has at least one worn piece, with the worn count and the bonus reached so far.</summary>
         public static List<string> SetLines(IEnumerable<string> equipped)
         {

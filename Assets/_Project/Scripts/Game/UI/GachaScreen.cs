@@ -47,7 +47,7 @@ namespace BiRyeoDo.Game.UI
                 float x0 = 0.02f + col * 0.325f, y1 = row == 0 ? 0.94f : 0.48f;
                 var chip = UiFactory.Panel("Chip" + g, odds.transform, new Vector2(x0, y1 - 0.42f), new Vector2(x0 + 0.31f, y1), new Color(0.04f, 0.05f, 0.08f, 0.9f));
                 UiFactory.Frame(chip.transform, UiFactory.GradeColor(grade), 2f);
-                UiFactory.Label("Name", chip.transform, new Vector2(0.04f, 0.5f), new Vector2(0.96f, 1f), Grades.Names[g] + "  " + Mathf.RoundToInt((float)Grades.Rates[g] * 100f) + "%", 28, UiFactory.GradeColor(grade));
+                UiFactory.Label("Name", chip.transform, new Vector2(0.04f, 0.5f), new Vector2(0.96f, 1f), Grades.Names[g] + "  " + ((float)Grades.Rates[g] * 100f).ToString("0.#") + "%", 28, UiFactory.GradeColor(grade));
                 UiFactory.Label("Count", chip.transform, new Vector2(0.04f, 0f), new Vector2(0.96f, 0.5f), Gacha.Pool(grade).Count + "종", 22, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
             }
 

@@ -9,7 +9,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void GradeOddsAreExactlyTheRequestedOnes()
         {
-            CollectionAssert.AreEqual(new[] { 0.60, 0.20, 0.10, 0.06, 0.03, 0.01 }, Grades.Rates);
+            CollectionAssert.AreEqual(new[] { 0.62, 0.20, 0.10, 0.05, 0.025, 0.005 }, Grades.Rates);
             Assert.AreEqual(1.0, Grades.Rates.Sum(), 1e-9);
             CollectionAssert.AreEqual(new[] { "일반", "고급", "희귀", "영웅", "전설", "신화" }, Grades.Names);
         }

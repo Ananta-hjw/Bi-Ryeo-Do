@@ -91,6 +91,11 @@ namespace BiRyeoDo.Game.UI
                 var bg = rt.gameObject.AddComponent<Image>();
                 bg.color = UiFactory.Ink;
                 bg.raycastTarget = true;   // lets a drag that starts on a row still scroll
+                int tapIndex = i;
+                var tap = rt.gameObject.AddComponent<Button>();   // tapping the row itself opens the detail window
+                tap.targetGraphic = bg;
+                tap.transition = Selectable.Transition.None;
+                tap.onClick.AddListener(() => OpenDetail(_rows[tapIndex].ItemId));
                 UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
                 row.Icon = UiFactory.Panel("Icon", rt, new Vector2(0.025f, 0.14f), new Vector2(0.125f, 0.86f), new Color(0.3f, 0.3f, 0.3f, 1f));
                 UiFactory.Frame(row.Icon.transform, UiFactory.Gold, 2f);
@@ -105,8 +110,93 @@ namespace BiRyeoDo.Game.UI
                 row.EnhLabel = row.EnhButton.GetComponentInChildren<Text>();
                 _rows.Add(row);
             }
+
+            _detail = UiFactory.Rect("ItemDetail", root, Vector2.zero, Vector2.one);
+            _detail.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.78f);   // dims and blocks the list underneath
+            _detail.gameObject.SetActive(false);
             Refresh();
         }
+
+        // ------------------------------------------------------------------ item detail window
+
+        private RectTransform _detail;
+        private string _detailId;
+
+        private void OpenDetail(string itemId)
+        {
+            var item = string.IsNullOrEmpty(itemId) ? null : EarlyGameContent.FindItem(itemId);
+            if (item == null) return;
+            var save = GameManager.Instance.Save;
+            _detailId = itemId;
+            for (int i = _detail.childCount - 1; i >= 0; i--) Destroy(_detail.GetChild(i).gameObject);
+            _detail.gameObject.SetActive(true);
+
+            bool gear = item.IsGear;
+            int enh = gear ? Gear.Level(save, item.Id) : 0;
+            var card = UiFactory.Panel("Card", _detail, new Vector2(0.05f, 0.08f), new Vector2(0.95f, 0.90f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            UiFactory.Frame(card.transform, UiFactory.GradeColor(item.Grade), 3f);
+            UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.98f), UiFactory.GradedName(item) + (enh > 0 ? " +" + enh : ""), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
+            string kind = KindName(item) + (gear && Inventory.IsEquipped(save, item.Id) ? "  ·  착용 중" : "") + (item.Kind == ItemKind.Consumable || item.Kind == ItemKind.Material ? "  ·  보유 " + Inventory.Count(save, item.Id) + "개" : "");
+            UiFactory.Label("Kind", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.90f), kind, 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+
+            var lines = new List<string>();
+            if (gear) lines.Add("<color=#9ADB9F>" + StatusSheet.EffectText(item, enh) + "</color>" + (enh > 0 ? "   (기본 " + StatusSheet.EffectText(item, 0) + ")" : ""));
+            else
+            {
+                var fx = new List<string>();
+                if (item.HealPct > 0f) fx.Add("체력 " + Mathf.RoundToInt(item.HealPct * 100f) + "% 회복");
+                if (item.QiRestore > 0) fx.Add("내공 " + (item.QiRestore >= 999 ? "가득" : "+" + item.QiRestore));
+                if (item.SpiritGain > 0) fx.Add("기세 +" + item.SpiritGain);
+                if (fx.Count > 0) lines.Add("<color=#9ADB9F>" + string.Join("  ", fx) + "</color>");
+                if (item.Kind == ItemKind.Material && item.SellValue > 0) lines.Add("판매가 " + item.SellValue.ToString("N0") + "두 (1개)");
+            }
+            string flavor = StatusSheet.Flavor(item);
+            if (flavor.Length > 0) lines.Add(flavor);
+            if (gear)
+            {
+                long cost = Gear.NextCost(save, item.Id);
+                lines.Add("강화 +" + enh + " / +" + Gear.MaxLevel + (cost >= 0 ? "   다음 강화 " + cost.ToString("N0") + "두 (능력 +" + Mathf.RoundToInt(Gear.PerLevel * 100f) + "%)" : "   (최대)"));
+                var set = Gear.SetOf(item.Id);
+                lines.Add(set != null ? Gear.SetDetail(set, save.EquippedGear, save) : "세트 없음");
+            }
+            UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.24f), new Vector2(0.94f, 0.83f), string.Join("\n\n", lines), 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal);
+
+            if (gear)
+            {
+                bool eq = Inventory.IsEquipped(save, item.Id);
+                UiFactory.Button("Equip", card.transform, new Vector2(0.05f, 0.13f), new Vector2(0.48f, 0.22f), eq ? "해제" : "장착", eq ? UiFactory.InkSoft : UiFactory.Red, () => { DoMain(item); }, 32);
+                long cost = Gear.NextCost(save, item.Id);
+                var enhBtn = UiFactory.Button("Enhance", card.transform, new Vector2(0.52f, 0.13f), new Vector2(0.95f, 0.22f), cost < 0 ? "최대 강화" : "강화  " + cost.ToString("N0") + "두", cost >= 0 && save.Doo >= cost ? UiFactory.Red : UiFactory.InkSoft, () => { DoEnhance(item); }, 30);
+                enhBtn.interactable = cost >= 0;
+            }
+            else if (item.Kind == ItemKind.Material)
+            {
+                int count = Inventory.Count(save, item.Id);
+                UiFactory.Button("Sell", card.transform, new Vector2(0.05f, 0.13f), new Vector2(0.95f, 0.22f), "전부 판매 +" + (item.SellValue * count).ToString("N0") + "두", UiFactory.Red, () => { DoMain(item); }, 32);
+            }
+            UiFactory.Button("Close", card.transform, new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.10f), "닫기", UiFactory.InkSoft, CloseDetail, 34);
+        }
+
+        private void CloseDetail()
+        {
+            _detailId = null;
+            _detail.gameObject.SetActive(false);
+        }
+
+        private static string KindName(ItemData item)
+        {
+            switch (item.Kind)
+            {
+                case ItemKind.Weapon: return "무기";
+                case ItemKind.Armor: return "방어구";
+                case ItemKind.Accessory: return "장신구";
+                case ItemKind.Consumable: return "소모품 (전투 중 사용)";
+                case ItemKind.Material: return "재료";
+                default: return "중요 물품";
+            }
+        }
+
+        private void OnDisable() { if (_built && _detail != null) CloseDetail(); }
 
         private void OnEnable()
         {
@@ -121,9 +211,14 @@ namespace BiRyeoDo.Game.UI
         {
             var row = _rows[index];
             if (string.IsNullOrEmpty(row.ItemId)) return;
-            var save = GameManager.Instance.Save;
             var item = EarlyGameContent.FindItem(row.ItemId);
-            if (item == null) return;
+            if (item != null) DoMain(item);
+        }
+
+        /// <summary>Equip / unequip gear or sell a material stack (from the list button or the detail window).</summary>
+        private void DoMain(ItemData item)
+        {
+            var save = GameManager.Instance.Save;
 
             if (item.IsGear)
             {
@@ -146,15 +241,27 @@ namespace BiRyeoDo.Game.UI
             }
             GameManager.Instance.SaveNow();
             Refresh();
+            ReopenDetail(item);
+        }
+
+        private void ReopenDetail(ItemData item)
+        {
+            if (_detailId != item.Id) return;
+            if (Inventory.Count(GameManager.Instance.Save, item.Id) <= 0) CloseDetail();   // e.g. the last material was sold
+            else OpenDetail(item.Id);
         }
 
         private void OnEnhance(int index)
         {
             var row = _rows[index];
             if (string.IsNullOrEmpty(row.ItemId)) return;
-            var save = GameManager.Instance.Save;
             var item = EarlyGameContent.FindItem(row.ItemId);
-            if (item == null || !item.IsGear) return;
+            if (item != null && item.IsGear) DoEnhance(item);
+        }
+
+        private void DoEnhance(ItemData item)
+        {
+            var save = GameManager.Instance.Save;
             string error;
             if (Gear.Enhance(save, item.Id, out error))
             {
@@ -164,6 +271,7 @@ namespace BiRyeoDo.Game.UI
             }
             else _flash = error;
             Refresh();
+            ReopenDetail(item);
         }
 
         private static string GearLine(SaveData save)
@@ -258,7 +366,7 @@ namespace BiRyeoDo.Game.UI
                 int enh = item.IsGear ? Gear.Level(save, item.Id) : 0;
                 var set = item.IsGear ? Gear.SetOf(item.Id) : null;
                 row.Title.text = UiFactory.GradedName(item) + (enh > 0 ? " +" + enh : "") + (stack.Count > 1 ? " x" + stack.Count : "") + (equipped ? "  [착용]" : "");
-                row.Detail.text = item.IsGear ? StatusSheet.EffectText(item, enh) + (set != null ? "  ·  [" + set.Name + " 세트]" : "") + "  —  " + item.Description : item.Description;
+                row.Detail.text = item.IsGear ? StatusSheet.EffectText(item, enh) + (set != null ? "  ·  [" + set.Name + " 세트]" : "") + (StatusSheet.Flavor(item).Length > 0 ? "  —  " + StatusSheet.Flavor(item) : "") : item.Description;
                 row.EnhButton.gameObject.SetActive(item.IsGear);
                 var main = row.Button.GetComponent<RectTransform>();
                 main.anchorMin = item.IsGear ? new Vector2(0.68f, 0.52f) : new Vector2(0.68f, 0.12f);
