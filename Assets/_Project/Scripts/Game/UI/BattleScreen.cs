@@ -184,7 +184,8 @@ namespace BiRyeoDo.Game.UI
         {
             if (name == StoryLine.Protagonist) return ArtLibrary.Player();
             foreach (var c in EarlyGameContent.Companions) if (c.Name == name) return ArtLibrary.Companion(c.Id);
-            foreach (var e in EarlyGameContent.Enemies) if (e.Name == name) return ArtLibrary.Enemy(e.ArtKey);
+            foreach (var e in EarlyGameContent.Enemies)
+                if (e.Name == name || (name.Length >= 2 && e.Name.Contains(name))) { var sprite = ArtLibrary.Enemy(e.ArtKey); if (sprite != null) return sprite; }
             return null;
         }
 
