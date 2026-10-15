@@ -19,6 +19,25 @@ namespace BiRyeoDo.Game.Systems
         /// <summary>Party member portrait: <c>Characters/&lt;id&gt;.png</c> (e.g. hyo_ryong.png).</summary>
         public static Sprite Companion(string companionId) { return Load("Characters/" + companionId); }
 
+        /// <summary>Portrait by character name: the protagonist, a companion, or an enemy/NPC whose name matches (e.g. 나예린 → the 빙백봉 art).</summary>
+        public static Sprite Portrait(string name)
+        {
+            if (name == BiRyeoDo.Core.StoryLine.Protagonist) return Player();
+            foreach (var c in BiRyeoDo.Core.EarlyGameContent.Companions) if (c.Name == name) return Companion(c.Id);
+            foreach (var e in BiRyeoDo.Core.EarlyGameContent.Enemies)
+                if (e.Name == name || (name.Length >= 2 && e.Name.Contains(name))) { var sprite = Enemy(e.ArtKey); if (sprite != null) return sprite; }
+            return null;
+        }
+
+        /// <summary>Stable muted colour for a character without artwork.</summary>
+        public static Color TintFor(string name)
+        {
+            int h = 17;
+            foreach (char ch in name) h = h * 31 + ch;
+            float hue = Mathf.Abs(h % 360) / 360f;
+            return Color.HSVToRGB(hue, 0.35f, 0.45f);
+        }
+
         private static Sprite Load(string path)
         {
             Sprite sprite;

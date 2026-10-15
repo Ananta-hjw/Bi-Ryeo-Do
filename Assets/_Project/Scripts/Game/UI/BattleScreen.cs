@@ -240,22 +240,9 @@ namespace BiRyeoDo.Game.UI
             rt.offsetMax = Vector2.zero;
         }
 
-        private static Sprite PortraitFor(string name)
-        {
-            if (name == StoryLine.Protagonist) return ArtLibrary.Player();
-            foreach (var c in EarlyGameContent.Companions) if (c.Name == name) return ArtLibrary.Companion(c.Id);
-            foreach (var e in EarlyGameContent.Enemies)
-                if (e.Name == name || (name.Length >= 2 && e.Name.Contains(name))) { var sprite = ArtLibrary.Enemy(e.ArtKey); if (sprite != null) return sprite; }
-            return null;
-        }
+        private static Sprite PortraitFor(string name) { return ArtLibrary.Portrait(name); }
 
-        private static Color PortraitTint(string name)
-        {
-            int h = 17;
-            foreach (char ch in name) h = h * 31 + ch;
-            float hue = Mathf.Abs(h % 360) / 360f;
-            return Color.HSVToRGB(hue, 0.35f, 0.45f);
-        }
+        private static Color PortraitTint(string name) { return ArtLibrary.TintFor(name); }
 
         private void ShowPortrait(int side, string name, bool speaking)
         {

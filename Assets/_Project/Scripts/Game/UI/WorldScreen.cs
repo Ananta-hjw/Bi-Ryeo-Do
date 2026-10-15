@@ -26,6 +26,11 @@ namespace BiRyeoDo.Game.UI
         private Button _featBtn;
         private StageData _featStage;
         private Action<StageData> _onStartRef;
+        // Home / lobby card
+        private Image _lobbyBg, _lobbyPortrait;
+        private Text _lobbyGlyph, _lobbyName, _lobbyLine;
+        private int _lobbyStep;
+        private float _lobbyTimer;
         private RectTransform _promoOverlay, _partyOverlay, _questOverlay, _fortuneOverlay, _settingsOverlay;
         private bool _confirmReset;
         private Action<StageData> _onStart;
@@ -54,9 +59,31 @@ namespace BiRyeoDo.Game.UI
             scroll.movementType = ScrollRect.MovementType.Clamped;
             scroll.scrollSensitivity = 40f;
 
-            const float gap = 16f, featH = 380f, tileH = 190f, cardH = 150f, labelH = 70f;
+            const float gap = 16f, featH = 380f, tileH = 190f, cardH = 150f, labelH = 70f, lobbyH = 640f;
             var stages = EarlyGameContent.Stages;
             float y = gap;
+
+            // Lobby card: a character stands in front of the latest scenery and says a short line. Tap for the next one.
+            var lobby = Place(content, 0.04f, 0.96f, y, lobbyH, new Color(0.07f, 0.09f, 0.14f, 1f));
+            _lobbyBg = UiFactory.Panel("Scenery", lobby, Vector2.zero, Vector2.one, new Color(1f, 1f, 1f, 0f));
+            _lobbyBg.preserveAspect = false;
+            UiFactory.Panel("Shade", lobby, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.30f));
+            _lobbyPortrait = UiFactory.Panel("Portrait", lobby, new Vector2(0.02f, 0.02f), new Vector2(0.52f, 0.98f), Color.white);
+            _lobbyPortrait.preserveAspect = true;
+            _lobbyGlyph = UiFactory.Label("Glyph", _lobbyPortrait.transform, Vector2.zero, Vector2.one, "", 240, UiFactory.PaperText);
+            var plate = UiFactory.Panel("NamePlate", lobby, new Vector2(0.50f, 0.74f), new Vector2(0.80f, 0.86f), new Color(0.20f, 0.16f, 0.07f, 0.97f));
+            UiFactory.Frame(plate.transform, UiFactory.Gold, 2f);
+            _lobbyName = UiFactory.Label("Name", plate.transform, new Vector2(0.04f, 0f), new Vector2(0.96f, 1f), "", 36, UiFactory.Gold);
+            var bubble = UiFactory.Panel("Bubble", lobby, new Vector2(0.50f, 0.30f), new Vector2(0.97f, 0.74f), new Color(0.04f, 0.06f, 0.10f, 0.90f));
+            UiFactory.Frame(bubble.transform, UiFactory.Gold, 3f);
+            _lobbyLine = UiFactory.Label("Line", bubble.transform, new Vector2(0.06f, 0.08f), new Vector2(0.94f, 0.92f), "", 34, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("Tap", lobby, new Vector2(0.52f, 0.02f), new Vector2(0.97f, 0.10f), "눌러서 다른 인물과 이야기하기", 22, UiFactory.Dim, TextAnchor.MiddleRight, FontStyle.Normal);
+            UiFactory.Frame(lobby, UiFactory.Gold, 2f);
+            var lobbyBtn = lobby.gameObject.AddComponent<Button>();
+            lobbyBtn.targetGraphic = lobby.GetComponent<Image>();
+            lobbyBtn.transition = Selectable.Transition.None;
+            lobbyBtn.onClick.AddListener(() => { _lobbyStep++; _lobbyTimer = 0f; ShowLobby(true); });
+            y += lobbyH + gap;
 
             // Featured card: the next stage to play, with one big button.
             var feat = Place(content, 0.04f, 0.96f, y, featH, new Color(0.08f, 0.10f, 0.15f, 0.97f));
@@ -182,6 +209,60 @@ namespace BiRyeoDo.Game.UI
         }
 
         private readonly List<GameObject> badgeRoots = new List<GameObject>();
+
+        private void Update()
+        {
+            if (!_built) return;
+            _lobbyTimer += Time.unscaledDeltaTime;
+            if (_lobbyTimer > 9f) { _lobbyTimer = 0f; _lobbyStep++; ShowLobby(true); }
+        }
+
+        /// <summary>Puts the current lobby character and line on the card.</summary>
+        private void ShowLobby(bool animate)
+        {
+            if (_lobbyLine == null) return;
+            var save = GameManager.Instance.Save;
+            var scene = Lobby.Pick(save, _lobbyStep);
+            _lobbyName.text = scene.Speaker;
+            _lobbyLine.text = scene.Text;
+
+            var bg = ArtLibrary.Background(Mathf.Max(1, Mathf.Min(save.ClearedStage, EarlyGameContent.Stages.Length)));
+            _lobbyBg.sprite = bg;
+            _lobbyBg.color = bg != null ? Color.white : new Color(1f, 1f, 1f, 0f);
+
+            var sprite = ArtLibrary.Portrait(scene.Speaker);
+            var rt = _lobbyPortrait.rectTransform;
+            if (sprite != null)
+            {
+                _lobbyPortrait.sprite = sprite;
+                _lobbyPortrait.color = Color.white;
+                _lobbyGlyph.text = "";
+                rt.anchorMin = new Vector2(0.02f, 0.02f); rt.anchorMax = new Vector2(0.52f, 0.98f);
+            }
+            else
+            {
+                _lobbyPortrait.sprite = null;
+                var tint = ArtLibrary.TintFor(scene.Speaker); tint.a = 0.85f;
+                _lobbyPortrait.color = tint;
+                _lobbyGlyph.text = scene.Speaker.Substring(0, 1);
+                rt.anchorMin = new Vector2(0.06f, 0.10f); rt.anchorMax = new Vector2(0.46f, 0.78f);
+            }
+            rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+            if (animate && isActiveAndEnabled) StartCoroutine(LobbySlideIn());
+        }
+
+        private System.Collections.IEnumerator LobbySlideIn()
+        {
+            var rt = _lobbyPortrait.rectTransform;
+            for (float t = 0f; t < 0.22f; t += Time.unscaledDeltaTime)
+            {
+                float k = t / 0.22f;
+                rt.anchoredPosition = new Vector2(-60f * (1f - k), 0f);
+                var c = _lobbyPortrait.color; c.a = Mathf.Lerp(0.2f, c.a < 0.99f ? 0.85f : 1f, k); _lobbyPortrait.color = c;
+                yield return null;
+            }
+            rt.anchoredPosition = Vector2.zero;
+        }
 
         private static void SetBadge(Text badge, int count)
         {
@@ -510,6 +591,7 @@ namespace BiRyeoDo.Game.UI
         {
             if (!_built) return;
             var save = GameManager.Instance.Save;
+            ShowLobby(false);
             int rankNow = Promotion.EffectiveRank(save);
             _lvText.text = "Lv." + save.Level;
             long need = Progression.ExpToNext(save.Level);
