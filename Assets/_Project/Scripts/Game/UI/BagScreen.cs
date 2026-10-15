@@ -10,7 +10,8 @@ namespace BiRyeoDo.Game.UI
     /// <summary>행낭 탭. Shows the bag: equip gear (one weapon, two accessories), sell materials. Consumables are used from the battle screen.</summary>
     public class BagScreen : MonoBehaviour
     {
-        private const int MaxRows = 11;
+        private const int MaxRows = 60;
+        private const float RowH = 130f, RowGap = 10f;
 
         private sealed class Row
         {
@@ -23,6 +24,7 @@ namespace BiRyeoDo.Game.UI
 
         private readonly List<Row> _rows = new List<Row>();
         private Text _header, _gear, _hint;
+        private RectTransform _content;
         private bool _built;
 
         public void Build(RectTransform root)
@@ -35,18 +37,34 @@ namespace BiRyeoDo.Game.UI
             _gear = UiFactory.Label("Gear", root, new Vector2(0.05f, 0.875f), new Vector2(0.95f, 0.922f), "", 28, UiFactory.Ink, TextAnchor.MiddleCenter);
             _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.840f), new Vector2(0.95f, 0.875f), "", 24, UiFactory.Ink, TextAnchor.MiddleCenter, FontStyle.Normal);
 
-            const float top = 0.835f, rowH = 0.066f, gap = 0.004f;
+            // The bag scrolls: it can hold more stacks than fit on one screen.
+            var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, 0.835f));
+            viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
+            viewport.gameObject.AddComponent<RectMask2D>();
+            _content = UiFactory.Rect("Content", viewport, new Vector2(0f, 1f), new Vector2(1f, 1f));
+            _content.pivot = new Vector2(0.5f, 1f);
+            var scroll = viewport.gameObject.AddComponent<ScrollRect>();
+            scroll.viewport = viewport;
+            scroll.content = _content;
+            scroll.horizontal = false;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 40f;
+
             for (int i = 0; i < MaxRows; i++)
             {
-                float y1 = top - i * (rowH + gap), y0 = y1 - rowH;
                 var row = new Row();
-                row.Band = UiFactory.Rect("Row" + i, root, Vector2.zero, Vector2.one).gameObject;
-                var rt = (RectTransform)row.Band.transform;
-                UiFactory.Panel("Bg", rt, new Vector2(0.04f, y0), new Vector2(0.96f, y1), UiFactory.Ink);
-                row.Title = UiFactory.Label("Title", rt, new Vector2(0.06f, y0 + rowH * 0.50f), new Vector2(0.66f, y1 - 0.002f), "", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.06f, y0 + 0.002f), new Vector2(0.66f, y0 + rowH * 0.50f), "", 20, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                var rt = UiFactory.Rect("Row" + i, _content, new Vector2(0.04f, 1f), new Vector2(0.96f, 1f));
+                rt.pivot = new Vector2(0.5f, 1f);
+                rt.anchoredPosition = new Vector2(0f, -(RowGap + i * (RowH + RowGap)));
+                rt.sizeDelta = new Vector2(0f, RowH);
+                row.Band = rt.gameObject;
+                var bg = rt.gameObject.AddComponent<Image>();
+                bg.color = UiFactory.Ink;
+                bg.raycastTarget = true;   // lets a drag that starts on a row still scroll
+                row.Title = UiFactory.Label("Title", rt, new Vector2(0.03f, 0.50f), new Vector2(0.66f, 0.98f), "", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.03f, 0.02f), new Vector2(0.66f, 0.50f), "", 20, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
                 int index = i;
-                row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(0.68f, y0 + 0.008f), new Vector2(0.94f, y1 - 0.008f), "", UiFactory.Red, () => OnPressed(index), 26);
+                row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), "", UiFactory.Red, () => OnPressed(index), 26);
                 row.ButtonImage = row.Button.GetComponent<Image>();
                 row.ButtonLabel = row.Button.GetComponentInChildren<Text>();
                 _rows.Add(row);
@@ -114,6 +132,7 @@ namespace BiRyeoDo.Game.UI
                 .ThenBy(s => EarlyGameContent.FindItem(s.Id).Name)
                 .ToList();
 
+            _content.sizeDelta = new Vector2(0f, Mathf.Min(stacks.Count, MaxRows) * (RowH + RowGap) + RowGap);
             for (int i = 0; i < _rows.Count; i++)
             {
                 var row = _rows[i];
