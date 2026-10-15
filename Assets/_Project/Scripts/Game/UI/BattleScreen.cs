@@ -95,6 +95,7 @@ namespace BiRyeoDo.Game.UI
 
             // Top bar
             UiFactory.Panel("TopBar", root, new Vector2(0f, 0.945f), new Vector2(1f, 1f), UiFactory.Ink);
+            UiFactory.Panel("TopBarLine", root, new Vector2(0f, 0.944f), new Vector2(1f, 0.9465f), UiFactory.GoldDim);
             _stageLabel = UiFactory.Label("Stage", root, new Vector2(0.04f, 0.947f), new Vector2(0.60f, 0.998f), "", 34, UiFactory.PaperText, TextAnchor.MiddleLeft);
             var speed = UiFactory.Button("Speed", root, new Vector2(0.62f, 0.953f), new Vector2(0.80f, 0.992f), "속도 x1", UiFactory.InkSoft, OnSpeedPressed, 28);
             _speedLabel = speed.GetComponentInChildren<Text>();
@@ -113,9 +114,11 @@ namespace BiRyeoDo.Game.UI
 
             _cardsRoot = UiFactory.Rect("Cards", root, Vector2.zero, Vector2.one);
 
-            // Log line
-            UiFactory.Panel("LogBand", root, new Vector2(0.04f, 0.468f), new Vector2(0.96f, 0.515f), UiFactory.Ink);
-            _log = UiFactory.Label("Log", root, new Vector2(0.06f, 0.468f), new Vector2(0.94f, 0.515f), "", 30, UiFactory.PaperText);
+            // Ground strip under the two formations (side-view field), then the log line below it
+            UiFactory.Panel("Ground", root, new Vector2(0f, 0.335f), new Vector2(1f, 0.46f), new Color(0f, 0f, 0f, 0.28f));
+            UiFactory.Panel("GroundLine", root, new Vector2(0f, 0.458f), new Vector2(1f, 0.462f), UiFactory.GoldDim);
+            UiFactory.Frame(UiFactory.Panel("LogBand", root, new Vector2(0.04f, 0.292f), new Vector2(0.96f, 0.334f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
+            _log = UiFactory.Label("Log", root, new Vector2(0.06f, 0.292f), new Vector2(0.94f, 0.334f), "", 28, UiFactory.PaperText);
 
             // Party panels are created per stage (their count depends on who has joined)
             _partyRoot = UiFactory.Rect("Party", root, Vector2.zero, Vector2.one);
@@ -544,34 +547,66 @@ namespace BiRyeoDo.Game.UI
             return party;
         }
 
+        // Side-view formations: our party on the left half, the enemies on the right half (each a 2-column grid).
+        private const float CellW = 0.22f, CellH = 0.265f, RowTopY0 = 0.625f, RowBotY0 = 0.350f;
+
+        /// <summary>Cell rectangle (x0, y0, x1, y1) of the i-th unit of n in a formation; partySide = left half.</summary>
+        private static Rect Cell(int i, int n, bool partySide, bool bigSingle)
+        {
+            if (n == 1)
+            {
+                float w = bigSingle ? 0.44f : 0.30f, h = bigSingle ? 0.46f : 0.34f;
+                float x = partySide ? 0.14f : (bigSingle ? 0.52f : 0.60f);
+                float y = 0.62f - h / 2f + 0.07f;
+                return new Rect(x, y, w, h);
+            }
+            float front = partySide ? 0.24f : 0.54f, back = partySide ? 0.01f : 0.77f;
+            float x0, y0;
+            switch (i)
+            {
+                case 0: x0 = front; y0 = RowTopY0; break;
+                case 1: x0 = front; y0 = RowBotY0; break;
+                case 2: x0 = back; y0 = n == 3 ? (RowTopY0 + RowBotY0) / 2f : RowTopY0; break;
+                default: x0 = back; y0 = RowBotY0; break;
+            }
+            return new Rect(x0, y0, CellW, CellH);
+        }
+
         private void BuildParty(StageData stage)
         {
             _party = CreateParty(stage);
             ClearPanels();
             int n = _party.Count;
-            const float gap = 0.02f, y0 = 0.300f, y1 = 0.455f;
-            float w = (0.92f - gap * (n - 1)) / n;
             for (int i = 0; i < n; i++)
             {
-                float x0 = 0.04f + i * (w + gap);
                 var unit = _party[i];
-                var p = new PartyPanel { Unit = unit, Center = new Vector2(x0 + w / 2f, (y0 + y1) / 2f) };
-                p.Root = UiFactory.Rect("Member" + i, _partyRoot, new Vector2(x0, y0), new Vector2(x0 + w, y1));
+                var cell = Cell(i, n, true, false);
+                var p = new PartyPanel { Unit = unit, Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
+                p.Root = UiFactory.Rect("Member" + i, _partyRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
                 p.Frame = UiFactory.Panel("Frame", p.Root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0f));
-                UiFactory.Panel("Bg", p.Root, new Vector2(0.02f, 0.03f), new Vector2(0.98f, 0.97f), UiFactory.Ink);
+                UiFactory.Panel("Bg", p.Root, new Vector2(0.02f, 0.02f), new Vector2(0.98f, 0.98f), new Color(0.06f, 0.08f, 0.12f, 0.62f));
                 var sprite = i == 0 ? ArtLibrary.Player() : ArtLibrary.Companion(unit.Id);
                 if (sprite != null)
                 {
-                    p.Art = UiFactory.Panel("Art", p.Root, new Vector2(0.02f, 0.03f), new Vector2(0.98f, 0.97f), new Color(1f, 1f, 1f, 0.35f));
+                    p.Art = UiFactory.Panel("Art", p.Root, new Vector2(0.04f, 0.30f), new Vector2(0.96f, 0.92f), Color.white);
                     p.Art.sprite = sprite;
                     p.Art.preserveAspect = true;
                 }
-                int fs = n >= 3 ? 28 : 34;
-                p.Name = UiFactory.Label("Name", p.Root, new Vector2(0.05f, 0.70f), new Vector2(0.62f, 0.97f), unit.Name, fs, UiFactory.Gold, TextAnchor.MiddleLeft);
-                p.Status = UiFactory.Label("Status", p.Root, new Vector2(0.55f, 0.70f), new Vector2(0.97f, 0.97f), "", n >= 3 ? 22 : 28, UiFactory.PaperText, TextAnchor.MiddleRight);
-                MakeStatRow(p.Root, "체력", 0.47f, HpGreen, out p.Hp, out p.HpText);
-                MakeStatRow(p.Root, "내공", 0.26f, QiBlue, out p.Qi, out p.QiText);
-                MakeStatRow(p.Root, "기세", 0.05f, UiFactory.Gold, out p.Spirit, out p.SpiritText);
+                else
+                {
+                    UiFactory.Label("Glyph", p.Root, new Vector2(0.04f, 0.32f), new Vector2(0.96f, 0.90f), FirstGlyph(unit.Name), 110, i == 0 ? UiFactory.Gold : UiFactory.PaperText);
+                }
+                p.Name = UiFactory.Label("Name", p.Root, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.99f), unit.Name, 24, UiFactory.Gold);
+                p.Status = UiFactory.Label("Status", p.Root, new Vector2(0.05f, 0.62f), new Vector2(0.95f, 0.76f), "", 26, UiFactory.PaperText);
+                // Thin gauges under the figure: 체력 / 내공 / 기세
+                p.Hp = UiFactory.MakeBar("Hp", p.Root, new Vector2(0.06f, 0.215f), new Vector2(0.94f, 0.275f), new Color(0f, 0f, 0f, 0.7f), HpGreen);
+                p.HpText = UiFactory.Label("HpText", p.Root, new Vector2(0.06f, 0.15f), new Vector2(0.94f, 0.215f), "", 18, UiFactory.PaperText);
+                p.Qi = UiFactory.MakeBar("Qi", p.Root, new Vector2(0.06f, 0.095f), new Vector2(0.94f, 0.140f), new Color(0f, 0f, 0f, 0.7f), QiBlue);
+                p.Spirit = UiFactory.MakeBar("Spirit", p.Root, new Vector2(0.06f, 0.04f), new Vector2(0.94f, 0.085f), new Color(0f, 0f, 0f, 0.7f), UiFactory.Gold);
+                p.QiText = UiFactory.Label("QiText", p.Root, new Vector2(0.06f, 0.095f), new Vector2(0.94f, 0.140f), "", 14, UiFactory.PaperText);
+                p.SpiritText = UiFactory.Label("SpiritText", p.Root, new Vector2(0.06f, 0.04f), new Vector2(0.94f, 0.085f), "", 14, UiFactory.PaperText);
+                p.QiText.gameObject.SetActive(false);
+                p.SpiritText.gameObject.SetActive(false);
                 _panels.Add(p);
             }
         }
@@ -611,29 +646,27 @@ namespace BiRyeoDo.Game.UI
         {
             ClearCards();
             int n = enemies.Length;
-            const float w = 0.30f, gap = 0.02f, y0 = 0.535f, y1 = 0.885f;
-            float startX = 0.5f - (n * w + (n - 1) * gap) / 2f;
             for (int i = 0; i < n; i++)
             {
                 var data = enemies[i];
-                float x0 = startX + i * (w + gap);
-                var card = new EnemyCard { Unit = data.CreateCombatant(data.Id + "#" + i), Center = new Vector2(x0 + w / 2f, (y0 + y1) / 2f) };
-                card.Root = UiFactory.Rect("Card" + i, _cardsRoot, new Vector2(x0, y0), new Vector2(x0 + w, y1));
+                var cell = Cell(i, n, false, data.IsBoss);
+                var card = new EnemyCard { Unit = data.CreateCombatant(data.Id + "#" + i), Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
+                card.Root = UiFactory.Rect("Card" + i, _cardsRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
                 card.Frame = UiFactory.Panel("Frame", card.Root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0f));
-                card.Body = UiFactory.Panel("Body", card.Root, new Vector2(0.025f, 0.02f), new Vector2(0.975f, 0.98f), data.IsBoss ? new Color(0.35f, 0.10f, 0.09f, 1f) : UiFactory.Ink);
-                card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.97f), data.Name, 30, UiFactory.PaperText);
+                card.Body = UiFactory.Panel("Body", card.Root, new Vector2(0.025f, 0.02f), new Vector2(0.975f, 0.98f), data.IsBoss ? new Color(0.30f, 0.08f, 0.10f, 0.70f) : new Color(0.06f, 0.08f, 0.12f, 0.62f));
+                card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.05f, 0.88f), new Vector2(0.95f, 0.99f), data.Name, data.IsBoss ? 30 : 22, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
                 var art = ArtLibrary.Enemy(data.ArtKey);
                 if (art != null)
                 {
-                    var pic = UiFactory.Panel("Art", card.Root, new Vector2(0.06f, 0.40f), new Vector2(0.94f, 0.85f), Color.white);
+                    var pic = UiFactory.Panel("Art", card.Root, new Vector2(0.06f, 0.30f), new Vector2(0.94f, 0.88f), Color.white);
                     pic.sprite = art;
                     pic.preserveAspect = true;
                     card.Art = pic;
                 }
-                card.Glyph = UiFactory.Label("Glyph", card.Root, new Vector2(0.05f, 0.42f), new Vector2(0.95f, 0.84f), art != null ? "" : FirstGlyph(data.Name), 150, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
-                card.Hp = UiFactory.MakeBar("Hp", card.Root, new Vector2(0.08f, 0.31f), new Vector2(0.92f, 0.39f), new Color(0.2f, 0.2f, 0.2f, 0.9f), UiFactory.Red);
-                card.HpText = UiFactory.Label("HpText", card.Root, new Vector2(0.05f, 0.22f), new Vector2(0.95f, 0.31f), "", 22, UiFactory.PaperText);
-                card.Intent = UiFactory.Label("Intent", card.Root, new Vector2(0.05f, 0.03f), new Vector2(0.95f, 0.22f), "", 22, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+                card.Glyph = UiFactory.Label("Glyph", card.Root, new Vector2(0.05f, 0.30f), new Vector2(0.95f, 0.88f), art != null ? "" : FirstGlyph(data.Name), data.IsBoss ? 170 : 110, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
+                card.Hp = UiFactory.MakeBar("Hp", card.Root, new Vector2(0.06f, 0.215f), new Vector2(0.94f, 0.275f), new Color(0f, 0f, 0f, 0.7f), UiFactory.Red);
+                card.HpText = UiFactory.Label("HpText", card.Root, new Vector2(0.06f, 0.15f), new Vector2(0.94f, 0.215f), "", 18, UiFactory.PaperText);
+                card.Intent = UiFactory.Label("Intent", card.Root, new Vector2(0.04f, 0.01f), new Vector2(0.96f, 0.15f), "", 18, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
                 // Tap to target
                 var tap = card.Root.gameObject.AddComponent<Button>();
@@ -665,7 +698,7 @@ namespace BiRyeoDo.Game.UI
                 c.Hp.SetPct(u.Stats.MaxHp > 0 ? (float)u.Hp / u.Stats.MaxHp : 0f);
                 c.HpText.text = u.Hp + " / " + u.Stats.MaxHp;
                 c.Frame.color = c == _target && !dead ? UiFactory.Gold : new Color(0f, 0f, 0f, 0f);
-                SetAlpha(c.Body, dead ? 0.25f : 1f);
+                SetAlpha(c.Body, dead ? 0.15f : 0.68f);
                 if (c.Art != null) SetAlpha(c.Art, dead ? 0.25f : 1f);
                 c.Glyph.color = dead ? new Color(1f, 1f, 1f, 0.2f) : c.Glyph.color;
                 if (dead) { c.Intent.text = "쓰러졌다"; continue; }
@@ -1037,7 +1070,7 @@ namespace BiRyeoDo.Game.UI
             var card = CardOf(ev.TargetId);
             if (card == null) yield break;
             var striker = PanelOf(ev.ActorId);
-            if (striker != null && ev.HitIndex == 0) StartCoroutine(Lunge(striker.Root, new Vector2(0f, 110f)));
+            if (striker != null && ev.HitIndex == 0) StartCoroutine(Lunge(striker.Root, new Vector2(130f, 0f)));
             SlashFx(card.Center, ev.HitIndex, ev.IsCrit, striker != null && striker.Unit.Skills.Find(x => x.Id == ev.SkillId) is SkillSpec sp && sp.SpiritCost >= 100);
             if (ev.IsCrit) { StartCoroutine(Punch(1.06f)); yield return new WaitForSeconds(Wait(0.07f)); }
             Float(card.Center + new Vector2(UnityEngine.Random.Range(-0.05f, 0.05f), 0.02f * ev.HitIndex), ev.Damage + (ev.IsCrit ? "!" : ""), ev.IsCrit ? UiFactory.Gold : UiFactory.PaperText, ev.IsCrit ? 84 : 64);
@@ -1055,7 +1088,7 @@ namespace BiRyeoDo.Game.UI
         private IEnumerator EnemyHit(BattleEvent ev)
         {
             var attacker = CardOf(ev.ActorId);
-            if (attacker != null && ev.HitIndex == 0) StartCoroutine(Lunge(attacker.Root, new Vector2(0f, -110f)));
+            if (attacker != null && ev.HitIndex == 0) StartCoroutine(Lunge(attacker.Root, new Vector2(-130f, 0f)));
             var victim = PanelOf(ev.TargetId);
             if (victim != null && !ev.Dodged) SlashFx(victim.Center, ev.HitIndex, ev.IsCrit, false, true);
             if (victim != null)
@@ -1236,13 +1269,12 @@ namespace BiRyeoDo.Game.UI
                 if (card.Root == null) yield break;
                 float k = e / d;
                 card.Root.anchoredPosition = origin + new Vector2(Mathf.Sin(k * 40f) * 10f * (1f - k), -40f * k);
-                float a = Mathf.Lerp(1f, 0.25f, k);
-                SetAlpha(card.Body, a);
-                if (card.Art != null) SetAlpha(card.Art, a);
+                SetAlpha(card.Body, Mathf.Lerp(0.68f, 0.15f, k));
+                if (card.Art != null) SetAlpha(card.Art, Mathf.Lerp(1f, 0.25f, k));
                 yield return null;
             }
             if (card.Root != null) card.Root.anchoredPosition = origin + new Vector2(0f, -40f);
-            SetAlpha(card.Body, 0.25f);
+            SetAlpha(card.Body, 0.15f);
             if (card.Art != null) SetAlpha(card.Art, 0.25f);
         }
 
