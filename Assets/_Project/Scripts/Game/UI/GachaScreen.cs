@@ -83,7 +83,15 @@ namespace BiRyeoDo.Game.UI
             Refresh();
         }
 
-        private void OnEnable() { if (_built) Refresh(); }
+        private List<PullResult> _pending;   // results being revealed; finished instantly if the tab was left mid-animation
+
+        private void OnEnable()
+        {
+            if (!_built) return;
+            _busy = false;
+            if (_pending != null) { var done = _pending; _pending = null; StartCoroutine(ShowResults(done, false)); }
+            Refresh();
+        }
 
         // Leaving the tab mid-reveal kills the coroutine before it can clear the flag, which used to leave every pull button disabled.
         private void OnDisable()
@@ -110,15 +118,19 @@ namespace BiRyeoDo.Game.UI
         private void StartPull(int count)
         {
             if (_busy) return;
+            _pending = null;
             var save = GameManager.Instance.Save;
             var rng = new SeededRandom(unchecked(Environment.TickCount * 397) ^ (_pullCounter++ * 7919));
             var results = Gacha.Pull(save, count, rng);
             if (results == null) { _hint.text = "두가 모자라다."; return; }
             GameManager.Instance.SaveNow();
+            _pending = results;
             StartCoroutine(Reveal(results));
         }
 
-        private IEnumerator Reveal(List<PullResult> results)
+        private IEnumerator Reveal(List<PullResult> results) { return ShowResults(results, true); }
+
+        private IEnumerator ShowResults(List<PullResult> results, bool animate)
         {
             _busy = true;
             _emptyNote.gameObject.SetActive(false);
@@ -145,15 +157,16 @@ namespace BiRyeoDo.Game.UI
                 card.Tag.text = r.Duplicate ? "분해 +" + r.Doo.ToString("N0") : item.IsGear ? "NEW" : "";
                 card.Root.SetActive(true);
                 if (item.Grade > best) best = item.Grade;
-                SoundManager.Sfx(item.Grade >= ItemGrade.Legendary ? "gacha_mythic" : item.Grade >= ItemGrade.Epic ? "gacha_rare" : "gacha_pull");
-                if (item.Grade >= ItemGrade.Epic) SoundManager.Haptic(item.Grade >= ItemGrade.Legendary ? 150 : 60);
-                yield return new WaitForSeconds(shown.Count > 1 ? 0.14f : 0.05f);
+                if (animate) SoundManager.Sfx(item.Grade >= ItemGrade.Legendary ? "gacha_mythic" : item.Grade >= ItemGrade.Epic ? "gacha_rare" : "gacha_pull");
+                if (animate && item.Grade >= ItemGrade.Epic) SoundManager.Haptic(item.Grade >= ItemGrade.Legendary ? 150 : 60);
+                if (animate) yield return new WaitForSeconds(shown.Count > 1 ? 0.14f : 0.05f);
             }
 
             var parts = new List<string>();
             for (int g = counts.Length - 1; g >= 0; g--) if (counts[g] > 0) parts.Add("<color=" + UiFactory.GradeHex((ItemGrade)g) + ">" + Grades.Names[g] + " " + counts[g] + "</color>");
             _hint.text = string.Join("  ", parts) + (refunded > 0 ? "  ·  분해 두 +" + refunded.ToString("N0") : "") + (results.Count > shown.Count ? "  (높은 등급 " + shown.Count + "개만 표시)" : "");
             _busy = false;
+            _pending = null;
             Refresh();
         }
     }
