@@ -731,12 +731,14 @@ namespace BiRyeoDo.Game.UI
         {
             foreach (var c in _cards) if (c.Root != null) Destroy(c.Root.gameObject);
             _cards.Clear();
+            _home.Clear();
         }
 
         private void ClearPanels()
         {
             foreach (var p in _panels) if (p.Root != null) Destroy(p.Root.gameObject);
             _panels.Clear();
+            _home.Clear();
         }
 
         private void SpawnCards(EnemyData[] enemies)
@@ -1380,10 +1382,22 @@ namespace BiRyeoDo.Game.UI
             Destroy(rt.gameObject);
         }
 
+        // Several motions can overlap on one panel (an all-enemies art hits every card at once, a multi-hit art lunges and shakes together).
+        // Each used to remember "where I am now" as its origin, so the one that finished last left the panel displaced for good.
+        // Every motion now returns to the panel's resting position, recorded the first time it is moved.
+        private readonly Dictionary<RectTransform, Vector2> _home = new Dictionary<RectTransform, Vector2>();
+
+        private Vector2 HomeOf(RectTransform rt)
+        {
+            Vector2 home;
+            if (!_home.TryGetValue(rt, out home)) { home = rt.anchoredPosition; _home[rt] = home; }
+            return home;
+        }
+
         private IEnumerator Shake(RectTransform rt, float amount)
         {
             if (rt == null) yield break;
-            Vector2 origin = rt.anchoredPosition;
+            Vector2 origin = HomeOf(rt);
             for (int i = 0; i < 6; i++)
             {
                 if (rt == null) yield break;
@@ -1408,7 +1422,7 @@ namespace BiRyeoDo.Game.UI
         private IEnumerator Lunge(RectTransform rt, Vector2 delta)
         {
             if (rt == null) yield break;
-            Vector2 origin = rt.anchoredPosition;
+            Vector2 origin = HomeOf(rt);
             float out_ = 0.09f / _speed, back = 0.14f / _speed;
             for (float e = 0f; e < out_; e += Time.deltaTime)
             {
