@@ -523,7 +523,7 @@ namespace BiRyeoDo.Game.UI
             _partyOverlay.gameObject.SetActive(true);
 
             var available = AvailableCompanions(save);
-            var active = EarlyGameContent.SelectCompanions(Math.Max(1, save.HighestUnlockedStage), save.ActiveCompanions);
+            var active = EarlyGameContent.SelectCompanionsFor(Math.Max(1, save.HighestUnlockedStage), save);
             UiFactory.Label("Title", _partyOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "파티 편성", 44, UiFactory.Gold);
             UiFactory.Label("Rules", _partyOverlay, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.92f),
                 "비류연과 함께 싸울 동료는 최대 " + EarlyGameContent.MaxCompanions + "명이다. 눌러서 출전과 대기를 바꾼다.", 28, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
@@ -551,9 +551,17 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             int stage = Math.Max(1, save.HighestUnlockedStage);
             var picked = new List<string>();
-            foreach (var x in EarlyGameContent.SelectCompanions(stage, save.ActiveCompanions)) picked.Add(x.Id);
-            if (picked.Contains(c.Id)) picked.Remove(c.Id);
-            else if (picked.Count < EarlyGameContent.MaxCompanions) picked.Add(c.Id);
+            foreach (var x in EarlyGameContent.SelectCompanionsFor(stage, save)) picked.Add(x.Id);
+            if (picked.Contains(c.Id))
+            {
+                picked.Remove(c.Id);                                   // 출전 → 대기
+                if (!save.BenchedCompanions.Contains(c.Id)) save.BenchedCompanions.Add(c.Id);
+            }
+            else if (picked.Count < EarlyGameContent.MaxCompanions)
+            {
+                save.BenchedCompanions.Remove(c.Id);                   // 대기 → 출전
+                picked.Add(c.Id);
+            }
             else return;   // already full: bench someone first
             save.ActiveCompanions = picked;
             GameManager.Instance.SaveNow();
@@ -580,7 +588,7 @@ namespace BiRyeoDo.Game.UI
 
         private static string PartyText(StageData st)
         {
-            var companions = EarlyGameContent.SelectCompanions(st.Number, GameManager.Instance.Save.ActiveCompanions);
+            var companions = EarlyGameContent.SelectCompanionsFor(st.Number, GameManager.Instance.Save);
             if (companions.Count == 0) return "";
             var names = new List<string>();
             foreach (var c in companions) names.Add(c.Name);
@@ -628,7 +636,7 @@ namespace BiRyeoDo.Game.UI
             SetBadge(_promoBadge, 0);
             SetBadge(_partyBadge, 0);
             var current = new List<string>();
-            foreach (var c in EarlyGameContent.SelectCompanions(Math.Max(1, save.HighestUnlockedStage), save.ActiveCompanions)) current.Add(c.Name + "(인연 " + Bonds.LevelNames[Bonds.Level(save, c.Id)] + ")");
+            foreach (var c in EarlyGameContent.SelectCompanionsFor(Math.Max(1, save.HighestUnlockedStage), save)) current.Add(c.Name + "(인연 " + Bonds.LevelNames[Bonds.Level(save, c.Id)] + ")");
             _partyRowDetail.text = current.Count == 0 ? "아직 함께할 동료가 없다" : "출전 동료: " + string.Join(", ", current)
                 + (AvailableCompanions(save).Count > EarlyGameContent.MaxCompanions ? "\n(동료 " + AvailableCompanions(save).Count + "명 중 " + EarlyGameContent.MaxCompanions + "명만 출전)" : "");
 

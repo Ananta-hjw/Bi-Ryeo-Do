@@ -136,5 +136,24 @@ namespace BiRyeoDo.Tests
                 Assert.GreaterOrEqual(wins, 20, st.Name + " is too hard: " + wins + "/40");
             }
         }
+
+        [Test]
+        public void BenchedCompanionsAreNotAutoFilled()
+        {
+            var save = new SaveData();
+            // Everyone who has joined by stage 8 fits in the party (3 slots), so without a bench list nobody can be left out.
+            Assert.AreEqual(3, EarlyGameContent.SelectCompanionsFor(8, save).Count);
+            save.BenchedCompanions.Add("jang_hong");
+            var picked = EarlyGameContent.SelectCompanionsFor(8, save);
+            Assert.AreEqual(2, picked.Count);
+            Assert.IsFalse(picked.Any(c => c.Id == "jang_hong"));
+            // Benching everyone leaves the protagonist alone.
+            save.BenchedCompanions.AddRange(new[] { "hyo_ryong", "yun_junho" });
+            Assert.AreEqual(0, EarlyGameContent.SelectCompanionsFor(8, save).Count);
+            // A newly joined companion is not benched, so he fills a free slot.
+            save.BenchedCompanions.Clear();
+            save.BenchedCompanions.Add("hyo_ryong");
+            Assert.IsTrue(EarlyGameContent.SelectCompanionsFor(22, save).Any(c => c.Id == "im_seongjin"));
+        }
     }
 }

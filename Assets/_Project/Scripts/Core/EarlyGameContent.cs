@@ -1509,8 +1509,8 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
         /// <summary>Most companions that can fight at once (the protagonist plus these fills the party of four).</summary>
         public const int MaxCompanions = 3;
 
-        /// <summary>The companions who actually fight in a stage: the player's picks that have joined, then the rest in join order, up to <see cref="MaxCompanions"/>.</summary>
-        public static List<CompanionData> SelectCompanions(int stageNumber, IList<string> preferred)
+        /// <summary>The companions who actually fight in a stage: the player's picks that have joined, then the rest in join order, up to <see cref="MaxCompanions"/>. Benched ids are never auto-filled.</summary>
+        public static List<CompanionData> SelectCompanions(int stageNumber, IList<string> preferred, IList<string> benched = null)
         {
             var available = CompanionsFor(stageNumber);
             var result = new List<CompanionData>();
@@ -1521,8 +1521,14 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
                     if (c != null && !result.Contains(c) && result.Count < MaxCompanions) result.Add(c);
                 }
             foreach (var c in available)
-                if (!result.Contains(c) && result.Count < MaxCompanions) result.Add(c);
+                if (!result.Contains(c) && result.Count < MaxCompanions && (benched == null || !benched.Contains(c.Id))) result.Add(c);
             return result;
+        }
+
+        /// <summary>Companions for a stage using the player's saved picks and benched list.</summary>
+        public static List<CompanionData> SelectCompanionsFor(int stageNumber, SaveData save)
+        {
+            return SelectCompanions(stageNumber, save.ActiveCompanions, save.BenchedCompanions);
         }
 
         public static StageData FindStage(int number)

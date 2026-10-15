@@ -616,7 +616,7 @@ namespace BiRyeoDo.Game.UI
             }
             var stats = Inventory.ApplyGear(Progression.StatsFor(save.Level), save.EquippedGear);
             var party = new List<Combatant> { new Combatant("player", "비류연", Team.Player, stats, skills) };
-            foreach (var c in EarlyGameContent.SelectCompanions(stage.Number, save.ActiveCompanions)) party.Add(c.CreateCombatant(save.Level));
+            foreach (var c in EarlyGameContent.SelectCompanionsFor(stage.Number, save)) party.Add(c.CreateCombatant(save.Level));
             return party;
         }
 
