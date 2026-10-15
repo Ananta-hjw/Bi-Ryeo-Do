@@ -22,7 +22,7 @@ namespace BiRyeoDo.Core
         public static List<StatLine> Hero(SaveData save)
         {
             var b = Progression.HeroStatsFor(save.Level);
-            var f = Inventory.ApplyGear(b, save.EquippedGear, save.GearLevels);
+            var f = InnerArts.Apply(Inventory.ApplyGear(b, save.EquippedGear, save.GearLevels), save.EquippedInner);
             var list = new List<StatLine>
             {
                 Line("체력", b.MaxHp, f.MaxHp),
@@ -89,6 +89,14 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>Equipped martial arts with their mastery, e.g. "분뢰수  ★★☆☆ 소성 (강)".</summary>
+        /// <summary>"심법: 강건심법, 맹호심법" or "" when none is equipped.</summary>
+        public static string InnerLine(SaveData save)
+        {
+            var names = new List<string>();
+            foreach (var id in save.EquippedInner) { var a = InnerArts.Find(id); if (a != null) names.Add(a.Name); }
+            return names.Count == 0 ? "" : "심법: " + string.Join(", ", names);
+        }
+
         public static List<string> ArtLines(SaveData save)
         {
             var list = new List<string>();

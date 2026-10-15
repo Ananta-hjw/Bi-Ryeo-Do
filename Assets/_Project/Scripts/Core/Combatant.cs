@@ -21,6 +21,9 @@ namespace BiRyeoDo.Core
 
         // Interactive-battle state
         public int Spirit;                 // 기세 0..100, builds by fighting; 비기 spend it
+        // 심법 perks (protagonist only, see InnerArts)
+        public int QiRegenBonus, SpiritDealtBonus, SpiritTakenBonus, StartSpirit;
+        public float Lifesteal;            // share of dealt damage healed
         public bool Guarding;              // damage taken is reduced until this unit's next turn
         public bool Evading;               // all hits miss until this unit's next turn
         public bool Charging;              // enemy is winding up its next move (telegraph)

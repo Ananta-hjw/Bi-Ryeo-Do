@@ -125,6 +125,7 @@ namespace BiRyeoDo.Core
         /// <summary>Runs enemy turns until a party member may act. Call once at the start of the fight.</summary>
         public List<BattleEvent> Begin()
         {
+            foreach (var m in _party) if (m.Spirit < m.StartSpirit) m.Spirit = m.StartSpirit;
             return RunUntilParty();
         }
 
@@ -260,7 +261,7 @@ namespace BiRyeoDo.Core
                     DealHit(actor, t, skill, h, hits, skill.Effect == SkillEffect.Stun && h == hits - 1, events);
                 }
             }
-            if (skill.SpiritCost == 0) actor.Spirit = Math.Min(MaxSpirit, actor.Spirit + SpiritOnDealt);
+            if (skill.SpiritCost == 0) actor.Spirit = Math.Min(MaxSpirit, actor.Spirit + SpiritOnDealt + actor.SpiritDealtBonus);
         }
 
         private BattleEvent DealHit(Combatant actor, Combatant t, SkillSpec skill, int h, int hits, bool stun, List<BattleEvent> events)
@@ -269,6 +270,7 @@ namespace BiRyeoDo.Core
             int dmg = BattleEngine.CalcDamage(actor.Stats, t.Stats, skill, crit);
             if (_harmonyBoost) dmg = (int)Math.Round(dmg * HarmonyDamageFactor);
             t.Hp = Math.Max(0, t.Hp - dmg);
+            if (actor.Lifesteal > 0f && actor.IsAlive) actor.Hp = Math.Min(actor.Stats.MaxHp, actor.Hp + (int)Math.Round(dmg * actor.Lifesteal));
             var ev = new BattleEvent
             {
                 Turn = Turn, ActorId = actor.Id, TargetId = t.Id, SkillId = skill.Id, Kind = EventKind.Attack,
@@ -362,7 +364,7 @@ namespace BiRyeoDo.Core
                 if (actor.Team == Team.Player)
                 {
                     actor.TickCooldowns();
-                    actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + QiRegenPerTurn);
+                    actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + QiRegenPerTurn + actor.QiRegenBonus);
                     Current = actor;
                     return events;
                 }
@@ -442,7 +444,7 @@ namespace BiRyeoDo.Core
                 }
                 events.Add(ev);
             }
-            if (hurt) target.Spirit = Math.Min(MaxSpirit, target.Spirit + SpiritOnTaken);
+            if (hurt) target.Spirit = Math.Min(MaxSpirit, target.Spirit + SpiritOnTaken + target.SpiritTakenBonus);
         }
 
         private Combatant NextActor()

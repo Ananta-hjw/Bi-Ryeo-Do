@@ -14,7 +14,7 @@ namespace BiRyeoDo.Game.UI
         private readonly Action _onChange;
         private int _tab;                       // 0 enemies, 1 items, 2 arts
         private static readonly string[] TabNames = { "적", "물품", "무공" };
-        private const float RowH = 120f, RowGap = 10f;
+        internal const float RowH = 120f, RowGap = 10f;
 
         public CodexPanel(RectTransform codexRoot, RectTransform achRoot, Action onChange)
         {
@@ -28,14 +28,14 @@ namespace BiRyeoDo.Game.UI
             }
         }
 
-        private static void Clear(RectTransform rt)
+        internal static void Clear(RectTransform rt)
         {
             for (int i = rt.childCount - 1; i >= 0; i--) UnityEngine.Object.Destroy(rt.GetChild(i).gameObject);
             UiFactory.Frame(rt, UiFactory.GoldDim, 3f);
         }
 
         /// <summary>A scrolling area between the given anchors; returns its content rectangle (height set later).</summary>
-        private static RectTransform Scroller(RectTransform parent, float yMin, float yMax)
+        internal static RectTransform Scroller(RectTransform parent, float yMin, float yMax)
         {
             var viewport = UiFactory.Rect("Viewport", parent, new Vector2(0f, yMin), new Vector2(1f, yMax));
             viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
@@ -51,7 +51,7 @@ namespace BiRyeoDo.Game.UI
             return content;
         }
 
-        private static RectTransform Band(RectTransform content, int index)
+        internal static RectTransform Band(RectTransform content, int index)
         {
             var rt = UiFactory.Rect("Row" + index, content, new Vector2(0.04f, 1f), new Vector2(0.96f, 1f));
             rt.pivot = new Vector2(0.5f, 1f);

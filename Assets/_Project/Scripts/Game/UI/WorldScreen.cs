@@ -20,6 +20,8 @@ namespace BiRyeoDo.Game.UI
 
         private readonly List<Row> _rows = new List<Row>();
         private CodexPanel _codex;
+        private InnerArtPanel _inner;
+        private Text _innerRowDetail;
         private Text _codexRowDetail, _achRowDetail, _achBadge, _towerRowDetail, _statusRowDetail, _lvText, _dooText, _rankText, _promoRowDetail, _partyRowDetail, _questRowDetail, _fortuneRowDetail;
         private Text _promoBadge, _partyBadge, _questBadge, _fortuneBadge, _featTitle, _featSub, _featBtnLabel;
         private UiFactory.Bar _expBar;
@@ -115,6 +117,10 @@ namespace BiRyeoDo.Game.UI
             codexBadge.transform.parent.gameObject.SetActive(false);
             _achRowDetail = Tile(content, 0.51f, 0.96f, y, tileH, "업적", () => _codex.OpenAchievements(), out _achBadge);
             y += tileH + gap;
+            Text innerBadge;
+            _innerRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "심법", () => _inner.Open(), out innerBadge);
+            innerBadge.transform.parent.gameObject.SetActive(false);
+            y += 150f + gap;
             Text towerBadge;
             _towerRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "무한 비무대", OpenTowerOverlay, out towerBadge);
             towerBadge.transform.parent.gameObject.SetActive(false);
@@ -177,6 +183,7 @@ namespace BiRyeoDo.Game.UI
             var codexRoot = UiFactory.Rect("CodexOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
             var achRoot = UiFactory.Rect("AchievementOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
             _codex = new CodexPanel(codexRoot, achRoot, Refresh);
+            _inner = new InnerArtPanel(UiFactory.Rect("InnerArtOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
             Refresh();
         }
 
@@ -409,6 +416,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("ArtsTitle", _statusOverlay, new Vector2(0.05f, gy - 0.036f), new Vector2(0.95f, gy), "장착 무공", 32, UiFactory.Gold, TextAnchor.MiddleLeft);
             gy -= 0.036f;
             var artLines = StatusSheet.ArtLines(save);
+            if (StatusSheet.InnerLine(save).Length > 0) artLines.Add(StatusSheet.InnerLine(save));
             UiFactory.Label("Arts", _statusOverlay, new Vector2(0.06f, gy - 0.07f), new Vector2(0.94f, gy), artLines.Count == 0 ? "장착한 무공이 없다" : string.Join("\n", artLines), 22, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal);
             gy -= 0.075f;
 
@@ -806,6 +814,9 @@ namespace BiRyeoDo.Game.UI
             int openQuests = Quests.Open(save).Count, openFortunes = Fortunes.Open(save).Count;
             _questRowDetail.text = openQuests > 0 ? "받을 수 있는 의뢰 " + openQuests + "건" : "새 의뢰 없음 (스테이지를 돌파하면 늘어난다)";
             Codex.Sync(save);
+            var innerNames = new List<string>();
+            foreach (var iid in save.EquippedInner) { var ia = InnerArts.Find(iid); if (ia != null) innerNames.Add(ia.Name); }
+            _innerRowDetail.text = "패시브 빌드 · " + (innerNames.Count > 0 ? string.Join(", ", innerNames) : "장착한 심법 없음") + " (" + save.EquippedInner.Count + "/" + InnerArts.SlotCount(save) + ")";
             _codexRowDetail.text = "적 " + save.SeenEnemies.Count + "/" + Codex.EnemyTotal + " · 물품 " + save.SeenItems.Count + "/" + Codex.ItemTotal;
             _achRowDetail.text = "달성 " + Achievements.ClaimedCount(save) + "/" + Achievements.All.Length;
             SetBadge(_achBadge, Achievements.ClaimableCount(save));

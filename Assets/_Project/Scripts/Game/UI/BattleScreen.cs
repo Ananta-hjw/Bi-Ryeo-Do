@@ -626,8 +626,10 @@ namespace BiRyeoDo.Game.UI
                 var art = EarlyGameContent.FindArt(id);
                 if (art != null && art.OwnerId == null && skills.Count < Progression.MaxEquippedArts) skills.Add(Mastery.Apply(save, art));
             }
-            var stats = Inventory.ApplyGear(Progression.HeroStatsFor(save.Level), save.EquippedGear, save.GearLevels);
-            var party = new List<Combatant> { new Combatant("player", "비류연", Team.Player, stats, skills) };
+            var stats = InnerArts.HeroStats(save);
+            var hero = new Combatant("player", "비류연", Team.Player, stats, skills);
+            InnerArts.ApplyPerks(hero, save.EquippedInner);
+            var party = new List<Combatant> { hero };
             foreach (var c in EarlyGameContent.SelectCompanionsFor(stage.Number, save)) party.Add(c.CreateCombatant(save.Level));
             return party;
         }
