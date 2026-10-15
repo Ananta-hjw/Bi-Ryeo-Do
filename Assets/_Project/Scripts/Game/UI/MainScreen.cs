@@ -93,6 +93,7 @@ namespace BiRyeoDo.Game.UI
             bar.offsetMin = Vector2.zero;
             bar.offsetMax = new Vector2(0f, TabBarHeight);
             UiFactory.Panel("TabBarBg", bar, Vector2.zero, Vector2.one, UiFactory.Ink);
+            UiFactory.Panel("TabBarTopLine", bar, new Vector2(0f, 0.98f), Vector2.one, UiFactory.GoldDim);
 
             _tabButtons = new Image[TabNames.Length];
             float w = 1f / TabNames.Length;
@@ -109,7 +110,7 @@ namespace BiRyeoDo.Game.UI
         {
             _router.Show(index);
             for (int i = 0; i < _tabButtons.Length; i++)
-                _tabButtons[i].color = i == index ? new Color(0.78f, 0.16f, 0.12f, 0.9f) : new Color(0f, 0f, 0f, 0f);
+                _tabButtons[i].color = i == index ? new Color(0.56f, 0.44f, 0.22f, 1f) : new Color(0f, 0f, 0f, 0f);
         }
 
         private static void EnsureEventSystem()

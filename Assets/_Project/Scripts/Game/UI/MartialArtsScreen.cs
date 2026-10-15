@@ -27,9 +27,9 @@ namespace BiRyeoDo.Game.UI
             if (_built) return;
             _built = true;
 
-            UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink);
+            UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
             _header = UiFactory.Label("Header", root, new Vector2(0.06f, 0.925f), new Vector2(0.94f, 0.985f), "", 42, UiFactory.Gold);
-            _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "", 28, UiFactory.Ink, TextAnchor.MiddleCenter, FontStyle.Normal);
+            _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
 
             // The list scrolls: the protagonist has far more arts than fit on one screen.
             var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, 0.88f));
@@ -58,6 +58,7 @@ namespace BiRyeoDo.Game.UI
                 var bg = rt.gameObject.AddComponent<Image>();
                 bg.color = UiFactory.Ink;
                 bg.raycastTarget = true;   // lets a drag that starts on a row still scroll
+                UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
                 row.Title = UiFactory.Label("Title", rt, new Vector2(0.03f, 0.50f), new Vector2(0.50f, 0.97f), "", 34, UiFactory.PaperText, TextAnchor.MiddleLeft);
                 row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.03f, 0.03f), new Vector2(0.50f, 0.50f), "", 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
                 row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(0.52f, 0.12f), new Vector2(0.73f, 0.88f), "", UiFactory.Red, () => OnPressed(art), 28);

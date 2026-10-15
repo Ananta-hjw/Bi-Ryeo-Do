@@ -32,9 +32,9 @@ namespace BiRyeoDo.Game.UI
             _onPromote = onPromote;
             _onStart = onStart;
 
-            UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink);
+            UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
             _header = UiFactory.Label("Header", root, new Vector2(0.06f, 0.925f), new Vector2(0.94f, 0.985f), "", 34, UiFactory.Gold, TextAnchor.MiddleLeft);
-            _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "스테이지를 골라 출전하자. 전투는 직접 무공을 골라 싸운다.", 28, UiFactory.Ink, TextAnchor.MiddleCenter, FontStyle.Normal);
+            _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "스테이지를 골라 출전하자. 전투는 직접 무공을 골라 싸운다.", 28, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
 
             // The stage list scrolls: 13 stages plus the 승급 시험장 do not fit on one screen.
             var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, 0.88f));
@@ -121,6 +121,7 @@ namespace BiRyeoDo.Game.UI
             var img = rt.gameObject.AddComponent<Image>();
             img.color = color;
             img.raycastTarget = true;   // lets a drag that starts on a row still scroll
+            UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
             return rt;
         }
 

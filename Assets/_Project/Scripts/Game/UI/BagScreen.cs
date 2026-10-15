@@ -32,10 +32,10 @@ namespace BiRyeoDo.Game.UI
             if (_built) return;
             _built = true;
 
-            UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink);
+            UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
             _header = UiFactory.Label("Header", root, new Vector2(0.06f, 0.925f), new Vector2(0.94f, 0.985f), "", 42, UiFactory.Gold);
-            _gear = UiFactory.Label("Gear", root, new Vector2(0.05f, 0.875f), new Vector2(0.95f, 0.922f), "", 28, UiFactory.Ink, TextAnchor.MiddleCenter);
-            _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.840f), new Vector2(0.95f, 0.875f), "", 24, UiFactory.Ink, TextAnchor.MiddleCenter, FontStyle.Normal);
+            _gear = UiFactory.Label("Gear", root, new Vector2(0.05f, 0.875f), new Vector2(0.95f, 0.922f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter);
+            _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.840f), new Vector2(0.95f, 0.875f), "", 24, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
 
             // The bag scrolls: it can hold more stacks than fit on one screen.
             var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, 0.835f));
@@ -61,6 +61,7 @@ namespace BiRyeoDo.Game.UI
                 var bg = rt.gameObject.AddComponent<Image>();
                 bg.color = UiFactory.Ink;
                 bg.raycastTarget = true;   // lets a drag that starts on a row still scroll
+                UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
                 row.Title = UiFactory.Label("Title", rt, new Vector2(0.03f, 0.50f), new Vector2(0.66f, 0.98f), "", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
                 row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.03f, 0.02f), new Vector2(0.66f, 0.50f), "", 20, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
                 int index = i;
