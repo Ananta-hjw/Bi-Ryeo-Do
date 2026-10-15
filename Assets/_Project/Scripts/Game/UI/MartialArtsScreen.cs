@@ -13,9 +13,9 @@ namespace BiRyeoDo.Game.UI
         private sealed class Row
         {
             public ArtData Art;
-            public Text Title, Detail, ButtonLabel;
-            public Button Button;
-            public Image ButtonImage;
+            public Text Title, Detail, ButtonLabel, MasteryLabel;
+            public Button Button, MasteryButton;
+            public Image ButtonImage, MasteryImage;
         }
 
         private readonly List<Row> _rows = new List<Row>();
@@ -39,11 +39,14 @@ namespace BiRyeoDo.Game.UI
                 var art = arts[i];
                 var row = new Row { Art = art };
                 UiFactory.Panel("Row" + i, root, new Vector2(0.04f, y0), new Vector2(0.96f, y1), UiFactory.Ink);
-                row.Title = UiFactory.Label("Title", root, new Vector2(0.06f, y0 + rowH * 0.52f), new Vector2(0.64f, y1 - 0.003f), "", 36, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                row.Detail = UiFactory.Label("Detail", root, new Vector2(0.06f, y0 + 0.003f), new Vector2(0.64f, y0 + rowH * 0.52f), "", 24, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-                row.Button = UiFactory.Button("Btn" + i, root, new Vector2(0.66f, y0 + 0.010f), new Vector2(0.94f, y1 - 0.010f), "", UiFactory.Red, () => OnPressed(art), 30);
+                row.Title = UiFactory.Label("Title", root, new Vector2(0.06f, y0 + rowH * 0.52f), new Vector2(0.50f, y1 - 0.003f), "", 34, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                row.Detail = UiFactory.Label("Detail", root, new Vector2(0.06f, y0 + 0.003f), new Vector2(0.50f, y0 + rowH * 0.52f), "", 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                row.Button = UiFactory.Button("Btn" + i, root, new Vector2(0.52f, y0 + 0.010f), new Vector2(0.72f, y1 - 0.010f), "", UiFactory.Red, () => OnPressed(art), 28);
                 row.ButtonImage = row.Button.GetComponent<Image>();
                 row.ButtonLabel = row.Button.GetComponentInChildren<Text>();
+                row.MasteryButton = UiFactory.Button("Mastery" + i, root, new Vector2(0.74f, y0 + 0.010f), new Vector2(0.94f, y1 - 0.010f), "", UiFactory.InkSoft, () => OnMastery(art), 24);
+                row.MasteryImage = row.MasteryButton.GetComponent<Image>();
+                row.MasteryLabel = row.MasteryButton.GetComponentInChildren<Text>();
                 _rows.Add(row);
             }
             Refresh();
@@ -80,6 +83,27 @@ namespace BiRyeoDo.Game.UI
             Refresh();
         }
 
+        private void OnMastery(ArtData art)
+        {
+            var save = GameManager.Instance.Save;
+            if (!save.LearnedArts.Contains(art.Id)) return;
+            if (Mastery.Level(save, art.Id) < Mastery.VariantLevel)
+            {
+                _hint.text = art.Name + ": " + Mastery.LevelNames[Mastery.VariantLevel] + "(" + Mastery.Thresholds[Mastery.VariantLevel] + "회 사용)에 변초가 열린다.";
+            }
+            else if (Mastery.AvailableVariants(art).Count == 0)
+            {
+                _hint.text = art.Name + "은(는) 변초가 없는 무공이다.";
+            }
+            else
+            {
+                var v = Mastery.CycleVariant(save, art);
+                _hint.text = art.Name + " — " + Mastery.VariantHint(v);
+                GameManager.Instance.SaveNow();
+            }
+            Refresh();
+        }
+
         private static string Describe(ArtData a)
         {
             string cost = a.SpiritCost > 0 ? "기세 " + a.SpiritCost : a.QiCost > 0 ? "내공 " + a.QiCost : "내공 0";
@@ -101,7 +125,13 @@ namespace BiRyeoDo.Game.UI
                 bool equipped = save.EquippedArts.Contains(a.Id);
                 bool unlocked = save.HighestUnlockedStage >= a.UnlockStage;
 
-                r.Title.text = a.Name + (equipped ? "  [장착]" : "");
+                int mLevel = Mastery.Level(save, a.Id);
+                var variant = Mastery.VariantOf(save, a.Id);
+                r.Title.text = a.Name + (variant != ArtVariant.None ? "(" + Mastery.VariantName(variant) + ")" : "") + (equipped ? "  [장착]" : "");
+                bool canVariant = Mastery.AvailableVariants(a).Count > 0;
+                r.MasteryButton.gameObject.SetActive(learned);
+                r.MasteryLabel.text = Mastery.LevelNames[mLevel] + (mLevel >= Mastery.VariantLevel && canVariant ? "\n변초 바꾸기" : "\n" + Mastery.Uses(save, a.Id) + "회");
+                r.MasteryImage.color = mLevel >= Mastery.VariantLevel && canVariant ? UiFactory.Gold : UiFactory.InkSoft;
                 r.Detail.text = learned || unlocked ? Describe(a) : "스테이지 " + a.UnlockStage + "에 도달하면 열린다";
 
                 if (learned)

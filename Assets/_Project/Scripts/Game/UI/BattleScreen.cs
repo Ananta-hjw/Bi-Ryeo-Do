@@ -378,13 +378,21 @@ namespace BiRyeoDo.Game.UI
                 if (_fled) yield break;
 
                 SetCommandsInteractable(false);
+                var actor = _battle.Current;
                 var events = _battle.PlayerAct(_command);
+                if (_command.Kind == CommandKind.Skill && actor != null && actor.Id == "player" && _command.Skill != null && _command.Skill.Id != "basic")
+                {
+                    int rose = Mastery.RecordUse(GameManager.Instance.Save, _command.Skill.Id);
+                    GameManager.Instance.SaveNow();
+                    if (rose >= 0) _masteryNotice = _command.Skill.Name + " 숙련 " + Mastery.LevelNames[rose] + "!" + (rose == Mastery.VariantLevel ? "  변초 해금 (무공 탭)" : "");
+                }
                 if (_command.Kind == CommandKind.Item)
                 {
                     Inventory.Remove(GameManager.Instance.Save, _command.Item.Id, 1);
                     GameManager.Instance.SaveNow();
                 }
                 yield return PlayEvents(events);
+                if (_masteryNotice != null) { string note = _masteryNotice; _masteryNotice = null; yield return Banner(note, 1.2f); }
                 actions++;
                 if (turnLimit > 0 && actions >= turnLimit && !_battle.IsOver) { _drawn = true; break; }
             }
@@ -413,7 +421,7 @@ namespace BiRyeoDo.Game.UI
             foreach (var id in save.EquippedArts)
             {
                 var art = EarlyGameContent.FindArt(id);
-                if (art != null && art.OwnerId == null && skills.Count < Progression.MaxEquippedArts) skills.Add(art.ToSpec());
+                if (art != null && art.OwnerId == null && skills.Count < Progression.MaxEquippedArts) skills.Add(Mastery.Apply(save, art));
             }
             var stats = Inventory.ApplyGear(Progression.StatsFor(save.Level), save.EquippedGear);
             var party = new List<Combatant> { new Combatant("player", "비류연", Team.Player, stats, skills) };
@@ -751,7 +759,7 @@ namespace BiRyeoDo.Game.UI
             return c != null ? c.Unit.Name : "";
         }
 
-        private string _cutInKey = "";
+        private string _cutInKey = "", _masteryNotice;
 
         private IEnumerator PlayEvents(List<BattleEvent> events)
         {
