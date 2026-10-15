@@ -17,13 +17,18 @@ namespace BiRyeoDo.Core
     /// </summary>
     public static class Gacha
     {
-        public const int TenPullCount = 10;
-        public const double TenPullDiscount = 0.9;
+        public const int TenPullCount = 10, FiftyPullCount = 50;
 
-        /// <summary>Price of one pull: grows with progress so it stays a meaningful sink next to stage income.</summary>
-        public static long PullCost(SaveData save) { return 200 + 150L * save.ClearedStage; }
+        /// <summary>Fixed prices (they do not grow with progress): 1 pull 500, 10 pulls 4,500, 50 pulls 20,000 두.</summary>
+        public const long SingleCost = 500, TenCost = 4500, FiftyCost = 20000;
 
-        public static long TenPullCost(SaveData save) { return (long)Math.Round(PullCost(save) * TenPullCount * TenPullDiscount); }
+        /// <summary>Price of a pull of the given size; other sizes cost 500 each.</summary>
+        public static long CostFor(int count)
+        {
+            if (count == FiftyPullCount) return FiftyCost;
+            if (count == TenPullCount) return TenCost;
+            return SingleCost * count;
+        }
 
         private static List<ItemData>[] _pools;
 
@@ -57,16 +62,13 @@ namespace BiRyeoDo.Core
             return pool[Math.Min(index, pool.Count - 1)];
         }
 
-        public static bool CanAfford(SaveData save, int count)
-        {
-            return save.Doo >= (count == TenPullCount ? TenPullCost(save) : PullCost(save) * count);
-        }
+        public static bool CanAfford(SaveData save, int count) { return save.Doo >= CostFor(count); }
 
         /// <summary>Pays and pulls <paramref name="count"/> times; returns null (and charges nothing) when 두 is short.</summary>
         public static List<PullResult> Pull(SaveData save, int count, IRandom rng)
         {
             if (count <= 0 || !CanAfford(save, count)) return null;
-            save.Doo -= count == TenPullCount ? TenPullCost(save) : PullCost(save) * count;
+            save.Doo -= CostFor(count);
             var results = new List<PullResult>();
             for (int i = 0; i < count; i++)
             {

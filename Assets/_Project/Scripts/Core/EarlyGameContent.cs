@@ -1484,9 +1484,12 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
             return (long)Math.Ceiling((double)total * RewardWeight(enemyId) / TotalWeight(st));
         }
 
+        /// <summary>Stage 두 payouts are raised by this factor on top of <see cref="StageData.DooTotal"/> (clears, replays and quests alike).</summary>
+        public const double StageDooFactor = 1.2;
+
         public static long DooReward(StageData st, string enemyId)
         {
-            return (long)Math.Round((double)st.DooTotal * RewardWeight(enemyId) / TotalWeight(st));
+            return (long)Math.Round((double)st.DooTotal * StageDooFactor * RewardWeight(enemyId) / TotalWeight(st));
         }
 
         public static EnemyData FindEnemy(string id)

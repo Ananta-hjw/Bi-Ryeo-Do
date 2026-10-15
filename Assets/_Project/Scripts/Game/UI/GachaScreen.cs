@@ -18,9 +18,11 @@ namespace BiRyeoDo.Game.UI
             public Text Name, Effect, Tag;
         }
 
-        private Text _header, _hint, _oneLabel, _tenLabel;
-        private Button _oneButton, _tenButton;
-        private Image _oneImage, _tenImage;
+        private Text _header, _hint;
+        private readonly int[] _sizes = { 1, Gacha.TenPullCount, Gacha.FiftyPullCount };
+        private readonly Button[] _buttons = new Button[3];
+        private readonly Image[] _buttonImages = new Image[3];
+        private readonly Text[] _buttonLabels = new Text[3];
         private Text _emptyNote;
         private readonly List<Card> _cards = new List<Card>();
         private bool _built, _busy;
@@ -68,13 +70,16 @@ namespace BiRyeoDo.Game.UI
                 _cards.Add(c);
             }
 
-            // Buttons
-            _oneButton = UiFactory.Button("One", root, new Vector2(0.04f, 0.04f), new Vector2(0.48f, 0.19f), "", UiFactory.Red, () => StartPull(1), 32);
-            _oneImage = _oneButton.GetComponent<Image>();
-            _oneLabel = _oneButton.GetComponentInChildren<Text>();
-            _tenButton = UiFactory.Button("Ten", root, new Vector2(0.52f, 0.04f), new Vector2(0.96f, 0.19f), "", UiFactory.Red, () => StartPull(Gacha.TenPullCount), 32);
-            _tenImage = _tenButton.GetComponent<Image>();
-            _tenLabel = _tenButton.GetComponentInChildren<Text>();
+            // Buttons: 1 / 10 / 50 pulls
+            for (int i = 0; i < 3; i++)
+            {
+                int count = _sizes[i];
+                float x0 = 0.04f + i * 0.32f;
+                var btn = UiFactory.Button("Pull" + count, root, new Vector2(x0, 0.04f), new Vector2(x0 + 0.30f, 0.19f), "", UiFactory.Red, () => StartPull(count), 28);
+                _buttons[i] = btn;
+                _buttonImages[i] = btn.GetComponent<Image>();
+                _buttonLabels[i] = btn.GetComponentInChildren<Text>();
+            }
             Refresh();
         }
 
@@ -84,13 +89,14 @@ namespace BiRyeoDo.Game.UI
         {
             var save = GameManager.Instance.Save;
             _header.text = "뽑기 · " + save.Doo.ToString("N0") + "두";
-            _oneLabel.text = "1회 뽑기\n" + Gacha.PullCost(save).ToString("N0") + "두";
-            _tenLabel.text = "10회 뽑기 (10% 할인)\n" + Gacha.TenPullCost(save).ToString("N0") + "두";
-            bool can1 = Gacha.CanAfford(save, 1), can10 = Gacha.CanAfford(save, Gacha.TenPullCount);
-            _oneButton.interactable = can1 && !_busy;
-            _tenButton.interactable = can10 && !_busy;
-            _oneImage.color = can1 ? UiFactory.Red : UiFactory.InkSoft;
-            _tenImage.color = can10 ? UiFactory.Red : UiFactory.InkSoft;
+            for (int i = 0; i < 3; i++)
+            {
+                int n = _sizes[i];
+                bool can = Gacha.CanAfford(save, n);
+                _buttonLabels[i].text = n + "회 뽑기\n" + Gacha.CostFor(n).ToString("N0") + "두";
+                _buttons[i].interactable = can && !_busy;
+                _buttonImages[i].color = can ? UiFactory.Red : UiFactory.InkSoft;
+            }
         }
 
         private void StartPull(int count)
@@ -110,26 +116,35 @@ namespace BiRyeoDo.Game.UI
             _emptyNote.gameObject.SetActive(false);
             foreach (var c in _cards) c.Root.SetActive(false);
             Refresh();
-            ItemGrade best = ItemGrade.Normal;
+
+            // Bulk pulls show the 10 best results; the summary line counts everything.
+            var counts = new int[Grades.Names.Length];
             long refunded = 0;
-            for (int i = 0; i < results.Count; i++)
+            foreach (var r in results) { counts[(int)r.Item.Grade]++; refunded += r.Doo; }
+            var shown = new List<PullResult>(results);
+            shown.Sort((a, b) => ((int)b.Item.Grade).CompareTo((int)a.Item.Grade));
+            if (shown.Count > _cards.Count) shown.RemoveRange(_cards.Count, shown.Count - _cards.Count);
+
+            ItemGrade best = ItemGrade.Normal;
+            for (int i = 0; i < shown.Count; i++)
             {
-                var r = results[i];
+                var r = shown[i];
                 var card = _cards[i];
                 var item = r.Item;
-                var color = UiFactory.GradeColor(item.Grade);
-                card.Frame.color = color;
+                card.Frame.color = UiFactory.GradeColor(item.Grade);
                 card.Name.text = UiFactory.GradedName(item);
                 card.Effect.text = item.IsGear ? StatusSheet.EffectText(item) : item.Description;
                 card.Tag.text = r.Duplicate ? "분해 +" + r.Doo.ToString("N0") : item.IsGear ? "NEW" : "";
                 card.Root.SetActive(true);
                 if (item.Grade > best) best = item.Grade;
-                refunded += r.Doo;
                 SoundManager.Sfx(item.Grade >= ItemGrade.Legendary ? "gacha_mythic" : item.Grade >= ItemGrade.Epic ? "gacha_rare" : "gacha_pull");
                 if (item.Grade >= ItemGrade.Epic) SoundManager.Haptic(item.Grade >= ItemGrade.Legendary ? 150 : 60);
-                yield return new WaitForSeconds(results.Count > 1 ? 0.16f : 0.05f);
+                yield return new WaitForSeconds(shown.Count > 1 ? 0.14f : 0.05f);
             }
-            _hint.text = "최고 등급: " + Grades.NameOf(best) + (refunded > 0 ? "  ·  중복 분해로 두 +" + refunded.ToString("N0") : "") + "  —  장비는 행낭에서 착용한다.";
+
+            var parts = new List<string>();
+            for (int g = counts.Length - 1; g >= 0; g--) if (counts[g] > 0) parts.Add("<color=" + UiFactory.GradeHex((ItemGrade)g) + ">" + Grades.Names[g] + " " + counts[g] + "</color>");
+            _hint.text = string.Join("  ", parts) + (refunded > 0 ? "  ·  분해 두 +" + refunded.ToString("N0") : "") + (results.Count > shown.Count ? "  (높은 등급 " + shown.Count + "개만 표시)" : "");
             _busy = false;
             Refresh();
         }

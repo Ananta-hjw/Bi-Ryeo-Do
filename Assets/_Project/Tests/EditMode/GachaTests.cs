@@ -55,8 +55,8 @@ namespace BiRyeoDo.Tests
         public void PullChargesAndGrantsItems()
         {
             var save = new SaveData { ClearedStage = 4, Doo = 100000 };
-            long cost = Gacha.PullCost(save);
-            Assert.AreEqual(200 + 150 * 4, cost);
+            long cost = Gacha.CostFor(1);
+            Assert.AreEqual(500, cost);
             var r = Gacha.Pull(save, 1, new SeededRandom(1));
             Assert.AreEqual(1, r.Count);
             Assert.AreEqual(100000 - cost + r[0].Doo, save.Doo);
@@ -64,22 +64,36 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void TenPullIsDiscounted()
+        public void PricesAreFixedAndBulkIsCheaper()
         {
-            var save = new SaveData { ClearedStage = 10, Doo = 1000000 };
-            Assert.Less(Gacha.TenPullCost(save), Gacha.PullCost(save) * 10);
-            long before = save.Doo;
-            var r = Gacha.Pull(save, 10, new SeededRandom(3));
-            Assert.AreEqual(10, r.Count);
-            Assert.AreEqual(before - Gacha.TenPullCost(save) + r.Sum(x => x.Doo), save.Doo);
+            Assert.AreEqual(500, Gacha.CostFor(1));
+            Assert.AreEqual(4500, Gacha.CostFor(10));
+            Assert.AreEqual(20000, Gacha.CostFor(50));
+            Assert.Less(Gacha.CostFor(10), Gacha.CostFor(1) * 10);
+            Assert.Less(Gacha.CostFor(50), Gacha.CostFor(10) * 5);
+            // progress does not change the price
+            Assert.AreEqual(Gacha.CostFor(10), Gacha.CostFor(10));
+        }
+
+        [Test]
+        public void BulkPullsChargeTheFixedPriceAndReturnEveryResult()
+        {
+            foreach (int n in new[] { 10, 50 })
+            {
+                var save = new SaveData { ClearedStage = 30, Doo = 1000000 };
+                long before = save.Doo;
+                var r = Gacha.Pull(save, n, new SeededRandom(3));
+                Assert.AreEqual(n, r.Count);
+                Assert.AreEqual(before - Gacha.CostFor(n) + r.Sum(x => x.Doo), save.Doo);
+            }
         }
 
         [Test]
         public void CannotPullWithoutEnoughDoo()
         {
-            var save = new SaveData { ClearedStage = 3, Doo = 10 };
+            var save = new SaveData { ClearedStage = 3, Doo = 499 };
             Assert.IsNull(Gacha.Pull(save, 1, new SeededRandom(1)));
-            Assert.AreEqual(10, save.Doo);
+            Assert.AreEqual(499, save.Doo);
             Assert.AreEqual(0, save.Items.Count);
         }
 
