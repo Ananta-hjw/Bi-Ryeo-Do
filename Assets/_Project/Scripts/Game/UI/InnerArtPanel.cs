@@ -20,6 +20,8 @@ namespace BiRyeoDo.Game.UI
             root.gameObject.SetActive(false);
         }
 
+        public void Hide() { _root.gameObject.SetActive(false); }
+
         public void Open(string toast = null)
         {
             var save = GameManager.Instance.Save;

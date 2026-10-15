@@ -85,6 +85,14 @@ namespace BiRyeoDo.Game.UI
 
         private void OnEnable() { if (_built) Refresh(); }
 
+        // Leaving the tab mid-reveal kills the coroutine before it can clear the flag, which used to leave every pull button disabled.
+        private void OnDisable()
+        {
+            if (!_built) return;
+            StopAllCoroutines();
+            _busy = false;
+        }
+
         private void Refresh()
         {
             var save = GameManager.Instance.Save;

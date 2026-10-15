@@ -66,6 +66,12 @@ namespace BiRyeoDo.Game.UI
 
         // ------------------------------------------------------------------ 도감
 
+        public void HideAll()
+        {
+            _codexRoot.gameObject.SetActive(false);
+            _achRoot.gameObject.SetActive(false);
+        }
+
         public void OpenCodex()
         {
             var save = GameManager.Instance.Save;

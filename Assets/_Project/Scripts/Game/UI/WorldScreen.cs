@@ -554,6 +554,7 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             ClearChildren(_questOverlay);
             _questOverlay.gameObject.SetActive(true);
+            if (!Tutorial.IsDone(save, "board") && HelpPanel.Instance != null) HelpPanel.Instance.Show("board", true);
             UiFactory.Label("Title", _questOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "의뢰 게시판", 44, UiFactory.Gold);
             UiFactory.Label("Rules", _questOverlay, new Vector2(0.05f, 0.85f), new Vector2(0.95f, 0.92f),
                 "이미 지나온 싸움에 조건이 붙어 다시 나온다. 한 번씩만 받을 수 있고, 두와 보상을 얻는다.", 26, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
@@ -764,6 +765,17 @@ namespace BiRyeoDo.Game.UI
 
         private void OnEnable() { if (_built) Refresh(); }
 
+        private void OnDisable() { if (_built) CloseOverlays(); }
+
+        /// <summary>Hides every pop-up panel of the 강호 tab (used when a fight starts or ends and when the tab is left).</summary>
+        public void CloseOverlays()
+        {
+            foreach (var o in new[] { _promoOverlay, _partyOverlay, _questOverlay, _fortuneOverlay, _settingsOverlay, _statusOverlay, _towerOverlay })
+                if (o != null) o.gameObject.SetActive(false);
+            if (_codex != null) _codex.HideAll();
+            if (_inner != null) _inner.Hide();
+        }
+
         private void OnStagePressed(StageData st, Action<StageData> onStart)
         {
             var save = GameManager.Instance.Save;
@@ -822,9 +834,6 @@ namespace BiRyeoDo.Game.UI
             SetBadge(_achBadge, Achievements.ClaimableCount(save));
             _towerRowDetail.text = Tower.Unlocked(save) ? "최고 " + save.TowerBest + "층 · 다음 " + Tower.NextFloor(save) + "층" : "스테이지 " + Tower.UnlockStage + " 돌파 시 열린다";
             _fortuneRowDetail.text = openFortunes > 0 ? "마주칠 기연 " + openFortunes + "건" : "새 기연 없음";
-            if (openQuests + openFortunes > 0 && HelpPanel.Instance != null && !HelpPanel.Instance.IsOpen && !Tutorial.IsDone(save, "board")
-                && Tutorial.IsDone(save, "intro"))
-                HelpPanel.Instance.Show("board", true);
             SetBadge(_questBadge, openQuests);
             SetBadge(_fortuneBadge, openFortunes);
             SetBadge(_promoBadge, 0);

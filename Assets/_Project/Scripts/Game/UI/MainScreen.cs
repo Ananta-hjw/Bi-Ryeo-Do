@@ -70,18 +70,22 @@ namespace BiRyeoDo.Game.UI
 
             _world.Build((RectTransform)panels[(int)TabRouter.Tab.World].transform, stage =>
             {
+                _world.CloseOverlays();
                 overlay.gameObject.SetActive(true);
                 _battle.Open(stage, () =>
                 {
                     overlay.gameObject.SetActive(false);
+                    _world.CloseOverlays();
                     _world.Refresh();
                 });
             }, offer =>
             {
+                _world.CloseOverlays();
                 overlay.gameObject.SetActive(true);
                 _battle.OpenPromotion(offer, () =>
                 {
                     overlay.gameObject.SetActive(false);
+                    _world.CloseOverlays();
                     _world.Refresh();
                 });
             });
