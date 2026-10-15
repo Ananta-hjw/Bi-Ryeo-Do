@@ -392,7 +392,7 @@ namespace BiRyeoDo.Game.UI
 
             // Gear
             float gy = top - 4 * (rowH + 0.004f) - 0.01f;
-            UiFactory.Label("GearTitle", _statusOverlay, new Vector2(0.05f, gy - 0.045f), new Vector2(0.95f, gy), "장비", 32, UiFactory.Gold, TextAnchor.MiddleLeft);
+            UiFactory.Label("GearTitle", _statusOverlay, new Vector2(0.05f, gy - 0.045f), new Vector2(0.95f, gy), GearTitle(save), 30, UiFactory.Gold, TextAnchor.MiddleLeft);
             gy -= 0.047f;
             GearRow("무기", StatusSheet.Weapon(save), gy);
             gy -= 0.054f;
@@ -430,6 +430,17 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Button("Close", _statusOverlay, new Vector2(0.3f, 0.008f), new Vector2(0.7f, 0.056f), "닫기", UiFactory.InkSoft, () => _statusOverlay.gameObject.SetActive(false), 32);
         }
 
+        private static string GearTitle(SaveData save)
+        {
+            var parts = new List<string>();
+            foreach (var set in Gear.Sets)
+            {
+                int n = Gear.WornPieces(set, save.EquippedGear);
+                if (n >= 2) parts.Add(set.Name + " 세트 " + n + "/" + set.Items.Length);
+            }
+            return parts.Count == 0 ? "장비" : "장비   <color=#9ADB9F>" + string.Join(" · ", parts) + "</color>";
+        }
+
         private static void StatRow(RectTransform parent, StatLine line, float x0, float x1, float y0, float y1)
         {
             var band = UiFactory.Panel("Stat", parent, new Vector2(x0, y0), new Vector2(x1, y1), UiFactory.Ink);
@@ -445,9 +456,9 @@ namespace BiRyeoDo.Game.UI
             var band = UiFactory.Panel("Gear", _statusOverlay, new Vector2(0.04f, y1 - 0.05f), new Vector2(0.96f, y1), UiFactory.Ink);
             UiFactory.Frame(band.transform, item != null ? UiFactory.GoldDim : new Color(0.25f, 0.25f, 0.28f, 1f), 2f);
             UiFactory.Label("Slot", band.transform, new Vector2(0.03f, 0f), new Vector2(0.20f, 1f), slot, 22, UiFactory.Dim, TextAnchor.MiddleLeft);
-            UiFactory.Label("Name", band.transform, new Vector2(0.20f, 0.45f), new Vector2(0.97f, 1f), item != null ? UiFactory.GradedName(item) : "비어 있음", 26, item != null ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
+            UiFactory.Label("Name", band.transform, new Vector2(0.20f, 0.45f), new Vector2(0.97f, 1f), item != null ? UiFactory.GradedName(item) + (Gear.Level(GameManager.Instance.Save, item.Id) > 0 ? " +" + Gear.Level(GameManager.Instance.Save, item.Id) : "") : "비어 있음", 26, item != null ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
             if (item != null)
-                UiFactory.Label("Effect", band.transform, new Vector2(0.20f, 0f), new Vector2(0.97f, 0.48f), StatusSheet.EffectText(item), 20, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Effect", band.transform, new Vector2(0.20f, 0f), new Vector2(0.97f, 0.48f), StatusSheet.EffectText(item, Gear.Level(GameManager.Instance.Save, item.Id)), 20, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
         }
 
         // ------------------------------------------------------------------ 설정

@@ -35,6 +35,7 @@ namespace BiRyeoDo.Core
         public List<string> SeenItems = new List<string>();        // 도감: items ever owned or pulled (additive field)
         public List<string> ClaimedAchievements = new List<string>();   // 업적 rewards already taken (additive field)
         public int GachaPulls, BattleWins;                         // counters for achievements (additive fields)
+        public List<GearLevel> GearLevels = new List<GearLevel>();   // 장비 강화 levels (additive field)
         public int SwordRank;           // 검룡위 (1-10), see Promotion; 0 in older saves counts as 1
 
         public List<string> LearnedArts = new List<string>();

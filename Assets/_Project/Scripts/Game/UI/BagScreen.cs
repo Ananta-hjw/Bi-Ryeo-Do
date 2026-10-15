@@ -16,8 +16,8 @@ namespace BiRyeoDo.Game.UI
         private sealed class Row
         {
             public GameObject Band;
-            public Text Title, Detail, ButtonLabel;
-            public Button Button;
+            public Text Title, Detail, ButtonLabel, EnhLabel;
+            public Button Button, EnhButton;
             public Image ButtonImage, Icon;
             public Text IconGlyph;
             public string ItemId;
@@ -25,6 +25,7 @@ namespace BiRyeoDo.Game.UI
 
         private readonly List<Row> _rows = new List<Row>();
         private Text _header, _gear, _hint;
+        private string _flash;
         private RectTransform _content;
         private int _filter;                       // 0 all, 1 gear, 2 consumables, 3 materials & keys
         private readonly Image[] _filterTabs = new Image[4];
@@ -84,12 +85,21 @@ namespace BiRyeoDo.Game.UI
                 row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), "", UiFactory.Red, () => OnPressed(index), 26);
                 row.ButtonImage = row.Button.GetComponent<Image>();
                 row.ButtonLabel = row.Button.GetComponentInChildren<Text>();
+                row.EnhButton = UiFactory.Button("Enh" + i, rt, new Vector2(0.68f, 0.06f), new Vector2(0.97f, 0.46f), "", UiFactory.InkSoft, () => OnEnhance(index), 20);
+                row.EnhLabel = row.EnhButton.GetComponentInChildren<Text>();
                 _rows.Add(row);
             }
             Refresh();
         }
 
-        private void OnEnable() { if (_built) Refresh(); }
+        private void OnEnable()
+        {
+            if (!_built) return;
+            Refresh();
+            var save = GameManager.Instance.Save;
+            if (HelpPanel.Instance != null && !HelpPanel.Instance.IsOpen && Tutorial.IsDone(save, "intro") && !Tutorial.IsDone(save, "gear"))
+                HelpPanel.Instance.Show("gear", true);
+        }
 
         private void OnPressed(int index)
         {
@@ -104,21 +114,39 @@ namespace BiRyeoDo.Game.UI
                 if (Inventory.IsEquipped(save, item.Id))
                 {
                     Inventory.Unequip(save, item.Id);
-                    _hint.text = item.Name + " 해제";
+                    _flash = item.Name + " 해제";
                 }
                 else
                 {
                     string error;
-                    _hint.text = Inventory.Equip(save, item.Id, out error) ? item.Name + " 장착" : error;
+                    _flash = Inventory.Equip(save, item.Id, out error) ? item.Name + " 장착" : error;
                 }
             }
             else if (item.Kind == ItemKind.Material)
             {
                 int count = Inventory.Count(save, item.Id);
                 long gold = Inventory.Sell(save, item.Id, count);
-                _hint.text = item.Name + " " + count + "개를 팔아 " + gold.ToString("N0") + "두를 얻었다.";
+                _flash = item.Name + " " + count + "개를 팔아 " + gold.ToString("N0") + "두를 얻었다.";
             }
             GameManager.Instance.SaveNow();
+            Refresh();
+        }
+
+        private void OnEnhance(int index)
+        {
+            var row = _rows[index];
+            if (string.IsNullOrEmpty(row.ItemId)) return;
+            var save = GameManager.Instance.Save;
+            var item = EarlyGameContent.FindItem(row.ItemId);
+            if (item == null || !item.IsGear) return;
+            string error;
+            if (Gear.Enhance(save, item.Id, out error))
+            {
+                _flash = item.Name + " +" + Gear.Level(save, item.Id) + " 강화 성공!";
+                SoundManager.Sfx("levelup");
+                GameManager.Instance.SaveNow();
+            }
+            else _flash = error;
             Refresh();
         }
 
@@ -179,7 +207,9 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             _header.text = "행낭 · " + save.Doo.ToString("N0") + "두";
             _gear.text = GearLine(save);
-            if (string.IsNullOrEmpty(_hint.text)) _hint.text = "장비는 비류연만 착용한다. 소모품은 전투 중 '아이템'으로 쓴다.";
+            var setLines = Gear.SetLines(save.EquippedGear);
+            _hint.text = !string.IsNullOrEmpty(_flash) ? _flash : setLines.Count > 0 ? string.Join("  |  ", setLines) : "장비는 비류연만 착용한다. 같은 세트를 맞추면 효과가 붙는다.";
+            _flash = null;
 
             var stacks = save.Items
                 .Where(s => EarlyGameContent.FindItem(s.Id) != null)
@@ -204,11 +234,21 @@ namespace BiRyeoDo.Game.UI
                 bool equipped = Inventory.IsEquipped(save, item.Id);
                 row.Icon.color = KindColor(item);
                 row.IconGlyph.text = item.Name.Substring(0, 1);
-                row.Title.text = UiFactory.GradedName(item) + (stack.Count > 1 ? " x" + stack.Count : "") + (equipped ? "  [착용]" : "");
-                row.Detail.text = item.IsGear ? StatusSheet.EffectText(item) + "  —  " + item.Description : item.Description;
+                int enh = item.IsGear ? Gear.Level(save, item.Id) : 0;
+                var set = item.IsGear ? Gear.SetOf(item.Id) : null;
+                row.Title.text = UiFactory.GradedName(item) + (enh > 0 ? " +" + enh : "") + (stack.Count > 1 ? " x" + stack.Count : "") + (equipped ? "  [착용]" : "");
+                row.Detail.text = item.IsGear ? StatusSheet.EffectText(item, enh) + (set != null ? "  ·  [" + set.Name + " 세트]" : "") + "  —  " + item.Description : item.Description;
+                row.EnhButton.gameObject.SetActive(item.IsGear);
+                var main = row.Button.GetComponent<RectTransform>();
+                main.anchorMin = item.IsGear ? new Vector2(0.68f, 0.52f) : new Vector2(0.68f, 0.12f);
+                main.anchorMax = item.IsGear ? new Vector2(0.97f, 0.94f) : new Vector2(0.97f, 0.88f);
 
                 if (item.IsGear)
                 {
+                    long cost = Gear.NextCost(save, item.Id);
+                    row.EnhLabel.text = cost < 0 ? "최대 강화" : "강화 +" + (enh + 1) + "  " + cost.ToString("N0") + "두";
+                    row.EnhButton.interactable = cost >= 0;
+                    row.EnhButton.GetComponent<Image>().color = cost >= 0 && save.Doo >= cost ? UiFactory.Red : UiFactory.InkSoft;
                     row.ButtonLabel.text = equipped ? "해제" : "장착";
                     row.ButtonImage.color = equipped ? UiFactory.InkSoft : UiFactory.Red;
                     row.Button.interactable = true;

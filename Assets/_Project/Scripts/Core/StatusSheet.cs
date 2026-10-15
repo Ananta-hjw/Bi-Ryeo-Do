@@ -22,7 +22,7 @@ namespace BiRyeoDo.Core
         public static List<StatLine> Hero(SaveData save)
         {
             var b = Progression.HeroStatsFor(save.Level);
-            var f = Inventory.ApplyGear(b, save.EquippedGear);
+            var f = Inventory.ApplyGear(b, save.EquippedGear, save.GearLevels);
             var list = new List<StatLine>
             {
                 Line("체력", b.MaxHp, f.MaxHp),
@@ -51,19 +51,20 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>"공격 +10%  방어 +10%  속도 -6" for a piece of gear.</summary>
-        public static string EffectText(ItemData item)
+        public static string EffectText(ItemData item, int enhance = 0)
         {
+            float m = Gear.Multiplier(enhance);
             var parts = new List<string>();
-            if (item.HpPct != 0f) parts.Add("체력 " + Pct(item.HpPct));
-            if (item.QiPct != 0f) parts.Add("내공 " + Pct(item.QiPct));
-            if (item.AtkPct != 0f) parts.Add("공격 " + Pct(item.AtkPct));
-            if (item.DefPct != 0f) parts.Add("방어 " + Pct(item.DefPct));
-            if (item.SpeedAdd != 0) parts.Add("속도 " + (item.SpeedAdd > 0 ? "+" : "") + item.SpeedAdd);
-            if (item.CritAdd != 0f) parts.Add("치명타 " + Pct(item.CritAdd));
+            if (item.HpPct != 0f) parts.Add("체력 " + Pct(item.HpPct * m));
+            if (item.QiPct != 0f) parts.Add("내공 " + Pct(item.QiPct * m));
+            if (item.AtkPct != 0f) parts.Add("공격 " + Pct(item.AtkPct * m));
+            if (item.DefPct != 0f) parts.Add("방어 " + Pct(item.DefPct * m));
+            if (item.SpeedAdd != 0) { int sp = (int)Math.Round(item.SpeedAdd * m); parts.Add("속도 " + (sp > 0 ? "+" : "") + sp); }
+            if (item.CritAdd != 0f) parts.Add("치명타 " + Pct(item.CritAdd * m));
             return parts.Count == 0 ? "특별한 효과 없음" : string.Join("  ", parts);
         }
 
-        private static string Pct(float v) { return (v > 0 ? "+" : "") + Math.Round(v * 100f) + "%"; }
+        private static string Pct(float v) { return (v > 0 ? "+" : "") + Math.Round(v * 100f, 1) + "%"; }
 
         /// <summary>The equipped weapon (null when none).</summary>
         public static ItemData Weapon(SaveData save)

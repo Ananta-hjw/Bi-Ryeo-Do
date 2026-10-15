@@ -95,21 +95,31 @@ namespace BiRyeoDo.Core
 
         public static void Unequip(SaveData save, string id) { save.EquippedGear.Remove(id); }
 
-        public static CombatStats ApplyGear(CombatStats stats, IEnumerable<string> equipped)
+        public static CombatStats ApplyGear(CombatStats stats, IEnumerable<string> equipped, IList<GearLevel> levels = null)
         {
             float atk = 0f, def = 0f, hp = 0f, qi = 0f, crit = 0f;
-            int speed = 0;
+            float speed = 0f;
+            var worn = new List<string>();
             foreach (var id in equipped)
             {
                 var item = EarlyGameContent.FindItem(id);
                 if (item == null || !item.IsGear) continue;
-                atk += item.AtkPct; def += item.DefPct; hp += item.HpPct; qi += item.QiPct; crit += item.CritAdd; speed += item.SpeedAdd;
+                worn.Add(id);
+                float m = Gear.Multiplier(Gear.LevelOf(levels, id));
+                atk += item.AtkPct * m; def += item.DefPct * m; hp += item.HpPct * m; qi += item.QiPct * m; crit += item.CritAdd * m; speed += item.SpeedAdd * m;
+            }
+            foreach (var set in Gear.Sets)
+            {
+                int n = Gear.WornPieces(set, worn);
+                if (n < 2) continue;
+                var b = Gear.ActiveBonus(set, n);
+                atk += b.AtkPct; def += b.DefPct; hp += b.HpPct; qi += b.QiPct; crit += b.CritAdd; speed += b.SpeedAdd;
             }
             stats.MaxHp = (int)Math.Round(stats.MaxHp * (1f + hp));
             stats.MaxQi = (int)Math.Round(stats.MaxQi * (1f + qi));
             stats.Attack = (int)Math.Round(stats.Attack * (1f + atk));
             stats.Defense = (int)Math.Round(stats.Defense * (1f + def));
-            stats.Speed = Math.Max(1, stats.Speed + speed);
+            stats.Speed = Math.Max(1, stats.Speed + (int)Math.Round(speed));
             stats.CritRate = Math.Max(0f, Math.Min(1f, stats.CritRate + crit));
             return stats;
         }
