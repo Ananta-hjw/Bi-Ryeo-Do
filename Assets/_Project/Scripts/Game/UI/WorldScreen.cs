@@ -93,20 +93,20 @@ namespace BiRyeoDo.Game.UI
             // Event buttons down the right side.
             const float sideX0 = 0.83f, sideX1 = 0.98f, sideH = 0.098f, sideGap = 0.012f;
             float sy = 0.86f;
-            _dailyRowDetail = Icon(root, sideX0, sideX1, sy - sideH, sy, "일일\n임무", () => _daily.Open(), out _dailyBadge, 26); sy -= sideH + sideGap;
-            _questRowDetail = Icon(root, sideX0, sideX1, sy - sideH, sy, "의뢰\n게시판", OpenQuestOverlay, out _questBadge, 26); sy -= sideH + sideGap;
-            _fortuneRowDetail = Icon(root, sideX0, sideX1, sy - sideH, sy, "기연", OpenFortuneOverlay, out _fortuneBadge, 26); sy -= sideH + sideGap;
-            _starRowDetail = Icon(root, sideX0, sideX1, sy - sideH, sy, "별\n보상", () => _stars.Open(), out _starBadge, 26); sy -= sideH + sideGap;
+            _dailyRowDetail = Icon(root, sideX0, sideX1, sy - sideH, sy, "일일\n임무", () => _daily.Open(), out _dailyBadge, 26, "daily"); sy -= sideH + sideGap;
+            _questRowDetail = Icon(root, sideX0, sideX1, sy - sideH, sy, "의뢰\n게시판", OpenQuestOverlay, out _questBadge, 26, "quest"); sy -= sideH + sideGap;
+            _fortuneRowDetail = Icon(root, sideX0, sideX1, sy - sideH, sy, "기연", OpenFortuneOverlay, out _fortuneBadge, 26, "fortune"); sy -= sideH + sideGap;
+            _starRowDetail = Icon(root, sideX0, sideX1, sy - sideH, sy, "별\n보상", () => _stars.Open(), out _starBadge, 26, "star"); sy -= sideH + sideGap;
             Text towerBadge;
-            _towerRowDetail = Icon(root, sideX0, sideX1, sy - sideH, sy, "무한\n비무대", OpenTowerOverlay, out towerBadge, 26);
+            _towerRowDetail = Icon(root, sideX0, sideX1, sy - sideH, sy, "무한\n비무대", OpenTowerOverlay, out towerBadge, 26, "tower");
             towerBadge.transform.parent.gameObject.SetActive(false);
 
             // Menu row above the tab bar.
             Text stageBadge;
-            _stageRowDetail = Icon(root, 0.03f, 0.46f, 0.02f, 0.115f, "스테이지 출전", OpenStageOverlay, out stageBadge, 34);
+            _stageRowDetail = Icon(root, 0.03f, 0.46f, 0.02f, 0.115f, "스테이지 출전", OpenStageOverlay, out stageBadge, 34, "stage");
             stageBadge.transform.parent.gameObject.SetActive(false);
-            _promoRowDetail = Icon(root, 0.48f, 0.72f, 0.02f, 0.115f, "승급\n시험장", OpenPromotionOverlay, out _promoBadge, 28);
-            _partyRowDetail = Icon(root, 0.74f, 0.98f, 0.02f, 0.115f, "파티\n편성", OpenPartyOverlay, out _partyBadge, 28);
+            _promoRowDetail = Icon(root, 0.48f, 0.72f, 0.02f, 0.115f, "승급\n시험장", OpenPromotionOverlay, out _promoBadge, 28, "promotion");
+            _partyRowDetail = Icon(root, 0.74f, 0.98f, 0.02f, 0.115f, "파티\n편성", OpenPartyOverlay, out _partyBadge, 28, "party");
 
             BuildStatusBar(root);
 
@@ -225,7 +225,7 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <summary>A home-screen button (whole button is the tap target) with a title and a red count badge; returns an (unused, hidden) detail label that Refresh still fills.</summary>
-        private Text Icon(RectTransform parent, float x0, float x1, float y0, float y1, string title, UnityEngine.Events.UnityAction onClick, out Text badge, int size)
+        private Text Icon(RectTransform parent, float x0, float x1, float y0, float y1, string title, UnityEngine.Events.UnityAction onClick, out Text badge, int size, string iconKey)
         {
             var rt = UiFactory.Rect("Icon", parent, new Vector2(x0, y0), new Vector2(x1, y1));
             var img = rt.gameObject.AddComponent<Image>();
@@ -236,7 +236,16 @@ namespace BiRyeoDo.Game.UI
             btn.onClick.AddListener(onClick);
             btn.onClick.AddListener(() => SoundManager.Sfx("ui_click"));
             UiFactory.Frame(rt, UiFactory.Gold, 2f);
-            UiFactory.Label("Title", rt, new Vector2(0.04f, 0.04f), new Vector2(0.96f, 0.96f), title, size, UiFactory.PaperText);
+            var art = ArtLibrary.Icon(iconKey);
+            if (art != null)
+            {
+                // With a picture: the image on top, a small caption below.
+                var pic = UiFactory.Panel("IconArt", rt, new Vector2(0.10f, 0.34f), new Vector2(0.90f, 0.96f), Color.white);
+                pic.sprite = art;
+                pic.preserveAspect = true;
+                UiFactory.Label("Title", rt, new Vector2(0.02f, 0.02f), new Vector2(0.98f, 0.34f), title.Replace("\n", " "), Mathf.Min(size, 22), UiFactory.PaperText);
+            }
+            else UiFactory.Label("Title", rt, new Vector2(0.04f, 0.04f), new Vector2(0.96f, 0.96f), title, size, UiFactory.PaperText);
             var detail = UiFactory.Label("Detail", rt, Vector2.zero, Vector2.one, "", 12, UiFactory.Dim);
             detail.gameObject.SetActive(false);
             var dot = UiFactory.Panel("Dot", rt, new Vector2(0.66f, 0.70f), new Vector2(1.04f, 1.08f), UiFactory.Red);

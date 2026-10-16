@@ -171,3 +171,18 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 1. 배경 1장과 적 1장(예: `stage_01.png`, `tiger.png`)을 먼저 만들어 넣고 폰에서 화면이 어떻게 보이는지 확인한다.
 2. 마음에 들면 나머지를 같은 방식으로 채운다.
 3. 앱 아이콘이나 타이틀 이미지는 나중에 따로 만든다.
+
+## 홈 화면 버튼 아이콘
+
+`Assets/_Project/Resources/Art/Icons/<이름>.png` 로 넣으면 강호 탭의 버튼에 글자 대신 그림이 나오고 글자는 아래에 작게 붙는다. 파일이 없으면 글자 버튼 그대로다. 투명 배경 PNG, 정사각형 256x256 권장.
+
+| 파일 이름 | 버튼 |
+|---|---|
+| `daily.png` | 일일 임무 |
+| `quest.png` | 의뢰 게시판 |
+| `fortune.png` | 기연 |
+| `star.png` | 별 보상 |
+| `tower.png` | 무한 비무대 |
+| `stage.png` | 스테이지 출전 |
+| `promotion.png` | 승급 시험장 |
+| `party.png` | 파티 편성 |

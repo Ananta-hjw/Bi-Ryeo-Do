@@ -15,6 +15,8 @@ namespace BiRyeoDo.Game.Systems
 
         public static Sprite Background(int stageNumber) { return Load("Backgrounds/stage_" + stageNumber.ToString("00")); }
         public static Sprite Enemy(string enemyId) { return Load("Enemies/" + enemyId) ?? Load("Characters/" + enemyId); }
+        /// <summary>Home-screen button icon: <c>Icons/&lt;key&gt;.png</c> (daily, quest, fortune, star, tower, stage, promotion, party).</summary>
+        public static Sprite Icon(string key) { return Load("Icons/" + key); }
         public static Sprite Player() { return Load("Characters/player"); }
         /// <summary>Party member portrait: <c>Characters/&lt;id&gt;.png</c> (e.g. hyo_ryong.png).</summary>
         public static Sprite Companion(string companionId) { return Load("Characters/" + companionId) ?? Load("Enemies/" + companionId); }
