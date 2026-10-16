@@ -147,6 +147,32 @@ public class FormationTests
     }
 
     [Test]
+    public void UnpickedSingleTargetHitsTheFrontAndSnipeHitsTheBack()
+    {
+        var plain = new SkillSpec { Id = "plain", Name = "일반", Power = 1f, Range = 4 };
+        var snipe = new SkillSpec { Id = "snipe", Name = "저격", Power = 1f, Range = 4, Snipe = true };
+        var hero = Hero(plain, snipe);
+        var front = Foe("front", 3, 1); var back = Foe("back", 5, 1);
+        var battle = new InteractiveBattle(new[] { hero }, new[] { back, front }, new SeededRandom(1));
+        battle.Begin();
+        Assert.AreSame(front, battle.ResolveTarget(null, plain, 2, 1), "no pick: the nearest enemy");
+        Assert.AreSame(back, battle.ResolveTarget(null, snipe, 2, 1), "a 저격 art with no pick: the farthest in range");
+        Assert.AreSame(front, battle.ResolveTarget(front, snipe, 2, 1), "an explicit pick always wins");
+    }
+
+    [Test]
+    public void SnipingEnemiesAimAtTheBackMember()
+    {
+        var front = new Combatant("player", "비류연", Team.Player, Stats(), null) { Col = 2, Row = 1 };
+        var back = new Combatant("yun_junho", "윤준호", Team.Player, Stats(), null) { Col = 0, Row = 1 };
+        var archer = new Combatant("e", "궁수", Team.Enemy, Stats(1000000, 100), null) { Moves = new List<EnemyMove> { EnemyMove.Attack("화살", 1.0f).Sniping() }, Col = 4, Row = 1 };
+        var battle = new InteractiveBattle(new[] { front, back }, new[] { archer }, new SeededRandom(3));
+        battle.Begin();
+        for (int i = 0; i < 6 && !battle.IsOver; i++) battle.PlayerAct(PlayerCommand.Guard());
+        Assert.Less(back.Hp, back.Stats.MaxHp, "the sniper reaches past the front member");
+    }
+
+    [Test]
     public void EnemiesTargetTheNearestMember()
     {
         var front = new Combatant("player", "비류연", Team.Player, Stats(), null);

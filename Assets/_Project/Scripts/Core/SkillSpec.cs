@@ -21,6 +21,7 @@ namespace BiRyeoDo.Core
         public int SpiritCost;     // 기세: 비기 consume the whole gauge (100)
         public int Cooldown;       // own turns before reuse; 0 = every turn
         public bool AllEnemies;    // hits every living enemy instead of the chosen one (front row only while a front-row enemy stands, see Formation)
+        public bool Snipe;         // 저격: with no enemy picked, aims at the farthest (back-most) enemy in range instead of the nearest
         public int Range = 1;      // how many tiles away the art reaches (attacks and area arts; self/party effects ignore it)
         public SkillEffect Effect;
         public float HealPct;      // for HealAlly

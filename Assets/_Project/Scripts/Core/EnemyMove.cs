@@ -7,6 +7,9 @@ namespace BiRyeoDo.Core
         public float Power = 1f;
         public int Hits = 1;
         public bool Charge;
+        public bool Snipe;   // 저격: aims at the farthest party member within reach instead of the nearest
+
+        public EnemyMove Sniping() { Snipe = true; return this; }
 
         public static readonly EnemyMove Plain = new EnemyMove { Name = "공격" };
 

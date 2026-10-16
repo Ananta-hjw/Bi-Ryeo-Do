@@ -54,6 +54,7 @@ namespace BiRyeoDo.Core
         public const int SpiritOnDealt = 10, SpiritOnTaken = 8, SpiritOnGuard = 12;
         public const float HarmonyDamageFactor = 2.5f;
         public const int JointSpiritCost = 50;
+        public const int SnipeReach = 4;
 
         private readonly List<Combatant> _units = new List<Combatant>();
         private readonly List<Combatant> _party = new List<Combatant>();
@@ -211,7 +212,8 @@ namespace BiRyeoDo.Core
         {
             if (wanted != null && wanted.IsAlive && wanted.Team == Team.Enemy && Board.Dist(col, row, wanted.Col, wanted.Row) <= skill.Range) return wanted;
             var near = EnemiesInRange(col, row, skill.Range);
-            return near.Count > 0 ? near[0] : null;
+            if (near.Count == 0) return null;
+            return skill.Snipe ? near[near.Count - 1] : near[0];   // nearest (front) by default, 저격 arts the farthest (back)
         }
 
         /// <summary>Resolves the current member's action, then every enemy turn up to the next party turn.</summary>
@@ -474,10 +476,10 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>Walks an enemy up to <see cref="Board.MoveRange"/> tiles towards its target (only when the target is out of reach); adds a Move event.</summary>
-        private void MoveToward(Combatant enemy, Combatant target, List<BattleEvent> events)
+        private void MoveToward(Combatant enemy, Combatant target, int reach, List<BattleEvent> events)
         {
             int cur = Board.Dist(enemy, target);
-            if (cur <= enemy.Range) return;
+            if (cur <= reach) return;
             int bestC = enemy.Col, bestR = enemy.Row, bestD = cur, bestM = Math.Abs(enemy.Col - target.Col) + Math.Abs(enemy.Row - target.Row);
             for (int c = 0; c < Board.Cols; c++)
                 for (int r = 0; r < Board.Rows; r++)
@@ -516,8 +518,23 @@ namespace BiRyeoDo.Core
 
             var target = enemy.Charging && enemy.ChargeTarget != null && enemy.ChargeTarget.IsAlive ? enemy.ChargeTarget : NearestLivingMember(enemy);
             if (target == null) return;
-            MoveToward(enemy, target, events);
-            if (Board.Dist(enemy, target) > enemy.Range) return;   // it only walked this turn; the script (and any wind-up) waits
+            // A 저격 move reaches four tiles and, once in reach, picks the farthest (back-most) party member instead of the nearest.
+            bool snipe = move.Snipe && !enemy.Charging;
+            int reach = snipe ? Math.Max(enemy.Range, SnipeReach) : enemy.Range;
+            MoveToward(enemy, target, reach, events);
+            if (Board.Dist(enemy, target) > reach) return;   // it only walked this turn; the script (and any wind-up) waits
+            if (snipe)
+            {
+                Combatant far = null; int farDist = -1;
+                foreach (var m in _party)
+                {
+                    if (!m.IsAlive) continue;
+                    int d = Board.Dist(enemy, m);
+                    if (d > reach) continue;
+                    if (d > farDist || (d == farDist && (float)m.Hp / m.Stats.MaxHp < (float)far.Hp / far.Stats.MaxHp)) { far = m; farDist = d; }
+                }
+                if (far != null) target = far;
+            }
 
             enemy.MoveIndex++;
             bool heavy = enemy.Charging;
