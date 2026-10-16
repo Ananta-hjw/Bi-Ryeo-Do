@@ -652,6 +652,7 @@ namespace BiRyeoDo.Game.UI
             ClearChildren(_partyOverlay);
             _partyOverlay.gameObject.SetActive(true);
 
+            if (!Tutorial.IsDone(save, "formation") && HelpPanel.Instance != null) HelpPanel.Instance.Show("formation", true);
             var available = AvailableCompanions(save);
             var active = EarlyGameContent.SelectCompanionsFor(Math.Max(1, save.HighestUnlockedStage), save);
             UiFactory.Label("Title", _partyOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "파티 편성", 44, UiFactory.Gold);
@@ -665,15 +666,44 @@ namespace BiRyeoDo.Game.UI
             foreach (var c in available)
             {
                 bool on = active.Contains(c);
-                var band = UiFactory.Panel("Card", _partyOverlay, new Vector2(0.05f, y - 0.10f), new Vector2(0.95f, y), UiFactory.Ink);
+                var band = UiFactory.Panel("Card", _partyOverlay, new Vector2(0.05f, y - 0.08f), new Vector2(0.95f, y), UiFactory.Ink);
                 UiFactory.Label("Name", band.transform, new Vector2(0.03f, 0.52f), new Vector2(0.64f, 0.97f), c.Name, 36, on ? UiFactory.Gold : UiFactory.PaperText, TextAnchor.MiddleLeft);
                 UiFactory.Label("Role", band.transform, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.52f), c.Role + "  ·  인연 " + Bonds.LevelNames[Bonds.Level(save, c.Id)] + " (" + Bonds.BonusText(Bonds.Level(save, c.Id)) + ")", 20, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var companion = c;
                 UiFactory.Button("Toggle", band.transform, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), on ? "출전" : "대기", on ? UiFactory.Red : UiFactory.InkSoft, () => ToggleCompanion(companion), 32);
-                y -= 0.11f;
+                y -= 0.088f;
             }
 
+            BuildFormationBlock(save, active);
             UiFactory.Button("Close", _partyOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _partyOverlay.gameObject.SetActive(false); Refresh(); }, 36);
+        }
+
+        /// <summary>진형: the fighting party in a row of buttons showing 앞줄/뒷줄; tapping one moves that member to the other row.</summary>
+        private void BuildFormationBlock(SaveData save, List<CompanionData> active)
+        {
+            var ids = new List<string> { Formation.HeroId };
+            var names = new Dictionary<string, string> { { Formation.HeroId, "비류연" } };
+            foreach (var c in active) { ids.Add(c.Id); names[c.Id] = c.Name; }
+            var back = Formation.BackSet(save, ids);
+            UiFactory.Label("FormTitle", _partyOverlay, new Vector2(0.05f, 0.285f), new Vector2(0.60f, 0.335f), "진형 (눌러서 앞줄/뒷줄 바꾸기)", 28, UiFactory.Gold, TextAnchor.MiddleLeft);
+            UiFactory.Button("FormAuto", _partyOverlay, new Vector2(0.64f, 0.285f), new Vector2(0.95f, 0.335f), save.FormationCustom ? "자동 배치" : "자동 배치 중", save.FormationCustom ? UiFactory.InkSoft : UiFactory.Gold, () => { Formation.Reset(save); GameManager.Instance.SaveNow(); OpenPartyOverlay(); }, 24);
+            UiFactory.Label("FormHint", _partyOverlay, new Vector2(0.05f, 0.095f), new Vector2(0.95f, 0.135f), "앞줄은 먼저 맞고 더 세게 치며, 뒷줄은 앞줄이 쓰러져야 맞고 덜 아픈 대신 약하게 칩니다.", 20, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+            float w = 0.9f / Math.Max(1, ids.Count);
+            for (int i = 0; i < ids.Count; i++)
+            {
+                string id = ids[i];
+                bool isBack = back.Contains(id);
+                float x0 = 0.05f + i * w;
+                var btn = UiFactory.Button("Row" + i, _partyOverlay, new Vector2(x0 + 0.005f, 0.145f), new Vector2(x0 + w - 0.005f, 0.275f), names[id] + "\n" + Formation.RowName(isBack), isBack ? new Color(0.25f, 0.40f, 0.55f, 1f) : UiFactory.Red, () => MoveInFormation(ids, id), 26);
+            }
+        }
+
+        private void MoveInFormation(List<string> ids, string id)
+        {
+            var save = GameManager.Instance.Save;
+            string error;
+            if (Formation.Move(save, ids, id, out error)) GameManager.Instance.SaveNow();
+            OpenPartyOverlay();
         }
 
         private void ToggleCompanion(CompanionData c)

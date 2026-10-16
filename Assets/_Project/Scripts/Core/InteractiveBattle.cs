@@ -280,6 +280,7 @@ namespace BiRyeoDo.Core
         {
             bool crit = _rng.NextDouble() < actor.Stats.CritRate;
             int dmg = BattleEngine.CalcDamage(actor.Stats, t.Stats, skill, crit);
+            if (actor.Team == Team.Player) dmg = Math.Max(1, (int)Math.Round(dmg * (actor.BackRow ? Formation.BackDealtFactor : Formation.FrontDealtFactor)));
             if (_harmonyBoost) dmg = (int)Math.Round(dmg * HarmonyDamageFactor);
             t.Hp = Math.Max(0, t.Hp - dmg);
             if (actor.Lifesteal > 0f && actor.IsAlive) actor.Hp = Math.Min(actor.Stats.MaxHp, actor.Hp + (int)Math.Round(dmg * actor.Lifesteal));
@@ -388,10 +389,12 @@ namespace BiRyeoDo.Core
             return events;
         }
 
+        /// <summary>A random living party member; the front row is hit first, the back row only once no front member is left standing.</summary>
         private Combatant RandomLivingMember()
         {
             var alive = new List<Combatant>();
-            foreach (var m in _party) if (m.IsAlive) alive.Add(m);
+            foreach (var m in _party) if (m.IsAlive && !m.BackRow) alive.Add(m);
+            if (alive.Count == 0) foreach (var m in _party) if (m.IsAlive) alive.Add(m);
             if (alive.Count == 0) return null;
             int i = (int)(_rng.NextDouble() * alive.Count);
             return alive[Math.Min(i, alive.Count - 1)];
@@ -449,6 +452,7 @@ namespace BiRyeoDo.Core
                 {
                     ev.IsCrit = _rng.NextDouble() < enemy.Stats.CritRate;
                     int dmg = BattleEngine.CalcDamage(enemy.Stats, target.Stats, spec, ev.IsCrit);
+                    if (target.BackRow) dmg = Math.Max(1, (int)Math.Round(dmg * Formation.BackTakenFactor));
                     if (IsGuarded(target)) { dmg = Math.Max(1, (int)Math.Round(dmg * GuardDamageFactor)); ev.Guarded = true; }
                     target.Hp = Math.Max(0, target.Hp - dmg);
                     if (target.Hp == 0) TryRescue(target, ev);

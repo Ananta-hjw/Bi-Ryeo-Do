@@ -844,6 +844,7 @@ namespace BiRyeoDo.Game.UI
                 party.Add(c.CreateCombatant(save.Level, bondLevel, CompanionTraining.LevelOf(save, c.Id)));
                 if (bondLevel >= Bonds.RescueLevel && string.IsNullOrEmpty(hero.RescuerId)) hero.RescuerId = c.Id;
             }
+            Formation.Apply(party, save);   // 앞줄/뒷줄 from the saved (or automatic) formation
             return party;
         }
 
@@ -872,6 +873,24 @@ namespace BiRyeoDo.Game.UI
             return new Rect(x0, y0, CellW, CellH);
         }
 
+        /// <summary>The party's cell: the front row stands in the column nearest the enemies, the back row behind it; units of a row share its column top to bottom.</summary>
+        private Rect PartyCell(int index)
+        {
+            int n = _party.Count;
+            if (n == 1) return Cell(0, 1, true, false);
+            bool back = _party[index].BackRow;
+            int k = 0, count = 0;
+            for (int j = 0; j < n; j++)
+            {
+                if (_party[j].BackRow != back) continue;
+                if (j < index) k++;
+                count++;
+            }
+            float x = back ? 0.01f : 0.24f;
+            float y = count == 1 ? (RowTopY0 + RowBotY0) / 2f : (k == 0 ? RowTopY0 : RowBotY0);
+            return new Rect(x, y, CellW, CellH);
+        }
+
         private void BuildParty(StageData stage)
         {
             _party = CreateParty(stage);
@@ -880,7 +899,7 @@ namespace BiRyeoDo.Game.UI
             for (int i = 0; i < n; i++)
             {
                 var unit = _party[i];
-                var cell = Cell(i, n, true, false);
+                var cell = PartyCell(i);
                 var p = new PartyPanel { Unit = unit, Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
                 p.Root = UiFactory.Rect("Member" + i, _partyRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
                 p.Frame = UiFactory.Panel("Marker", p.Root, new Vector2(0.10f, 0.285f), new Vector2(0.90f, 0.305f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks whose turn it is
@@ -893,7 +912,7 @@ namespace BiRyeoDo.Game.UI
                 {
                     UiFactory.Label("Glyph", p.Root, new Vector2(0.04f, 0.32f), new Vector2(0.96f, 0.90f), FirstGlyph(unit.Name), 110, i == 0 ? UiFactory.Gold : UiFactory.PaperText);
                 }
-                p.Name = UiFactory.Label("Name", p.Root, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.99f), unit.Name, 24, UiFactory.Gold);
+                p.Name = UiFactory.Label("Name", p.Root, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.99f), unit.Name + (_party.Count > 1 ? (unit.BackRow ? " (뒷줄)" : " (앞줄)") : ""), 22, UiFactory.Gold);
                 p.Status = UiFactory.Label("Status", p.Root, new Vector2(0.05f, 0.62f), new Vector2(0.95f, 0.76f), "", 26, UiFactory.PaperText);
                 // Thin gauges under the figure: 체력 / 내공 / 기세
                 p.Hp = UiFactory.MakeBar("Hp", p.Root, new Vector2(0.06f, 0.215f), new Vector2(0.94f, 0.275f), new Color(0f, 0f, 0f, 0.7f), HpGreen);
