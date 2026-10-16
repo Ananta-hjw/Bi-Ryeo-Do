@@ -94,7 +94,7 @@ namespace BiRyeoDo.Game.UI
             if (_built) return;
             _built = true;
 
-            UiFactory.Panel("Backdrop", root, Vector2.zero, Vector2.one, Backdrop);
+            UiFactory.Panel("Backdrop", root, Vector2.zero, Vector2.one, Backdrop).raycastTarget = true;   // swallows taps so nothing underneath (the 강호 tab) is pressed during the battle
             _backdropImage = UiFactory.Panel("StageArt", root, Vector2.zero, Vector2.one, new Color(1f, 1f, 1f, 0f));
             _backdropImage.preserveAspect = false;
             UiFactory.Panel("Dim", root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.35f)); // keeps text readable over artwork
