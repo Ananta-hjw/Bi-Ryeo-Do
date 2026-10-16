@@ -348,6 +348,8 @@ namespace BiRyeoDo.Game.UI
 
                     long exp = 0, doo = 0;
                     save.BattleWins++;
+                    Daily.Record(save, DailyEvent.BattleWin);
+                    if (!_fightFell) Daily.Record(save, DailyEvent.Flawless);
                     foreach (var id in stage.Encounters[i])
                     {
                         Codex.SeeEnemy(save, id);
@@ -405,6 +407,7 @@ namespace BiRyeoDo.Game.UI
                 else if (cleared && stage.IsTower)
                 {
                     string towerNote = Tower.Complete(save, stage.TowerFloor);
+                    Daily.Record(save, DailyEvent.TowerClear);
                     GameManager.Instance.SaveNow();
                     yield return ShowResult(stage.TowerFloor + "층 돌파!", towerFirst
                         ? "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (towerNote.Length > 0 ? "\n" + towerNote : "")
@@ -413,6 +416,7 @@ namespace BiRyeoDo.Game.UI
                 else if (cleared)
                 {
                     save.ClearedStage = Math.Max(save.ClearedStage, stage.Number);
+                    Daily.Record(save, DailyEvent.StageClear);
                     GameManager.Instance.SaveNow();
                     yield return ShowStory(stage.Name + " 돌파", stage.Outro);
                     string bondNote = AwardBonds(save);
@@ -667,11 +671,14 @@ namespace BiRyeoDo.Game.UI
                 var events = _battle.PlayerAct(_command);
                 if (_command.Kind == CommandKind.Skill && actor != null && actor.Id == "player" && _command.Skill != null && _command.Skill.Id != "basic")
                 {
+                    Daily.Record(GameManager.Instance.Save, DailyEvent.SkillUse);
+                    if (_command.Skill.SpiritCost > 0) Daily.Record(GameManager.Instance.Save, DailyEvent.UltimateUse);
                     int rose = Mastery.RecordUse(GameManager.Instance.Save, _command.Skill.Id);
                     GameManager.Instance.SaveNow();
                     if (rose >= 0) SoundManager.Sfx("levelup");
                     if (rose >= 0) _masteryNotice = _command.Skill.Name + " 숙련 " + Mastery.LevelNames[rose] + "!" + (rose == Mastery.VariantLevel ? "  변초 해금 (무공 탭)" : "");
                 }
+                if (_command.Kind == CommandKind.Joint) Daily.Record(GameManager.Instance.Save, DailyEvent.JointUse);
                 if (_command.Kind == CommandKind.Item)
                 {
                     Inventory.Remove(GameManager.Instance.Save, _command.Item.Id, 1);

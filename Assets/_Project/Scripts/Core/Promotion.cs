@@ -128,6 +128,7 @@ namespace BiRyeoDo.Core
         {
             if (!CanAfford(save, offer)) return false;
             save.Doo -= offer.Fee;
+            Daily.Record(save, DailyEvent.PromotionTry);
             return true;
         }
 

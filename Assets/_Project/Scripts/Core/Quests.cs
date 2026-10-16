@@ -80,6 +80,7 @@ namespace BiRyeoDo.Core
         public static string Complete(SaveData save, QuestData q)
         {
             if (!save.DoneQuests.Contains(q.Id)) save.DoneQuests.Add(q.Id);
+            Daily.Record(save, DailyEvent.QuestDone);
             string note = "";
             foreach (var f in Factions.ForStage(q.RefStage))
             {

@@ -70,6 +70,7 @@ namespace BiRyeoDo.Core
             if (count <= 0 || !CanAfford(save, count)) return null;
             save.Doo -= CostFor(count);
             save.GachaPulls += count;
+            Daily.Record(save, DailyEvent.GachaPull, count);
             var results = new List<PullResult>();
             for (int i = 0; i < count; i++)
             {

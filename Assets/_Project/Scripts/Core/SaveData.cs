@@ -47,6 +47,11 @@ namespace BiRyeoDo.Core
         public List<TrainingEntry> CompanionTraining = new List<TrainingEntry>();   // 동료 수련 levels (additive field)
         public List<string> SeenMemories = new List<string>();            // 나예린 호감도 이벤트 already watched (additive field)
         public List<int> ClaimedMemoryMilestones = new List<int>();
+        public int DailyDate, DailyLastClear, DailyStreak, DailyBest;                  // 일일 수련 임무 (additive fields), dates as yyyymmdd
+        public List<string> DailyMissionIds = new List<string>();
+        public List<int> DailyProgress = new List<int>();
+        public List<int> DailyClaimed = new List<int>();
+        public bool DailyAllClaimed;
         public int SwordRank;           // 검룡위 (1-10), see Promotion; 0 in older saves counts as 1
 
         public List<string> LearnedArts = new List<string>();
