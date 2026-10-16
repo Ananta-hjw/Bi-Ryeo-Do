@@ -150,6 +150,7 @@ namespace BiRyeoDo.Game.UI
             BuildPanel(root);
             BuildStory(root);
             BuildTip(root);
+            BuildPick(root);
         }
 
         private void BuildPanel(RectTransform root)
@@ -283,6 +284,73 @@ namespace BiRyeoDo.Game.UI
             StartCoroutine(RunStage(stage));
         }
 
+        // ------------------------------------------------------------------ 전투 선택 (replays of cleared stages)
+
+        private int _lastFightNumber;
+        private GameObject _pickRoot;
+        private Text _pickTitle, _pickToggleLabel;
+        private readonly List<Button> _pickButtons = new List<Button>();
+        private readonly List<Text> _pickLabels = new List<Text>();
+        private bool _pickDone, _pickSingle;
+        private int _pickIndex;
+
+        private void BuildPick(RectTransform root)
+        {
+            var rect = UiFactory.Rect("Pick", root, Vector2.zero, Vector2.one);
+            _pickRoot = rect.gameObject;
+            rect.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.78f);   // blocks taps underneath
+            var card = UiFactory.Panel("Card", rect, new Vector2(0.05f, 0.14f), new Vector2(0.95f, 0.86f), new Color(0.05f, 0.07f, 0.11f, 0.98f));
+            UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
+            _pickTitle = UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.99f), "", 38, UiFactory.Gold);
+            for (int i = 0; i < 5; i++)
+            {
+                int index = i;
+                var btn = UiFactory.Button("Fight" + i, card.transform, new Vector2(0.05f, 0.70f - i * 0.125f), new Vector2(0.95f, 0.81f - i * 0.125f), "", UiFactory.InkSoft, () => { _pickIndex = index; _pickDone = true; }, 28);
+                _pickButtons.Add(btn);
+                _pickLabels.Add(btn.GetComponentInChildren<Text>());
+            }
+            var toggle = UiFactory.Button("Single", card.transform, new Vector2(0.05f, 0.10f), new Vector2(0.95f, 0.19f), "", UiFactory.InkSoft, () => { _pickSingle = !_pickSingle; UpdatePickToggle(); }, 28);
+            _pickToggleLabel = toggle.GetComponentInChildren<Text>();
+            UiFactory.Button("Cancel", card.transform, new Vector2(0.30f, 0.01f), new Vector2(0.70f, 0.09f), "강호로", UiFactory.InkSoft, () => { _pickIndex = -1; _pickDone = true; }, 30);
+            _pickRoot.SetActive(false);
+        }
+
+        private void UpdatePickToggle()
+        {
+            _pickToggleLabel.text = _pickSingle ? "이 전투 하나만 하고 끝내기: 켜짐" : "이 전투 하나만 하고 끝내기: 꺼짐";
+        }
+
+        /// <summary>Lets the player choose which fight of a cleared stage to start from; returns the index or -1 for 강호로.</summary>
+        private IEnumerator PickFight(StageData stage, int diff)
+        {
+            var save = GameManager.Instance.Save;
+            SetCommandsVisible(false);
+            _panel.SetActive(false);
+            _pickTitle.text = "전투 선택 · " + stage.Name;
+            for (int i = 0; i < _pickButtons.Count; i++)
+            {
+                bool has = i < stage.Encounters.Length;
+                _pickButtons[i].gameObject.SetActive(has);
+                if (!has) continue;
+                var names = new List<string>();
+                foreach (var id in stage.Encounters[i])
+                {
+                    var e = EarlyGameContent.FindEnemy(id);
+                    string n = e != null ? e.Name : id;
+                    if (!names.Contains(n)) names.Add(n);
+                }
+                int mask = StageStars.MaskOf(save, stage.Number, i, diff);
+                _pickLabels[i].text = "전투 " + (i + 1) + (i == stage.Encounters.Length - 1 ? " (결전)" : "") + " · " + string.Join(", ", names) + "   " + StarGlyphs(mask);
+            }
+            UpdatePickToggle();
+            _pickRoot.SetActive(true);
+            _pickRoot.transform.SetAsLastSibling();
+            _pickDone = false;
+            _pickIndex = -1;
+            while (!_pickDone) yield return null;
+            _pickRoot.SetActive(false);
+        }
+
         private IEnumerator RunStage(StageData stage)
         {
             var save = GameManager.Instance.Save;
@@ -303,7 +371,18 @@ namespace BiRyeoDo.Game.UI
             int startIndex = resume ? Math.Min(save.ProgressNext, stage.Encounters.Length - 1) : 0;
             if (!resume && !stage.IsQuest && !stage.IsTower && save.ProgressStage != 0) { StageProgress.Clear(save); GameManager.Instance.SaveNow(); }
 
-            if (!resume)
+            // A cleared stage can be replayed from any fight (optionally just that one); the first clear always runs from the start.
+            int pickStart = 0;
+            bool singleFight = false;
+            bool clearedHere = !stage.IsQuest && !stage.IsTower && (diff == 0 ? save.ClearedStage >= stage.Number : StageStars.StageCleared(save, stage.Number, diff));
+            if (!resume && clearedHere && stage.Encounters.Length > 1)
+            {
+                yield return PickFight(stage, diff);
+                if (_pickIndex < 0) _fled = true;
+                else { pickStart = _pickIndex; singleFight = _pickSingle; startIndex = pickStart; }
+            }
+
+            if (!resume && !_fled && pickStart == 0 && !singleFight)
             {
                 if (stage.Prologue != null && save.ClearedStage < stage.Number)
                     foreach (var scene in stage.Prologue)
@@ -322,10 +401,12 @@ namespace BiRyeoDo.Game.UI
                 int newStars = 0;   // stars earned in this run (each fight has its own three)
                 bool replay = !stage.IsQuest && !stage.IsTower && (diff == 0 ? save.ClearedStage >= stage.Number : StageStars.StageCleared(save, stage.Number, diff));
                 bool towerFirst = stage.IsTower && stage.TowerFloor > save.TowerBest;
+                bool singleDone = false;
 
                 for (int i = startIndex; i < stage.Encounters.Length; i++)
                 {
                     _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + tag + stage.Name + "  (" + (i + 1) + "/" + stage.Encounters.Length + ")";
+                    _lastFightNumber = i + 1;
                     yield return Banner(i == stage.Encounters.Length - 1 ? "결전!" : "전투 " + (i + 1), 0.7f);
                     yield return Fight(stage.Encounters[i], stage.TrialFor(i), stage.Number, diff);
 
@@ -384,6 +465,8 @@ namespace BiRyeoDo.Game.UI
                     foreach (var m in _party) m.RestBetweenFights(0.5f + Factions.Bonus(save, PerkKind.RestHeal));
                     RefreshParty();
 
+                    if (singleFight && i < stage.Encounters.Length - 1) { singleDone = true; break; }
+
                     // Between fights the player decides when to go on (the next fight may be the boss).
                     if (i < stage.Encounters.Length - 1)
                     {
@@ -403,6 +486,11 @@ namespace BiRyeoDo.Game.UI
                     break;
                 }
                 if (!_fled && !stage.IsQuest && !stage.IsTower) { StageProgress.Clear(save); GameManager.Instance.SaveNow(); }
+                if (singleDone)
+                {
+                    yield return ShowResult("전투 " + (_lastFightNumber) + " 승리!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (_lastStarLine.Length > 0 ? "\n" + _lastStarLine : "") + "\n\n다른 전투는 스테이지를 다시 눌러 고를 수 있습니다.", false);
+                    break;
+                }
                 if (cleared && stage.IsQuest)
                 {
                     var quest = Quests.Find(stage.QuestId);
@@ -435,10 +523,10 @@ namespace BiRyeoDo.Game.UI
                 }
                 else
                 {
-                    yield return ShowResult("패배...", "다시 도전하면 이 스테이지의 첫 전투부터 시작합니다. (이미 얻은 경험과 두는 그대로 남습니다.)", true);
+                    yield return ShowResult("패배...", "다시 도전하면 " + (pickStart > 0 ? "고른 전투(전투 " + (pickStart + 1) + ")" : "이 스테이지의 첫 전투") + "부터 시작합니다. (이미 얻은 경험과 두는 그대로 남습니다.)", true);
                     again = _retry;
                     resume = false;
-                    startIndex = 0;
+                    startIndex = pickStart;
                 }
             }
 
