@@ -19,23 +19,14 @@ namespace BiRyeoDo.Game.UI
         }
 
         private readonly List<Row> _rows = new List<Row>();
-        private CodexPanel _codex;
         private StarPanel _stars;
-        private FactionPanel _factions;
-        private CompanionPanel _training;
-        private MemoryPanel _memories;
         private SaveData _syncedSave;
         private DailyPanel _daily;
         private Text _dailyRowDetail, _dailyBadge;
-        private Text _memoryRowDetail, _memoryBadge;
-        private Action<string, string[], Action> _onStory;
-        private Text _trainingRowDetail;
-        private Text _factionRowDetail;
+        private Action _onStatus;
         private Text _starRowDetail, _starBadge, _starsTitle;
         private readonly Image[] _diffTabs = new Image[StageStars.DifficultyCount];
-        private InnerArtPanel _inner;
-        private Text _innerRowDetail;
-        private Text _codexRowDetail, _achRowDetail, _achBadge, _towerRowDetail, _statusRowDetail, _lvText, _dooText, _rankText, _promoRowDetail, _partyRowDetail, _questRowDetail, _fortuneRowDetail;
+        private Text _towerRowDetail, _lvText, _dooText, _rankText, _promoRowDetail, _partyRowDetail, _questRowDetail, _fortuneRowDetail;
         private Text _promoBadge, _partyBadge, _questBadge, _fortuneBadge, _featTitle, _featSub, _featBtnLabel;
         private UiFactory.Bar _expBar;
         private Image _featArt;
@@ -47,17 +38,17 @@ namespace BiRyeoDo.Game.UI
         private Text _lobbyGlyph, _lobbyName, _lobbyLine;
         private int _lobbyStep;
         private float _lobbyTimer;
-        private RectTransform _promoOverlay, _partyOverlay, _questOverlay, _fortuneOverlay, _settingsOverlay, _statusOverlay, _towerOverlay;
+        private RectTransform _promoOverlay, _partyOverlay, _questOverlay, _fortuneOverlay, _settingsOverlay, _towerOverlay;
         private bool _confirmReset;
         private Action<StageData> _onStart;
         private Action<PromotionOffer> _onPromote;
         private bool _built;
 
-        public void Build(RectTransform root, Action<StageData> onStart, Action<PromotionOffer> onPromote, Action<string, string[], Action> onStory = null)
+        public void Build(RectTransform root, Action<StageData> onStart, Action<PromotionOffer> onPromote, Action onStatus)
         {
             if (_built) return;
             _built = true;
-            _onStory = onStory;
+            _onStatus = onStatus;
             _onPromote = onPromote;
             _onStart = onStart;
 
@@ -122,30 +113,7 @@ namespace BiRyeoDo.Game.UI
             _questRowDetail = Tile(content, 0.04f, 0.49f, y, tileH, "의뢰 게시판", OpenQuestOverlay, out _questBadge);
             _fortuneRowDetail = Tile(content, 0.51f, 0.96f, y, tileH, "기연", OpenFortuneOverlay, out _fortuneBadge);
             y += tileH + gap;
-            Text statusBadge;
-            _statusRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "상태창", OpenStatusOverlay, out statusBadge);
-            statusBadge.transform.parent.gameObject.SetActive(false);
-            y += 150f + gap;
-            Text codexBadge;
-            _codexRowDetail = Tile(content, 0.04f, 0.49f, y, tileH, "도감", () => _codex.OpenCodex(), out codexBadge);
-            codexBadge.transform.parent.gameObject.SetActive(false);
-            _achRowDetail = Tile(content, 0.51f, 0.96f, y, tileH, "업적", () => _codex.OpenAchievements(), out _achBadge);
-            y += tileH + gap;
-            Text innerBadge;
-            _innerRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "심법", () => _inner.Open(), out innerBadge);
-            innerBadge.transform.parent.gameObject.SetActive(false);
-            y += 150f + gap;
             _dailyRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "일일 수련 임무", () => _daily.Open(), out _dailyBadge);
-            y += 150f + gap;
-            _memoryRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "나예린 추억", () => _memories.Open(), out _memoryBadge);
-            y += 150f + gap;
-            Text trainingBadge;
-            _trainingRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "동료 수련", () => _training.Open(), out trainingBadge);
-            trainingBadge.transform.parent.gameObject.SetActive(false);
-            y += 150f + gap;
-            Text factionBadge;
-            _factionRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "세력과 객잔", () => _factions.Open(), out factionBadge);
-            factionBadge.transform.parent.gameObject.SetActive(false);
             y += 150f + gap;
             _starRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "별 보상", () => _stars.Open(), out _starBadge);
             y += 150f + gap;
@@ -211,23 +179,12 @@ namespace BiRyeoDo.Game.UI
             _settingsOverlay.gameObject.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
             _settingsOverlay.gameObject.SetActive(false);
 
-            _statusOverlay = UiFactory.Rect("StatusOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
-            _statusOverlay.gameObject.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
-            _statusOverlay.gameObject.SetActive(false);
-
             _towerOverlay = UiFactory.Rect("TowerOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
             _towerOverlay.gameObject.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
             _towerOverlay.gameObject.SetActive(false);
 
-            var codexRoot = UiFactory.Rect("CodexOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
-            var achRoot = UiFactory.Rect("AchievementOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
-            _codex = new CodexPanel(codexRoot, achRoot, Refresh);
             _daily = new DailyPanel(UiFactory.Rect("DailyOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
-            _memories = new MemoryPanel(UiFactory.Rect("MemoryOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh, _onStory != null ? (Action<string, string[], Action>)((title, lines, done) => _onStory(title, lines, done)) : null);
-            _training = new CompanionPanel(UiFactory.Rect("TrainingOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
-            _factions = new FactionPanel(UiFactory.Rect("FactionOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
             _stars = new StarPanel(UiFactory.Rect("StarOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
-            _inner = new InnerArtPanel(UiFactory.Rect("InnerArtOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
             Refresh();
         }
 
@@ -238,7 +195,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Frame(lv.transform, UiFactory.GoldDim, 2f);
             _lvText = UiFactory.Label("Lv", lv.transform, new Vector2(0.06f, 0.35f), new Vector2(0.94f, 1f), "", 34, UiFactory.Gold, TextAnchor.MiddleLeft);
             _expBar = UiFactory.MakeBar("Exp", lv.transform, new Vector2(0.06f, 0.14f), new Vector2(0.94f, 0.30f), new Color(0f, 0f, 0f, 0.6f), new Color(0.38f, 0.62f, 0.95f, 1f));
-            UiFactory.Button("StatusTap", root, new Vector2(0.03f, 0.932f), new Vector2(0.40f, 0.988f), "", new Color(0f, 0f, 0f, 0f), OpenStatusOverlay, 20);
+            UiFactory.Button("StatusTap", root, new Vector2(0.03f, 0.932f), new Vector2(0.40f, 0.988f), "", new Color(0f, 0f, 0f, 0f), () => _onStatus?.Invoke(), 20);
 
             var doo = UiFactory.Panel("DooChip", root, new Vector2(0.42f, 0.932f), new Vector2(0.69f, 0.988f), UiFactory.Ink);
             UiFactory.Frame(doo.transform, UiFactory.GoldDim, 2f);
@@ -409,109 +366,6 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Button("Close", _promoOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => _promoOverlay.gameObject.SetActive(false), 36);
         }
 
-
-        // ------------------------------------------------------------------ 상태창
-
-        private void OpenStatusOverlay()
-        {
-            var save = GameManager.Instance.Save;
-            ClearChildren(_statusOverlay);
-            _statusOverlay.gameObject.SetActive(true);
-            UiFactory.Label("Title", _statusOverlay, new Vector2(0.05f, 0.935f), new Vector2(0.95f, 0.995f), "상태창", 44, UiFactory.Gold);
-
-            // Header: portrait block + name, level, rank, exp
-            var head = UiFactory.Panel("Head", _statusOverlay, new Vector2(0.04f, 0.835f), new Vector2(0.96f, 0.93f), UiFactory.Ink);
-            UiFactory.Frame(head.transform, UiFactory.GoldDim, 2f);
-            var pic = UiFactory.Panel("Pic", head.transform, new Vector2(0.02f, 0.08f), new Vector2(0.17f, 0.92f), ArtLibrary.TintFor("비류연"));
-            var sprite = ArtLibrary.Player();
-            if (sprite != null) { pic.sprite = sprite; pic.color = Color.white; pic.preserveAspect = true; }
-            else UiFactory.Label("Glyph", pic.transform, Vector2.zero, Vector2.one, "비", 50, UiFactory.PaperText);
-            long need = Progression.ExpToNext(save.Level);
-            UiFactory.Label("Name", head.transform, new Vector2(0.20f, 0.52f), new Vector2(0.96f, 0.96f), "비류연  Lv." + save.Level + "  ·  " + Promotion.RankName(Promotion.EffectiveRank(save)), 34, UiFactory.Gold, TextAnchor.MiddleLeft);
-            UiFactory.Label("Exp", head.transform, new Vector2(0.20f, 0.06f), new Vector2(0.96f, 0.50f), "경험 " + save.Exp.ToString("N0") + " / " + need.ToString("N0") + "   ·   두 " + save.Doo.ToString("N0"), 24, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-
-            // Stats: two columns
-            var stats = StatusSheet.Hero(save);
-            float top = 0.815f, rowH = 0.048f;
-            for (int i = 0; i < stats.Count; i++)
-            {
-                int col = i % 2, row = i / 2;
-                float x0 = col == 0 ? 0.04f : 0.52f;
-                float y1 = top - row * (rowH + 0.004f);
-                StatRow(_statusOverlay, stats[i], x0, x0 + 0.44f, y1 - rowH, y1);
-            }
-
-            // Gear
-            float gy = top - 4 * (rowH + 0.004f) - 0.01f;
-            UiFactory.Label("GearTitle", _statusOverlay, new Vector2(0.05f, gy - 0.045f), new Vector2(0.95f, gy), GearTitle(save), 30, UiFactory.Gold, TextAnchor.MiddleLeft);
-            gy -= 0.047f;
-            GearRow("무기", StatusSheet.Weapon(save), gy);
-            gy -= 0.054f;
-            GearRow("방어구", StatusSheet.Armor(save), gy);
-            gy -= 0.054f;
-            var accs = StatusSheet.Accessories(save);
-            for (int i = 0; i < Inventory.AccessorySlots; i++)
-            {
-                GearRow("장신구 " + (i + 1), i < accs.Count ? accs[i] : null, gy);
-                gy -= 0.054f;
-            }
-
-            // Arts
-            UiFactory.Label("ArtsTitle", _statusOverlay, new Vector2(0.05f, gy - 0.036f), new Vector2(0.95f, gy), "장착 무공", 32, UiFactory.Gold, TextAnchor.MiddleLeft);
-            gy -= 0.036f;
-            var artLines = StatusSheet.ArtLines(save);
-            if (StatusSheet.InnerLine(save).Length > 0) artLines.Add(StatusSheet.InnerLine(save));
-            UiFactory.Label("Arts", _statusOverlay, new Vector2(0.06f, gy - 0.07f), new Vector2(0.94f, gy), artLines.Count == 0 ? "장착한 무공이 없다" : string.Join("\n", artLines), 22, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal);
-            gy -= 0.075f;
-
-            // Party
-            var party = EarlyGameContent.SelectCompanionsFor(Math.Max(1, save.HighestUnlockedStage), save);
-            if (party.Count > 0)
-            {
-                UiFactory.Label("PartyTitle", _statusOverlay, new Vector2(0.05f, gy - 0.036f), new Vector2(0.95f, gy), "출전 동료", 32, UiFactory.Gold, TextAnchor.MiddleLeft);
-                gy -= 0.038f;
-                foreach (var c in party)
-                {
-                    var l = StatusSheet.Ally(c, save.Level, Bonds.Level(save, c.Id), CompanionTraining.LevelOf(save, c.Id));
-                    UiFactory.Label("Ally_" + c.Id, _statusOverlay, new Vector2(0.06f, gy - 0.033f), new Vector2(0.94f, gy),
-                        c.Name + "   체력 " + l[0].Value + "  내공 " + l[1].Value + "  공격 " + l[2].Value + "  방어 " + l[3].Value, 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-                    gy -= 0.033f;
-                }
-            }
-
-            UiFactory.Button("Close", _statusOverlay, new Vector2(0.3f, 0.008f), new Vector2(0.7f, 0.056f), "닫기", UiFactory.InkSoft, () => _statusOverlay.gameObject.SetActive(false), 32);
-        }
-
-        private static string GearTitle(SaveData save)
-        {
-            var parts = new List<string>();
-            foreach (var set in Gear.Sets)
-            {
-                int n = Gear.WornPieces(set, save.EquippedGear);
-                if (n >= 2) parts.Add(set.Name + " 세트 " + n + "/" + set.Items.Length);
-            }
-            return parts.Count == 0 ? "장비" : "장비   <color=#9ADB9F>" + string.Join(" · ", parts) + "</color>";
-        }
-
-        private static void StatRow(RectTransform parent, StatLine line, float x0, float x1, float y0, float y1)
-        {
-            var band = UiFactory.Panel("Stat", parent, new Vector2(x0, y0), new Vector2(x1, y1), UiFactory.Ink);
-            UiFactory.Frame(band.transform, UiFactory.GoldDim, 2f);
-            UiFactory.Label("Label", band.transform, new Vector2(0.05f, 0f), new Vector2(0.42f, 1f), line.Label, 26, UiFactory.Dim, TextAnchor.MiddleLeft);
-            UiFactory.Label("Value", band.transform, new Vector2(0.42f, 0f), new Vector2(0.78f, 1f), line.Value, 30, UiFactory.PaperText, TextAnchor.MiddleRight);
-            if (!string.IsNullOrEmpty(line.Bonus))
-                UiFactory.Label("Bonus", band.transform, new Vector2(0.78f, 0f), new Vector2(0.98f, 1f), "(" + line.Bonus + ")", 20, new Color(0.45f, 0.85f, 0.5f, 1f), TextAnchor.MiddleLeft, FontStyle.Normal);
-        }
-
-        private void GearRow(string slot, ItemData item, float y1)
-        {
-            var band = UiFactory.Panel("Gear", _statusOverlay, new Vector2(0.04f, y1 - 0.05f), new Vector2(0.96f, y1), UiFactory.Ink);
-            UiFactory.Frame(band.transform, item != null ? UiFactory.GoldDim : new Color(0.25f, 0.25f, 0.28f, 1f), 2f);
-            UiFactory.Label("Slot", band.transform, new Vector2(0.03f, 0f), new Vector2(0.20f, 1f), slot, 22, UiFactory.Dim, TextAnchor.MiddleLeft);
-            UiFactory.Label("Name", band.transform, new Vector2(0.20f, 0.45f), new Vector2(0.97f, 1f), item != null ? UiFactory.GradedName(item) + (Gear.Level(GameManager.Instance.Save, item.Id) > 0 ? " +" + Gear.Level(GameManager.Instance.Save, item.Id) : "") : "비어 있음", 26, item != null ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
-            if (item != null)
-                UiFactory.Label("Effect", band.transform, new Vector2(0.20f, 0f), new Vector2(0.97f, 0.48f), StatusSheet.EffectText(item, Gear.Level(GameManager.Instance.Save, item.Id)), 20, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-        }
 
         // ------------------------------------------------------------------ 설정
 
@@ -812,14 +666,9 @@ namespace BiRyeoDo.Game.UI
         /// <summary>Hides every pop-up panel of the 강호 tab (used when a fight starts or ends and when the tab is left).</summary>
         public void CloseOverlays()
         {
-            foreach (var o in new[] { _promoOverlay, _partyOverlay, _questOverlay, _fortuneOverlay, _settingsOverlay, _statusOverlay, _towerOverlay })
+            foreach (var o in new[] { _promoOverlay, _partyOverlay, _questOverlay, _fortuneOverlay, _settingsOverlay, _towerOverlay })
                 if (o != null) o.gameObject.SetActive(false);
-            if (_codex != null) _codex.HideAll();
-            if (_inner != null) _inner.Hide();
             if (_stars != null) _stars.Hide();
-            if (_factions != null) _factions.Hide();
-            if (_training != null) _training.Hide();
-            if (_memories != null) _memories.Hide();
             if (_daily != null) _daily.Hide();
         }
 
@@ -846,7 +695,6 @@ namespace BiRyeoDo.Game.UI
             if (!_built) return;
             var save = GameManager.Instance.Save;
             ShowLobby(false);
-            _statusRowDetail.text = "능력치와 장비를 확인한다 · " + StatusSheet.Hero(save)[0].Label + " " + StatusSheet.Hero(save)[0].Value + " · " + StatusSheet.Hero(save)[2].Label + " " + StatusSheet.Hero(save)[2].Value;
             int rankNow = Promotion.EffectiveRank(save);
             _lvText.text = "Lv." + save.Level;
             long need = Progression.ExpToNext(save.Level);
@@ -882,25 +730,11 @@ namespace BiRyeoDo.Game.UI
                 StageStars.Sync(save);
                 Factions.SyncFromStars(save);
             }
-            var innerNames = new List<string>();
-            foreach (var iid in save.EquippedInner) { var ia = InnerArts.Find(iid); if (ia != null) innerNames.Add(ia.Name); }
-            _innerRowDetail.text = "패시브 빌드 · " + (innerNames.Count > 0 ? string.Join(", ", innerNames) : "장착한 심법 없음") + " (" + save.EquippedInner.Count + "/" + InnerArts.SlotCount(save) + ")";
-            _codexRowDetail.text = "적 " + save.SeenEnemies.Count + "/" + Codex.EnemyTotal + " · 물품 " + save.SeenItems.Count + "/" + Codex.ItemTotal;
-            _achRowDetail.text = "달성 " + Achievements.ClaimedCount(save) + "/" + Achievements.All.Length;
-            SetBadge(_achBadge, Achievements.ClaimableCount(save));
             var dailyList = Daily.Missions(save);
             int dailyDone = 0;
             for (int di = 0; di < dailyList.Count; di++) if (Daily.IsClaimed(save, di)) dailyDone++;
             _dailyRowDetail.text = "오늘 " + dailyDone + "/3 완료 · 연속 수련 " + save.DailyStreak + "일";
             SetBadge(_dailyBadge, Daily.ClaimableCount(save));
-            int unseenMemories = Memories.UnseenCount(save);
-            _memoryRowDetail.text = "본 추억 " + Memories.SeenCount(save) + " / " + Memories.All.Length + (unseenMemories > 0 ? " · 새 추억 " + unseenMemories + "개" : "");
-            SetBadge(_memoryBadge, unseenMemories);
-            var joined = EarlyGameContent.CompanionsFor(Math.Max(1, save.HighestUnlockedStage));
-            _trainingRowDetail.text = joined.Count == 0 ? "동료가 합류하면 두로 수련시킬 수 있다" : "수련 합계 Lv." + CompanionTraining.TotalLevels(save) + " · 동료 " + joined.Count + "명";
-            var factionNotes = new List<string>();
-            foreach (var fa in Factions.All) if (Factions.Tier(save, fa.Id) > 0) factionNotes.Add(fa.Name + " " + Factions.TierNames[Factions.Tier(save, fa.Id)]);
-            _factionRowDetail.text = factionNotes.Count > 0 ? "평판: " + string.Join(" · ", factionNotes) : "전투를 이기면 세력 평판이 쌓이고 객잔 선반이 열린다";
             int starChests = StageStars.ClaimableCount(save);
             _starRowDetail.text = "별 " + StageStars.Total(save) + " / " + StageStars.MaxStars + " · 받을 수 있는 보상 " + starChests + "개";
             SetBadge(_starBadge, starChests);

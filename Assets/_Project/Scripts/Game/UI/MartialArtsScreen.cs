@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace BiRyeoDo.Game.UI
 {
-    /// <summary>무공 탭. Learn arts with 두 once their stage is unlocked, then equip up to <see cref="Progression.MaxEquippedArts"/> for battle.</summary>
+    /// <summary>무공 탭 (무공 / 심법 / 동료 수련 pages). Learn arts with 두 once their stage is unlocked, then equip up to <see cref="Progression.MaxEquippedArts"/> for battle.</summary>
     public class MartialArtsScreen : MonoBehaviour
     {
         private sealed class Row
@@ -22,11 +22,30 @@ namespace BiRyeoDo.Game.UI
         private readonly List<Row> _rows = new List<Row>();
         private Text _header, _hint;
         private bool _built;
+        private int _page;   // 0 무공, 1 심법, 2 동료 수련
+        private static readonly string[] PageNames = { "무공", "심법", "동료 수련" };
+        private readonly Image[] _pageTabs = new Image[PageNames.Length];
+        private RectTransform _artsRoot;
+        private InnerArtPanel _inner;
+        private CompanionPanel _training;
 
-        public void Build(RectTransform root)
+        public void Build(RectTransform tab)
         {
             if (_built) return;
             _built = true;
+
+            // Page switcher on top; the page below is either the art list or an embedded panel.
+            for (int p = 0; p < PageNames.Length; p++)
+            {
+                int page = p;
+                float x0 = 0.04f + p * 0.32f;
+                var btn = UiFactory.Button("Page" + p, tab, new Vector2(x0, 0.932f), new Vector2(x0 + 0.30f, 0.988f), PageNames[p], UiFactory.InkSoft, () => ShowPage(page), 30);
+                _pageTabs[p] = btn.GetComponent<Image>();
+            }
+            var root = UiFactory.Rect("ArtsPage", tab, Vector2.zero, new Vector2(1f, 0.92f));
+            _artsRoot = root;
+            _inner = new InnerArtPanel(UiFactory.Rect("InnerArtPage", tab, Vector2.zero, new Vector2(1f, 0.92f)), Refresh) { Embedded = true };
+            _training = new CompanionPanel(UiFactory.Rect("TrainingPage", tab, Vector2.zero, new Vector2(1f, 0.92f)), Refresh) { Embedded = true };
 
             UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
             _header = UiFactory.Label("Header", root, new Vector2(0.06f, 0.925f), new Vector2(0.94f, 0.985f), "", 42, UiFactory.Gold);
@@ -73,10 +92,22 @@ namespace BiRyeoDo.Game.UI
                 row.MasteryLabel = row.MasteryButton.GetComponentInChildren<Text>();
                 _rows.Add(row);
             }
-            Refresh();
+            ShowPage(0);
         }
 
-        private void OnEnable() { if (_built) Refresh(); }
+        private void OnEnable() { if (_built) ShowPage(_page); }
+
+        private void ShowPage(int page)
+        {
+            _page = page;
+            _artsRoot.gameObject.SetActive(page == 0);
+            _inner.Hide();
+            _training.Hide();
+            if (page == 0) Refresh();
+            else if (page == 1) _inner.Open();
+            else _training.Open();
+            for (int i = 0; i < _pageTabs.Length; i++) _pageTabs[i].color = i == page ? new Color(0.56f, 0.44f, 0.22f, 1f) : UiFactory.InkSoft;
+        }
 
         private void OnPressed(ArtData art)
         {
@@ -158,6 +189,7 @@ namespace BiRyeoDo.Game.UI
 
         private void Refresh()
         {
+            if (_page != 0) return;   // an embedded panel redraws itself
             var save = GameManager.Instance.Save;
             _header.text = "무공 · 장착 " + Progression.EquippedCount(save, false) + "/" + Progression.MaxEquippedArts + " · 필살 " + Progression.EquippedCount(save, true) + "/" + Progression.MaxEquippedUltimates + " · " + save.Doo.ToString("N0") + "두";
             if (string.IsNullOrEmpty(_hint.text)) _hint.text = "숙련(사용 횟수): " + Mastery.ConditionText();

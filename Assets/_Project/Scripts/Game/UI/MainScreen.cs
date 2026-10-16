@@ -7,18 +7,19 @@ using UnityEngine.UI;
 namespace BiRyeoDo.Game.UI
 {
     /// <summary>
-    /// Root of the UI: builds the Canvas (1080x1920 portrait, safe-area aware), a three-tab bottom bar (강호 / 무공 / 행낭)
+    /// Root of the UI: builds the Canvas (1080x1920 portrait, safe-area aware), a five-tab bottom bar (강호 / 무공 / 행낭 / 뽑기 / 기록)
     /// and the full-screen battle overlay that stages open into.
     /// </summary>
     [RequireComponent(typeof(TabRouter))]
     public class MainScreen : MonoBehaviour
     {
-        private static readonly string[] TabNames = { "강호", "무공", "행낭", "뽑기" };
+        private static readonly string[] TabNames = { "강호", "무공", "행낭", "뽑기", "기록" };
         private const float TabBarHeight = 170f;
 
         private TabRouter _router;
         private Image[] _tabButtons;
         private WorldScreen _world;
+        private RecordScreen _record;
         private BattleScreen _battle;
 
         private void Start()
@@ -60,6 +61,8 @@ namespace BiRyeoDo.Game.UI
             panels[(int)TabRouter.Tab.Bag].AddComponent<BagScreen>().Build((RectTransform)panels[(int)TabRouter.Tab.Bag].transform);
             panels[(int)TabRouter.Tab.Gacha].AddComponent<GachaScreen>().Build((RectTransform)panels[(int)TabRouter.Tab.Gacha].transform);
 
+            _record = panels[(int)TabRouter.Tab.Record].AddComponent<RecordScreen>();
+
             BuildTabBar(safe);
 
             // Battle overlay sits above the tab bar and is only active during a stage.
@@ -88,7 +91,13 @@ namespace BiRyeoDo.Game.UI
                     _world.CloseOverlays();
                     _world.Refresh();
                 });
-            }, (title, lines, done) =>
+            }, () =>
+            {
+                Select((int)TabRouter.Tab.Record);
+                _record.OpenStatus();
+            });
+
+            _record.Build((RectTransform)panels[(int)TabRouter.Tab.Record].transform, (title, lines, done) =>
             {
                 overlay.gameObject.SetActive(true);
                 _battle.OpenStory(title, lines, () =>
@@ -121,7 +130,7 @@ namespace BiRyeoDo.Game.UI
             {
                 int index = i;
                 var btn = UiFactory.Button("Tab_" + TabNames[i], bar, new Vector2(i * w + 0.005f, 0.08f), new Vector2((i + 1) * w - 0.005f, 0.92f),
-                    TabNames[i], new Color(0f, 0f, 0f, 0f), () => Select(index), 48);
+                    TabNames[i], new Color(0f, 0f, 0f, 0f), () => Select(index), 44);
                 _tabButtons[i] = btn.GetComponent<Image>();
             }
         }
