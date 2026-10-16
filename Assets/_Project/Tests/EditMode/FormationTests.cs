@@ -110,4 +110,37 @@ public class FormationTests
         events = battle.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), dummy));
         return events.First(e => e.ActorId == attacker.Id && e.Kind == EventKind.Attack).Damage;
     }
+
+    private static Combatant Foe(string id)
+    {
+        return new Combatant(id, id, Team.Enemy, Stats(1000000, 1), null) { Moves = new List<EnemyMove> { EnemyMove.Attack("x", 0.1f) } };
+    }
+
+    [Test]
+    public void EnemyBackRowIsShieldedFromSingleTargetAttacksButNotFromAreaOnes()
+    {
+        var hero = new Combatant("player", "비류연", Team.Player, Stats(atk: 300), null);
+        var a = Foe("a"); var b = Foe("b"); var c = Foe("c");
+        var battle = new InteractiveBattle(new[] { hero }, new[] { a, b, c }, new SeededRandom(1));
+        Assert.IsFalse(a.BackRow);
+        Assert.IsFalse(b.BackRow);
+        Assert.IsTrue(c.BackRow, "the third enemy stands behind");
+        Assert.AreSame(a, battle.ResolveEnemyTarget(c), "aiming at the back row hits the front");
+        Assert.AreSame(a, battle.ResolveEnemyTarget(null), "no target given: the first front enemy");
+        a.Hp = 0; b.Hp = 0;
+        Assert.AreSame(c, battle.ResolveEnemyTarget(c));
+        Assert.AreSame(c, battle.FirstLivingEnemy());
+    }
+
+    [Test]
+    public void AreaAttacksReachTheEnemyBackRow()
+    {
+        var hero = new Combatant("player", "비류연", Team.Player, Stats(atk: 300), new[] { new SkillSpec { Id = "aoe", Name = "범위", Power = 1.0f, AllEnemies = true } });
+        var a = Foe("a"); var b = Foe("b"); var c = Foe("c");
+        var battle = new InteractiveBattle(new[] { hero }, new[] { a, b, c }, new SeededRandom(1));
+        battle.Begin();
+        var events = battle.PlayerAct(PlayerCommand.UseSkill(hero.Skills.First(s => s.Id == "aoe"), a));
+        Assert.IsTrue(events.Any(e => e.TargetId == "c" && e.Damage > 0));
+        Assert.Less(c.Hp, c.Stats.MaxHp);
+    }
 }

@@ -974,7 +974,8 @@ namespace BiRyeoDo.Game.UI
                 var card = new EnemyCard { Unit = data.CreateCombatant(data.Id + "#" + i), Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
                 card.Root = UiFactory.Rect("Card" + i, _cardsRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
                 card.Frame = UiFactory.Panel("Marker", card.Root, new Vector2(0.10f, 0.285f), new Vector2(0.90f, 0.305f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks the target
-                card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.05f, 0.88f), new Vector2(0.95f, 0.99f), data.Name, data.IsBoss ? 30 : 22, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
+                card.Unit.BackRow = n > Formation.MaxFront && i >= Formation.MaxFront;   // same rule as InteractiveBattle: the first two are in front
+                card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.05f, 0.88f), new Vector2(0.95f, 0.99f), data.Name + (card.Unit.BackRow ? " (뒷줄)" : ""), data.IsBoss ? 30 : 22, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
                 var art = ArtLibrary.Enemy(data.ArtKey);
                 if (art != null)
                 {
@@ -991,7 +992,24 @@ namespace BiRyeoDo.Game.UI
                 tapImg.color = new Color(0f, 0f, 0f, 0f);
                 tap.targetGraphic = tapImg;
                 var captured = card;
-                tap.onClick.AddListener(() => { if (captured.Unit.IsAlive) { _target = captured; RefreshCards(); } });
+                tap.onClick.AddListener(() =>
+                {
+                    if (!captured.Unit.IsAlive) return;
+                    if (captured.Unit.BackRow)
+                    {
+                        // Back-row enemies are shielded while a front-row enemy stands: aim at the front one instead.
+                        var front = _cards.Find(c => c.Unit.IsAlive && !c.Unit.BackRow);
+                        if (front != null)
+                        {
+                            _target = front;
+                            _log.text = "뒷줄의 적은 앞줄이 쓰러져야 노릴 수 있습니다. (전체 공격은 뒷줄까지 닿습니다)";
+                            RefreshCards();
+                            return;
+                        }
+                    }
+                    _target = captured;
+                    RefreshCards();
+                });
                 _cards.Add(card);
             }
         }
