@@ -20,7 +20,8 @@ namespace BiRyeoDo.Core
         public int QiCost;         // 내공
         public int SpiritCost;     // 기세: 비기 consume the whole gauge (100)
         public int Cooldown;       // own turns before reuse; 0 = every turn
-        public bool AllEnemies;    // hits every living enemy instead of the chosen one
+        public bool AllEnemies;    // hits every living enemy instead of the chosen one (front row only while a front-row enemy stands, see Formation)
+        public bool Snipe;         // single-target art that strikes the back row first
         public SkillEffect Effect;
         public float HealPct;      // for HealAlly
 

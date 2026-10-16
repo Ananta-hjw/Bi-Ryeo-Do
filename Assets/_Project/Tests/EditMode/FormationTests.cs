@@ -91,18 +91,6 @@ public class FormationTests
         return events.First(e => e.Kind == EventKind.Attack && e.TargetId == victim.Id && e.Damage > 0).Damage;
     }
 
-    [Test]
-    public void FrontRowHitsHarderThanBackRow()
-    {
-        var f = new Combatant("player", "비류연", Team.Player, Stats(atk: 300), null);
-        var b = new Combatant("x", "X", Team.Player, Stats(atk: 300), null) { BackRow = true };
-        var dummyF = new Combatant("d1", "허수아비", Team.Enemy, Stats(1000000, 1), null) { Moves = new List<EnemyMove> { EnemyMove.Attack("x", 0.1f) } };
-        var dummyB = new Combatant("d2", "허수아비", Team.Enemy, Stats(1000000, 1), null) { Moves = new List<EnemyMove> { EnemyMove.Attack("x", 0.1f) } };
-        int dealtFront = HitDamage(f, dummyF);
-        int dealtBack = HitDamage(b, dummyB);
-        Assert.Greater(dealtFront, dealtBack);
-    }
-
     private static int HitDamage(Combatant attacker, Combatant dummy)
     {
         var battle = new InteractiveBattle(new[] { attacker }, new[] { dummy }, new SeededRandom(1));
@@ -133,14 +121,69 @@ public class FormationTests
     }
 
     [Test]
-    public void AreaAttacksReachTheEnemyBackRow()
+    public void AreaAttacksOnlyReachTheFrontRowWhileItStands()
     {
         var hero = new Combatant("player", "비류연", Team.Player, Stats(atk: 300), new[] { new SkillSpec { Id = "aoe", Name = "범위", Power = 1.0f, AllEnemies = true } });
         var a = Foe("a"); var b = Foe("b"); var c = Foe("c");
         var battle = new InteractiveBattle(new[] { hero }, new[] { a, b, c }, new SeededRandom(1));
         battle.Begin();
         var events = battle.PlayerAct(PlayerCommand.UseSkill(hero.Skills.First(s => s.Id == "aoe"), a));
+        Assert.IsTrue(events.Any(e => e.TargetId == "a" && e.Damage > 0));
+        Assert.IsFalse(events.Any(e => e.TargetId == "c" && e.Damage > 0), "the back row is spared");
+        Assert.AreEqual(c.Stats.MaxHp, c.Hp);
+        a.Hp = 0; b.Hp = 0;   // no front row left: the area art reaches the back
+        hero.Qi = hero.Stats.MaxQi;
+        events = battle.PlayerAct(PlayerCommand.UseSkill(hero.Skills.First(s => s.Id == "aoe"), c));
         Assert.IsTrue(events.Any(e => e.TargetId == "c" && e.Damage > 0));
-        Assert.Less(c.Hp, c.Stats.MaxHp);
+    }
+
+    [Test]
+    public void SnipeArtsStrikeTheBackRowFirst()
+    {
+        var hero = new Combatant("player", "비류연", Team.Player, Stats(atk: 300), new[] { new SkillSpec { Id = "snipe", Name = "저격", Power = 1.0f, Snipe = true } });
+        var a = Foe("a"); var b = Foe("b"); var c = Foe("c");
+        var battle = new InteractiveBattle(new[] { hero }, new[] { a, b, c }, new SeededRandom(1));
+        Assert.AreSame(c, battle.ResolveEnemyTarget(a, true), "aiming at the front still hits the back");
+        Assert.AreSame(a, battle.ResolveEnemyTarget(a, false));
+        battle.Begin();
+        var events = battle.PlayerAct(PlayerCommand.UseSkill(hero.Skills.First(s => s.Id == "snipe"), a));
+        Assert.IsTrue(events.Any(e => e.TargetId == "c" && e.Damage > 0));
+        Assert.AreEqual(a.Stats.MaxHp, a.Hp);
+        c.Hp = 0;   // nobody behind: it hits the front
+        Assert.AreSame(a, battle.ResolveEnemyTarget(a, true));
+    }
+
+    [Test]
+    public void StunReachesAnyRowAndBossesAlwaysStandBehind()
+    {
+        var boss = Foe("boss"); boss.IsBoss = true;
+        var minion = Foe("m"); var minion2 = Foe("m2"); var minion3 = Foe("m3");
+        var hero = new Combatant("player", "비류연", Team.Player, Stats(), null);
+        var battle = new InteractiveBattle(new[] { hero }, new[] { boss, minion, minion2, minion3 }, new SeededRandom(1));
+        Assert.IsTrue(boss.BackRow);
+        Assert.IsFalse(minion.BackRow);
+        Assert.IsFalse(minion2.BackRow);
+        Assert.IsTrue(minion3.BackRow, "after two minions in front the rest stand behind");
+        Assert.AreSame(boss, battle.ResolveEnemyTarget(boss, false, true), "점혈 can interrupt the boss");
+        Assert.AreSame(minion, battle.ResolveEnemyTarget(boss), "an ordinary strike meant for the boss hits the front");
+    }
+
+    [Test]
+    public void DamageDealtDoesNotDependOnTheRow()
+    {
+        var f = new Combatant("player", "비류연", Team.Player, Stats(atk: 300), null);
+        var b = new Combatant("x", "X", Team.Player, Stats(atk: 300), null) { BackRow = true };
+        var dummyF = Foe("d1");
+        var dummyB = Foe("d2");
+        Assert.AreEqual(HitDamage(f, dummyF), HitDamage(b, dummyB));
+    }
+
+    [Test]
+    public void TheArtsMarkedAsSnipeAreTheThrowingAndPiercingOnes()
+    {
+        foreach (var id in new[] { EarlyGameContent.StarterArtId, "bi_roe_do", "seomroe", "isj_iljeom", "ny_simahn" })
+            Assert.IsTrue(EarlyGameContent.FindArt(id).Snipe, id);
+        Assert.IsTrue(EarlyGameContent.FindArt("bi_roe_do").ToSpec().Snipe);
+        Assert.IsFalse(EarlyGameContent.FindArt("pungsin").Snipe);
     }
 }

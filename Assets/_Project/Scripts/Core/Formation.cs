@@ -6,7 +6,7 @@ namespace BiRyeoDo.Core
     /// <summary>
     /// 진형: the party stands in a 앞줄 (front row, at most 2) and a 뒷줄 (back row, at most 2).
     /// Enemies' single-target attacks hit the front row first and only reach the back row once the front has fallen;
-    /// the back row takes less damage but also deals a little less, the front row hits a little harder.
+    /// the back row takes less damage. Area arts only reach the front row while it stands; 저격 arts strike the back row first. Damage dealt does not depend on the row.
     /// The player's choice is stored as the ids standing in the back row (<see cref="SaveData.BackRowIds"/>);
     /// without a custom choice an automatic formation puts the protagonist and the tankiest companions in front.
     /// </summary>
@@ -17,8 +17,21 @@ namespace BiRyeoDo.Core
 
         /// <summary>Damage taken by a back-row unit (single-target hits; there are no enemy area attacks).</summary>
         public const float BackTakenFactor = 0.75f;
-        /// <summary>Damage dealt by the front row / back row.</summary>
-        public const float FrontDealtFactor = 1.10f, BackDealtFactor = 0.90f;
+        /// <summary>Damage taken by a back-row enemy (milder than the party's, since every boss stands there).</summary>
+        public const float EnemyBackTakenFactor = 1.0f;
+        /// <summary>
+        /// Enemy rows: bosses always stand in the back row; the other enemies fill the front row first (two of them), the rest stand behind.
+        /// </summary>
+        public static void AssignEnemyRows(IList<Combatant> enemies)
+        {
+            int front = 0;
+            foreach (var e in enemies)
+            {
+                if (e.IsBoss) { e.BackRow = true; continue; }
+                if (front < MaxFront) { e.BackRow = false; front++; }
+                else e.BackRow = true;
+            }
+        }
 
         /// <summary>Front-line priority: 0 hero, 1 guards (태을천강벽), 2 fighters, 3 healers (stay back).</summary>
         private static int Priority(string id)

@@ -873,22 +873,28 @@ namespace BiRyeoDo.Game.UI
             return new Rect(x0, y0, CellW, CellH);
         }
 
-        /// <summary>The party's cell: the front row stands in the column nearest the enemies, the back row behind it; units of a row share its column top to bottom.</summary>
-        private Rect PartyCell(int index)
+        /// <summary>
+        /// The cell of one unit of a side: the front row stands in the column nearest the other side, the back row behind it;
+        /// units of a row share its column top to bottom (a single one is centred).
+        /// </summary>
+        private static Rect RowCell(IList<Combatant> units, int index, bool partySide)
         {
-            int n = _party.Count;
-            if (n == 1) return Cell(0, 1, true, false);
-            bool back = _party[index].BackRow;
+            bool back = units[index].BackRow;
             int k = 0, count = 0;
-            for (int j = 0; j < n; j++)
+            for (int j = 0; j < units.Count; j++)
             {
-                if (_party[j].BackRow != back) continue;
+                if (units[j].BackRow != back) continue;
                 if (j < index) k++;
                 count++;
             }
-            float x = back ? 0.01f : 0.24f;
+            float x = partySide ? (back ? 0.01f : 0.24f) : (back ? 0.77f : 0.54f);
             float y = count == 1 ? (RowTopY0 + RowBotY0) / 2f : (k == 0 ? RowTopY0 : RowBotY0);
             return new Rect(x, y, CellW, CellH);
+        }
+
+        private Rect PartyCell(int index)
+        {
+            return _party.Count == 1 ? Cell(0, 1, true, false) : RowCell(_party, index, true);
         }
 
         private void BuildParty(StageData stage)
@@ -967,14 +973,16 @@ namespace BiRyeoDo.Game.UI
         {
             ClearCards();
             int n = enemies.Length;
+            var units = new List<Combatant>();
+            for (int i = 0; i < n; i++) units.Add(enemies[i].CreateCombatant(enemies[i].Id + "#" + i));
+            Formation.AssignEnemyRows(units);   // bosses stand behind, the first two others in front
             for (int i = 0; i < n; i++)
             {
                 var data = enemies[i];
-                var cell = Cell(i, n, false, data.IsBoss);
-                var card = new EnemyCard { Unit = data.CreateCombatant(data.Id + "#" + i), Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
+                var cell = n == 1 ? Cell(0, 1, false, data.IsBoss) : RowCell(units, i, false);
+                var card = new EnemyCard { Unit = units[i], Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
                 card.Root = UiFactory.Rect("Card" + i, _cardsRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
                 card.Frame = UiFactory.Panel("Marker", card.Root, new Vector2(0.10f, 0.285f), new Vector2(0.90f, 0.305f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks the target
-                card.Unit.BackRow = n > Formation.MaxFront && i >= Formation.MaxFront;   // same rule as InteractiveBattle: the first two are in front
                 card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.05f, 0.88f), new Vector2(0.95f, 0.99f), data.Name + (card.Unit.BackRow ? " (뒷줄)" : ""), data.IsBoss ? 30 : 22, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
                 var art = ArtLibrary.Enemy(data.ArtKey);
                 if (art != null)
@@ -1281,7 +1289,8 @@ namespace BiRyeoDo.Game.UI
             else
             {
                 parts.Add("위력 ×" + s.Power.ToString("0.0") + (s.Hits > 1 ? " · " + s.Hits + "타" : ""));
-                if (s.AllEnemies) parts.Add("적 전체");
+                if (s.AllEnemies) parts.Add("적 전체 (앞줄이 서 있으면 앞줄만)");
+                if (s.Snipe) parts.Add("저격 (뒷줄 우선)");
                 if (s.Effect == SkillEffect.Stun) parts.Add("굳힘 (기를 모으는 적의 강타를 끊습니다)");
             }
             parts.Add(s.SpiritCost > 0 ? "기세 " + s.SpiritCost : s.QiCost > 0 ? "내공 " + s.QiCost : "내공 0");

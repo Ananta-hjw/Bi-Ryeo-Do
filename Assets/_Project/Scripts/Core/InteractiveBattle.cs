@@ -76,7 +76,7 @@ namespace BiRyeoDo.Core
         {
             foreach (var p in party) { _units.Add(p); _party.Add(p); }
             foreach (var e in enemies) { _units.Add(e); _enemies.Add(e); }
-            for (int i = Formation.MaxFront; i < _enemies.Count; i++) _enemies[i].BackRow = true;   // the first two stand in front, the rest behind
+            Formation.AssignEnemyRows(_enemies);   // bosses stand behind; the first two others in front
             if (_party.Count == 0) throw new ArgumentException("Party is empty.");
             _rng = rng;
         }
@@ -159,9 +159,15 @@ namespace BiRyeoDo.Core
             return null;
         }
 
-        /// <summary>The enemy a single-target attack really hits: back-row enemies are shielded while any front-row enemy still stands.</summary>
-        public Combatant ResolveEnemyTarget(Combatant wanted)
+        /// <summary>The enemy a single-target attack really hits: back-row enemies are shielded while any front-row enemy still stands; a 저격 art goes for the back row first.</summary>
+        public Combatant ResolveEnemyTarget(Combatant wanted, bool snipe = false, bool anyRow = false)
         {
+            if (anyRow && wanted != null && wanted.IsAlive && wanted.Team == Team.Enemy) return wanted;   // 점혈 reaches whoever it is aimed at
+            if (snipe)
+            {
+                if (wanted != null && wanted.IsAlive && wanted.Team == Team.Enemy && wanted.BackRow) return wanted;
+                foreach (var e in _enemies) if (e.IsAlive && e.BackRow) return e;
+            }
             if (wanted == null || !wanted.IsAlive || wanted.Team != Team.Enemy) return FirstLivingEnemy();
             if (wanted.BackRow)
                 foreach (var e in _enemies) if (e.IsAlive && !e.BackRow) return e;
@@ -269,10 +275,16 @@ namespace BiRyeoDo.Core
             }
 
             var targets = new List<Combatant>();
-            if (skill.AllEnemies) { foreach (var e in _enemies) if (e.IsAlive) targets.Add(e); }
+            if (skill.AllEnemies)
+            {
+                // Area arts hit the front row only while it stands; with no front row left they hit the back row.
+                bool frontAlive = false;
+                foreach (var e in _enemies) if (e.IsAlive && !e.BackRow) frontAlive = true;
+                foreach (var e in _enemies) if (e.IsAlive && (!frontAlive || !e.BackRow)) targets.Add(e);
+            }
             else
             {
-                var t = ResolveEnemyTarget(cmd.Target);
+                var t = ResolveEnemyTarget(cmd.Target, skill.Snipe, skill.Effect == SkillEffect.Stun);
                 if (t != null) targets.Add(t);
             }
 
@@ -292,8 +304,7 @@ namespace BiRyeoDo.Core
         {
             bool crit = _rng.NextDouble() < actor.Stats.CritRate;
             int dmg = BattleEngine.CalcDamage(actor.Stats, t.Stats, skill, crit);
-            dmg = Math.Max(1, (int)Math.Round(dmg * (actor.BackRow ? Formation.BackDealtFactor : Formation.FrontDealtFactor)));
-            if (t.BackRow) dmg = Math.Max(1, (int)Math.Round(dmg * Formation.BackTakenFactor));
+            if (t.BackRow) dmg = Math.Max(1, (int)Math.Round(dmg * (t.Team == Team.Enemy ? Formation.EnemyBackTakenFactor : Formation.BackTakenFactor)));
             if (_harmonyBoost) dmg = (int)Math.Round(dmg * HarmonyDamageFactor);
             t.Hp = Math.Max(0, t.Hp - dmg);
             if (actor.Lifesteal > 0f && actor.IsAlive) actor.Hp = Math.Min(actor.Stats.MaxHp, actor.Hp + (int)Math.Round(dmg * actor.Lifesteal));
@@ -321,7 +332,7 @@ namespace BiRyeoDo.Core
         {
             var spec = cmd.Skill;
             var partner = cmd.Partner;
-            var t = ResolveEnemyTarget(cmd.Target);
+            var t = ResolveEnemyTarget(cmd.Target, false, spec.Effect == SkillEffect.Stun);
             if (t == null) return;   // nothing to hit: nothing is paid
             actor.Spirit -= JointSpiritCost;
             partner.Gauge -= GaugeThreshold;   // the partner spends their next action on this strike
@@ -465,7 +476,6 @@ namespace BiRyeoDo.Core
                 {
                     ev.IsCrit = _rng.NextDouble() < enemy.Stats.CritRate;
                     int dmg = BattleEngine.CalcDamage(enemy.Stats, target.Stats, spec, ev.IsCrit);
-                    dmg = Math.Max(1, (int)Math.Round(dmg * (enemy.BackRow ? Formation.BackDealtFactor : Formation.FrontDealtFactor)));
                     if (target.BackRow) dmg = Math.Max(1, (int)Math.Round(dmg * Formation.BackTakenFactor));
                     if (IsGuarded(target)) { dmg = Math.Max(1, (int)Math.Round(dmg * GuardDamageFactor)); ev.Guarded = true; }
                     target.Hp = Math.Max(0, target.Hp - dmg);
