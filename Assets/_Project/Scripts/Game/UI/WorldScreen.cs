@@ -678,31 +678,54 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Button("Close", _partyOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _partyOverlay.gameObject.SetActive(false); Refresh(); }, 36);
         }
 
-        /// <summary>진형: the fighting party in a row of buttons showing 앞줄/뒷줄; tapping one moves that member to the other row.</summary>
+        private string _placeSelected;   // the member picked in the placement grid (tap a tile next to move or swap)
+
+        /// <summary>진형: a 3 x 3 grid of our half of the board (the right column faces the enemy); tap a member, then a tile, to move or swap.</summary>
         private void BuildFormationBlock(SaveData save, List<CompanionData> active)
         {
             var ids = new List<string> { Formation.HeroId };
             var names = new Dictionary<string, string> { { Formation.HeroId, "비류연" } };
             foreach (var c in active) { ids.Add(c.Id); names[c.Id] = c.Name; }
-            var back = Formation.BackSet(save, ids);
-            UiFactory.Label("FormTitle", _partyOverlay, new Vector2(0.05f, 0.285f), new Vector2(0.60f, 0.335f), "진형 (눌러서 앞줄/뒷줄 바꾸기)", 28, UiFactory.Gold, TextAnchor.MiddleLeft);
-            UiFactory.Button("FormAuto", _partyOverlay, new Vector2(0.64f, 0.285f), new Vector2(0.95f, 0.335f), save.FormationCustom ? "자동 배치" : "자동 배치 중", save.FormationCustom ? UiFactory.InkSoft : UiFactory.Gold, () => { Formation.Reset(save); GameManager.Instance.SaveNow(); OpenPartyOverlay(); }, 24);
-            UiFactory.Label("FormHint", _partyOverlay, new Vector2(0.05f, 0.095f), new Vector2(0.95f, 0.135f), "앞줄은 먼저 맞고 더 세게 치며, 뒷줄은 앞줄이 쓰러져야 맞고 덜 아픈 대신 약하게 칩니다.", 20, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
-            float w = 0.9f / Math.Max(1, ids.Count);
-            for (int i = 0; i < ids.Count; i++)
-            {
-                string id = ids[i];
-                bool isBack = back.Contains(id);
-                float x0 = 0.05f + i * w;
-                var btn = UiFactory.Button("Row" + i, _partyOverlay, new Vector2(x0 + 0.005f, 0.145f), new Vector2(x0 + w - 0.005f, 0.275f), names[id] + "\n" + Formation.RowName(isBack), isBack ? new Color(0.25f, 0.40f, 0.55f, 1f) : UiFactory.Red, () => MoveInFormation(ids, id), 26);
-            }
+            var map = Formation.Resolve(save, ids);
+            if (_placeSelected != null && !map.ContainsKey(_placeSelected)) _placeSelected = null;
+            UiFactory.Label("FormTitle", _partyOverlay, new Vector2(0.05f, 0.335f), new Vector2(0.60f, 0.385f), "진형 (인물을 누르고 칸을 누릅니다)", 26, UiFactory.Gold, TextAnchor.MiddleLeft);
+            UiFactory.Button("FormAuto", _partyOverlay, new Vector2(0.64f, 0.335f), new Vector2(0.95f, 0.385f), save.PlacementCustom ? "자동 배치" : "자동 배치 중", save.PlacementCustom ? UiFactory.InkSoft : UiFactory.Gold, () => { Formation.Reset(save); _placeSelected = null; GameManager.Instance.SaveNow(); OpenPartyOverlay(); }, 24);
+            UiFactory.Label("FormHint", _partyOverlay, new Vector2(0.05f, 0.085f), new Vector2(0.95f, 0.125f), "오른쪽 열이 적과 가장 가깝습니다. 전투 중에는 한 턴에 두 칸까지 걷고 행동할 수 있습니다.", 20, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+            float gx0 = 0.05f, gx1 = 0.95f, gy0 = 0.13f, gy1 = 0.33f;
+            float cw = (gx1 - gx0) / Board.PartyCols, ch = (gy1 - gy0) / Board.Rows;
+            for (int col = 0; col < Board.PartyCols; col++)
+                for (int row = 0; row < Board.Rows; row++)
+                {
+                    string here = null;
+                    foreach (var kv in map) if (kv.Value[0] == col && kv.Value[1] == row) here = kv.Key;
+                    float x0 = gx0 + col * cw, y1 = gy1 - row * ch;
+                    bool selected = here != null && here == _placeSelected;
+                    var tint = here == null ? new Color(0.28f, 0.50f, 0.85f, 0.25f) : selected ? UiFactory.Gold : UiFactory.Ink;
+                    int cc = col, rr = row;
+                    var btn = UiFactory.Button("Tile" + col + rr, _partyOverlay, new Vector2(x0 + 0.004f, y1 - ch + 0.003f), new Vector2(x0 + cw - 0.004f, y1 - 0.003f), here == null ? "" : names[here], tint, () => OnPlacementTile(ids, cc, rr), 26);
+                }
         }
 
-        private void MoveInFormation(List<string> ids, string id)
+        private void OnPlacementTile(List<string> ids, int col, int row)
         {
             var save = GameManager.Instance.Save;
-            string error;
-            if (Formation.Move(save, ids, id, out error)) GameManager.Instance.SaveNow();
+            var map = Formation.Resolve(save, ids);
+            string here = null;
+            foreach (var kv in map) if (kv.Value[0] == col && kv.Value[1] == row) here = kv.Key;
+            if (_placeSelected == null)
+            {
+                _placeSelected = here;   // pick up a member (an empty tile selects nothing)
+            }
+            else if (here == _placeSelected)
+            {
+                _placeSelected = null;
+            }
+            else
+            {
+                string error;
+                if (Formation.SetTile(save, ids, _placeSelected, col, row, out error)) GameManager.Instance.SaveNow();
+                _placeSelected = null;
+            }
             OpenPartyOverlay();
         }
 

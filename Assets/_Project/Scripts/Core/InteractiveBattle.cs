@@ -12,6 +12,16 @@ namespace BiRyeoDo.Core
         public Combatant Target;     // single-target skills; null/dead falls back to the first living enemy
         public ItemData Item;        // for Kind == Item (a consumable; the caller removes it from the bag)
         public Combatant Partner;    // for Kind == Joint: the ally who strikes together with the protagonist (Skill holds the joint spec)
+        public bool HasMove;         // walk to (MoveCol, MoveRow) first, then act from there
+        public int MoveCol, MoveRow;
+
+        /// <summary>The same command preceded by a walk to the given tile (up to <see cref="Board.MoveRange"/> tiles).</summary>
+        public PlayerCommand WithMove(int col, int row)
+        {
+            var c = this;
+            c.HasMove = true; c.MoveCol = col; c.MoveRow = row;
+            return c;
+        }
 
         public static PlayerCommand UseSkill(SkillSpec skill, Combatant target)
         {
@@ -76,9 +86,13 @@ namespace BiRyeoDo.Core
         {
             foreach (var p in party) { _units.Add(p); _party.Add(p); }
             foreach (var e in enemies) { _units.Add(e); _enemies.Add(e); }
-            Formation.AssignEnemyRows(_enemies);   // bosses stand behind; the first two others in front
             if (_party.Count == 0) throw new ArgumentException("Party is empty.");
             _rng = rng;
+            // Anyone without a tile gets the default one (the UI places the party from the saved formation before this).
+            bool unplaced = false;
+            foreach (var p in _party) if (p.Col < 0) unplaced = true;
+            if (unplaced) Formation.Apply(_party, null);
+            Formation.PlaceEnemies(_enemies);
         }
 
         public bool AnyEnemyAlive { get { foreach (var e in _enemies) if (e.IsAlive) return true; return false; } }
@@ -151,29 +165,53 @@ namespace BiRyeoDo.Core
                 && _party.Contains(partner) && Current.Spirit >= JointSpiritCost && AnyEnemyAlive;
         }
 
-        /// <summary>The first living enemy, front row first.</summary>
         public Combatant FirstLivingEnemy()
         {
-            foreach (var e in _enemies) if (e.IsAlive && !e.BackRow) return e;
             foreach (var e in _enemies) if (e.IsAlive) return e;
             return null;
         }
 
-        /// <summary>
-        /// The enemy a single-target attack hits: the one the player picked, in any row. Without a (living) pick it falls back to the
-        /// default: a 저격 art goes for the back row first, anything else for the front row first.
-        /// </summary>
-        public Combatant ResolveEnemyTarget(Combatant wanted, bool snipe = false)
+        // ------------------------------------------------------------------ board
+
+        /// <summary>The living unit standing on a tile, or null.</summary>
+        public Combatant UnitAt(int col, int row)
         {
-            if (wanted != null && wanted.IsAlive && wanted.Team == Team.Enemy) return wanted;
-            return DefaultEnemyTarget(snipe);
+            foreach (var u in _units) if (u.IsAlive && u.Col == col && u.Row == row) return u;
+            return null;
         }
 
-        /// <summary>The target a skill aims at before the player picks one (the UI preselects it).</summary>
-        public Combatant DefaultEnemyTarget(bool snipe)
+        /// <summary>A unit may walk to any free tile within <see cref="Board.MoveRange"/> (it may also stay where it is).</summary>
+        public bool CanMoveTo(Combatant unit, int col, int row)
         {
-            if (snipe) foreach (var e in _enemies) if (e.IsAlive && e.BackRow) return e;
-            return FirstLivingEnemy();
+            if (!Board.InBounds(col, row)) return false;
+            if (col == unit.Col && row == unit.Row) return true;
+            return Board.Dist(unit.Col, unit.Row, col, row) <= Board.MoveRange && UnitAt(col, row) == null;
+        }
+
+        /// <summary>Living enemies within <paramref name="range"/> tiles of a tile, nearest first.</summary>
+        public List<Combatant> EnemiesInRange(int col, int row, int range)
+        {
+            var list = new List<Combatant>();
+            foreach (var e in _enemies) if (e.IsAlive && Board.Dist(col, row, e.Col, e.Row) <= range) list.Add(e);
+            list.Sort((a, b) => Board.Dist(col, row, a.Col, a.Row).CompareTo(Board.Dist(col, row, b.Col, b.Row)));   // List.Sort is unstable, ties are harmless here
+            return list;
+        }
+
+        /// <summary>Attacks and area arts need a target; evade, party guard and healing do not.</summary>
+        public static bool NeedsTarget(SkillSpec skill) { return skill.Effect == SkillEffect.None || skill.Effect == SkillEffect.Stun; }
+
+        /// <summary>True when the art can be used from that tile (arts without a target always can).</summary>
+        public bool CanReach(SkillSpec skill, int col, int row)
+        {
+            return !NeedsTarget(skill) || EnemiesInRange(col, row, skill.Range).Count > 0;
+        }
+
+        /// <summary>The enemy a single-target art really hits from a tile: the player's pick if it is in range, otherwise the nearest one in range, otherwise null.</summary>
+        public Combatant ResolveTarget(Combatant wanted, SkillSpec skill, int col, int row)
+        {
+            if (wanted != null && wanted.IsAlive && wanted.Team == Team.Enemy && Board.Dist(col, row, wanted.Col, wanted.Row) <= skill.Range) return wanted;
+            var near = EnemiesInRange(col, row, skill.Range);
+            return near.Count > 0 ? near[0] : null;
         }
 
         /// <summary>Resolves the current member's action, then every enemy turn up to the next party turn.</summary>
@@ -184,10 +222,23 @@ namespace BiRyeoDo.Core
             // Validate everything before touching any state, so a rejected command leaves the turn intact.
             if (cmd.Kind == CommandKind.Joint && (cmd.Skill == null || !CanJoint(cmd.Partner))) throw new InvalidOperationException("Joint attack unavailable.");
             if (cmd.Kind == CommandKind.Skill && (cmd.Skill == null || !Current.CanUse(cmd.Skill))) throw new InvalidOperationException("Skill unavailable.");
+            int fromCol = Current.Col, fromRow = Current.Row, atCol = fromCol, atRow = fromRow;
+            if (cmd.HasMove)
+            {
+                if (!CanMoveTo(Current, cmd.MoveCol, cmd.MoveRow)) throw new InvalidOperationException("Cannot walk there.");
+                atCol = cmd.MoveCol; atRow = cmd.MoveRow;
+            }
+            if (cmd.Kind == CommandKind.Skill && !CanReach(cmd.Skill, atCol, atRow)) throw new InvalidOperationException("Out of range.");
+            if (cmd.Kind == CommandKind.Joint && EnemiesInRange(atCol, atRow, cmd.Skill.Range).Count == 0) throw new InvalidOperationException("Out of range.");
             var actor = Current;
             var events = new List<BattleEvent>();
             Current = null;
             PartyActions++;
+            if (atCol != fromCol || atRow != fromRow)
+            {
+                actor.Col = atCol; actor.Row = atRow;
+                events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = "move", Kind = EventKind.Move, FromCol = fromCol, FromRow = fromRow, ToCol = atCol, ToRow = atRow, TargetHpAfter = actor.Hp });
+            }
             _harmonyBoost = false;
             if (Trial != null && Trial.Kind == TrialKind.Harmony)
             {
@@ -277,16 +328,10 @@ namespace BiRyeoDo.Core
             }
 
             var targets = new List<Combatant>();
-            if (skill.AllEnemies)
-            {
-                // Area arts hit the front row only while it stands; with no front row left they hit the back row.
-                bool frontAlive = false;
-                foreach (var e in _enemies) if (e.IsAlive && !e.BackRow) frontAlive = true;
-                foreach (var e in _enemies) if (e.IsAlive && (!frontAlive || !e.BackRow)) targets.Add(e);
-            }
+            if (skill.AllEnemies) targets = EnemiesInRange(actor.Col, actor.Row, skill.Range);
             else
             {
-                var t = ResolveEnemyTarget(cmd.Target, skill.Snipe);
+                var t = ResolveTarget(cmd.Target, skill, actor.Col, actor.Row);
                 if (t != null) targets.Add(t);
             }
 
@@ -306,7 +351,6 @@ namespace BiRyeoDo.Core
         {
             bool crit = _rng.NextDouble() < actor.Stats.CritRate;
             int dmg = BattleEngine.CalcDamage(actor.Stats, t.Stats, skill, crit);
-            if (t.BackRow) dmg = Math.Max(1, (int)Math.Round(dmg * (t.Team == Team.Enemy ? Formation.EnemyBackTakenFactor : Formation.BackTakenFactor)));
             if (_harmonyBoost) dmg = (int)Math.Round(dmg * HarmonyDamageFactor);
             t.Hp = Math.Max(0, t.Hp - dmg);
             if (actor.Lifesteal > 0f && actor.IsAlive) actor.Hp = Math.Min(actor.Stats.MaxHp, actor.Hp + (int)Math.Round(dmg * actor.Lifesteal));
@@ -334,14 +378,14 @@ namespace BiRyeoDo.Core
         {
             var spec = cmd.Skill;
             var partner = cmd.Partner;
-            var t = ResolveEnemyTarget(cmd.Target);
+            var t = ResolveTarget(cmd.Target, spec, actor.Col, actor.Row);
             if (t == null) return;   // nothing to hit: nothing is paid
             actor.Spirit -= JointSpiritCost;
             partner.Gauge -= GaugeThreshold;   // the partner spends their next action on this strike
 
             var first = DealHit(actor, t, spec, 0, 1, false, events);
             first.Joint = true;
-            var next = t.IsAlive ? t : FirstLivingEnemy();
+            var next = t.IsAlive ? t : ResolveTarget(null, spec, actor.Col, actor.Row);
             if (next != null) DealHit(partner, next, spec, 0, 1, spec.Effect == SkillEffect.Stun, events).Joint = true;
 
             switch (spec.Effect)
@@ -415,15 +459,37 @@ namespace BiRyeoDo.Core
             return events;
         }
 
-        /// <summary>A random living party member; the front row is hit first, the back row only once no front member is left standing.</summary>
-        private Combatant RandomLivingMember()
+        /// <summary>The living party member nearest to an enemy (ties: the more wounded one, then list order).</summary>
+        private Combatant NearestLivingMember(Combatant from)
         {
-            var alive = new List<Combatant>();
-            foreach (var m in _party) if (m.IsAlive && !m.BackRow) alive.Add(m);
-            if (alive.Count == 0) foreach (var m in _party) if (m.IsAlive) alive.Add(m);
-            if (alive.Count == 0) return null;
-            int i = (int)(_rng.NextDouble() * alive.Count);
-            return alive[Math.Min(i, alive.Count - 1)];
+            Combatant best = null;
+            int bestDist = int.MaxValue;
+            foreach (var m in _party)
+            {
+                if (!m.IsAlive) continue;
+                int d = Board.Dist(from, m);
+                if (best == null || d < bestDist || (d == bestDist && (float)m.Hp / m.Stats.MaxHp < (float)best.Hp / best.Stats.MaxHp)) { best = m; bestDist = d; }
+            }
+            return best;
+        }
+
+        /// <summary>Walks an enemy up to <see cref="Board.MoveRange"/> tiles towards its target (only when the target is out of reach); adds a Move event.</summary>
+        private void MoveToward(Combatant enemy, Combatant target, List<BattleEvent> events)
+        {
+            int cur = Board.Dist(enemy, target);
+            if (cur <= enemy.Range) return;
+            int bestC = enemy.Col, bestR = enemy.Row, bestD = cur, bestM = Math.Abs(enemy.Col - target.Col) + Math.Abs(enemy.Row - target.Row);
+            for (int c = 0; c < Board.Cols; c++)
+                for (int r = 0; r < Board.Rows; r++)
+                {
+                    if (!CanMoveTo(enemy, c, r) || (c == enemy.Col && r == enemy.Row)) continue;
+                    int d = Board.Dist(c, r, target.Col, target.Row);
+                    int m = Math.Abs(c - target.Col) + Math.Abs(r - target.Row);
+                    if (d < bestD || (d == bestD && m < bestM)) { bestC = c; bestR = r; bestD = d; bestM = m; }
+                }
+            if (bestC == enemy.Col && bestR == enemy.Row) return;
+            events.Add(new BattleEvent { Turn = Turn, ActorId = enemy.Id, TargetId = enemy.Id, SkillId = "move", Kind = EventKind.Move, FromCol = enemy.Col, FromRow = enemy.Row, ToCol = bestC, ToRow = bestR, TargetHpAfter = enemy.Hp });
+            enemy.Col = bestC; enemy.Row = bestR;
         }
 
         private void EnemyAct(Combatant enemy, List<BattleEvent> events)
@@ -437,27 +503,31 @@ namespace BiRyeoDo.Core
             }
 
             var move = enemy.PeekMove();
-            enemy.MoveIndex++;
 
             if (move.Charge)
             {
+                enemy.MoveIndex++;
                 enemy.Charging = true;
-                enemy.ChargeTarget = RandomLivingMember();
+                enemy.ChargeTarget = NearestLivingMember(enemy);
                 string who = enemy.ChargeTarget != null ? " → " + enemy.ChargeTarget.Name : "";
                 events.Add(new BattleEvent { Turn = Turn, ActorId = enemy.Id, TargetId = enemy.ChargeTarget != null ? enemy.ChargeTarget.Id : enemy.Id, SkillId = move.Name, Kind = EventKind.Charge, TargetHpAfter = enemy.Hp, Message = enemy.Name + "이(가) " + move.Name + "!" + who });
                 return;
             }
 
+            var target = enemy.Charging && enemy.ChargeTarget != null && enemy.ChargeTarget.IsAlive ? enemy.ChargeTarget : NearestLivingMember(enemy);
+            if (target == null) return;
+            MoveToward(enemy, target, events);
+            if (Board.Dist(enemy, target) > enemy.Range) return;   // it only walked this turn; the script (and any wind-up) waits
+
+            enemy.MoveIndex++;
             bool heavy = enemy.Charging;
             if (heavy && Trial != null && Trial.Kind == TrialKind.Lifeline)
             {
                 LifelinesCut++;
                 if (LifelinesCut >= Trial.Limit) TrialFailed = true;
             }
-            var target = enemy.Charging && enemy.ChargeTarget != null && enemy.ChargeTarget.IsAlive ? enemy.ChargeTarget : RandomLivingMember();
             enemy.Charging = false;
             enemy.ChargeTarget = null;
-            if (target == null) return;
 
             var spec = new SkillSpec { Id = move.Name, Name = move.Name, Power = move.Power };
             int hits = Math.Max(1, move.Hits);
@@ -478,7 +548,6 @@ namespace BiRyeoDo.Core
                 {
                     ev.IsCrit = _rng.NextDouble() < enemy.Stats.CritRate;
                     int dmg = BattleEngine.CalcDamage(enemy.Stats, target.Stats, spec, ev.IsCrit);
-                    if (target.BackRow) dmg = Math.Max(1, (int)Math.Round(dmg * Formation.BackTakenFactor));
                     if (IsGuarded(target)) { dmg = Math.Max(1, (int)Math.Round(dmg * GuardDamageFactor)); ev.Guarded = true; }
                     target.Hp = Math.Max(0, target.Hp - dmg);
                     if (target.Hp == 0) TryRescue(target, ev);

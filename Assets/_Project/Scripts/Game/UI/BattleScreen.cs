@@ -79,7 +79,6 @@ namespace BiRyeoDo.Game.UI
         private InteractiveBattle _battle;
         private List<Combatant> _party = new List<Combatant>();
         private EnemyCard _target;
-        private bool _targetChosen;   // the player tapped an enemy this turn (otherwise 저격 arts pick the back row themselves)
 
         private bool _hasCommand, _panelDone, _retry, _leave, _fled, _itemMode, _jointMode, _drawn;
         private readonly List<Combatant> _jointPartners = new List<Combatant>();
@@ -98,7 +97,7 @@ namespace BiRyeoDo.Game.UI
             _backdropImage = UiFactory.Panel("StageArt", root, Vector2.zero, Vector2.one, new Color(1f, 1f, 1f, 0f));
             _backdropImage.preserveAspect = false;
             UiFactory.Panel("Dim", root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.35f)); // keeps text readable over artwork
-            BuildRowBands(root);
+            BuildBoard(root);
 
             // Top bar
             UiFactory.Panel("TopBar", root, new Vector2(0f, 0.945f), new Vector2(1f, 1f), UiFactory.Ink);
@@ -747,20 +746,21 @@ namespace BiRyeoDo.Game.UI
             {
                 if (_target == null || !_target.Unit.IsAlive) _target = _cards.Find(c => c.Unit.IsAlive);
                 _itemMode = false;
-                _targetChosen = false;
+                if (_battle.Current != null) { _planCol = _battle.Current.Col; _planRow = _battle.Current.Row; }
                 _jointMode = false;
                 if (turnLimit > 0) _stageLabel.text = label + "   " + actions + "/" + turnLimit + "턴";
                 else if (trial != null) _stageLabel.text = label + "   " + _battle.TrialStatus;
                 RefreshCards();
                 RefreshParty();
                 RefreshCommands();
+                RefreshBoard();
                 RefreshTurnOrder();
 
                 // First-time hints (battle controls, 합공) appear right when they become relevant.
                 if (!_fled && HelpPanel.Instance != null)
                 {
                     var save0 = GameManager.Instance.Save;
-                    string hint = !Tutorial.IsDone(save0, "battle") ? "battle" : _jointPartners.Count > 0 && !Tutorial.IsDone(save0, "joint") ? "joint" : null;
+                    string hint = !Tutorial.IsDone(save0, "battle") ? "battle" : !Tutorial.IsDone(save0, "move") ? "move" : _jointPartners.Count > 0 && !Tutorial.IsDone(save0, "joint") ? "joint" : null;
                     if (hint != null) yield return HelpPanel.Instance.ShowOnce(hint);
                 }
 
@@ -851,86 +851,98 @@ namespace BiRyeoDo.Game.UI
             return party;
         }
 
-        private static readonly Color FrontTint = new Color(0.80f, 0.28f, 0.22f, 1f), BackTint = new Color(0.28f, 0.50f, 0.85f, 1f);
+        // ------------------------------------------------------------------ the board (6 x 3 tiles, our side left, the enemies right)
 
-        /// <summary>
-        /// Four floor columns behind the figures make the rows readable at a glance: warm red = 앞줄 (nearest the enemy line),
-        /// cool blue = 뒷줄, each with a caption. Our side is the left half, the enemies the right half.
-        /// </summary>
-        private void BuildRowBands(RectTransform root)
+        private const float FieldTop = 0.90f, FieldBottom = 0.345f;
+        private static readonly Color PartyTile = new Color(0.28f, 0.50f, 0.85f, 0.13f), EnemyTile = new Color(0.80f, 0.28f, 0.22f, 0.13f);
+
+        private sealed class TileView
         {
-            const float y0 = 0.345f, y1 = 0.90f;
-            AddBand(root, "PartyBack", 0.005f, 0.235f, y0, y1, BackTint, "뒷줄");
-            AddBand(root, "PartyFront", 0.235f, 0.465f, y0, y1, FrontTint, "앞줄");
-            AddBand(root, "EnemyFront", 0.535f, 0.765f, y0, y1, FrontTint, "앞줄");
-            AddBand(root, "EnemyBack", 0.765f, 0.995f, y0, y1, BackTint, "뒷줄");
+            public Image Base, Hi;
         }
 
-        private static void AddBand(RectTransform root, string name, float x0, float x1, float y0, float y1, Color tint, string caption)
+        private readonly TileView[,] _tiles = new TileView[Board.Cols, Board.Rows];
+        private int _planCol = -1, _planRow = -1;   // where the acting member plans to stand this turn (walking is part of the command)
+
+        /// <summary>The screen rectangle (fractions of the battle root) of a board tile.</summary>
+        private static Rect TileCell(int col, int row)
         {
-            var fill = tint; fill.a = 0.16f;
-            var band = UiFactory.Panel(name, root, new Vector2(x0, y0), new Vector2(x1, y1), fill);
-            var edge = tint; edge.a = 0.55f;
-            UiFactory.Panel(name + "Edge", band.transform, new Vector2(0f, 0.985f), new Vector2(1f, 1f), edge);   // top rim in the row colour
-            var cap = tint; cap.a = 0.95f;
-            UiFactory.Label(name + "Caption", band.transform, new Vector2(0f, 0.935f), new Vector2(1f, 0.985f), caption, 22, cap);
+            float rowH = (FieldTop - FieldBottom) / Board.Rows;
+            return new Rect(col / (float)Board.Cols, FieldTop - (row + 1) * rowH, 1f / Board.Cols, rowH);
         }
 
-        /// <summary>A small coloured 앞/뒤 chip in the corner of a unit's panel.</summary>
-        private static void AddRowChip(RectTransform panelRoot, bool back)
+        private static Vector2 TileCenter(int col, int row)
         {
-            var tint = back ? BackTint : FrontTint;
-            var chip = UiFactory.Panel("RowChip", panelRoot, new Vector2(0.02f, 0.885f), new Vector2(0.20f, 0.995f), tint);
-            UiFactory.Label("RowChipText", chip.transform, Vector2.zero, Vector2.one, back ? "뒤" : "앞", 20, Color.white);
+            var c = TileCell(col, row);
+            return new Vector2(c.x + c.width / 2f, c.y + c.height / 2f);
         }
 
-        // Side-view formations: our party on the left half, the enemies on the right half (each a 2-column grid).
-        private const float CellW = 0.22f, CellH = 0.265f, RowTopY0 = 0.625f, RowBotY0 = 0.350f;
-
-        /// <summary>Cell rectangle (x0, y0, x1, y1) of the i-th unit of n in a formation; partySide = left half.</summary>
-        private static Rect Cell(int i, int n, bool partySide, bool bigSingle)
+        private static void PlaceAtCell(RectTransform rt, Rect cell)
         {
-            if (n == 1)
-            {
-                float w = bigSingle ? 0.44f : CellW + 0.04f, h = bigSingle ? 0.46f : CellH + 0.04f;
-                float x = partySide ? 0.14f : (bigSingle ? 0.52f : 0.60f);
-                float y = 0.62f - h / 2f + 0.07f;
-                return new Rect(x, y, w, h);
-            }
-            float front = partySide ? 0.24f : 0.54f, back = partySide ? 0.01f : 0.77f;
-            float x0, y0;
-            switch (i)
-            {
-                case 0: x0 = front; y0 = RowTopY0; break;
-                case 1: x0 = front; y0 = RowBotY0; break;
-                case 2: x0 = back; y0 = n == 3 ? (RowTopY0 + RowBotY0) / 2f : RowTopY0; break;
-                default: x0 = back; y0 = RowBotY0; break;
-            }
-            return new Rect(x0, y0, CellW, CellH);
+            const float inset = 0.004f;
+            rt.anchorMin = new Vector2(cell.x + inset, cell.y + inset * 0.5f);
+            rt.anchorMax = new Vector2(cell.x + cell.width - inset, cell.y + cell.height - inset * 0.5f);
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
         }
 
-        /// <summary>
-        /// The cell of one unit of a side: the front row stands in the column nearest the other side, the back row behind it;
-        /// units of a row share its column top to bottom (a single one is centred).
-        /// </summary>
-        private static Rect RowCell(IList<Combatant> units, int index, bool partySide)
+        /// <summary>The floor: our half tinted blue, the enemy half red; tiles light up green where the acting member may walk.</summary>
+        private void BuildBoard(RectTransform root)
         {
-            bool back = units[index].BackRow;
-            int k = 0, count = 0;
-            for (int j = 0; j < units.Count; j++)
-            {
-                if (units[j].BackRow != back) continue;
-                if (j < index) k++;
-                count++;
-            }
-            float x = partySide ? (back ? 0.01f : 0.24f) : (back ? 0.77f : 0.54f);
-            float y = count == 1 ? (RowTopY0 + RowBotY0) / 2f : (k == 0 ? RowTopY0 : RowBotY0);
-            return new Rect(x, y, CellW, CellH);
+            for (int c = 0; c < Board.Cols; c++)
+                for (int r = 0; r < Board.Rows; r++)
+                {
+                    var cell = TileCell(c, r);
+                    var tile = new TileView();
+                    tile.Base = UiFactory.Panel("Tile", root, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height), c < Board.PartyCols ? PartyTile : EnemyTile);
+                    UiFactory.Frame(tile.Base.transform, new Color(1f, 1f, 1f, 0.16f), 1.5f);
+                    tile.Hi = UiFactory.Panel("Hi", tile.Base.transform, new Vector2(0.03f, 0.03f), new Vector2(0.97f, 0.97f), new Color(0f, 0f, 0f, 0f));
+                    tile.Base.raycastTarget = true;
+                    var btn = tile.Base.gameObject.AddComponent<Button>();
+                    btn.targetGraphic = tile.Base;
+                    btn.transition = Selectable.Transition.None;
+                    int cc = c, rr = r;
+                    btn.onClick.AddListener(() => OnTilePressed(cc, rr));
+                    _tiles[c, r] = tile;
+                }
         }
 
-        private Rect PartyCell(int index)
+        /// <summary>Lights up the tiles the acting member can walk to (green), the planned tile (gold) and the tile he started on (white) while a walk is planned.</summary>
+        private void RefreshBoard()
         {
-            return _party.Count == 1 ? Cell(0, 1, true, false) : RowCell(_party, index, true);
+            var me = _battle != null && _battle.IsPlayerTurn && !_hasCommand ? _battle.Current : null;
+            for (int c = 0; c < Board.Cols; c++)
+                for (int r = 0; r < Board.Rows; r++)
+                {
+                    var color = new Color(0f, 0f, 0f, 0f);
+                    if (me != null)
+                    {
+                        bool planned = c == _planCol && r == _planRow;
+                        bool origin = c == me.Col && r == me.Row;
+                        if (planned && !origin) color = new Color(1f, 0.82f, 0.30f, 0.38f);
+                        else if (origin && PlanMoved) color = new Color(1f, 1f, 1f, 0.16f);
+                        else if (!origin && _battle.CanMoveTo(me, c, r)) color = new Color(0.35f, 0.85f, 0.45f, 0.26f);
+                    }
+                    _tiles[c, r].Hi.color = color;
+                }
+        }
+
+        private bool PlanMoved { get { return _battle != null && _battle.Current != null && (_planCol != _battle.Current.Col || _planRow != _battle.Current.Row); } }
+
+        /// <summary>A tap on a lit tile plans the walk (the figure steps there at once as a preview); tapping the start tile takes it back.</summary>
+        private void OnTilePressed(int col, int row)
+        {
+            if (_battle == null || !_battle.IsPlayerTurn || _hasCommand || _itemMode || _jointMode) return;
+            var me = _battle.Current;
+            bool origin = col == me.Col && row == me.Row;
+            if (!origin && !_battle.CanMoveTo(me, col, row)) return;
+            _planCol = col; _planRow = row;
+            var panel = PanelOf(me.Id);
+            if (panel != null) { PlaceAtCell(panel.Root, TileCell(col, row)); _home.Remove(panel.Root); panel.Center = TileCenter(col, row); }
+            SoundManager.Sfx("ui_click");
+            RefreshBoard();
+            RefreshCommands();
+            RefreshCards();
         }
 
         private void BuildParty(StageData stage)
@@ -941,7 +953,7 @@ namespace BiRyeoDo.Game.UI
             for (int i = 0; i < n; i++)
             {
                 var unit = _party[i];
-                var cell = PartyCell(i);
+                var cell = TileCell(unit.Col, unit.Row);
                 var p = new PartyPanel { Unit = unit, Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
                 p.Root = UiFactory.Rect("Member" + i, _partyRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
                 p.Frame = UiFactory.Panel("Marker", p.Root, new Vector2(0.10f, 0.285f), new Vector2(0.90f, 0.305f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks whose turn it is
@@ -954,8 +966,7 @@ namespace BiRyeoDo.Game.UI
                 {
                     UiFactory.Label("Glyph", p.Root, new Vector2(0.04f, 0.32f), new Vector2(0.96f, 0.90f), FirstGlyph(unit.Name), 110, i == 0 ? UiFactory.Gold : UiFactory.PaperText);
                 }
-                p.Name = UiFactory.Label("Name", p.Root, new Vector2(_party.Count > 1 ? 0.22f : 0.05f, 0.90f), new Vector2(0.95f, 0.99f), unit.Name, 22, UiFactory.Gold);
-                if (_party.Count > 1) AddRowChip(p.Root, unit.BackRow);
+                p.Name = UiFactory.Label("Name", p.Root, new Vector2(0.03f, 0.90f), new Vector2(0.97f, 0.99f), unit.Name, 22, UiFactory.Gold);
                 p.Status = UiFactory.Label("Status", p.Root, new Vector2(0.05f, 0.62f), new Vector2(0.95f, 0.76f), "", 26, UiFactory.PaperText);
                 // Thin gauges under the figure: 체력 / 내공 / 기세
                 p.Hp = UiFactory.MakeBar("Hp", p.Root, new Vector2(0.06f, 0.215f), new Vector2(0.94f, 0.275f), new Color(0f, 0f, 0f, 0.7f), HpGreen);
@@ -1012,16 +1023,15 @@ namespace BiRyeoDo.Game.UI
             int n = enemies.Length;
             var units = new List<Combatant>();
             for (int i = 0; i < n; i++) units.Add(enemies[i].CreateCombatant(enemies[i].Id + "#" + i));
-            Formation.AssignEnemyRows(units);   // bosses stand behind, the first two others in front
+            Formation.PlaceEnemies(units);   // bosses stand at the back, the others fill the front columns
             for (int i = 0; i < n; i++)
             {
                 var data = enemies[i];
-                var cell = n == 1 ? Cell(0, 1, false, data.IsBoss) : RowCell(units, i, false);
+                var cell = TileCell(units[i].Col, units[i].Row);
                 var card = new EnemyCard { Unit = units[i], Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
                 card.Root = UiFactory.Rect("Card" + i, _cardsRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
                 card.Frame = UiFactory.Panel("Marker", card.Root, new Vector2(0.10f, 0.285f), new Vector2(0.90f, 0.305f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks the target
-                card.Name = UiFactory.Label("Name", card.Root, new Vector2(n > 1 ? 0.22f : 0.05f, 0.88f), new Vector2(0.95f, 0.99f), data.Name, data.IsBoss ? 30 : 22, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
-                if (n > 1) AddRowChip(card.Root, card.Unit.BackRow);
+                card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.03f, 0.88f), new Vector2(0.97f, 0.99f), data.Name, data.IsBoss ? 24 : 20, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
                 var art = ArtLibrary.Enemy(data.ArtKey);
                 if (art != null)
                 {
@@ -1042,7 +1052,6 @@ namespace BiRyeoDo.Game.UI
                 {
                     if (!captured.Unit.IsAlive) return;
                     _target = captured;
-                    _targetChosen = true;   // an explicit pick also steers 저격 arts
                     RefreshCards();
                 });
                 _cards.Add(card);
@@ -1096,7 +1105,14 @@ namespace BiRyeoDo.Game.UI
                 if (dead) { c.Intent.text = "쓰러졌다"; continue; }
                 if (u.Stunned) { c.Intent.text = "행동 불능"; c.Intent.color = GuardBlue; continue; }
                 var move = u.PeekMove();
-                if (u.Charging)
+                int nearest = int.MaxValue;
+                foreach (var m in _party) if (m.IsAlive) nearest = Math.Min(nearest, Board.Dist(u, m));
+                if (!u.Charging && nearest - Board.MoveRange > u.Range)
+                {
+                    c.Intent.text = "다가옵니다";
+                    c.Intent.color = UiFactory.Dim;
+                }
+                else if (u.Charging)
                 {
                     c.Intent.text = "위험! " + move.Name + (u.ChargeTarget != null ? "\n→ " + u.ChargeTarget.Name : "");
                     c.Intent.color = UiFactory.Red;
@@ -1201,7 +1217,7 @@ namespace BiRyeoDo.Game.UI
                 return;
             }
 
-            SetCommand(0, "공격", "내공 0", true);
+            SetCommand(0, "공격", _battle.CanReach(SkillSpec.BasicAttack(), _planCol, _planRow) ? "사거리 1" : "사거리 밖", _battle.CanReach(SkillSpec.BasicAttack(), _planCol, _planRow));
             var arts = ArtsOf(me);
             for (int i = 0; i < Progression.MaxEquippedArts; i++)
             {
@@ -1209,9 +1225,11 @@ namespace BiRyeoDo.Game.UI
                 if (i >= arts.Count) { _commands[slot].Root.SetActive(false); continue; }
                 var s = arts[i];
                 int cd = me.CooldownLeft(s);
-                bool ok = _battle.CanUse(s);
+                bool reach = _battle.CanReach(s, _planCol, _planRow);
+                bool ok = _battle.CanUse(s) && reach;
                 string sub = cd > 0 ? "재사용 " + cd + "턴" : s.SpiritCost > 0 ? "기세 " + s.SpiritCost : s.QiCost > 0 ? "내공 " + s.QiCost : "";
                 if (cd == 0 && me.Qi < s.QiCost) sub = "내공 부족";
+                else if (!reach) sub = "사거리 밖";
                 SetCommand(slot, s.Name, sub, ok);
             }
             SetCommand(5, "방어", "피해 60% 감소", true);
@@ -1223,7 +1241,7 @@ namespace BiRyeoDo.Game.UI
             if (ult == null) _commands[9].Root.SetActive(false);
             else
             {
-                bool ready = _battle.CanUse(ult);
+                bool ready = _battle.CanUse(ult) && _battle.CanReach(ult, _planCol, _planRow);
                 SetCommand(9, "필살기\n" + ult.Name, ready ? "기세 " + ult.SpiritCost : "기세 " + Mathf.Min(me.Spirit, ult.SpiritCost) + "/" + ult.SpiritCost, ready);
             }
             if (_jointPartners.Count == 0) _commands[8].Root.SetActive(false);
@@ -1251,8 +1269,23 @@ namespace BiRyeoDo.Game.UI
             if (spec == null || !_battle.CanJoint(partner)) return;
             spec.Power *= 1f + Factions.Bonus(GameManager.Instance.Save, PerkKind.JointPower);
             _jointName = spec.Name;
-            _command = PlayerCommand.Joint(spec, partner, target);
+            if (_battle.EnemiesInRange(_planCol, _planRow, spec.Range).Count == 0)
+            {
+                _log.text = "합공이 닿지 않습니다. 더 가까이 걸어가 주세요.";
+                _jointMode = false;
+                RefreshCommands();
+                return;
+            }
+            Issue(PlayerCommand.Joint(spec, partner, target));
+        }
+
+        /// <summary>Hands the chosen command to the battle loop; a walk planned on the board is part of it.</summary>
+        private void Issue(PlayerCommand cmd)
+        {
+            if (PlanMoved) cmd = cmd.WithMove(_planCol, _planRow);
+            _command = cmd;
             _hasCommand = true;
+            RefreshBoard();
         }
 
         private static string ItemHint(ItemData item)
@@ -1316,8 +1349,8 @@ namespace BiRyeoDo.Game.UI
             else
             {
                 parts.Add("위력 ×" + s.Power.ToString("0.0") + (s.Hits > 1 ? " · " + s.Hits + "타" : ""));
-                if (s.AllEnemies) parts.Add("적 전체 (앞줄이 서 있으면 앞줄만)");
-                if (s.Snipe) parts.Add("저격 (뒷줄 우선)");
+                if (s.AllEnemies) parts.Add("사거리 안의 적 전체");
+                parts.Add("사거리 " + s.Range);
                 if (s.Effect == SkillEffect.Stun) parts.Add("굳힘 (기를 모으는 적의 강타를 끊습니다)");
             }
             parts.Add(s.SpiritCost > 0 ? "기세 " + s.SpiritCost : s.QiCost > 0 ? "내공 " + s.QiCost : "내공 0");
@@ -1432,26 +1465,26 @@ namespace BiRyeoDo.Game.UI
                 if (slot == 7) { _itemMode = false; RefreshCommands(); return; }
                 var items = UsableItems();
                 if (slot >= items.Count) return;
-                _command = PlayerCommand.UseItem(items[slot]);
-                _hasCommand = true;
+                Issue(PlayerCommand.UseItem(items[slot]));
                 return;
             }
 
             if (_target == null || !_target.Unit.IsAlive) _target = _cards.Find(c => c.Unit.IsAlive);
             var targetUnit = _target != null ? _target.Unit : null;
-            if (slot == 0) _command = PlayerCommand.UseSkill(SkillSpec.BasicAttack(), targetUnit);
+            SkillSpec chosen = null;
+            if (slot == 0) chosen = SkillSpec.BasicAttack();
             else if (slot >= 1 && slot <= Progression.MaxEquippedArts)
             {
                 var arts = ArtsOf(me);
                 int i = slot - 1;
                 if (i >= arts.Count || !_battle.CanUse(arts[i])) return;
-                _command = PlayerCommand.UseSkill(arts[i], AimFor(arts[i], targetUnit));
+                chosen = arts[i];
             }
             else if (slot == 9)
             {
                 var ultimateSkill = UltimateOf(me);
                 if (ultimateSkill == null || !_battle.CanUse(ultimateSkill)) return;
-                _command = PlayerCommand.UseSkill(ultimateSkill, AimFor(ultimateSkill, targetUnit));
+                chosen = ultimateSkill;
             }
             else if (slot == 8)
             {
@@ -1461,8 +1494,8 @@ namespace BiRyeoDo.Game.UI
                 RefreshCommands();
                 return;
             }
-            else if (slot == 5) _command = PlayerCommand.Guard();
-            else if (slot == 6) _command = PlayerCommand.Meditate();
+            else if (slot == 5) { Issue(PlayerCommand.Guard()); return; }
+            else if (slot == 6) { Issue(PlayerCommand.Meditate()); return; }
             else if (slot == 7)
             {
                 if (UsableItems().Count == 0) return;
@@ -1471,18 +1504,13 @@ namespace BiRyeoDo.Game.UI
                 return;
             }
             else return;
-            _hasCommand = true;
-        }
-
-        /// <summary>The player's tapped enemy; a 저격 art with no pick of its own this turn aims at the back row.</summary>
-        private Combatant AimFor(SkillSpec skill, Combatant picked)
-        {
-            if (skill.Snipe && !_targetChosen && _battle != null)
+            if (chosen == null) return;
+            if (!_battle.CanReach(chosen, _planCol, _planRow))
             {
-                var back = _battle.DefaultEnemyTarget(true);
-                if (back != null && back.BackRow) { _log.text = "저격! " + back.Name + "(뒷줄)을 노립니다."; return back; }
+                _log.text = "사거리 밖입니다. 초록 칸을 눌러 다가가거나 다른 무공을 골라 주세요.";
+                return;
             }
-            return picked;
+            Issue(PlayerCommand.UseSkill(chosen, targetUnit));
         }
 
         private void OnSpeedPressed()
@@ -1549,6 +1577,9 @@ namespace BiRyeoDo.Game.UI
                         }
                         if (byParty) yield return PartyHit(ev);
                         else yield return EnemyHit(ev);
+                        break;
+                    case EventKind.Move:
+                        yield return SlideTo(ev.ActorId, ev.ToCol, ev.ToRow);
                         break;
                     case EventKind.Guard:
                         SoundManager.Sfx("guard");
@@ -1745,6 +1776,33 @@ namespace BiRyeoDo.Game.UI
         }
 
         // ------------------------------------------------------------------ strike effects
+
+        /// <summary>Walks a figure to another tile (party or enemy); the panel's resting position and its popup centre follow.</summary>
+        private IEnumerator SlideTo(string unitId, int col, int row)
+        {
+            var pp = PanelOf(unitId);
+            var card = pp == null ? CardOf(unitId) : null;
+            var rt = pp != null ? pp.Root : card != null ? card.Root : null;
+            if (rt == null) yield break;
+            var cell = TileCell(col, row);
+            var toMin = new Vector2(cell.x + 0.004f, cell.y + 0.002f);
+            var toMax = new Vector2(cell.x + cell.width - 0.004f, cell.y + cell.height - 0.002f);
+            var fromMin = rt.anchorMin; var fromMax = rt.anchorMax;
+            float dur = 0.22f / _speed;
+            for (float e = 0f; e < dur; e += Time.deltaTime)
+            {
+                if (rt == null) yield break;
+                float k = Mathf.SmoothStep(0f, 1f, e / dur);
+                rt.anchorMin = Vector2.Lerp(fromMin, toMin, k);
+                rt.anchorMax = Vector2.Lerp(fromMax, toMax, k);
+                yield return null;
+            }
+            if (rt == null) yield break;
+            PlaceAtCell(rt, cell);
+            _home.Remove(rt);
+            var center = TileCenter(col, row);
+            if (pp != null) pp.Center = center; else card.Center = center;
+        }
 
         private IEnumerator Lunge(RectTransform rt, Vector2 delta)
         {
