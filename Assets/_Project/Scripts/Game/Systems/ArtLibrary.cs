@@ -5,7 +5,7 @@ namespace BiRyeoDo.Game.Systems
 {
     /// <summary>
     /// Optional artwork dropped into <c>Assets/_Project/Resources/Art</c>. Files are matched by name, so nothing has to be wired up:
-    /// <c>Backgrounds/stage_01.png</c>, <c>Enemies/tiger.png</c> (enemy id), <c>Characters/player.png</c>.
+    /// <c>Backgrounds/stage_01.png</c>, <c>Enemies/tiger.png</c> (enemy id), <c>Characters/player.png</c>. A file is found in either <c>Enemies</c> or <c>Characters</c> (by id), so a misplaced upload still works.
     /// Any missing file returns null and the UI falls back to its flat-colour placeholder.
     /// Textures are turned into sprites at runtime, so the PNG import settings do not matter.
     /// </summary>
@@ -14,10 +14,10 @@ namespace BiRyeoDo.Game.Systems
         private static readonly Dictionary<string, Sprite> Cache = new Dictionary<string, Sprite>();
 
         public static Sprite Background(int stageNumber) { return Load("Backgrounds/stage_" + stageNumber.ToString("00")); }
-        public static Sprite Enemy(string enemyId) { return Load("Enemies/" + enemyId); }
+        public static Sprite Enemy(string enemyId) { return Load("Enemies/" + enemyId) ?? Load("Characters/" + enemyId); }
         public static Sprite Player() { return Load("Characters/player"); }
         /// <summary>Party member portrait: <c>Characters/&lt;id&gt;.png</c> (e.g. hyo_ryong.png).</summary>
-        public static Sprite Companion(string companionId) { return Load("Characters/" + companionId); }
+        public static Sprite Companion(string companionId) { return Load("Characters/" + companionId) ?? Load("Enemies/" + companionId); }
 
         /// <summary>Portrait by character name: the protagonist, a companion, or an enemy/NPC whose name matches (e.g. 나예린 → the 빙백봉 art).</summary>
         public static Sprite Portrait(string name)
