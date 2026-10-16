@@ -57,7 +57,7 @@ namespace BiRyeoDo.Core
         }
     }
 
-    public enum AchMetric { StageCleared, TowerFloor, Level, SwordRank, EnemiesSeen, ItemsSeen, ArtsLearned, GachaPulls, BattleWins, QuestsDone, FortunesDone, TrustedBonds, LegendarySeen, TotalStars, FactionsRespected, CompanionTraining }
+    public enum AchMetric { StageCleared, TowerFloor, Level, SwordRank, EnemiesSeen, ItemsSeen, ArtsLearned, GachaPulls, BattleWins, QuestsDone, FortunesDone, TrustedBonds, LegendarySeen, TotalStars, FactionsRespected, CompanionTraining, Memories }
 
     public sealed class AchievementData
     {
@@ -123,6 +123,9 @@ namespace BiRyeoDo.Core
             A("train_10", "스승의 마음", "동료 수련 합계 10", AchMetric.CompanionTraining, 10, 2000),
             A("train_30", "전우를 키우다", "동료 수련 합계 30", AchMetric.CompanionTraining, 30, 6000),
             A("train_50", "최강의 동료들", "동료 수련 합계 50", AchMetric.CompanionTraining, 50, 15000, "ilgeup_yeongdan"),
+            A("memory_4", "마음의 조각", "나예린 추억 4개 보기", AchMetric.Memories, 4, 2000),
+            A("memory_8", "함께한 시간", "나예린 추억 8개 보기", AchMetric.Memories, 8, 5000),
+            A("memory_all", "모든 추억", "나예린 추억을 모두 보기", AchMetric.Memories, -1, 15000, "ilgeup_yeongdan"),
             A("bond_1", "믿음직한 벗", "신뢰 이상의 동료 1명", AchMetric.TrustedBonds, 1, 1500),
             A("bond_4", "의기투합", "신뢰 이상의 동료 4명", AchMetric.TrustedBonds, 4, 6000),
         };
@@ -145,6 +148,7 @@ namespace BiRyeoDo.Core
                 case AchMetric.QuestsDone: return Quests.All.Length;
                 case AchMetric.FortunesDone: return Fortunes.All.Length;
                 case AchMetric.FactionsRespected: return Factions.All.Length;
+                case AchMetric.Memories: return Memories.All.Length;
             }
             return 1;
         }
@@ -166,6 +170,7 @@ namespace BiRyeoDo.Core
                 case AchMetric.TotalStars: return StageStars.Total(save);
                 case AchMetric.FactionsRespected: return Factions.RespectedCount(save);
                 case AchMetric.CompanionTraining: return CompanionTraining.TotalLevels(save);
+                case AchMetric.Memories: return Memories.SeenCount(save);
                 case AchMetric.LegendarySeen: return Codex.ItemsSeenOfGrade(save, ItemGrade.Legendary);
                 case AchMetric.ArtsLearned:
                     {

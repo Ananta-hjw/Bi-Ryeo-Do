@@ -45,6 +45,8 @@ namespace BiRyeoDo.Core
         public List<ReputationEntry> Reputation = new List<ReputationEntry>();   // 세력 평판 points (additive field)
         public List<ShopPurchase> ShopBought = new List<ShopPurchase>();          // limited 객잔 goods already bought
         public List<TrainingEntry> CompanionTraining = new List<TrainingEntry>();   // 동료 수련 levels (additive field)
+        public List<string> SeenMemories = new List<string>();            // 나예린 호감도 이벤트 already watched (additive field)
+        public List<int> ClaimedMemoryMilestones = new List<int>();
         public int SwordRank;           // 검룡위 (1-10), see Promotion; 0 in older saves counts as 1
 
         public List<string> LearnedArts = new List<string>();

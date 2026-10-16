@@ -88,6 +88,14 @@ namespace BiRyeoDo.Game.UI
                     _world.CloseOverlays();
                     _world.Refresh();
                 });
+            }, (title, lines, done) =>
+            {
+                overlay.gameObject.SetActive(true);
+                _battle.OpenStory(title, lines, () =>
+                {
+                    overlay.gameObject.SetActive(false);
+                    done();
+                });
             });
 
             // Help card sits above everything (tutorial hints and the help list)

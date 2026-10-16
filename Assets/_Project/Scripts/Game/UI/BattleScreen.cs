@@ -456,6 +456,34 @@ namespace BiRyeoDo.Game.UI
 
         // ------------------------------------------------------------------ 승급 비무
 
+        // ------------------------------------------------------------------ story-only scenes (나예린 추억)
+
+        /// <summary>Plays a scene in the visual-novel layer without any fight, then calls <paramref name="onClose"/>.</summary>
+        public void OpenStory(string title, string[] lines, Action onClose)
+        {
+            _onClose = onClose;
+            StopAllCoroutines();
+            StartCoroutine(RunStoryOnly(title, lines));
+        }
+
+        private IEnumerator RunStoryOnly(string title, string[] lines)
+        {
+            _fled = false;
+            _backdropImage.sprite = null;
+            _backdropImage.color = new Color(1f, 1f, 1f, 0f);
+            ClearCards();
+            ClearPanels();
+            SetCommandsVisible(false);
+            _log.text = "";
+            _stageLabel.text = title;
+            SoundManager.Bgm("lobby");
+            yield return ShowStory(title, lines);
+            _panel.SetActive(false);
+            _banner.text = "";
+            _bannerBg.color = new Color(0f, 0f, 0f, 0f);
+            _onClose?.Invoke();
+        }
+
         /// <summary>Opens a 승급 비무: the fee was already paid by the caller. Two solo duels against the offer's opponents.</summary>
         public void OpenPromotion(PromotionOffer offer, Action onClose)
         {

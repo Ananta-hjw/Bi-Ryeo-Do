@@ -23,6 +23,9 @@ namespace BiRyeoDo.Game.UI
         private StarPanel _stars;
         private FactionPanel _factions;
         private CompanionPanel _training;
+        private MemoryPanel _memories;
+        private Text _memoryRowDetail, _memoryBadge;
+        private Action<string, string[], Action> _onStory;
         private Text _trainingRowDetail;
         private Text _factionRowDetail;
         private Text _starRowDetail, _starBadge, _starsTitle;
@@ -47,10 +50,11 @@ namespace BiRyeoDo.Game.UI
         private Action<PromotionOffer> _onPromote;
         private bool _built;
 
-        public void Build(RectTransform root, Action<StageData> onStart, Action<PromotionOffer> onPromote)
+        public void Build(RectTransform root, Action<StageData> onStart, Action<PromotionOffer> onPromote, Action<string, string[], Action> onStory = null)
         {
             if (_built) return;
             _built = true;
+            _onStory = onStory;
             _onPromote = onPromote;
             _onStart = onStart;
 
@@ -127,6 +131,8 @@ namespace BiRyeoDo.Game.UI
             Text innerBadge;
             _innerRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "심법", () => _inner.Open(), out innerBadge);
             innerBadge.transform.parent.gameObject.SetActive(false);
+            y += 150f + gap;
+            _memoryRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "나예린 추억", () => _memories.Open(), out _memoryBadge);
             y += 150f + gap;
             Text trainingBadge;
             _trainingRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "동료 수련", () => _training.Open(), out trainingBadge);
@@ -211,6 +217,7 @@ namespace BiRyeoDo.Game.UI
             var codexRoot = UiFactory.Rect("CodexOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
             var achRoot = UiFactory.Rect("AchievementOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
             _codex = new CodexPanel(codexRoot, achRoot, Refresh);
+            _memories = new MemoryPanel(UiFactory.Rect("MemoryOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh, (title, lines, done) => { if (_onStory != null) _onStory(title, lines, done); else done(); });
             _training = new CompanionPanel(UiFactory.Rect("TrainingOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
             _factions = new FactionPanel(UiFactory.Rect("FactionOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
             _stars = new StarPanel(UiFactory.Rect("StarOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
@@ -806,6 +813,7 @@ namespace BiRyeoDo.Game.UI
             if (_stars != null) _stars.Hide();
             if (_factions != null) _factions.Hide();
             if (_training != null) _training.Hide();
+            if (_memories != null) _memories.Hide();
         }
 
         private void OnStagePressed(StageData st, Action<StageData> onStart)
@@ -867,6 +875,8 @@ namespace BiRyeoDo.Game.UI
             _codexRowDetail.text = "적 " + save.SeenEnemies.Count + "/" + Codex.EnemyTotal + " · 물품 " + save.SeenItems.Count + "/" + Codex.ItemTotal;
             _achRowDetail.text = "달성 " + Achievements.ClaimedCount(save) + "/" + Achievements.All.Length;
             SetBadge(_achBadge, Achievements.ClaimableCount(save));
+            _memoryRowDetail.text = "본 추억 " + Memories.SeenCount(save) + " / " + Memories.All.Length + (Memories.UnseenCount(save) > 0 ? " · 새 추억 " + Memories.UnseenCount(save) + "개" : "");
+            SetBadge(_memoryBadge, Memories.UnseenCount(save));
             var joined = EarlyGameContent.CompanionsFor(Math.Max(1, save.HighestUnlockedStage));
             _trainingRowDetail.text = joined.Count == 0 ? "동료가 합류하면 두로 수련시킬 수 있다" : "수련 합계 Lv." + CompanionTraining.TotalLevels(save) + " · 동료 " + joined.Count + "명";
             var factionNotes = new List<string>();
