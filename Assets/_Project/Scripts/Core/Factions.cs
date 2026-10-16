@@ -208,9 +208,9 @@ namespace BiRyeoDo.Core
             // 천무학관
             Item("aca_meal", "academy", 1, "meal_academy", 250),
             Item("aca_snow", "academy", 1, "snow_ginseng", 900),
-            new ShopGood { Id = "aca_scroll", FactionId = "academy", MinTier = 2, Kind = ShopKind.ExpScroll, Amount = 20, Name = "수련 일지", Description = "한 단계 오르는 데 필요한 경험치의 20%를 얻는다.", Price = 5000, Limit = 5 },
+            new ShopGood { Id = "aca_scroll", FactionId = "academy", MinTier = 2, Kind = ShopKind.ExpScroll, Amount = 20, Name = "수련 일지", Description = "한 단계 오르는 데 필요한 경험치의 20%를 얻습니다.", Price = 5000, Limit = 5 },
             Item("aca_ginseng", "academy", 3, "ginseng", 3500),
-            new ShopGood { Id = "aca_scroll2", FactionId = "academy", MinTier = 4, Kind = ShopKind.ExpScroll, Amount = 50, Name = "비전 수련 일지", Description = "한 단계 오르는 데 필요한 경험치의 50%를 얻는다.", Price = 15000, Limit = 3 },
+            new ShopGood { Id = "aca_scroll2", FactionId = "academy", MinTier = 4, Kind = ShopKind.ExpScroll, Amount = 50, Name = "비전 수련 일지", Description = "한 단계 오르는 데 필요한 경험치의 50%를 얻습니다.", Price = 15000, Limit = 3 },
             // 중양표국
             Item("bia_ration", "biaoguk", 1, "biaoguk_ration", 200),
             Item("bia_ginseng", "biaoguk", 2, "ginseng", 3200),
@@ -266,20 +266,20 @@ namespace BiRyeoDo.Core
         {
             error = null;
             var g = Find(id);
-            if (g == null) { error = "없는 물건이다."; return null; }
-            if (!IsOpen(save, g)) { error = Factions.Find(g.FactionId).Name + " 평판 " + Factions.TierNames[g.MinTier] + " 이상이 필요하다."; return null; }
-            if (SoldOut(save, g)) { error = "더 이상 살 수 없다."; return null; }
-            if (save.Doo < g.Price) { error = "두가 모자란다. (" + g.Price.ToString("N0") + "두)"; return null; }
+            if (g == null) { error = "없는 물건입니다."; return null; }
+            if (!IsOpen(save, g)) { error = Factions.Find(g.FactionId).Name + " 평판 " + Factions.TierNames[g.MinTier] + " 이상이 필요합니다."; return null; }
+            if (SoldOut(save, g)) { error = "더 이상 살 수 없습니다."; return null; }
+            if (save.Doo < g.Price) { error = "두가 모자랍니다. (" + g.Price.ToString("N0") + "두)"; return null; }
             string note;
             switch (g.Kind)
             {
                 case ShopKind.Item:
-                    if (EarlyGameContent.FindItem(g.ItemId) == null) { error = "물건이 없다."; return null; }
+                    if (EarlyGameContent.FindItem(g.ItemId) == null) { error = "물건이 없습니다."; return null; }
                     Inventory.Add(save, g.ItemId, 1);
                     note = NameOf(g) + " 구매";
                     break;
                 case ShopKind.Training:
-                    if (Progression.EquippedCount(save, false) == 0 && Progression.EquippedCount(save, true) == 0) { error = "장착한 무공이 있어야 수련할 수 있다."; return null; }
+                    if (Progression.EquippedCount(save, false) == 0 && Progression.EquippedCount(save, true) == 0) { error = "장착한 무공이 있어야 수련할 수 있습니다."; return null; }
                     Mastery.Train(save, g.Amount);
                     note = NameOf(g) + ": 장착 무공 숙련 +" + g.Amount + "회";
                     break;

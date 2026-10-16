@@ -35,7 +35,7 @@ namespace BiRyeoDo.Core
         /// <summary>One line describing what the current level gives, for the UI ("체력·공격·방어 +10%, 치명타 +3%").</summary>
         public static string BonusText(int level)
         {
-            if (level <= 0) return "인연이 쌓이면 능력이 오른다";
+            if (level <= 0) return "인연이 쌓이면 능력이 오릅니다";
             string t = "체력·공격·방어 +" + Math.Round(StatPerLevel * level * 100f) + "%";
             if (level >= 2) t += ", 치명타 +" + Math.Round(CritFromTrust * 100f) + "%";
             if (level >= RescueLevel) t += ", 위기 구원";

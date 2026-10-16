@@ -30,7 +30,7 @@ namespace BiRyeoDo.Game.UI
                 float x0 = 0.05f + t * 0.47f;
                 UiFactory.Button("Tab" + t, Root, new Vector2(x0, 0.855f), new Vector2(x0 + 0.43f, 0.91f), TabNames[t], t == _tab ? UiFactory.Red : UiFactory.InkSoft, () => { _tab = tab; Open(); }, 30);
             }
-            UiFactory.Label("Toast", Root, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.855f), toast ?? (_tab == 0 ? "그 세력의 스테이지에서 전투를 이기면 평판이 쌓인다 (일반 +1, 어려움 +2, 극악 +3)" : "세력 평판이 오르면 그 세력의 선반이 열린다"), 22, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.Label("Toast", Root, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.855f), toast ?? (_tab == 0 ? "그 세력의 스테이지에서 전투를 이기면 평판이 쌓입니다 (일반 +1, 어려움 +2, 극악 +3)" : "세력 평판이 오르면 그 세력의 선반이 열립니다"), 22, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
             var content = CodexPanel.Scroller(Root, 0.09f, 0.795f);
             int n = _tab == 0 ? DrawReputation(content, save) : DrawShop(content, save);

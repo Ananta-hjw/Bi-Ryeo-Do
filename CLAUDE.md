@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Reply to the user in Korean (see `.claude/settings.json`); keep code identifiers and comments in English.
 
+Player-facing guidance text (도움말 `Tutorial`, 힌트, 토스트, 오류/안내 문구, 길게 누르기 설명) is written in 존댓말 (합니다체); story narration, 인물 대사, 아이템·무공 설명 같은 연출 문구는 그대로 둔다. 읽는 글은 `UiFactory.Body`(고정 글자 크기, 줄 간격 확대)를 쓰고, 정보가 많은 화면(상태창 등)은 `UiFactory.Label`의 자동 축소(글자 크기가 줄마다 달라진다)에 기대지 말고 픽셀 단위 행 높이로 배치한다.
+
 ## Story
 
 Confirmed by the user: the protagonist is 비류연 and the heroine is 나예린 (the 빙백봉 of volume 3).

@@ -164,11 +164,11 @@ namespace BiRyeoDo.Game.UI
             if (!save.LearnedArts.Contains(art.Id)) return;
             if (Mastery.Level(save, art.Id) < Mastery.VariantLevel)
             {
-                _hint.text = art.Name + ": " + Mastery.LevelNames[Mastery.VariantLevel] + "(" + Mastery.Thresholds[Mastery.VariantLevel] + "회 사용)에 변초가 열린다.";
+                _hint.text = art.Name + ": " + Mastery.LevelNames[Mastery.VariantLevel] + "(" + Mastery.Thresholds[Mastery.VariantLevel] + "회 사용)에 변초가 열립니다.";
             }
             else if (Mastery.AvailableVariants(art).Count == 0)
             {
-                _hint.text = art.Name + "은(는) 변초가 없는 무공이다.";
+                _hint.text = art.Name + "은(는) 변초가 없는 무공입니다.";
             }
             else
             {
@@ -209,7 +209,7 @@ namespace BiRyeoDo.Game.UI
                 r.MasteryButton.gameObject.SetActive(learned);
                 r.MasteryLabel.text = Mastery.LevelNames[mLevel] + (mLevel >= Mastery.VariantLevel && canVariant ? "\n변초 바꾸기" : "\n" + Mastery.Uses(save, a.Id) + "회");
                 r.MasteryImage.color = mLevel >= Mastery.VariantLevel && canVariant ? UiFactory.Gold : UiFactory.InkSoft;
-                r.Detail.text = learned || unlocked ? (learned && a.OwnerId == null ? Stars(mLevel) + " " + (Mastery.UsesToNext(save, a.Id) < 0 ? "극의" : Mastery.Uses(save, a.Id) + "/" + Mastery.Thresholds[mLevel + 1] + "회") + "  " : "") + Describe(a) : "스테이지 " + a.UnlockStage + "에 도달하면 열린다";
+                r.Detail.text = learned || unlocked ? (learned && a.OwnerId == null ? Stars(mLevel) + " " + (Mastery.UsesToNext(save, a.Id) < 0 ? "극의" : Mastery.Uses(save, a.Id) + "/" + Mastery.Thresholds[mLevel + 1] + "회") + "  " : "") + Describe(a) : "스테이지 " + a.UnlockStage + "에 도달하면 열립니다";
 
                 if (learned)
                 {

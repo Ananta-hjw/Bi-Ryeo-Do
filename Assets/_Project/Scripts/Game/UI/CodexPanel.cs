@@ -100,7 +100,7 @@ namespace BiRyeoDo.Game.UI
                     var glyph = UiFactory.Panel("Icon", band, new Vector2(0.025f, 0.14f), new Vector2(0.125f, 0.86f), seen ? new Color(0.30f, 0.20f, 0.20f, 1f) : new Color(0.15f, 0.15f, 0.17f, 1f));
                     UiFactory.Label("Glyph", glyph.transform, Vector2.zero, Vector2.one, seen ? e.Name.Substring(0, 1) : "?", 44, UiFactory.PaperText);
                     UiFactory.Label("Name", band, new Vector2(0.15f, 0.52f), new Vector2(0.97f, 0.96f), seen ? e.Name + (e.IsBoss ? "  (우두머리)" : "") : "???", 32, seen ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
-                    UiFactory.Label("Info", band, new Vector2(0.15f, 0.06f), new Vector2(0.97f, 0.52f), seen ? "Lv." + e.Level : "아직 쓰러뜨리지 못했다", 22, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    UiFactory.Label("Info", band, new Vector2(0.15f, 0.06f), new Vector2(0.97f, 0.52f), seen ? "Lv." + e.Level : "아직 쓰러뜨리지 못했습니다", 22, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 }
             }
             else if (_tab == 1)
@@ -115,7 +115,7 @@ namespace BiRyeoDo.Game.UI
                     var glyph = UiFactory.Panel("Icon", band, new Vector2(0.025f, 0.14f), new Vector2(0.125f, 0.86f), seen ? Dark(UiFactory.GradeColor(it.Grade)) : new Color(0.15f, 0.15f, 0.17f, 1f));
                     UiFactory.Label("Glyph", glyph.transform, Vector2.zero, Vector2.one, seen ? it.Name.Substring(0, 1) : "?", 44, UiFactory.PaperText);
                     UiFactory.Label("Name", band, new Vector2(0.15f, 0.52f), new Vector2(0.97f, 0.96f), seen ? UiFactory.GradedName(it) : "<color=#555B66>[" + Grades.NameOf(it.Grade) + "]</color> ???", 30, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                    UiFactory.Label("Info", band, new Vector2(0.15f, 0.04f), new Vector2(0.97f, 0.52f), seen ? it.Description : "아직 손에 넣지 못했다", 20, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    UiFactory.Label("Info", band, new Vector2(0.15f, 0.04f), new Vector2(0.97f, 0.52f), seen ? it.Description : "아직 손에 넣지 못했습니다", 20, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 }
             }
             else
@@ -129,7 +129,7 @@ namespace BiRyeoDo.Game.UI
                     bool known = save.LearnedArts.Contains(a.Id);
                     var band = Band(content, n++);
                     UiFactory.Label("Name", band, new Vector2(0.04f, 0.52f), new Vector2(0.70f, 0.96f), known ? a.Name : "???", 32, known ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
-                    UiFactory.Label("Info", band, new Vector2(0.04f, 0.04f), new Vector2(0.97f, 0.52f), known ? a.Description : "스테이지 " + a.UnlockStage + " 돌파 후 배울 수 있다", 20, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    UiFactory.Label("Info", band, new Vector2(0.04f, 0.04f), new Vector2(0.97f, 0.52f), known ? a.Description : "스테이지 " + a.UnlockStage + " 돌파 후 배울 수 있습니다", 20, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                     UiFactory.Label("State", band, new Vector2(0.70f, 0.52f), new Vector2(0.97f, 0.96f), known ? "습득" : "미습득", 26, known ? UiFactory.Gold : UiFactory.Dim, TextAnchor.MiddleRight);
                 }
             }
@@ -148,7 +148,7 @@ namespace BiRyeoDo.Game.UI
             _achRoot.gameObject.SetActive(true);
             int ready = Achievements.ClaimableCount(save);
             UiFactory.Label("Title", _achRoot, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "업적  " + Achievements.ClaimedCount(save) + " / " + Achievements.All.Length, 44, UiFactory.Gold);
-            UiFactory.Label("Toast", _achRoot, new Vector2(0.05f, 0.865f), new Vector2(0.62f, 0.92f), toast ?? (ready > 0 ? "받을 수 있는 보상 " + ready + "건" : "조건을 채우면 보상을 받는다"), 24, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("Toast", _achRoot, new Vector2(0.05f, 0.865f), new Vector2(0.62f, 0.92f), toast ?? (ready > 0 ? "받을 수 있는 보상 " + ready + "건" : "조건을 채우면 보상을 받습니다"), 24, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
             var all = UiFactory.Button("ClaimAll", _achRoot, new Vector2(0.64f, 0.865f), new Vector2(0.95f, 0.92f), "모두 수령", ready > 0 ? UiFactory.Red : UiFactory.InkSoft, () => ClaimAll(), 28);
             all.interactable = ready > 0;
 

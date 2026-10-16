@@ -7,9 +7,18 @@ using UnityEngine.UI;
 
 namespace BiRyeoDo.Game.UI
 {
-    /// <summary>상태창 overlay: the protagonist's stats (gear included), equipment, equipped arts and the fighting party.</summary>
+    /// <summary>
+    /// 상태창 overlay: the protagonist's stats (gear included), equipment, equipped arts and the fighting party.
+    /// Laid out in a scrolling list with fixed pixel row heights and fixed font sizes, so every row lines up and stays readable.
+    /// </summary>
     public sealed class StatusPanel : OverlayPanel
     {
+        private static readonly Color Green = new Color(0.45f, 0.85f, 0.5f, 1f);
+        private const float Gap = 14f, SectionH = 64f;
+
+        private RectTransform _content;
+        private float _y;
+
         public StatusPanel(RectTransform root, Action onChange) : base(root, onChange) { }
 
         public void Open()
@@ -17,68 +26,123 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             Begin();
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.935f), new Vector2(0.95f, 0.995f), "상태창", 44, UiFactory.Gold);
+            _content = CodexPanel.Scroller(Root, 0.075f, 0.93f);
+            _y = Gap;
 
-            // Header: portrait block + name, level, rank, exp
-            var head = UiFactory.Panel("Head", Root, new Vector2(0.04f, 0.835f), new Vector2(0.96f, 0.93f), UiFactory.Ink);
-            UiFactory.Frame(head.transform, UiFactory.GoldDim, 2f);
-            var pic = UiFactory.Panel("Pic", head.transform, new Vector2(0.02f, 0.08f), new Vector2(0.17f, 0.92f), ArtLibrary.TintFor("비류연"));
+            // Header: portrait + name, level, rank, exp
+            var head = Block(150f);
+            var pic = UiFactory.Panel("Pic", head, new Vector2(0.02f, 0.06f), new Vector2(0.20f, 0.94f), ArtLibrary.TintFor("비류연"));
             var sprite = ArtLibrary.Player();
             if (sprite != null) { pic.sprite = sprite; pic.color = Color.white; pic.preserveAspect = true; }
-            else UiFactory.Label("Glyph", pic.transform, Vector2.zero, Vector2.one, "비", 50, UiFactory.PaperText);
+            else UiFactory.Body(UiFactory.Label("Glyph", pic.transform, Vector2.zero, Vector2.one, "비", 56, UiFactory.PaperText));
             long need = Progression.ExpToNext(save.Level);
-            UiFactory.Label("Name", head.transform, new Vector2(0.20f, 0.52f), new Vector2(0.96f, 0.96f), "비류연  Lv." + save.Level + "  ·  " + Promotion.RankName(Promotion.EffectiveRank(save)), 34, UiFactory.Gold, TextAnchor.MiddleLeft);
-            UiFactory.Label("Exp", head.transform, new Vector2(0.20f, 0.06f), new Vector2(0.96f, 0.50f), "경험 " + save.Exp.ToString("N0") + " / " + need.ToString("N0") + "   ·   두 " + save.Doo.ToString("N0"), 24, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+            Text(head, 0.23f, 0.97f, 0.50f, 0.96f, "비류연  Lv." + save.Level + "  ·  " + Promotion.RankName(Promotion.EffectiveRank(save)), 38, UiFactory.Gold);
+            Text(head, 0.23f, 0.97f, 0.06f, 0.50f, "경험 " + save.Exp.ToString("N0") + " / " + need.ToString("N0") + "\n두 " + save.Doo.ToString("N0"), 28, UiFactory.PaperText, TextAnchor.UpperLeft);
 
-            // Stats: two columns
+            // Stats: two columns of equal rows
+            Section("능력치");
             var stats = StatusSheet.Hero(save);
-            float top = 0.815f, rowH = 0.048f;
-            for (int i = 0; i < stats.Count; i++)
+            for (int i = 0; i < stats.Count; i += 2)
             {
-                int col = i % 2, row = i / 2;
-                float x0 = col == 0 ? 0.04f : 0.52f;
-                float y1 = top - row * (rowH + 0.004f);
-                StatRow(Root, stats[i], x0, x0 + 0.44f, y1 - rowH, y1);
+                var row = Place(84f, false);
+                StatCell(row, stats[i], 0f, 0.495f);
+                if (i + 1 < stats.Count) StatCell(row, stats[i + 1], 0.505f, 1f);
+                _y += 84f + Gap;
             }
 
             // Gear
-            float gy = top - 4 * (rowH + 0.004f) - 0.01f;
-            UiFactory.Label("GearTitle", Root, new Vector2(0.05f, gy - 0.045f), new Vector2(0.95f, gy), GearTitle(save), 30, UiFactory.Gold, TextAnchor.MiddleLeft);
-            gy -= 0.047f;
-            GearRow("무기", StatusSheet.Weapon(save), gy);
-            gy -= 0.054f;
-            GearRow("방어구", StatusSheet.Armor(save), gy);
-            gy -= 0.054f;
+            Section(GearTitle(save));
+            GearCard("무기", StatusSheet.Weapon(save));
+            GearCard("방어구", StatusSheet.Armor(save));
             var accs = StatusSheet.Accessories(save);
-            for (int i = 0; i < Inventory.AccessorySlots; i++)
-            {
-                GearRow("장신구 " + (i + 1), i < accs.Count ? accs[i] : null, gy);
-                gy -= 0.054f;
-            }
+            for (int i = 0; i < Inventory.AccessorySlots; i++) GearCard("장신구 " + (i + 1), i < accs.Count ? accs[i] : null);
 
             // Arts
-            UiFactory.Label("ArtsTitle", Root, new Vector2(0.05f, gy - 0.036f), new Vector2(0.95f, gy), "장착 무공", 32, UiFactory.Gold, TextAnchor.MiddleLeft);
-            gy -= 0.036f;
+            Section("장착 무공");
             var artLines = StatusSheet.ArtLines(save);
             if (StatusSheet.InnerLine(save).Length > 0) artLines.Add(StatusSheet.InnerLine(save));
-            UiFactory.Label("Arts", Root, new Vector2(0.06f, gy - 0.07f), new Vector2(0.94f, gy), artLines.Count == 0 ? "장착한 무공이 없다" : string.Join("\n", artLines), 22, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal);
-            gy -= 0.075f;
+            if (artLines.Count == 0) artLines.Add("장착한 무공이 없습니다");
+            foreach (var line in artLines)
+            {
+                var block = Block(72f);
+                Text(block, 0.04f, 0.97f, 0f, 1f, line, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
+            }
 
             // Party
             var party = EarlyGameContent.SelectCompanionsFor(Math.Max(1, save.HighestUnlockedStage), save);
             if (party.Count > 0)
             {
-                UiFactory.Label("PartyTitle", Root, new Vector2(0.05f, gy - 0.036f), new Vector2(0.95f, gy), "출전 동료", 32, UiFactory.Gold, TextAnchor.MiddleLeft);
-                gy -= 0.038f;
+                Section("출전 동료");
                 foreach (var c in party)
                 {
                     var l = StatusSheet.Ally(c, save.Level, Bonds.Level(save, c.Id), CompanionTraining.LevelOf(save, c.Id));
-                    UiFactory.Label("Ally_" + c.Id, Root, new Vector2(0.06f, gy - 0.033f), new Vector2(0.94f, gy),
-                        c.Name + "   체력 " + l[0].Value + "  내공 " + l[1].Value + "  공격 " + l[2].Value + "  방어 " + l[3].Value, 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-                    gy -= 0.033f;
+                    var block = Block(130f);
+                    Text(block, 0.04f, 0.97f, 0.52f, 0.97f, c.Name, 32, UiFactory.Gold, TextAnchor.MiddleLeft);
+                    Text(block, 0.04f, 0.97f, 0.05f, 0.52f, "체력 " + l[0].Value + "   내공 " + l[1].Value + "   공격 " + l[2].Value + "   방어 " + l[3].Value, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
                 }
             }
 
-            UiFactory.Button("Close", Root, new Vector2(0.3f, 0.008f), new Vector2(0.7f, 0.056f), "닫기", UiFactory.InkSoft, () => { Root.gameObject.SetActive(false); OnChange(); }, 32);
+            _content.sizeDelta = new Vector2(0f, _y + Gap);
+            UiFactory.Button("Close", Root, new Vector2(0.3f, 0.01f), new Vector2(0.7f, 0.065f), "닫기", UiFactory.InkSoft, () => { Root.gameObject.SetActive(false); OnChange(); }, 34);
+        }
+
+        // ------------------------------------------------------------------ layout helpers (pixel rows inside the scroll content)
+
+        /// <summary>A framed row of the given height at the current offset; advances the offset.</summary>
+        private RectTransform Block(float h)
+        {
+            var rt = Place(h, true);
+            _y += h + Gap;
+            return rt;
+        }
+
+        private RectTransform Place(float h, bool framed)
+        {
+            var rt = UiFactory.Rect("Row", _content, new Vector2(0.04f, 1f), new Vector2(0.96f, 1f));
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = new Vector2(0f, -_y);
+            rt.sizeDelta = new Vector2(0f, h);
+            var bg = rt.gameObject.AddComponent<Image>();
+            bg.color = framed ? UiFactory.Ink : new Color(0f, 0f, 0f, 0f);
+            bg.raycastTarget = true;   // lets a drag that starts on a row still scroll
+            if (framed) UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
+            return rt;
+        }
+
+        private void Section(string title)
+        {
+            var rt = Place(SectionH, false);
+            Text(rt, 0.02f, 1f, 0f, 1f, title, 34, UiFactory.Gold, TextAnchor.MiddleLeft);
+            _y += SectionH + Gap * 0.5f;
+        }
+
+        /// <summary>A fixed-size, wrapping text (no shrink-to-fit) inside a row.</summary>
+        private static Text Text(RectTransform parent, float x0, float x1, float y0, float y1, string text, int size, Color color, TextAnchor anchor = TextAnchor.MiddleLeft)
+        {
+            return UiFactory.Body(UiFactory.Label("Text", parent, new Vector2(x0, y0), new Vector2(x1, y1), text, size, color, anchor, FontStyle.Normal), 1.2f);
+        }
+
+        private static void StatCell(RectTransform row, StatLine line, float x0, float x1)
+        {
+            var cell = UiFactory.Panel("Stat", row, new Vector2(x0, 0f), new Vector2(x1, 1f), UiFactory.Ink);
+            UiFactory.Frame(cell.transform, UiFactory.GoldDim, 2f);
+            Text(cell.rectTransform, 0.05f, 0.40f, 0f, 1f, line.Label, 28, UiFactory.Dim);
+            Text(cell.rectTransform, 0.40f, 0.95f, 0.45f, 1f, line.Value, 34, UiFactory.PaperText, TextAnchor.MiddleRight);
+            if (!string.IsNullOrEmpty(line.Bonus))
+                Text(cell.rectTransform, 0.40f, 0.95f, 0f, 0.45f, "장비 " + line.Bonus, 22, Green, TextAnchor.MiddleRight);
+        }
+
+        private void GearCard(string slot, ItemData item)
+        {
+            var save = GameManager.Instance.Save;
+            bool has = item != null;
+            var card = Block(has ? 150f : 84f);
+            UiFactory.Frame(card, has ? UiFactory.GoldDim : new Color(0.25f, 0.25f, 0.28f, 1f), 2f);
+            string name = has ? UiFactory.GradedName(item) + (Gear.Level(save, item.Id) > 0 ? " +" + Gear.Level(save, item.Id) : "") : "비어 있음";
+            Text(card, 0.04f, 0.26f, has ? 0.58f : 0f, 1f, slot, 26, UiFactory.Dim);
+            Text(card, 0.27f, 0.97f, has ? 0.58f : 0f, 1f, name, 32, has ? UiFactory.PaperText : UiFactory.InkSoft);
+            if (has)
+                Text(card, 0.04f, 0.97f, 0.04f, 0.58f, StatusSheet.EffectText(item, Gear.Level(save, item.Id)), 24, UiFactory.PaperText, TextAnchor.UpperLeft);
         }
 
         private static string GearTitle(SaveData save)
@@ -90,26 +154,6 @@ namespace BiRyeoDo.Game.UI
                 if (n >= 2) parts.Add(set.Name + " 세트 " + n + "/" + set.Items.Length);
             }
             return parts.Count == 0 ? "장비" : "장비   <color=#9ADB9F>" + string.Join(" · ", parts) + "</color>";
-        }
-
-        private static void StatRow(RectTransform parent, StatLine line, float x0, float x1, float y0, float y1)
-        {
-            var band = UiFactory.Panel("Stat", parent, new Vector2(x0, y0), new Vector2(x1, y1), UiFactory.Ink);
-            UiFactory.Frame(band.transform, UiFactory.GoldDim, 2f);
-            UiFactory.Label("Label", band.transform, new Vector2(0.05f, 0f), new Vector2(0.42f, 1f), line.Label, 26, UiFactory.Dim, TextAnchor.MiddleLeft);
-            UiFactory.Label("Value", band.transform, new Vector2(0.42f, 0f), new Vector2(0.78f, 1f), line.Value, 30, UiFactory.PaperText, TextAnchor.MiddleRight);
-            if (!string.IsNullOrEmpty(line.Bonus))
-                UiFactory.Label("Bonus", band.transform, new Vector2(0.78f, 0f), new Vector2(0.98f, 1f), "(" + line.Bonus + ")", 20, new Color(0.45f, 0.85f, 0.5f, 1f), TextAnchor.MiddleLeft, FontStyle.Normal);
-        }
-
-        private void GearRow(string slot, ItemData item, float y1)
-        {
-            var band = UiFactory.Panel("Gear", Root, new Vector2(0.04f, y1 - 0.05f), new Vector2(0.96f, y1), UiFactory.Ink);
-            UiFactory.Frame(band.transform, item != null ? UiFactory.GoldDim : new Color(0.25f, 0.25f, 0.28f, 1f), 2f);
-            UiFactory.Label("Slot", band.transform, new Vector2(0.03f, 0f), new Vector2(0.20f, 1f), slot, 22, UiFactory.Dim, TextAnchor.MiddleLeft);
-            UiFactory.Label("Name", band.transform, new Vector2(0.20f, 0.45f), new Vector2(0.97f, 1f), item != null ? UiFactory.GradedName(item) + (Gear.Level(GameManager.Instance.Save, item.Id) > 0 ? " +" + Gear.Level(GameManager.Instance.Save, item.Id) : "") : "비어 있음", 26, item != null ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
-            if (item != null)
-                UiFactory.Label("Effect", band.transform, new Vector2(0.20f, 0f), new Vector2(0.97f, 0.48f), StatusSheet.EffectText(item, Gear.Level(GameManager.Instance.Save, item.Id)), 20, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
         }
     }
 }

@@ -64,11 +64,11 @@ namespace BiRyeoDo.Core
         {
             error = null;
             var item = EarlyGameContent.FindItem(id);
-            if (item == null || !item.IsGear || Inventory.Count(save, id) <= 0) { error = "강화할 수 없는 물건이다."; return false; }
+            if (item == null || !item.IsGear || Inventory.Count(save, id) <= 0) { error = "강화할 수 없는 물건입니다."; return false; }
             int cur = Level(save, id);
-            if (cur >= MaxLevel) { error = "이미 최대 강화다."; return false; }
+            if (cur >= MaxLevel) { error = "이미 최대 강화입니다."; return false; }
             long cost = CostFor(item, cur + 1);
-            if (save.Doo < cost) { error = "두가 모자란다. (" + cost.ToString("N0") + "두 필요)"; return false; }
+            if (save.Doo < cost) { error = "두가 모자랍니다. (" + cost.ToString("N0") + "두 필요)"; return false; }
             save.Doo -= cost;
             GearLevel entry = null;
             foreach (var l in save.GearLevels) if (l.Id == id) entry = l;

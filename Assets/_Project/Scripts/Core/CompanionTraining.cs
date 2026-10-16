@@ -48,12 +48,12 @@ namespace BiRyeoDo.Core
         {
             error = null;
             var companion = EarlyGameContent.FindCompanion(id);
-            if (companion == null || companion.JoinStage > save.HighestUnlockedStage) { error = "아직 함께하지 않는 동료다."; return false; }
+            if (companion == null || companion.JoinStage > save.HighestUnlockedStage) { error = "아직 함께하지 않는 동료입니다."; return false; }
             int level = LevelOf(save, id);
-            if (level >= MaxLevel) { error = "이미 최고 수련 단계다."; return false; }
-            if (level >= Cap(save, id)) { error = "인연이 더 깊어져야 이 이상 수련할 수 있다. (" + Bonds.LevelNames[Math.Min(3, Bonds.Level(save, id) + 1)] + " 필요)"; return false; }
+            if (level >= MaxLevel) { error = "이미 최고 수련 단계입니다."; return false; }
+            if (level >= Cap(save, id)) { error = "인연이 더 깊어져야 이 이상 수련할 수 있습니다. (" + Bonds.LevelNames[Math.Min(3, Bonds.Level(save, id) + 1)] + " 필요)"; return false; }
             long cost = CostFor(level + 1);
-            if (save.Doo < cost) { error = "두가 모자란다. (" + cost.ToString("N0") + "두)"; return false; }
+            if (save.Doo < cost) { error = "두가 모자랍니다. (" + cost.ToString("N0") + "두)"; return false; }
             save.Doo -= cost;
             TrainingEntry entry = null;
             foreach (var e in save.CompanionTraining) if (e.Id == id) entry = e;

@@ -66,8 +66,8 @@ namespace BiRyeoDo.Core
         {
             error = null;
             var item = EarlyGameContent.FindItem(id);
-            if (item == null || !item.IsGear) { error = "장비할 수 없는 물건이다."; return false; }
-            if (Count(save, id) == 0) { error = "가지고 있지 않다."; return false; }
+            if (item == null || !item.IsGear) { error = "장비할 수 없는 물건입니다."; return false; }
+            if (Count(save, id) == 0) { error = "가지고 있지 않습니다."; return false; }
             if (IsEquipped(save, id)) return true;
 
             if (item.Kind == ItemKind.Weapon || item.Kind == ItemKind.Armor)
@@ -87,7 +87,7 @@ namespace BiRyeoDo.Core
                     var o = EarlyGameContent.FindItem(other);
                     if (o != null && o.Kind == ItemKind.Accessory) worn++;
                 }
-                if (worn >= AccessorySlots) { error = "장신구는 " + AccessorySlots + "개까지 착용할 수 있다."; return false; }
+                if (worn >= AccessorySlots) { error = "장신구는 " + AccessorySlots + "개까지 착용할 수 있습니다."; return false; }
             }
             save.EquippedGear.Add(id);
             return true;

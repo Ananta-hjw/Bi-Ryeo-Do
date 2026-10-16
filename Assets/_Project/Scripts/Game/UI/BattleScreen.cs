@@ -415,7 +415,7 @@ namespace BiRyeoDo.Game.UI
                     GameManager.Instance.SaveNow();
                     yield return ShowResult(stage.TowerFloor + "층 돌파!", towerFirst
                         ? "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (towerNote.Length > 0 ? "\n" + towerNote : "")
-                        : "이미 돌파한 층이다. (보상 없음)", false);
+                        : "이미 돌파한 층입니다. (보상 없음)", false);
                 }
                 else if (cleared)
                 {
@@ -428,11 +428,11 @@ namespace BiRyeoDo.Game.UI
                     int chests = StageStars.ClaimableCount(save);
                     GameManager.Instance.SaveNow();
                     yield return ShowResult(tag + "스테이지 돌파!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (bondNote.Length > 0 ? "\n" + bondNote : "") + (reward.Count > 0 ? "\n\n첫 돌파 보상\n" + DescribeStacks(reward) : "")
-                        + "\n\n" + StageStarSummary(save, stage.Number, diff) + (newStars > 0 ? "\n이번에 새로 얻은 별 +" + newStars : "") + (chests > 0 ? "\n별 보상을 받을 수 있다! (강호 탭)" : ""), false);
+                        + "\n\n" + StageStarSummary(save, stage.Number, diff) + (newStars > 0 ? "\n이번에 새로 얻은 별 +" + newStars : "") + (chests > 0 ? "\n별 보상을 받을 수 있습니다! (강호 탭)" : ""), false);
                 }
                 else
                 {
-                    yield return ShowResult("패배...", "다시 도전하면 이 스테이지의 첫 전투부터 시작한다. (이미 얻은 경험과 두는 그대로 남는다.)", true);
+                    yield return ShowResult("패배...", "다시 도전하면 이 스테이지의 첫 전투부터 시작합니다. (이미 얻은 경험과 두는 그대로 남습니다.)", true);
                     again = _retry;
                     resume = false;
                     startIndex = 0;
@@ -551,7 +551,7 @@ namespace BiRyeoDo.Game.UI
                 if (lost)
                 {
                     bool canRetry = Promotion.CanAfford(save, offer);
-                    yield return ShowResult("패배...", "입장료 " + offer.Fee.ToString("N0") + "두는 돌려받지 못한다." + (canRetry ? "\n다시 도전하려면 입장료를 한 번 더 내야 한다." : "\n두가 모자라 다시 도전할 수 없다."), true, canRetry);
+                    yield return ShowResult("패배...", "입장료 " + offer.Fee.ToString("N0") + "두는 돌려받지 못합니다." + (canRetry ? "\n다시 도전하려면 입장료를 한 번 더 내야 합니다." : "\n두가 모자라 다시 도전할 수 없습니다."), true, canRetry);
                     if (_retry && Promotion.Pay(save, offer)) { GameManager.Instance.SaveNow(); again = true; }
                 }
                 else
@@ -560,7 +560,7 @@ namespace BiRyeoDo.Game.UI
                     int levels = Progression.AddExp(save, offer.ExpReward);
                     GameManager.Instance.SaveNow();
                     yield return ShowResult(Promotion.RankName(offer.TargetRank) + " 승급!",
-                        (anyDraw ? "무승부가 섞여 상금이 절반이다.\n" : "") + "상금 " + doo.ToString("N0") + "두 · 경험 " + offer.ExpReward + (levels > 0 ? "\nLv." + save.Level + " 상승!" : ""), false);
+                        (anyDraw ? "무승부가 섞여 상금이 절반입니다.\n" : "") + "상금 " + doo.ToString("N0") + "두 · 경험 " + offer.ExpReward + (levels > 0 ? "\nLv." + save.Level + " 상승!" : ""), false);
                 }
             }
 
@@ -1128,7 +1128,8 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
             _tipTitle = UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.86f), new Vector2(0.95f, 0.98f), "", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
             _tipBody = UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.10f), new Vector2(0.94f, 0.85f), "", 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal);
-            UiFactory.Label("Hint", card.transform, new Vector2(0.05f, 0.01f), new Vector2(0.95f, 0.09f), "아무 곳이나 누르면 닫힌다", 20, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+            _tipBody.lineSpacing = 1.25f;
+            UiFactory.Label("Hint", card.transform, new Vector2(0.05f, 0.01f), new Vector2(0.95f, 0.09f), "아무 곳이나 누르면 닫힙니다", 20, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
             _tipRoot.SetActive(false);
         }
 
@@ -1153,7 +1154,7 @@ namespace BiRyeoDo.Game.UI
             {
                 parts.Add("위력 ×" + s.Power.ToString("0.0") + (s.Hits > 1 ? " · " + s.Hits + "타" : ""));
                 if (s.AllEnemies) parts.Add("적 전체");
-                if (s.Effect == SkillEffect.Stun) parts.Add("굳힘 (기를 모으는 적의 강타를 끊는다)");
+                if (s.Effect == SkillEffect.Stun) parts.Add("굳힘 (기를 모으는 적의 강타를 끊습니다)");
             }
             parts.Add(s.SpiritCost > 0 ? "기세 " + s.SpiritCost : s.QiCost > 0 ? "내공 " + s.QiCost : "내공 0");
             if (s.Cooldown > 0) parts.Add("재사용 " + s.Cooldown + "턴");
@@ -1184,7 +1185,7 @@ namespace BiRyeoDo.Game.UI
                 if (slot < items.Count) ShowTip(items[slot].Name, ItemTipText(items[slot]));
                 return;
             }
-            if (slot == 0) ShowTip("공격", "기본 공격. 내공을 쓰지 않고 기세가 오른다.");
+            if (slot == 0) ShowTip("공격", "기본 공격입니다. 내공을 쓰지 않고 기세가 오릅니다.");
             else if (slot >= 1 && slot <= Progression.MaxEquippedArts)
             {
                 var arts = ArtsOf(me);
@@ -1193,15 +1194,15 @@ namespace BiRyeoDo.Game.UI
             else if (slot == 9)
             {
                 var ultimateSkill = UltimateOf(me);
-                if (ultimateSkill != null) ShowTip("필살기 · " + ultimateSkill.Name, SkillBody(ultimateSkill) + "\n기세가 가득 차면 쓸 수 있다.");
+                if (ultimateSkill != null) ShowTip("필살기 · " + ultimateSkill.Name, SkillBody(ultimateSkill) + "\n기세가 가득 차면 쓸 수 있습니다.");
             }
-            else if (slot == 5) ShowTip("방어", "다음 차례까지 받는 피해가 크게 줄어든다(피해 60% 감소). 기세가 조금 오른다.");
-            else if (slot == 6) ShowTip("운기", "내공 +" + InteractiveBattle.MeditateQi + "과 체력을 조금 회복한다.");
-            else if (slot == 7) ShowTip("아이템", "행낭의 소모품을 쓴다. 가장 다친 동료의 체력이 회복된다.");
+            else if (slot == 5) ShowTip("방어", "다음 차례까지 받는 피해가 크게 줄어듭니다(피해 60% 감소). 기세가 조금 오릅니다.");
+            else if (slot == 6) ShowTip("운기", "내공 +" + InteractiveBattle.MeditateQi + "과 체력을 조금 회복합니다.");
+            else if (slot == 7) ShowTip("아이템", "행낭의 소모품을 씁니다. 가장 다친 동료의 체력이 회복됩니다.");
             else if (slot == 8 && _jointPartners.Count > 0)
             {
                 if (_jointPartners.Count == 1) ShowJointTip(_jointPartners[0]);
-                else ShowTip("합공", "기세 " + InteractiveBattle.JointSpiritCost + "를 쓰고 인연 있는 동료와 함께 연달아 친다. 동료는 다음 행동을 쓴다.");
+                else ShowTip("합공", "기세 " + InteractiveBattle.JointSpiritCost + "를 쓰고 인연 있는 동료와 함께 연달아 칩니다. 동료는 다음 행동을 씁니다.");
             }
         }
 
@@ -1219,8 +1220,8 @@ namespace BiRyeoDo.Game.UI
             var companion = EarlyGameContent.FindCompanion(partner.Id);
             var spec = companion != null ? Bonds.JointSpec(companion, Bonds.Level(GameManager.Instance.Save, partner.Id), Bonds.ReferencePower(_battle.Player.Skills)) : null;
             string name = companion != null && !string.IsNullOrEmpty(companion.JointName) ? companion.JointName : "합공";
-            string extra = spec == null ? "" : spec.Effect == SkillEffect.Stun ? "\n적을 굳혀 강타를 끊는다." : spec.Effect == SkillEffect.GuardParty ? "\n파티 전체가 방어 태세를 취한다." : spec.Effect == SkillEffect.HealAlly ? "\n가장 다친 동료를 치유한다." : "";
-            ShowTip(name + " (" + partner.Name + ")", "기세 " + InteractiveBattle.JointSpiritCost + " · 위력 ×" + (spec != null ? spec.Power.ToString("0.0") : "?") + "\n비류연과 " + partner.Name + "이(가) 연달아 친다. " + partner.Name + "은(는) 다음 행동을 쓴다." + extra);
+            string extra = spec == null ? "" : spec.Effect == SkillEffect.Stun ? "\n적을 굳혀 강타를 끊습니다." : spec.Effect == SkillEffect.GuardParty ? "\n파티 전체가 방어 태세를 취합니다." : spec.Effect == SkillEffect.HealAlly ? "\n가장 다친 동료를 치유합니다." : "";
+            ShowTip(name + " (" + partner.Name + ")", "기세 " + InteractiveBattle.JointSpiritCost + " · 위력 ×" + (spec != null ? spec.Power.ToString("0.0") : "?") + "\n비류연과 " + partner.Name + "이(가) 연달아 칩니다. " + partner.Name + "은(는) 다음 행동을 씁니다." + extra);
         }
 
         /// <summary>Long press on a party member's panel: every skill they have.</summary>
@@ -1765,10 +1766,10 @@ namespace BiRyeoDo.Game.UI
             if (_lastStarLine.Length > 0) sb.Append("  ").Append(_lastStarLine);
             sb.Append("\n");
             foreach (var m in _party) sb.Append(m.Name).Append("  체력 ").Append(m.Hp).Append("/").Append(m.Stats.MaxHp).Append("  내공 ").Append(m.Qi).Append("\n");
-            sb.Append("\n다음은 ").Append(boss ? "결전이다." : "전투 " + (next + 1) + "이다.");
+            sb.Append("\n다음은 ").Append(boss ? "결전입니다." : "전투 " + (next + 1) + "입니다.");
             var trial = stage.TrialFor(next);
             if (trial != null) sb.Append("\n[").Append(trial.Title).Append("] ").Append(trial.Brief);
-            sb.Append("\n준비가 되면 도전하자. 물러나도 여기서부터 이어서 할 수 있다.");
+            sb.Append("\n준비가 되면 도전해 주세요. 물러나도 여기서부터 이어서 할 수 있습니다.");
 
             _panelTitle.text = stage.Name;
             _panelText.text = sb.ToString();

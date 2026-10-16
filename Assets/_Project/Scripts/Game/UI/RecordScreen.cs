@@ -92,7 +92,7 @@ namespace BiRyeoDo.Game.UI
             if (!_built) return;
             var save = GameManager.Instance.Save;
             var hero = StatusSheet.Hero(save);
-            _statusE.Detail.text = "능력치와 장비를 확인한다 · " + hero[0].Label + " " + hero[0].Value + " · " + hero[2].Label + " " + hero[2].Value;
+            _statusE.Detail.text = "능력치와 장비를 확인합니다 · " + hero[0].Label + " " + hero[0].Value + " · " + hero[2].Label + " " + hero[2].Value;
             SetBadge(_statusE, 0);
             _codexE.Detail.text = "적 " + save.SeenEnemies.Count + "/" + Codex.EnemyTotal + " · 물품 " + save.SeenItems.Count + "/" + Codex.ItemTotal;
             SetBadge(_codexE, 0);
@@ -103,7 +103,7 @@ namespace BiRyeoDo.Game.UI
             SetBadge(_memoryE, unseen);
             var notes = new List<string>();
             foreach (var fa in Factions.All) if (Factions.Tier(save, fa.Id) > 0) notes.Add(fa.Name + " " + Factions.TierNames[Factions.Tier(save, fa.Id)]);
-            _factionE.Detail.text = notes.Count > 0 ? "평판: " + string.Join(" · ", notes) : "전투를 이기면 세력 평판이 쌓이고 객잔 선반이 열린다";
+            _factionE.Detail.text = notes.Count > 0 ? "평판: " + string.Join(" · ", notes) : "전투를 이기면 세력 평판이 쌓이고 객잔 선반이 열립니다";
             SetBadge(_factionE, 0);
         }
     }

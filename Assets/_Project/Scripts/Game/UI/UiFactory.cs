@@ -145,6 +145,14 @@ namespace BiRyeoDo.Game.UI
             return t;
         }
 
+        /// <summary>Reading-text style: a fixed font size (no shrink-to-fit, so sizes match across rows) with roomier lines.</summary>
+        public static Text Body(Text t, float lineSpacing = 1.25f)
+        {
+            t.resizeTextForBestFit = false;
+            t.lineSpacing = lineSpacing;
+            return t;
+        }
+
         public static Button Button(string name, Transform parent, Vector2 min, Vector2 max, string label, Color bg,
             UnityAction onClick, int fontSize = 40)
         {

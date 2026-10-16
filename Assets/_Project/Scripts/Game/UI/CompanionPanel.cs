@@ -21,7 +21,7 @@ namespace BiRyeoDo.Game.UI
             if (!Tutorial.IsDone(save, "training") && HelpPanel.Instance != null) HelpPanel.Instance.Show("training", true);
 
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "동료 수련 · " + save.Doo.ToString("N0") + "두", 40, UiFactory.Gold);
-            UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.845f), new Vector2(0.95f, 0.92f), toast ?? "수련 단계마다 체력·공격·방어 +4%. 인연이 깊을수록 더 높이 수련할 수 있다 (서먹 3 · 친분 5 · 신뢰 8 · 의기투합 10).", 22, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.845f), new Vector2(0.95f, 0.92f), toast ?? "수련 단계마다 체력·공격·방어 +4%. 인연이 깊을수록 더 높이 수련할 수 있습니다 (서먹 3 · 친분 5 · 신뢰 8 · 의기투합 10).", 22, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
             var content = CodexPanel.Scroller(Root, 0.09f, 0.84f);
             int n = 0;
@@ -42,7 +42,7 @@ namespace BiRyeoDo.Game.UI
                 var btn = UiFactory.Button("Train", band, new Vector2(0.69f, 0.12f), new Vector2(0.97f, 0.88f), label, can ? UiFactory.Red : UiFactory.InkSoft, () => Train(companion), 24);
                 btn.interactable = can;
             }
-            if (n == 0) UiFactory.Label("None", Root, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "아직 함께하는 동료가 없다.", 34, UiFactory.PaperText);
+            if (n == 0) UiFactory.Label("None", Root, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "아직 함께하는 동료가 없습니다.", 34, UiFactory.PaperText);
             SetListHeight(content, n);
             AddClose();
         }

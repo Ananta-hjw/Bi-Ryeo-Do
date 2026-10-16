@@ -237,7 +237,7 @@ namespace BiRyeoDo.Game.UI
             {
                 int count = Inventory.Count(save, item.Id);
                 long gold = Inventory.Sell(save, item.Id, count);
-                _flash = item.Name + " " + count + "개를 팔아 " + gold.ToString("N0") + "두를 얻었다.";
+                _flash = item.Name + " " + count + "개를 팔아 " + gold.ToString("N0") + "두를 얻었습니다.";
             }
             GameManager.Instance.SaveNow();
             Refresh();
@@ -334,7 +334,7 @@ namespace BiRyeoDo.Game.UI
             _header.text = "행낭 · " + save.Doo.ToString("N0") + "두";
             _gear.text = GearLine(save);
             var setLines = Gear.SetLines(save.EquippedGear);
-            _hint.text = !string.IsNullOrEmpty(_flash) ? _flash : setLines.Count > 0 ? string.Join("  |  ", setLines) : "장비는 비류연만 착용한다. 같은 세트를 맞추면 효과가 붙는다.";
+            _hint.text = !string.IsNullOrEmpty(_flash) ? _flash : setLines.Count > 0 ? string.Join("  |  ", setLines) : "장비는 비류연만 착용합니다. 같은 세트를 맞추면 효과가 붙습니다.";
             _flash = null;
 
             var stacks = save.Items

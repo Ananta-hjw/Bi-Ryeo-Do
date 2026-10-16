@@ -333,11 +333,11 @@ namespace BiRyeoDo.Game.UI
             int rank = Promotion.EffectiveRank(save);
             UiFactory.Label("Title", _promoOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "승급 시험장 · 현재 " + Promotion.RankName(rank), 44, UiFactory.Gold);
             UiFactory.Label("Rules", _promoOverlay, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.92f),
-                "상대 둘을 혼자서 연달아 꺾는다. 한 판은 " + Promotion.TurnLimit + "턴(상위 단계일수록 조금 길다) 안에 끝내야 하며, 시간 초과는 무승부(상금 절반)다. 패배하면 입장료는 돌려받지 못한다.\n단계가 오를수록 상대는 훨씬 강해지지만, 검룡위 1당 모든 능력치 +3% (지금 +" + Math.Round(Promotion.StatBonusPerRank * 100f * rank) + "%).", 26, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+                "상대 둘을 혼자서 연달아 꺾어야 합니다. 한 판은 " + Promotion.TurnLimit + "턴(상위 단계일수록 조금 깁니다) 안에 끝내야 하며, 시간 초과는 무승부(상금 절반)입니다. 패배하면 입장료는 돌려받지 못합니다.\n단계가 오를수록 상대는 훨씬 강해지지만, 검룡위 1당 모든 능력치 +3% (지금 +" + Math.Round(Promotion.StatBonusPerRank * 100f * rank) + "%).", 26, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
             var targets = Promotion.TargetRanks(save);
             if (targets.Count == 0)
-                UiFactory.Label("Max", _promoOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "이미 최고 경지의 검룡이다.", 40, UiFactory.PaperText);
+                UiFactory.Label("Max", _promoOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "이미 최고 경지의 검룡입니다.", 40, UiFactory.PaperText);
 
             float y = 0.82f;
             foreach (int target in targets)
@@ -398,7 +398,7 @@ namespace BiRyeoDo.Game.UI
             reset.interactable = true;
 
             UiFactory.Label("Info", _settingsOverlay, new Vector2(0.06f, 0.12f), new Vector2(0.94f, 0.22f),
-                "소리 파일(Resources/Audio)을 넣으면 효과음과 배경음이 자동으로 나온다. 파일이 없으면 조용히 넘어간다.", 22, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+                "소리 파일(Resources/Audio)을 넣으면 효과음과 배경음이 자동으로 나옵니다. 파일이 없으면 조용히 넘어갑니다.", 22, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
             UiFactory.Button("Close", _settingsOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { GameManager.Instance.SaveNow(); _settingsOverlay.gameObject.SetActive(false); Refresh(); }, 36);
         }
 
@@ -455,7 +455,7 @@ namespace BiRyeoDo.Game.UI
             if (!Tutorial.IsDone(save, "board") && HelpPanel.Instance != null) HelpPanel.Instance.Show("board", true);
             UiFactory.Label("Title", _questOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "의뢰 게시판", 44, UiFactory.Gold);
             UiFactory.Label("Rules", _questOverlay, new Vector2(0.05f, 0.85f), new Vector2(0.95f, 0.92f),
-                "이미 지나온 싸움에 조건이 붙어 다시 나온다. 한 번씩만 받을 수 있고, 두와 보상을 얻는다.", 26, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+                "이미 지나온 싸움에 조건이 붙어 다시 나옵니다. 한 번씩만 받을 수 있고, 두와 보상을 얻습니다.", 26, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
             var questList = CodexPanel.Scroller(_questOverlay, 0.10f, 0.84f);
             int shown = 0;
@@ -473,7 +473,7 @@ namespace BiRyeoDo.Game.UI
             }
             questList.sizeDelta = new Vector2(0f, CodexPanel.RowGap + shown * (CodexPanel.RowH + CodexPanel.RowGap));
             if (shown == 0)
-                UiFactory.Label("None", _questOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "아직 받을 수 있는 의뢰가 없다. 스테이지를 돌파하면 의뢰가 붙는다.", 34, UiFactory.PaperText);
+                UiFactory.Label("None", _questOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "아직 받을 수 있는 의뢰가 없습니다. 스테이지를 돌파하면 의뢰가 생깁니다.", 34, UiFactory.PaperText);
 
             UiFactory.Button("Close", _questOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _questOverlay.gameObject.SetActive(false); Refresh(); }, 36);
         }
@@ -489,7 +489,7 @@ namespace BiRyeoDo.Game.UI
             if (!Tower.Unlocked(save))
             {
                 UiFactory.Label("Locked", _towerOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.75f),
-                    "스테이지 " + Tower.UnlockStage + "를 돌파하면 열린다.", 34, UiFactory.PaperText);
+                    "스테이지 " + Tower.UnlockStage + "를 돌파하면 열립니다.", 34, UiFactory.PaperText);
             }
             else
             {
@@ -512,7 +512,7 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Button("Go", _towerOverlay, new Vector2(0.25f, 0.34f), new Vector2(0.75f, 0.44f), "도전", UiFactory.Red, () => StartTower(floor), 44);
                 if (save.TowerBest > 0)
                 {
-                    UiFactory.Label("Again", _towerOverlay, new Vector2(0.05f, 0.24f), new Vector2(0.95f, 0.30f), "이미 돌파한 층은 보상 없이 다시 겨룰 수 있다", 24, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+                    UiFactory.Label("Again", _towerOverlay, new Vector2(0.05f, 0.24f), new Vector2(0.95f, 0.30f), "이미 돌파한 층은 보상 없이 다시 겨룰 수 있습니다", 24, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
                     UiFactory.Button("Prev", _towerOverlay, new Vector2(0.25f, 0.15f), new Vector2(0.75f, 0.23f), save.TowerBest + "층 다시 도전", UiFactory.InkSoft, () => StartTower(save.TowerBest), 30);
                 }
             }
@@ -542,7 +542,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Title", _fortuneOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "기연", 44, UiFactory.Gold);
             if (open.Count == 0)
             {
-                UiFactory.Label("None", _fortuneOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "지금은 마주칠 인연이 없다. 스테이지를 돌파하면 새로운 기연이 찾아온다.", 34, UiFactory.PaperText);
+                UiFactory.Label("None", _fortuneOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "지금은 마주칠 인연이 없습니다. 스테이지를 돌파하면 새로운 기연이 찾아옵니다.", 34, UiFactory.PaperText);
             }
             var fortuneList = CodexPanel.Scroller(_fortuneOverlay, 0.10f, 0.90f);
             for (int i = 0; i < open.Count; i++)
@@ -550,7 +550,7 @@ namespace BiRyeoDo.Game.UI
                 var e = open[i];
                 var band = CodexPanel.Band(fortuneList, i);
                 UiFactory.Label("Name", band, new Vector2(0.03f, 0.10f), new Vector2(0.64f, 0.90f), e.Title, 34, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                UiFactory.Button("Go", band, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), "마주치다", UiFactory.Red, () => ShowFortune(e), 30);
+                UiFactory.Button("Go", band, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), "마주치기", UiFactory.Red, () => ShowFortune(e), 30);
             }
             fortuneList.sizeDelta = new Vector2(0f, CodexPanel.RowGap + open.Count * (CodexPanel.RowH + CodexPanel.RowGap));
             UiFactory.Button("Close", _fortuneOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _fortuneOverlay.gameObject.SetActive(false); Refresh(); }, 36);
@@ -608,10 +608,10 @@ namespace BiRyeoDo.Game.UI
             var active = EarlyGameContent.SelectCompanionsFor(Math.Max(1, save.HighestUnlockedStage), save);
             UiFactory.Label("Title", _partyOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "파티 편성", 44, UiFactory.Gold);
             UiFactory.Label("Rules", _partyOverlay, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.92f),
-                "비류연과 함께 싸울 동료는 최대 " + EarlyGameContent.MaxCompanions + "명이다. 눌러서 출전과 대기를 바꾼다.", 28, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+                "비류연과 함께 싸울 동료는 최대 " + EarlyGameContent.MaxCompanions + "명입니다. 눌러서 출전과 대기를 바꿉니다.", 28, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
             if (available.Count == 0)
-                UiFactory.Label("None", _partyOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "아직 함께할 동료가 없다.", 40, UiFactory.PaperText);
+                UiFactory.Label("None", _partyOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "아직 함께할 동료가 없습니다.", 40, UiFactory.PaperText);
 
             float y = 0.82f;
             foreach (var c in available)
@@ -711,7 +711,7 @@ namespace BiRyeoDo.Game.UI
                 bool featOk = Promotion.StageAllowed(save, _featStage.Number);
                 _featTitle.text = "스테이지 " + _featStage.Number + " · " + _featStage.Name;
                 _featSub.text = "권장 Lv." + _featStage.RecommendedLevel + " · 전투 " + _featStage.Encounters.Length + "회" + PartyText(_featStage)
-                    + (featOk ? "" : "\n" + Promotion.RankName(Promotion.GateRank) + " 이상이어야 참가할 수 있다");
+                    + (featOk ? "" : "\n" + Promotion.RankName(Promotion.GateRank) + " 이상이어야 참가할 수 있습니다");
                 _featBtnLabel.text = !featOk ? "승급 필요" : StageProgress.Has(save, _featStage.Number) ? "이어하기" : featCleared ? "재도전" : "출전";
                 _featBtn.interactable = featOk;
                 var art = ArtLibrary.Background(_featStage.Number);
@@ -721,7 +721,7 @@ namespace BiRyeoDo.Game.UI
             _promoRowDetail.text = Promotion.RankName(Promotion.EffectiveRank(save)) + (Promotion.EffectiveRank(save) >= Promotion.MaxRank ? " · 최고 경지" : " · 한 계단 또는 두 계단 승급 도전")
                 + (Promotion.EffectiveRank(save) < Promotion.GateRank ? "\n(" + Promotion.RankName(Promotion.GateRank) + " 이상이어야 삼성무제 참가)" : "");
             int openQuests = Quests.Open(save).Count, openFortunes = Fortunes.Open(save).Count;
-            _questRowDetail.text = openQuests > 0 ? "받을 수 있는 의뢰 " + openQuests + "건" : "새 의뢰 없음 (스테이지를 돌파하면 늘어난다)";
+            _questRowDetail.text = openQuests > 0 ? "받을 수 있는 의뢰 " + openQuests + "건" : "새 의뢰 없음 (스테이지를 돌파하면 늘어납니다)";
             if (!ReferenceEquals(_syncedSave, save))
             {
                 // Backfill records for saves from before these systems existed (once per loaded save).
@@ -741,7 +741,7 @@ namespace BiRyeoDo.Game.UI
             _starsTitle.text = "— 스테이지 —   ★ " + StageStars.Total(save);
             int pickedDiff = Mathf.Clamp(save.Difficulty, 0, StageStars.DifficultyCount - 1);
             for (int d = 0; d < _diffTabs.Length; d++) _diffTabs[d].color = d == pickedDiff ? (d == 0 ? new Color(0.30f, 0.48f, 0.44f, 1f) : d == 1 ? new Color(0.70f, 0.45f, 0.12f, 1f) : UiFactory.Red) : UiFactory.InkSoft;
-            _towerRowDetail.text = Tower.Unlocked(save) ? "최고 " + save.TowerBest + "층 · 다음 " + Tower.NextFloor(save) + "층" : "스테이지 " + Tower.UnlockStage + " 돌파 시 열린다";
+            _towerRowDetail.text = Tower.Unlocked(save) ? "최고 " + save.TowerBest + "층 · 다음 " + Tower.NextFloor(save) + "층" : "스테이지 " + Tower.UnlockStage + " 돌파 시 열립니다";
             _fortuneRowDetail.text = openFortunes > 0 ? "마주칠 기연 " + openFortunes + "건" : "새 기연 없음";
             SetBadge(_questBadge, openQuests);
             SetBadge(_fortuneBadge, openFortunes);
@@ -749,7 +749,7 @@ namespace BiRyeoDo.Game.UI
             SetBadge(_partyBadge, 0);
             var current = new List<string>();
             foreach (var c in EarlyGameContent.SelectCompanionsFor(Math.Max(1, save.HighestUnlockedStage), save)) current.Add(c.Name + "(인연 " + Bonds.LevelNames[Bonds.Level(save, c.Id)] + ")");
-            _partyRowDetail.text = current.Count == 0 ? "아직 함께할 동료가 없다" : "출전 동료: " + string.Join(", ", current)
+            _partyRowDetail.text = current.Count == 0 ? "아직 함께할 동료가 없습니다" : "출전 동료: " + string.Join(", ", current)
                 + (AvailableCompanions(save).Count > EarlyGameContent.MaxCompanions ? "\n(동료 " + AvailableCompanions(save).Count + "명 중 " + EarlyGameContent.MaxCompanions + "명만 출전)" : "");
 
             foreach (var r in _rows)
@@ -765,7 +765,7 @@ namespace BiRyeoDo.Game.UI
                 int stageStarCount = StageStars.StarsOfStage(save, st.Number, diff);
                 string starText = stageStarCount > 0 ? "  ★" + stageStarCount + "/" + StageStars.MaxStarsOfStage(st.Number) : "";
                 r.Title.text = "스테이지 " + st.Number + " · " + st.Name + starText;
-                r.Detail.text = reached && !rankOk ? Promotion.RankName(Promotion.GateRank) + " 이상이 되어야 참가할 수 있다 (승급 시험장)" : unlocked ? "권장 Lv." + st.RecommendedLevel + " · 전투 " + st.Encounters.Length + "회" + PartyText(st) + (cleared ? " · 돌파" : "") : "이전 스테이지를 돌파하면 열린다";
+                r.Detail.text = reached && !rankOk ? Promotion.RankName(Promotion.GateRank) + " 이상이 되어야 참가할 수 있습니다 (승급 시험장)" : unlocked ? "권장 Lv." + st.RecommendedLevel + " · 전투 " + st.Encounters.Length + "회" + PartyText(st) + (cleared ? " · 돌파" : "") : "이전 스테이지를 돌파하면 열립니다";
                 bool playable = unlocked && diffOpen;
                 r.ButtonLabel.text = !unlocked ? (reached ? "승급 필요" : "잠김") : !diffOpen ? StageStars.DifficultyNames[diff - 1] + "\n돌파 필요" : StageProgress.Has(save, st.Number) ? "이어하기" : clearedHere ? "재도전" : "출전";
                 r.ButtonImage.color = !playable ? UiFactory.InkSoft : clearedHere ? new Color(0.35f, 0.35f, 0.32f, 1f) : UiFactory.Red;

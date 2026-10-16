@@ -22,21 +22,21 @@ namespace BiRyeoDo.Core
         public static readonly QuestData[] All =
         {
             new QuestData { Id = "q_hogol", Name = "호골채 잔당 소탕", Brief = "남은 산적들이 길목을 노린다. 날이 저물기 전에 정리해 달라는 의뢰.", RefStage = 3, Encounter = 1,
-                Trial = TrialRule.Deadline("신속 소탕", "9행동 안에 모두 쓰러뜨려라.", 9), RewardDoo = 1800, ItemId = "bear_gall" },
+                Trial = TrialRule.Deadline("신속 소탕", "9행동 안에 모두 쓰러뜨리세요.", 9), RewardDoo = 1800, ItemId = "bear_gall" },
             new QuestData { Id = "q_yonggol", Name = "용골채 산길 정리", Brief = "산길을 막은 용골채 잔당을 서둘러 몰아내 달라는 의뢰.", RefStage = 4, Encounter = 1,
-                Trial = TrialRule.Deadline("신속 소탕", "9행동 안에 모두 쓰러뜨려라.", 9), RewardDoo = 2700, ItemId = "okruju" },
+                Trial = TrialRule.Deadline("신속 소탕", "9행동 안에 모두 쓰러뜨리세요.", 9), RewardDoo = 2700, ItemId = "okruju" },
             new QuestData { Id = "q_hoajang", Name = "호아장 수련생 단속", Brief = "소란을 피우는 수련생들을 짧은 시간에 제압해 달라는 의뢰.", RefStage = 6, Encounter = 1,
-                Trial = TrialRule.Deadline("신속 제압", "7행동 안에 모두 쓰러뜨려라.", 7), RewardDoo = 3900 },
+                Trial = TrialRule.Deadline("신속 제압", "7행동 안에 모두 쓰러뜨리세요.", 7), RewardDoo = 3900 },
             new QuestData { Id = "q_sadae", Name = "철각비마대 척후 격퇴", Brief = "정찰병이 길을 열기 전에 막아야 한다.", RefStage = 15, Encounter = 0,
-                Trial = TrialRule.Deadline("척후 격퇴", "16행동 안에 모두 쓰러뜨려라.", 16), RewardDoo = 8400, ItemId = "ginseng" },
+                Trial = TrialRule.Deadline("척후 격퇴", "16행동 안에 모두 쓰러뜨리세요.", 16), RewardDoo = 8400, ItemId = "ginseng" },
             new QuestData { Id = "q_baegin", Name = "저잣거리 자객 소탕", Brief = "백인 자객들이 사람 많은 거리에 숨어 있다. 소란이 커지기 전에 끝내라.", RefStage = 16, Encounter = 0,
-                Trial = TrialRule.Deadline("속전속결", "24행동 안에 모두 쓰러뜨려라.", 24), RewardDoo = 9000 },
+                Trial = TrialRule.Deadline("속전속결", "24행동 안에 모두 쓰러뜨리세요.", 24), RewardDoo = 9000 },
             new QuestData { Id = "q_viper", Name = "동굴 독사 퇴치", Brief = "독사 떼가 몰려온다. 쓰러지지 않고 버텨낼 수 있겠는가.", RefStage = 20, Encounter = 0,
-                Trial = TrialRule.Survive("독사굴 버티기", "적의 공격을 14번 견뎌라.", 14), RewardDoo = 11400, ItemId = "ginseng" },
+                Trial = TrialRule.Survive("독사굴 버티기", "적의 공격을 14번 견디세요.", 14), RewardDoo = 11400, ItemId = "ginseng" },
             new QuestData { Id = "q_hyeolma", Name = "혈마대 잔당 추격", Brief = "달아나는 혈마대 잔당이 합류하기 전에 따라잡아야 한다.", RefStage = 22, Encounter = 0,
-                Trial = TrialRule.Deadline("추격전", "34행동 안에 모두 쓰러뜨려라.", 34), RewardDoo = 12600 },
+                Trial = TrialRule.Deadline("추격전", "34행동 안에 모두 쓰러뜨리세요.", 34), RewardDoo = 12600 },
             new QuestData { Id = "q_salgwi", Name = "살귀대 정찰조 제압", Brief = "정찰조가 신호를 보내기 전에 소리 없이 제압하라.", RefStage = 26, Encounter = 0,
-                Trial = TrialRule.Deadline("소리 없는 제압", "40행동 안에 모두 쓰러뜨려라.", 40), RewardDoo = 16200, ItemId = "ilgeup_yeongdan" },
+                Trial = TrialRule.Deadline("소리 없는 제압", "40행동 안에 모두 쓰러뜨리세요.", 40), RewardDoo = 16200, ItemId = "ilgeup_yeongdan" },
         };
 
         public static QuestData Find(string id)
