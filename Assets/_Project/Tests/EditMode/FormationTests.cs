@@ -105,7 +105,7 @@ public class FormationTests
     }
 
     [Test]
-    public void EnemyBackRowIsShieldedFromSingleTargetAttacksButNotFromAreaOnes()
+    public void EnemiesBeyondTheSecondStandBehind()
     {
         var hero = new Combatant("player", "비류연", Team.Player, Stats(atk: 300), null);
         var a = Foe("a"); var b = Foe("b"); var c = Foe("c");
@@ -113,10 +113,8 @@ public class FormationTests
         Assert.IsFalse(a.BackRow);
         Assert.IsFalse(b.BackRow);
         Assert.IsTrue(c.BackRow, "the third enemy stands behind");
-        Assert.AreSame(a, battle.ResolveEnemyTarget(c), "aiming at the back row hits the front");
-        Assert.AreSame(a, battle.ResolveEnemyTarget(null), "no target given: the first front enemy");
+        Assert.AreSame(a, battle.ResolveEnemyTarget(null), "no pick: the first front enemy");
         a.Hp = 0; b.Hp = 0;
-        Assert.AreSame(c, battle.ResolveEnemyTarget(c));
         Assert.AreSame(c, battle.FirstLivingEnemy());
     }
 
@@ -138,34 +136,44 @@ public class FormationTests
     }
 
     [Test]
-    public void SnipeArtsStrikeTheBackRowFirst()
+    public void SingleTargetArtsHitWhoeverThePlayerPicksInAnyRow()
+    {
+        var hero = new Combatant("player", "비류연", Team.Player, Stats(atk: 300), new[] { new SkillSpec { Id = "one", Name = "일격", Power = 1.0f } });
+        var a = Foe("a"); var b = Foe("b"); var c = Foe("c");
+        var battle = new InteractiveBattle(new[] { hero }, new[] { a, b, c }, new SeededRandom(1));
+        Assert.AreSame(c, battle.ResolveEnemyTarget(c), "a back-row enemy can be picked directly");
+        Assert.AreSame(a, battle.ResolveEnemyTarget(a));
+        battle.Begin();
+        var events = battle.PlayerAct(PlayerCommand.UseSkill(hero.Skills.First(s => s.Id == "one"), c));
+        Assert.IsTrue(events.Any(e => e.TargetId == "c" && e.Damage > 0));
+        Assert.AreEqual(a.Stats.MaxHp, a.Hp);
+    }
+
+    [Test]
+    public void SnipeArtsDefaultToTheBackRowWhenNothingIsPicked()
     {
         var hero = new Combatant("player", "비류연", Team.Player, Stats(atk: 300), new[] { new SkillSpec { Id = "snipe", Name = "저격", Power = 1.0f, Snipe = true } });
         var a = Foe("a"); var b = Foe("b"); var c = Foe("c");
         var battle = new InteractiveBattle(new[] { hero }, new[] { a, b, c }, new SeededRandom(1));
-        Assert.AreSame(c, battle.ResolveEnemyTarget(a, true), "aiming at the front still hits the back");
-        Assert.AreSame(a, battle.ResolveEnemyTarget(a, false));
-        battle.Begin();
-        var events = battle.PlayerAct(PlayerCommand.UseSkill(hero.Skills.First(s => s.Id == "snipe"), a));
-        Assert.IsTrue(events.Any(e => e.TargetId == "c" && e.Damage > 0));
-        Assert.AreEqual(a.Stats.MaxHp, a.Hp);
-        c.Hp = 0;   // nobody behind: it hits the front
-        Assert.AreSame(a, battle.ResolveEnemyTarget(a, true));
+        Assert.AreSame(c, battle.DefaultEnemyTarget(true));
+        Assert.AreSame(a, battle.DefaultEnemyTarget(false));
+        Assert.AreSame(c, battle.ResolveEnemyTarget(null, true));
+        Assert.AreSame(a, battle.ResolveEnemyTarget(a, true), "a picked target wins");
+        c.Hp = 0;
+        Assert.AreSame(a, battle.DefaultEnemyTarget(true), "nobody behind: the front row");
     }
 
     [Test]
-    public void StunReachesAnyRowAndBossesAlwaysStandBehind()
+    public void BossesAlwaysStandBehind()
     {
         var boss = Foe("boss"); boss.IsBoss = true;
         var minion = Foe("m"); var minion2 = Foe("m2"); var minion3 = Foe("m3");
         var hero = new Combatant("player", "비류연", Team.Player, Stats(), null);
-        var battle = new InteractiveBattle(new[] { hero }, new[] { boss, minion, minion2, minion3 }, new SeededRandom(1));
+        new InteractiveBattle(new[] { hero }, new[] { boss, minion, minion2, minion3 }, new SeededRandom(1));
         Assert.IsTrue(boss.BackRow);
         Assert.IsFalse(minion.BackRow);
         Assert.IsFalse(minion2.BackRow);
         Assert.IsTrue(minion3.BackRow, "after two minions in front the rest stand behind");
-        Assert.AreSame(boss, battle.ResolveEnemyTarget(boss, false, true), "점혈 can interrupt the boss");
-        Assert.AreSame(minion, battle.ResolveEnemyTarget(boss), "an ordinary strike meant for the boss hits the front");
     }
 
     [Test]

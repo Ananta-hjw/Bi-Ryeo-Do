@@ -159,19 +159,21 @@ namespace BiRyeoDo.Core
             return null;
         }
 
-        /// <summary>The enemy a single-target attack really hits: back-row enemies are shielded while any front-row enemy still stands; a 저격 art goes for the back row first.</summary>
-        public Combatant ResolveEnemyTarget(Combatant wanted, bool snipe = false, bool anyRow = false)
+        /// <summary>
+        /// The enemy a single-target attack hits: the one the player picked, in any row. Without a (living) pick it falls back to the
+        /// default: a 저격 art goes for the back row first, anything else for the front row first.
+        /// </summary>
+        public Combatant ResolveEnemyTarget(Combatant wanted, bool snipe = false)
         {
-            if (anyRow && wanted != null && wanted.IsAlive && wanted.Team == Team.Enemy) return wanted;   // 점혈 reaches whoever it is aimed at
-            if (snipe)
-            {
-                if (wanted != null && wanted.IsAlive && wanted.Team == Team.Enemy && wanted.BackRow) return wanted;
-                foreach (var e in _enemies) if (e.IsAlive && e.BackRow) return e;
-            }
-            if (wanted == null || !wanted.IsAlive || wanted.Team != Team.Enemy) return FirstLivingEnemy();
-            if (wanted.BackRow)
-                foreach (var e in _enemies) if (e.IsAlive && !e.BackRow) return e;
-            return wanted;
+            if (wanted != null && wanted.IsAlive && wanted.Team == Team.Enemy) return wanted;
+            return DefaultEnemyTarget(snipe);
+        }
+
+        /// <summary>The target a skill aims at before the player picks one (the UI preselects it).</summary>
+        public Combatant DefaultEnemyTarget(bool snipe)
+        {
+            if (snipe) foreach (var e in _enemies) if (e.IsAlive && e.BackRow) return e;
+            return FirstLivingEnemy();
         }
 
         /// <summary>Resolves the current member's action, then every enemy turn up to the next party turn.</summary>
@@ -284,7 +286,7 @@ namespace BiRyeoDo.Core
             }
             else
             {
-                var t = ResolveEnemyTarget(cmd.Target, skill.Snipe, skill.Effect == SkillEffect.Stun);
+                var t = ResolveEnemyTarget(cmd.Target, skill.Snipe);
                 if (t != null) targets.Add(t);
             }
 
@@ -332,7 +334,7 @@ namespace BiRyeoDo.Core
         {
             var spec = cmd.Skill;
             var partner = cmd.Partner;
-            var t = ResolveEnemyTarget(cmd.Target, false, spec.Effect == SkillEffect.Stun);
+            var t = ResolveEnemyTarget(cmd.Target);
             if (t == null) return;   // nothing to hit: nothing is paid
             actor.Spirit -= JointSpiritCost;
             partner.Gauge -= GaugeThreshold;   // the partner spends their next action on this strike

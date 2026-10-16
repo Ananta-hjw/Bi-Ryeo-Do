@@ -79,6 +79,7 @@ namespace BiRyeoDo.Game.UI
         private InteractiveBattle _battle;
         private List<Combatant> _party = new List<Combatant>();
         private EnemyCard _target;
+        private bool _targetChosen;   // the player tapped an enemy this turn (otherwise 저격 arts pick the back row themselves)
 
         private bool _hasCommand, _panelDone, _retry, _leave, _fled, _itemMode, _jointMode, _drawn;
         private readonly List<Combatant> _jointPartners = new List<Combatant>();
@@ -745,6 +746,7 @@ namespace BiRyeoDo.Game.UI
             {
                 if (_target == null || !_target.Unit.IsAlive) _target = _cards.Find(c => c.Unit.IsAlive);
                 _itemMode = false;
+                _targetChosen = false;
                 _jointMode = false;
                 if (turnLimit > 0) _stageLabel.text = label + "   " + actions + "/" + turnLimit + "턴";
                 else if (trial != null) _stageLabel.text = label + "   " + _battle.TrialStatus;
@@ -1003,19 +1005,8 @@ namespace BiRyeoDo.Game.UI
                 tap.onClick.AddListener(() =>
                 {
                     if (!captured.Unit.IsAlive) return;
-                    if (captured.Unit.BackRow)
-                    {
-                        // Back-row enemies are shielded while a front-row enemy stands: aim at the front one instead.
-                        var front = _cards.Find(c => c.Unit.IsAlive && !c.Unit.BackRow);
-                        if (front != null)
-                        {
-                            _target = front;
-                            _log.text = "뒷줄의 적은 앞줄이 쓰러져야 노릴 수 있습니다. (전체 공격은 뒷줄까지 닿습니다)";
-                            RefreshCards();
-                            return;
-                        }
-                    }
                     _target = captured;
+                    _targetChosen = true;   // an explicit pick also steers 저격 arts
                     RefreshCards();
                 });
                 _cards.Add(card);
@@ -1418,13 +1409,13 @@ namespace BiRyeoDo.Game.UI
                 var arts = ArtsOf(me);
                 int i = slot - 1;
                 if (i >= arts.Count || !_battle.CanUse(arts[i])) return;
-                _command = PlayerCommand.UseSkill(arts[i], targetUnit);
+                _command = PlayerCommand.UseSkill(arts[i], AimFor(arts[i], targetUnit));
             }
             else if (slot == 9)
             {
                 var ultimateSkill = UltimateOf(me);
                 if (ultimateSkill == null || !_battle.CanUse(ultimateSkill)) return;
-                _command = PlayerCommand.UseSkill(ultimateSkill, targetUnit);
+                _command = PlayerCommand.UseSkill(ultimateSkill, AimFor(ultimateSkill, targetUnit));
             }
             else if (slot == 8)
             {
@@ -1445,6 +1436,17 @@ namespace BiRyeoDo.Game.UI
             }
             else return;
             _hasCommand = true;
+        }
+
+        /// <summary>The player's tapped enemy; a 저격 art with no pick of its own this turn aims at the back row.</summary>
+        private Combatant AimFor(SkillSpec skill, Combatant picked)
+        {
+            if (skill.Snipe && !_targetChosen && _battle != null)
+            {
+                var back = _battle.DefaultEnemyTarget(true);
+                if (back != null && back.BackRow) { _log.text = "저격! " + back.Name + "(뒷줄)을 노립니다."; return back; }
+            }
+            return picked;
         }
 
         private void OnSpeedPressed()
