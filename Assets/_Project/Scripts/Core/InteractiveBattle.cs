@@ -138,7 +138,7 @@ namespace BiRyeoDo.Core
         public bool IsGuarded(Combatant unit)
         {
             if (unit.Guarding) return true;
-            return _partyGuardOwner != null && _partyGuardOwner.IsAlive && unit.IsAlive && _party.Contains(unit);
+            return _partyGuardOwner != null && unit.IsAlive && _party.Contains(unit);   // survives the caster falling mid-phase
         }
 
         public bool CanUse(SkillSpec skill) { return IsPlayerTurn && Current.CanUse(skill); }
@@ -372,7 +372,8 @@ namespace BiRyeoDo.Core
                 Turn++;
                 actor.Guarding = false;
                 actor.Evading = false;
-                if (actor == _partyGuardOwner) _partyGuardOwner = null;   // a party-wide guard lasts until its caster's next turn
+                // A party-wide guard lasts until its caster's next turn; if the caster fell, until the next ally acts.
+                if (actor == _partyGuardOwner || (_partyGuardOwner != null && !_partyGuardOwner.IsAlive && actor.Team == Team.Player)) _partyGuardOwner = null;
 
                 if (actor.Team == Team.Player)
                 {

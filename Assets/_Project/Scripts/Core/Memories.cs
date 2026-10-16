@@ -23,7 +23,7 @@ namespace BiRyeoDo.Core
 
     /// <summary>
     /// 나예린 호감도 이벤트: scenes between 비류연 and 나예린 taken from the novel (volumes 5-16, see Story/analysis), unlocked as the
-    /// stages that cover them are cleared. Watching a scene for the first time pays 두 and +2 인연 with 나예린; collecting scenes opens
+    /// stages that cover them are cleared. Watching a scene for the first time pays 두 and, once she has joined, +2 인연 with 나예린; collecting scenes opens
     /// milestone rewards. Narration paraphrases the analysis notes and every spoken line is quoted from them.
     /// </summary>
     public static class Memories
@@ -161,8 +161,13 @@ namespace BiRyeoDo.Core
             save.SeenMemories.Add(id);
             save.Doo += m.RewardDoo;
             notes.Add("두 +" + m.RewardDoo.ToString("N0"));
-            int rose = Bonds.Add(save, HeroineId, BondPerMemory);
-            notes.Add("나예린과의 인연 +" + BondPerMemory + (rose >= 0 ? " (" + Bonds.LevelNames[rose] + "!)" : ""));
+            // The bond is part of her companion progress, so it only grows once she has joined the party (stage 16).
+            var heroine = EarlyGameContent.FindCompanion(HeroineId);
+            if (heroine != null && heroine.JoinStage <= save.HighestUnlockedStage)
+            {
+                int rose = Bonds.Add(save, HeroineId, BondPerMemory);
+                notes.Add("나예린과의 인연 +" + BondPerMemory + (rose >= 0 ? " (" + Bonds.LevelNames[rose] + "!)" : ""));
+            }
             foreach (var ms in Milestones)
             {
                 if (SeenCount(save) < ms.Count || save.ClaimedMemoryMilestones.Contains(ms.Count)) continue;

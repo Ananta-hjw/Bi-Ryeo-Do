@@ -148,5 +148,32 @@ namespace BiRyeoDo.Tests
             Mastery.Train(save, 6);
             Assert.AreEqual(6, Mastery.Uses(save, "samboku_chobok"));
         }
+
+        [Test]
+        public void ReputationCanBeRebuiltFromStarRecords()
+        {
+            var save = new SaveData();
+            StageStars.Record(save, 7, 0, 0, 1);   // 천무학관 normal win: +1
+            StageStars.Record(save, 7, 1, 2, 1);   // 극악 win: +3
+            Factions.SyncFromStars(save);
+            Assert.AreEqual(4, Factions.Points(save, "academy"));
+            Factions.Gain(save, "academy", 5);       // later wins (and quest bonuses) stay on top
+            Factions.SyncFromStars(save);
+            Assert.AreEqual(9, Factions.Points(save, "academy"));
+        }
+
+        [Test]
+        public void TrainingNeedsAnEquippedArt()
+        {
+            var save = new SaveData { Doo = 100000 };
+            Factions.Gain(save, "wudang", Factions.Thresholds[2]);
+            string error;
+            Assert.IsNull(Shop.Buy(save, "wud_train1", out error));
+            StringAssert.Contains("무공", error);
+            Assert.AreEqual(100000, save.Doo);
+            Assert.AreEqual(0, Shop.Bought(save, "wud_train1"));
+            save.EquippedArts.Add("samboku_chobok");
+            Assert.IsNotNull(Shop.Buy(save, "wud_train1", out error));
+        }
     }
 }

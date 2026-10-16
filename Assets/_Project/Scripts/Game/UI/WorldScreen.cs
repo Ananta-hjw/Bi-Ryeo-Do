@@ -24,6 +24,7 @@ namespace BiRyeoDo.Game.UI
         private FactionPanel _factions;
         private CompanionPanel _training;
         private MemoryPanel _memories;
+        private SaveData _syncedSave;
         private DailyPanel _daily;
         private Text _dailyRowDetail, _dailyBadge;
         private Text _memoryRowDetail, _memoryBadge;
@@ -222,7 +223,7 @@ namespace BiRyeoDo.Game.UI
             var achRoot = UiFactory.Rect("AchievementOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
             _codex = new CodexPanel(codexRoot, achRoot, Refresh);
             _daily = new DailyPanel(UiFactory.Rect("DailyOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
-            _memories = new MemoryPanel(UiFactory.Rect("MemoryOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh, (title, lines, done) => { if (_onStory != null) _onStory(title, lines, done); else done(); });
+            _memories = new MemoryPanel(UiFactory.Rect("MemoryOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh, _onStory != null ? (Action<string, string[], Action>)((title, lines, done) => _onStory(title, lines, done)) : null);
             _training = new CompanionPanel(UiFactory.Rect("TrainingOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
             _factions = new FactionPanel(UiFactory.Rect("FactionOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
             _stars = new StarPanel(UiFactory.Rect("StarOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
@@ -873,8 +874,14 @@ namespace BiRyeoDo.Game.UI
                 + (Promotion.EffectiveRank(save) < Promotion.GateRank ? "\n(" + Promotion.RankName(Promotion.GateRank) + " 이상이어야 삼성무제 참가)" : "");
             int openQuests = Quests.Open(save).Count, openFortunes = Fortunes.Open(save).Count;
             _questRowDetail.text = openQuests > 0 ? "받을 수 있는 의뢰 " + openQuests + "건" : "새 의뢰 없음 (스테이지를 돌파하면 늘어난다)";
-            Codex.Sync(save);
-            StageStars.Sync(save);
+            if (!ReferenceEquals(_syncedSave, save))
+            {
+                // Backfill records for saves from before these systems existed (once per loaded save).
+                _syncedSave = save;
+                Codex.Sync(save);
+                StageStars.Sync(save);
+                Factions.SyncFromStars(save);
+            }
             var innerNames = new List<string>();
             foreach (var iid in save.EquippedInner) { var ia = InnerArts.Find(iid); if (ia != null) innerNames.Add(ia.Name); }
             _innerRowDetail.text = "패시브 빌드 · " + (innerNames.Count > 0 ? string.Join(", ", innerNames) : "장착한 심법 없음") + " (" + save.EquippedInner.Count + "/" + InnerArts.SlotCount(save) + ")";
@@ -886,15 +893,17 @@ namespace BiRyeoDo.Game.UI
             for (int di = 0; di < dailyList.Count; di++) if (Daily.IsClaimed(save, di)) dailyDone++;
             _dailyRowDetail.text = "오늘 " + dailyDone + "/3 완료 · 연속 수련 " + save.DailyStreak + "일";
             SetBadge(_dailyBadge, Daily.ClaimableCount(save));
-            _memoryRowDetail.text = "본 추억 " + Memories.SeenCount(save) + " / " + Memories.All.Length + (Memories.UnseenCount(save) > 0 ? " · 새 추억 " + Memories.UnseenCount(save) + "개" : "");
-            SetBadge(_memoryBadge, Memories.UnseenCount(save));
+            int unseenMemories = Memories.UnseenCount(save);
+            _memoryRowDetail.text = "본 추억 " + Memories.SeenCount(save) + " / " + Memories.All.Length + (unseenMemories > 0 ? " · 새 추억 " + unseenMemories + "개" : "");
+            SetBadge(_memoryBadge, unseenMemories);
             var joined = EarlyGameContent.CompanionsFor(Math.Max(1, save.HighestUnlockedStage));
             _trainingRowDetail.text = joined.Count == 0 ? "동료가 합류하면 두로 수련시킬 수 있다" : "수련 합계 Lv." + CompanionTraining.TotalLevels(save) + " · 동료 " + joined.Count + "명";
             var factionNotes = new List<string>();
             foreach (var fa in Factions.All) if (Factions.Tier(save, fa.Id) > 0) factionNotes.Add(fa.Name + " " + Factions.TierNames[Factions.Tier(save, fa.Id)]);
             _factionRowDetail.text = factionNotes.Count > 0 ? "평판: " + string.Join(" · ", factionNotes) : "전투를 이기면 세력 평판이 쌓이고 객잔 선반이 열린다";
-            _starRowDetail.text = "별 " + StageStars.Total(save) + " / " + StageStars.MaxStars + " · 받을 수 있는 보상 " + StageStars.ClaimableCount(save) + "개";
-            SetBadge(_starBadge, StageStars.ClaimableCount(save));
+            int starChests = StageStars.ClaimableCount(save);
+            _starRowDetail.text = "별 " + StageStars.Total(save) + " / " + StageStars.MaxStars + " · 받을 수 있는 보상 " + starChests + "개";
+            SetBadge(_starBadge, starChests);
             _starsTitle.text = "— 스테이지 —   ★ " + StageStars.Total(save);
             int pickedDiff = Mathf.Clamp(save.Difficulty, 0, StageStars.DifficultyCount - 1);
             for (int d = 0; d < _diffTabs.Length; d++) _diffTabs[d].color = d == pickedDiff ? (d == 0 ? new Color(0.30f, 0.48f, 0.44f, 1f) : d == 1 ? new Color(0.70f, 0.45f, 0.12f, 1f) : UiFactory.Red) : UiFactory.InkSoft;

@@ -74,6 +74,12 @@ namespace BiRyeoDo.Core
             return 12 + stage / 2;
         }
 
+        /// <summary>The 신속 limit on a difficulty: harder enemies have more HP, so the limit grows with <see cref="HpFor"/>.</summary>
+        public static int FastLimit(int stage, int fight, int difficulty)
+        {
+            return (int)Math.Ceiling(FastLimit(stage, fight) * Math.Max(1f, HpFor(stage, difficulty)));
+        }
+
         public static int FightCount(int stage)
         {
             var st = EarlyGameContent.FindStage(stage);
@@ -112,11 +118,11 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>The star mask earned by a won fight.</summary>
-        public static int Evaluate(int stage, int fight, int actions, bool anyoneFell)
+        public static int Evaluate(int stage, int fight, int actions, bool anyoneFell, int difficulty = 0)
         {
             int mask = 1;
             if (!anyoneFell) mask |= 2;
-            if (actions <= FastLimit(stage, fight)) mask |= 4;
+            if (actions <= FastLimit(stage, fight, difficulty)) mask |= 4;
             return mask;
         }
 
@@ -211,6 +217,18 @@ namespace BiRyeoDo.Core
             int n = 0;
             foreach (var c in Chests) if (CanClaim(save, c)) n++;
             return n;
+        }
+
+        /// <summary>Opens one chest if it is ready; returns a one-line note or null.</summary>
+        public static string Claim(SaveData save, StarChest c)
+        {
+            if (!CanClaim(save, c)) return null;
+            save.ClaimedStarChests.Add(c.Stars);
+            save.Doo += c.Doo;
+            string text = "별 " + c.Stars + "개 보상: 두 +" + c.Doo.ToString("N0");
+            var item = string.IsNullOrEmpty(c.ItemId) ? null : EarlyGameContent.FindItem(c.ItemId);
+            if (item != null) { Inventory.Add(save, c.ItemId, c.ItemCount); text += ", " + item.Name + (c.ItemCount > 1 ? " x" + c.ItemCount : ""); }
+            return text;
         }
 
         /// <summary>Opens every chest that is ready; returns a one-line note, or null when nothing was ready.</summary>

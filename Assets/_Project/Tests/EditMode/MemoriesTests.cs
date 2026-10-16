@@ -44,7 +44,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void FirstViewPaysOnceAndRaisesTheBond()
         {
-            var save = new SaveData { ClearedStage = 14 };
+            var save = new SaveData { ClearedStage = 15 };   // 나예린 has joined (stage 16 is open)
             long before = save.Doo;
             var notes = Memories.Complete(save, "m_cave");
             Assert.Greater(notes.Count, 0);
@@ -54,6 +54,17 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(Memories.BondPerMemory, Bonds.Points(save, "na_yerin"));
             Assert.AreEqual(0, Memories.Complete(save, "m_sword").Count);  // still locked
             Assert.AreEqual(0, Memories.Complete(save, "nope").Count);
+        }
+
+        [Test]
+        public void TheBondOnlyGrowsOnceTheHeroineHasJoined()
+        {
+            var early = new SaveData { ClearedStage = 14 };
+            long before = early.Doo;
+            Memories.Complete(early, "m_cave");
+            Assert.AreEqual(before + Memories.Find("m_cave").RewardDoo, early.Doo);   // still pays 두
+            Assert.AreEqual(0, Bonds.Points(early, "na_yerin"));
+            Assert.IsTrue(Memories.IsSeen(early, "m_cave"));
         }
 
         [Test]

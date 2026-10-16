@@ -337,13 +337,17 @@ namespace BiRyeoDo.Game.UI
                     string repLine = "";
                     if (!stage.IsQuest && !stage.IsTower)
                     {
-                        var rises = Factions.OnFightWon(save, stage.Number, diff);
-                        string gains = Factions.GainText(stage.Number, diff);
-                        if (gains.Length > 0) repLine = "평판 " + gains + (rises.Count > 0 ? "  (" + string.Join(", ", rises) + ")" : "");
-                        int fightMask = StageStars.Evaluate(stage.Number, i, _fightActions, _fightFell);
+                        // Reputation comes from the first win of each fight on each difficulty, so replaying one fight cannot farm it.
+                        if ((StageStars.MaskOf(save, stage.Number, i, diff) & 1) == 0)
+                        {
+                            var rises = Factions.OnFightWon(save, stage.Number, diff);
+                            string gains = Factions.GainText(stage.Number, diff);
+                            if (gains.Length > 0) repLine = "평판 " + gains + (rises.Count > 0 ? "  (" + string.Join(", ", rises) + ")" : "");
+                        }
+                        int fightMask = StageStars.Evaluate(stage.Number, i, _fightActions, _fightFell, diff);
                         int fightNew = StageStars.Record(save, stage.Number, i, diff, fightMask);
                         newStars += fightNew;
-                        _lastStarLine = FightStarLine(stage.Number, i, fightMask, _fightActions, fightNew);
+                        _lastStarLine = FightStarLine(stage.Number, i, diff, fightMask, _fightActions, fightNew);
                     }
 
                     long exp = 0, doo = 0;
@@ -600,12 +604,12 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <summary>"★★☆  (신속 14/9행동)  +1" for the fight that was just won: the stars of this run plus the reason for a missing one.</summary>
-        private static string FightStarLine(int stageNumber, int fight, int mask, int actions, int gained)
+        private static string FightStarLine(int stageNumber, int fight, int difficulty, int mask, int actions, int gained)
         {
             string line = StarGlyphs(mask);
             var missed = new List<string>();
             if ((mask & 2) == 0) missed.Add("전원 생존 실패");
-            if ((mask & 4) == 0) missed.Add("신속 " + actions + "/" + StageStars.FastLimit(stageNumber, fight) + "행동");
+            if ((mask & 4) == 0) missed.Add("신속 " + actions + "/" + StageStars.FastLimit(stageNumber, fight, difficulty) + "행동");
             if (missed.Count > 0) line += "  (" + string.Join(", ", missed) + ")";
             if (gained > 0) line += "  새 별 +" + gained;
             return line;

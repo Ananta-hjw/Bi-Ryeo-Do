@@ -133,5 +133,28 @@ namespace BiRyeoDo.Tests
             StageProgress.Clear(save);
             Assert.AreEqual(0, save.ProgressDifficulty);
         }
+
+        [Test]
+        public void TheFastLimitGrowsWithDifficulty()
+        {
+            int normal = StageStars.FastLimit(20, 1, 0), hard = StageStars.FastLimit(20, 1, 1), hell = StageStars.FastLimit(20, 1, 2);
+            Assert.AreEqual(StageStars.FastLimit(20, 1), normal);
+            Assert.Greater(hard, normal);
+            Assert.Greater(hell, hard);
+            Assert.AreEqual(7, StageStars.Evaluate(20, 1, hell, false, 2));
+            Assert.AreEqual(3, StageStars.Evaluate(20, 1, hell, false, 0));   // too slow for 일반
+        }
+
+        [Test]
+        public void ASingleChestCanBeClaimedOnItsOwn()
+        {
+            var save = new SaveData();
+            for (int s = 1; s <= 14; s++) StageStars.Record(save, s, 0, 0, 7);   // 42 stars: the first two chests
+            Assert.AreEqual(2, StageStars.ClaimableCount(save));
+            Assert.IsNotNull(StageStars.Claim(save, StageStars.Chests[0]));
+            Assert.AreEqual(1, StageStars.ClaimableCount(save));
+            Assert.IsNull(StageStars.Claim(save, StageStars.Chests[0]));
+            Assert.AreEqual(3000, save.Doo);
+        }
     }
 }

@@ -29,7 +29,7 @@ namespace BiRyeoDo.Core
     }
 
     /// <summary>
-    /// 세력 평판: winning fights in a faction's stages (+1 on 일반, +2 어려움, +3 극악) and finishing its 의뢰 build reputation.
+    /// 세력 평판: the first win of every fight in a faction's stages (+1 on 일반, +2 어려움, +3 극악) and finishing its 의뢰 build reputation.
     /// Tiers (무명 / 안면 / 우호 / 신뢰 / 존경) open the faction's shelf in the 객잔 and give small permanent perks.
     /// Faction names come from the novel; which stages feed which faction is game design.
     /// </summary>
@@ -92,6 +92,30 @@ namespace BiRyeoDo.Core
             e.Points += points;
             int after = TierOf(e.Points);
             return after > before ? after : -1;
+        }
+
+        /// <summary>
+        /// Reputation is earned once per (stage, fight, difficulty), exactly when the fight is first won, so it can be rebuilt from the
+        /// star records. Older saves (cleared stages before reputation existed) are lifted to that value; quest bonuses stay on top.
+        /// </summary>
+        public static void SyncFromStars(SaveData save)
+        {
+            var computed = new Dictionary<string, int>();
+            foreach (var e in save.StageStars)
+            {
+                if ((e.Mask & 1) == 0) continue;
+                foreach (var f in ForStage(e.Stage))
+                {
+                    int have;
+                    computed.TryGetValue(f.Id, out have);
+                    computed[f.Id] = have + 1 + Math.Max(0, e.Diff);
+                }
+            }
+            foreach (var kv in computed)
+            {
+                int diff = kv.Value - Points(save, kv.Key);
+                if (diff > 0) Gain(save, kv.Key, diff);
+            }
         }
 
         public static List<FactionData> ForStage(int stage)
@@ -255,6 +279,7 @@ namespace BiRyeoDo.Core
                     note = NameOf(g) + " 구매";
                     break;
                 case ShopKind.Training:
+                    if (Progression.EquippedCount(save, false) == 0 && Progression.EquippedCount(save, true) == 0) { error = "장착한 무공이 있어야 수련할 수 있다."; return null; }
                     Mastery.Train(save, g.Amount);
                     note = NameOf(g) + ": 장착 무공 숙련 +" + g.Amount + "회";
                     break;

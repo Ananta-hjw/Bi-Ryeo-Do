@@ -7,32 +7,23 @@ using UnityEngine.UI;
 namespace BiRyeoDo.Game.UI
 {
     /// <summary>동료 수련 overlay: train each companion who has joined with 두 (capped by the bond).</summary>
-    public sealed class CompanionPanel
+    public sealed class CompanionPanel : OverlayPanel
     {
-        private readonly RectTransform _root;
-        private readonly Action _onChange;
 
-        public CompanionPanel(RectTransform root, Action onChange)
+        public CompanionPanel(RectTransform root, Action onChange) : base(root, onChange)
         {
-            _root = root;
-            _onChange = onChange;
-            root.gameObject.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
-            root.gameObject.SetActive(false);
         }
-
-        public void Hide() { _root.gameObject.SetActive(false); }
 
         public void Open(string toast = null)
         {
             var save = GameManager.Instance.Save;
-            CodexPanel.Clear(_root);
-            _root.gameObject.SetActive(true);
+            Begin();
             if (!Tutorial.IsDone(save, "training") && HelpPanel.Instance != null) HelpPanel.Instance.Show("training", true);
 
-            UiFactory.Label("Title", _root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "동료 수련 · " + save.Doo.ToString("N0") + "두", 40, UiFactory.Gold);
-            UiFactory.Label("Hint", _root, new Vector2(0.05f, 0.845f), new Vector2(0.95f, 0.92f), toast ?? "수련 단계마다 체력·공격·방어 +4%. 인연이 깊을수록 더 높이 수련할 수 있다 (서먹 3 · 친분 5 · 신뢰 8 · 의기투합 10).", 22, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "동료 수련 · " + save.Doo.ToString("N0") + "두", 40, UiFactory.Gold);
+            UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.845f), new Vector2(0.95f, 0.92f), toast ?? "수련 단계마다 체력·공격·방어 +4%. 인연이 깊을수록 더 높이 수련할 수 있다 (서먹 3 · 친분 5 · 신뢰 8 · 의기투합 10).", 22, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
-            var content = CodexPanel.Scroller(_root, 0.09f, 0.84f);
+            var content = CodexPanel.Scroller(Root, 0.09f, 0.84f);
             int n = 0;
             foreach (var c in EarlyGameContent.CompanionsFor(Math.Max(1, save.HighestUnlockedStage)))
             {
@@ -51,9 +42,9 @@ namespace BiRyeoDo.Game.UI
                 var btn = UiFactory.Button("Train", band, new Vector2(0.69f, 0.12f), new Vector2(0.97f, 0.88f), label, can ? UiFactory.Red : UiFactory.InkSoft, () => Train(companion), 24);
                 btn.interactable = can;
             }
-            if (n == 0) UiFactory.Label("None", _root, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "아직 함께하는 동료가 없다.", 34, UiFactory.PaperText);
-            content.sizeDelta = new Vector2(0f, CodexPanel.RowGap + n * (CodexPanel.RowH + CodexPanel.RowGap));
-            UiFactory.Button("Close", _root, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _root.gameObject.SetActive(false); _onChange(); }, 36);
+            if (n == 0) UiFactory.Label("None", Root, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "아직 함께하는 동료가 없다.", 34, UiFactory.PaperText);
+            SetListHeight(content, n);
+            AddClose();
         }
 
         private void Train(CompanionData c)

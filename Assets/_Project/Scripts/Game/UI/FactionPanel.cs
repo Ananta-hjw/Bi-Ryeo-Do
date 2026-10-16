@@ -8,43 +8,34 @@ using UnityEngine.UI;
 namespace BiRyeoDo.Game.UI
 {
     /// <summary>세력 평판 and 객잔 overlay: two tabs, reputation per faction and the shop whose shelves open with it.</summary>
-    public sealed class FactionPanel
+    public sealed class FactionPanel : OverlayPanel
     {
-        private readonly RectTransform _root;
-        private readonly Action _onChange;
         private int _tab;   // 0 평판, 1 객잔
         private static readonly string[] TabNames = { "평판", "객잔" };
 
-        public FactionPanel(RectTransform root, Action onChange)
+        public FactionPanel(RectTransform root, Action onChange) : base(root, onChange)
         {
-            _root = root;
-            _onChange = onChange;
-            root.gameObject.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
-            root.gameObject.SetActive(false);
         }
-
-        public void Hide() { _root.gameObject.SetActive(false); }
 
         public void Open(string toast = null)
         {
             var save = GameManager.Instance.Save;
-            CodexPanel.Clear(_root);
-            _root.gameObject.SetActive(true);
+            Begin();
             if (!Tutorial.IsDone(save, "faction") && HelpPanel.Instance != null) HelpPanel.Instance.Show("faction", true);
 
-            UiFactory.Label("Title", _root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "세력과 객잔 · " + save.Doo.ToString("N0") + "두", 40, UiFactory.Gold);
+            UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "세력과 객잔 · " + save.Doo.ToString("N0") + "두", 40, UiFactory.Gold);
             for (int t = 0; t < TabNames.Length; t++)
             {
                 int tab = t;
                 float x0 = 0.05f + t * 0.47f;
-                UiFactory.Button("Tab" + t, _root, new Vector2(x0, 0.855f), new Vector2(x0 + 0.43f, 0.91f), TabNames[t], t == _tab ? UiFactory.Red : UiFactory.InkSoft, () => { _tab = tab; Open(); }, 30);
+                UiFactory.Button("Tab" + t, Root, new Vector2(x0, 0.855f), new Vector2(x0 + 0.43f, 0.91f), TabNames[t], t == _tab ? UiFactory.Red : UiFactory.InkSoft, () => { _tab = tab; Open(); }, 30);
             }
-            UiFactory.Label("Toast", _root, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.855f), toast ?? (_tab == 0 ? "그 세력의 스테이지에서 전투를 이기면 평판이 쌓인다 (일반 +1, 어려움 +2, 극악 +3)" : "세력 평판이 오르면 그 세력의 선반이 열린다"), 22, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.Label("Toast", Root, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.855f), toast ?? (_tab == 0 ? "그 세력의 스테이지에서 전투를 이기면 평판이 쌓인다 (일반 +1, 어려움 +2, 극악 +3)" : "세력 평판이 오르면 그 세력의 선반이 열린다"), 22, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
-            var content = CodexPanel.Scroller(_root, 0.09f, 0.795f);
+            var content = CodexPanel.Scroller(Root, 0.09f, 0.795f);
             int n = _tab == 0 ? DrawReputation(content, save) : DrawShop(content, save);
-            content.sizeDelta = new Vector2(0f, CodexPanel.RowGap + n * (CodexPanel.RowH + CodexPanel.RowGap));
-            UiFactory.Button("Close", _root, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _root.gameObject.SetActive(false); _onChange(); }, 36);
+            SetListHeight(content, n);
+            AddClose();
         }
 
         private static int DrawReputation(RectTransform content, SaveData save)

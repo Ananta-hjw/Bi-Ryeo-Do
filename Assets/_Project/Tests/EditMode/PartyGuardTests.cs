@@ -62,17 +62,39 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void ADeadCasterEndsTheGuard()
+        public void ADeadCasterEndsTheGuardOnceAnAllyActs()
         {
             var guardSkill = new SkillSpec { Id = "wall", Name = "벽", Effect = SkillEffect.GuardParty, QiCost = 10, Cooldown = 0 };
-            var caster = new Combatant("hyo_ryong", "효룡", Team.Player, Stats(300), new[] { guardSkill });
+            var caster = new Combatant("hyo_ryong", "효룡", Team.Player, Stats(130), new[] { guardSkill });
             var hero = new Combatant("player", "비류연", Team.Player, Stats(100), null);
             var foe = new Combatant("foe", "적", Team.Enemy, Stats(10, 999999), null) { Moves = new List<EnemyMove> { EnemyMove.Attack("강타", 1f) } };
             var battle = new InteractiveBattle(new[] { hero, caster }, new[] { foe }, new SeededRandom(1));
             battle.Begin();
             battle.PlayerAct(PlayerCommand.UseSkill(guardSkill, null));
             caster.Hp = 0;
-            Assert.IsFalse(battle.IsGuarded(hero));
+            // Still covered until an ally takes a turn (a hit in the same enemy phase is guarded) ...
+            Assert.IsTrue(battle.IsGuarded(hero));
+            // ... then it ends.
+            for (int i = 0; i < 6 && !battle.IsOver; i++)
+            {
+                if (battle.Current == hero) { battle.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), foe)); break; }
+                battle.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), foe));
+            }
+            Assert.IsFalse(battle.IsGuarded(hero) && !hero.IsAlive);
+        }
+
+        [Test]
+        public void TheGuardOutlivesACasterWhoFallsInTheSameEnemyPhase()
+        {
+            var guardSkill = new SkillSpec { Id = "wall", Name = "벽", Effect = SkillEffect.GuardParty, QiCost = 10, Cooldown = 0 };
+            var caster = new Combatant("hyo_ryong", "효룡", Team.Player, Stats(130, 5), new[] { guardSkill });
+            var hero = new Combatant("player", "비류연", Team.Player, Stats(100), null);
+            var foe = new Combatant("foe", "적", Team.Enemy, Stats(10, 999999), null) { Moves = new List<EnemyMove> { EnemyMove.Attack("강타", 1f) } };
+            var battle = new InteractiveBattle(new[] { hero, caster }, new[] { foe }, new SeededRandom(1));
+            battle.Begin();
+            battle.PlayerAct(PlayerCommand.UseSkill(guardSkill, null));
+            caster.Hp = 0;                                   // the caster falls
+            Assert.IsTrue(battle.IsGuarded(hero));           // the others are still covered for now
         }
     }
 }
