@@ -21,7 +21,7 @@ namespace BiRyeoDo.Game.UI
 
             int slots = InnerArts.SlotCount(save);
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "심법 · 장착 " + save.EquippedInner.Count + "/" + slots, 44, UiFactory.Gold);
-            string slotNote = save.ClearedStage < 10 ? "칸이 늘어납니다: 스테이지 10 돌파(2칸), 20 돌파(3칸)" : save.ClearedStage < 20 ? "세 번째 칸: 스테이지 20 돌파" : "모든 칸이 열렸습니다";
+            string slotNote = slots >= 4 ? "모든 칸이 열렸습니다" : "다음 칸: " + (save.ClearedStage < 10 ? "스테이지 10 돌파" : save.ClearedStage < 20 ? "스테이지 20 돌파" : "어려움 스테이지 " + InnerArts.FourthSlotStage + " 돌파");
             UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.855f), new Vector2(0.95f, 0.92f), toast ?? ("두 " + save.Doo.ToString("N0") + "  ·  " + slotNote), 26, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
             var content = CodexPanel.Scroller(Root, 0.09f, 0.85f);
@@ -31,7 +31,7 @@ namespace BiRyeoDo.Game.UI
                 bool unlocked = InnerArts.IsUnlocked(save, a), learned = InnerArts.IsLearned(save, a.Id), equipped = InnerArts.IsEquipped(save, a.Id);
                 var band = CodexPanel.Band(content, i);
                 UiFactory.Label("Name", band, new Vector2(0.04f, 0.58f), new Vector2(0.66f, 0.97f), (unlocked ? a.Name : "???") + (equipped ? "  [장착]" : ""), 32, unlocked ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
-                UiFactory.Label("Effect", band, new Vector2(0.04f, 0.30f), new Vector2(0.66f, 0.60f), unlocked ? InnerArts.EffectText(a) : "스테이지 " + a.UnlockStage + "에 도달하면 열립니다", 22, new Color(0.45f, 0.85f, 0.5f, 1f), TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Effect", band, new Vector2(0.04f, 0.30f), new Vector2(0.66f, 0.60f), unlocked ? InnerArts.EffectText(a) : InnerArts.UnlockText(a) + "하면 열립니다", 22, new Color(0.45f, 0.85f, 0.5f, 1f), TextAnchor.MiddleLeft, FontStyle.Normal);
                 UiFactory.Label("Desc", band, new Vector2(0.04f, 0.02f), new Vector2(0.66f, 0.32f), unlocked ? a.Description : "", 18, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var id = a.Id;
                 string label; Color color; bool enabled;

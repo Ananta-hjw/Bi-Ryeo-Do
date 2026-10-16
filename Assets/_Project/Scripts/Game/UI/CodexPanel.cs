@@ -129,7 +129,7 @@ namespace BiRyeoDo.Game.UI
                     bool known = save.LearnedArts.Contains(a.Id);
                     var band = Band(content, n++);
                     UiFactory.Label("Name", band, new Vector2(0.04f, 0.52f), new Vector2(0.70f, 0.96f), known ? a.Name : "???", 32, known ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
-                    UiFactory.Label("Info", band, new Vector2(0.04f, 0.04f), new Vector2(0.97f, 0.52f), known ? a.Description : "스테이지 " + a.UnlockStage + " 돌파 후 배울 수 있습니다", 20, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    UiFactory.Label("Info", band, new Vector2(0.04f, 0.04f), new Vector2(0.97f, 0.52f), known ? a.Description : a.UnlockText + "하면 배울 수 있습니다", 20, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                     UiFactory.Label("State", band, new Vector2(0.70f, 0.52f), new Vector2(0.97f, 0.96f), known ? "습득" : "미습득", 26, known ? UiFactory.Gold : UiFactory.Dim, TextAnchor.MiddleRight);
                 }
             }

@@ -157,6 +157,22 @@ namespace BiRyeoDo.Core
             return last >= 0 && (MaskOf(save, stage, last, difficulty) & 1) != 0;
         }
 
+        /// <summary>
+        /// Learning gate shared by martial arts and 심법: on 일반 the stage only has to be reached (unlocked); on a harder
+        /// difficulty it has to be cleared there (so late learnings sit on the 어려움 / 극악 ladder).
+        /// </summary>
+        public static bool Reached(SaveData save, int stage, int difficulty)
+        {
+            if (difficulty <= 0) return save.HighestUnlockedStage >= stage;
+            return StageCleared(save, stage, difficulty);
+        }
+
+        /// <summary>"스테이지 12에 도달" / "어려움 스테이지 30 돌파"</summary>
+        public static string ReachText(int stage, int difficulty)
+        {
+            return difficulty <= 0 ? "스테이지 " + stage + "에 도달" : DifficultyNames[Math.Min(difficulty, DifficultyNames.Length - 1)] + " 스테이지 " + stage + " 돌파";
+        }
+
         /// <summary>A harder difficulty opens once the stage is cleared on the one below.</summary>
         public static bool Unlocked(SaveData save, int stage, int difficulty)
         {

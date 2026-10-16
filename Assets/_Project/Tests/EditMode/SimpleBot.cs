@@ -44,7 +44,7 @@ namespace BiRyeoDo.Tests
 
         public static List<SkillSpec> BestLoadout(int stageNumber)
         {
-            var learned = EarlyGameContent.Arts.Where(a => a.OwnerId == null && a.UnlockStage <= stageNumber).ToList();
+            var learned = EarlyGameContent.Arts.Where(a => a.OwnerId == null && a.UnlockDiff == 0 && a.UnlockStage <= stageNumber).ToList();
             var eq = new List<ArtData>();
             foreach (var id in new[] { "seonpung_roejeol", "samcheopyeong" })
             {

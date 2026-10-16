@@ -27,9 +27,11 @@ namespace BiRyeoDo.Tests
         [Test]
         public void CostsAreFixedAndTheBestMethodIsTheMostExpensive()
         {
-            var unity = InnerArts.Find("unity");
-            foreach (var a in InnerArts.All) Assert.LessOrEqual(a.LearnCost, unity.LearnCost, a.Id);
-            Assert.AreEqual(20000, unity.LearnCost);
+            var top = InnerArts.Find("supreme");
+            foreach (var a in InnerArts.All) Assert.LessOrEqual(a.LearnCost, top.LearnCost, a.Id);
+            Assert.AreEqual(90000, top.LearnCost);
+            Assert.AreEqual(30, top.UnlockStage);
+            Assert.AreEqual(1, top.UnlockDiff);   // the last 심법 sits at 어려움 stage 30
             Assert.Greater(InnerArts.Find("blood").LearnCost, InnerArts.Find("tiger").LearnCost);
         }
 
@@ -72,16 +74,16 @@ namespace BiRyeoDo.Tests
         public void StatsAreTradedAndStack()
         {
             var tiger = InnerArts.Apply(Base(), new[] { "tiger" });
-            Assert.AreEqual(110, tiger.Attack);
-            Assert.AreEqual(96, tiger.Defense);
+            Assert.AreEqual(115, tiger.Attack);
+            Assert.AreEqual(95, tiger.Defense);
             var fury = InnerArts.Apply(Base(), new[] { "fury" });
-            Assert.AreEqual(920, fury.MaxHp);
-            Assert.AreEqual(1.9f, fury.CritDamage, 0.001f);
-            Assert.AreEqual(0.09f, fury.CritRate, 0.001f);
+            Assert.AreEqual(900, fury.MaxHp);
+            Assert.AreEqual(2.1f, fury.CritDamage, 0.001f);
+            Assert.AreEqual(0.11f, fury.CritRate, 0.001f);
             var both = InnerArts.Apply(Base(), new[] { "tiger", "vigor" });
-            Assert.AreEqual(110, both.Attack);
-            Assert.AreEqual(1100, both.MaxHp);
-            Assert.AreEqual(100, both.Defense);   // -4% + 4%
+            Assert.AreEqual(115, both.Attack);
+            Assert.AreEqual(1150, both.MaxHp);
+            Assert.AreEqual(101, both.Defense);   // -5% + 6%
             Assert.AreEqual(Base().Attack, InnerArts.Apply(Base(), new string[0]).Attack);
         }
 
@@ -90,11 +92,11 @@ namespace BiRyeoDo.Tests
         {
             var hero = new Combatant("player", "비류연", Team.Player, Base(), null);
             InnerArts.ApplyPerks(hero, new[] { "spirit", "life", "breath" });
-            Assert.AreEqual(4, hero.SpiritDealtBonus);
-            Assert.AreEqual(3, hero.SpiritTakenBonus);
-            Assert.AreEqual(20, hero.StartSpirit);
-            Assert.AreEqual(0.08f, hero.Lifesteal, 0.0001f);
-            Assert.AreEqual(2, hero.QiRegenBonus);
+            Assert.AreEqual(6, hero.SpiritDealtBonus);
+            Assert.AreEqual(4, hero.SpiritTakenBonus);
+            Assert.AreEqual(30, hero.StartSpirit);
+            Assert.AreEqual(0.12f, hero.Lifesteal, 0.0001f);
+            Assert.AreEqual(3, hero.QiRegenBonus);
         }
 
         [Test]

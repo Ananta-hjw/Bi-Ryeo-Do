@@ -114,7 +114,7 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             if (!save.LearnedArts.Contains(art.Id))
             {
-                if (save.HighestUnlockedStage < art.UnlockStage || save.Doo < art.LearnCost) return;
+                if (!art.IsUnlocked(save) || save.Doo < art.LearnCost) return;
                 save.Doo -= art.LearnCost;
                 save.LearnedArts.Add(art.Id);
                 string learnedReplaced;
@@ -199,7 +199,7 @@ namespace BiRyeoDo.Game.UI
                 var a = r.Art;
                 bool learned = save.LearnedArts.Contains(a.Id);
                 bool equipped = save.EquippedArts.Contains(a.Id);
-                bool unlocked = save.HighestUnlockedStage >= a.UnlockStage;
+                bool unlocked = a.IsUnlocked(save);
 
                 int mLevel = Mastery.Level(save, a.Id);
                 var variant = Mastery.VariantOf(save, a.Id);
@@ -209,7 +209,7 @@ namespace BiRyeoDo.Game.UI
                 r.MasteryButton.gameObject.SetActive(learned);
                 r.MasteryLabel.text = Mastery.LevelNames[mLevel] + (mLevel >= Mastery.VariantLevel && canVariant ? "\n변초 바꾸기" : "\n" + Mastery.Uses(save, a.Id) + "회");
                 r.MasteryImage.color = mLevel >= Mastery.VariantLevel && canVariant ? UiFactory.Gold : UiFactory.InkSoft;
-                r.Detail.text = learned || unlocked ? (learned && a.OwnerId == null ? Stars(mLevel) + " " + (Mastery.UsesToNext(save, a.Id) < 0 ? "극의" : Mastery.Uses(save, a.Id) + "/" + Mastery.Thresholds[mLevel + 1] + "회") + "  " : "") + Describe(a) : "스테이지 " + a.UnlockStage + "에 도달하면 열립니다";
+                r.Detail.text = learned || unlocked ? (learned && a.OwnerId == null ? Stars(mLevel) + " " + (Mastery.UsesToNext(save, a.Id) < 0 ? "극의" : Mastery.Uses(save, a.Id) + "/" + Mastery.Thresholds[mLevel + 1] + "회") + "  " : "") + Describe(a) : a.UnlockText + "하면 열립니다";
 
                 if (learned)
                 {
