@@ -18,8 +18,9 @@ namespace BiRyeoDo.Game.UI
         private StatusPanel _status;
         private CodexPanel _codex;
         private MemoryPanel _memories;
+        private StoryLogPanel _storyLog;
         private FactionPanel _factions;
-        private Entry _statusE, _codexE, _achE, _memoryE, _factionE, _ritualE;
+        private Entry _statusE, _codexE, _achE, _storyE, _memoryE, _factionE, _ritualE;
         private RitualPanel _ritual;
         private bool _built;
 
@@ -32,11 +33,12 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Header", root, new Vector2(0.06f, 0.925f), new Vector2(0.94f, 0.985f), "기록", 42, UiFactory.Gold);
 
             // Five tiles stacked in the space below the header
-            const float top = 0.90f, h = 0.13f, gap = 0.01f;
+            const float top = 0.90f, h = 0.11f, gap = 0.01f;
             float y = top;
             _statusE = Tile(root, ref y, h, gap, "상태창", () => _status.Open());
             _codexE = Tile(root, ref y, h, gap, "도감", () => _codex.OpenCodex());
             _achE = Tile(root, ref y, h, gap, "업적", () => _codex.OpenAchievements());
+            _storyE = Tile(root, ref y, h, gap, "이야기 줄거리", () => _storyLog.Open());
             _memoryE = Tile(root, ref y, h, gap, "나예린 추억", () => _memories.Open());
             _factionE = Tile(root, ref y, h, gap, "세력과 객잔", () => _factions.Open());
             _ritualE = Tile(root, ref y, h, gap, "전승의식", () => _ritual.Open());
@@ -44,6 +46,7 @@ namespace BiRyeoDo.Game.UI
             var panelH = new Vector2(1f, 1f);
             _status = new StatusPanel(UiFactory.Rect("StatusOverlay", root, Vector2.zero, panelH), Refresh);
             _codex = new CodexPanel(UiFactory.Rect("CodexOverlay", root, Vector2.zero, panelH), UiFactory.Rect("AchievementOverlay", root, Vector2.zero, panelH), Refresh);
+            _storyLog = new StoryLogPanel(UiFactory.Rect("StoryLogOverlay", root, Vector2.zero, panelH), Refresh, onStory);
             _memories = new MemoryPanel(UiFactory.Rect("MemoryOverlay", root, Vector2.zero, panelH), Refresh, onStory);
             _factions = new FactionPanel(UiFactory.Rect("FactionOverlay", root, Vector2.zero, panelH), Refresh);
             _ritual = new RitualPanel(UiFactory.Rect("RitualOverlay", root, Vector2.zero, panelH), Refresh, onStory);
@@ -102,6 +105,8 @@ namespace BiRyeoDo.Game.UI
             SetBadge(_codexE, 0);
             _achE.Detail.text = "달성 " + Achievements.ClaimedCount(save) + "/" + Achievements.All.Length;
             SetBadge(_achE, Achievements.ClaimableCount(save));
+            _storyE.Detail.text = "등장인물과 사건의 사정을 다시 읽습니다 · " + StoryBriefings.Readable(save).Count + "편";
+            SetBadge(_storyE, 0);
             int unseen = Memories.UnseenCount(save);
             _memoryE.Detail.text = "본 추억 " + Memories.SeenCount(save) + " / " + Memories.All.Length + (unseen > 0 ? " · 새 추억 " + unseen + "개" : "");
             SetBadge(_memoryE, unseen);

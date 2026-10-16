@@ -385,6 +385,8 @@ namespace BiRyeoDo.Game.UI
 
             if (!resume && !_fled && pickStart == 0 && !singleFight)
             {
+                var recap = !stage.IsTower && !stage.IsQuest && save.ClearedStage < stage.Number ? StoryBriefings.Briefing(stage.Number) : null;
+                if (recap != null) yield return ShowStory(stage.Name + " — 이야기 배경", recap);
                 if (stage.Prologue != null && save.ClearedStage < stage.Number)
                     foreach (var scene in stage.Prologue)
                         yield return ShowStory(scene.Title, scene.Lines);
@@ -511,10 +513,13 @@ namespace BiRyeoDo.Game.UI
                 }
                 else if (cleared)
                 {
+                    bool firstClear = save.ClearedStage < stage.Number;
                     save.ClearedStage = Math.Max(save.ClearedStage, stage.Number);
                     Daily.Record(save, DailyEvent.StageClear);
                     GameManager.Instance.SaveNow();
                     yield return ShowStory(stage.Name + " 돌파", stage.Outro);
+                    var after = firstClear ? StoryBriefings.Aftermath(stage.Number) : null;
+                    if (after != null) yield return ShowStory(stage.Name + " — 그 뒤", after);
                     string bondNote = AwardBonds(save);
                     var reward = Inventory.GrantStageReward(save, stage.Number);
                     int chests = StageStars.ClaimableCount(save);
