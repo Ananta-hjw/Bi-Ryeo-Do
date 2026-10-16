@@ -28,7 +28,7 @@ namespace BiRyeoDo.Game.UI
         {
             public Combatant Unit;
             public RectTransform Root;
-            public Image Frame, Body, Art;
+            public Image Frame, Art;
             public Text Name, Glyph, Intent, HpText;
             public UiFactory.Bar Hp;
             public Vector2 Center;
@@ -117,11 +117,11 @@ namespace BiRyeoDo.Game.UI
                 _turnLabels.Add(label);
             }
 
+            // Ground strip under the two formations (side-view field); drawn behind the figures and ending below the lowest row
+            UiFactory.Panel("Ground", root, new Vector2(0f, 0.335f), new Vector2(1f, 0.345f), new Color(0f, 0f, 0f, 0.28f));
+            UiFactory.Panel("GroundLine", root, new Vector2(0f, 0.343f), new Vector2(1f, 0.347f), UiFactory.GoldDim);
             _cardsRoot = UiFactory.Rect("Cards", root, Vector2.zero, Vector2.one);
 
-            // Ground strip under the two formations (side-view field), then the log line below it
-            UiFactory.Panel("Ground", root, new Vector2(0f, 0.335f), new Vector2(1f, 0.46f), new Color(0f, 0f, 0f, 0.28f));
-            UiFactory.Panel("GroundLine", root, new Vector2(0f, 0.458f), new Vector2(1f, 0.462f), UiFactory.GoldDim);
             UiFactory.Frame(UiFactory.Panel("LogBand", root, new Vector2(0.04f, 0.292f), new Vector2(0.96f, 0.334f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
             _log = UiFactory.Label("Log", root, new Vector2(0.06f, 0.292f), new Vector2(0.94f, 0.334f), "", 28, UiFactory.PaperText);
 
@@ -764,7 +764,7 @@ namespace BiRyeoDo.Game.UI
         {
             if (n == 1)
             {
-                float w = bigSingle ? 0.44f : 0.30f, h = bigSingle ? 0.46f : 0.34f;
+                float w = bigSingle ? 0.44f : CellW + 0.04f, h = bigSingle ? 0.46f : CellH + 0.04f;
                 float x = partySide ? 0.14f : (bigSingle ? 0.52f : 0.60f);
                 float y = 0.62f - h / 2f + 0.07f;
                 return new Rect(x, y, w, h);
@@ -792,14 +792,11 @@ namespace BiRyeoDo.Game.UI
                 var cell = Cell(i, n, true, false);
                 var p = new PartyPanel { Unit = unit, Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
                 p.Root = UiFactory.Rect("Member" + i, _partyRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
-                p.Frame = UiFactory.Panel("Frame", p.Root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0f));
-                UiFactory.Panel("Bg", p.Root, new Vector2(0.02f, 0.02f), new Vector2(0.98f, 0.98f), new Color(0.06f, 0.08f, 0.12f, 0.62f));
+                p.Frame = UiFactory.Panel("Marker", p.Root, new Vector2(0.10f, 0.285f), new Vector2(0.90f, 0.305f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks whose turn it is
                 var sprite = i == 0 ? ArtLibrary.Player() : ArtLibrary.Companion(unit.Id);
                 if (sprite != null)
                 {
-                    p.Art = UiFactory.Panel("Art", p.Root, new Vector2(0.04f, 0.30f), new Vector2(0.96f, 0.92f), Color.white);
-                    p.Art.sprite = sprite;
-                    p.Art.preserveAspect = true;
+                    p.Art = FitArt(p.Root, sprite, cell);
                 }
                 else
                 {
@@ -866,16 +863,12 @@ namespace BiRyeoDo.Game.UI
                 var cell = Cell(i, n, false, data.IsBoss);
                 var card = new EnemyCard { Unit = data.CreateCombatant(data.Id + "#" + i), Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
                 card.Root = UiFactory.Rect("Card" + i, _cardsRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
-                card.Frame = UiFactory.Panel("Frame", card.Root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0f));
-                card.Body = UiFactory.Panel("Body", card.Root, new Vector2(0.025f, 0.02f), new Vector2(0.975f, 0.98f), data.IsBoss ? new Color(0.30f, 0.08f, 0.10f, 0.70f) : new Color(0.06f, 0.08f, 0.12f, 0.62f));
+                card.Frame = UiFactory.Panel("Marker", card.Root, new Vector2(0.10f, 0.285f), new Vector2(0.90f, 0.305f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks the target
                 card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.05f, 0.88f), new Vector2(0.95f, 0.99f), data.Name, data.IsBoss ? 30 : 22, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
                 var art = ArtLibrary.Enemy(data.ArtKey);
                 if (art != null)
                 {
-                    var pic = UiFactory.Panel("Art", card.Root, new Vector2(0.06f, 0.30f), new Vector2(0.94f, 0.88f), Color.white);
-                    pic.sprite = art;
-                    pic.preserveAspect = true;
-                    card.Art = pic;
+                    card.Art = FitArt(card.Root, art, cell);
                 }
                 card.Glyph = UiFactory.Label("Glyph", card.Root, new Vector2(0.05f, 0.30f), new Vector2(0.95f, 0.88f), art != null ? "" : FirstGlyph(data.Name), data.IsBoss ? 170 : 110, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
                 card.Hp = UiFactory.MakeBar("Hp", card.Root, new Vector2(0.06f, 0.215f), new Vector2(0.94f, 0.275f), new Color(0f, 0f, 0f, 0.7f), UiFactory.Red);
@@ -891,6 +884,29 @@ namespace BiRyeoDo.Game.UI
                 tap.onClick.AddListener(() => { if (captured.Unit.IsAlive) { _target = captured; RefreshCards(); } });
                 _cards.Add(card);
             }
+        }
+
+        /// <summary>
+        /// Draws a cut-out figure inside a cell: the sprite keeps its aspect ratio, is scaled to fill the cell's art area
+        /// (never wider or taller), and stands on the cell's feet line so every unit shares one ground level.
+        /// </summary>
+        private Image FitArt(RectTransform cellRoot, Sprite sprite, Rect cell)
+        {
+            const float x0 = 0.02f, x1 = 0.98f, y0 = 0.30f, y1 = 0.90f;
+            var size = _cardsRoot != null ? _cardsRoot.rect.size : Vector2.zero;
+            if (size.x < 1f || size.y < 1f) size = new Vector2(1080f, 1920f);
+            float regionW = (x1 - x0) * cell.width * size.x, regionH = (y1 - y0) * cell.height * size.y;
+            float aspect = sprite.rect.width / Mathf.Max(1f, sprite.rect.height);
+            float h = regionH, w = h * aspect;
+            if (w > regionW) { w = regionW; h = w / aspect; }
+            var pic = UiFactory.Panel("Art", cellRoot, new Vector2(0.5f, y0), new Vector2(0.5f, y0), Color.white);
+            pic.sprite = sprite;
+            pic.preserveAspect = true;
+            var rt = pic.rectTransform;
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta = new Vector2(w, h);
+            return pic;
         }
 
         private static string FirstGlyph(string name)
@@ -912,7 +928,6 @@ namespace BiRyeoDo.Game.UI
                 c.Hp.SetPct(u.Stats.MaxHp > 0 ? (float)u.Hp / u.Stats.MaxHp : 0f);
                 c.HpText.text = u.Hp + " / " + u.Stats.MaxHp;
                 c.Frame.color = c == _target && !dead ? UiFactory.Gold : new Color(0f, 0f, 0f, 0f);
-                SetAlpha(c.Body, dead ? 0.15f : 0.68f);
                 if (c.Art != null) SetAlpha(c.Art, dead ? 0.25f : 1f);
                 c.Glyph.color = dead ? new Color(1f, 1f, 1f, 0.2f) : c.Glyph.color;
                 if (dead) { c.Intent.text = "쓰러졌다"; continue; }
@@ -1657,12 +1672,10 @@ namespace BiRyeoDo.Game.UI
                 if (card.Root == null) yield break;
                 float k = e / d;
                 card.Root.anchoredPosition = origin + new Vector2(Mathf.Sin(k * 40f) * 10f * (1f - k), -40f * k);
-                SetAlpha(card.Body, Mathf.Lerp(0.68f, 0.15f, k));
                 if (card.Art != null) SetAlpha(card.Art, Mathf.Lerp(1f, 0.25f, k));
                 yield return null;
             }
             if (card.Root != null) card.Root.anchoredPosition = origin + new Vector2(0f, -40f);
-            SetAlpha(card.Body, 0.15f);
             if (card.Art != null) SetAlpha(card.Art, 0.25f);
         }
 
