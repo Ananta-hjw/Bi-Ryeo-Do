@@ -31,7 +31,7 @@ namespace BiRyeoDo.Game.UI
 
             int total = StageStars.Total(save), ready = StageStars.ClaimableCount(save);
             UiFactory.Label("Title", _root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "별 보상  ★ " + total + " / " + StageStars.MaxStars, 44, UiFactory.Gold);
-            UiFactory.Label("Hint", _root, new Vector2(0.05f, 0.865f), new Vector2(0.62f, 0.92f), toast ?? "스테이지마다 별 3개: 돌파 · 전원 생존 · 신속. 난이도마다 따로 모은다.", 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("Hint", _root, new Vector2(0.05f, 0.865f), new Vector2(0.62f, 0.92f), toast ?? "전투(작은 스테이지)마다 별 3개: 돌파 · 전원 생존 · 신속. 난이도마다 따로 모은다.", 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
             var all = UiFactory.Button("ClaimAll", _root, new Vector2(0.64f, 0.865f), new Vector2(0.95f, 0.92f), "모두 받기", ready > 0 ? UiFactory.Red : UiFactory.InkSoft, ClaimAll, 28);
             all.interactable = ready > 0;
 

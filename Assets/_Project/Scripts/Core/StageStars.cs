@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace BiRyeoDo.Core
 {
-    /// <summary>Best star mask of one stage at one difficulty (bit 0 clear, bit 1 everyone survived, bit 2 fast). Public fields for JsonUtility.</summary>
+    /// <summary>Best star mask of one fight of a stage at one difficulty (bit 0 won, bit 1 everyone survived, bit 2 fast). Public fields for JsonUtility.</summary>
     [Serializable]
     public sealed class StarEntry
     {
-        public int Stage, Diff, Mask;
+        public int Stage, Fight, Diff, Mask;
     }
 
     /// <summary>A star milestone: collect this many stars in total to open the chest.</summary>
@@ -20,9 +20,9 @@ namespace BiRyeoDo.Core
     }
 
     /// <summary>
-    /// 별점과 고난도: every stage can be cleared on three difficulties, and each (stage, difficulty) holds three stars:
-    /// 돌파, 전원 생존 (nobody falls in any fight) and 신속 (within the stage's action limit). Harder difficulties scale the
-    /// enemies and pay more. Total stars open milestone chests.
+    /// 별점과 고난도: every stage can be cleared on three difficulties, and every single fight of a stage (each "small stage")
+    /// holds its own three stars per difficulty: 돌파, 전원 생존 (nobody falls in that fight) and 신속 (within that fight's
+    /// action limit). Harder difficulties scale the enemies and pay more. Total stars open milestone chests.
     /// </summary>
     public static class StageStars
     {
@@ -33,17 +33,55 @@ namespace BiRyeoDo.Core
         public static readonly float[] RewardFactor = { 1.0f, 1.5f, 2.2f };   // 두 and exp
         public static readonly string[] StarNames = { "돌파", "전원 생존", "신속" };
 
-        /// <summary>Party actions allowed for the 신속 star, per stage number (index = stage). About 90% of what the balance bot needs.</summary>
-        private static readonly int[] FastLimits =
+        /// <summary>Party actions allowed for the 신속 star of each fight (index = stage - 1, then fight). About 90% of the balance bot's median, plus one.</summary>
+        private static readonly int[][] FastLimits =
         {
-            0, 28, 21, 19, 19, 7, 18, 23, 20, 20, 19, 20, 22, 21, 36, 22, 25, 30, 18, 38, 35, 40, 43, 44, 53, 48, 43, 50, 66, 110, 58
+            new[] { 5, 7, 8, 12 },   // 1
+            new[] { 4, 6, 14 },   // 2
+            new[] { 5, 7, 10 },   // 3
+            new[] { 5, 8, 8 },   // 4
+            new[] { 3, 6 },   // 5
+            new[] { 5, 6, 10 },   // 6
+            new[] { 4, 6, 9, 7 },   // 7
+            new[] { 4, 6, 13 },   // 8
+            new[] { 4, 4, 7, 9 },   // 9
+            new[] { 4, 9, 9 },   // 10
+            new[] { 5, 5, 14 },   // 11
+            new[] { 5, 10, 9 },   // 12
+            new[] { 10, 13 },   // 13
+            new[] { 14, 8, 17 },   // 14
+            new[] { 9, 11, 5 },   // 15
+            new[] { 11, 9, 8 },   // 16
+            new[] { 13, 10, 9 },   // 17
+            new[] { 8, 12 },   // 18
+            new[] { 16, 13, 13 },   // 19
+            new[] { 16, 9, 13 },   // 20
+            new[] { 17, 14, 13 },   // 21
+            new[] { 18, 15, 13 },   // 22
+            new[] { 18, 16, 14 },   // 23
+            new[] { 20, 20, 16 },   // 24
+            new[] { 20, 16, 15 },   // 25
+            new[] { 20, 13, 13 },   // 26
+            new[] { 18, 20, 15 },   // 27
+            new[] { 13, 23, 17, 16 },   // 28
+            new[] { 16, 41, 14, 14, 30 },   // 29
+            new[] { 27, 21, 13 },   // 30
         };
 
-        public static int FastLimit(int stage)
+        public static int FastLimit(int stage, int fight)
         {
-            if (stage >= 1 && stage < FastLimits.Length) return FastLimits[stage];
-            return 30 + 2 * Math.Max(0, stage);
+            if (stage >= 1 && stage <= FastLimits.Length && fight >= 0 && fight < FastLimits[stage - 1].Length) return FastLimits[stage - 1][fight];
+            return 12 + stage / 2;
         }
+
+        public static int FightCount(int stage)
+        {
+            var st = EarlyGameContent.FindStage(stage);
+            return st != null ? st.Encounters.Length : 0;
+        }
+
+        /// <summary>Stars a stage can give on one difficulty (3 per fight).</summary>
+        public static int MaxStarsOfStage(int stage) { return FightCount(stage) * 3; }
 
         // The protagonist fights alone until stage 7 and the party then grows stronger than the stage curve alone suggests,
         // so the extra difficulty ramps up with the stage: gentle in the solo stages, steep late.
@@ -73,33 +111,31 @@ namespace BiRyeoDo.Core
             return n;
         }
 
-        /// <summary>The star mask earned by a cleared stage run.</summary>
-        public static int Evaluate(int stage, int actions, bool anyoneFell)
+        /// <summary>The star mask earned by a won fight.</summary>
+        public static int Evaluate(int stage, int fight, int actions, bool anyoneFell)
         {
             int mask = 1;
             if (!anyoneFell) mask |= 2;
-            if (actions <= FastLimit(stage)) mask |= 4;
+            if (actions <= FastLimit(stage, fight)) mask |= 4;
             return mask;
         }
 
-        /// <summary>Older saves have cleared stages but no star records: count each cleared stage as cleared on 일반.</summary>
-        public static void Sync(SaveData save)
+        public static StarEntry Find(SaveData save, int stage, int fight, int difficulty)
         {
-            foreach (var st in EarlyGameContent.Stages)
-            {
-                if (st.Number > save.ClearedStage) break;
-                if ((MaskOf(save, st.Number, 0) & 1) == 0) Record(save, st.Number, 0, 1);
-            }
-        }
-
-        public static StarEntry Find(SaveData save, int stage, int difficulty)
-        {
-            foreach (var e in save.StageStars) if (e.Stage == stage && e.Diff == difficulty) return e;
+            foreach (var e in save.StageStars) if (e.Stage == stage && e.Fight == fight && e.Diff == difficulty) return e;
             return null;
         }
 
-        public static int MaskOf(SaveData save, int stage, int difficulty) { var e = Find(save, stage, difficulty); return e != null ? e.Mask : 0; }
-        public static int StarsOf(SaveData save, int stage, int difficulty) { return Count(MaskOf(save, stage, difficulty)); }
+        public static int MaskOf(SaveData save, int stage, int fight, int difficulty) { var e = Find(save, stage, fight, difficulty); return e != null ? e.Mask : 0; }
+        public static int StarsOf(SaveData save, int stage, int fight, int difficulty) { return Count(MaskOf(save, stage, fight, difficulty)); }
+
+        /// <summary>Stars earned in one stage on one difficulty.</summary>
+        public static int StarsOfStage(SaveData save, int stage, int difficulty)
+        {
+            int n = 0;
+            foreach (var e in save.StageStars) if (e.Stage == stage && e.Diff == difficulty) n += Count(e.Mask);
+            return n;
+        }
 
         public static int Total(SaveData save)
         {
@@ -108,37 +144,65 @@ namespace BiRyeoDo.Core
             return n;
         }
 
+        /// <summary>A stage counts as cleared on a difficulty once its last fight was won there.</summary>
+        public static bool StageCleared(SaveData save, int stage, int difficulty)
+        {
+            int last = FightCount(stage) - 1;
+            return last >= 0 && (MaskOf(save, stage, last, difficulty) & 1) != 0;
+        }
+
         /// <summary>A harder difficulty opens once the stage is cleared on the one below.</summary>
         public static bool Unlocked(SaveData save, int stage, int difficulty)
         {
             if (difficulty <= 0) return true;
-            return (MaskOf(save, stage, difficulty - 1) & 1) != 0;
+            return StageCleared(save, stage, difficulty - 1);
         }
 
-        /// <summary>Stores the best result; returns how many new stars it earned.</summary>
-        public static int Record(SaveData save, int stage, int difficulty, int mask)
+        /// <summary>Stores the best result of a fight; returns how many new stars it earned.</summary>
+        public static int Record(SaveData save, int stage, int fight, int difficulty, int mask)
         {
-            var e = Find(save, stage, difficulty);
-            if (e == null) { e = new StarEntry { Stage = stage, Diff = difficulty }; save.StageStars.Add(e); }
+            var e = Find(save, stage, fight, difficulty);
+            if (e == null) { e = new StarEntry { Stage = stage, Fight = fight, Diff = difficulty }; save.StageStars.Add(e); }
             int before = Count(e.Mask);
             e.Mask |= mask;
             return Count(e.Mask) - before;
+        }
+
+        /// <summary>Older saves have cleared stages but no star records: count every fight of a cleared stage as won on 일반.</summary>
+        public static void Sync(SaveData save)
+        {
+            foreach (var st in EarlyGameContent.Stages)
+            {
+                if (st.Number > save.ClearedStage) break;
+                for (int f = 0; f < st.Encounters.Length; f++)
+                    if ((MaskOf(save, st.Number, f, 0) & 1) == 0) Record(save, st.Number, f, 0, 1);
+            }
         }
 
         // ------------------------------------------------------------------ milestone chests
 
         public static readonly StarChest[] Chests =
         {
-            new StarChest { Stars = 10, Doo = 3000 },
-            new StarChest { Stars = 25, Doo = 6000, ItemId = "ginseng" },
-            new StarChest { Stars = 45, Doo = 10000, ItemId = "ginseng", ItemCount = 2 },
-            new StarChest { Stars = 70, Doo = 16000, ItemId = "ilgeup_yeongdan" },
-            new StarChest { Stars = 100, Doo = 25000, ItemId = "ilgeup_yeongdan" },
-            new StarChest { Stars = 140, Doo = 40000, ItemId = "ilgeup_yeongdan", ItemCount = 2 },
-            new StarChest { Stars = 200, Doo = 60000, ItemId = "ilgeup_yeongdan", ItemCount = 3 },
+            new StarChest { Stars = 15, Doo = 3000 },
+            new StarChest { Stars = 40, Doo = 6000, ItemId = "ginseng" },
+            new StarChest { Stars = 80, Doo = 10000, ItemId = "ginseng", ItemCount = 2 },
+            new StarChest { Stars = 130, Doo = 16000, ItemId = "ilgeup_yeongdan" },
+            new StarChest { Stars = 200, Doo = 25000, ItemId = "ilgeup_yeongdan" },
+            new StarChest { Stars = 300, Doo = 40000, ItemId = "ilgeup_yeongdan", ItemCount = 2 },
+            new StarChest { Stars = 420, Doo = 60000, ItemId = "ilgeup_yeongdan", ItemCount = 3 },
+            new StarChest { Stars = 560, Doo = 80000, ItemId = "ilgeup_yeongdan", ItemCount = 3 },
+            new StarChest { Stars = 700, Doo = 120000, ItemId = "ilgeup_yeongdan", ItemCount = 5 },
         };
 
-        public static int MaxStars { get { return EarlyGameContent.Stages.Length * 3 * DifficultyCount; } }
+        public static int MaxStars
+        {
+            get
+            {
+                int fights = 0;
+                foreach (var st in EarlyGameContent.Stages) fights += st.Encounters.Length;
+                return fights * 3 * DifficultyCount;
+            }
+        }
 
         public static bool CanClaim(SaveData save, StarChest c) { return Total(save) >= c.Stars && !save.ClaimedStarChests.Contains(c.Stars); }
 

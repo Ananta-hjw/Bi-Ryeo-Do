@@ -319,9 +319,8 @@ namespace BiRyeoDo.Game.UI
                 if (resume) { StageProgress.Restore(save, _party); RefreshParty(); }
                 long gainedExp = 0, gainedDoo = 0;
                 bool cleared = true;
-                int stageActions = resume ? save.ProgressActions : 0;   // for the 신속 star
-                bool stageFell = resume && save.ProgressDowned;          // for the 전원 생존 star
-                bool replay = !stage.IsQuest && !stage.IsTower && (diff == 0 ? save.ClearedStage >= stage.Number : (StageStars.MaskOf(save, stage.Number, diff) & 1) != 0);
+                int newStars = 0;   // stars earned in this run (each fight has its own three)
+                bool replay = !stage.IsQuest && !stage.IsTower && (diff == 0 ? save.ClearedStage >= stage.Number : StageStars.StageCleared(save, stage.Number, diff));
                 bool towerFirst = stage.IsTower && stage.TowerFloor > save.TowerBest;
 
                 for (int i = startIndex; i < stage.Encounters.Length; i++)
@@ -329,11 +328,19 @@ namespace BiRyeoDo.Game.UI
                     _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + tag + stage.Name + "  (" + (i + 1) + "/" + stage.Encounters.Length + ")";
                     yield return Banner(i == stage.Encounters.Length - 1 ? "결전!" : "전투 " + (i + 1), 0.7f);
                     yield return Fight(stage.Encounters[i], stage.TrialFor(i), stage.Number, diff);
-                    stageActions += _fightActions;
-                    if (_fightFell) stageFell = true;
 
                     if (_fled) { cleared = false; break; }
                     if (!_battle.PlayerWon) { cleared = false; break; }
+
+                    // Every fight has its own stars: won, nobody fell, and fast enough.
+                    _lastStarLine = "";
+                    if (!stage.IsQuest && !stage.IsTower)
+                    {
+                        int fightMask = StageStars.Evaluate(stage.Number, i, _fightActions, _fightFell);
+                        int fightNew = StageStars.Record(save, stage.Number, i, diff, fightMask);
+                        newStars += fightNew;
+                        _lastStarLine = FightStarLine(stage.Number, i, fightMask, _fightActions, fightNew);
+                    }
 
                     long exp = 0, doo = 0;
                     save.BattleWins++;
@@ -355,7 +362,7 @@ namespace BiRyeoDo.Game.UI
                     GameManager.Instance.SaveNow();
                     if (levels > 0) RebuildPartyForNewLevel(stage);
                     SoundManager.Sfx(levels > 0 ? "levelup" : "win");
-                    yield return Banner("승리!  경험 +" + exp + "  두 +" + doo + (drops.Count > 0 ? "\n획득: " + DescribeStacks(drops) : "") + (levels > 0 ? "\nLv." + save.Level + " 상승!" : ""), levels > 0 || drops.Count > 0 ? 1.5f : 0.9f);
+                    yield return Banner("승리!  경험 +" + exp + "  두 +" + doo + (drops.Count > 0 ? "\n획득: " + DescribeStacks(drops) : "") + (levels > 0 ? "\nLv." + save.Level + " 상승!" : "") + (_lastStarLine.Length > 0 ? "\n" + _lastStarLine : ""), levels > 0 || drops.Count > 0 || _lastStarLine.Length > 0 ? 1.6f : 0.9f);
                     foreach (var m in _party) m.RestBetweenFights(0.5f);
                     RefreshParty();
 
@@ -365,7 +372,7 @@ namespace BiRyeoDo.Game.UI
                         yield return ShowHub(stage, i);
                         if (_leave)
                         {
-                            StageProgress.Store(save, stage.Number, i + 1, _party, stageActions, stageFell, diff);
+                            StageProgress.Store(save, stage.Number, i + 1, _party, diff);
                             GameManager.Instance.SaveNow();
                             _fled = true; cleared = false; break;
                         }
@@ -401,12 +408,10 @@ namespace BiRyeoDo.Game.UI
                     yield return ShowStory(stage.Name + " 돌파", stage.Outro);
                     string bondNote = AwardBonds(save);
                     var reward = Inventory.GrantStageReward(save, stage.Number);
-                    int mask = StageStars.Evaluate(stage.Number, stageActions, stageFell);
-                    int newStars = StageStars.Record(save, stage.Number, diff, mask);
                     int chests = StageStars.ClaimableCount(save);
                     GameManager.Instance.SaveNow();
                     yield return ShowResult(tag + "스테이지 돌파!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (bondNote.Length > 0 ? "\n" + bondNote : "") + (reward.Count > 0 ? "\n\n첫 돌파 보상\n" + DescribeStacks(reward) : "")
-                        + "\n\n" + StarSummary(stage.Number, mask, stageActions) + (newStars > 0 ? "\n새로 얻은 별 +" + newStars : "") + (chests > 0 ? "\n별 보상을 받을 수 있다! (강호 탭)" : ""), false);
+                        + "\n\n" + StageStarSummary(save, stage.Number, diff) + (newStars > 0 ? "\n이번에 새로 얻은 별 +" + newStars : "") + (chests > 0 ? "\n별 보상을 받을 수 있다! (강호 탭)" : ""), false);
                 }
                 else
                 {
@@ -542,16 +547,33 @@ namespace BiRyeoDo.Game.UI
         private int _fightActions;
         private bool _fightFell;
 
-        private static string StarSummary(int stageNumber, int mask, int actions)
+        private string _lastStarLine = "";
+
+        private static string StarGlyphs(int mask)
         {
-            var parts = new List<string>();
-            for (int i = 0; i < 3; i++)
-            {
-                bool got = (mask & (1 << i)) != 0;
-                string extra = i == 2 ? " (" + actions + "/" + StageStars.FastLimit(stageNumber) + "행동)" : "";
-                parts.Add((got ? "★ " : "☆ ") + StageStars.StarNames[i] + extra);
-            }
-            return string.Join("\n", parts);
+            return ((mask & 1) != 0 ? "★" : "☆") + ((mask & 2) != 0 ? "★" : "☆") + ((mask & 4) != 0 ? "★" : "☆");
+        }
+
+        /// <summary>"★★☆  (신속 14/9행동)  +1" for the fight that was just won: the stars of this run plus the reason for a missing one.</summary>
+        private static string FightStarLine(int stageNumber, int fight, int mask, int actions, int gained)
+        {
+            string line = StarGlyphs(mask);
+            var missed = new List<string>();
+            if ((mask & 2) == 0) missed.Add("전원 생존 실패");
+            if ((mask & 4) == 0) missed.Add("신속 " + actions + "/" + StageStars.FastLimit(stageNumber, fight) + "행동");
+            if (missed.Count > 0) line += "  (" + string.Join(", ", missed) + ")";
+            if (gained > 0) line += "  새 별 +" + gained;
+            return line;
+        }
+
+        /// <summary>Best stars of every fight of the stage on this difficulty, one per line.</summary>
+        private static string StageStarSummary(SaveData save, int stageNumber, int difficulty)
+        {
+            var lines = new List<string>();
+            int n = StageStars.FightCount(stageNumber);
+            for (int f = 0; f < n; f++)
+                lines.Add((f == n - 1 ? "결전 " : "전투 " + (f + 1) + " ") + StarGlyphs(StageStars.MaskOf(save, stageNumber, f, difficulty)));
+            return "별 " + StageStars.StarsOfStage(save, stageNumber, difficulty) + "/" + StageStars.MaxStarsOfStage(stageNumber) + "\n" + string.Join("   ", lines);
         }
 
         private IEnumerator Fight(string[] enemyIds, TrialRule trial, int stageNumber = 0, int difficulty = 0)
@@ -1673,7 +1695,9 @@ namespace BiRyeoDo.Game.UI
             int next = doneIndex + 1;
             bool boss = next == stage.Encounters.Length - 1;
             var sb = new System.Text.StringBuilder();
-            sb.Append("전투 ").Append(doneIndex + 1).Append("/").Append(stage.Encounters.Length).Append(" 승리!\n");
+            sb.Append("전투 ").Append(doneIndex + 1).Append("/").Append(stage.Encounters.Length).Append(" 승리!");
+            if (_lastStarLine.Length > 0) sb.Append("  ").Append(_lastStarLine);
+            sb.Append("\n");
             foreach (var m in _party) sb.Append(m.Name).Append("  체력 ").Append(m.Hp).Append("/").Append(m.Stats.MaxHp).Append("  내공 ").Append(m.Qi).Append("\n");
             sb.Append("\n다음은 ").Append(boss ? "결전이다." : "전투 " + (next + 1) + "이다.");
             var trial = stage.TrialFor(next);

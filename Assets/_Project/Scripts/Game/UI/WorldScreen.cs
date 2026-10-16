@@ -876,13 +876,14 @@ namespace BiRyeoDo.Game.UI
                 bool cleared = save.ClearedStage >= st.Number;
                 int diff = StageProgress.Has(save, st.Number) ? save.ProgressDifficulty : Mathf.Clamp(save.Difficulty, 0, StageStars.DifficultyCount - 1);
                 bool diffOpen = StageStars.Unlocked(save, st.Number, diff);
-                int mask = StageStars.MaskOf(save, st.Number, diff);
-                string starText = (mask & 1) != 0 ? "  " + ((mask & 1) != 0 ? "★" : "☆") + ((mask & 2) != 0 ? "★" : "☆") + ((mask & 4) != 0 ? "★" : "☆") : "";
+                bool clearedHere = StageStars.StageCleared(save, st.Number, diff) || (diff == 0 && cleared);
+                int stageStarCount = StageStars.StarsOfStage(save, st.Number, diff);
+                string starText = stageStarCount > 0 ? "  ★" + stageStarCount + "/" + StageStars.MaxStarsOfStage(st.Number) : "";
                 r.Title.text = "스테이지 " + st.Number + " · " + st.Name + starText;
                 r.Detail.text = reached && !rankOk ? Promotion.RankName(Promotion.GateRank) + " 이상이 되어야 참가할 수 있다 (승급 시험장)" : unlocked ? "권장 Lv." + st.RecommendedLevel + " · 전투 " + st.Encounters.Length + "회" + PartyText(st) + (cleared ? " · 돌파" : "") : "이전 스테이지를 돌파하면 열린다";
                 bool playable = unlocked && diffOpen;
-                r.ButtonLabel.text = !unlocked ? (reached ? "승급 필요" : "잠김") : !diffOpen ? StageStars.DifficultyNames[diff - 1] + "\n돌파 필요" : StageProgress.Has(save, st.Number) ? "이어하기" : (mask & 1) != 0 || (diff == 0 && cleared) ? "재도전" : "출전";
-                r.ButtonImage.color = !playable ? UiFactory.InkSoft : (mask & 1) != 0 || (diff == 0 && cleared) ? new Color(0.35f, 0.35f, 0.32f, 1f) : UiFactory.Red;
+                r.ButtonLabel.text = !unlocked ? (reached ? "승급 필요" : "잠김") : !diffOpen ? StageStars.DifficultyNames[diff - 1] + "\n돌파 필요" : StageProgress.Has(save, st.Number) ? "이어하기" : clearedHere ? "재도전" : "출전";
+                r.ButtonImage.color = !playable ? UiFactory.InkSoft : clearedHere ? new Color(0.35f, 0.35f, 0.32f, 1f) : UiFactory.Red;
                 r.Button.interactable = playable;
             }
         }

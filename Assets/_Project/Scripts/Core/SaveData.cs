@@ -41,8 +41,7 @@ namespace BiRyeoDo.Core
         public List<StarEntry> StageStars = new List<StarEntry>();   // best star mask per stage and difficulty (additive field)
         public List<int> ClaimedStarChests = new List<int>();       // star milestones already collected
         public int Difficulty;                                      // difficulty picked for the stage list (0-2)
-        public int ProgressActions, ProgressDifficulty;             // star tracking of the resume point (see StageProgress)
-        public bool ProgressDowned;
+        public int ProgressDifficulty;                              // difficulty of the resume point (see StageProgress)
         public int SwordRank;           // 검룡위 (1-10), see Promotion; 0 in older saves counts as 1
 
         public List<string> LearnedArts = new List<string>();

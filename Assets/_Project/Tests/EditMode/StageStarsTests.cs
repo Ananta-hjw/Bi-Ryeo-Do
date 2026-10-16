@@ -7,60 +7,72 @@ namespace BiRyeoDo.Tests
     public class StageStarsTests
     {
         [Test]
-        public void EveryStageHasAFastLimit()
+        public void EveryFightHasAFastLimit()
         {
-            foreach (var st in EarlyGameContent.Stages) Assert.Greater(StageStars.FastLimit(st.Number), 0, st.Name);
+            foreach (var st in EarlyGameContent.Stages)
+                for (int f = 0; f < st.Encounters.Length; f++) Assert.Greater(StageStars.FastLimit(st.Number, f), 1, st.Name + " " + f);
+            Assert.AreEqual(st5().Encounters.Length * 3, StageStars.MaxStarsOfStage(5));
         }
+
+        private static StageData st5() { return EarlyGameContent.FindStage(5); }
 
         [Test]
         public void EvaluateAwardsEachStarSeparately()
         {
-            int limit = StageStars.FastLimit(3);
-            Assert.AreEqual(7, StageStars.Evaluate(3, limit, false));
-            Assert.AreEqual(1 | 4, StageStars.Evaluate(3, limit, true));
-            Assert.AreEqual(1 | 2, StageStars.Evaluate(3, limit + 1, false));
-            Assert.AreEqual(1, StageStars.Evaluate(3, limit + 5, true));
+            int limit = StageStars.FastLimit(3, 1);
+            Assert.AreEqual(7, StageStars.Evaluate(3, 1, limit, false));
+            Assert.AreEqual(1 | 4, StageStars.Evaluate(3, 1, limit, true));
+            Assert.AreEqual(1 | 2, StageStars.Evaluate(3, 1, limit + 1, false));
+            Assert.AreEqual(1, StageStars.Evaluate(3, 1, limit + 5, true));
             Assert.AreEqual(3, StageStars.Count(7));
             Assert.AreEqual(2, StageStars.Count(5));
         }
 
         [Test]
-        public void RecordKeepsTheBestPerDifficultyAndCountsNewStars()
+        public void EachFightKeepsItsOwnBestPerDifficulty()
         {
             var save = new SaveData();
-            Assert.AreEqual(2, StageStars.Record(save, 4, 0, 1 | 2));
-            Assert.AreEqual(1, StageStars.Record(save, 4, 0, 1 | 4));   // adds only the fast star
-            Assert.AreEqual(0, StageStars.Record(save, 4, 0, 1));
-            Assert.AreEqual(3, StageStars.StarsOf(save, 4, 0));
-            Assert.AreEqual(0, StageStars.StarsOf(save, 4, 1));
-            StageStars.Record(save, 4, 1, 7);
-            Assert.AreEqual(6, StageStars.Total(save));
+            Assert.AreEqual(2, StageStars.Record(save, 4, 0, 0, 1 | 2));
+            Assert.AreEqual(1, StageStars.Record(save, 4, 0, 0, 1 | 4));   // adds only the fast star
+            Assert.AreEqual(0, StageStars.Record(save, 4, 0, 0, 1));
+            Assert.AreEqual(3, StageStars.StarsOf(save, 4, 0, 0));
+            Assert.AreEqual(0, StageStars.StarsOf(save, 4, 1, 0));          // another fight of the same stage
+            Assert.AreEqual(0, StageStars.StarsOf(save, 4, 0, 1));          // another difficulty
+            StageStars.Record(save, 4, 1, 0, 7);
+            StageStars.Record(save, 4, 0, 1, 7);
+            Assert.AreEqual(9, StageStars.Total(save));
+            Assert.AreEqual(6, StageStars.StarsOfStage(save, 4, 0));
+            Assert.AreEqual(3, StageStars.StarsOfStage(save, 4, 1));
         }
 
         [Test]
-        public void HarderDifficultiesOpenInOrder()
+        public void HarderDifficultiesOpenWhenTheLastFightIsWon()
         {
             var save = new SaveData();
+            int last = StageStars.FightCount(5) - 1;
             Assert.IsTrue(StageStars.Unlocked(save, 5, 0));
             Assert.IsFalse(StageStars.Unlocked(save, 5, 1));
-            StageStars.Record(save, 5, 0, 1);
+            StageStars.Record(save, 5, 0, 0, 1);                 // only the first fight so far
+            Assert.IsFalse(StageStars.Unlocked(save, 5, 1));
+            StageStars.Record(save, 5, last, 0, 1);
             Assert.IsTrue(StageStars.Unlocked(save, 5, 1));
             Assert.IsFalse(StageStars.Unlocked(save, 5, 2));
-            StageStars.Record(save, 5, 1, 1);
+            StageStars.Record(save, 5, last, 1, 1);
             Assert.IsTrue(StageStars.Unlocked(save, 5, 2));
             Assert.IsFalse(StageStars.Unlocked(save, 6, 1));   // per stage
         }
 
         [Test]
-        public void SyncCreditsClearedStagesOnNormal()
+        public void SyncCreditsEveryFightOfClearedStagesOnNormal()
         {
             var save = new SaveData { ClearedStage = 3 };
             StageStars.Sync(save);
-            Assert.AreEqual(3, StageStars.Total(save));
+            int fights = Enumerable.Range(1, 3).Sum(n => StageStars.FightCount(n));
+            Assert.AreEqual(fights, StageStars.Total(save));
             Assert.IsTrue(StageStars.Unlocked(save, 2, 1));
             Assert.IsFalse(StageStars.Unlocked(save, 4, 1));
             StageStars.Sync(save);
-            Assert.AreEqual(3, StageStars.Total(save));
+            Assert.AreEqual(fights, StageStars.Total(save));
         }
 
         [Test]
@@ -96,13 +108,14 @@ namespace BiRyeoDo.Tests
         {
             var save = new SaveData();
             Assert.AreEqual(0, StageStars.ClaimableCount(save));
-            for (int s = 1; s <= 4; s++) StageStars.Record(save, s, 0, 7);   // 12 stars
+            for (int s = 1; s <= 5; s++) StageStars.Record(save, s, 0, 0, 7);   // 15 stars
             Assert.AreEqual(1, StageStars.ClaimableCount(save));
             var note = StageStars.ClaimAll(save);
             Assert.IsNotNull(note);
             Assert.AreEqual(3000, save.Doo);
             Assert.IsNull(StageStars.ClaimAll(save));
-            for (int s = 5; s <= 12; s++) StageStars.Record(save, s, 0, 7);  // 36 stars
+            for (int s = 6; s <= 13; s++) StageStars.Record(save, s, 0, 0, 7);  // 39 stars (one short of the next chest)
+            StageStars.Record(save, 14, 0, 0, 1);                                  // 40
             StageStars.ClaimAll(save);
             Assert.AreEqual(1, Inventory.Count(save, "ginseng"));
             Assert.AreEqual(2, save.ClaimedStarChests.Count);
@@ -111,17 +124,14 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void ResumePointKeepsStarTracking()
+        public void ResumePointKeepsTheDifficulty()
         {
             var save = new SaveData();
             var party = new[] { new Combatant("player", "비류연", Team.Player, new CombatStats { MaxHp = 10, MaxQi = 1, Attack = 1, Defense = 1, Speed = 1 }, null) };
-            StageProgress.Store(save, 5, 1, party, 12, true, 2);
-            Assert.AreEqual(12, save.ProgressActions);
-            Assert.IsTrue(save.ProgressDowned);
+            StageProgress.Store(save, 5, 1, party, 2);
             Assert.AreEqual(2, save.ProgressDifficulty);
             StageProgress.Clear(save);
-            Assert.AreEqual(0, save.ProgressActions);
-            Assert.IsFalse(save.ProgressDowned);
+            Assert.AreEqual(0, save.ProgressDifficulty);
         }
     }
 }
