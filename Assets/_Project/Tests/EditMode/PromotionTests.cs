@@ -79,12 +79,13 @@ namespace BiRyeoDo.Tests
             Assert.IsTrue(Promotion.StageAllowed(Save(5), 12));
         }
 
-        private static double NotLostRate(int rank, int tier, int runs)
+        internal static double NotLostRate(int rank, int tier, int runs, float power = 1f)
         {
             int ok = 0;
             for (int r = 0; r < runs; r++)
             {
-                var player = new Combatant("p", "비류연", Team.Player, Progression.HeroStatsFor(Promotion.OpponentLevel(rank)), SimpleBot.BestLoadout(13));
+                var ps = Progression.HeroStatsFor(Promotion.OpponentLevel(rank)); ps.MaxHp = (int)(ps.MaxHp * power); ps.Attack = (int)(ps.Attack * power); ps.Defense = (int)(ps.Defense * power);
+                var player = new Combatant("p", "비류연", Team.Player, ps, SimpleBot.BestLoadout(13));
                 bool lost = false;
                 for (int k = 0; k < 2 && !lost; k++)
                 {
@@ -101,20 +102,25 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void BotPassesTheLowerRanksButTheTopIsAWall()
+        public void DuelsAreHardAndNeedABuiltCharacter()
         {
-            // The bot has no gear, 심법 or rank bonus, so the upper ranks are meant to be out of its reach.
-            for (int rank = 2; rank <= 4; rank++) Assert.GreaterOrEqual(NotLostRate(rank, 1, 20), 0.8, "normal rank " + rank);
-            for (int rank = 2; rank <= 6; rank++) Assert.GreaterOrEqual(NotLostRate(rank, 0, 20), 0.8, "weak rank " + rank);
-            Assert.Less(NotLostRate(10, 1, 20), 0.5, "normal rank 10");
+            // The bare bot (no gear, 심법 or rank bonus) cannot even win the first promotion; a starter build (1.5x) can, but not rank 5...
+            Assert.Less(NotLostRate(2, 1, 20), 0.5, "bare bot, normal rank 2");
+            Assert.GreaterOrEqual(NotLostRate(2, 1, 20, 1.5f), 0.8, "starter build, normal rank 2");
+            Assert.Less(NotLostRate(5, 1, 20, 1.5f), 0.5, "starter build, normal rank 5");
+            // ...a character with about 2.4x the bot's power (decent gear, 심법, rank bonus) handles the middle ranks...
+            Assert.GreaterOrEqual(NotLostRate(6, 1, 20, 2.4f), 0.8, "built, normal rank 6");
+            // ...and the top still needs a fully built one.
+            Assert.Less(NotLostRate(10, 1, 20, 2.4f), 0.5, "built, normal rank 10");
+            Assert.Less(NotLostRate(10, 2, 20, 2.4f), 0.5, "built, strong rank 10");
         }
 
         [Test]
         public void OpponentsGetHarderWithRankAndFollowThePlayersLevel()
         {
             for (int r = 3; r <= Promotion.MaxRank; r++) Assert.Greater(Promotion.HardnessFor(r), Promotion.HardnessFor(r - 1));
-            Assert.Less(Promotion.HardnessFor(2), 1.05f);
-            Assert.Greater(Promotion.HardnessFor(10), 1.4f);
+            Assert.Greater(Promotion.HardnessFor(2), 1.3f);
+            Assert.Greater(Promotion.HardnessFor(10), 2.5f);
             Assert.AreEqual(Promotion.OpponentLevel(3), Promotion.OpponentLevelFor(3, 1));
             Assert.AreEqual(40, Promotion.OpponentLevelFor(3, 40));
             Assert.AreEqual(40, Promotion.BuildOffer(new SaveData { SwordRank = 2, Level = 40, Doo = 1 }, 3, 1).Opponents[0].Level);

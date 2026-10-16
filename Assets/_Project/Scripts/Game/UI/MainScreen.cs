@@ -78,8 +78,7 @@ namespace BiRyeoDo.Game.UI
                 _battle.Open(stage, () =>
                 {
                     overlay.gameObject.SetActive(false);
-                    _world.CloseOverlays();
-                    _world.Refresh();
+                    _world.AfterBattle();
                 });
             }, offer =>
             {
@@ -88,8 +87,7 @@ namespace BiRyeoDo.Game.UI
                 _battle.OpenPromotion(offer, () =>
                 {
                     overlay.gameObject.SetActive(false);
-                    _world.CloseOverlays();
-                    _world.Refresh();
+                    _world.AfterBattle();
                 });
             }, () =>
             {

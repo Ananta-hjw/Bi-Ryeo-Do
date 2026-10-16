@@ -520,9 +520,20 @@ namespace BiRyeoDo.Game.UI
             if (!Tutorial.IsDone(save, "tower") && HelpPanel.Instance != null && Tower.Unlocked(save)) HelpPanel.Instance.Show("tower", true);
         }
 
+        private bool _reopenTower;
+
+        /// <summary>Called when a fight ends: closes pop-ups, refreshes, and brings the 무한 비무대 window back after a tower fight so the next floor is one tap away.</summary>
+        public void AfterBattle()
+        {
+            CloseOverlays();
+            Refresh();
+            if (_reopenTower) { _reopenTower = false; OpenTowerOverlay(); }
+        }
+
         private void StartTower(int floor)
         {
             _towerOverlay.gameObject.SetActive(false);
+            _reopenTower = true;
             _onStart(Tower.ToStage(GameManager.Instance.Save, floor));
         }
 

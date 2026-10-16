@@ -29,9 +29,9 @@ namespace BiRyeoDo.Core
 
         private static readonly string[] Digit = { "", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구", "십" };
         private static readonly string[] TierName = { "신진", "중견", "고수" };
-        private static readonly float[] TierAtk = { 0.9f, 1.0f, 1.1f };
-        private static readonly float[] TierHp = { 0.9f, 1.0f, 1.1f };
-        private static readonly float[] TierPay = { 0.8f, 1.0f, 1.5f };
+        private static readonly float[] TierAtk = { 0.95f, 1.1f, 1.25f };
+        private static readonly float[] TierHp = { 0.95f, 1.1f, 1.25f };
+        private static readonly float[] TierPay = { 0.8f, 1.3f, 2.2f };
 
         /// <summary>AtkMul of a normal-tier opponent per target rank (index = rank), tuned with the balance bot.</summary>
         public static readonly float[] AtkMulByRank = { 0f, 1.50f, 1.37f, 1.62f, 1.60f, 1.77f, 1.85f, 1.93f, 2.01f, 1.98f, 2.06f };
@@ -46,8 +46,8 @@ namespace BiRyeoDo.Core
         public static int OpponentLevelFor(int rank, int playerLevel) { return Math.Max(OpponentLevel(rank), playerLevel); }
 
         /// <summary>HP and attack multiplier of a rank's opponents on top of the base tuning: gentle at the bottom, steep at the top (rank 2 x1.02, rank 6 x1.22, rank 10 x1.54, on both HP and attack).</summary>
-        public static float HardnessCoef = 0.02f;
-        public static float HardnessFor(int rank) { return 1f + HardnessCoef * (float)Math.Pow(Math.Max(1, rank) - 1, 1.5); }
+        public static float HardnessBase = 1.35f, HardnessCoef = 0.11f;
+        public static float HardnessFor(int rank) { return HardnessBase + HardnessCoef * (float)Math.Pow(Math.Max(1, rank) - 1, 1.5); }
 
         /// <summary>Player actions allowed per duel; harder ranks get a little longer so a win stays possible.</summary>
         public static int TurnLimitFor(int rank) { return TurnLimit + Math.Max(0, rank - 1); }
@@ -72,7 +72,7 @@ namespace BiRyeoDo.Core
             return stageNumber < GateStage || EffectiveRank(save) >= GateRank;
         }
 
-        public static long BaseDoo(int rank) { return (long)Math.Round(500 * Math.Pow(rank, 1.6)); }
+        public static long BaseDoo(int rank) { return (long)Math.Round(900 * Math.Pow(rank, 1.7)); }
 
         public static List<int> TargetRanks(SaveData save)
         {
@@ -97,7 +97,7 @@ namespace BiRyeoDo.Core
                 Title = RankName(targetRank) + " 승급 · " + TierName[tier] + (skip ? " (월반)" : ""),
                 DooReward = doo,
                 Fee = doo / 6,
-                ExpReward = (long)Math.Round(Progression.ExpToNext(Math.Max(lvl, save.Level)) * 0.45 * TierPay[tier]),
+                ExpReward = (long)Math.Round(Progression.ExpToNext(Math.Max(lvl, save.Level)) * 0.6 * TierPay[tier]),
                 Opponents = new[] { MakeOpponent(targetRank, tier, 0, save.Level), MakeOpponent(targetRank, tier, 1, save.Level) }
             };
         }
