@@ -57,7 +57,7 @@ namespace BiRyeoDo.Core
         }
     }
 
-    public enum AchMetric { StageCleared, TowerFloor, Level, SwordRank, EnemiesSeen, ItemsSeen, ArtsLearned, GachaPulls, BattleWins, QuestsDone, FortunesDone, TrustedBonds, LegendarySeen }
+    public enum AchMetric { StageCleared, TowerFloor, Level, SwordRank, EnemiesSeen, ItemsSeen, ArtsLearned, GachaPulls, BattleWins, QuestsDone, FortunesDone, TrustedBonds, LegendarySeen, TotalStars }
 
     public sealed class AchievementData
     {
@@ -113,6 +113,10 @@ namespace BiRyeoDo.Core
             A("quest_all", "의뢰 해결사", "의뢰를 모두 완료", AchMetric.QuestsDone, -1, 5000),
             A("fortune_3", "행운아", "기연 3건 겪기", AchMetric.FortunesDone, 3, 800),
             A("fortune_all", "기연의 주인", "기연을 모두 겪기", AchMetric.FortunesDone, -1, 5000),
+            A("stars_10", "별 줍기", "별 10개 모으기", AchMetric.TotalStars, 10, 1000),
+            A("stars_45", "별을 모으는 자", "별 45개 모으기", AchMetric.TotalStars, 45, 3500),
+            A("stars_100", "별빛 가득", "별 100개 모으기", AchMetric.TotalStars, 100, 8000, "ilgeup_yeongdan"),
+            A("stars_200", "만성(滿星)", "별 200개 모으기", AchMetric.TotalStars, 200, 20000, "ilgeup_yeongdan"),
             A("bond_1", "믿음직한 벗", "신뢰 이상의 동료 1명", AchMetric.TrustedBonds, 1, 1500),
             A("bond_4", "의기투합", "신뢰 이상의 동료 4명", AchMetric.TrustedBonds, 4, 6000),
         };
@@ -152,6 +156,7 @@ namespace BiRyeoDo.Core
                 case AchMetric.BattleWins: return save.BattleWins;
                 case AchMetric.QuestsDone: return save.DoneQuests.Count;
                 case AchMetric.FortunesDone: return save.DoneFortunes.Count;
+                case AchMetric.TotalStars: return StageStars.Total(save);
                 case AchMetric.LegendarySeen: return Codex.ItemsSeenOfGrade(save, ItemGrade.Legendary);
                 case AchMetric.ArtsLearned:
                     {

@@ -38,6 +38,15 @@ namespace BiRyeoDo.Core
         public int SpeedAdd;
         public EnemyMove[] Moves;
 
+        /// <summary>A copy with HP and attack multiplied (harder stage difficulties).</summary>
+        public EnemyData Scaled(float hp, float atk)
+        {
+            var c = (EnemyData)MemberwiseClone();
+            c.HpMul = HpMul * hp;
+            c.AtkMul = AtkMul * atk;
+            return c;
+        }
+
         public CombatStats BuildStats()
         {
             var b = Progression.StatsFor(Level);
@@ -130,6 +139,14 @@ namespace BiRyeoDo.Core
         public int TowerFloor;
         public bool IsQuest;    // a 의뢰 built from an earlier stage's fight (see Quests): no stage progress, own exp and rewards
         public string QuestId;
+        public int Difficulty;  // 0 일반, 1 어려움, 2 극악 (see StageStars); set on a copy made by WithDifficulty
+
+        public StageData WithDifficulty(int difficulty)
+        {
+            var c = (StageData)MemberwiseClone();
+            c.Difficulty = Math.Max(0, Math.Min(StageStars.DifficultyCount - 1, difficulty));
+            return c;
+        }
     }
 
     /// <summary>

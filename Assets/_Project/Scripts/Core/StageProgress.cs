@@ -22,8 +22,11 @@ namespace BiRyeoDo.Core
             return save.ProgressStage == stageNumber && stageNumber > 0 && save.ProgressNext > 0;
         }
 
-        public static void Store(SaveData save, int stageNumber, int nextEncounter, IEnumerable<Combatant> party)
+        public static void Store(SaveData save, int stageNumber, int nextEncounter, IEnumerable<Combatant> party, int actions = 0, bool downed = false, int difficulty = 0)
         {
+            save.ProgressActions = actions;
+            save.ProgressDowned = downed;
+            save.ProgressDifficulty = difficulty;
             save.ProgressStage = stageNumber;
             save.ProgressNext = nextEncounter;
             save.ProgressHp = new List<MemberHp>();
@@ -34,6 +37,9 @@ namespace BiRyeoDo.Core
         {
             save.ProgressStage = 0;
             save.ProgressNext = 0;
+            save.ProgressActions = 0;
+            save.ProgressDowned = false;
+            save.ProgressDifficulty = 0;
             save.ProgressHp = new List<MemberHp>();
         }
 

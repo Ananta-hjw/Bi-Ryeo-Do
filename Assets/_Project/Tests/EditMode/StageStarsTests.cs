@@ -1,0 +1,127 @@
+using System.Linq;
+using BiRyeoDo.Core;
+using NUnit.Framework;
+
+namespace BiRyeoDo.Tests
+{
+    public class StageStarsTests
+    {
+        [Test]
+        public void EveryStageHasAFastLimit()
+        {
+            foreach (var st in EarlyGameContent.Stages) Assert.Greater(StageStars.FastLimit(st.Number), 0, st.Name);
+        }
+
+        [Test]
+        public void EvaluateAwardsEachStarSeparately()
+        {
+            int limit = StageStars.FastLimit(3);
+            Assert.AreEqual(7, StageStars.Evaluate(3, limit, false));
+            Assert.AreEqual(1 | 4, StageStars.Evaluate(3, limit, true));
+            Assert.AreEqual(1 | 2, StageStars.Evaluate(3, limit + 1, false));
+            Assert.AreEqual(1, StageStars.Evaluate(3, limit + 5, true));
+            Assert.AreEqual(3, StageStars.Count(7));
+            Assert.AreEqual(2, StageStars.Count(5));
+        }
+
+        [Test]
+        public void RecordKeepsTheBestPerDifficultyAndCountsNewStars()
+        {
+            var save = new SaveData();
+            Assert.AreEqual(2, StageStars.Record(save, 4, 0, 1 | 2));
+            Assert.AreEqual(1, StageStars.Record(save, 4, 0, 1 | 4));   // adds only the fast star
+            Assert.AreEqual(0, StageStars.Record(save, 4, 0, 1));
+            Assert.AreEqual(3, StageStars.StarsOf(save, 4, 0));
+            Assert.AreEqual(0, StageStars.StarsOf(save, 4, 1));
+            StageStars.Record(save, 4, 1, 7);
+            Assert.AreEqual(6, StageStars.Total(save));
+        }
+
+        [Test]
+        public void HarderDifficultiesOpenInOrder()
+        {
+            var save = new SaveData();
+            Assert.IsTrue(StageStars.Unlocked(save, 5, 0));
+            Assert.IsFalse(StageStars.Unlocked(save, 5, 1));
+            StageStars.Record(save, 5, 0, 1);
+            Assert.IsTrue(StageStars.Unlocked(save, 5, 1));
+            Assert.IsFalse(StageStars.Unlocked(save, 5, 2));
+            StageStars.Record(save, 5, 1, 1);
+            Assert.IsTrue(StageStars.Unlocked(save, 5, 2));
+            Assert.IsFalse(StageStars.Unlocked(save, 6, 1));   // per stage
+        }
+
+        [Test]
+        public void SyncCreditsClearedStagesOnNormal()
+        {
+            var save = new SaveData { ClearedStage = 3 };
+            StageStars.Sync(save);
+            Assert.AreEqual(3, StageStars.Total(save));
+            Assert.IsTrue(StageStars.Unlocked(save, 2, 1));
+            Assert.IsFalse(StageStars.Unlocked(save, 4, 1));
+            StageStars.Sync(save);
+            Assert.AreEqual(3, StageStars.Total(save));
+        }
+
+        [Test]
+        public void HarderDifficultiesScaleEnemiesMoreInLateStages()
+        {
+            var e = EarlyGameContent.FindEnemy("tiger");
+            Assert.AreSame(e, StageStars.ScaleEnemy(e, 1, 0));
+            var hard = StageStars.ScaleEnemy(e, 20, 1);
+            var hell = StageStars.ScaleEnemy(e, 20, 2);
+            Assert.Greater(hard.HpMul, e.HpMul);
+            Assert.Greater(hell.HpMul, hard.HpMul);
+            Assert.Greater(hell.AtkMul, hard.AtkMul);
+            Assert.AreEqual(e.Id, hard.Id);
+            Assert.Greater(StageStars.HpFor(25, 1), StageStars.HpFor(8, 1));
+            Assert.Less(StageStars.HpFor(5, 2), StageStars.HpFor(8, 2));   // the solo stages stay gentle
+            Assert.AreEqual(1, StageStars.DropRolls(0));
+            Assert.AreEqual(3, StageStars.DropRolls(2));
+        }
+
+        [Test]
+        public void StageDifficultyCopyKeepsTheStage()
+        {
+            var st = EarlyGameContent.FindStage(5);
+            var hard = st.WithDifficulty(1);
+            Assert.AreEqual(1, hard.Difficulty);
+            Assert.AreEqual(0, st.Difficulty);
+            Assert.AreEqual(st.Name, hard.Name);
+            Assert.AreEqual(StageStars.DifficultyCount - 1, st.WithDifficulty(9).Difficulty);
+        }
+
+        [Test]
+        public void ChestsOpenByTotalStarsAndOnlyOnce()
+        {
+            var save = new SaveData();
+            Assert.AreEqual(0, StageStars.ClaimableCount(save));
+            for (int s = 1; s <= 4; s++) StageStars.Record(save, s, 0, 7);   // 12 stars
+            Assert.AreEqual(1, StageStars.ClaimableCount(save));
+            var note = StageStars.ClaimAll(save);
+            Assert.IsNotNull(note);
+            Assert.AreEqual(3000, save.Doo);
+            Assert.IsNull(StageStars.ClaimAll(save));
+            for (int s = 5; s <= 12; s++) StageStars.Record(save, s, 0, 7);  // 36 stars
+            StageStars.ClaimAll(save);
+            Assert.AreEqual(1, Inventory.Count(save, "ginseng"));
+            Assert.AreEqual(2, save.ClaimedStarChests.Count);
+            foreach (var c in StageStars.Chests) if (c.ItemId != null) Assert.IsNotNull(EarlyGameContent.FindItem(c.ItemId));
+            CollectionAssert.AreEqual(StageStars.Chests.OrderBy(c => c.Stars).Select(c => c.Stars), StageStars.Chests.Select(c => c.Stars));
+        }
+
+        [Test]
+        public void ResumePointKeepsStarTracking()
+        {
+            var save = new SaveData();
+            var party = new[] { new Combatant("player", "비류연", Team.Player, new CombatStats { MaxHp = 10, MaxQi = 1, Attack = 1, Defense = 1, Speed = 1 }, null) };
+            StageProgress.Store(save, 5, 1, party, 12, true, 2);
+            Assert.AreEqual(12, save.ProgressActions);
+            Assert.IsTrue(save.ProgressDowned);
+            Assert.AreEqual(2, save.ProgressDifficulty);
+            StageProgress.Clear(save);
+            Assert.AreEqual(0, save.ProgressActions);
+            Assert.IsFalse(save.ProgressDowned);
+        }
+    }
+}

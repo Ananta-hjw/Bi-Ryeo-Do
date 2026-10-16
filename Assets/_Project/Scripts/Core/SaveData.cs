@@ -38,6 +38,11 @@ namespace BiRyeoDo.Core
         public List<GearLevel> GearLevels = new List<GearLevel>();   // 장비 강화 levels (additive field)
         public List<string> LearnedInner = new List<string>();     // 심법 learned (additive field)
         public List<string> EquippedInner = new List<string>();    // 심법 equipped (see InnerArts.SlotCount)
+        public List<StarEntry> StageStars = new List<StarEntry>();   // best star mask per stage and difficulty (additive field)
+        public List<int> ClaimedStarChests = new List<int>();       // star milestones already collected
+        public int Difficulty;                                      // difficulty picked for the stage list (0-2)
+        public int ProgressActions, ProgressDifficulty;             // star tracking of the resume point (see StageProgress)
+        public bool ProgressDowned;
         public int SwordRank;           // 검룡위 (1-10), see Promotion; 0 in older saves counts as 1
 
         public List<string> LearnedArts = new List<string>();

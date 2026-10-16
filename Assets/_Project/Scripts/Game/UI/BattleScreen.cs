@@ -287,7 +287,9 @@ namespace BiRyeoDo.Game.UI
         {
             var save = GameManager.Instance.Save;
             _fled = false;
-            _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + stage.Name;
+            int diff = stage.IsTower || stage.IsQuest ? 0 : stage.Difficulty;
+            string tag = StageStars.TagFor(diff);
+            _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + tag + stage.Name;
             var bg = ArtLibrary.Background(stage.Number);
             _backdropImage.sprite = bg;
             _backdropImage.color = bg != null ? Color.white : new Color(1f, 1f, 1f, 0f);
@@ -317,14 +319,18 @@ namespace BiRyeoDo.Game.UI
                 if (resume) { StageProgress.Restore(save, _party); RefreshParty(); }
                 long gainedExp = 0, gainedDoo = 0;
                 bool cleared = true;
-                bool replay = !stage.IsQuest && !stage.IsTower && save.ClearedStage >= stage.Number;
+                int stageActions = resume ? save.ProgressActions : 0;   // for the 신속 star
+                bool stageFell = resume && save.ProgressDowned;          // for the 전원 생존 star
+                bool replay = !stage.IsQuest && !stage.IsTower && (diff == 0 ? save.ClearedStage >= stage.Number : (StageStars.MaskOf(save, stage.Number, diff) & 1) != 0);
                 bool towerFirst = stage.IsTower && stage.TowerFloor > save.TowerBest;
 
                 for (int i = startIndex; i < stage.Encounters.Length; i++)
                 {
-                    _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + stage.Name + "  (" + (i + 1) + "/" + stage.Encounters.Length + ")";
+                    _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + tag + stage.Name + "  (" + (i + 1) + "/" + stage.Encounters.Length + ")";
                     yield return Banner(i == stage.Encounters.Length - 1 ? "결전!" : "전투 " + (i + 1), 0.7f);
-                    yield return Fight(stage.Encounters[i], stage.TrialFor(i));
+                    yield return Fight(stage.Encounters[i], stage.TrialFor(i), stage.Number, diff);
+                    stageActions += _fightActions;
+                    if (_fightFell) stageFell = true;
 
                     if (_fled) { cleared = false; break; }
                     if (!_battle.PlayerWon) { cleared = false; break; }
@@ -339,8 +345,10 @@ namespace BiRyeoDo.Game.UI
                     }
                     if (stage.IsQuest) exp = Quests.ExpReward(save);
                     if (stage.IsTower) { exp = towerFirst ? Tower.ExpReward(save, stage.TowerFloor) : 0; if (!towerFirst) doo = 0; }
+                    if (diff > 0) { exp = (long)Math.Round(exp * StageStars.RewardFactor[diff]); doo = (long)Math.Round(doo * StageStars.RewardFactor[diff]); }
                     if (replay) exp = (long)Math.Round(exp * EarlyGameContent.ReplayExpFactor);
-                    var drops = stage.IsQuest || stage.IsTower ? new List<ItemStack>() : RollDrops(stage.Encounters[i]);
+                    var drops = new List<ItemStack>();
+                    if (!stage.IsQuest && !stage.IsTower) for (int roll = 0; roll < StageStars.DropRolls(diff); roll++) drops.AddRange(RollDrops(stage.Encounters[i]));
                     int levels = Progression.AddExp(save, exp);
                     save.Doo += doo;
                     gainedExp += exp; gainedDoo += doo;
@@ -357,7 +365,7 @@ namespace BiRyeoDo.Game.UI
                         yield return ShowHub(stage, i);
                         if (_leave)
                         {
-                            StageProgress.Store(save, stage.Number, i + 1, _party);
+                            StageProgress.Store(save, stage.Number, i + 1, _party, stageActions, stageFell, diff);
                             GameManager.Instance.SaveNow();
                             _fled = true; cleared = false; break;
                         }
@@ -393,8 +401,12 @@ namespace BiRyeoDo.Game.UI
                     yield return ShowStory(stage.Name + " 돌파", stage.Outro);
                     string bondNote = AwardBonds(save);
                     var reward = Inventory.GrantStageReward(save, stage.Number);
+                    int mask = StageStars.Evaluate(stage.Number, stageActions, stageFell);
+                    int newStars = StageStars.Record(save, stage.Number, diff, mask);
+                    int chests = StageStars.ClaimableCount(save);
                     GameManager.Instance.SaveNow();
-                    yield return ShowResult("스테이지 돌파!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (bondNote.Length > 0 ? "\n" + bondNote : "") + (reward.Count > 0 ? "\n\n첫 돌파 보상\n" + DescribeStacks(reward) : ""), false);
+                    yield return ShowResult(tag + "스테이지 돌파!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (bondNote.Length > 0 ? "\n" + bondNote : "") + (reward.Count > 0 ? "\n\n첫 돌파 보상\n" + DescribeStacks(reward) : "")
+                        + "\n\n" + StarSummary(stage.Number, mask, stageActions) + (newStars > 0 ? "\n새로 얻은 별 +" + newStars : "") + (chests > 0 ? "\n별 보상을 받을 수 있다! (강호 탭)" : ""), false);
                 }
                 else
                 {
@@ -527,10 +539,25 @@ namespace BiRyeoDo.Game.UI
             return string.Join(", ", names);
         }
 
-        private IEnumerator Fight(string[] enemyIds, TrialRule trial)
+        private int _fightActions;
+        private bool _fightFell;
+
+        private static string StarSummary(int stageNumber, int mask, int actions)
+        {
+            var parts = new List<string>();
+            for (int i = 0; i < 3; i++)
+            {
+                bool got = (mask & (1 << i)) != 0;
+                string extra = i == 2 ? " (" + actions + "/" + StageStars.FastLimit(stageNumber) + "행동)" : "";
+                parts.Add((got ? "★ " : "☆ ") + StageStars.StarNames[i] + extra);
+            }
+            return string.Join("\n", parts);
+        }
+
+        private IEnumerator Fight(string[] enemyIds, TrialRule trial, int stageNumber = 0, int difficulty = 0)
         {
             var data = new EnemyData[enemyIds.Length];
-            for (int i = 0; i < data.Length; i++) data[i] = EarlyGameContent.FindEnemy(enemyIds[i]);
+            for (int i = 0; i < data.Length; i++) data[i] = StageStars.ScaleEnemy(EarlyGameContent.FindEnemy(enemyIds[i]), stageNumber, difficulty);
             if (trial != null) yield return Banner("[" + trial.Title + "]\n" + trial.Brief, 2.4f);
             yield return Fight(data, 0, trial);
         }
@@ -601,6 +628,8 @@ namespace BiRyeoDo.Game.UI
                 actions++;
                 if (turnLimit > 0 && actions >= turnLimit && !_battle.IsOver) { _drawn = true; break; }
             }
+            _fightActions = actions;
+            _fightFell = _party.Exists(m => !m.IsAlive);
             if (trial != null && _battle.TrialFailed) _log.text = _battle.TrialFailReason;
             if (turnLimit > 0 || trial != null) _stageLabel.text = label;
 
