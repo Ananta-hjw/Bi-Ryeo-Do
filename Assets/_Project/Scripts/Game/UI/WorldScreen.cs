@@ -170,6 +170,10 @@ namespace BiRyeoDo.Game.UI
             partyBg.color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
             _partyOverlay.gameObject.SetActive(false);
 
+            _prepOverlay = UiFactory.Rect("PrepOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
+            _prepOverlay.gameObject.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
+            _prepOverlay.gameObject.SetActive(false);
+
             _questOverlay = UiFactory.Rect("QuestOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
             _questOverlay.gameObject.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
             _questOverlay.gameObject.SetActive(false);
@@ -568,17 +572,27 @@ namespace BiRyeoDo.Game.UI
 
         private void StartTower(int floor)
         {
-            _towerOverlay.gameObject.SetActive(false);
-            _reopenTower = true;
-            _reopenStages = false;
-            _onStart(Tower.ToStage(GameManager.Instance.Save, floor));
+            var st = Tower.ToStage(GameManager.Instance.Save, floor);
+            OpenPrep(st, () =>
+            {
+                _towerOverlay.gameObject.SetActive(false);
+                _reopenTower = true;
+                _reopenStages = false;
+                _onStart(st);
+            });
         }
 
         private void AcceptQuest(QuestData q)
         {
             if (Quests.IsDone(GameManager.Instance.Save, q.Id)) return;
-            _questOverlay.gameObject.SetActive(false);
-            _onStart(Quests.ToStage(q));
+            var st = Quests.ToStage(q);
+            OpenPrep(st, () =>
+            {
+                _questOverlay.gameObject.SetActive(false);
+                _reopenTower = false;
+                _reopenStages = false;
+                _onStart(st);
+            });
         }
 
         private void OpenFortuneOverlay()
@@ -674,25 +688,32 @@ namespace BiRyeoDo.Game.UI
                 y -= 0.088f;
             }
 
-            BuildFormationBlock(save, active);
+            BuildFormationBlock(_partyOverlay, active, OpenPartyOverlay, 0.13f, 0.29f);
             UiFactory.Button("Close", _partyOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _partyOverlay.gameObject.SetActive(false); Refresh(); }, 36);
         }
 
         private string _placeSelected;   // the member picked in the placement grid (tap a tile next to move or swap)
 
-        /// <summary>진형: a 3 x 3 grid of our half of the board (the right column faces the enemy); tap a member, then a tile, to move or swap.</summary>
-        private void BuildFormationBlock(SaveData save, List<CompanionData> active)
+        /// <summary>
+        /// 진형: a 3 x 3 grid of our half of the board (the right column is the front line facing the enemy); tap a member, then a tile, to move or swap.
+        /// Positions are fixed for the whole fight, so this is the place to decide who tanks in front and who attacks from behind.
+        /// </summary>
+        private void BuildFormationBlock(RectTransform parent, List<CompanionData> active, Action redraw, float gy0, float gy1)
         {
+            var save = GameManager.Instance.Save;
             var ids = new List<string> { Formation.HeroId };
             var names = new Dictionary<string, string> { { Formation.HeroId, "비류연" } };
             foreach (var c in active) { ids.Add(c.Id); names[c.Id] = c.Name; }
             var map = Formation.Resolve(save, ids);
             if (_placeSelected != null && !map.ContainsKey(_placeSelected)) _placeSelected = null;
-            UiFactory.Label("FormTitle", _partyOverlay, new Vector2(0.05f, 0.335f), new Vector2(0.60f, 0.385f), "진형 (인물을 누르고 칸을 누릅니다)", 26, UiFactory.Gold, TextAnchor.MiddleLeft);
-            UiFactory.Button("FormAuto", _partyOverlay, new Vector2(0.64f, 0.335f), new Vector2(0.95f, 0.385f), save.PlacementCustom ? "자동 배치" : "자동 배치 중", save.PlacementCustom ? UiFactory.InkSoft : UiFactory.Gold, () => { Formation.Reset(save); _placeSelected = null; GameManager.Instance.SaveNow(); OpenPartyOverlay(); }, 24);
-            UiFactory.Label("FormHint", _partyOverlay, new Vector2(0.05f, 0.085f), new Vector2(0.95f, 0.125f), "오른쪽 열이 적과 가장 가깝습니다. 전투 중에는 한 턴에 두 칸까지 걷고 행동할 수 있습니다.", 20, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
-            float gx0 = 0.05f, gx1 = 0.95f, gy0 = 0.13f, gy1 = 0.33f;
+            UiFactory.Label("FormTitle", parent, new Vector2(0.05f, gy1 + 0.035f), new Vector2(0.60f, gy1 + 0.085f), "진형 (인물을 누르고 칸을 누릅니다)", 26, UiFactory.Gold, TextAnchor.MiddleLeft);
+            UiFactory.Button("FormAuto", parent, new Vector2(0.64f, gy1 + 0.035f), new Vector2(0.95f, gy1 + 0.085f), save.PlacementCustom ? "자동 배치" : "자동 배치 중", save.PlacementCustom ? UiFactory.InkSoft : UiFactory.Gold, () => { Formation.Reset(save); _placeSelected = null; GameManager.Instance.SaveNow(); redraw(); }, 24);
+            UiFactory.Label("FormHint", parent, new Vector2(0.05f, gy0 - 0.045f), new Vector2(0.95f, gy0 - 0.005f), "싸움이 시작되면 자리를 바꿀 수 없습니다. 오른쪽이 적과 마주한 앞 줄입니다.", 20, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+            float gx0 = 0.05f, gx1 = 0.95f;
             float cw = (gx1 - gx0) / Board.PartyCols, ch = (gy1 - gy0) / Board.Rows;
+            string[] lineNames = { "뒤 줄", "중 줄", "앞 줄" };
+            for (int col = 0; col < Board.PartyCols; col++)
+                UiFactory.Label("Line" + col, parent, new Vector2(gx0 + col * cw, gy1), new Vector2(gx0 + (col + 1) * cw, gy1 + 0.03f), lineNames[col], 22, col == Board.PartyCols - 1 ? UiFactory.Gold : UiFactory.PaperText);
             for (int col = 0; col < Board.PartyCols; col++)
                 for (int row = 0; row < Board.Rows; row++)
                 {
@@ -702,11 +723,11 @@ namespace BiRyeoDo.Game.UI
                     bool selected = here != null && here == _placeSelected;
                     var tint = here == null ? new Color(0.28f, 0.50f, 0.85f, 0.25f) : selected ? UiFactory.Gold : UiFactory.Ink;
                     int cc = col, rr = row;
-                    var btn = UiFactory.Button("Tile" + col + rr, _partyOverlay, new Vector2(x0 + 0.004f, y1 - ch + 0.003f), new Vector2(x0 + cw - 0.004f, y1 - 0.003f), here == null ? "" : names[here], tint, () => OnPlacementTile(ids, cc, rr), 26);
+                    UiFactory.Button("Tile" + col + rr, parent, new Vector2(x0 + 0.004f, y1 - ch + 0.003f), new Vector2(x0 + cw - 0.004f, y1 - 0.003f), here == null ? "" : names[here], tint, () => OnPlacementTile(ids, cc, rr, redraw), 26);
                 }
         }
 
-        private void OnPlacementTile(List<string> ids, int col, int row)
+        private void OnPlacementTile(List<string> ids, int col, int row, Action redraw)
         {
             var save = GameManager.Instance.Save;
             var map = Formation.Resolve(save, ids);
@@ -726,7 +747,58 @@ namespace BiRyeoDo.Game.UI
                 if (Formation.SetTile(save, ids, _placeSelected, col, row, out error)) GameManager.Instance.SaveNow();
                 _placeSelected = null;
             }
-            OpenPartyOverlay();
+            redraw();
+        }
+
+        // ------------------------------------------------------------------ 출전 준비 (formation check before every fight)
+
+        private RectTransform _prepOverlay;
+
+        /// <summary>The enemies of every fight in the stage, once each, with a note for the ones that shoot at the back line.</summary>
+        private static List<string> EnemyBriefing(StageData st, out bool snipers)
+        {
+            snipers = false;
+            var lines = new List<string>();
+            var seen = new HashSet<string>();
+            foreach (var group in st.Encounters)
+                foreach (var id in group)
+                {
+                    if (!seen.Add(id)) continue;
+                    var e = EarlyGameContent.FindEnemy(id);
+                    if (e == null) continue;
+                    bool snipes = false;
+                    if (e.Moves != null) foreach (var m in e.Moves) if (m.Snipe) snipes = true;
+                    if (snipes) snipers = true;
+                    lines.Add((e.IsBoss ? "[우두머리] " : "") + e.Name + (snipes ? "  — 뒷줄을 노립니다" : "  — 앞 줄부터 공격"));
+                }
+            return lines;
+        }
+
+        /// <summary>Shown before a fight: look at the enemies, set who stands in front (defence) and who behind (attack), then start.</summary>
+        private void OpenPrep(StageData st, Action go)
+        {
+            var save = GameManager.Instance.Save;
+            ClearChildren(_prepOverlay);
+            _prepOverlay.gameObject.SetActive(true);
+            _prepOverlay.SetAsLastSibling();
+            var active = EarlyGameContent.SelectCompanionsFor(st.Number, save);
+            UiFactory.Label("Title", _prepOverlay, new Vector2(0.05f, 0.93f), new Vector2(0.95f, 0.99f), "출전 준비", 44, UiFactory.Gold);
+            UiFactory.Label("Stage", _prepOverlay, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.93f), st.Name, 28, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+
+            bool snipers;
+            var lines = EnemyBriefing(st, out snipers);
+            var body = new System.Text.StringBuilder();
+            body.Append("적의 공격은 기본적으로 앞 줄부터 향합니다. 앞 줄에는 맞아도 버티는 인물을, 뒷줄에는 공격이 강한 인물을 세우세요.");
+            if (snipers) body.Append("\n뒷줄을 노리는 적이 있습니다. 이번에는 뒷줄에도 버틸 수 있는 인물을 두는 편이 좋습니다.");
+            UiFactory.Body(UiFactory.Label("Advice", _prepOverlay, new Vector2(0.05f, 0.70f), new Vector2(0.95f, 0.88f), body.ToString(), 26, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal));
+            var enemyText = new System.Text.StringBuilder("나올 적\n");
+            int shown = 0;
+            foreach (var l in lines) { if (shown++ >= 7) { enemyText.Append("…"); break; } enemyText.Append(l).Append('\n'); }
+            UiFactory.Body(UiFactory.Label("Enemies", _prepOverlay, new Vector2(0.05f, 0.44f), new Vector2(0.95f, 0.70f), enemyText.ToString().TrimEnd('\n'), 24, UiFactory.Gold, TextAnchor.UpperLeft, FontStyle.Normal), 1.2f);
+
+            BuildFormationBlock(_prepOverlay, new List<CompanionData>(active), () => OpenPrep(st, go), 0.15f, 0.36f);
+            UiFactory.Button("Go", _prepOverlay, new Vector2(0.52f, 0.02f), new Vector2(0.95f, 0.095f), "출전", UiFactory.Red, () => { _prepOverlay.gameObject.SetActive(false); go(); }, 38);
+            UiFactory.Button("Cancel", _prepOverlay, new Vector2(0.05f, 0.02f), new Vector2(0.48f, 0.095f), "취소", UiFactory.InkSoft, () => { _prepOverlay.gameObject.SetActive(false); _placeSelected = null; }, 34);
         }
 
         private void ToggleCompanion(CompanionData c)
@@ -767,7 +839,7 @@ namespace BiRyeoDo.Game.UI
         /// <summary>Hides every pop-up panel of the 강호 tab (used when a fight starts or ends and when the tab is left).</summary>
         public void CloseOverlays()
         {
-            foreach (var o in new[] { _promoOverlay, _partyOverlay, _questOverlay, _fortuneOverlay, _settingsOverlay, _towerOverlay, _stageOverlay })
+            foreach (var o in new[] { _promoOverlay, _partyOverlay, _prepOverlay, _questOverlay, _fortuneOverlay, _settingsOverlay, _towerOverlay, _stageOverlay })
                 if (o != null) o.gameObject.SetActive(false);
             if (_stars != null) _stars.Hide();
             if (_daily != null) _daily.Hide();
@@ -779,9 +851,13 @@ namespace BiRyeoDo.Game.UI
             if (save.HighestUnlockedStage < st.Number || !Promotion.StageAllowed(save, st.Number)) return;
             int diff = StageProgress.Has(save, st.Number) ? save.ProgressDifficulty : Mathf.Clamp(save.Difficulty, 0, StageStars.DifficultyCount - 1);
             if (!StageStars.Unlocked(save, st.Number, diff)) return;
-            _reopenTower = false;
-            _reopenStages = fromList;
-            onStart(st.WithDifficulty(diff));
+            var run = st.WithDifficulty(diff);
+            OpenPrep(run, () =>
+            {
+                _reopenTower = false;
+                _reopenStages = fromList;
+                onStart(run);
+            });
         }
 
         private static string PartyText(StageData st)

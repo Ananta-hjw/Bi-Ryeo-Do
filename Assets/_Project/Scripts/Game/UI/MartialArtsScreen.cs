@@ -182,7 +182,7 @@ namespace BiRyeoDo.Game.UI
         private static string Describe(ArtData a)
         {
             string cost = a.SpiritCost > 0 ? "기세 " + a.SpiritCost : a.QiCost > 0 ? "내공 " + a.QiCost : "내공 0";
-            string power = a.Effect == SkillEffect.Evade ? "회피" : "위력 ×" + a.Power.ToString("0.0") + (a.Hits > 1 ? " ×" + a.Hits + "타" : "") + (a.AllEnemies ? " 전체" : "") + " 사거리 " + a.EffectiveRange + (a.Snipe ? " 저격" : "");
+            string power = a.Effect == SkillEffect.Evade ? "회피" : "위력 ×" + a.Power.ToString("0.0") + (a.Hits > 1 ? " ×" + a.Hits + "타" : "") + (a.AllEnemies ? " 전체" : "") + " · " + SkillSpec.ReachText(a.EffectiveRange) + (a.Snipe ? " 저격" : "");
             string cd = a.Cooldown > 0 ? " · 재사용 " + a.Cooldown + "턴" : "";
             return power + " · " + cost + cd;
         }

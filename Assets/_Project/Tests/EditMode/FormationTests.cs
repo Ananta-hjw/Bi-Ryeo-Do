@@ -65,85 +65,69 @@ public class FormationTests
         Assert.AreEqual(3, lone.Col, "a lone enemy stands right in front of us");
     }
 
-    [Test]
-    public void WalkingIsLimitedToFreeTilesWithinTwoAndCostsNoTurn()
+    private static InteractiveBattle Fight(Combatant[] party, Combatant[] foes, int seed = 1)
     {
-        var hero = Hero();
-        var foe = Foe("a");
-        var battle = new InteractiveBattle(new[] { hero }, new[] { foe }, new SeededRandom(1));
+        var battle = new InteractiveBattle(party, foes, new SeededRandom(seed));
         battle.Begin();
-        Assert.AreEqual(2, hero.Col); Assert.AreEqual(1, hero.Row);
-        Assert.IsTrue(battle.CanMoveTo(hero, 0, 1));
-        Assert.IsTrue(battle.CanMoveTo(hero, 1, 2));
-        Assert.IsFalse(battle.CanMoveTo(hero, 3, 1), "occupied by the enemy");
-        Assert.IsFalse(battle.CanMoveTo(hero, 5, 1), "too far");
-        Assert.IsFalse(battle.CanMoveTo(hero, 2, 3), "off the board");
-        Assert.Throws<System.InvalidOperationException>(() => battle.PlayerAct(PlayerCommand.Guard().WithMove(5, 0)));
+        return battle;
     }
 
     [Test]
-    public void AMoveEventPrecedesTheActionAndOutOfRangeIsRejected()
+    public void PositionsNeverChangeDuringAFight()
     {
-        var hero = Hero();
-        var foe = Foe("a", 4, 1);   // two tiles from the hero's start (2,1)
-        var battle = new InteractiveBattle(new[] { hero }, new[] { foe }, new SeededRandom(1));
-        battle.Begin();
-        Assert.Throws<System.InvalidOperationException>(() => battle.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), foe)), "the basic attack reaches 1");
-        Assert.IsNotNull(battle.Current, "a rejected command leaves the turn intact");
-        var events = battle.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), foe).WithMove(3, 1));
-        Assert.AreEqual(EventKind.Move, events[0].Kind);
-        Assert.AreEqual(3, events[0].ToCol);
-        Assert.AreEqual(3, hero.Col);
-        Assert.IsTrue(events.Any(e => e.Kind == EventKind.Attack && e.TargetId == "a" && e.Damage > 0));
+        var hero = Hero(); var buddy = new Combatant("yun_junho", "윤준호", Team.Player, Stats(), null);
+        var foe = Foe("e");
+        foe.Moves = new List<EnemyMove> { EnemyMove.Attack("베기", 0.1f) };
+        var battle = Fight(new[] { hero, buddy }, new[] { foe });
+        var before = new[] { hero.Col, hero.Row, buddy.Col, buddy.Row, foe.Col, foe.Row };
+        for (int i = 0; i < 8 && !battle.IsOver; i++) battle.PlayerAct(PlayerCommand.Guard());
+        CollectionAssert.AreEqual(before, new[] { hero.Col, hero.Row, buddy.Col, buddy.Row, foe.Col, foe.Row });
     }
 
     [Test]
-    public void RangesDecideWhoCanBeHit()
+    public void ReachCountsLinesFromTheEnemyFront()
     {
+        var one = new SkillSpec { Id = "one", Name = "근접", Power = 1f, Range = 1 };
+        var two = new SkillSpec { Id = "two", Name = "중거리", Power = 1f, Range = 2 };
         var far = new SkillSpec { Id = "far", Name = "원거리", Power = 1f, Range = 4 };
-        var hero = Hero(far);
-        var near = Foe("near", 3, 1); var farFoe = Foe("far", 5, 1);
-        var battle = new InteractiveBattle(new[] { hero }, new[] { near, farFoe }, new SeededRandom(1));
-        battle.Begin();
-        Assert.AreEqual(1, battle.EnemiesInRange(2, 1, 1).Count);
-        Assert.AreEqual(2, battle.EnemiesInRange(2, 1, 4).Count);
-        Assert.AreSame(farFoe, battle.ResolveTarget(farFoe, far, 2, 1), "range 4 reaches column 5");
-        Assert.AreSame(near, battle.ResolveTarget(farFoe, SkillSpec.BasicAttack(), 2, 1), "out of the pick's range: the nearest in range");
-        var events = battle.PlayerAct(PlayerCommand.UseSkill(far, farFoe));
-        Assert.IsTrue(events.Any(e => e.TargetId == "far" && e.Damage > 0));
+        var hero = Hero(one, two, far);
+        var front = Foe("front", 3, 1); var mid = Foe("mid", 4, 1); var back = Foe("back", 5, 1);
+        var battle = Fight(new[] { hero }, new[] { back, mid, front });
+        Assert.AreEqual(0, battle.Depth(front)); Assert.AreEqual(1, battle.Depth(mid)); Assert.AreEqual(2, battle.Depth(back));
+        CollectionAssert.AreEqual(new[] { front }, battle.EnemiesInRange(1));
+        CollectionAssert.AreEqual(new[] { front, mid }, battle.EnemiesInRange(2));
+        Assert.AreEqual(3, battle.EnemiesInRange(4).Count);
+        Assert.AreSame(front, battle.ResolveTarget(back, one), "a pick outside the reach falls back to the front line");
+        Assert.AreSame(mid, battle.ResolveTarget(mid, two), "a pick inside the reach is honoured");
+        Assert.AreSame(back, battle.ResolveTarget(back, far));
+        Assert.IsFalse(battle.PlayerAct(PlayerCommand.UseSkill(one, back)).Any(e => e.TargetId == "back" && e.Damage > 0));
     }
 
     [Test]
-    public void AreaArtsHitEveryEnemyInRangeOnly()
+    public void WhenTheFrontLineFallsTheNextLineBecomesFront()
+    {
+        var hero = Hero(); var one = new SkillSpec { Id = "one", Name = "근접", Power = 50f, Range = 1 };
+        hero.Skills.Add(one);
+        var front = new Combatant("front", "front", Team.Enemy, Stats(1, 1), null) { Moves = new List<EnemyMove> { EnemyMove.Attack("x", 0.1f) }, Col = 3, Row = 1 };
+        var back = Foe("back", 5, 1);
+        var battle = Fight(new[] { hero }, new[] { front, back });
+        battle.PlayerAct(PlayerCommand.UseSkill(one, front));
+        Assert.IsFalse(front.IsAlive);
+        Assert.AreEqual(0, battle.Depth(back), "the survivor is now the front line");
+        Assert.IsTrue(battle.CanReach(one));
+    }
+
+    [Test]
+    public void AreaArtsHitEveryEnemyInReachOnly()
     {
         var aoe = new SkillSpec { Id = "aoe", Name = "범위", Power = 1.0f, AllEnemies = true, Range = 2 };
         var hero = Hero(aoe);
         var a = Foe("a", 3, 1); var b = Foe("b", 4, 0); var c = Foe("c", 5, 2);
-        var battle = new InteractiveBattle(new[] { hero }, new[] { a, b, c }, new SeededRandom(1));
-        battle.Begin();
+        var battle = Fight(new[] { hero }, new[] { a, b, c });
         var events = battle.PlayerAct(PlayerCommand.UseSkill(aoe, a));
         Assert.IsTrue(events.Any(e => e.TargetId == "a" && e.Damage > 0));
-        Assert.IsTrue(events.Any(e => e.TargetId == "b" && e.Damage > 0), "(4,0) is two tiles from (2,1)");
-        Assert.IsFalse(events.Any(e => e.TargetId == "c" && e.Damage > 0), "(5,2) is out of range");
-    }
-
-    [Test]
-    public void EnemiesWalkTowardsUsAndOnlyStrikeInRange()
-    {
-        var hero = new Combatant("player", "비류연", Team.Player, Stats(speed: 130), null) { Col = 0, Row = 1 };   // far away, acts first
-        var foe = new Combatant("e", "산적", Team.Enemy, Stats(1000000, 100, 100), null) { Moves = new List<EnemyMove> { EnemyMove.Attack("베기", 1.0f) }, Col = 5, Row = 1 };
-        var battle = new InteractiveBattle(new[] { hero }, new[] { foe }, new SeededRandom(1));
-        battle.Begin();
-        var events = battle.PlayerAct(PlayerCommand.Guard());
-        var walk = events.First(e => e.Kind == EventKind.Move);
-        Assert.AreEqual(5, walk.FromCol);
-        Assert.AreEqual(3, foe.Col, "walked two tiles");
-        Assert.IsFalse(events.Any(e => e.Kind == EventKind.Attack), "three tiles still between them: no attack yet");
-        Assert.AreEqual(hero.Stats.MaxHp, hero.Hp);
-        // it keeps coming: next turn it is adjacent and swings in the same turn
-        var more = battle.PlayerAct(PlayerCommand.UseItem(new ItemData { Id = "x", Kind = ItemKind.Consumable, Name = "x" }));
-        Assert.IsTrue(more.Any(e => e.Kind == EventKind.Move && e.ToCol == 1));
-        Assert.IsTrue(more.Any(e => e.Kind == EventKind.Attack && e.TargetId == "player"));
+        Assert.IsTrue(events.Any(e => e.TargetId == "b" && e.Damage > 0));
+        Assert.IsFalse(events.Any(e => e.TargetId == "c" && e.Damage > 0), "the back line is out of reach");
     }
 
     [Test]
@@ -153,36 +137,41 @@ public class FormationTests
         var snipe = new SkillSpec { Id = "snipe", Name = "저격", Power = 1f, Range = 4, Snipe = true };
         var hero = Hero(plain, snipe);
         var front = Foe("front", 3, 1); var back = Foe("back", 5, 1);
-        var battle = new InteractiveBattle(new[] { hero }, new[] { back, front }, new SeededRandom(1));
-        battle.Begin();
-        Assert.AreSame(front, battle.ResolveTarget(null, plain, 2, 1), "no pick: the nearest enemy");
-        Assert.AreSame(back, battle.ResolveTarget(null, snipe, 2, 1), "a 저격 art with no pick: the farthest in range");
-        Assert.AreSame(front, battle.ResolveTarget(front, snipe, 2, 1), "an explicit pick always wins");
+        var battle = Fight(new[] { hero }, new[] { back, front });
+        Assert.AreSame(front, battle.ResolveTarget(null, plain), "no pick: the front line");
+        Assert.AreSame(back, battle.ResolveTarget(null, snipe), "a 저격 art with no pick: the back-most within reach");
+        Assert.AreSame(front, battle.ResolveTarget(front, snipe), "an explicit pick always wins");
     }
 
     [Test]
-    public void SnipingEnemiesAimAtTheBackMember()
+    public void EnemiesHitTheFrontLineAndSnipersTheBack()
     {
-        var front = new Combatant("player", "비류연", Team.Player, Stats(), null) { Col = 2, Row = 1 };
-        var back = new Combatant("yun_junho", "윤준호", Team.Player, Stats(), null) { Col = 0, Row = 1 };
-        var archer = new Combatant("e", "궁수", Team.Enemy, Stats(1000000, 100), null) { Moves = new List<EnemyMove> { EnemyMove.Attack("화살", 1.0f).Sniping() }, Col = 4, Row = 1 };
-        var battle = new InteractiveBattle(new[] { front, back }, new[] { archer }, new SeededRandom(3));
-        battle.Begin();
-        for (int i = 0; i < 6 && !battle.IsOver; i++) battle.PlayerAct(PlayerCommand.Guard());
-        Assert.Less(back.Hp, back.Stats.MaxHp, "the sniper reaches past the front member");
-    }
-
-    [Test]
-    public void EnemiesTargetTheNearestMember()
-    {
-        var front = new Combatant("player", "비류연", Team.Player, Stats(), null);
-        var back = new Combatant("yun_junho", "윤준호", Team.Player, Stats(), null);
-        var foe = new Combatant("e", "산적", Team.Enemy, Stats(1000000, 100), null) { Moves = new List<EnemyMove> { EnemyMove.Attack("베기", 1.0f) } };
-        var battle = new InteractiveBattle(new[] { front, back }, new[] { foe }, new SeededRandom(3));
-        battle.Begin();
-        for (int i = 0; i < 10 && !battle.IsOver; i++) battle.PlayerAct(PlayerCommand.Guard());
+        Combatant Member(string id, int col) { return new Combatant(id, id, Team.Player, Stats(), null) { Col = col, Row = 1 }; }
+        var front = Member("player", 2); var mid = Member("m", 1); var back = Member("b", 0);
+        var brute = new Combatant("e", "산적", Team.Enemy, Stats(1000000, 100, 140), null) { Moves = new List<EnemyMove> { EnemyMove.Attack("베기", 1.0f) }, Col = 3, Row = 1 };
+        var battle = Fight(new[] { front, mid, back }, new[] { brute });
+        for (int i = 0; i < 8 && !battle.IsOver; i++) battle.PlayerAct(PlayerCommand.Guard());
         Assert.Less(front.Hp, front.Stats.MaxHp);
-        Assert.AreEqual(back.Stats.MaxHp, back.Hp, "the one behind is out of reach while the front member stands next to the enemy");
+        Assert.AreEqual(mid.Stats.MaxHp, mid.Hp); Assert.AreEqual(back.Stats.MaxHp, back.Hp);
+
+        front = Member("player", 2); mid = Member("m", 1); back = Member("b", 0);
+        var archer = new Combatant("e", "궁수", Team.Enemy, Stats(1000000, 100, 140), null) { Moves = new List<EnemyMove> { EnemyMove.Attack("화살", 1.0f).Sniping() }, Col = 5, Row = 1 };
+        battle = Fight(new[] { front, mid, back }, new[] { archer });
+        for (int i = 0; i < 8 && !battle.IsOver; i++) battle.PlayerAct(PlayerCommand.Guard());
+        Assert.Less(back.Hp, back.Stats.MaxHp, "the archer shoots the back-most member");
+        Assert.AreEqual(front.Stats.MaxHp, front.Hp);
+    }
+
+    [Test]
+    public void WhenTheFrontFallsTheNextLineIsHit()
+    {
+        var front = new Combatant("player", "비류연", Team.Player, Stats(1), null) { Col = 2, Row = 1 };
+        var back = new Combatant("b", "윤준호", Team.Player, Stats(), null) { Col = 0, Row = 1 };
+        var brute = new Combatant("e", "산적", Team.Enemy, Stats(1000000, 500, 140), null) { Moves = new List<EnemyMove> { EnemyMove.Attack("베기", 1.0f) }, Col = 3, Row = 1 };
+        var battle = Fight(new[] { front, back }, new[] { brute });
+        for (int i = 0; i < 8 && !battle.IsOver; i++) battle.PlayerAct(PlayerCommand.Guard());
+        Assert.IsFalse(front.IsAlive);
+        Assert.Less(back.Hp, back.Stats.MaxHp, "with the front line down, the back line is next");
     }
 
     [Test]

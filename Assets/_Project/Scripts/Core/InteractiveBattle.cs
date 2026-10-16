@@ -12,16 +12,6 @@ namespace BiRyeoDo.Core
         public Combatant Target;     // single-target skills; null/dead falls back to the first living enemy
         public ItemData Item;        // for Kind == Item (a consumable; the caller removes it from the bag)
         public Combatant Partner;    // for Kind == Joint: the ally who strikes together with the protagonist (Skill holds the joint spec)
-        public bool HasMove;         // walk to (MoveCol, MoveRow) first, then act from there
-        public int MoveCol, MoveRow;
-
-        /// <summary>The same command preceded by a walk to the given tile (up to <see cref="Board.MoveRange"/> tiles).</summary>
-        public PlayerCommand WithMove(int col, int row)
-        {
-            var c = this;
-            c.HasMove = true; c.MoveCol = col; c.MoveRow = row;
-            return c;
-        }
 
         public static PlayerCommand UseSkill(SkillSpec skill, Combatant target)
         {
@@ -174,46 +164,48 @@ namespace BiRyeoDo.Core
 
         // ------------------------------------------------------------------ board
 
-        /// <summary>The living unit standing on a tile, or null.</summary>
-        public Combatant UnitAt(int col, int row)
+        /// <summary>
+        /// How many lines a unit stands behind the front line of its own side (0 = front). Lines are the columns of the board:
+        /// ours are 2 (front), 1, 0 (back); the enemy's are 3 (front), 4, 5 (back). The front line is the nearest column that still has a living unit.
+        /// </summary>
+        public int Depth(Combatant unit)
         {
-            foreach (var u in _units) if (u.IsAlive && u.Col == col && u.Row == row) return u;
-            return null;
+            if (unit.Team == Team.Player)
+            {
+                int front = -1;
+                foreach (var m in _party) if (m.IsAlive && m.Col > front) front = m.Col;
+                return Math.Max(0, front - unit.Col);
+            }
+            int fe = int.MaxValue;
+            foreach (var e in _enemies) if (e.IsAlive && e.Col < fe) fe = e.Col;
+            return Math.Max(0, unit.Col - fe);
         }
 
-        /// <summary>A unit may walk to any free tile within <see cref="Board.MoveRange"/> (it may also stay where it is).</summary>
-        public bool CanMoveTo(Combatant unit, int col, int row)
-        {
-            if (!Board.InBounds(col, row)) return false;
-            if (col == unit.Col && row == unit.Row) return true;
-            return Board.Dist(unit.Col, unit.Row, col, row) <= Board.MoveRange && UnitAt(col, row) == null;
-        }
-
-        /// <summary>Living enemies within <paramref name="range"/> tiles of a tile, nearest first.</summary>
-        public List<Combatant> EnemiesInRange(int col, int row, int range)
+        /// <summary>Living enemies an art of the given reach can touch (lines 0..reach-1 behind the enemy front), front line first.</summary>
+        public List<Combatant> EnemiesInRange(int range)
         {
             var list = new List<Combatant>();
-            foreach (var e in _enemies) if (e.IsAlive && Board.Dist(col, row, e.Col, e.Row) <= range) list.Add(e);
-            list.Sort((a, b) => Board.Dist(col, row, a.Col, a.Row).CompareTo(Board.Dist(col, row, b.Col, b.Row)));   // List.Sort is unstable, ties are harmless here
+            foreach (var e in _enemies) if (e.IsAlive && Depth(e) < range) list.Add(e);
+            list.Sort((x, y) => { int c = Depth(x).CompareTo(Depth(y)); return c != 0 ? c : x.Row.CompareTo(y.Row); });
             return list;
         }
 
         /// <summary>Attacks and area arts need a target; evade, party guard and healing do not.</summary>
         public static bool NeedsTarget(SkillSpec skill) { return skill.Effect == SkillEffect.None || skill.Effect == SkillEffect.Stun; }
 
-        /// <summary>True when the art can be used from that tile (arts without a target always can).</summary>
-        public bool CanReach(SkillSpec skill, int col, int row)
+        /// <summary>True when the art can be used now (arts without a target always can; there is always a front-line enemy while any lives).</summary>
+        public bool CanReach(SkillSpec skill)
         {
-            return !NeedsTarget(skill) || EnemiesInRange(col, row, skill.Range).Count > 0;
+            return !NeedsTarget(skill) || EnemiesInRange(skill.Range).Count > 0;
         }
 
-        /// <summary>The enemy a single-target art really hits from a tile: the player's pick if it is in range, otherwise the nearest one in range, otherwise null.</summary>
-        public Combatant ResolveTarget(Combatant wanted, SkillSpec skill, int col, int row)
+        /// <summary>The enemy a single-target art really hits: the player's pick if it is within reach, otherwise the front-line enemy (a 저격 art: the farthest one within reach).</summary>
+        public Combatant ResolveTarget(Combatant wanted, SkillSpec skill)
         {
-            if (wanted != null && wanted.IsAlive && wanted.Team == Team.Enemy && Board.Dist(col, row, wanted.Col, wanted.Row) <= skill.Range) return wanted;
-            var near = EnemiesInRange(col, row, skill.Range);
+            if (wanted != null && wanted.IsAlive && wanted.Team == Team.Enemy && Depth(wanted) < skill.Range) return wanted;
+            var near = EnemiesInRange(skill.Range);
             if (near.Count == 0) return null;
-            return skill.Snipe ? near[near.Count - 1] : near[0];   // nearest (front) by default, 저격 arts the farthest (back)
+            return skill.Snipe ? near[near.Count - 1] : near[0];
         }
 
         /// <summary>Resolves the current member's action, then every enemy turn up to the next party turn.</summary>
@@ -224,23 +216,12 @@ namespace BiRyeoDo.Core
             // Validate everything before touching any state, so a rejected command leaves the turn intact.
             if (cmd.Kind == CommandKind.Joint && (cmd.Skill == null || !CanJoint(cmd.Partner))) throw new InvalidOperationException("Joint attack unavailable.");
             if (cmd.Kind == CommandKind.Skill && (cmd.Skill == null || !Current.CanUse(cmd.Skill))) throw new InvalidOperationException("Skill unavailable.");
-            int fromCol = Current.Col, fromRow = Current.Row, atCol = fromCol, atRow = fromRow;
-            if (cmd.HasMove)
-            {
-                if (!CanMoveTo(Current, cmd.MoveCol, cmd.MoveRow)) throw new InvalidOperationException("Cannot walk there.");
-                atCol = cmd.MoveCol; atRow = cmd.MoveRow;
-            }
-            if (cmd.Kind == CommandKind.Skill && !CanReach(cmd.Skill, atCol, atRow)) throw new InvalidOperationException("Out of range.");
-            if (cmd.Kind == CommandKind.Joint && EnemiesInRange(atCol, atRow, cmd.Skill.Range).Count == 0) throw new InvalidOperationException("Out of range.");
+            if (cmd.Kind == CommandKind.Skill && !CanReach(cmd.Skill)) throw new InvalidOperationException("Out of reach.");
+            if (cmd.Kind == CommandKind.Joint && EnemiesInRange(cmd.Skill.Range).Count == 0) throw new InvalidOperationException("Out of reach.");
             var actor = Current;
             var events = new List<BattleEvent>();
             Current = null;
             PartyActions++;
-            if (atCol != fromCol || atRow != fromRow)
-            {
-                actor.Col = atCol; actor.Row = atRow;
-                events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = "move", Kind = EventKind.Move, FromCol = fromCol, FromRow = fromRow, ToCol = atCol, ToRow = atRow, TargetHpAfter = actor.Hp });
-            }
             _harmonyBoost = false;
             if (Trial != null && Trial.Kind == TrialKind.Harmony)
             {
@@ -330,10 +311,10 @@ namespace BiRyeoDo.Core
             }
 
             var targets = new List<Combatant>();
-            if (skill.AllEnemies) targets = EnemiesInRange(actor.Col, actor.Row, skill.Range);
+            if (skill.AllEnemies) targets = EnemiesInRange(skill.Range);
             else
             {
-                var t = ResolveTarget(cmd.Target, skill, actor.Col, actor.Row);
+                var t = ResolveTarget(cmd.Target, skill);
                 if (t != null) targets.Add(t);
             }
 
@@ -380,14 +361,14 @@ namespace BiRyeoDo.Core
         {
             var spec = cmd.Skill;
             var partner = cmd.Partner;
-            var t = ResolveTarget(cmd.Target, spec, actor.Col, actor.Row);
+            var t = ResolveTarget(cmd.Target, spec);
             if (t == null) return;   // nothing to hit: nothing is paid
             actor.Spirit -= JointSpiritCost;
             partner.Gauge -= GaugeThreshold;   // the partner spends their next action on this strike
 
             var first = DealHit(actor, t, spec, 0, 1, false, events);
             first.Joint = true;
-            var next = t.IsAlive ? t : ResolveTarget(null, spec, actor.Col, actor.Row);
+            var next = t.IsAlive ? t : ResolveTarget(null, spec);
             if (next != null) DealHit(partner, next, spec, 0, 1, spec.Effect == SkillEffect.Stun, events).Joint = true;
 
             switch (spec.Effect)
@@ -461,37 +442,32 @@ namespace BiRyeoDo.Core
             return events;
         }
 
-        /// <summary>The living party member nearest to an enemy (ties: the more wounded one, then list order).</summary>
-        private Combatant NearestLivingMember(Combatant from)
+        /// <summary>The living party member an enemy hits by default: the front line (ties: the more wounded one, then list order).</summary>
+        private Combatant FrontMember()
         {
             Combatant best = null;
-            int bestDist = int.MaxValue;
+            int bestDepth = int.MaxValue;
             foreach (var m in _party)
             {
                 if (!m.IsAlive) continue;
-                int d = Board.Dist(from, m);
-                if (best == null || d < bestDist || (d == bestDist && (float)m.Hp / m.Stats.MaxHp < (float)best.Hp / best.Stats.MaxHp)) { best = m; bestDist = d; }
+                int d = Depth(m);
+                if (best == null || d < bestDepth || (d == bestDepth && (float)m.Hp / m.Stats.MaxHp < (float)best.Hp / best.Stats.MaxHp)) { best = m; bestDepth = d; }
             }
             return best;
         }
 
-        /// <summary>Walks an enemy up to <see cref="Board.MoveRange"/> tiles towards its target (only when the target is out of reach); adds a Move event.</summary>
-        private void MoveToward(Combatant enemy, Combatant target, int reach, List<BattleEvent> events)
+        /// <summary>The member a 저격 move picks: the back-most one within reach (ties: the more wounded one).</summary>
+        private Combatant BackMember(int reach)
         {
-            int cur = Board.Dist(enemy, target);
-            if (cur <= reach) return;
-            int bestC = enemy.Col, bestR = enemy.Row, bestD = cur, bestM = Math.Abs(enemy.Col - target.Col) + Math.Abs(enemy.Row - target.Row);
-            for (int c = 0; c < Board.Cols; c++)
-                for (int r = 0; r < Board.Rows; r++)
-                {
-                    if (!CanMoveTo(enemy, c, r) || (c == enemy.Col && r == enemy.Row)) continue;
-                    int d = Board.Dist(c, r, target.Col, target.Row);
-                    int m = Math.Abs(c - target.Col) + Math.Abs(r - target.Row);
-                    if (d < bestD || (d == bestD && m < bestM)) { bestC = c; bestR = r; bestD = d; bestM = m; }
-                }
-            if (bestC == enemy.Col && bestR == enemy.Row) return;
-            events.Add(new BattleEvent { Turn = Turn, ActorId = enemy.Id, TargetId = enemy.Id, SkillId = "move", Kind = EventKind.Move, FromCol = enemy.Col, FromRow = enemy.Row, ToCol = bestC, ToRow = bestR, TargetHpAfter = enemy.Hp });
-            enemy.Col = bestC; enemy.Row = bestR;
+            Combatant far = null; int farDepth = -1;
+            foreach (var m in _party)
+            {
+                if (!m.IsAlive) continue;
+                int d = Depth(m);
+                if (d >= reach) continue;
+                if (d > farDepth || (d == farDepth && (float)m.Hp / m.Stats.MaxHp < (float)far.Hp / far.Stats.MaxHp)) { far = m; farDepth = d; }
+            }
+            return far;
         }
 
         private void EnemyAct(Combatant enemy, List<BattleEvent> events)
@@ -510,29 +486,18 @@ namespace BiRyeoDo.Core
             {
                 enemy.MoveIndex++;
                 enemy.Charging = true;
-                enemy.ChargeTarget = NearestLivingMember(enemy);
+                enemy.ChargeTarget = FrontMember();
                 string who = enemy.ChargeTarget != null ? " → " + enemy.ChargeTarget.Name : "";
                 events.Add(new BattleEvent { Turn = Turn, ActorId = enemy.Id, TargetId = enemy.ChargeTarget != null ? enemy.ChargeTarget.Id : enemy.Id, SkillId = move.Name, Kind = EventKind.Charge, TargetHpAfter = enemy.Hp, Message = enemy.Name + "이(가) " + move.Name + "!" + who });
                 return;
             }
 
-            var target = enemy.Charging && enemy.ChargeTarget != null && enemy.ChargeTarget.IsAlive ? enemy.ChargeTarget : NearestLivingMember(enemy);
+            var target = enemy.Charging && enemy.ChargeTarget != null && enemy.ChargeTarget.IsAlive ? enemy.ChargeTarget : FrontMember();
             if (target == null) return;
-            // A 저격 move reaches four tiles and, once in reach, picks the farthest (back-most) party member instead of the nearest.
-            bool snipe = move.Snipe && !enemy.Charging;
-            int reach = snipe ? Math.Max(enemy.Range, SnipeReach) : enemy.Range;
-            MoveToward(enemy, target, reach, events);
-            if (Board.Dist(enemy, target) > reach) return;   // it only walked this turn; the script (and any wind-up) waits
-            if (snipe)
+            // A 저격 move reaches every line and picks the back-most party member; everything else hits the front line.
+            if (move.Snipe && !enemy.Charging)
             {
-                Combatant far = null; int farDist = -1;
-                foreach (var m in _party)
-                {
-                    if (!m.IsAlive) continue;
-                    int d = Board.Dist(enemy, m);
-                    if (d > reach) continue;
-                    if (d > farDist || (d == farDist && (float)m.Hp / m.Stats.MaxHp < (float)far.Hp / far.Stats.MaxHp)) { far = m; farDist = d; }
-                }
+                var far = BackMember(Math.Max(enemy.Range, SnipeReach));
                 if (far != null) target = far;
             }
 

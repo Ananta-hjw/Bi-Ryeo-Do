@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace BiRyeoDo.Core
 {
-    public enum EventKind { Attack, Guard, Meditate, Charge, Evade, Heal, StunSkip, Item, Move }
+    public enum EventKind { Attack, Guard, Meditate, Charge, Evade, Heal, StunSkip, Item }
 
     /// <summary>One action in a battle. UI plays these back; the engine never touches UI.</summary>
     public sealed class BattleEvent
@@ -29,7 +29,6 @@ namespace BiRyeoDo.Core
         public bool Harmony;         // 내공합격: this hit was powered up by an unbroken chain of attacks
         public bool Joint;           // part of a 합공 (joint attack)
         public bool Rescued;         // the target would have fallen but a bonded companion saved them (see Bonds.RescueLevel)
-        public int FromCol, FromRow, ToCol, ToRow;   // Kind == Move: the tile the actor walked from / to
         public bool Retreated;       // the target fled the fight (story boss) instead of being slain; TargetDefeated is also true
     }
 
