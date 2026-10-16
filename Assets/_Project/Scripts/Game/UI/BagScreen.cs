@@ -57,12 +57,12 @@ namespace BiRyeoDo.Game.UI
             }
 
             // Second row, only on the 장비 tab: weapon / armor / accessory
-            _gearTabRow = UiFactory.Rect("GearTabs", root, new Vector2(0f, 0.718f), new Vector2(1f, 0.774f)).gameObject;
+            _gearTabRow = UiFactory.Rect("GearTabs", root, new Vector2(0f, 0.728f), new Vector2(1f, 0.768f)).gameObject;
             for (int t = 0; t < GearFilterNames.Length; t++)
             {
                 int tab = t;
-                float x0 = 0.04f + t * 0.24f;
-                var btn = UiFactory.Button("GearFilter" + t, _gearTabRow.transform, new Vector2(x0, 0.04f), new Vector2(x0 + 0.225f, 0.96f), GearFilterNames[t], UiFactory.InkSoft, () => { _gearFilter = tab; Refresh(); }, 26);
+                float x0 = 0.10f + t * 0.20f;   // smaller and indented so they read as sub-tabs of 장비
+                var btn = UiFactory.Button("GearFilter" + t, _gearTabRow.transform, new Vector2(x0, 0.06f), new Vector2(x0 + 0.185f, 0.94f), GearFilterNames[t], UiFactory.InkSoft, () => { _gearFilter = tab; Refresh(); }, 20);
                 _gearTabs[t] = btn.GetComponent<Image>();
             }
 
@@ -345,8 +345,8 @@ namespace BiRyeoDo.Game.UI
                 .Where(s => PassesFilter(EarlyGameContent.FindItem(s.Id)))
                 .ToList();
             _gearTabRow.SetActive(_filter == 1);
-            _viewport.anchorMax = new Vector2(1f, _filter == 1 ? 0.714f : 0.772f);
-            for (int t = 0; t < _gearTabs.Length; t++) _gearTabs[t].color = t == _gearFilter ? new Color(0.56f, 0.44f, 0.22f, 1f) : UiFactory.InkSoft;
+            _viewport.anchorMax = new Vector2(1f, _filter == 1 ? 0.722f : 0.772f);
+            for (int t = 0; t < _gearTabs.Length; t++) _gearTabs[t].color = t == _gearFilter ? new Color(0.30f, 0.48f, 0.44f, 1f) : new Color(0.12f, 0.15f, 0.20f, 0.92f);
             for (int t = 0; t < _filterTabs.Length; t++) _filterTabs[t].color = t == _filter ? new Color(0.56f, 0.44f, 0.22f, 1f) : UiFactory.InkSoft;
 
             _content.sizeDelta = new Vector2(0f, Mathf.Min(stacks.Count, MaxRows) * (RowH + RowGap) + RowGap);
