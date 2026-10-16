@@ -98,6 +98,7 @@ namespace BiRyeoDo.Game.UI
             _backdropImage = UiFactory.Panel("StageArt", root, Vector2.zero, Vector2.one, new Color(1f, 1f, 1f, 0f));
             _backdropImage.preserveAspect = false;
             UiFactory.Panel("Dim", root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.35f)); // keeps text readable over artwork
+            BuildRowBands(root);
 
             // Top bar
             UiFactory.Panel("TopBar", root, new Vector2(0f, 0.945f), new Vector2(1f, 1f), UiFactory.Ink);
@@ -850,6 +851,39 @@ namespace BiRyeoDo.Game.UI
             return party;
         }
 
+        private static readonly Color FrontTint = new Color(0.80f, 0.28f, 0.22f, 1f), BackTint = new Color(0.28f, 0.50f, 0.85f, 1f);
+
+        /// <summary>
+        /// Four floor columns behind the figures make the rows readable at a glance: warm red = 앞줄 (nearest the enemy line),
+        /// cool blue = 뒷줄, each with a caption. Our side is the left half, the enemies the right half.
+        /// </summary>
+        private void BuildRowBands(RectTransform root)
+        {
+            const float y0 = 0.345f, y1 = 0.90f;
+            AddBand(root, "PartyBack", 0.005f, 0.235f, y0, y1, BackTint, "뒷줄");
+            AddBand(root, "PartyFront", 0.235f, 0.465f, y0, y1, FrontTint, "앞줄");
+            AddBand(root, "EnemyFront", 0.535f, 0.765f, y0, y1, FrontTint, "앞줄");
+            AddBand(root, "EnemyBack", 0.765f, 0.995f, y0, y1, BackTint, "뒷줄");
+        }
+
+        private static void AddBand(RectTransform root, string name, float x0, float x1, float y0, float y1, Color tint, string caption)
+        {
+            var fill = tint; fill.a = 0.16f;
+            var band = UiFactory.Panel(name, root, new Vector2(x0, y0), new Vector2(x1, y1), fill);
+            var edge = tint; edge.a = 0.55f;
+            UiFactory.Panel(name + "Edge", band.transform, new Vector2(0f, 0.985f), new Vector2(1f, 1f), edge);   // top rim in the row colour
+            var cap = tint; cap.a = 0.95f;
+            UiFactory.Label(name + "Caption", band.transform, new Vector2(0f, 0.935f), new Vector2(1f, 0.985f), caption, 22, cap);
+        }
+
+        /// <summary>A small coloured 앞/뒤 chip in the corner of a unit's panel.</summary>
+        private static void AddRowChip(RectTransform panelRoot, bool back)
+        {
+            var tint = back ? BackTint : FrontTint;
+            var chip = UiFactory.Panel("RowChip", panelRoot, new Vector2(0.02f, 0.885f), new Vector2(0.20f, 0.995f), tint);
+            UiFactory.Label("RowChipText", chip.transform, Vector2.zero, Vector2.one, back ? "뒤" : "앞", 20, Color.white);
+        }
+
         // Side-view formations: our party on the left half, the enemies on the right half (each a 2-column grid).
         private const float CellW = 0.22f, CellH = 0.265f, RowTopY0 = 0.625f, RowBotY0 = 0.350f;
 
@@ -920,7 +954,8 @@ namespace BiRyeoDo.Game.UI
                 {
                     UiFactory.Label("Glyph", p.Root, new Vector2(0.04f, 0.32f), new Vector2(0.96f, 0.90f), FirstGlyph(unit.Name), 110, i == 0 ? UiFactory.Gold : UiFactory.PaperText);
                 }
-                p.Name = UiFactory.Label("Name", p.Root, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.99f), unit.Name + (_party.Count > 1 ? (unit.BackRow ? " (뒷줄)" : " (앞줄)") : ""), 22, UiFactory.Gold);
+                p.Name = UiFactory.Label("Name", p.Root, new Vector2(_party.Count > 1 ? 0.22f : 0.05f, 0.90f), new Vector2(0.95f, 0.99f), unit.Name, 22, UiFactory.Gold);
+                if (_party.Count > 1) AddRowChip(p.Root, unit.BackRow);
                 p.Status = UiFactory.Label("Status", p.Root, new Vector2(0.05f, 0.62f), new Vector2(0.95f, 0.76f), "", 26, UiFactory.PaperText);
                 // Thin gauges under the figure: 체력 / 내공 / 기세
                 p.Hp = UiFactory.MakeBar("Hp", p.Root, new Vector2(0.06f, 0.215f), new Vector2(0.94f, 0.275f), new Color(0f, 0f, 0f, 0.7f), HpGreen);
@@ -985,7 +1020,8 @@ namespace BiRyeoDo.Game.UI
                 var card = new EnemyCard { Unit = units[i], Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
                 card.Root = UiFactory.Rect("Card" + i, _cardsRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
                 card.Frame = UiFactory.Panel("Marker", card.Root, new Vector2(0.10f, 0.285f), new Vector2(0.90f, 0.305f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks the target
-                card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.05f, 0.88f), new Vector2(0.95f, 0.99f), data.Name + (card.Unit.BackRow ? " (뒷줄)" : ""), data.IsBoss ? 30 : 22, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
+                card.Name = UiFactory.Label("Name", card.Root, new Vector2(n > 1 ? 0.22f : 0.05f, 0.88f), new Vector2(0.95f, 0.99f), data.Name, data.IsBoss ? 30 : 22, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
+                if (n > 1) AddRowChip(card.Root, card.Unit.BackRow);
                 var art = ArtLibrary.Enemy(data.ArtKey);
                 if (art != null)
                 {
