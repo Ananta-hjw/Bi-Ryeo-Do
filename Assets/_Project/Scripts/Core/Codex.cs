@@ -174,7 +174,7 @@ namespace BiRyeoDo.Core
                 case AchMetric.FactionsRespected: return Factions.RespectedCount(save);
                 case AchMetric.CompanionTraining: return CompanionTraining.TotalLevels(save);
                 case AchMetric.Memories: return Memories.SeenCount(save);
-                case AchMetric.DailyStreak: return Math.Max(save.DailyStreak, save.DailyBest);
+                case AchMetric.DailyStreak: return save.DailyBest;
                 case AchMetric.LegendarySeen: return Codex.ItemsSeenOfGrade(save, ItemGrade.Legendary);
                 case AchMetric.ArtsLearned:
                     {

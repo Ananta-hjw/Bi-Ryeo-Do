@@ -56,7 +56,7 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(0, save.DailyProgress[(int)DailyEvent.BattleWin]);
             // A different date almost always rolls a different set; at least the claim state is fresh.
             Assert.AreEqual(0, save.DailyClaimed.Count);
-            Assert.IsFalse(save.DailyAllClaimed);
+            Assert.IsFalse(Daily.AllClaimed(save));
             Assert.AreEqual(3, second.Count);
             Assert.IsNotNull(first);
         }
@@ -95,7 +95,7 @@ namespace BiRyeoDo.Tests
             var save = Player();
             Finish(save);
             for (int i = 0; i < 3; i++) Daily.Claim(save, i);
-            Assert.IsTrue(save.DailyAllClaimed);
+            Assert.IsTrue(Daily.AllClaimed(save));
             Assert.AreEqual(1, save.DailyStreak);
             Assert.AreEqual(2, Inventory.Count(save, "bear_gall"));
             Assert.Greater(save.Doo, Daily.AllClearDoo(save));
@@ -135,6 +135,8 @@ namespace BiRyeoDo.Tests
                 CollectionAssert.DoesNotContain(ids, DailyEvent.TowerClear);
                 CollectionAssert.DoesNotContain(ids, DailyEvent.QuestDone);
                 CollectionAssert.DoesNotContain(ids, DailyEvent.JointUse);
+                CollectionAssert.DoesNotContain(ids, DailyEvent.UltimateUse);   // nothing equipped
+                CollectionAssert.DoesNotContain(ids, DailyEvent.PromotionTry);
             }
         }
 
@@ -160,6 +162,52 @@ namespace BiRyeoDo.Tests
             save.DailyProgress.RemoveRange(2, save.DailyProgress.Count - 2);
             Daily.Record(save, DailyEvent.GachaPull, 1);   // would have thrown before padding
             Assert.AreEqual(1, save.DailyProgress[(int)DailyEvent.GachaPull]);
+        }
+
+        [Test]
+        public void SettingTheClockBackDoesNotReopenClaimedMissions()
+        {
+            var save = Player();
+            Finish(save);
+            for (int i = 0; i < 3; i++) Daily.Claim(save, i);
+            long doo = save.Doo;
+            _now = _now.AddDays(-1);
+            Assert.AreEqual(3, Daily.Missions(save).Count);
+            Assert.IsTrue(Daily.AllClaimed(save));
+            _now = _now.AddDays(1);
+            Daily.Missions(save);
+            Assert.IsTrue(Daily.AllClaimed(save));
+            for (int i = 0; i < 3; i++) Assert.AreEqual(0, Daily.Claim(save, i).Count);
+            Assert.AreEqual(doo, save.Doo);
+        }
+
+        [Test]
+        public void TheThirtyDayRewardRepeatsAndTheNextMilestoneKeepsGoing()
+        {
+            var save = Player();
+            save.DailyStreak = 29;
+            var yesterday = _now.AddDays(-1);
+            save.DailyLastClear = yesterday.Year * 10000 + yesterday.Month * 100 + yesterday.Day;
+            save.DailyDate = 0;
+            Finish(save);
+            for (int i = 0; i < 3; i++) Daily.Claim(save, i);
+            Assert.AreEqual(30, save.DailyStreak);
+            Assert.AreEqual(2, Inventory.Count(save, "ilgeup_yeongdan"));
+            Assert.AreEqual(60, Daily.NextMilestone(save));
+        }
+
+        [Test]
+        public void EveryTierStillHasMissionsForAPlayerWithEverythingOpen()
+        {
+            var save = new SaveData { ClearedStage = 30, Doo = 1000000 };
+            save.EquippedArts.Add("seonpung_roejeol");
+            for (int d = 0; d < 60; d++)
+            {
+                _now = new DateTime(2026, 12, 1).AddDays(d);
+                var ms = Daily.Missions(save);
+                Assert.AreEqual(3, ms.Count);
+                CollectionAssert.AreEqual(new[] { 0, 1, 2 }, ms.Select(m => m.Tier));
+            }
         }
     }
 }

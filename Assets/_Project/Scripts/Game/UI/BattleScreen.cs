@@ -407,7 +407,7 @@ namespace BiRyeoDo.Game.UI
                 else if (cleared && stage.IsTower)
                 {
                     string towerNote = Tower.Complete(save, stage.TowerFloor);
-                    Daily.Record(save, DailyEvent.TowerClear);
+                    if (towerFirst) Daily.Record(save, DailyEvent.TowerClear);   // replays of cleared floors do not count
                     GameManager.Instance.SaveNow();
                     yield return ShowResult(stage.TowerFloor + "층 돌파!", towerFirst
                         ? "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (towerNote.Length > 0 ? "\n" + towerNote : "")
@@ -534,7 +534,11 @@ namespace BiRyeoDo.Game.UI
                         yield return Banner("시간 초과! 무승부", 1.0f);
                     }
                     else if (!_battle.PlayerWon) { lost = true; break; }
-                    else yield return Banner("승리!", 0.7f);
+                    else
+                    {
+                        Daily.Record(save, DailyEvent.BattleWin);
+                        yield return Banner("승리!", 0.7f);
+                    }
                     foreach (var m in _party) m.RestBetweenFights(0.5f);
                     RefreshParty();
                 }
@@ -672,7 +676,7 @@ namespace BiRyeoDo.Game.UI
                 if (_command.Kind == CommandKind.Skill && actor != null && actor.Id == "player" && _command.Skill != null && _command.Skill.Id != "basic")
                 {
                     Daily.Record(GameManager.Instance.Save, DailyEvent.SkillUse);
-                    if (_command.Skill.SpiritCost > 0) Daily.Record(GameManager.Instance.Save, DailyEvent.UltimateUse);
+                    if (Progression.IsUltimate(_command.Skill)) Daily.Record(GameManager.Instance.Save, DailyEvent.UltimateUse);
                     int rose = Mastery.RecordUse(GameManager.Instance.Save, _command.Skill.Id);
                     GameManager.Instance.SaveNow();
                     if (rose >= 0) SoundManager.Sfx("levelup");

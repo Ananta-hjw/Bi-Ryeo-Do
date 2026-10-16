@@ -10,6 +10,7 @@ namespace BiRyeoDo.Core
         public const int MaxEquippedUltimates = 1;       // one 비기 (기세 100) in the dedicated 필살기 button
 
         public static bool IsUltimate(ArtData art) { return art != null && art.SpiritCost > 0; }
+        public static bool IsUltimate(SkillSpec skill) { return skill != null && skill.SpiritCost > 0; }
 
         public static int EquippedCount(SaveData save, bool ultimates)
         {

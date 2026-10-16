@@ -51,7 +51,6 @@ namespace BiRyeoDo.Core
         public List<string> DailyMissionIds = new List<string>();
         public List<int> DailyProgress = new List<int>();
         public List<int> DailyClaimed = new List<int>();
-        public bool DailyAllClaimed;
         public int SwordRank;           // 검룡위 (1-10), see Promotion; 0 in older saves counts as 1
 
         public List<string> LearnedArts = new List<string>();

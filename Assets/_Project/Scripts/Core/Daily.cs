@@ -39,6 +39,7 @@ namespace BiRyeoDo.Core
             M("clear1", "스테이지 1번 돌파", DailyEvent.StageClear, 1, 0),
             M("win8", "전투 8회 승리", DailyEvent.BattleWin, 8, 1),
             M("skill25", "무공 25번 사용", DailyEvent.SkillUse, 25, 1),
+            M("gacha1", "뽑기 1번", DailyEvent.GachaPull, 1, 1),
             M("flawless3", "아무도 쓰러지지 않고 3전 승리", DailyEvent.Flawless, 3, 1),
             M("clear2", "스테이지 2번 돌파", DailyEvent.StageClear, 2, 1),
             M("ultimate3", "필살기 3번 사용", DailyEvent.UltimateUse, 3, 2),
@@ -55,6 +56,8 @@ namespace BiRyeoDo.Core
             return null;
         }
 
+        private static readonly int EventCount = Enum.GetValues(typeof(DailyEvent)).Length;
+
         public static int Today() { var d = Clock(); return d.Year * 10000 + d.Month * 100 + d.Day; }
 
         private static int DayNumber(int yyyymmdd)
@@ -69,10 +72,14 @@ namespace BiRyeoDo.Core
             {
                 case DailyEvent.TowerClear: return Tower.Unlocked(save);
                 case DailyEvent.QuestDone: return Quests.Open(save).Count > 0;
-                case DailyEvent.JointUse: foreach (var c in EarlyGameContent.CompanionsFor(Math.Max(1, save.HighestUnlockedStage))) if (Bonds.Level(save, c.Id) >= 1) return true; return false;
-                case DailyEvent.UltimateUse: return save.HighestUnlockedStage >= 4;
-                case DailyEvent.PromotionTry: return save.ClearedStage >= 3 && Promotion.EffectiveRank(save) < Promotion.MaxRank;
-                case DailyEvent.Flawless: return true;
+                case DailyEvent.JointUse:
+                    foreach (var c in EarlyGameContent.SelectCompanionsFor(Math.Max(1, save.HighestUnlockedStage), save)) if (Bonds.Level(save, c.Id) >= 1) return true;
+                    return false;   // a bonded companion has to be in the party
+                case DailyEvent.UltimateUse: return Progression.EquippedCount(save, true) > 0;
+                case DailyEvent.PromotionTry:
+                    return save.ClearedStage >= 3 && Promotion.EffectiveRank(save) < Promotion.MaxRank
+                        && save.Doo >= Promotion.BuildOffer(save, Promotion.EffectiveRank(save) + 1, 0).Fee;
+                case DailyEvent.GachaPull: return save.Doo >= Gacha.CostFor(1);
                 default: return true;
             }
         }
@@ -81,10 +88,10 @@ namespace BiRyeoDo.Core
         public static void Refresh(SaveData save)
         {
             int today = Today();
-            int kinds = Enum.GetValues(typeof(DailyEvent)).Length;
-            if (save.DailyDate == today && save.DailyMissionIds.Count == 3)
+            // Only a later date starts a new day: setting the device clock back must not reopen claimed missions.
+            if (save.DailyDate >= today && StoredMissionsValid(save))
             {
-                while (save.DailyProgress.Count < kinds) save.DailyProgress.Add(0);   // an update added counters
+                while (save.DailyProgress.Count < EventCount) save.DailyProgress.Add(0);   // an update added counters
                 return;
             }
 
@@ -93,9 +100,8 @@ namespace BiRyeoDo.Core
             if (save.DailyLastClear == 0) save.DailyStreak = 0;
 
             save.DailyDate = today;
-            save.DailyProgress = new List<int>(new int[Enum.GetValues(typeof(DailyEvent)).Length]);
+            save.DailyProgress = new List<int>(new int[EventCount]);
             save.DailyClaimed = new List<int>();
-            save.DailyAllClaimed = false;
             save.DailyMissionIds = new List<string>();
             var rng = new Random(today);
             for (int tier = 0; tier < 3; tier++)
@@ -106,6 +112,15 @@ namespace BiRyeoDo.Core
                 save.DailyMissionIds.Add(options[rng.Next(options.Count)].Id);
             }
         }
+
+        private static bool StoredMissionsValid(SaveData save)
+        {
+            if (save.DailyMissionIds.Count != 3) return false;
+            foreach (var id in save.DailyMissionIds) if (Find(id) == null) return false;   // a pool entry was renamed or removed
+            return true;
+        }
+
+        public static bool AllClaimed(SaveData save) { return save.DailyClaimed.Count >= 3; }
 
         public static List<DailyMission> Missions(SaveData save)
         {
@@ -156,9 +171,8 @@ namespace BiRyeoDo.Core
             long doo = RewardDoo(save, ms[index]);
             save.Doo += doo;
             notes.Add(ms[index].Name + ": 두 +" + doo.ToString("N0"));
-            if (save.DailyClaimed.Count == 3 && !save.DailyAllClaimed)
+            if (save.DailyClaimed.Count == 3)
             {
-                save.DailyAllClaimed = true;
                 long bonus = AllClearDoo(save);
                 save.Doo += bonus;
                 Inventory.Add(save, "bear_gall", 2);
@@ -175,10 +189,11 @@ namespace BiRyeoDo.Core
             return notes;
         }
 
-        /// <summary>The one-time reward for reaching a streak milestone today (null when this day is not one).</summary>
+        /// <summary>The reward for the streak value reached today (null when it is not a milestone). A rebuilt streak earns them again; 30 repeats every 30 days.</summary>
         private static string StreakReward(SaveData save)
         {
-            switch (save.DailyStreak)
+            int streak = save.DailyStreak >= 30 && save.DailyStreak % 30 == 0 ? 30 : save.DailyStreak;
+            switch (streak)
             {
                 case 3: Inventory.Add(save, "okruju", 3); return "연속 3일 보상: 옥루주 x3";
                 case 7: Inventory.Add(save, "ginseng", 1); return "연속 7일 보상: 인형설삼";
@@ -188,10 +203,11 @@ namespace BiRyeoDo.Core
             return null;
         }
 
+        /// <summary>The streak length of the next reward (every 30 days after day 30).</summary>
         public static int NextMilestone(SaveData save)
         {
             foreach (var m in StreakMilestones) if (save.DailyStreak < m) return m;
-            return -1;
+            return (save.DailyStreak / 30 + 1) * 30;
         }
     }
 }

@@ -34,7 +34,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Title", _root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "일일 수련 임무", 44, UiFactory.Gold);
             int next = Daily.NextMilestone(save);
             UiFactory.Label("Streak", _root, new Vector2(0.05f, 0.855f), new Vector2(0.95f, 0.92f),
-                "연속 수련 " + save.DailyStreak + "일" + (next > 0 ? "  ·  " + next + "일째 보상까지 " + (next - save.DailyStreak) + "일" : "  ·  모든 연속 보상 달성"), 28, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+                "연속 수련 " + save.DailyStreak + "일" + (next > 0 ? "  ·  " + next + "일째 보상까지 " + (next - save.DailyStreak) + "일" : ""), 28, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
             for (int i = 0; i < missions.Count; i++)
             {
@@ -55,9 +55,9 @@ namespace BiRyeoDo.Game.UI
                 btn.interactable = done && !claimed;
             }
 
-            string bonus = save.DailyAllClaimed ? "오늘의 세 임무를 모두 끝냈다!" : "세 임무를 모두 받으면 보너스: 두 " + Daily.AllClearDoo(save).ToString("N0") + " + 웅담 2개, 연속 수련 +1일";
+            string bonus = Daily.AllClaimed(save) ? "오늘의 세 임무를 모두 끝냈다!" : "세 임무를 모두 받으면 보너스: 두 " + Daily.AllClearDoo(save).ToString("N0") + " + 웅담 2개, 연속 수련 +1일";
             UiFactory.Label("Bonus", _root, new Vector2(0.05f, 0.26f), new Vector2(0.95f, 0.33f), bonus, 24, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal);
-            UiFactory.Label("Milestones", _root, new Vector2(0.05f, 0.17f), new Vector2(0.95f, 0.26f), "연속 보상: 3일 옥루주 3 · 7일 인형설삼 · 14일 일급영단 · 30일 일급영단 2 + 두 20,000", 20, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.Label("Milestones", _root, new Vector2(0.05f, 0.17f), new Vector2(0.95f, 0.26f), "연속 보상: 3일 옥루주 3 · 7일 인형설삼 · 14일 일급영단 · 30일마다 일급영단 2 + 두 20,000", 20, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
             UiFactory.Label("Toast", _root, new Vector2(0.05f, 0.09f), new Vector2(0.95f, 0.17f), toast ?? "임무는 내일 0시에 새로 바뀐다 (기기 시간 기준)", 22, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
             UiFactory.Button("Close", _root, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _root.gameObject.SetActive(false); _onChange(); }, 36);
         }
@@ -66,7 +66,7 @@ namespace BiRyeoDo.Game.UI
         {
             var save = GameManager.Instance.Save;
             var notes = Daily.Claim(save, index);
-            if (notes.Count == 0) return;
+            if (notes.Count == 0) { Open(); return; }   // e.g. the day rolled over while the panel was open: redraw with the new missions
             GameManager.Instance.SaveNow();
             SoundManager.Sfx("levelup");
             Open(string.Join("\n", notes));
