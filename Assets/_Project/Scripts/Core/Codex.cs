@@ -57,7 +57,7 @@ namespace BiRyeoDo.Core
         }
     }
 
-    public enum AchMetric { StageCleared, TowerFloor, Level, SwordRank, EnemiesSeen, ItemsSeen, ArtsLearned, GachaPulls, BattleWins, QuestsDone, FortunesDone, TrustedBonds, LegendarySeen, TotalStars }
+    public enum AchMetric { StageCleared, TowerFloor, Level, SwordRank, EnemiesSeen, ItemsSeen, ArtsLearned, GachaPulls, BattleWins, QuestsDone, FortunesDone, TrustedBonds, LegendarySeen, TotalStars, FactionsRespected }
 
     public sealed class AchievementData
     {
@@ -117,6 +117,9 @@ namespace BiRyeoDo.Core
             A("stars_80", "별을 모으는 자", "별 80개 모으기", AchMetric.TotalStars, 80, 3500),
             A("stars_200", "별빛 가득", "별 200개 모으기", AchMetric.TotalStars, 200, 8000, "ilgeup_yeongdan"),
             A("stars_450", "만성(滿星)", "별 450개 모으기", AchMetric.TotalStars, 450, 20000, "ilgeup_yeongdan"),
+            A("respect_1", "이름이 알려지다", "세력 한 곳의 평판 존경", AchMetric.FactionsRespected, 1, 4000, "ginseng"),
+            A("respect_3", "강호의 벗", "세력 세 곳의 평판 존경", AchMetric.FactionsRespected, 3, 10000),
+            A("respect_all", "모두의 벗", "모든 세력의 평판 존경", AchMetric.FactionsRespected, -1, 25000, "ilgeup_yeongdan"),
             A("bond_1", "믿음직한 벗", "신뢰 이상의 동료 1명", AchMetric.TrustedBonds, 1, 1500),
             A("bond_4", "의기투합", "신뢰 이상의 동료 4명", AchMetric.TrustedBonds, 4, 6000),
         };
@@ -138,6 +141,7 @@ namespace BiRyeoDo.Core
                 case AchMetric.ArtsLearned: return Codex.HeroArts().Count;
                 case AchMetric.QuestsDone: return Quests.All.Length;
                 case AchMetric.FortunesDone: return Fortunes.All.Length;
+                case AchMetric.FactionsRespected: return Factions.All.Length;
             }
             return 1;
         }
@@ -157,6 +161,7 @@ namespace BiRyeoDo.Core
                 case AchMetric.QuestsDone: return save.DoneQuests.Count;
                 case AchMetric.FortunesDone: return save.DoneFortunes.Count;
                 case AchMetric.TotalStars: return StageStars.Total(save);
+                case AchMetric.FactionsRespected: return Factions.RespectedCount(save);
                 case AchMetric.LegendarySeen: return Codex.ItemsSeenOfGrade(save, ItemGrade.Legendary);
                 case AchMetric.ArtsLearned:
                     {

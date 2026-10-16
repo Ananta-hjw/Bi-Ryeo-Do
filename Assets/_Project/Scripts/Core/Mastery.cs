@@ -57,6 +57,16 @@ namespace BiRyeoDo.Core
         public static int Level(SaveData save, string artId) { return LevelOf(Uses(save, artId)); }
         public static ArtVariant VariantOf(SaveData save, string artId) { var e = Find(save, artId); return e != null ? (ArtVariant)e.Variant : ArtVariant.None; }
 
+        /// <summary>Free practice: counts <paramref name="uses"/> uses for every equipped art of the protagonist.</summary>
+        public static void Train(SaveData save, int uses)
+        {
+            foreach (var artId in save.EquippedArts)
+            {
+                var art = EarlyGameContent.FindArt(artId);
+                if (art != null && art.OwnerId == null) for (int i = 0; i < uses; i++) RecordUse(save, artId);
+            }
+        }
+
         /// <summary>Counts one use; returns the new mastery level when it just rose, otherwise -1.</summary>
         public static int RecordUse(SaveData save, string artId)
         {

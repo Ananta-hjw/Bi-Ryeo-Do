@@ -21,6 +21,8 @@ namespace BiRyeoDo.Game.UI
         private readonly List<Row> _rows = new List<Row>();
         private CodexPanel _codex;
         private StarPanel _stars;
+        private FactionPanel _factions;
+        private Text _factionRowDetail;
         private Text _starRowDetail, _starBadge, _starsTitle;
         private readonly Image[] _diffTabs = new Image[StageStars.DifficultyCount];
         private InnerArtPanel _inner;
@@ -124,6 +126,10 @@ namespace BiRyeoDo.Game.UI
             _innerRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "심법", () => _inner.Open(), out innerBadge);
             innerBadge.transform.parent.gameObject.SetActive(false);
             y += 150f + gap;
+            Text factionBadge;
+            _factionRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "세력과 객잔", () => _factions.Open(), out factionBadge);
+            factionBadge.transform.parent.gameObject.SetActive(false);
+            y += 150f + gap;
             _starRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "별 보상", () => _stars.Open(), out _starBadge);
             y += 150f + gap;
             Text towerBadge;
@@ -199,6 +205,7 @@ namespace BiRyeoDo.Game.UI
             var codexRoot = UiFactory.Rect("CodexOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
             var achRoot = UiFactory.Rect("AchievementOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
             _codex = new CodexPanel(codexRoot, achRoot, Refresh);
+            _factions = new FactionPanel(UiFactory.Rect("FactionOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
             _stars = new StarPanel(UiFactory.Rect("StarOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
             _inner = new InnerArtPanel(UiFactory.Rect("InnerArtOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
             Refresh();
@@ -790,6 +797,7 @@ namespace BiRyeoDo.Game.UI
             if (_codex != null) _codex.HideAll();
             if (_inner != null) _inner.Hide();
             if (_stars != null) _stars.Hide();
+            if (_factions != null) _factions.Hide();
         }
 
         private void OnStagePressed(StageData st, Action<StageData> onStart)
@@ -851,6 +859,9 @@ namespace BiRyeoDo.Game.UI
             _codexRowDetail.text = "적 " + save.SeenEnemies.Count + "/" + Codex.EnemyTotal + " · 물품 " + save.SeenItems.Count + "/" + Codex.ItemTotal;
             _achRowDetail.text = "달성 " + Achievements.ClaimedCount(save) + "/" + Achievements.All.Length;
             SetBadge(_achBadge, Achievements.ClaimableCount(save));
+            var factionNotes = new List<string>();
+            foreach (var fa in Factions.All) if (Factions.Tier(save, fa.Id) > 0) factionNotes.Add(fa.Name + " " + Factions.TierNames[Factions.Tier(save, fa.Id)]);
+            _factionRowDetail.text = factionNotes.Count > 0 ? "평판: " + string.Join(" · ", factionNotes) : "전투를 이기면 세력 평판이 쌓이고 객잔 선반이 열린다";
             _starRowDetail.text = "별 " + StageStars.Total(save) + " / " + StageStars.MaxStars + " · 받을 수 있는 보상 " + StageStars.ClaimableCount(save) + "개";
             SetBadge(_starBadge, StageStars.ClaimableCount(save));
             _starsTitle.text = "— 스테이지 —   ★ " + StageStars.Total(save);

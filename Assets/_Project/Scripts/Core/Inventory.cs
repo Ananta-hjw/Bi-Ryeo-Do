@@ -125,13 +125,13 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>Rolls the drop table for one beaten enemy.</summary>
-        public static List<ItemStack> RollDrops(string enemyId, IRandom rng)
+        public static List<ItemStack> RollDrops(string enemyId, IRandom rng, float chanceMultiplier = 1f)
         {
             var result = new List<ItemStack>();
             foreach (var d in EarlyGameContent.Drops)
             {
                 if (d.EnemyId != enemyId) continue;
-                if (rng.NextDouble() < d.Chance) result.Add(new ItemStack(d.ItemId, d.Count));
+                if (rng.NextDouble() < d.Chance * chanceMultiplier) result.Add(new ItemStack(d.ItemId, d.Count));
             }
             return result;
         }

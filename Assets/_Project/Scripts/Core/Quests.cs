@@ -45,6 +45,8 @@ namespace BiRyeoDo.Core
             return null;
         }
 
+        public const int QuestReputation = 3;   // reputation with each faction tied to the quest's stage
+
         public static bool IsDone(SaveData save, string id) { return save.DoneQuests.Contains(id); }
         public static bool IsUnlocked(SaveData save, QuestData q) { return save.ClearedStage >= q.RefStage; }
 
@@ -79,10 +81,15 @@ namespace BiRyeoDo.Core
         {
             if (!save.DoneQuests.Contains(q.Id)) save.DoneQuests.Add(q.Id);
             string note = "";
+            foreach (var f in Factions.ForStage(q.RefStage))
+            {
+                int rose = Factions.Gain(save, f.Id, QuestReputation);
+                note += (note.Length > 0 ? "\n" : "") + f.Name + " 평판 +" + QuestReputation + (rose >= 0 ? " (" + Factions.TierNames[rose] + "!)" : "");
+            }
             if (!string.IsNullOrEmpty(q.ItemId))
             {
                 var item = EarlyGameContent.FindItem(q.ItemId);
-                if (item != null) { Inventory.Add(save, q.ItemId, 1); note = "의뢰 보상: " + item.Name; }
+                if (item != null) { Inventory.Add(save, q.ItemId, 1); note += (note.Length > 0 ? "\n" : "") + "의뢰 보상: " + item.Name; }
             }
             return note;
         }

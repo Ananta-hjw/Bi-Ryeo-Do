@@ -158,7 +158,7 @@ namespace BiRyeoDo.Core
             if (c.BondPoints > 0 && companionIds != null)
                 foreach (var id in companionIds) Bonds.Add(save, id, c.BondPoints);
             if (c.MasteryUses > 0)
-                foreach (var artId in save.EquippedArts) { var art = EarlyGameContent.FindArt(artId); if (art != null && art.OwnerId == null) for (int i = 0; i < c.MasteryUses; i++) Mastery.RecordUse(save, artId); }
+                Mastery.Train(save, c.MasteryUses);
             return text;
         }
     }

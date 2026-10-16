@@ -334,8 +334,12 @@ namespace BiRyeoDo.Game.UI
 
                     // Every fight has its own stars: won, nobody fell, and fast enough.
                     _lastStarLine = "";
+                    string repLine = "";
                     if (!stage.IsQuest && !stage.IsTower)
                     {
+                        var rises = Factions.OnFightWon(save, stage.Number, diff);
+                        string gains = Factions.GainText(stage.Number, diff);
+                        if (gains.Length > 0) repLine = "평판 " + gains + (rises.Count > 0 ? "  (" + string.Join(", ", rises) + ")" : "");
                         int fightMask = StageStars.Evaluate(stage.Number, i, _fightActions, _fightFell);
                         int fightNew = StageStars.Record(save, stage.Number, i, diff, fightMask);
                         newStars += fightNew;
@@ -353,6 +357,11 @@ namespace BiRyeoDo.Game.UI
                     if (stage.IsQuest) exp = Quests.ExpReward(save);
                     if (stage.IsTower) { exp = towerFirst ? Tower.ExpReward(save, stage.TowerFloor) : 0; if (!towerFirst) doo = 0; }
                     if (diff > 0) { exp = (long)Math.Round(exp * StageStars.RewardFactor[diff]); doo = (long)Math.Round(doo * StageStars.RewardFactor[diff]); }
+                    if (!stage.IsTower)
+                    {
+                        exp = (long)Math.Round(exp * (1f + Factions.Bonus(save, PerkKind.ExpPct)));
+                        doo = (long)Math.Round(doo * (1f + Factions.Bonus(save, PerkKind.DooPct)));
+                    }
                     if (replay) exp = (long)Math.Round(exp * EarlyGameContent.ReplayExpFactor);
                     var drops = new List<ItemStack>();
                     if (!stage.IsQuest && !stage.IsTower) for (int roll = 0; roll < StageStars.DropRolls(diff); roll++) drops.AddRange(RollDrops(stage.Encounters[i]));
@@ -362,8 +371,8 @@ namespace BiRyeoDo.Game.UI
                     GameManager.Instance.SaveNow();
                     if (levels > 0) RebuildPartyForNewLevel(stage);
                     SoundManager.Sfx(levels > 0 ? "levelup" : "win");
-                    yield return Banner("승리!  경험 +" + exp + "  두 +" + doo + (drops.Count > 0 ? "\n획득: " + DescribeStacks(drops) : "") + (levels > 0 ? "\nLv." + save.Level + " 상승!" : "") + (_lastStarLine.Length > 0 ? "\n" + _lastStarLine : ""), levels > 0 || drops.Count > 0 || _lastStarLine.Length > 0 ? 1.6f : 0.9f);
-                    foreach (var m in _party) m.RestBetweenFights(0.5f);
+                    yield return Banner("승리!  경험 +" + exp + "  두 +" + doo + (drops.Count > 0 ? "\n획득: " + DescribeStacks(drops) : "") + (levels > 0 ? "\nLv." + save.Level + " 상승!" : "") + (_lastStarLine.Length > 0 ? "\n" + _lastStarLine : "") + (repLine.Length > 0 ? "\n" + repLine : ""), levels > 0 || drops.Count > 0 || _lastStarLine.Length > 0 ? 1.7f : 0.9f);
+                    foreach (var m in _party) m.RestBetweenFights(0.5f + Factions.Bonus(save, PerkKind.RestHeal));
                     RefreshParty();
 
                     // Between fights the player decides when to go on (the next fight may be the boss).
@@ -529,7 +538,7 @@ namespace BiRyeoDo.Game.UI
             var rng = new SeededRandom(Environment.TickCount);
             var all = new List<ItemStack>();
             foreach (var id in enemyIds)
-                foreach (var stack in Inventory.RollDrops(id, rng))
+                foreach (var stack in Inventory.RollDrops(id, rng, 1f + Factions.Bonus(save, PerkKind.DropPct)))
                 {
                     Inventory.Add(save, stack.Id, stack.Count);
                     all.Add(stack);
@@ -1019,6 +1028,7 @@ namespace BiRyeoDo.Game.UI
             var companion = EarlyGameContent.FindCompanion(partner.Id);
             var spec = Bonds.JointSpec(companion, Bonds.Level(GameManager.Instance.Save, partner.Id), Bonds.ReferencePower(_battle.Player.Skills));
             if (spec == null || !_battle.CanJoint(partner)) return;
+            spec.Power *= 1f + Factions.Bonus(GameManager.Instance.Save, PerkKind.JointPower);
             _jointName = spec.Name;
             _command = PlayerCommand.Joint(spec, partner, target);
             _hasCommand = true;

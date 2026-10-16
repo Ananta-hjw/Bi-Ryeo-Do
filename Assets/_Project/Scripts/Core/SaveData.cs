@@ -42,6 +42,8 @@ namespace BiRyeoDo.Core
         public List<int> ClaimedStarChests = new List<int>();       // star milestones already collected
         public int Difficulty;                                      // difficulty picked for the stage list (0-2)
         public int ProgressDifficulty;                              // difficulty of the resume point (see StageProgress)
+        public List<ReputationEntry> Reputation = new List<ReputationEntry>();   // 세력 평판 points (additive field)
+        public List<ShopPurchase> ShopBought = new List<ShopPurchase>();          // limited 객잔 goods already bought
         public int SwordRank;           // 검룡위 (1-10), see Promotion; 0 in older saves counts as 1
 
         public List<string> LearnedArts = new List<string>();
