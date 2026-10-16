@@ -22,6 +22,8 @@ namespace BiRyeoDo.Game.UI
         private CodexPanel _codex;
         private StarPanel _stars;
         private FactionPanel _factions;
+        private CompanionPanel _training;
+        private Text _trainingRowDetail;
         private Text _factionRowDetail;
         private Text _starRowDetail, _starBadge, _starsTitle;
         private readonly Image[] _diffTabs = new Image[StageStars.DifficultyCount];
@@ -126,6 +128,10 @@ namespace BiRyeoDo.Game.UI
             _innerRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "심법", () => _inner.Open(), out innerBadge);
             innerBadge.transform.parent.gameObject.SetActive(false);
             y += 150f + gap;
+            Text trainingBadge;
+            _trainingRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "동료 수련", () => _training.Open(), out trainingBadge);
+            trainingBadge.transform.parent.gameObject.SetActive(false);
+            y += 150f + gap;
             Text factionBadge;
             _factionRowDetail = Tile(content, 0.04f, 0.96f, y, 150f, "세력과 객잔", () => _factions.Open(), out factionBadge);
             factionBadge.transform.parent.gameObject.SetActive(false);
@@ -205,6 +211,7 @@ namespace BiRyeoDo.Game.UI
             var codexRoot = UiFactory.Rect("CodexOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
             var achRoot = UiFactory.Rect("AchievementOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
             _codex = new CodexPanel(codexRoot, achRoot, Refresh);
+            _training = new CompanionPanel(UiFactory.Rect("TrainingOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
             _factions = new FactionPanel(UiFactory.Rect("FactionOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
             _stars = new StarPanel(UiFactory.Rect("StarOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
             _inner = new InnerArtPanel(UiFactory.Rect("InnerArtOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
@@ -452,7 +459,7 @@ namespace BiRyeoDo.Game.UI
                 gy -= 0.038f;
                 foreach (var c in party)
                 {
-                    var l = StatusSheet.Ally(c, save.Level, Bonds.Level(save, c.Id));
+                    var l = StatusSheet.Ally(c, save.Level, Bonds.Level(save, c.Id), CompanionTraining.LevelOf(save, c.Id));
                     UiFactory.Label("Ally_" + c.Id, _statusOverlay, new Vector2(0.06f, gy - 0.033f), new Vector2(0.94f, gy),
                         c.Name + "   체력 " + l[0].Value + "  내공 " + l[1].Value + "  공격 " + l[2].Value + "  방어 " + l[3].Value, 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
                     gy -= 0.033f;
@@ -798,6 +805,7 @@ namespace BiRyeoDo.Game.UI
             if (_inner != null) _inner.Hide();
             if (_stars != null) _stars.Hide();
             if (_factions != null) _factions.Hide();
+            if (_training != null) _training.Hide();
         }
 
         private void OnStagePressed(StageData st, Action<StageData> onStart)
@@ -859,6 +867,8 @@ namespace BiRyeoDo.Game.UI
             _codexRowDetail.text = "적 " + save.SeenEnemies.Count + "/" + Codex.EnemyTotal + " · 물품 " + save.SeenItems.Count + "/" + Codex.ItemTotal;
             _achRowDetail.text = "달성 " + Achievements.ClaimedCount(save) + "/" + Achievements.All.Length;
             SetBadge(_achBadge, Achievements.ClaimableCount(save));
+            var joined = EarlyGameContent.CompanionsFor(Math.Max(1, save.HighestUnlockedStage));
+            _trainingRowDetail.text = joined.Count == 0 ? "동료가 합류하면 두로 수련시킬 수 있다" : "수련 합계 Lv." + CompanionTraining.TotalLevels(save) + " · 동료 " + joined.Count + "명";
             var factionNotes = new List<string>();
             foreach (var fa in Factions.All) if (Factions.Tier(save, fa.Id) > 0) factionNotes.Add(fa.Name + " " + Factions.TierNames[Factions.Tier(save, fa.Id)]);
             _factionRowDetail.text = factionNotes.Count > 0 ? "평판: " + string.Join(" · ", factionNotes) : "전투를 이기면 세력 평판이 쌓이고 객잔 선반이 열린다";

@@ -707,7 +707,7 @@ namespace BiRyeoDo.Game.UI
             foreach (var c in EarlyGameContent.SelectCompanionsFor(stage.Number, save))
             {
                 int bondLevel = Bonds.Level(save, c.Id);
-                party.Add(c.CreateCombatant(save.Level, bondLevel));
+                party.Add(c.CreateCombatant(save.Level, bondLevel, CompanionTraining.LevelOf(save, c.Id)));
                 if (bondLevel >= Bonds.RescueLevel && string.IsNullOrEmpty(hero.RescuerId)) hero.RescuerId = c.Id;
             }
             return party;

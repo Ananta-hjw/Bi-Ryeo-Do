@@ -44,6 +44,7 @@ namespace BiRyeoDo.Core
         public int ProgressDifficulty;                              // difficulty of the resume point (see StageProgress)
         public List<ReputationEntry> Reputation = new List<ReputationEntry>();   // 세력 평판 points (additive field)
         public List<ShopPurchase> ShopBought = new List<ShopPurchase>();          // limited 객잔 goods already bought
+        public List<TrainingEntry> CompanionTraining = new List<TrainingEntry>();   // 동료 수련 levels (additive field)
         public int SwordRank;           // 검룡위 (1-10), see Promotion; 0 in older saves counts as 1
 
         public List<string> LearnedArts = new List<string>();

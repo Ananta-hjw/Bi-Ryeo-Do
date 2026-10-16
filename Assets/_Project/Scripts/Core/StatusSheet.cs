@@ -37,9 +37,9 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>A companion's stats at the current level (companions do not wear gear).</summary>
-        public static List<StatLine> Ally(CompanionData c, int level, int bondLevel = 0)
+        public static List<StatLine> Ally(CompanionData c, int level, int bondLevel = 0, int trainLevel = 0)
         {
-            var s = c.CreateCombatant(level, bondLevel).Stats;
+            var s = c.CreateCombatant(level, bondLevel, trainLevel).Stats;
             return new List<StatLine>
             {
                 new StatLine { Label = "체력", Value = s.MaxHp.ToString("N0"), Bonus = "" },
