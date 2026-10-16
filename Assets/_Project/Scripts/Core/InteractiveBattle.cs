@@ -125,9 +125,20 @@ namespace BiRyeoDo.Core
         /// <summary>Runs enemy turns until a party member may act. Call once at the start of the fight.</summary>
         public List<BattleEvent> Begin()
         {
+            _partyGuardOwner = null;
             foreach (var m in _party) m.RescueUsed = false;
             foreach (var m in _party) if (m.Spirit < m.StartSpirit) m.Spirit = m.StartSpirit;
             return RunUntilParty();
+        }
+
+        // 태을천강벽 style guards cover the whole party until the caster acts again. A per-unit flag was cleared when each member
+        // acted, so allies who moved before the next enemy attack silently lost it.
+        private Combatant _partyGuardOwner;
+
+        public bool IsGuarded(Combatant unit)
+        {
+            if (unit.Guarding) return true;
+            return _partyGuardOwner != null && _partyGuardOwner.IsAlive && unit.IsAlive && _party.Contains(unit);
         }
 
         public bool CanUse(SkillSpec skill) { return IsPlayerTurn && Current.CanUse(skill); }
@@ -232,7 +243,7 @@ namespace BiRyeoDo.Core
                     events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = skill.Id, Kind = EventKind.Evade, TargetHpAfter = actor.Hp, Message = actor.Name + "의 " + skill.Name + "!" });
                     return;
                 case SkillEffect.GuardParty:
-                    foreach (var m in _party) if (m.IsAlive) m.Guarding = true;
+                    _partyGuardOwner = actor;
                     events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = skill.Id, Kind = EventKind.Guard, TargetHpAfter = actor.Hp, Message = actor.Name + "의 " + skill.Name + "! 모두가 방어 태세." });
                     return;
                 case SkillEffect.HealAlly:
@@ -309,7 +320,7 @@ namespace BiRyeoDo.Core
             switch (spec.Effect)
             {
                 case SkillEffect.GuardParty:
-                    foreach (var m in _party) if (m.IsAlive) m.Guarding = true;
+                    _partyGuardOwner = partner;
                     events.Add(new BattleEvent { Turn = Turn, ActorId = partner.Id, TargetId = partner.Id, SkillId = spec.Id, Kind = EventKind.Guard, Joint = true, TargetHpAfter = partner.Hp, Message = spec.Name + "! \ubaa8\ub450\uac00 \ubc29\uc5b4 \ud0dc\uc138." });
                     break;
                 case SkillEffect.HealAlly:
@@ -361,6 +372,7 @@ namespace BiRyeoDo.Core
                 Turn++;
                 actor.Guarding = false;
                 actor.Evading = false;
+                if (actor == _partyGuardOwner) _partyGuardOwner = null;   // a party-wide guard lasts until its caster's next turn
 
                 if (actor.Team == Team.Player)
                 {
@@ -436,7 +448,7 @@ namespace BiRyeoDo.Core
                 {
                     ev.IsCrit = _rng.NextDouble() < enemy.Stats.CritRate;
                     int dmg = BattleEngine.CalcDamage(enemy.Stats, target.Stats, spec, ev.IsCrit);
-                    if (target.Guarding) { dmg = Math.Max(1, (int)Math.Round(dmg * GuardDamageFactor)); ev.Guarded = true; }
+                    if (IsGuarded(target)) { dmg = Math.Max(1, (int)Math.Round(dmg * GuardDamageFactor)); ev.Guarded = true; }
                     target.Hp = Math.Max(0, target.Hp - dmg);
                     if (target.Hp == 0) TryRescue(target, ev);
                     ev.Damage = dmg;

@@ -904,7 +904,7 @@ namespace BiRyeoDo.Game.UI
                 p.HpText.text = u.Hp + "/" + u.Stats.MaxHp;
                 p.QiText.text = u.Qi + "/" + u.Stats.MaxQi;
                 p.SpiritText.text = u.Spirit + "/" + InteractiveBattle.MaxSpirit;
-                p.Status.text = !u.IsAlive ? "쓰러짐" : u.Guarding ? "방어" : u.Evading ? "회피" : "";
+                p.Status.text = !u.IsAlive ? "쓰러짐" : _battle != null && _battle.IsGuarded(u) ? "방어" : u.Evading ? "회피" : "";
                 p.Name.color = u.IsAlive ? UiFactory.Gold : new Color(0.5f, 0.5f, 0.5f, 1f);
                 bool current = _battle != null && _battle.Current == u && _battle.IsPlayerTurn;
                 p.Frame.color = current ? UiFactory.Gold : new Color(0f, 0f, 0f, 0f);
@@ -1319,7 +1319,7 @@ namespace BiRyeoDo.Game.UI
                     case EventKind.Guard:
                         SoundManager.Sfx("guard");
                         _log.text = ev.Message;
-                        foreach (var p in _panels) if (p.Unit.Guarding) Float(p.Center, "방어!", GuardBlue, 52);
+                        foreach (var p in _panels) if (_battle.IsGuarded(p.Unit)) Float(p.Center, "방어!", GuardBlue, 52);
                         RefreshParty();
                         yield return new WaitForSeconds(Wait(SmallDelay));
                         break;
