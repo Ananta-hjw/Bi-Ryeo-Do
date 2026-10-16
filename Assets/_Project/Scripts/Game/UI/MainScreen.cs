@@ -14,6 +14,7 @@ namespace BiRyeoDo.Game.UI
     public class MainScreen : MonoBehaviour
     {
         private static readonly string[] TabNames = { "강호", "무공", "행낭", "뽑기", "기록" };
+        private static readonly string[] TabIconKeys = { "tab_world", "tab_arts", "tab_bag", "tab_gacha", "tab_record" };
         private const float TabBarHeight = 170f;
 
         private TabRouter _router;
@@ -130,6 +131,18 @@ namespace BiRyeoDo.Game.UI
                 var btn = UiFactory.Button("Tab_" + TabNames[i], bar, new Vector2(i * w + 0.005f, 0.08f), new Vector2((i + 1) * w - 0.005f, 0.92f),
                     TabNames[i], new Color(0f, 0f, 0f, 0f), () => Select(index), 44);
                 _tabButtons[i] = btn.GetComponent<Image>();
+                var icon = ArtLibrary.Icon(TabIconKeys[i]);
+                if (icon != null)
+                {
+                    // With a picture: the image on top, a small caption below (the text label is moved down and shrunk).
+                    var label = btn.GetComponentInChildren<Text>();
+                    var lrt = label.rectTransform;
+                    lrt.anchorMin = new Vector2(0.02f, 0.02f); lrt.anchorMax = new Vector2(0.98f, 0.34f);
+                    label.resizeTextMaxSize = 26;
+                    var pic = UiFactory.Panel("TabIcon", btn.transform, new Vector2(0.18f, 0.34f), new Vector2(0.82f, 0.96f), Color.white);
+                    pic.sprite = icon;
+                    pic.preserveAspect = true;
+                }
             }
         }
 

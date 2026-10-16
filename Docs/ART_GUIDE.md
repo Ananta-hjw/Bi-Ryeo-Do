@@ -186,3 +186,15 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 | `stage.png` | 스테이지 출전 |
 | `promotion.png` | 승급 시험장 |
 | `party.png` | 파티 편성 |
+
+## 하단 탭 바 아이콘
+
+같은 `Resources/Art/Icons/` 폴더에 아래 이름으로 넣으면 탭 버튼에 그림이 나오고 글자는 아래에 작게 붙는다. 없는 탭은 글자 그대로다. 투명 배경 PNG, 정사각형 256x256 권장.
+
+| 파일 이름 | 탭 |
+|---|---|
+| `tab_world.png` | 강호 |
+| `tab_arts.png` | 무공 |
+| `tab_bag.png` | 행낭 |
+| `tab_gacha.png` | 뽑기 |
+| `tab_record.png` | 기록 |
