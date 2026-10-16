@@ -43,7 +43,7 @@ namespace BiRyeoDo.Tests
                     case ItemKind.Weapon:
                     case ItemKind.Armor:
                     case ItemKind.Accessory: Assert.IsTrue(i.AtkPct != 0 || i.DefPct != 0 || i.HpPct != 0 || i.QiPct != 0 || i.CritAdd != 0 || i.SpeedAdd != 0, i.Id); break;
-                    case ItemKind.Material: Assert.Greater(i.SellValue, 0, i.Id); break;
+                    case ItemKind.Material: if (i.Id != InnerArts.StoneId) Assert.Greater(i.SellValue, 0, i.Id); break;   // 심득석 is deliberately unsellable
                 }
                 Assert.IsFalse(string.IsNullOrEmpty(i.Description), i.Id);
             }

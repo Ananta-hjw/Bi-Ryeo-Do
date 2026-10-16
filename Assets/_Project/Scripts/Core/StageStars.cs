@@ -17,6 +17,7 @@ namespace BiRyeoDo.Core
         public long Doo;
         public string ItemId;
         public int ItemCount = 1;
+        public int Insight;   // 심득석
     }
 
     /// <summary>
@@ -190,6 +191,23 @@ namespace BiRyeoDo.Core
             return Count(e.Mask) - before;
         }
 
+        /// <summary>심득석 for the first clear of a stage: 어려움 1, 극악 2 (+1 more on every 10th stage), 일반 only on every 5th stage.</summary>
+        public static int ClearInsight(int stage, int difficulty)
+        {
+            int n = difficulty <= 0 ? (stage % 5 == 0 ? 1 : 0) : difficulty;
+            if (difficulty >= 1 && stage % 10 == 0) n++;
+            return n;
+        }
+
+        /// <summary>Pays the first-clear 심득석 (call after recording the last fight); returns the amount, 0 if the stage was already cleared before.</summary>
+        public static int GrantClearInsight(SaveData save, int stage, int difficulty, bool wasCleared)
+        {
+            if (wasCleared || !StageCleared(save, stage, difficulty)) return 0;
+            int n = ClearInsight(stage, difficulty);
+            if (n > 0) Inventory.Add(save, InnerArts.StoneId, n);
+            return n;
+        }
+
         /// <summary>Older saves have cleared stages but no star records: count every fight of a cleared stage as won on 일반.</summary>
         public static void Sync(SaveData save)
         {
@@ -205,15 +223,15 @@ namespace BiRyeoDo.Core
 
         public static readonly StarChest[] Chests =
         {
-            new StarChest { Stars = 15, Doo = 3000 },
-            new StarChest { Stars = 40, Doo = 6000, ItemId = "ginseng" },
-            new StarChest { Stars = 80, Doo = 10000, ItemId = "ginseng", ItemCount = 2 },
-            new StarChest { Stars = 130, Doo = 16000, ItemId = "ilgeup_yeongdan" },
-            new StarChest { Stars = 200, Doo = 25000, ItemId = "ilgeup_yeongdan" },
-            new StarChest { Stars = 300, Doo = 40000, ItemId = "ilgeup_yeongdan", ItemCount = 2 },
-            new StarChest { Stars = 420, Doo = 60000, ItemId = "ilgeup_yeongdan", ItemCount = 3 },
-            new StarChest { Stars = 560, Doo = 80000, ItemId = "ilgeup_yeongdan", ItemCount = 3 },
-            new StarChest { Stars = 700, Doo = 120000, ItemId = "ilgeup_yeongdan", ItemCount = 5 },
+            new StarChest { Stars = 15, Doo = 3000, Insight = 1 },
+            new StarChest { Stars = 40, Doo = 6000, ItemId = "ginseng", Insight = 2 },
+            new StarChest { Stars = 80, Doo = 10000, ItemId = "ginseng", ItemCount = 2, Insight = 2 },
+            new StarChest { Stars = 130, Doo = 16000, ItemId = "ilgeup_yeongdan", Insight = 3 },
+            new StarChest { Stars = 200, Doo = 25000, ItemId = "ilgeup_yeongdan", Insight = 3 },
+            new StarChest { Stars = 300, Doo = 40000, ItemId = "ilgeup_yeongdan", ItemCount = 2, Insight = 4 },
+            new StarChest { Stars = 420, Doo = 60000, ItemId = "ilgeup_yeongdan", ItemCount = 3, Insight = 4 },
+            new StarChest { Stars = 560, Doo = 80000, ItemId = "ilgeup_yeongdan", ItemCount = 3, Insight = 5 },
+            new StarChest { Stars = 700, Doo = 120000, ItemId = "ilgeup_yeongdan", ItemCount = 5, Insight = 6 },
         };
 
         public static int MaxStars
@@ -244,13 +262,14 @@ namespace BiRyeoDo.Core
             string text = "별 " + c.Stars + "개 보상: 두 +" + c.Doo.ToString("N0");
             var item = string.IsNullOrEmpty(c.ItemId) ? null : EarlyGameContent.FindItem(c.ItemId);
             if (item != null) { Inventory.Add(save, c.ItemId, c.ItemCount); text += ", " + item.Name + (c.ItemCount > 1 ? " x" + c.ItemCount : ""); }
+            if (c.Insight > 0) { Inventory.Add(save, InnerArts.StoneId, c.Insight); text += ", 심득석 x" + c.Insight; }
             return text;
         }
 
         /// <summary>Opens every chest that is ready; returns a one-line note, or null when nothing was ready.</summary>
         public static string ClaimAll(SaveData save)
         {
-            long doo = 0; int n = 0;
+            long doo = 0; int n = 0, insight = 0;
             var items = new List<string>();
             foreach (var c in Chests)
             {
@@ -258,6 +277,7 @@ namespace BiRyeoDo.Core
                 save.ClaimedStarChests.Add(c.Stars);
                 save.Doo += c.Doo;
                 doo += c.Doo; n++;
+                if (c.Insight > 0) { Inventory.Add(save, InnerArts.StoneId, c.Insight); insight += c.Insight; }
                 if (!string.IsNullOrEmpty(c.ItemId))
                 {
                     var item = EarlyGameContent.FindItem(c.ItemId);
@@ -265,7 +285,7 @@ namespace BiRyeoDo.Core
                 }
             }
             if (n == 0) return null;
-            return "별 보상 " + n + "개: 두 +" + doo.ToString("N0") + (items.Count > 0 ? ", " + string.Join(", ", items) : "");
+            return "별 보상 " + n + "개: 두 +" + doo.ToString("N0") + (items.Count > 0 ? ", " + string.Join(", ", items) : "") + (insight > 0 ? ", 심득석 x" + insight : "");
         }
 
         /// <summary>Extra drop rolls on harder difficulties (1 + difficulty rolls per fight).</summary>

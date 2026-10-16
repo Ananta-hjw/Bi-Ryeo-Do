@@ -44,6 +44,50 @@ namespace BiRyeoDo.Core
             new InnerArt { Id = "supreme", Name = "무극대성", UnlockStage = 30, UnlockDiff = 1, LearnCost = 90000, Description = "모든 심법의 끝. 어느 한 곳도 잃지 않고 모든 면이 오른다.", HpPct = 0.15f, QiPct = 0.15f, AtkPct = 0.15f, DefPct = 0.15f, CritAdd = 0.06f, SpeedAdd = 4, QiRegen = 4, Lifesteal = 0.05f, StartSpirit = 20 },
         };
 
+        // ------------------------------------------------------------------ 강화 (심득석)
+
+        public const string StoneId = "insight_stone";
+        public const int MaxLevel = 5;
+        public const float PerLevel = 0.10f;
+        private static readonly int[] StoneCost = { 1, 2, 3, 5, 8 };   // stones for the step to level 1..5
+
+        public static int Level(SaveData save, string id) { return Gear.LevelOf(save.InnerLevels, id); }
+
+        /// <summary>Gains grow and losses shrink with the level (+10% / -10% per level, so a maxed 심법 has +50% gains and half its drawbacks).</summary>
+        public static float Scale(float v, int level)
+        {
+            level = Math.Max(0, Math.Min(MaxLevel, level));
+            return v >= 0f ? v * (1f + PerLevel * level) : v * (1f - PerLevel * level);
+        }
+
+        private static int ScaleInt(int v, int level) { return (int)Math.Round(Scale(v, level)); }
+
+        public static int Stones(SaveData save) { return Inventory.Count(save, StoneId); }
+
+        /// <summary>Stones for the next step, or -1 at the top level.</summary>
+        public static int NextCost(SaveData save, string id)
+        {
+            int next = Level(save, id) + 1;
+            return next > MaxLevel ? -1 : StoneCost[next - 1];
+        }
+
+        public static bool Enhance(SaveData save, string id, out string error)
+        {
+            error = null;
+            var a = Find(id);
+            if (a == null) { error = "알 수 없는 심법입니다."; return false; }
+            if (!IsLearned(save, id)) { error = "먼저 익혀야 합니다."; return false; }
+            int cost = NextCost(save, id);
+            if (cost < 0) { error = "이미 최대로 강화했습니다."; return false; }
+            if (Stones(save) < cost) { error = "심득석이 모자랍니다. (" + cost + "개 필요)"; return false; }
+            Inventory.Remove(save, StoneId, cost);
+            GearLevel entry = null;
+            foreach (var l in save.InnerLevels) if (l.Id == id) entry = l;
+            if (entry == null) { entry = new GearLevel { Id = id }; save.InnerLevels.Add(entry); }
+            entry.Level++;
+            return true;
+        }
+
         public static InnerArt Find(string id)
         {
             foreach (var a in All) if (a.Id == id) return a;
@@ -85,7 +129,7 @@ namespace BiRyeoDo.Core
         public static void Unequip(SaveData save, string id) { save.EquippedInner.Remove(id); }
 
         /// <summary>Applies the stat part of the equipped methods (after gear).</summary>
-        public static CombatStats Apply(CombatStats stats, IEnumerable<string> equipped)
+        public static CombatStats Apply(CombatStats stats, IEnumerable<string> equipped, IList<GearLevel> levels = null)
         {
             float hp = 0f, qi = 0f, atk = 0f, def = 0f, crit = 0f, critDmg = 0f;
             int speed = 0;
@@ -93,7 +137,9 @@ namespace BiRyeoDo.Core
             {
                 var a = Find(id);
                 if (a == null) continue;
-                hp += a.HpPct; qi += a.QiPct; atk += a.AtkPct; def += a.DefPct; crit += a.CritAdd; critDmg += a.CritDmgAdd; speed += a.SpeedAdd;
+                int lv = Gear.LevelOf(levels, id);
+                hp += Scale(a.HpPct, lv); qi += Scale(a.QiPct, lv); atk += Scale(a.AtkPct, lv); def += Scale(a.DefPct, lv);
+                crit += Scale(a.CritAdd, lv); critDmg += Scale(a.CritDmgAdd, lv); speed += ScaleInt(a.SpeedAdd, lv);
             }
             stats.MaxHp = Math.Max(1, (int)Math.Round(stats.MaxHp * (1f + hp)));
             stats.MaxQi = Math.Max(0, (int)Math.Round(stats.MaxQi * (1f + qi)));
@@ -106,26 +152,29 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>Applies the in-fight part (내공 regen, 기세, life steal) to the protagonist's combatant.</summary>
-        public static void ApplyPerks(Combatant hero, IEnumerable<string> equipped)
+        public static void ApplyPerks(Combatant hero, IEnumerable<string> equipped, IList<GearLevel> levels = null)
         {
             foreach (var id in equipped)
             {
                 var a = Find(id);
                 if (a == null) continue;
-                hero.QiRegenBonus += a.QiRegen; hero.SpiritDealtBonus += a.SpiritDealt; hero.SpiritTakenBonus += a.SpiritTaken;
-                hero.StartSpirit += a.StartSpirit; hero.Lifesteal += a.Lifesteal;
+                int lv = Gear.LevelOf(levels, id);
+                hero.QiRegenBonus += ScaleInt(a.QiRegen, lv); hero.SpiritDealtBonus += ScaleInt(a.SpiritDealt, lv); hero.SpiritTakenBonus += ScaleInt(a.SpiritTaken, lv);
+                hero.StartSpirit += ScaleInt(a.StartSpirit, lv); hero.Lifesteal += Scale(a.Lifesteal, lv);
             }
         }
 
         /// <summary>The protagonist's stats with gear and 심법 applied (what battles and the 상태창 use).</summary>
         public static CombatStats HeroStats(SaveData save)
         {
-            return Apply(Promotion.ApplyRankBonus(Inventory.ApplyGear(Progression.HeroStatsFor(save.Level), save.EquippedGear, save.GearLevels), Promotion.EffectiveRank(save)), save.EquippedInner);
+            return Apply(Promotion.ApplyRankBonus(Inventory.ApplyGear(Progression.HeroStatsFor(save.Level), save.EquippedGear, save.GearLevels), Promotion.EffectiveRank(save)), save.EquippedInner, save.InnerLevels);
         }
 
         /// <summary>"체력 +10%  방어 +4%  내공 회복 +2"</summary>
-        public static string EffectText(InnerArt a)
+        public static string EffectText(InnerArt a, int level = 0)
         {
+            var b = a;
+            a = Scaled(b, level);
             var p = new List<string>();
             if (a.HpPct != 0f) p.Add("체력 " + Pct(a.HpPct));
             if (a.QiPct != 0f) p.Add("내공 " + Pct(a.QiPct));
@@ -142,6 +191,20 @@ namespace BiRyeoDo.Core
             return string.Join("  ", p);
         }
 
-        private static string Pct(float v) { return (v > 0 ? "+" : "") + Math.Round(v * 100f) + "%"; }
+        /// <summary>A copy of the 심법 with its numbers scaled to the level (for display).</summary>
+        public static InnerArt Scaled(InnerArt a, int level)
+        {
+            if (level <= 0) return a;
+            return new InnerArt
+            {
+                Id = a.Id, Name = a.Name, Description = a.Description, UnlockStage = a.UnlockStage, UnlockDiff = a.UnlockDiff, LearnCost = a.LearnCost,
+                HpPct = Scale(a.HpPct, level), QiPct = Scale(a.QiPct, level), AtkPct = Scale(a.AtkPct, level), DefPct = Scale(a.DefPct, level),
+                CritAdd = Scale(a.CritAdd, level), CritDmgAdd = Scale(a.CritDmgAdd, level), Lifesteal = Scale(a.Lifesteal, level),
+                SpeedAdd = ScaleInt(a.SpeedAdd, level), QiRegen = ScaleInt(a.QiRegen, level), SpiritDealt = ScaleInt(a.SpiritDealt, level),
+                SpiritTaken = ScaleInt(a.SpiritTaken, level), StartSpirit = ScaleInt(a.StartSpirit, level)
+            };
+        }
+
+        private static string Pct(float v) { return (v > 0 ? "+" : "") + Math.Round(v * 1000f) / 10f + "%"; }
     }
 }

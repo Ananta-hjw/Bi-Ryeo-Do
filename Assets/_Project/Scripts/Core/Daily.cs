@@ -176,13 +176,14 @@ namespace BiRyeoDo.Core
                 long bonus = AllClearDoo(save);
                 save.Doo += bonus;
                 Inventory.Add(save, "bear_gall", 2);
+                Inventory.Add(save, InnerArts.StoneId, 1);
                 // Streak: yesterday's all-clear continues it, otherwise it starts again at 1.
                 int today = Today();
                 bool continues = save.DailyLastClear != 0 && DayNumber(today) - DayNumber(save.DailyLastClear) == 1;
                 save.DailyStreak = continues ? save.DailyStreak + 1 : 1;
                 save.DailyLastClear = today;
                 save.DailyBest = Math.Max(save.DailyBest, save.DailyStreak);
-                notes.Add("세 임무 완수! 두 +" + bonus.ToString("N0") + ", 웅담 x2 · 연속 수련 " + save.DailyStreak + "일");
+                notes.Add("세 임무 완수! 두 +" + bonus.ToString("N0") + ", 웅담 x2, 심득석 x1 · 연속 수련 " + save.DailyStreak + "일");
                 string reward = StreakReward(save);
                 if (reward != null) notes.Add(reward);
             }
@@ -197,8 +198,8 @@ namespace BiRyeoDo.Core
             {
                 case 3: Inventory.Add(save, "okruju", 3); return "연속 3일 보상: 옥루주 x3";
                 case 7: Inventory.Add(save, "ginseng", 1); return "연속 7일 보상: 인형설삼";
-                case 14: Inventory.Add(save, "ilgeup_yeongdan", 1); return "연속 14일 보상: 일급영단";
-                case 30: Inventory.Add(save, "ilgeup_yeongdan", 2); save.Doo += 20000; return "연속 30일 보상: 일급영단 x2, 두 +20,000";
+                case 14: Inventory.Add(save, "ilgeup_yeongdan", 1); Inventory.Add(save, InnerArts.StoneId, 2); return "연속 14일 보상: 일급영단, 심득석 x2";
+                case 30: Inventory.Add(save, "ilgeup_yeongdan", 2); save.Doo += 20000; Inventory.Add(save, InnerArts.StoneId, 4); return "연속 30일 보상: 일급영단 x2, 심득석 x4, 두 +20,000";
             }
             return null;
         }

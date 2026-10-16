@@ -345,7 +345,10 @@ namespace BiRyeoDo.Game.UI
                             if (gains.Length > 0) repLine = "평판 " + gains + (rises.Count > 0 ? "  (" + string.Join(", ", rises) + ")" : "");
                         }
                         int fightMask = StageStars.Evaluate(stage.Number, i, _fightActions, _fightFell, diff);
+                        bool stageWasCleared = StageStars.StageCleared(save, stage.Number, diff);
                         int fightNew = StageStars.Record(save, stage.Number, i, diff, fightMask);
+                        int stones = StageStars.GrantClearInsight(save, stage.Number, diff, stageWasCleared);
+                        if (stones > 0) repLine += (repLine.Length > 0 ? "\n" : "") + "심득석 +" + stones;
                         newStars += fightNew;
                         _lastStarLine = FightStarLine(stage.Number, i, diff, fightMask, _fightActions, fightNew);
                     }
@@ -745,7 +748,7 @@ namespace BiRyeoDo.Game.UI
             }
             var stats = InnerArts.HeroStats(save);
             var hero = new Combatant("player", "비류연", Team.Player, stats, skills);
-            InnerArts.ApplyPerks(hero, save.EquippedInner);
+            InnerArts.ApplyPerks(hero, save.EquippedInner, save.InnerLevels);
             var party = new List<Combatant> { hero };
             foreach (var c in EarlyGameContent.SelectCompanionsFor(stage.Number, save))
             {
