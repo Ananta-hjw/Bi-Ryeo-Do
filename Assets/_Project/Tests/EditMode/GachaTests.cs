@@ -11,13 +11,13 @@ namespace BiRyeoDo.Tests
         {
             CollectionAssert.AreEqual(new[] { 0.62, 0.20, 0.10, 0.05, 0.025, 0.005 }, Grades.Rates);
             Assert.AreEqual(1.0, Grades.Rates.Sum(), 1e-9);
-            CollectionAssert.AreEqual(new[] { "일반", "고급", "희귀", "영웅", "전설", "신화" }, Grades.Names);
+            CollectionAssert.AreEqual(new[] { "일반", "고급", "희귀", "영웅", "전설", "신화", "초월" }, Grades.Names);
         }
 
         [Test]
         public void EveryGradeHasPlentyOfItems()
         {
-            for (int g = 0; g < Grades.Names.Length; g++)
+            for (int g = 0; g < Grades.Rates.Length; g++)
                 Assert.GreaterOrEqual(Gacha.Pool((ItemGrade)g).Count, g >= 5 ? 5 : 8, Grades.Names[g]);
             Assert.GreaterOrEqual(EarlyGameContent.Items.Length, 70);
         }

@@ -29,6 +29,7 @@ namespace BiRyeoDo.Core
         public List<MemberHp> ProgressHp = new List<MemberHp>();
         public GameSettings Settings = new GameSettings();         // options (additive field)
         public List<string> TutorialDone = new List<string>();     // help topics already shown (additive field)
+        public bool RitualDone;                                       // 전승의식 completed (see Ritual)
         public bool FormationCustom;                                  // the player arranged the formation (see Formation)
         public List<string> BackRowIds = new List<string>();         // party ids standing in the back row when FormationCustom
         public List<string> BenchedCompanions = new List<string>();   // companions the player explicitly sat out (never auto-filled)

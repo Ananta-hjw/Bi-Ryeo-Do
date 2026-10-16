@@ -40,7 +40,7 @@ namespace BiRyeoDo.Game.UI
             // Odds
             var odds = UiFactory.Panel("Odds", root, new Vector2(0.04f, 0.735f), new Vector2(0.96f, 0.88f), UiFactory.Ink);
             UiFactory.Frame(odds.transform, UiFactory.GoldDim, 2f);
-            for (int g = 0; g < Grades.Names.Length; g++)
+            for (int g = 0; g < Grades.Rates.Length; g++)   // 초월 cannot be pulled, so it has no chip
             {
                 var grade = (ItemGrade)g;
                 int col = g % 3, row = g / 3;

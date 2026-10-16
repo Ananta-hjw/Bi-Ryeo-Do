@@ -27,6 +27,7 @@ namespace BiRyeoDo.Game.UI
                 case BiRyeoDo.Core.ItemGrade.Epic: return new Color(0.75f, 0.50f, 1.00f, 1f);
                 case BiRyeoDo.Core.ItemGrade.Legendary: return new Color(1.00f, 0.65f, 0.20f, 1f);
                 case BiRyeoDo.Core.ItemGrade.Mythic: return new Color(1.00f, 0.30f, 0.35f, 1f);
+                case BiRyeoDo.Core.ItemGrade.Transcendent: return new Color(1.00f, 0.90f, 0.45f, 1f);
                 default: return new Color(0.75f, 0.76f, 0.80f, 1f);
             }
         }

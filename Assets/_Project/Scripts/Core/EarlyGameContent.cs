@@ -446,7 +446,7 @@ namespace BiRyeoDo.Core
             new ItemData { Id = InnerArts.StoneId, Grade = ItemGrade.Epic, Name = "심득석", Kind = ItemKind.Material, SellValue = 0, Description = "심법의 깨달음이 응어리진 돌. 무공 탭의 심법에서 심법 하나를 강화하는 데 쓴다. 팔 수 없다." },
             new ItemData { Id = "leather", Grade = ItemGrade.Normal, Name = "가죽", Kind = ItemKind.Material, SellValue = 70, Description = "사냥한 짐승의 가죽. 팔면 두가 된다." },
             new ItemData { Id = "laundry_bat", Grade = ItemGrade.Fine, Name = "강철 빨래방망이", Kind = ItemKind.Weapon, AtkPct = 0.08f, Description = "수련용 강철 방망이(50근). 무기라기엔 빨래용이다. 공격 +8%." },
-            new ItemData { Id = "jin_biroedo", Grade = ItemGrade.Legendary, Name = "진비뢰도", Kind = ItemKind.Weapon, AtkPct = 0.22f, CritAdd = 0.04f, Description = "봉뢰함에 든 진짜 비뢰도 열 자루. 공격 +22%, 치명타 +4%." },
+            new ItemData { Id = "jin_biroedo", Grade = ItemGrade.Transcendent, Name = "진비뢰도", Kind = ItemKind.Weapon, AtkPct = 0.45f, CritAdd = 0.10f, SpeedAdd = 6, Description = "봉뢰함에 든 진짜 비뢰도 열 자루. 전승의식을 마친 이만이 쥘 수 있다. 공격 +45%, 치명타 +10%, 속도 +6." },
             new ItemData { Id = "mukryonghwan", Grade = ItemGrade.Rare, Name = "묵룡환", Kind = ItemKind.Accessory, AtkPct = 0.10f, DefPct = 0.10f, SpeedAdd = -6, Description = "사부가 11세부터 채운 증량 족쇄. 몸은 무거워지지만 단련된다. 공격·방어 +10%, 속도 -6." },
             new ItemData { Id = "roegeum", Grade = ItemGrade.Epic, Name = "뇌금 묵뢰", Kind = ItemKind.Accessory, QiPct = 0.30f, HpPct = 0.05f, Description = "뇌령사 현을 쓴 검은 칠현금. 내공 +30%, 체력 +5%." },
             new ItemData { Id = "claw_necklace", Grade = ItemGrade.Fine, Name = "발톱 목걸이", Kind = ItemKind.Accessory, CritAdd = 0.05f, SpeedAdd = 2, Description = "사냥한 짐승의 발톱을 꿴 목걸이. 치명타 +5%, 속도 +2." },

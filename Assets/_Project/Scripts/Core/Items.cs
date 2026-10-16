@@ -23,7 +23,7 @@ namespace BiRyeoDo.Core
         public int SpeedAdd;
 
         public bool IsGear { get { return Kind == ItemKind.Weapon || Kind == ItemKind.Accessory || Kind == ItemKind.Armor; } }
-        public bool InPool { get { return IsGear || InGacha; } }
+        public bool InPool { get { return (IsGear || InGacha) && Grade != ItemGrade.Transcendent; } }   // 초월 gear is earned, never pulled
     }
 
     /// <summary>A stack in the bag. Public fields so JsonUtility can persist it.</summary>

@@ -107,10 +107,10 @@ namespace BiRyeoDo.Tests
         {
             var baseStats = new CombatStats { MaxHp = 1000, MaxQi = 100, Attack = 100, Defense = 50, Speed = 100, CritRate = 0.01f, CritDamage = 1.5f };
             var s = Inventory.ApplyGear(baseStats, new[] { "jin_biroedo", "mukryonghwan" });
-            Assert.AreEqual(132, s.Attack);   // +22% +10%
+            Assert.AreEqual(155, s.Attack);   // +45% +10%
             Assert.AreEqual(55, s.Defense);   // +10%
-            Assert.AreEqual(94, s.Speed);     // -6
-            Assert.AreEqual(0.05f, s.CritRate, 0.0001f);
+            Assert.AreEqual(100, s.Speed);    // +6 -6
+            Assert.AreEqual(0.11f, s.CritRate, 0.0001f);
             Assert.AreEqual(1000, s.MaxHp);
         }
 

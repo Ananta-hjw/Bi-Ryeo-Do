@@ -19,7 +19,8 @@ namespace BiRyeoDo.Game.UI
         private CodexPanel _codex;
         private MemoryPanel _memories;
         private FactionPanel _factions;
-        private Entry _statusE, _codexE, _achE, _memoryE, _factionE;
+        private Entry _statusE, _codexE, _achE, _memoryE, _factionE, _ritualE;
+        private RitualPanel _ritual;
         private bool _built;
 
         public void Build(RectTransform root, Action<string, string[], Action> onStory)
@@ -31,19 +32,21 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Header", root, new Vector2(0.06f, 0.925f), new Vector2(0.94f, 0.985f), "기록", 42, UiFactory.Gold);
 
             // Five tiles stacked in the space below the header
-            const float top = 0.90f, h = 0.155f, gap = 0.012f;
+            const float top = 0.90f, h = 0.13f, gap = 0.01f;
             float y = top;
             _statusE = Tile(root, ref y, h, gap, "상태창", () => _status.Open());
             _codexE = Tile(root, ref y, h, gap, "도감", () => _codex.OpenCodex());
             _achE = Tile(root, ref y, h, gap, "업적", () => _codex.OpenAchievements());
             _memoryE = Tile(root, ref y, h, gap, "나예린 추억", () => _memories.Open());
             _factionE = Tile(root, ref y, h, gap, "세력과 객잔", () => _factions.Open());
+            _ritualE = Tile(root, ref y, h, gap, "전승의식", () => _ritual.Open());
 
             var panelH = new Vector2(1f, 1f);
             _status = new StatusPanel(UiFactory.Rect("StatusOverlay", root, Vector2.zero, panelH), Refresh);
             _codex = new CodexPanel(UiFactory.Rect("CodexOverlay", root, Vector2.zero, panelH), UiFactory.Rect("AchievementOverlay", root, Vector2.zero, panelH), Refresh);
             _memories = new MemoryPanel(UiFactory.Rect("MemoryOverlay", root, Vector2.zero, panelH), Refresh, onStory);
             _factions = new FactionPanel(UiFactory.Rect("FactionOverlay", root, Vector2.zero, panelH), Refresh);
+            _ritual = new RitualPanel(UiFactory.Rect("RitualOverlay", root, Vector2.zero, panelH), Refresh, onStory);
             Refresh();
         }
 
@@ -85,6 +88,7 @@ namespace BiRyeoDo.Game.UI
             _codex.HideAll();
             _memories.Hide();
             _factions.Hide();
+            _ritual.Hide();
         }
 
         public void Refresh()
@@ -105,6 +109,9 @@ namespace BiRyeoDo.Game.UI
             foreach (var fa in Factions.All) if (Factions.Tier(save, fa.Id) > 0) notes.Add(fa.Name + " " + Factions.TierNames[Factions.Tier(save, fa.Id)]);
             _factionE.Detail.text = notes.Count > 0 ? "평판: " + string.Join(" · ", notes) : "전투를 이기면 세력 평판이 쌓이고 객잔 선반이 열립니다";
             SetBadge(_factionE, 0);
+            int ritualDone = Ritual.DoneCount(save), ritualTotal = Ritual.Conditions(save).Count;
+            _ritualE.Detail.text = save.RitualDone ? "완료 — 진비뢰도를 얻었습니다" : "초월 등급 진비뢰도의 시련 · 조건 " + ritualDone + "/" + ritualTotal;
+            SetBadge(_ritualE, Ritual.CanComplete(save) ? 1 : 0);
         }
     }
 }
