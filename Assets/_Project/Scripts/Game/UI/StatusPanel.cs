@@ -48,7 +48,7 @@ namespace BiRyeoDo.Game.UI
             string nextText = Realm.NextText(power);
             Text(realmCard, 0.04f, 0.96f, 0.04f, 0.52f, "종합 수치 " + Math.Round(power).ToString("N0") + (nextText.Length > 0 ? "\n" + nextText : "\n더 오를 경지가 없습니다"), 26, UiFactory.PaperText, TextAnchor.UpperLeft);
             var realmNote = Block(72f);
-            Text(realmNote, 0.04f, 0.97f, 0f, 1f, "체력·공격력·방어력·속도를 합친 수치(장비·심법 반영)로 정한 경지입니다. 경지가 한 칸 오를 때마다 모든 능력치가 10%씩 오릅니다(지금 +" + Mathf.RoundToInt(Realm.Bonus(realmStep) * 100f) + "%).", 22, UiFactory.Dim, TextAnchor.MiddleLeft);
+            Text(realmNote, 0.04f, 0.97f, 0f, 1f, "체력·공격력·방어력·속도를 합친 수치(장비·심법 반영)로 정한 경지입니다. 경지가 한 칸 오를 때마다 모든 능력치가 " + Mathf.RoundToInt(Realm.BonusPerStep * 100f) + "%씩 오릅니다(지금 +" + Mathf.RoundToInt(Realm.Bonus(realmStep) * 100f) + "%).", 22, UiFactory.Dim, TextAnchor.MiddleLeft);
 
             // Stats: two columns of equal rows
             Section("능력치");

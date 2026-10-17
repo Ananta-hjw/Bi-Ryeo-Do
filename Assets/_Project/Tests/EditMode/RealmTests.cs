@@ -98,14 +98,14 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void EachRealmStepRaisesEveryStatByTenPercent()
+        public void EachRealmStepRaisesEveryStatByFivePercent()
         {
             var save = new SaveData { Level = 65 };
             var before = InnerArts.HeroStatsBeforeRealm(save);
             int step = Realm.StepOf(Realm.Power(before));
             Assert.Greater(step, 0);
             var after = InnerArts.HeroStats(save);
-            float m = 1f + 0.10f * step;
+            float m = 1f + 0.05f * step;
             Assert.AreEqual((int)System.Math.Round(before.MaxHp * m), after.MaxHp);
             Assert.AreEqual((int)System.Math.Round(before.Attack * m), after.Attack);
             Assert.AreEqual((int)System.Math.Round(before.Defense * m), after.Defense);

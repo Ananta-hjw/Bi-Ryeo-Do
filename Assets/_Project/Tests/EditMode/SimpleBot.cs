@@ -58,7 +58,10 @@ namespace BiRyeoDo.Tests
 
         public static List<Combatant> BuildParty(int stageNumber, int level)
         {
-            var party = new List<Combatant> { new Combatant("p", "비류연", Team.Player, Progression.HeroStatsFor(level), BestLoadout(stageNumber)) };
+            // The bot wears no gear, but it does get the 경지 bonus of the realm its plain stats reach.
+            var heroBase = Progression.HeroStatsFor(level);
+            var hero = Realm.ApplyBonus(heroBase, Realm.StepOf(Realm.Power(heroBase)));
+            var party = new List<Combatant> { new Combatant("p", "비류연", Team.Player, hero, BestLoadout(stageNumber)) };
             foreach (var c in EarlyGameContent.SelectCompanions(stageNumber, null)) party.Add(c.CreateCombatant(level));
             Formation.Apply(party, null);
             return party;
