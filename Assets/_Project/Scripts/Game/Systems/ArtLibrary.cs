@@ -5,7 +5,7 @@ namespace BiRyeoDo.Game.Systems
 {
     /// <summary>
     /// Optional artwork dropped into <c>Assets/_Project/Resources/Art</c>. Files are matched by name, so nothing has to be wired up:
-    /// <c>Backgrounds/stage_01.png</c>, <c>Enemies/tiger.png</c> (enemy id), <c>Characters/player.png</c>. A file is found in either <c>Enemies</c> or <c>Characters</c> (by id), so a misplaced upload still works.
+    /// <c>Backgrounds/stage_01.png</c>, <c>Enemies/tiger.png</c> (enemy id), <c>Characters/player.png</c>, <c>Items/laundry_bat.png</c> (item id). A file is found in either <c>Enemies</c> or <c>Characters</c> (by id), so a misplaced upload still works.
     /// Any missing file returns null and the UI falls back to its flat-colour placeholder.
     /// Textures are turned into sprites at runtime, so the PNG import settings do not matter.
     /// </summary>
@@ -17,6 +17,12 @@ namespace BiRyeoDo.Game.Systems
         public static Sprite Enemy(string enemyId) { return Load("Enemies/" + enemyId) ?? Load("Characters/" + enemyId); }
         /// <summary>Home-screen button icon: <c>Icons/&lt;key&gt;.png</c> (daily, quest, fortune, star, tower, stage, promotion, party).</summary>
         public static Sprite Icon(string key) { return Load("Icons/" + key); }
+        /// <summary>Item picture: <c>Items/&lt;item id&gt;.png</c>, else the kind's default <c>Items/_weapon|_armor|_accessory|_consumable|_material|_key.png</c>.</summary>
+        public static Sprite Item(BiRyeoDo.Core.ItemData item)
+        {
+            if (item == null) return null;
+            return Load("Items/" + item.Id) ?? Load("Items/_" + item.Kind.ToString().ToLowerInvariant());
+        }
         public static Sprite Player() { return Load("Characters/player"); }
         /// <summary>Party member portrait: <c>Characters/&lt;id&gt;.png</c> (e.g. hyo_ryong.png).</summary>
         public static Sprite Companion(string companionId) { return Load("Characters/" + companionId) ?? Load("Enemies/" + companionId); }

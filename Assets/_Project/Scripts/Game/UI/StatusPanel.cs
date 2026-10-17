@@ -140,9 +140,14 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Frame(card, has ? UiFactory.GoldDim : new Color(0.25f, 0.25f, 0.28f, 1f), 2f);
             string name = has ? UiFactory.GradedName(item) + (Gear.Level(save, item.Id) > 0 ? " +" + Gear.Level(save, item.Id) : "") : "비어 있음";
             Text(card, 0.04f, 0.26f, has ? 0.58f : 0f, 1f, slot, 26, UiFactory.Dim);
-            Text(card, 0.27f, 0.97f, has ? 0.58f : 0f, 1f, name, 32, has ? UiFactory.PaperText : UiFactory.InkSoft);
+            Text(card, 0.27f, has ? 0.83f : 0.97f, has ? 0.58f : 0f, 1f, name, 32, has ? UiFactory.PaperText : UiFactory.InkSoft);
             if (has)
-                Text(card, 0.04f, 0.97f, 0.04f, 0.58f, StatusSheet.EffectText(item, Gear.Level(save, item.Id)), 24, UiFactory.PaperText, TextAnchor.UpperLeft);
+            {
+                Text(card, 0.04f, 0.83f, 0.04f, 0.58f, StatusSheet.EffectText(item, Gear.Level(save, item.Id)), 24, UiFactory.PaperText, TextAnchor.UpperLeft);
+                var pic = UiFactory.Panel("Picture", card, new Vector2(0.85f, 0.08f), new Vector2(0.98f, 0.92f), Color.white);
+                var glyph = UiFactory.Label("Glyph", pic.transform, Vector2.zero, Vector2.one, "", 40, UiFactory.PaperText);
+                ItemArt.Apply(pic, glyph, item);
+            }
         }
 
         private static string GearTitle(SaveData save)

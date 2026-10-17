@@ -198,3 +198,118 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 | `tab_bag.png` | 행낭 |
 | `tab_gacha.png` | 뽑기 |
 | `tab_record.png` | 기록 |
+
+## 아이템 아이콘 (무기·방어구·장신구·소모품·재료)
+
+`Assets/_Project/Resources/Art/Items/<아이템 id>.png` 로 넣으면 행낭 목록·상세 창·뽑기 결과·상태창 장비 칸에 글자 대신 그림이 나온다. 투명 배경 PNG, 정사각형 256x256 권장(비율은 유지된다).
+특정 아이템 파일이 없으면 종류별 기본 그림을 쓴다: `Items/_weapon.png`, `_armor.png`, `_accessory.png`, `_consumable.png`, `_material.png`, `_key.png`. 그것도 없으면 종류 색 네모 + 이름 첫 글자다.
+
+AI 프롬프트 예시: "wuxia ink-wash style icon of <아이템 설명>, single object, centered, transparent background, dark outline, 256x256".
+
+### 무기 (18개)
+
+| 파일 이름 | 아이템 | 등급 |
+|---|---|---|
+| `blackiron_blade.png` | 흑철도 | Rare |
+| `cheonggang_sword.png` | 청강검 | Fine |
+| `crescent_glaive.png` | 월아극 | Epic |
+| `crimson_saber.png` | 적염도 | Epic |
+| `dragonfang_sword.png` | 용아검 | Legendary |
+| `dumok_spear.png` | 단목창 | Fine |
+| `frost_sword.png` | 한철검 | Epic |
+| `heaven_cutter.png` | 참천도 | Mythic |
+| `hunter_knife.png` | 사냥꾼 단도 | Normal |
+| `iron_sword.png` | 낡은 철검 | Normal |
+| `jin_biroedo.png` | 진비뢰도 | Transcendent |
+| `laundry_bat.png` | 강철 빨래방망이 | Fine |
+| `oak_club.png` | 박달나무 곤봉 | Normal |
+| `starfall_sword.png` | 성락검 | Mythic |
+| `storm_blade.png` | 폭풍도 | Legendary |
+| `thunder_dagger.png` | 뇌문 비수 | Rare |
+| `twin_daggers.png` | 쌍비수 | Fine |
+| `windcut_sword.png` | 풍절검 | Rare |
+
+### 방어구 (16개)
+
+| 파일 이름 | 아이템 | 등급 |
+|---|---|---|
+| `blackturtle_cloak.png` | 현무 망토 | Epic |
+| `chain_shirt.png` | 쇠사슬 속옷 | Fine |
+| `cloth_robe.png` | 무명 도복 | Normal |
+| `crimson_longcoat.png` | 적운 장포 | Epic |
+| `dragonscale_armor.png` | 용린 전갑 | Legendary |
+| `heavensilk_robe.png` | 천잠보의 | Mythic |
+| `jade_scale_armor.png` | 옥린갑 | Epic |
+| `leather_vest.png` | 가죽 조끼 | Normal |
+| `mountain_armor.png` | 산문 철갑 | Rare |
+| `padded_coat.png` | 솜누비 겉옷 | Normal |
+| `phoenix_robe.png` | 봉황 우의 | Legendary |
+| `scholar_robe.png` | 유삼 | Fine |
+| `silk_battle_robe.png` | 비단 전포 | Rare |
+| `snakescale_vest.png` | 사린 갑옷 | Rare |
+| `tigerhide_coat.png` | 호피 외투 | Fine |
+| `vajra_armor.png` | 금강불괴갑 | Mythic |
+
+### 장신구 (27개)
+
+| 파일 이름 | 아이템 | 등급 |
+|---|---|---|
+| `bloodjade_bracelet.png` | 혈옥 팔찌 | Epic |
+| `bronze_gauntlet.png` | 청동 장갑 | Rare |
+| `cinnabar_amulet.png` | 주사 부적 | Rare |
+| `claw_necklace.png` | 발톱 목걸이 | Fine |
+| `copper_bell.png` | 구리 방울 | Normal |
+| `dragon_pearl.png` | 여의주 | Legendary |
+| `emperor_seal.png` | 제왕금인 | Mythic |
+| `heavenly_demon_core.png` | 천마심주 | Mythic |
+| `iron_bracer.png` | 철완갑 | Fine |
+| `jade_pendant.png` | 비취 패옥 | Fine |
+| `jade_ring.png` | 옥가락지 | Normal |
+| `moonlight_pendant.png` | 월광 노리개 | Rare |
+| `mukrin_talisman.png` | 묵린혈망 독아 부적 | Rare |
+| `mukryonghwan.png` | 묵룡환 | Rare |
+| `ninetail_charm.png` | 구미 부적 | Epic |
+| `phoenix_feather.png` | 봉황 깃털 | Legendary |
+| `roegeum.png` | 뇌금 묵뢰 | Epic |
+| `sapphire_ring.png` | 청옥 반지 | Epic |
+| `silver_hairpin.png` | 은비녀 | Fine |
+| `snowlotus_charm.png` | 설련 패 | Legendary |
+| `starlight_necklace.png` | 성광 목걸이 | Epic |
+| `straw_sandals.png` | 짚신 한 켤레 | Normal |
+| `taegeuk_jade.png` | 태극 옥패 | Mythic |
+| `thunder_beads.png` | 뇌정 염주 | Rare |
+| `thunder_crown.png` | 뇌제관 | Legendary |
+| `wind_boots.png` | 바람신 | Fine |
+| `wooden_charm.png` | 목각 부적 | Normal |
+
+### 소모품 (13개)
+
+| 파일 이름 | 아이템 | 등급 |
+|---|---|---|
+| `bear_gall.png` | 웅담 | Fine |
+| `biaoguk_ration.png` | 표국 건량 | Normal |
+| `ginseng.png` | 인형설삼 | Epic |
+| `greenwood_liquor.png` | 녹림 화주 | Fine |
+| `herbal_tea.png` | 약초차 | Normal |
+| `ilgeup_yeongdan.png` | 일급영단 | Legendary |
+| `meal_academy.png` | 학관 정식 | Normal |
+| `okruju.png` | 옥루주 | Fine |
+| `plum_elixir.png` | 매화 영단 | Rare |
+| `rice_cake.png` | 영양 떡 | Normal |
+| `snow_ginseng.png` | 설삼 | Rare |
+| `taegeuk_pill.png` | 태극환 | Rare |
+| `thunder_wine.png` | 뇌주 | Rare |
+
+### 재료 (2개)
+
+| 파일 이름 | 아이템 | 등급 |
+|---|---|---|
+| `insight_stone.png` | 심득석 | Epic |
+| `leather.png` | 가죽 | Normal |
+
+### 핵심 아이템 (2개)
+
+| 파일 이름 | 아이템 | 등급 |
+|---|---|---|
+| `cheonyul_pae.png` | 천율패 | Epic |
+| `seungryong_pae.png` | 승룡패 | Rare |

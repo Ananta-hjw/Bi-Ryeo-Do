@@ -135,9 +135,13 @@ namespace BiRyeoDo.Game.UI
             int enh = gear ? Gear.Level(save, item.Id) : 0;
             var card = UiFactory.Panel("Card", _detail, new Vector2(0.05f, 0.08f), new Vector2(0.95f, 0.90f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
             UiFactory.Frame(card.transform, UiFactory.GradeColor(item.Grade), 3f);
-            UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.98f), UiFactory.GradedName(item) + (enh > 0 ? " +" + enh : ""), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
+            var big = UiFactory.Panel("Picture", card.transform, new Vector2(0.74f, 0.855f), new Vector2(0.95f, 0.985f), Color.white);
+            UiFactory.Frame(big.transform, UiFactory.GradeColor(item.Grade), 2f);
+            var bigGlyph = UiFactory.Label("Glyph", big.transform, Vector2.zero, Vector2.one, "", 60, UiFactory.PaperText);
+            ItemArt.Apply(big, bigGlyph, item);
+            UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.90f), new Vector2(0.72f, 0.98f), UiFactory.GradedName(item) + (enh > 0 ? " +" + enh : ""), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
             string kind = KindName(item) + (gear && Inventory.IsEquipped(save, item.Id) ? "  ·  착용 중" : "") + (item.Kind == ItemKind.Consumable || item.Kind == ItemKind.Material ? "  ·  보유 " + Inventory.Count(save, item.Id) + "개" : "");
-            UiFactory.Label("Kind", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.90f), kind, 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("Kind", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.72f, 0.90f), kind, 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
 
             var lines = new List<string>();
             if (gear) lines.Add("<color=#9ADB9F>" + StatusSheet.EffectText(item, enh) + "</color>" + (enh > 0 ? "   (기본 " + StatusSheet.EffectText(item, 0) + ")" : ""));
@@ -319,19 +323,6 @@ namespace BiRyeoDo.Game.UI
             }
         }
 
-        private static Color KindColor(ItemData item)
-        {
-            switch (item.Kind)
-            {
-                case ItemKind.Weapon: return new Color(0.55f, 0.18f, 0.18f, 1f);
-                case ItemKind.Armor: return new Color(0.18f, 0.34f, 0.58f, 1f);
-                case ItemKind.Accessory: return new Color(0.38f, 0.22f, 0.55f, 1f);
-                case ItemKind.Consumable: return new Color(0.20f, 0.46f, 0.30f, 1f);
-                case ItemKind.Key: return new Color(0.62f, 0.44f, 0.12f, 1f);
-                default: return new Color(0.40f, 0.30f, 0.20f, 1f);
-            }
-        }
-
         public void Refresh()
         {
             if (!_built) return;
@@ -366,8 +357,7 @@ namespace BiRyeoDo.Game.UI
                 var stack = stacks[i];
                 var item = EarlyGameContent.FindItem(stack.Id);
                 bool equipped = Inventory.IsEquipped(save, item.Id);
-                row.Icon.color = KindColor(item);
-                row.IconGlyph.text = item.Name.Substring(0, 1);
+                ItemArt.Apply(row.Icon, row.IconGlyph, item);
                 int enh = item.IsGear ? Gear.Level(save, item.Id) : 0;
                 var set = item.IsGear ? Gear.SetOf(item.Id) : null;
                 row.Title.text = UiFactory.GradedName(item) + (enh > 0 ? " +" + enh : "") + (stack.Count > 1 ? " x" + stack.Count : "") + (equipped ? "  [착용]" : "");

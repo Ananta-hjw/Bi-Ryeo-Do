@@ -14,8 +14,8 @@ namespace BiRyeoDo.Game.UI
         private sealed class Card
         {
             public GameObject Root;
-            public Image Frame, Bg;
-            public Text Name, Effect, Tag;
+            public Image Frame, Bg, Icon;
+            public Text Name, Effect, Tag, IconGlyph;
         }
 
         private Text _header, _hint;
@@ -63,8 +63,10 @@ namespace BiRyeoDo.Game.UI
                 c.Root = rt.gameObject;
                 c.Frame = UiFactory.Panel("Frame", rt, Vector2.zero, Vector2.one, UiFactory.GoldDim);
                 c.Bg = UiFactory.Panel("Bg", rt, new Vector2(0.015f, 0.04f), new Vector2(0.985f, 0.96f), new Color(0.06f, 0.08f, 0.12f, 0.96f));
-                c.Name = UiFactory.Label("Name", rt, new Vector2(0.04f, 0.50f), new Vector2(0.78f, 0.96f), "", 26, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                c.Effect = UiFactory.Label("Effect", rt, new Vector2(0.04f, 0.04f), new Vector2(0.96f, 0.50f), "", 18, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                c.Icon = UiFactory.Panel("Icon", rt, new Vector2(0.03f, 0.10f), new Vector2(0.20f, 0.90f), Color.white);
+                c.IconGlyph = UiFactory.Label("Glyph", c.Icon.transform, Vector2.zero, Vector2.one, "", 34, UiFactory.PaperText);
+                c.Name = UiFactory.Label("Name", rt, new Vector2(0.22f, 0.50f), new Vector2(0.78f, 0.96f), "", 24, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                c.Effect = UiFactory.Label("Effect", rt, new Vector2(0.22f, 0.04f), new Vector2(0.97f, 0.50f), "", 17, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 c.Tag = UiFactory.Label("Tag", rt, new Vector2(0.76f, 0.52f), new Vector2(0.97f, 0.96f), "", 20, UiFactory.Gold, TextAnchor.MiddleRight);
                 c.Root.SetActive(false);
                 _cards.Add(c);
@@ -152,6 +154,7 @@ namespace BiRyeoDo.Game.UI
                 var card = _cards[i];
                 var item = r.Item;
                 card.Frame.color = UiFactory.GradeColor(item.Grade);
+                ItemArt.Apply(card.Icon, card.IconGlyph, item);
                 card.Name.text = UiFactory.GradedName(item);
                 card.Effect.text = item.IsGear ? StatusSheet.EffectText(item) : item.Description;
                 card.Tag.text = r.Duplicate ? "분해 +" + r.Doo.ToString("N0") : item.IsGear ? "NEW" : "";
