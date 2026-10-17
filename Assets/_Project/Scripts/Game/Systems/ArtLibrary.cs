@@ -32,6 +32,8 @@ namespace BiRyeoDo.Game.Systems
         {
             if (name == BiRyeoDo.Core.StoryLine.Protagonist) return Player();
             foreach (var c in BiRyeoDo.Core.EarlyGameContent.Companions) if (c.Name == name) return Companion(c.Id);
+            var cast = BiRyeoDo.Core.StoryCast.Find(name);
+            if (cast != null) { var sprite = Companion(cast.Id); if (sprite != null) return sprite; }
             foreach (var e in BiRyeoDo.Core.EarlyGameContent.Enemies)
                 if (e.Name == name || (name.Length >= 2 && e.Name.Contains(name))) { var sprite = Enemy(e.ArtKey); if (sprite != null) return sprite; }
             return null;
