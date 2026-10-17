@@ -115,5 +115,19 @@ namespace BiRyeoDo.Tests
             var fresh = new SaveData { Level = 1 };
             Assert.AreEqual(InnerArts.HeroStatsBeforeRealm(fresh).Attack, InnerArts.HeroStats(fresh).Attack);   // 삼급 has no bonus
         }
+
+        [Test]
+        public void ExtremeSwordQueenTakesFortyPercentAndIsChojeoljeongGeuk()
+        {
+            var queen = EarlyGameContent.FindEnemy("geomhu_ioksang");
+            var normal = StageStars.ScaleEnemy(queen, 29, 0).CreateCombatant("q").Stats;
+            var hard = StageStars.ScaleEnemy(queen, 29, 1).CreateCombatant("q").Stats;
+            var extreme = StageStars.ScaleEnemy(queen, 29, 2).CreateCombatant("q").Stats;
+            Assert.AreEqual(0.4, 1000.0 / (1000.0 + extreme.Defense), 0.002);   // 극악: x0.4 (defense about 1500)
+            Assert.Greater(extreme.Defense, hard.Defense);
+            Assert.Greater(hard.Defense, normal.Defense);
+            Assert.AreEqual("초절정 극", Realm.Steps[Realm.StepOf(Realm.Power(extreme))].Name);
+            Assert.AreEqual(2210.0, Realm.Power(extreme), 3.0);
+        }
     }
 }

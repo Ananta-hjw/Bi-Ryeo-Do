@@ -29,8 +29,10 @@ namespace BiRyeoDo.Core
     {
         public const int DifficultyCount = 3;
         public static readonly string[] DifficultyNames = { "일반", "어려움", "극악" };
-        public static readonly float[] HpScale = { 1.0f, 1.9f, 3.585f };
-        public static readonly float[] AtkScale = { 1.0f, 1.55f, 2.535f };
+        public static readonly float[] HpScale = { 1.0f, 1.9f, 3.403f };
+        public static readonly float[] AtkScale = { 1.0f, 1.55f, 2.427f };
+        // Defense is raised only a little: it takes damage x K/(K+Defense), so a few percent already shows (극악 검후 이옥상 takes x0.4 = defense 1500).
+        public static readonly float[] DefScale = { 1.0f, 1.029f, 1.0817f };
         public static readonly float[] RewardFactor = { 1.0f, 1.5f, 2.2f };   // 두 and exp
         public static readonly string[] StarNames = { "돌파", "전원 생존", "신속" };
 
@@ -78,7 +80,11 @@ namespace BiRyeoDo.Core
         /// <summary>The 신속 limit on a difficulty: harder enemies have more HP, so the limit grows with <see cref="HpFor"/>.</summary>
         public static int FastLimit(int stage, int fight, int difficulty)
         {
-            return (int)Math.Ceiling(FastLimit(stage, fight) * Math.Max(1f, HpFor(stage, difficulty)));
+            // More HP and a little more defense (the stage's enemy defense is read off the level curve) both lengthen the fight.
+            var st = EarlyGameContent.FindStage(stage);
+            double d0 = st != null ? Progression.StatsFor(st.RecommendedLevel).Defense : 0.0;
+            double defEffect = (BattleEngine.DefenseConstant + d0 * DefFor(stage, difficulty)) / (BattleEngine.DefenseConstant + d0);
+            return (int)Math.Ceiling(FastLimit(stage, fight) * Math.Max(1f, HpFor(stage, difficulty)) * Math.Max(1.0, defEffect));
         }
 
         public static int FightCount(int stage)
@@ -101,12 +107,13 @@ namespace BiRyeoDo.Core
 
         public static float HpFor(int stage, int difficulty) { return 1f + (HpScale[Clamp(difficulty)] - 1f) * Ramp(stage); }
         public static float AtkFor(int stage, int difficulty) { return 1f + (AtkScale[Clamp(difficulty)] - 1f) * Ramp(stage); }
+        public static float DefFor(int stage, int difficulty) { return 1f + (DefScale[Clamp(difficulty)] - 1f) * Ramp(stage); }
         private static int Clamp(int difficulty) { return Math.Max(0, Math.Min(DifficultyCount - 1, difficulty)); }
 
         public static EnemyData ScaleEnemy(EnemyData enemy, int stage, int difficulty)
         {
             difficulty = Clamp(difficulty);
-            return difficulty == 0 ? enemy : enemy.Scaled(HpFor(stage, difficulty), AtkFor(stage, difficulty));
+            return difficulty == 0 ? enemy : enemy.Scaled(HpFor(stage, difficulty), AtkFor(stage, difficulty), DefFor(stage, difficulty));
         }
 
         public static string TagFor(int difficulty) { return difficulty <= 0 ? "" : "[" + DifficultyNames[Math.Min(DifficultyCount - 1, difficulty)] + "] "; }

@@ -58,11 +58,12 @@ namespace BiRyeoDo.Core
         public EnemyMove[] Moves;
 
         /// <summary>A copy with HP and attack multiplied (harder stage difficulties).</summary>
-        public EnemyData Scaled(float hp, float atk)
+        public EnemyData Scaled(float hp, float atk, float def = 1f)
         {
             var c = (EnemyData)MemberwiseClone();
             c.HpMul = HpMul * hp;
             c.AtkMul = AtkMul * atk;
+            c.DefMul = DefMul * def;
             return c;
         }
 
