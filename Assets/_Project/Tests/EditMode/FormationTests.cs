@@ -131,16 +131,17 @@ public class FormationTests
     }
 
     [Test]
-    public void UnpickedSingleTargetHitsTheFrontAndSnipeHitsTheBack()
+    public void UnpickedSingleTargetHitsTheFrontAndAFarArtMayPickAnyone()
     {
-        var plain = new SkillSpec { Id = "plain", Name = "일반", Power = 1f, Range = 4 };
-        var snipe = new SkillSpec { Id = "snipe", Name = "저격", Power = 1f, Range = 4, Snipe = true };
-        var hero = Hero(plain, snipe);
+        var near = new SkillSpec { Id = "near", Name = "근접", Power = 1f, Range = 1 };
+        var far = new SkillSpec { Id = "far", Name = "원거리", Power = 1f, Range = 4 };
+        var hero = Hero(near, far);
         var front = Foe("front", 3, 1); var back = Foe("back", 5, 1);
         var battle = Fight(new[] { hero }, new[] { back, front });
-        Assert.AreSame(front, battle.ResolveTarget(null, plain), "no pick: the front line");
-        Assert.AreSame(back, battle.ResolveTarget(null, snipe), "a 저격 art with no pick: the back-most within reach");
-        Assert.AreSame(front, battle.ResolveTarget(front, snipe), "an explicit pick always wins");
+        Assert.AreSame(front, battle.ResolveTarget(null, near), "no pick: the front line");
+        Assert.AreSame(front, battle.ResolveTarget(null, far), "no pick: even a far art starts at the front");
+        Assert.AreSame(front, battle.ResolveTarget(back, near), "a short art cannot pick the back while someone stands in front");
+        Assert.AreSame(back, battle.ResolveTarget(back, far), "a far art may pick anyone");
     }
 
     [Test]
@@ -182,7 +183,7 @@ public class FormationTests
         Assert.AreEqual(3, EarlyGameContent.FindArt("roegwang_ryuhagok").EffectiveRange, "area art");
         Assert.AreEqual(3, EarlyGameContent.FindArt("pungsin").EffectiveRange, "비기");
         Assert.AreEqual(1, EarlyGameContent.FindArt("jh_stun").EffectiveRange, "점혈");
-        Assert.AreEqual(2, EarlyGameContent.FindArt("yeobanjang").EffectiveRange);
+        Assert.AreEqual(1, EarlyGameContent.FindArt("yeobanjang").EffectiveRange, "ordinary arts reach the front line only");
         Assert.AreEqual(4, EarlyGameContent.FindArt("bi_roe_do").ToSpec().Range);
     }
 }

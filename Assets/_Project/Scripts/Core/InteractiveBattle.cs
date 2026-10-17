@@ -199,13 +199,12 @@ namespace BiRyeoDo.Core
             return !NeedsTarget(skill) || EnemiesInRange(skill.Range).Count > 0;
         }
 
-        /// <summary>The enemy a single-target art really hits: the player's pick if it is within reach, otherwise the front-line enemy (a 저격 art: the farthest one within reach).</summary>
+        /// <summary>The enemy a single-target art really hits: the player's pick if it is within reach (so a back-line enemy only when the art reaches the back and no one is in front of the pick for arts that cannot), otherwise the front-line enemy.</summary>
         public Combatant ResolveTarget(Combatant wanted, SkillSpec skill)
         {
             if (wanted != null && wanted.IsAlive && wanted.Team == Team.Enemy && Depth(wanted) < skill.Range) return wanted;
             var near = EnemiesInRange(skill.Range);
-            if (near.Count == 0) return null;
-            return skill.Snipe ? near[near.Count - 1] : near[0];
+            return near.Count == 0 ? null : near[0];
         }
 
         /// <summary>Resolves the current member's action, then every enemy turn up to the next party turn.</summary>

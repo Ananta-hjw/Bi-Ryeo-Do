@@ -21,15 +21,14 @@ namespace BiRyeoDo.Core
         public int SpiritCost;     // 기세: 비기 consume the whole gauge (100)
         public int Cooldown;       // own turns before reuse; 0 = every turn
         public bool AllEnemies;    // hits every living enemy instead of the chosen one (front row only while a front-row enemy stands, see Formation)
-        public bool Snipe;         // 저격: with no enemy picked, aims at the farthest (back-most) enemy in range instead of the nearest
-        public int Range = 1;      // how many enemy lines the art reaches (1 = the front line only, 2 = front and middle, 3+ = all) (attacks and area arts; self/party effects ignore it)
+        public int Range = 1;      // how many enemy lines the art reaches (1 = the front line only, 2+ = any line) (attacks and area arts; self/party effects ignore it)
         public SkillEffect Effect;
         public float HealPct;      // for HealAlly
 
-        /// <summary>"맨 앞 줄" / "앞 두 줄" / "모든 줄": which of the enemy lines an art of this reach touches.</summary>
+        /// <summary>"맨 앞 줄" / "모든 줄": which of the enemy lines an art of this reach touches (a reach of 2 or more covers every line).</summary>
         public static string ReachText(int range)
         {
-            return range <= 1 ? "맨 앞 줄" : range == 2 ? "앞 두 줄" : "모든 줄";
+            return range <= 1 ? "맨 앞 줄" : "모든 줄";
         }
 
         public static SkillSpec BasicAttack()

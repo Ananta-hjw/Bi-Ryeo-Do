@@ -868,6 +868,8 @@ namespace BiRyeoDo.Game.UI
             return new Rect(col / (float)Board.Cols, FieldTop - (row + 1) * rowH, 1f / Board.Cols, rowH);
         }
 
+        private readonly Image[,] _tileHi = new Image[Board.Cols, Board.Rows];
+
         /// <summary>The floor: our half tinted blue, the enemy half red; tiles light up green where the acting member may walk.</summary>
         private void BuildBoard(RectTransform root)
         {
@@ -890,6 +892,7 @@ namespace BiRyeoDo.Game.UI
                     if (frontCol) baseColor.a = 0.24f;
                     var tile = UiFactory.Panel("Tile", root, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height), baseColor);
                     UiFactory.Frame(tile.transform, new Color(1f, 1f, 1f, 0.16f), 1.5f);
+                    _tileHi[c, r] = UiFactory.Panel("Hi", tile.transform, new Vector2(0.03f, 0.03f), new Vector2(0.97f, 0.97f), new Color(0f, 0f, 0f, 0f));
                 }
             UiFactory.Panel("CampLine", root, new Vector2(0.5f - 0.0025f, FieldBottom), new Vector2(0.5f + 0.0025f, HeaderTop), new Color(1f, 0.85f, 0.4f, 0.55f));
         }
@@ -1003,6 +1006,7 @@ namespace BiRyeoDo.Game.UI
                     _target = captured;
                     _targetChosen = true;
                     RefreshCards();
+                    if (_battle != null && _battle.IsPlayerTurn && !_hasCommand && !_itemMode && !_jointMode) RefreshCommands();
                 });
                 _cards.Add(card);
             }
@@ -1041,6 +1045,33 @@ namespace BiRyeoDo.Game.UI
 
         // ------------------------------------------------------------------ refresh
 
+        /// <summary>
+        /// Colours the floor under the enemies the acting member can hit: green for the front line (everything reaches it), violet for back-line
+        /// enemies that at least one usable art reaches, gold for the one picked. Cleared while it is not a party turn.
+        /// </summary>
+        private void RefreshBoard()
+        {
+            for (int c = 0; c < Board.Cols; c++)
+                for (int r = 0; r < Board.Rows; r++)
+                    if (_tileHi[c, r] != null) _tileHi[c, r].color = new Color(0f, 0f, 0f, 0f);
+            if (_battle == null || !_battle.IsPlayerTurn || _hasCommand || _battle.Current == null) return;
+            int maxReach = 1;
+            foreach (var s in _battle.Current.Skills)
+                if (InteractiveBattle.NeedsTarget(s) && _battle.CanUse(s)) maxReach = Math.Max(maxReach, s.Range);
+            if (_jointPartners.Count > 0 && _battle.Current.Spirit >= InteractiveBattle.JointSpiritCost) maxReach = Math.Max(maxReach, 3);
+            foreach (var card in _cards)
+            {
+                var u = card.Unit;
+                if (!u.IsAlive || u.Col < 0 || u.Col >= Board.Cols || u.Row < 0 || u.Row >= Board.Rows) continue;
+                int depth = _battle.Depth(u);
+                var color = new Color(0f, 0f, 0f, 0f);
+                if (depth == 0) color = new Color(0.35f, 0.85f, 0.45f, 0.38f);
+                else if (depth < maxReach) color = new Color(0.62f, 0.45f, 0.95f, 0.38f);
+                if (card == _target && _targetChosen) color = new Color(1f, 0.82f, 0.30f, 0.50f);
+                _tileHi[u.Col, u.Row].color = color;
+            }
+        }
+
         private void RefreshCards()
         {
             foreach (var c in _cards)
@@ -1071,6 +1102,7 @@ namespace BiRyeoDo.Game.UI
                     c.Intent.color = UiFactory.PaperText;
                 }
             }
+            RefreshBoard();
         }
 
         private void RefreshParty()
@@ -1160,7 +1192,7 @@ namespace BiRyeoDo.Game.UI
                 return;
             }
 
-            SetCommand(0, "공격", SkillSpec.ReachText(1), true);
+            SetCommand(0, "공격", ReachesPicked(SkillSpec.BasicAttack()) ? SkillSpec.ReachText(1) : "닿지 않음", ReachesPicked(SkillSpec.BasicAttack()));
             var arts = ArtsOf(me);
             for (int i = 0; i < Progression.MaxEquippedArts; i++)
             {
@@ -1168,7 +1200,7 @@ namespace BiRyeoDo.Game.UI
                 if (i >= arts.Count) { _commands[slot].Root.SetActive(false); continue; }
                 var s = arts[i];
                 int cd = me.CooldownLeft(s);
-                bool reach = _battle.CanReach(s);
+                bool reach = _battle.CanReach(s) && ReachesPicked(s);
                 bool ok = _battle.CanUse(s) && reach;
                 string sub = cd > 0 ? "재사용 " + cd + "턴" : s.SpiritCost > 0 ? "기세 " + s.SpiritCost : s.QiCost > 0 ? "내공 " + s.QiCost : "";
                 if (cd == 0 && me.Qi < s.QiCost) sub = "내공 부족";
@@ -1184,7 +1216,7 @@ namespace BiRyeoDo.Game.UI
             if (ult == null) _commands[9].Root.SetActive(false);
             else
             {
-                bool ready = _battle.CanUse(ult) && _battle.CanReach(ult);
+                bool ready = _battle.CanUse(ult) && _battle.CanReach(ult) && ReachesPicked(ult);
                 SetCommand(9, "필살기\n" + ult.Name, ready ? "기세 " + ult.SpiritCost : "기세 " + Mathf.Min(me.Spirit, ult.SpiritCost) + "/" + ult.SpiritCost, ready);
             }
             if (_jointPartners.Count == 0) _commands[8].Root.SetActive(false);
@@ -1212,7 +1244,7 @@ namespace BiRyeoDo.Game.UI
             if (spec == null || !_battle.CanJoint(partner)) return;
             spec.Power *= 1f + Factions.Bonus(GameManager.Instance.Save, PerkKind.JointPower);
             _jointName = spec.Name;
-            if (_battle.EnemiesInRange(spec.Range).Count == 0)
+            if (_battle.EnemiesInRange(spec.Range).Count == 0 || !ReachesPicked(spec))
             {
                 _log.text = "합공이 닿는 적이 없습니다.";
                 _jointMode = false;
@@ -1227,6 +1259,7 @@ namespace BiRyeoDo.Game.UI
         {
             _command = cmd;
             _hasCommand = true;
+            RefreshBoard();
         }
 
         private static string ItemHint(ItemData item)
@@ -1291,7 +1324,7 @@ namespace BiRyeoDo.Game.UI
             {
                 parts.Add("위력 ×" + s.Power.ToString("0.0") + (s.Hits > 1 ? " · " + s.Hits + "타" : ""));
                 if (s.AllEnemies) parts.Add("닿는 범위의 적 전체");
-                parts.Add("닿는 범위 " + SkillSpec.ReachText(s.Range) + (s.Snipe ? " · 저격 (적을 고르지 않으면 가장 뒤의 적)" : ""));
+                parts.Add("닿는 범위 " + SkillSpec.ReachText(s.Range));
                 if (s.Effect == SkillEffect.Stun) parts.Add("굳힘 (기를 모으는 적의 강타를 끊습니다)");
             }
             parts.Add(s.SpiritCost > 0 ? "기세 " + s.SpiritCost : s.QiCost > 0 ? "내공 " + s.QiCost : "내공 0");
@@ -1444,13 +1477,19 @@ namespace BiRyeoDo.Game.UI
             }
             else return;
             if (chosen == null) return;
-            if (!_battle.CanReach(chosen))
+            if (!_battle.CanReach(chosen) || !ReachesPicked(chosen))
             {
-                _log.text = "닿는 적이 없습니다. 다른 무공을 골라 주세요.";
+                _log.text = "고른 적에게 닿지 않는 무공입니다. 앞 줄의 적이 쓰러지거나, 뒷줄까지 닿는 무공을 쓰세요.";
                 return;
             }
-            if (chosen.Snipe && targetUnit == null) _log.text = "저격! 가장 뒤의 적을 노립니다.";
             Issue(PlayerCommand.UseSkill(chosen, targetUnit));
+        }
+
+        /// <summary>True when the art can hit the enemy the player picked (no pick: it hits the front line, which every art reaches).</summary>
+        private bool ReachesPicked(SkillSpec s)
+        {
+            var picked = PickedTarget();
+            return picked == null || !InteractiveBattle.NeedsTarget(s) || s.AllEnemies || _battle.Depth(picked) < s.Range;
         }
 
         /// <summary>The enemy the player tapped this turn, or null so that the battle picks (front first, 저격 arts the back).</summary>
