@@ -19,6 +19,9 @@ namespace BiRyeoDo.Game.UI
 
         private TabRouter _router;
         private Image[] _tabButtons;
+        private GameObject _artsDot;
+        private Text _artsDotText;
+        private float _dotTimer;
         private WorldScreen _world;
         private RecordScreen _record;
         private BattleScreen _battle;
@@ -131,6 +134,14 @@ namespace BiRyeoDo.Game.UI
                 var btn = UiFactory.Button("Tab_" + TabNames[i], bar, new Vector2(i * w + 0.005f, 0.08f), new Vector2((i + 1) * w - 0.005f, 0.92f),
                     TabNames[i], new Color(0f, 0f, 0f, 0f), () => Select(index), 44);
                 _tabButtons[i] = btn.GetComponent<Image>();
+                if (i == (int)TabRouter.Tab.MartialArts)
+                {
+                    // Red dot like the 기연 one: something new can be learned (cleared once the page has been looked at).
+                    var dot = UiFactory.Panel("NewDot", btn.transform, new Vector2(0.60f, 0.62f), new Vector2(0.98f, 1.0f), UiFactory.Red);
+                    _artsDotText = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 26, UiFactory.PaperText);
+                    _artsDot = dot.gameObject;
+                    _artsDot.SetActive(false);
+                }
                 var icon = ArtLibrary.Icon(TabIconKeys[i]);
                 if (icon != null)
                 {
@@ -144,6 +155,16 @@ namespace BiRyeoDo.Game.UI
                     pic.preserveAspect = true;
                 }
             }
+        }
+
+        private void Update()
+        {
+            _dotTimer -= Time.unscaledDeltaTime;
+            if (_dotTimer > 0f || _artsDot == null || GameManager.Instance == null) return;
+            _dotTimer = 0.4f;
+            int n = Discovery.Count(GameManager.Instance.Save);
+            _artsDot.SetActive(n > 0);
+            _artsDotText.text = n.ToString();
         }
 
         private void Select(int index)

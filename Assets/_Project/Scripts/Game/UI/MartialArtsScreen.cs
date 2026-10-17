@@ -25,6 +25,9 @@ namespace BiRyeoDo.Game.UI
         private int _page;   // 0 무공, 1 심법, 2 동료 수련
         private static readonly string[] PageNames = { "무공", "심법", "동료 수련" };
         private readonly Image[] _pageTabs = new Image[PageNames.Length];
+        private readonly GameObject[] _pageDots = new GameObject[PageNames.Length];
+        private readonly Text[] _pageDotTexts = new Text[PageNames.Length];
+        private readonly HashSet<string> _newArtIds = new HashSet<string>();   // arts flagged new when this page was opened (tagged in the list)
         private RectTransform _artsRoot;
         private InnerArtPanel _inner;
         private CompanionPanel _training;
@@ -41,6 +44,13 @@ namespace BiRyeoDo.Game.UI
                 float x0 = 0.04f + p * 0.32f;
                 var btn = UiFactory.Button("Page" + p, tab, new Vector2(x0, 0.932f), new Vector2(x0 + 0.30f, 0.988f), PageNames[p], UiFactory.InkSoft, () => ShowPage(page), 30);
                 _pageTabs[p] = btn.GetComponent<Image>();
+                if (p < 2)
+                {
+                    var dot = UiFactory.Panel("NewDot", btn.transform, new Vector2(0.80f, 0.55f), new Vector2(1.04f, 1.12f), UiFactory.Red);
+                    _pageDotTexts[p] = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 24, UiFactory.PaperText);
+                    _pageDots[p] = dot.gameObject;
+                    _pageDots[p].SetActive(false);
+                }
             }
             var root = UiFactory.Rect("ArtsPage", tab, Vector2.zero, new Vector2(1f, 0.92f));
             _artsRoot = root;
@@ -99,7 +109,7 @@ namespace BiRyeoDo.Game.UI
             _detail = UiFactory.Rect("ArtDetail", tab, Vector2.zero, Vector2.one);
             _detail.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.78f);   // dims and blocks the list underneath
             _detail.gameObject.SetActive(false);
-            ShowPage(0);
+            ShowPage(0, false);
         }
 
         private RectTransform _detail;
@@ -191,10 +201,36 @@ namespace BiRyeoDo.Game.UI
         private void OnEnable() { if (_built) ShowPage(_page); }
         private void OnDisable() { if (_built) CloseDetail(); }
 
-        private void ShowPage(int page)
+        private void RefreshDots()
+        {
+            var save = GameManager.Instance.Save;
+            int[] counts = { Discovery.NewArts(save).Count, Discovery.NewInner(save).Count };
+            for (int i = 0; i < counts.Length; i++)
+            {
+                _pageDots[i].SetActive(counts[i] > 0);
+                _pageDotTexts[i].text = counts[i].ToString();
+            }
+        }
+
+        /// <param name="seen">true when the page is really being looked at: its red dot is cleared.</param>
+        private void ShowPage(int page, bool seen = true)
         {
             _page = page;
             CloseDetail();
+            var save = GameManager.Instance.Save;
+            if (seen && page == 0)
+            {
+                _newArtIds.Clear();
+                foreach (var a in Discovery.NewArts(save)) _newArtIds.Add(a.Id);
+                Discovery.MarkArtsSeen(save);
+                GameManager.Instance.SaveNow();
+            }
+            else if (seen && page == 1)
+            {
+                Discovery.MarkInnerSeen(save);
+                GameManager.Instance.SaveNow();
+            }
+            RefreshDots();
             _artsRoot.gameObject.SetActive(page == 0);
             _inner.Hide();
             _training.Hide();
@@ -304,7 +340,7 @@ namespace BiRyeoDo.Game.UI
                 r.IconGlyph.text = picture != null ? "" : a.Name.Substring(0, 1);
                 r.Icon.color = picture != null ? ((learned || unlocked) ? Color.white : new Color(0.35f, 0.35f, 0.38f, 1f))
                     : (learned || unlocked) ? IconColor(a) : new Color(0.2f, 0.2f, 0.22f, 1f);
-                r.Title.text = a.Name + (variant != ArtVariant.None ? "(" + Mastery.VariantName(variant) + ")" : "") + (equipped ? "  [장착]" : "");
+                r.Title.text = a.Name + (variant != ArtVariant.None ? "(" + Mastery.VariantName(variant) + ")" : "") + (equipped ? "  [장착]" : "") + (_newArtIds.Contains(a.Id) && !learned ? "  <color=#FF6A5A>[새 무공]</color>" : "");
                 bool canVariant = Mastery.AvailableVariants(a).Count > 0;
                 r.MasteryButton.gameObject.SetActive(learned);
                 r.MasteryLabel.text = Mastery.LevelNames[mLevel] + (mLevel >= Mastery.VariantLevel && canVariant ? "\n변초 바꾸기" : "\n" + Mastery.Uses(save, a.Id) + "회");

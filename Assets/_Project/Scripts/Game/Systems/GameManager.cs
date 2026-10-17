@@ -18,6 +18,7 @@ namespace BiRyeoDo.Game.Systems
             Save = SaveService.Load();
             EnsureStarterArt();
             Inventory.EnsureStartKit(Save);
+            Discovery.Sync(Save);
             gameObject.AddComponent<SoundManager>();
         }
 
@@ -28,6 +29,7 @@ namespace BiRyeoDo.Game.Systems
             Save = new SaveData { Settings = settings ?? new GameSettings() };
             EnsureStarterArt();
             Inventory.EnsureStartKit(Save);
+            Discovery.Sync(Save);
             SaveNow();
         }
 

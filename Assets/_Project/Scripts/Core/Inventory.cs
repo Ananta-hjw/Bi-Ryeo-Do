@@ -159,6 +159,20 @@ namespace BiRyeoDo.Core
             if (save.StartKitGiven) return;
             save.StartKitGiven = true;
             foreach (var stack in EarlyGameContent.StartKit) Add(save, stack.Id, stack.Count);
+            EquipStartLoadout(save);
+        }
+
+        /// <summary>A new game begins wearing the starting gear and with the free 기초 호흡법 equipped.</summary>
+        public static void EquipStartLoadout(SaveData save)
+        {
+            string error;
+            foreach (var stack in EarlyGameContent.StartKit)
+            {
+                var item = EarlyGameContent.FindItem(stack.Id);
+                if (item != null && item.IsGear) Equip(save, stack.Id, out error);
+            }
+            if (!InnerArts.IsLearned(save, "breath")) save.LearnedInner.Add("breath");
+            InnerArts.Equip(save, "breath", out error);
         }
 
         public static string Describe(ItemStack stack)
