@@ -302,8 +302,16 @@ namespace BiRyeoDo.Game.UI
                 string artId = art.Id;
                 var btn = UiFactory.Button("PickBtn" + i, rt, Vector2.zero, Vector2.one, "", UiFactory.Ink, () => ApplyScroll(scroll, artId), 28);
                 UiFactory.Frame(btn.transform, UiFactory.GoldDim, 2f);
-                UiFactory.Label("Name", btn.transform, new Vector2(0.04f, 0.5f), new Vector2(0.96f, 0.98f), art.Name + (Progression.IsUltimate(art) ? "  (비기)" : ""), 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                UiFactory.Label("Progress", btn.transform, new Vector2(0.04f, 0.02f), new Vector2(0.96f, 0.5f), progress, 22, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                var pic = ArtLibrary.Art(art.Id);
+                float textX = 0.04f;
+                if (pic != null)
+                {
+                    var pi = UiFactory.Panel("Icon", btn.transform, new Vector2(0.02f, 0.08f), new Vector2(0.14f, 0.92f), Color.white);
+                    pi.sprite = pic; pi.preserveAspect = true;
+                    textX = 0.16f;
+                }
+                UiFactory.Label("Name", btn.transform, new Vector2(textX, 0.5f), new Vector2(0.96f, 0.98f), art.Name + (Progression.IsUltimate(art) ? "  (비기)" : ""), 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                UiFactory.Label("Progress", btn.transform, new Vector2(textX, 0.02f), new Vector2(0.96f, 0.5f), progress, 22, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
             }
             if (arts.Count == 0) UiFactory.Label("None", card.transform, new Vector2(0.05f, 0.4f), new Vector2(0.95f, 0.6f), "배운 무공이 없습니다.", 32, UiFactory.Dim);
             UiFactory.Button("Close", card.transform, new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.10f), "취소", UiFactory.InkSoft, () => OpenDetail(scroll.Id), 34);

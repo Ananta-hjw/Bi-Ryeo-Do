@@ -203,7 +203,12 @@ namespace BiRyeoDo.Game.UI
 
                 int mLevel = Mastery.Level(save, a.Id);
                 var variant = Mastery.VariantOf(save, a.Id);
-                r.Icon.color = (learned || unlocked) ? IconColor(a) : new Color(0.2f, 0.2f, 0.22f, 1f);
+                var picture = ArtLibrary.Art(a.Id);
+                r.Icon.sprite = picture;
+                r.Icon.preserveAspect = true;
+                r.IconGlyph.text = picture != null ? "" : a.Name.Substring(0, 1);
+                r.Icon.color = picture != null ? ((learned || unlocked) ? Color.white : new Color(0.35f, 0.35f, 0.38f, 1f))
+                    : (learned || unlocked) ? IconColor(a) : new Color(0.2f, 0.2f, 0.22f, 1f);
                 r.Title.text = a.Name + (variant != ArtVariant.None ? "(" + Mastery.VariantName(variant) + ")" : "") + (equipped ? "  [장착]" : "");
                 bool canVariant = Mastery.AvailableVariants(a).Count > 0;
                 r.MasteryButton.gameObject.SetActive(learned);

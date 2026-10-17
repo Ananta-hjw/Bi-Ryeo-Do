@@ -23,6 +23,8 @@ namespace BiRyeoDo.Game.Systems
             if (item == null) return null;
             return Load("Items/" + item.Id) ?? Load("Items/_" + item.Kind.ToString().ToLowerInvariant());
         }
+        /// <summary>Martial art picture: <c>Arts/&lt;art id&gt;.png</c> (also the skill id in battle); null when missing.</summary>
+        public static Sprite Art(string artId) { return string.IsNullOrEmpty(artId) ? null : Load("Arts/" + artId); }
         public static Sprite Player() { return Load("Characters/player"); }
         /// <summary>Party member portrait: <c>Characters/&lt;id&gt;.png</c> (e.g. hyo_ryong.png).</summary>
         public static Sprite Companion(string companionId) { return Load("Characters/" + companionId) ?? Load("Enemies/" + companionId); }

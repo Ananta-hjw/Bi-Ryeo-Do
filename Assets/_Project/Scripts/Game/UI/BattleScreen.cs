@@ -51,6 +51,7 @@ namespace BiRyeoDo.Game.UI
             public Image Image;
             public Text Label;
             public GameObject Root;
+            public Image Icon;   // martial art picture on the left of the button (hidden when there is none)
         }
 
         private RectTransform _cardsRoot, _partyRoot, _fx;
@@ -145,7 +146,10 @@ namespace BiRyeoDo.Game.UI
                 float y1 = 0.285f - row * 0.087f;
                 float y0 = y1 - 0.083f;
                 var btn = UiFactory.Button("Cmd" + i, root, new Vector2(x0, y0), new Vector2(x0 + 0.2275f, y1), "", UiFactory.Red, () => OnCommandPressed(index), 28);
-                _commands[i] = new CommandButton { Button = btn, Image = btn.GetComponent<Image>(), Label = btn.GetComponentInChildren<Text>(), Root = btn.gameObject };
+                var icon = UiFactory.Panel("Icon", btn.transform, new Vector2(0.04f, 0.14f), new Vector2(0.30f, 0.86f), Color.white);
+                icon.preserveAspect = true;
+                icon.gameObject.SetActive(false);
+                _commands[i] = new CommandButton { Button = btn, Image = btn.GetComponent<Image>(), Label = btn.GetComponentInChildren<Text>(), Root = btn.gameObject, Icon = icon };
                 btn.gameObject.AddComponent<LongPress>().OnLong = () => ShowCommandTip(index);
             }
 
@@ -1321,7 +1325,7 @@ namespace BiRyeoDo.Game.UI
                 string sub = cd > 0 ? "재사용 " + cd + "턴" : s.SpiritCost > 0 ? "기세 " + s.SpiritCost : s.QiCost > 0 ? "내공 " + s.QiCost : "";
                 if (cd == 0 && me.Qi < s.QiCost) sub = "내공 부족";
                 else if (!reach) sub = "닿지 않음";
-                SetCommand(slot, s.Name, sub, ok);
+                SetCommand(slot, s.Name, sub, ok, ArtLibrary.Art(s.Id));
             }
             SetCommand(5, "방어", "피해 60% 감소", true);
             SetCommand(6, "운기", "내공 +" + InteractiveBattle.MeditateQi + " 체력 소량", true);
@@ -1333,7 +1337,7 @@ namespace BiRyeoDo.Game.UI
             else
             {
                 bool ready = _battle.CanUse(ult) && _battle.CanReach(ult);
-                SetCommand(9, "필살기\n" + ult.Name, ready ? "기세 " + ult.SpiritCost : "기세 " + Mathf.Min(me.Spirit, ult.SpiritCost) + "/" + ult.SpiritCost, ready);
+                SetCommand(9, "필살기\n" + ult.Name, ready ? "기세 " + ult.SpiritCost : "기세 " + Mathf.Min(me.Spirit, ult.SpiritCost) + "/" + ult.SpiritCost, ready, ArtLibrary.Art(ult.Id));
             }
             if (_jointPartners.Count == 0) _commands[8].Root.SetActive(false);
             else SetCommand(8, "합공", me.Spirit >= InteractiveBattle.JointSpiritCost ? "기세 " + InteractiveBattle.JointSpiritCost : "기세 부족", me.Spirit >= InteractiveBattle.JointSpiritCost);
@@ -1386,10 +1390,15 @@ namespace BiRyeoDo.Game.UI
             return "";
         }
 
-        private void SetCommand(int slot, string name, string sub, bool enabled)
+        private void SetCommand(int slot, string name, string sub, bool enabled, Sprite icon = null)
         {
             var c = _commands[slot];
             c.Root.SetActive(true);
+            c.Icon.gameObject.SetActive(icon != null);
+            c.Icon.sprite = icon;
+            c.Icon.color = enabled ? Color.white : new Color(1f, 1f, 1f, 0.45f);
+            var labelRect = c.Label.rectTransform;
+            labelRect.anchorMin = new Vector2(icon != null ? 0.30f : 0f, labelRect.anchorMin.y);
             c.Label.text = name + (string.IsNullOrEmpty(sub) ? "" : "\n" + sub);
             c.Button.interactable = enabled;
             c.Image.color = enabled ? (slot == 5 ? new Color(0.25f, 0.40f, 0.55f, 1f) : slot == 6 ? new Color(0.25f, 0.45f, 0.35f, 1f) : slot == 9 ? new Color(0.72f, 0.50f, 0.10f, 1f) : UiFactory.Red) : Disabled;

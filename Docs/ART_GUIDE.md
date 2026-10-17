@@ -316,3 +316,40 @@ AI 프롬프트 예시: "wuxia ink-wash style icon of <아이템 설명>, single
 |---|---|---|
 | `cheonyul_pae.png` | 천율패 | Epic |
 | `seungryong_pae.png` | 승룡패 | Rare |
+
+## 무공 아이콘 (`Resources/Art/Arts/<무공 id>.png`)
+무공 탭 목록, 전투 명령 버튼(왼쪽), 수련서 무공 선택 창에 나온다. 256x256 투명 PNG, 둥근 먹 원판 안에 무공을 상징하는 그림을 둔 형태이고 비기는 금빛 테두리다. 파일이 없으면 이름 첫 글자 색 블록(무공 탭)이나 글자만 있는 버튼(전투)으로 나온다. 기본 공격은 아이콘이 없다.
+
+| 파일 | 무공 |
+|---|---|
+| `bido_throw` | 비도 던지기 |
+| `samboku_chobok` | 삼복구타권법 초복 |
+| `bunroesu` | 분뢰수 |
+| `samcheopyeong` | 삼첩영 |
+| `bi_roe_do` | 비뢰도 |
+| `yeobanjang` | 여반장 |
+| `roegwang_ryuhagok` | 뢰광류하곡 |
+| `seonpung_roejeol` | 선풍뇌절 (비기) |
+| `cheongeun_roe` | 천근뢰 |
+| `cheonji_ibun` | 천지이분 |
+| `bongik_bisang` | 봉익비상 |
+| `simroe` | 심뢰 (비기) |
+| `saengsa_seomroe` | 섬뢰창 |
+| `eunseompung` | 은섬풍 |
+| `goengroe` | 굉뢰 |
+| `seomroe` | 섬뢰 (비기) |
+| `jikji_jilju` | 직지질주 |
+| `pungsin` | 풍신 (비기) |
+| `xr_twin` | 효룡 쌍검 연격 |
+| `xr_barrier` | 효룡 태을천강벽 |
+| `jh_slash` | 장홍 검 |
+| `jh_stun` | 장홍 점혈 |
+| `yj_slash` | 윤준호 화산의 검 |
+| `yj_heal` | 윤준호 자하신공 |
+| `isj_gon` | 임성진 진성십이곤 |
+| `isj_seonggwang` | 임성진 성광일시 |
+| `isj_iljeom` | 임성진 일점필중 |
+| `ny_baekhon` | 나예린 백혼검뢰천검식 |
+| `ny_hansang` | 나예린 한상옥령신검 |
+| `ny_simahn` | 나예린 심안검 |
+
