@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace BiRyeoDo.Core
 {
-    // Plain-language recaps written from Story/analysis. Keep one or two narration sentences per line.
+    // Story recaps written from Story/analysis (mostly dialogue; the wording is game-written, the facts are from the analysis).
     public static partial class StoryBriefings
     {
         private static readonly Dictionary<int, string[]> Before = new Dictionary<int, string[]>
@@ -674,5 +674,8 @@ namespace BiRyeoDo.Core
                 } },
         };
 
+        private static readonly Dictionary<int, StoryScene> Between = new Dictionary<int, StoryScene>
+        {
+        };
     }
 }

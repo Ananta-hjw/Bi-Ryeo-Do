@@ -31,11 +31,14 @@ namespace BiRyeoDo.Game.UI
                 var stage = EarlyGameContent.Stages[readable[i] - 1];
                 var band = CodexPanel.Band(content, i);
                 bool cleared = save.ClearedStage >= stage.Number;
-                UiFactory.Label("Name", band, new Vector2(0.04f, 0.54f), new Vector2(0.60f, 0.97f), stage.Number + ". " + stage.Name, 30, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                UiFactory.Label("Info", band, new Vector2(0.04f, 0.04f), new Vector2(0.60f, 0.54f), cleared ? "돌파한 이야기" : "다음 이야기", 20, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Name", band, new Vector2(0.04f, 0.54f), new Vector2(0.48f, 0.97f), stage.Number + ". " + stage.Name, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                UiFactory.Label("Info", band, new Vector2(0.04f, 0.04f), new Vector2(0.48f, 0.54f), cleared ? "돌파한 이야기" : "다음 이야기", 20, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var s = stage;
-                UiFactory.Button("Before", band, new Vector2(0.62f, 0.14f), new Vector2(0.79f, 0.86f), "배경", UiFactory.InkSoft, () => Play(s.Name + " — 배경", StoryBriefings.Briefing(s.Number)), 26);
-                var after = UiFactory.Button("After", band, new Vector2(0.81f, 0.14f), new Vector2(0.97f, 0.86f), "그 뒤", UiFactory.InkSoft, () => Play(s.Name + " — 그 뒤", StoryBriefings.Aftermath(s.Number)), 26);
+                UiFactory.Button("Before", band, new Vector2(0.50f, 0.14f), new Vector2(0.64f, 0.86f), "배경", UiFactory.InkSoft, () => Play(s.Name + " — 배경", StoryBriefings.Briefing(s.Number)), 24);
+                var between = StoryBriefings.Interlude(s.Number);
+                var fun = UiFactory.Button("Fun", band, new Vector2(0.66f, 0.14f), new Vector2(0.80f, 0.86f), "막간", UiFactory.InkSoft, () => Play("막간 — " + between.Title, between.Lines), 24);
+                fun.interactable = between != null;
+                var after = UiFactory.Button("After", band, new Vector2(0.82f, 0.14f), new Vector2(0.97f, 0.86f), "그 뒤", UiFactory.InkSoft, () => Play(s.Name + " — 그 뒤", StoryBriefings.Aftermath(s.Number)), 24);
                 after.interactable = cleared && StoryBriefings.Aftermath(s.Number) != null;
             }
             SetListHeight(content, readable.Count);

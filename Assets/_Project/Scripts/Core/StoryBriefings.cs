@@ -22,6 +22,13 @@ namespace BiRyeoDo.Core
             return After.TryGetValue(stage, out lines) ? lines : null;
         }
 
+        /// <summary>A short comedy scene shown after the briefing, or null.</summary>
+        public static StoryScene Interlude(int stage)
+        {
+            StoryScene scene;
+            return Between.TryGetValue(stage, out scene) ? scene : null;
+        }
+
         /// <summary>Stages whose summary can be read again (the cleared ones and the next one).</summary>
         public static List<int> Readable(SaveData save)
         {

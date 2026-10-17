@@ -388,6 +388,8 @@ namespace BiRyeoDo.Game.UI
             {
                 var recap = !stage.IsTower && !stage.IsQuest && save.ClearedStage < stage.Number ? StoryBriefings.Briefing(stage.Number) : null;
                 if (recap != null) yield return ShowStory(stage.Name + " — 이야기 배경", recap);
+                var between = recap != null ? StoryBriefings.Interlude(stage.Number) : null;
+                if (between != null) yield return ShowStory("막간 — " + between.Title, between.Lines);
                 if (stage.Prologue != null && save.ClearedStage < stage.Number)
                     foreach (var scene in stage.Prologue)
                         yield return ShowStory(scene.Title, scene.Lines);
