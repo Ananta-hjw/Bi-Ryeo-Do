@@ -46,20 +46,35 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void HarderDifficultiesOpenWhenTheLastFightIsWon()
+        public void HarderDifficultiesOpenStageByStage()
         {
             var save = new SaveData();
-            int last = StageStars.FightCount(5) - 1;
+            int Last(int stage) { return StageStars.FightCount(stage) - 1; }
             Assert.IsTrue(StageStars.Unlocked(save, 5, 0));
-            Assert.IsFalse(StageStars.Unlocked(save, 5, 1));
-            StageStars.Record(save, 5, 0, 0, 1);                 // only the first fight so far
-            Assert.IsFalse(StageStars.Unlocked(save, 5, 1));
-            StageStars.Record(save, 5, last, 0, 1);
-            Assert.IsTrue(StageStars.Unlocked(save, 5, 1));
-            Assert.IsFalse(StageStars.Unlocked(save, 5, 2));
-            StageStars.Record(save, 5, last, 1, 1);
-            Assert.IsTrue(StageStars.Unlocked(save, 5, 2));
-            Assert.IsFalse(StageStars.Unlocked(save, 6, 1));   // per stage
+            Assert.IsFalse(StageStars.Unlocked(save, 1, 1));
+            StageStars.Record(save, 1, 0, 0, 1);                 // only the first fight of stage 1 so far
+            Assert.IsFalse(StageStars.Unlocked(save, 1, 1));
+            StageStars.Record(save, 1, Last(1), 0, 1);
+            Assert.IsTrue(StageStars.Unlocked(save, 1, 1));      // 어려움 1 needs only 일반 1
+
+            StageStars.Record(save, 2, Last(2), 0, 1);
+            Assert.IsFalse(StageStars.Unlocked(save, 2, 1));     // 일반 2 is not enough: 어려움 1 must be cleared too
+            StageStars.Record(save, 1, Last(1), 1, 1);
+            Assert.IsTrue(StageStars.Unlocked(save, 2, 1));
+            Assert.IsFalse(StageStars.Unlocked(save, 3, 1));     // per stage: 일반 3 not cleared
+        }
+
+        [Test]
+        public void ExtremeNeedsTheSameStageOnHardAndThePreviousStageOnExtreme()
+        {
+            var save = new SaveData();
+            int Last(int stage) { return StageStars.FightCount(stage) - 1; }
+            foreach (int st in new[] { 1, 2 }) { StageStars.Record(save, st, Last(st), 0, 1); StageStars.Record(save, st, Last(st), 1, 1); }
+            Assert.IsTrue(StageStars.Unlocked(save, 1, 2));
+            Assert.IsFalse(StageStars.Unlocked(save, 2, 2));     // 극악 1 not cleared yet
+            StageStars.Record(save, 1, Last(1), 2, 1);
+            Assert.IsTrue(StageStars.Unlocked(save, 2, 2));
+            Assert.IsFalse(StageStars.Unlocked(save, 3, 2));
         }
 
         [Test]
@@ -69,7 +84,8 @@ namespace BiRyeoDo.Tests
             StageStars.Sync(save);
             int fights = Enumerable.Range(1, 3).Sum(n => StageStars.FightCount(n));
             Assert.AreEqual(fights, StageStars.Total(save));
-            Assert.IsTrue(StageStars.Unlocked(save, 2, 1));
+            Assert.IsTrue(StageStars.Unlocked(save, 1, 1));      // 어려움 1 opens with 일반 1
+            Assert.IsFalse(StageStars.Unlocked(save, 2, 1));     // 어려움 2 also needs 어려움 1
             Assert.IsFalse(StageStars.Unlocked(save, 4, 1));
             StageStars.Sync(save);
             Assert.AreEqual(fights, StageStars.Total(save));
@@ -155,6 +171,27 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(1, StageStars.ClaimableCount(save));
             Assert.IsNull(StageStars.Claim(save, StageStars.Chests[0]));
             Assert.AreEqual(3000, save.Doo);
+        }
+
+        [Test]
+        public void HarderDifficultiesStartAtTheirBaseLevelAndRiseToTheLastStage()
+        {
+            var tiger = EarlyGameContent.FindEnemy("tiger");
+            Assert.AreEqual(1, StageStars.ScaleEnemy(tiger, 1, 0).Level);                 // 일반 is untouched
+            Assert.AreEqual(30, StageStars.ScaleEnemy(tiger, 1, 1).Level);                // 어려움 stage 1 is built for level 30
+            Assert.AreEqual(60, StageStars.ScaleEnemy(tiger, 1, 2).Level);                // 극악 stage 1 for level 60
+            int last = EarlyGameContent.Stages.Length;
+            Assert.AreEqual(0, StageStars.LevelAdd(last, 1));                              // the last stage already has the top level
+            Assert.AreEqual(0, StageStars.LevelAdd(last, 2));
+            int prevHard = int.MaxValue, prevExtreme = int.MaxValue;
+            for (int n = 1; n <= last; n++)
+            {
+                var st = EarlyGameContent.FindStage(n);
+                int hard = st.RecommendedLevel + StageStars.LevelAdd(n, 1), extreme = st.RecommendedLevel + StageStars.LevelAdd(n, 2);
+                Assert.GreaterOrEqual(hard, st.RecommendedLevel);
+                Assert.GreaterOrEqual(extreme, hard, "stage " + n);
+                if (n > 1) { Assert.GreaterOrEqual(hard, 30); Assert.GreaterOrEqual(extreme, 60); }
+            }
         }
     }
 }

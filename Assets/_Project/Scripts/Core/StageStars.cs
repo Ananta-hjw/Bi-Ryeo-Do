@@ -29,10 +29,10 @@ namespace BiRyeoDo.Core
     {
         public const int DifficultyCount = 3;
         public static readonly string[] DifficultyNames = { "일반", "어려움", "극악" };
-        public static readonly float[] HpScale = { 1.0f, 1.9845f, 3.403f };
-        public static readonly float[] AtkScale = { 1.0f, 1.6016f, 2.427f };
+        public static readonly float[] HpScale = { 1.0f, 1.9094f, 3.296f };
+        public static readonly float[] AtkScale = { 1.0f, 1.5557f, 2.363f };
         // Defense is raised only a little: it takes damage x K/(K+Defense), so a few percent already shows (극악 검후 이옥상 takes x0.4 = defense 1500).
-        public static readonly float[] DefScale = { 1.0f, 1.0317f, 1.0817f };
+        public static readonly float[] DefScale = { 1.0f, 1.0207f, 1.0579f };
         public static readonly float[] RewardFactor = { 1.0f, 1.5f, 2.2f };   // 두 and exp
         public static readonly string[] StarNames = { "돌파", "전원 생존", "신속" };
 
@@ -107,13 +107,29 @@ namespace BiRyeoDo.Core
 
         public static float HpFor(int stage, int difficulty) { return 1f + (HpScale[Clamp(difficulty)] - 1f) * Ramp(stage); }
         public static float AtkFor(int stage, int difficulty) { return 1f + (AtkScale[Clamp(difficulty)] - 1f) * Ramp(stage); }
+        // The harder difficulties are meant for a protagonist who already cleared the easier one, so their enemies start at a higher level:
+        // 어려움 stage 1 is built for level 30 and 극악 stage 1 for level 60, rising in a straight line to the level the last stage already has.
+        public static readonly int[] BaseLevel = { 0, 30, 60 };
+
+        /// <summary>How many levels every enemy of a stage gets on a difficulty (0 on 일반 or when the stage already is past the line).</summary>
+        public static int LevelAdd(int stage, int difficulty)
+        {
+            difficulty = Clamp(difficulty);
+            var st = EarlyGameContent.FindStage(stage);
+            var last = EarlyGameContent.FindStage(EarlyGameContent.Stages.Length);
+            if (difficulty == 0 || st == null || last == null) return 0;
+            double t = EarlyGameContent.Stages.Length <= 1 ? 1.0 : (stage - 1.0) / (EarlyGameContent.Stages.Length - 1.0);
+            double floor = BaseLevel[difficulty] + (last.RecommendedLevel - BaseLevel[difficulty]) * t;
+            return Math.Max(0, (int)Math.Round(floor - st.RecommendedLevel));
+        }
+
         public static float DefFor(int stage, int difficulty) { return 1f + (DefScale[Clamp(difficulty)] - 1f) * Ramp(stage); }
         private static int Clamp(int difficulty) { return Math.Max(0, Math.Min(DifficultyCount - 1, difficulty)); }
 
         public static EnemyData ScaleEnemy(EnemyData enemy, int stage, int difficulty)
         {
             difficulty = Clamp(difficulty);
-            return difficulty == 0 ? enemy : enemy.Scaled(HpFor(stage, difficulty), AtkFor(stage, difficulty), DefFor(stage, difficulty));
+            return difficulty == 0 ? enemy : enemy.Scaled(HpFor(stage, difficulty), AtkFor(stage, difficulty), DefFor(stage, difficulty), LevelAdd(stage, difficulty));
         }
 
         public static string TagFor(int difficulty) { return difficulty <= 0 ? "" : "[" + DifficultyNames[Math.Min(DifficultyCount - 1, difficulty)] + "] "; }
@@ -181,11 +197,12 @@ namespace BiRyeoDo.Core
             return difficulty <= 0 ? "스테이지 " + stage + "에 도달" : DifficultyNames[Math.Min(difficulty, DifficultyNames.Length - 1)] + " 스테이지 " + stage + " 돌파";
         }
 
-        /// <summary>A harder difficulty opens once the stage is cleared on the one below.</summary>
+        /// <summary>A harder difficulty opens stage by stage: the same stage must be cleared on the difficulty below AND the previous stage on this one.</summary>
         public static bool Unlocked(SaveData save, int stage, int difficulty)
         {
             if (difficulty <= 0) return true;
-            return StageCleared(save, stage, difficulty - 1);
+            if (!StageCleared(save, stage, difficulty - 1)) return false;
+            return stage <= 1 || StageCleared(save, stage - 1, difficulty);
         }
 
         /// <summary>Stores the best result of a fight; returns how many new stars it earned.</summary>

@@ -58,9 +58,10 @@ namespace BiRyeoDo.Core
         public EnemyMove[] Moves;
 
         /// <summary>A copy with HP and attack multiplied (harder stage difficulties).</summary>
-        public EnemyData Scaled(float hp, float atk, float def = 1f)
+        public EnemyData Scaled(float hp, float atk, float def = 1f, int levelAdd = 0)
         {
             var c = (EnemyData)MemberwiseClone();
+            c.Level = Level + levelAdd;
             c.HpMul = HpMul * hp;
             c.AtkMul = AtkMul * atk;
             c.DefMul = DefMul * def;
@@ -422,7 +423,7 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("연환 공격", 0.7f, 3), EnemyMove.Attack("협공", 1.3f) } },
             new EnemyData { Id = "hwaryong_hwayeom", Name = "화룡의 불꽃", Level = 66, HpMul = 5.638f, AtkMul = 2.419f,
                 Moves = new[] { EnemyMove.Attack("불의 성벽", 0.8f, 2), EnemyMove.Wind("불길이 솟구친다"), EnemyMove.Attack("화룡의 숨결", 2.9f) } },
-            new EnemyData { Id = "bi_daegongja", Name = "대공자 비", Level = 67, IsBoss = true, RetreatHpPct = 0.3f, HpMul = 9.281f, AtkMul = 2.843f, DefMul = 1.15f, SpeedAdd = 14,
+            new EnemyData { Id = "bi_daegongja", Name = "대공자 비", Level = 67, IsBoss = true, RetreatHpPct = 0.3f, HpMul = 9.920f, AtkMul = 2.925f, DefMul = 1.15f, SpeedAdd = 14,
                 Moves = new[] { EnemyMove.Attack("영뢰 잔흔", 0.7f, 3), EnemyMove.Attack("검기 난무", 1.3f), EnemyMove.Wind("영뢰를 모은다"), EnemyMove.Attack("영뢰 천잔", 3.6f) } },
             // Stage 29 trials: 검후의 십초지적, 수화관 (16권)
             new EnemyData { Id = "geomhu_ioksang", Name = "검후 이옥상", Level = 66, HpMul = 60.000f, AtkMul = 5.412f, SpeedAdd = 4,
