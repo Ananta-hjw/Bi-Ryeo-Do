@@ -14,7 +14,7 @@ namespace BiRyeoDo.Game.UI
         private readonly Action _onChange;
         private int _tab;                       // 0 enemies, 1 items, 2 arts
         private static readonly string[] TabNames = { "적", "물품", "무공" };
-        internal const float RowH = 120f, RowGap = 10f;
+        internal const float RowH = 170f, RowGap = 10f;   // tall enough for two stacked, easy-to-hit buttons
 
         public CodexPanel(RectTransform codexRoot, RectTransform achRoot, Action onChange)
         {

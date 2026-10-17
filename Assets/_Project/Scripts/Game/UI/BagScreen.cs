@@ -11,7 +11,7 @@ namespace BiRyeoDo.Game.UI
     public class BagScreen : MonoBehaviour
     {
         private const int MaxRows = 60;
-        private const float RowH = 130f, RowGap = 10f;
+        private const float RowH = 180f, RowGap = 10f;   // gear rows stack 장착/해제 over 강화 as two big buttons
 
         private sealed class Row
         {
@@ -103,10 +103,10 @@ namespace BiRyeoDo.Game.UI
                 row.Title = UiFactory.Label("Title", rt, new Vector2(0.14f, 0.50f), new Vector2(0.66f, 0.98f), "", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
                 row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.14f, 0.02f), new Vector2(0.66f, 0.50f), "", 20, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 int index = i;
-                row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), "", UiFactory.Red, () => OnPressed(index), 26);
+                row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(0.68f, 0.14f), new Vector2(0.97f, 0.86f), "", UiFactory.Red, () => OnPressed(index), 28);
                 row.ButtonImage = row.Button.GetComponent<Image>();
                 row.ButtonLabel = row.Button.GetComponentInChildren<Text>();
-                row.EnhButton = UiFactory.Button("Enh" + i, rt, new Vector2(0.68f, 0.06f), new Vector2(0.97f, 0.46f), "", UiFactory.InkSoft, () => OnEnhance(index), 20);
+                row.EnhButton = UiFactory.Button("Enh" + i, rt, new Vector2(0.68f, 0.05f), new Vector2(0.97f, 0.46f), "", UiFactory.InkSoft, () => OnEnhance(index), 22);
                 row.EnhLabel = row.EnhButton.GetComponentInChildren<Text>();
                 _rows.Add(row);
             }
@@ -159,20 +159,25 @@ namespace BiRyeoDo.Game.UI
                 var set = Gear.SetOf(item.Id);
                 lines.Add(set != null ? Gear.SetDetail(set, save.EquippedGear, save) : "세트 없음");
             }
-            UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.24f), new Vector2(0.94f, 0.83f), string.Join("\n\n", lines), 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal);
+            UiFactory.Label("Body", card.transform, new Vector2(0.06f, gear ? 0.37f : 0.24f), new Vector2(0.94f, 0.83f), string.Join("\n\n", lines), 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal);
 
             if (gear)
             {
                 bool eq = Inventory.IsEquipped(save, item.Id);
-                UiFactory.Button("Equip", card.transform, new Vector2(0.05f, 0.13f), new Vector2(0.48f, 0.22f), eq ? "해제" : "장착", eq ? UiFactory.InkSoft : UiFactory.Red, () => { DoMain(item); }, 32);
+                UiFactory.Button("Equip", card.transform, new Vector2(0.05f, 0.255f), new Vector2(0.95f, 0.355f), eq ? "해제" : "장착", eq ? UiFactory.InkSoft : UiFactory.Red, () => { DoMain(item); }, 34);
                 long cost = Gear.NextCost(save, item.Id);
-                var enhBtn = UiFactory.Button("Enhance", card.transform, new Vector2(0.52f, 0.13f), new Vector2(0.95f, 0.22f), cost < 0 ? "최대 강화" : "강화  " + cost.ToString("N0") + "두", cost >= 0 && save.Doo >= cost ? UiFactory.Red : UiFactory.InkSoft, () => { DoEnhance(item); }, 30);
+                var enhBtn = UiFactory.Button("Enhance", card.transform, new Vector2(0.05f, 0.14f), new Vector2(0.95f, 0.24f), cost < 0 ? "최대 강화" : "강화  " + cost.ToString("N0") + "두", cost >= 0 && save.Doo >= cost ? UiFactory.Red : UiFactory.InkSoft, () => { DoEnhance(item); }, 30);
                 enhBtn.interactable = cost >= 0;
             }
             else if (item.Kind == ItemKind.Material && item.SellValue > 0)
             {
                 int count = Inventory.Count(save, item.Id);
                 UiFactory.Button("Sell", card.transform, new Vector2(0.05f, 0.13f), new Vector2(0.95f, 0.22f), "전부 판매 +" + (item.SellValue * count).ToString("N0") + "두", UiFactory.Red, () => { DoMain(item); }, 32);
+            }
+            else if (item.Kind == ItemKind.Material)
+            {
+                var blocked = UiFactory.Button("Sell", card.transform, new Vector2(0.05f, 0.13f), new Vector2(0.95f, 0.22f), "판매 불가", new Color(0.30f, 0.30f, 0.33f, 1f), null, 32);
+                blocked.interactable = false;
             }
             UiFactory.Button("Close", card.transform, new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.10f), "닫기", UiFactory.InkSoft, CloseDetail, 34);
         }
@@ -369,8 +374,8 @@ namespace BiRyeoDo.Game.UI
                 row.Detail.text = item.IsGear ? StatusSheet.EffectText(item, enh) + (set != null ? "  ·  [" + set.Name + " 세트]" : "") + (StatusSheet.Flavor(item).Length > 0 ? "  —  " + StatusSheet.Flavor(item) : "") : item.Description;
                 row.EnhButton.gameObject.SetActive(item.IsGear);
                 var main = row.Button.GetComponent<RectTransform>();
-                main.anchorMin = item.IsGear ? new Vector2(0.68f, 0.52f) : new Vector2(0.68f, 0.12f);
-                main.anchorMax = item.IsGear ? new Vector2(0.97f, 0.94f) : new Vector2(0.97f, 0.88f);
+                main.anchorMin = item.IsGear ? new Vector2(0.68f, 0.54f) : new Vector2(0.68f, 0.14f);
+                main.anchorMax = item.IsGear ? new Vector2(0.97f, 0.95f) : new Vector2(0.97f, 0.86f);
 
                 if (item.IsGear)
                 {
@@ -391,7 +396,7 @@ namespace BiRyeoDo.Game.UI
                 else if (item.Kind == ItemKind.Material)
                 {
                     row.ButtonLabel.text = "판매 불가";   // e.g. 심득석: only used in the 심법 page
-                    row.ButtonImage.color = UiFactory.InkSoft;
+                    row.ButtonImage.color = new Color(0.30f, 0.30f, 0.33f, 1f);
                     row.Button.interactable = false;
                 }
                 else

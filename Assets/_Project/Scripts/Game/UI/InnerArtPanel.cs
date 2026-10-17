@@ -38,13 +38,13 @@ namespace BiRyeoDo.Game.UI
                 if (learned) { label = equipped ? "해제" : "장착"; color = equipped ? UiFactory.InkSoft : UiFactory.Red; enabled = true; }
                 else if (!unlocked) { label = "잠김"; color = UiFactory.InkSoft; enabled = false; }
                 else { label = "습득 " + a.LearnCost.ToString("N0") + "두"; enabled = save.Doo >= a.LearnCost; color = enabled ? UiFactory.Red : UiFactory.InkSoft; }
-                var btn = UiFactory.Button("Act", band, new Vector2(0.69f, learned ? 0.52f : 0.14f), new Vector2(0.97f, learned ? 0.90f : 0.86f), label, color, () => Press(id), learned ? 24 : 26);
+                var btn = UiFactory.Button("Act", band, new Vector2(0.69f, learned ? 0.54f : 0.14f), new Vector2(0.97f, learned ? 0.94f : 0.86f), label, color, () => Press(id), 26);
                 btn.interactable = enabled;
                 if (learned)
                 {
                     int cost = InnerArts.NextCost(save, id);
                     bool can = cost >= 0 && InnerArts.Stones(save) >= cost;
-                    var up = UiFactory.Button("Enhance", band, new Vector2(0.69f, 0.10f), new Vector2(0.97f, 0.48f), cost < 0 ? "최대 강화" : "강화 심득석 " + cost, can ? UiFactory.Gold : UiFactory.InkSoft, () => Enhance(id), 22);
+                    var up = UiFactory.Button("Enhance", band, new Vector2(0.69f, 0.06f), new Vector2(0.97f, 0.46f), cost < 0 ? "최대 강화" : "강화 심득석 " + cost, can ? UiFactory.Gold : new Color(0.30f, 0.30f, 0.33f, 1f), () => Enhance(id), 24);
                     up.interactable = can;
                 }
             }
