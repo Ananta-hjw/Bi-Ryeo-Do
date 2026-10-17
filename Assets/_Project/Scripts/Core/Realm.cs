@@ -20,7 +20,7 @@ namespace BiRyeoDo.Core
     public static class Realm
     {
         public const double BasePower = 50.0;    // the start of 삼급's successor ladder: below this is still 삼급 (a level 1 protagonist is about 28)
-        public const double AnchorPower = 960.0; // 대공자 비 on 어려움 (about 960.6) = the anchor
+        public const double AnchorPower = 951.0; // 대공자 비 on 어려움 (about 960.6, inside the first 초절정 step); kept at 951 so that 초절정 극 starts at 2206 and 극악 검후 (2210) is in it
         public const string AnchorRealm = "초절정", AnchorSub = "초입";
 
         private static readonly string[] Subs = { "초입", "완숙", "극" };
