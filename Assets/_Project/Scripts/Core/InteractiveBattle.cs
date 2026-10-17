@@ -263,17 +263,17 @@ namespace BiRyeoDo.Core
                     {
                         var item = cmd.Item;
                         if (item == null || item.Kind != ItemKind.Consumable) throw new InvalidOperationException("Not a consumable.");
-                        var target = actor;
+                        // Every effect of the item lands on the chosen ally (healing items default to the most wounded one, the rest to the user).
+                        var target = cmd.AllyTarget != null && cmd.AllyTarget.IsAlive && _party.Contains(cmd.AllyTarget) ? cmd.AllyTarget : item.HealPct > 0f ? MostWounded() : actor;
                         int heal = 0;
                         if (item.HealPct > 0f)
                         {
-                            target = ResolveAlly(cmd.AllyTarget);
                             heal = (int)Math.Round(target.Stats.MaxHp * item.HealPct);
                             target.Hp = Math.Min(target.Stats.MaxHp, target.Hp + heal);
                         }
-                        if (item.QiRestore > 0) actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + item.QiRestore);
-                        if (item.SpiritGain > 0) actor.Spirit = Math.Min(MaxSpirit, actor.Spirit + item.SpiritGain);
-                        events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = target.Id, SkillId = item.Id, Kind = EventKind.Item, Heal = heal, TargetHpAfter = target.Hp, Message = actor.Name + ": " + item.Name + " 사용" });
+                        if (item.QiRestore > 0) target.Qi = Math.Min(target.Stats.MaxQi, target.Qi + item.QiRestore);
+                        if (item.SpiritGain > 0) target.Spirit = Math.Min(MaxSpirit, target.Spirit + item.SpiritGain);
+                        events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = target.Id, SkillId = item.Id, Kind = EventKind.Item, Heal = heal, TargetHpAfter = target.Hp, Message = actor.Name + ": " + item.Name + (target != actor ? " → " + target.Name : "") + " 사용" });
                         break;
                     }
                 case CommandKind.Joint:

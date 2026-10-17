@@ -1534,7 +1534,7 @@ namespace BiRyeoDo.Game.UI
                 var items = UsableItems();
                 if (slot >= items.Count) return;
                 var picked = items[slot];
-                if (picked.HealPct > 0f) { BeginAllyAim(picked.Name, ally => PlayerCommand.UseItem(picked).WithAlly(ally)); return; }
+                if (picked.HealPct > 0f || picked.QiRestore > 0 || picked.SpiritGain > 0) { BeginAllyAim(picked.Name, ally => PlayerCommand.UseItem(picked).WithAlly(ally)); return; }
                 Issue(PlayerCommand.UseItem(picked));
                 return;
             }
@@ -1681,7 +1681,7 @@ namespace BiRyeoDo.Game.UI
                         _log.text = ev.Message;
                         var itemTarget = PanelOf(ev.TargetId);
                         if (ev.Heal > 0 && itemTarget != null) Float(itemTarget.Center, "+" + ev.Heal, HpGreen, 70);
-                        else if (actorPanel != null) Float(actorPanel.Center, "회복", QiBlue, 56);
+                        else if ((itemTarget ?? actorPanel) != null) Float((itemTarget ?? actorPanel).Center, "회복", QiBlue, 56);
                         RefreshParty();
                         yield return new WaitForSeconds(Wait(StepDelay));
                         break;

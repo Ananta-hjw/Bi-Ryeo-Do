@@ -216,6 +216,18 @@ public class FormationTests
     }
 
     [Test]
+    public void ItemEffectsAllLandOnTheChosenAlly()
+    {
+        var hero = Hero(); var a = new Combatant("a", "윤준호", Team.Player, Stats(1000), null);
+        var battle = Fight(new[] { hero, a }, new[] { Foe("e") });
+        a.Hp = 300; a.Qi = 0; a.Spirit = 0; hero.Qi = 0; hero.Spirit = 0;
+        var elixir = new ItemData { Id = "elixir", Name = "영단", Kind = ItemKind.Consumable, HealPct = 0.3f, QiRestore = 50, SpiritGain = 20 };
+        battle.PlayerAct(PlayerCommand.UseItem(elixir).WithAlly(a));
+        Assert.Greater(a.Hp, 300); Assert.GreaterOrEqual(a.Qi, 50); Assert.GreaterOrEqual(a.Spirit, 20);
+        Assert.Less(hero.Qi, 50, "the user gets nothing when someone else was chosen");
+    }
+
+    [Test]
     public void ArtRangesFollowTheirKind()
     {
         Assert.AreEqual(1, SkillSpec.BasicAttack().Range);
