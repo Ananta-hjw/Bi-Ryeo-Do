@@ -39,36 +39,36 @@ namespace BiRyeoDo.Core
         /// <summary>Party actions allowed for the 신속 star of each fight (index = stage - 1, then fight). About 90% of the balance bot's median, plus one.</summary>
         private static readonly int[][] FastLimits =
         {
-            new[] { 5, 8, 10, 13 },   // 1
-            new[] { 4, 8, 13 },   // 2
-            new[] { 5, 9, 9 },   // 3
-            new[] { 6, 9, 9 },   // 4
-            new[] { 3, 8 },   // 5
-            new[] { 6, 8, 8 },   // 6
-            new[] { 6, 9, 14, 11 },   // 7
-            new[] { 6, 11, 17 },   // 8
-            new[] { 9, 8, 19, 19 },   // 9
-            new[] { 7, 15, 19 },   // 10
-            new[] { 6, 6, 19 },   // 11
-            new[] { 8, 18, 15 },   // 12
-            new[] { 22, 28 },   // 13
-            new[] { 25, 17, 40 },   // 14
-            new[] { 15, 23, 10 },   // 15
-            new[] { 21, 16, 17 },   // 16
-            new[] { 26, 20, 18 },   // 17
-            new[] { 17, 28 },   // 18
-            new[] { 29, 25, 25 },   // 19
-            new[] { 28, 20, 28 },   // 20
-            new[] { 28, 25, 21 },   // 21
-            new[] { 31, 25, 25 },   // 22
-            new[] { 30, 26, 25 },   // 23
-            new[] { 37, 41, 34 },   // 24
-            new[] { 42, 40, 29 },   // 25
-            new[] { 42, 26, 29 },   // 26
-            new[] { 37, 37, 30 },   // 27
-            new[] { 24, 43, 33, 28 },   // 28
-            new[] { 37, 41, 28, 15, 55 },   // 29
-            new[] { 55, 39, 28 },   // 30
+            new[] { 4, 6, 7, 10 },   // 1
+            new[] { 3, 5, 10 },   // 2
+            new[] { 4, 5, 6 },   // 3
+            new[] { 5, 6, 8 },   // 4
+            new[] { 3, 6 },   // 5
+            new[] { 5, 7, 8 },   // 6
+            new[] { 4, 7, 10, 9 },   // 7
+            new[] { 4, 8, 11 },   // 8
+            new[] { 6, 6, 12, 11 },   // 9
+            new[] { 6, 12, 11 },   // 10
+            new[] { 4, 4, 14 },   // 11
+            new[] { 6, 11, 12 },   // 12
+            new[] { 14, 18 },   // 13
+            new[] { 15, 11, 20 },   // 14
+            new[] { 10, 14, 7 },   // 15
+            new[] { 14, 11, 9 },   // 16
+            new[] { 18, 14, 11 },   // 17
+            new[] { 11, 17 },   // 18
+            new[] { 19, 18, 17 },   // 19
+            new[] { 19, 13, 18 },   // 20
+            new[] { 19, 17, 16 },   // 21
+            new[] { 24, 19, 17 },   // 22
+            new[] { 21, 17, 18 },   // 23
+            new[] { 25, 24, 26 },   // 24
+            new[] { 27, 25, 23 },   // 25
+            new[] { 28, 19, 19 },   // 26
+            new[] { 24, 28, 22 },   // 27
+            new[] { 18, 28, 23, 20 },   // 28
+            new[] { 27, 43, 21, 15, 41 },   // 29
+            new[] { 37, 28, 21 },   // 30
         };
 
         public static int FastLimit(int stage, int fight)
@@ -80,11 +80,14 @@ namespace BiRyeoDo.Core
         /// <summary>The 신속 limit on a difficulty: harder enemies have more HP, so the limit grows with <see cref="HpFor"/>.</summary>
         public static int FastLimit(int stage, int fight, int difficulty)
         {
+            if (difficulty <= 0) return FastLimit(stage, fight);
             // More HP and a little more defense (the stage's enemy defense is read off the level curve) both lengthen the fight.
             var st = EarlyGameContent.FindStage(stage);
             double d0 = st != null ? Progression.StatsFor(st.RecommendedLevel).Defense : 0.0;
             double defEffect = (BattleEngine.DefenseConstant + d0 * DefFor(stage, difficulty)) / (BattleEngine.DefenseConstant + d0);
-            return (int)Math.Ceiling(FastLimit(stage, fight) * Math.Max(1f, HpFor(stage, difficulty)) * Math.Max(1.0, defEffect));
+            // The table is measured on the eased 일반 enemies, while the harder difficulties scale the original ones (see NormalEase).
+            double hp = HpFor(stage, difficulty) / Math.Pow(NormalEase(stage), 0.7);
+            return (int)Math.Ceiling(FastLimit(stage, fight) * Math.Max(1.0, hp) * Math.Max(1.0, defEffect));
         }
 
         public static int FightCount(int stage)
@@ -126,10 +129,22 @@ namespace BiRyeoDo.Core
         public static float DefFor(int stage, int difficulty) { return 1f + (DefScale[Clamp(difficulty)] - 1f) * Ramp(stage); }
         private static int Clamp(int difficulty) { return Math.Max(0, Math.Min(DifficultyCount - 1, difficulty)); }
 
+        // 일반 난이도를 손본 배율(1~6은 조금 더 세게, 7부터는 동료가 나온 뒤라 많이 약하게). 어려움·극악은 이 조정 전 수치에서 출발하므로 ScaleEnemy가 되돌려 준다.
+        static readonly float[] NormalEaseTable =
+        {
+            1.0f, 1.0f, 1.0f, 1.3f, 1.5f, 1.5f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.65f, 0.65f, 0.6f, 0.6f,
+            0.6f, 0.6f, 0.65f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.65f,
+        };
+
+        /// <summary>How much stronger (&gt;1) or weaker (&lt;1) a stage's 일반 enemies are than the enemy table the harder difficulties were tuned against.</summary>
+        public static float NormalEase(int stage) { return stage >= 1 && stage <= NormalEaseTable.Length ? NormalEaseTable[stage - 1] : 1f; }
+
         public static EnemyData ScaleEnemy(EnemyData enemy, int stage, int difficulty)
         {
             difficulty = Clamp(difficulty);
-            return difficulty == 0 ? enemy : enemy.Scaled(HpFor(stage, difficulty), AtkFor(stage, difficulty), DefFor(stage, difficulty), LevelAdd(stage, difficulty));
+            if (difficulty == 0) return enemy;
+            float ease = NormalEase(stage);
+            return enemy.Scaled(HpFor(stage, difficulty) / (float)Math.Pow(ease, 0.7), AtkFor(stage, difficulty) / (float)Math.Pow(ease, 0.3), DefFor(stage, difficulty), LevelAdd(stage, difficulty));
         }
 
         public static string TagFor(int difficulty) { return difficulty <= 0 ? "" : "[" + DifficultyNames[Math.Min(DifficultyCount - 1, difficulty)] + "] "; }

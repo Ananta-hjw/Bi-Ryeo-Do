@@ -56,10 +56,16 @@ namespace BiRyeoDo.Tests
             return eq.Select(a => a.ToSpec()).ToList();
         }
 
+        // Stages 1-6 are fought alone, so they are tuned for a protagonist who already has decent gear (용아검, 적운 장포, 태극 옥패, 구미 부적).
+        // From stage 7 on the party carries the fight and the bot wears nothing.
+        public static readonly string[] EarlyKit = { "dragonfang_sword", "crimson_longcoat", "taegeuk_jade", "ninetail_charm" };
+        public const int EarlyKitLastStage = 6;
+
         public static List<Combatant> BuildParty(int stageNumber, int level)
         {
-            // The bot wears no gear, but it does get the 경지 bonus of the realm its plain stats reach.
+            // The bot gets the 경지 bonus of the realm its stats reach.
             var heroBase = Progression.HeroStatsFor(level);
+            if (stageNumber >= 1 && stageNumber <= EarlyKitLastStage) heroBase = Inventory.ApplyGear(heroBase, new List<string>(EarlyKit), null);
             var hero = Realm.ApplyBonus(heroBase, Realm.StepOf(Realm.Power(heroBase)));
             var party = new List<Combatant> { new Combatant("p", "비류연", Team.Player, hero, BestLoadout(stageNumber)) };
             foreach (var c in EarlyGameContent.SelectCompanions(stageNumber, null)) party.Add(c.CreateCombatant(level));
