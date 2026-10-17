@@ -29,8 +29,8 @@ namespace BiRyeoDo.Core
     {
         public const int DifficultyCount = 3;
         public static readonly string[] DifficultyNames = { "일반", "어려움", "극악" };
-        public static readonly float[] HpScale = { 1.0f, 1.9f, 2.6f };
-        public static readonly float[] AtkScale = { 1.0f, 1.55f, 1.95f };
+        public static readonly float[] HpScale = { 1.0f, 1.9f, 3.585f };
+        public static readonly float[] AtkScale = { 1.0f, 1.55f, 2.535f };
         public static readonly float[] RewardFactor = { 1.0f, 1.5f, 2.2f };   // 두 and exp
         public static readonly string[] StarNames = { "돌파", "전원 생존", "신속" };
 
