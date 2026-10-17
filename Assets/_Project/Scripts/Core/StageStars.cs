@@ -29,10 +29,10 @@ namespace BiRyeoDo.Core
     {
         public const int DifficultyCount = 3;
         public static readonly string[] DifficultyNames = { "일반", "어려움", "극악" };
-        public static readonly float[] HpScale = { 1.0f, 1.9f, 3.403f };
-        public static readonly float[] AtkScale = { 1.0f, 1.55f, 2.427f };
+        public static readonly float[] HpScale = { 1.0f, 1.9845f, 3.403f };
+        public static readonly float[] AtkScale = { 1.0f, 1.6016f, 2.427f };
         // Defense is raised only a little: it takes damage x K/(K+Defense), so a few percent already shows (극악 검후 이옥상 takes x0.4 = defense 1500).
-        public static readonly float[] DefScale = { 1.0f, 1.029f, 1.0817f };
+        public static readonly float[] DefScale = { 1.0f, 1.0317f, 1.0817f };
         public static readonly float[] RewardFactor = { 1.0f, 1.5f, 2.2f };   // 두 and exp
         public static readonly string[] StarNames = { "돌파", "전원 생존", "신속" };
 
