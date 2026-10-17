@@ -1270,6 +1270,16 @@ namespace BiRyeoDo.Game.UI
             return list;
         }
 
+        private static bool HasLearnedUltimate()
+        {
+            foreach (var id in GameManager.Instance.Save.LearnedArts)
+            {
+                var art = EarlyGameContent.FindArt(id);
+                if (art != null && art.OwnerId == null && Progression.IsUltimate(art)) return true;
+            }
+            return false;
+        }
+
         private void RefreshCommands()
         {
             var me = _battle.Current;
@@ -1333,11 +1343,16 @@ namespace BiRyeoDo.Game.UI
 
             RefreshJointPartners();
             var ult = UltimateOf(me);
-            if (ult == null) _commands[9].Root.SetActive(false);
+            if (ult == null)
+            {
+                // The protagonist keeps an empty 필살기 slot on screen once a 비기 is learned, so it is clear one can be equipped.
+                if (me.Id == "player" && HasLearnedUltimate()) SetCommand(9, "필살기", "비어 있음", false, ArtLibrary.Icon("ultimate_slot"));
+                else _commands[9].Root.SetActive(false);
+            }
             else
             {
                 bool ready = _battle.CanUse(ult) && _battle.CanReach(ult);
-                SetCommand(9, "필살기\n" + ult.Name, ready ? "기세 " + ult.SpiritCost : "기세 " + Mathf.Min(me.Spirit, ult.SpiritCost) + "/" + ult.SpiritCost, ready, ArtLibrary.Art(ult.Id));
+                SetCommand(9, "필살기\n" + ult.Name, ready ? "기세 " + ult.SpiritCost : "기세 " + Mathf.Min(me.Spirit, ult.SpiritCost) + "/" + ult.SpiritCost, ready, ArtLibrary.Art(ult.Id) ?? ArtLibrary.Icon("ultimate_slot"));
             }
             if (_jointPartners.Count == 0) _commands[8].Root.SetActive(false);
             else SetCommand(8, "합공", me.Spirit >= InteractiveBattle.JointSpiritCost ? "기세 " + InteractiveBattle.JointSpiritCost : "기세 부족", me.Spirit >= InteractiveBattle.JointSpiritCost);
@@ -1490,7 +1505,8 @@ namespace BiRyeoDo.Game.UI
             else if (slot == 9)
             {
                 var ultimateSkill = UltimateOf(me);
-                if (ultimateSkill != null) ShowTip("필살기 · " + ultimateSkill.Name, SkillBody(ultimateSkill) + "\n기세가 가득 차면 쓸 수 있습니다.");
+                if (ultimateSkill == null) ShowTip("필살기 슬롯", "장착한 비기가 없습니다. 무공 탭에서 배운 비기를 장착하면 여기에서 쓸 수 있습니다. 기세가 가득 차면 쓸 수 있는 필살기 한 자리입니다.");
+                else ShowTip("필살기 · " + ultimateSkill.Name, SkillBody(ultimateSkill) + "\n기세가 가득 차면 쓸 수 있습니다.");
             }
             else if (slot == 5) ShowTip("방어", "다음 차례까지 받는 피해가 크게 줄어듭니다(피해 60% 감소). 기세가 조금 오릅니다.");
             else if (slot == 6) ShowTip("운기", "내공 +" + InteractiveBattle.MeditateQi + "과 체력을 조금 회복합니다.");
