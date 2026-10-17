@@ -139,7 +139,17 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.91f), new Vector2(0.72f, 0.985f), art.Name + (variant != ArtVariant.None && learned ? "(" + Mastery.VariantName(variant) + ")" : ""), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
             string kind = (ultimate ? "비기 (기세 " + art.SpiritCost + ")" : art.AllEnemies ? "전체 무공" : art.Effect == SkillEffect.None ? "일반 무공" : "보조 무공")
                 + (equipped ? "  ·  장착 중" : learned ? "  ·  배움" : "");
-            UiFactory.Label("Kind", card.transform, new Vector2(0.05f, 0.86f), new Vector2(0.72f, 0.91f), kind, 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            // Command icon of the kind of use: 비기 → 필살기 slot, evade/guard → 방어, heal → 운기, otherwise → 공격.
+            var kindIcon = ArtLibrary.Icon(ultimate ? "ultimate_slot" : art.Effect == SkillEffect.Evade || art.Effect == SkillEffect.GuardParty ? "cmd_guard" : art.Effect == SkillEffect.HealAlly ? "cmd_meditate" : "cmd_attack");
+            float kindX = 0.05f;
+            if (kindIcon != null)
+            {
+                var ki = UiFactory.Panel("KindIcon", card.transform, new Vector2(0.05f, 0.855f), new Vector2(0.115f, 0.915f), Color.white);
+                ki.sprite = kindIcon;
+                ki.preserveAspect = true;
+                kindX = 0.125f;
+            }
+            UiFactory.Label("Kind", card.transform, new Vector2(kindX, 0.86f), new Vector2(0.72f, 0.91f), kind, 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
 
             var lines = new List<string>();
             lines.Add(art.Description);
