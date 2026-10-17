@@ -21,7 +21,7 @@ namespace BiRyeoDo.Core
     public static class Promotion
     {
         public const int MaxRank = 10;
-        public const int GateRank = 5;                 // 오검룡: required for the 삼성무제 stages
+        public const int GateRank = 3;                 // 삼검룡: required for the 삼성무제 stages
         public const int GateStage = 12;
         public const int TurnLimit = 12;               // player actions per duel (stand-in for the 300-second rule)
         public const float DrawPayFactor = 0.5f;

@@ -71,12 +71,13 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void GateStagesNeedFifthRank()
+        public void GateStagesNeedThirdRank()
         {
             Assert.IsTrue(Promotion.StageAllowed(Save(1), 11));
-            Assert.IsFalse(Promotion.StageAllowed(Save(4), 12));
-            Assert.IsFalse(Promotion.StageAllowed(Save(4), 13));
-            Assert.IsTrue(Promotion.StageAllowed(Save(5), 12));
+            Assert.IsFalse(Promotion.StageAllowed(Save(2), 12));
+            Assert.IsFalse(Promotion.StageAllowed(Save(2), 13));
+            Assert.IsTrue(Promotion.StageAllowed(Save(3), 12));
+            Assert.IsTrue(Promotion.StageAllowed(Save(3), 13));
         }
 
         internal static double NotLostRate(int rank, int tier, int runs, float power = 1f)

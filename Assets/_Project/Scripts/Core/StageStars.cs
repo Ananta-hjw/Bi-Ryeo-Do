@@ -29,44 +29,44 @@ namespace BiRyeoDo.Core
     {
         public const int DifficultyCount = 3;
         public static readonly string[] DifficultyNames = { "일반", "어려움", "극악" };
-        public static readonly float[] HpScale = { 1.0f, 1.6f, 2.0f };
-        public static readonly float[] AtkScale = { 1.0f, 1.4f, 1.6f };
+        public static readonly float[] HpScale = { 1.0f, 1.9f, 2.6f };
+        public static readonly float[] AtkScale = { 1.0f, 1.55f, 1.95f };
         public static readonly float[] RewardFactor = { 1.0f, 1.5f, 2.2f };   // 두 and exp
         public static readonly string[] StarNames = { "돌파", "전원 생존", "신속" };
 
         /// <summary>Party actions allowed for the 신속 star of each fight (index = stage - 1, then fight). About 90% of the balance bot's median, plus one.</summary>
         private static readonly int[][] FastLimits =
         {
-            new[] { 5, 7, 8, 12 },   // 1
-            new[] { 4, 6, 14 },   // 2
-            new[] { 5, 7, 10 },   // 3
-            new[] { 5, 8, 8 },   // 4
-            new[] { 3, 6 },   // 5
-            new[] { 5, 6, 10 },   // 6
-            new[] { 4, 6, 9, 7 },   // 7
-            new[] { 4, 6, 13 },   // 8
-            new[] { 4, 4, 7, 9 },   // 9
-            new[] { 4, 9, 9 },   // 10
+            new[] { 5, 8, 10, 13 },   // 1
+            new[] { 4, 8, 13 },   // 2
+            new[] { 5, 9, 9 },   // 3
+            new[] { 6, 9, 9 },   // 4
+            new[] { 3, 7 },   // 5
+            new[] { 5, 7, 8 },   // 6
+            new[] { 5, 9, 12, 10 },   // 7
+            new[] { 6, 11, 21 },   // 8
+            new[] { 9, 8, 18, 18 },   // 9
+            new[] { 8, 15, 18 },   // 10
             new[] { 5, 5, 14 },   // 11
-            new[] { 5, 10, 9 },   // 12
-            new[] { 10, 13 },   // 13
-            new[] { 14, 8, 17 },   // 14
-            new[] { 9, 11, 5 },   // 15
-            new[] { 11, 9, 8 },   // 16
-            new[] { 13, 10, 9 },   // 17
-            new[] { 8, 12 },   // 18
-            new[] { 16, 13, 13 },   // 19
-            new[] { 16, 9, 13 },   // 20
-            new[] { 17, 14, 13 },   // 21
-            new[] { 18, 15, 13 },   // 22
-            new[] { 18, 16, 14 },   // 23
-            new[] { 20, 20, 16 },   // 24
-            new[] { 20, 16, 15 },   // 25
-            new[] { 20, 13, 13 },   // 26
-            new[] { 18, 20, 15 },   // 27
-            new[] { 13, 23, 17, 16 },   // 28
-            new[] { 16, 41, 14, 14, 30 },   // 29
-            new[] { 27, 21, 13 },   // 30
+            new[] { 8, 19, 18 },   // 12
+            new[] { 22, 27 },   // 13
+            new[] { 20, 17, 35 },   // 14
+            new[] { 14, 19, 9 },   // 15
+            new[] { 17, 13, 12 },   // 16
+            new[] { 26, 21, 19 },   // 17
+            new[] { 16, 25 },   // 18
+            new[] { 29, 26, 24 },   // 19
+            new[] { 27, 17, 21 },   // 20
+            new[] { 28, 26, 24 },   // 21
+            new[] { 31, 24, 24 },   // 22
+            new[] { 28, 26, 23 },   // 23
+            new[] { 35, 38, 30 },   // 24
+            new[] { 33, 36, 28 },   // 25
+            new[] { 39, 24, 28 },   // 26
+            new[] { 27, 34, 29 },   // 27
+            new[] { 23, 44, 30, 28 },   // 28
+            new[] { 28, 39, 26, 14, 44 },   // 29
+            new[] { 52, 37, 24 },   // 30
         };
 
         public static int FastLimit(int stage, int fight)

@@ -69,7 +69,7 @@ namespace BiRyeoDo.Tests
             var party = BuildParty(st.Number, st.RecommendedLevel);
             for (int k = 0; k < st.Encounters.Length; k++)
             {
-                var enemies = st.Encounters[k].Select((id, i) => EarlyGameContent.FindEnemy(id).CreateCombatant(id + i)).ToList();
+                var enemies = st.Encounters[k].Select((id, i) => (st.IsQuest ? Quests.Scale(st.QuestId, EarlyGameContent.FindEnemy(id)) : EarlyGameContent.FindEnemy(id)).CreateCombatant(id + i)).ToList();
                 Formation.Apply(party, null);   // every fight starts from the formation tiles
                 var battle = new InteractiveBattle(party, enemies, new SeededRandom(seed * 1000 + st.Number * 10 + k)) { Trial = st.TrialFor(k) };
                 battle.Begin();
