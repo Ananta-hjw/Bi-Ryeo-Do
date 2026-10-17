@@ -1646,14 +1646,6 @@ namespace BiRyeoDo.Game.UI
             RefreshCards();
         }
 
-        // Qi and spirit are not carried by events: a member's bars catch up when they act, spirit again when they are hit.
-        private static void ShowResources(PartyPanel panel)
-        {
-            if (panel == null) return;
-            panel.ShownQi = panel.Unit.Qi;
-            panel.ShownSpirit = panel.Unit.Spirit;
-        }
-
         private void ShowHpAfter(string unitId, int hp)
         {
             var panel = PanelOf(unitId);
@@ -1669,7 +1661,7 @@ namespace BiRyeoDo.Game.UI
                 if (ev.Kind != EventKind.Attack) _cutInKey = "";
                 var actorPanel = PanelOf(ev.ActorId);
                 bool byParty = actorPanel != null;
-                ShowResources(actorPanel);
+                if (actorPanel != null) { actorPanel.ShownQi = ev.ActorQiAfter; actorPanel.ShownSpirit = ev.ActorSpiritAfter; }
                 string actorName = NameOf(ev.ActorId);
 
                 switch (ev.Kind)
@@ -1806,7 +1798,7 @@ namespace BiRyeoDo.Game.UI
                     if (!ev.Guarded) SoundManager.Haptic(ev.IsCrit ? 60 : 25);
                     Float(victim.Center, "-" + ev.Damage + (ev.Guarded ? " 방어" : ev.IsCrit ? "!" : ""), ev.Guarded ? GuardBlue : UiFactory.Red, ev.IsCrit ? 84 : 66);
                     victim.ShownHp = ev.TargetHpAfter;
-                    ShowResources(victim);
+                    victim.ShownSpirit = ev.TargetSpiritAfter;
                     victim.Hp.SetPct((float)ev.TargetHpAfter / Math.Max(1, victim.Unit.Stats.MaxHp));
                     victim.HpText.text = ev.TargetHpAfter + "/" + victim.Unit.Stats.MaxHp;
                     StartCoroutine(Shake(victim.Root, ev.Guarded ? 6f : 16f));

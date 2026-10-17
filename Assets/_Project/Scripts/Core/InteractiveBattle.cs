@@ -244,6 +244,7 @@ namespace BiRyeoDo.Core
                 else Combo = 0;
             }
 
+            int firstEvent = events.Count;
             switch (cmd.Kind)
             {
                 case CommandKind.Guard:
@@ -285,6 +286,7 @@ namespace BiRyeoDo.Core
                     break;
             }
 
+            for (int i = firstEvent; i < events.Count; i++) { events[i].ActorQiAfter = actor.Qi; events[i].ActorSpiritAfter = actor.Spirit; }
             if (Trial != null && (Trial.Kind == TrialKind.Deadline || Trial.Kind == TrialKind.Harmony) && PartyActions >= Trial.Limit && AnyEnemyAlive) TrialFailed = true;
             if (IsOver) return events;
             events.AddRange(RunUntilParty());
@@ -528,6 +530,7 @@ namespace BiRyeoDo.Core
             var spec = new SkillSpec { Id = move.Name, Name = move.Name, Power = move.Power };
             int hits = Math.Max(1, move.Hits);
             bool hurt = false;
+            int firstHit = events.Count;
             for (int h = 0; h < hits && target.IsAlive; h++)
             {
                 var ev = new BattleEvent
@@ -555,6 +558,7 @@ namespace BiRyeoDo.Core
                 events.Add(ev);
             }
             if (hurt) target.Spirit = Math.Min(MaxSpirit, target.Spirit + SpiritOnTaken + target.SpiritTakenBonus);
+            for (int i = firstHit; i < events.Count; i++) events[i].TargetSpiritAfter = target.Spirit;
         }
 
         /// <summary>A bonded companion (의기투합) throws herself between the protagonist and a killing blow, once per fight.</summary>

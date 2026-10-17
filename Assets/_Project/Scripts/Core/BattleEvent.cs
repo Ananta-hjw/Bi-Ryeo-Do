@@ -14,6 +14,8 @@ namespace BiRyeoDo.Core
         public int Damage;
         public bool IsCrit;
         public int TargetHpAfter;
+        public int ActorQiAfter, ActorSpiritAfter;   // set on events of a party member's own action (interactive battle)
+        public int TargetSpiritAfter;                  // set on enemy attacks: the party target's spirit after the move
         public bool TargetDefeated;
 
         // Interactive battle extras (the auto engine leaves these at defaults).
