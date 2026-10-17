@@ -134,7 +134,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void SkillDamagesTheChosenTargetOnly()
         {
-            var big = new SkillSpec { Id = "big", Name = "강타", Power = 2f };
+            var big = new SkillSpec { Id = "big", Name = "강타", Power = 2f, Range = 3 };
             var e1 = Enemy("a", Stats(500, 1, 0, 1));
             var e2 = Enemy("b", Stats(500, 1, 0, 1));
             var b = Start(Player(Stats(500, 20, 0, 100), big), e1, e2);
@@ -146,7 +146,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void AreaSkillHitsEveryLivingEnemy()
         {
-            var aoe = new SkillSpec { Id = "aoe", Name = "전체", Power = 1f, AllEnemies = true };
+            var aoe = new SkillSpec { Id = "aoe", Name = "전체", Power = 1f, AllEnemies = true, Range = 3 };
             var e1 = Enemy("a", Stats(500, 1, 0, 1));
             var e2 = Enemy("b", Stats(500, 1, 0, 1));
             var b = Start(Player(Stats(500, 20, 0, 100), aoe), e1, e2);

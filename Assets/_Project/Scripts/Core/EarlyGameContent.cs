@@ -242,7 +242,7 @@ namespace BiRyeoDo.Core
             // Stage 3: 호골채 (1권)
             new EnemyData { Id = "hogol_bandit", Name = "호골채 산적", Level = 6, HpMul = 0.8f, AtkMul = 0.609f,
                 Moves = new[] { EnemyMove.Attack("휘두르기", 1.0f), EnemyMove.Attack("베기", 1.1f) } },
-            new EnemyData { Id = "paeho_jung_gwang", Name = "패호 중광", Level = 8, IsBoss = true, HpMul = 1.2f, AtkMul = 0.674f,
+            new EnemyData { Id = "paeho_jung_gwang", Name = "패호 중광", Level = 8, IsBoss = true, HpMul = 1.0f, AtkMul = 0.60f,
                 Moves = new[] { EnemyMove.Attack("내려치기", 1.1f), EnemyMove.Attack("연타", 0.7f, 3), EnemyMove.Wind("기합을 모은다"), EnemyMove.Attack("일격", 2.8f) } },
             // Stage 4: 용골채 (1권)
             new EnemyData { Id = "yonggol_bandit", Name = "용골채 산적", Level = 9, HpMul = 0.8f, AtkMul = 0.613f,
@@ -257,7 +257,7 @@ namespace BiRyeoDo.Core
             // Stage 6: 호아장 (2권)
             new EnemyData { Id = "hoajang_disciple", Name = "호아장 제자", Level = 15, HpMul = 0.85f, AtkMul = 0.666f,
                 Moves = new[] { EnemyMove.Attack("맹호비격검", 1.0f), EnemyMove.Attack("맹호비격검", 1.1f) } },
-            new EnemyData { Id = "ho_cheonsang", Name = "호아장주 호천상", Level = 17, IsBoss = true, HpMul = 1.7f, AtkMul = 0.775f,
+            new EnemyData { Id = "ho_cheonsang", Name = "호아장주 호천상", Level = 17, IsBoss = true, HpMul = 1.35f, AtkMul = 0.67f,
                 Moves = new[] { EnemyMove.Attack("맹호비격검", 1.0f, 2), EnemyMove.Attack("맹호비격검", 1.3f), EnemyMove.Wind("검기를 모은다"), EnemyMove.Attack("맹호삼십육검", 3.0f) } },
             // Stage 7: 검혼관 기관 노방 (2권)
             new EnemyData { Id = "trap_arrow", Name = "기관 화살대", Level = 19, HpMul = 1.20f, AtkMul = 2.981f, SpeedAdd = 6,

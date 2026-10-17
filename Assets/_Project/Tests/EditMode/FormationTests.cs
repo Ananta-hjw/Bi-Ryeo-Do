@@ -51,16 +51,37 @@ public class FormationTests
         Assert.IsFalse(save.PlacementCustom);
     }
 
-    [Test]
-    public void EnemiesFillTheFrontColumnAndBossesStandOneColumnBehind()
+    private static Combatant Unit(string id, int hp, int def, bool boss = false, bool sniper = false)
     {
-        var boss = Foe("boss"); boss.IsBoss = true;
-        var a = Foe("a"); var b = Foe("b"); var c = Foe("c");
-        Formation.PlaceEnemies(new[] { boss, a, b, c });
-        Assert.AreEqual(4, boss.Col);
-        Assert.AreEqual(3, a.Col); Assert.AreEqual(3, b.Col); Assert.AreEqual(3, c.Col);
-        Assert.AreEqual(3, new[] { a, b, c }.Select(e => e.Row).Distinct().Count());
-        var lone = Foe("lone"); lone.IsBoss = true;
+        var stats = new CombatStats { MaxHp = hp, MaxQi = 100, Attack = 100, Defense = def, Speed = 100, CritRate = 0f, CritDamage = 1.5f };
+        var move = EnemyMove.Attack("x", 0.1f);
+        if (sniper) move.Sniping();
+        return new Combatant(id, id, Team.Enemy, stats, null) { Moves = new List<EnemyMove> { move }, IsBoss = boss };
+    }
+
+    [Test]
+    public void EnemiesPutTheirSturdiestInFrontAndShootersAtTheBack()
+    {
+        var tank = Unit("tank", 4000, 120); var brute = Unit("brute", 2500, 80); var glass = Unit("glass", 800, 20); var archer = Unit("archer", 900, 20, sniper: true);
+        Formation.PlaceEnemies(new[] { glass, archer, brute, tank });
+        Assert.AreEqual(3, tank.Col); Assert.AreEqual(3, brute.Col, "half of the group (two of four) stands in front");
+        Assert.AreEqual(4, glass.Col, "the fragile one stays behind the front line");
+        Assert.AreEqual(5, archer.Col, "shooters stand in the deepest column");
+        Assert.AreEqual(4, new[] { tank, brute, glass, archer }.Select(e => e.Col * 10 + e.Row).Distinct().Count());
+    }
+
+    [Test]
+    public void ABossStandsWhereItHelpsTheEnemy()
+    {
+        var sturdyBoss = Unit("boss", 9000, 150, boss: true); var mook = Unit("mook", 500, 10);
+        Formation.PlaceEnemies(new[] { mook, sturdyBoss });
+        Assert.AreEqual(3, sturdyBoss.Col, "a sturdy boss holds the front");
+        Assert.AreEqual(4, mook.Col);
+        var frailBoss = Unit("boss2", 600, 10, boss: true); var wall = Unit("wall", 3000, 100);
+        Formation.PlaceEnemies(new[] { frailBoss, wall });
+        Assert.AreEqual(4, frailBoss.Col, "a frail boss hides behind a sturdy guard");
+        Assert.AreEqual(3, wall.Col);
+        var lone = Unit("lone", 1000, 10, boss: true);
         Formation.PlaceEnemies(new[] { lone });
         Assert.AreEqual(3, lone.Col, "a lone enemy stands right in front of us");
     }

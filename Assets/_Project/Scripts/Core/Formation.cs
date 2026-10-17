@@ -112,29 +112,56 @@ namespace BiRyeoDo.Core
 
         // ------------------------------------------------------------------ enemies
 
-        private static readonly int[][] EnemyFrontSlots = { new[] { 3, 1 }, new[] { 3, 0 }, new[] { 3, 2 }, new[] { 4, 0 }, new[] { 4, 2 }, new[] { 5, 1 }, new[] { 5, 0 }, new[] { 5, 2 } };
-        private static readonly int[][] BossSlots = { new[] { 4, 1 }, new[] { 4, 0 }, new[] { 4, 2 }, new[] { 5, 1 } };
+        private static readonly int[] RowOrder = { 1, 0, 2 };
 
-        /// <summary>Places enemies that have no tile yet: ordinary ones in the column facing us, bosses one column behind (a lone enemy always stands in front of us).</summary>
+        private static bool IsSniper(Combatant e)
+        {
+            if (e.Moves == null) return false;
+            foreach (var m in e.Moves) if (m.Snipe) return true;
+            return false;
+        }
+
+        /// <summary>How much punishment a unit soaks up: the enemy puts its sturdiest units where the front-line-only attacks land.</summary>
+        private static long Toughness(Combatant e) { return (long)e.Stats.MaxHp * (100 + e.Stats.Defense); }
+
+        /// <summary>
+        /// Places enemies that have no tile yet the way a sensible commander would. Ordinary arts only reach the front line, so the front
+        /// column (about half of the group, at most three) holds the sturdiest units, bosses included when they are the sturdiest; the others
+        /// stay behind it, and units that shoot at our back line (<see cref="EnemyMove.Snipe"/>) stand in the deepest column.
+        /// A lone enemy stands right in front of us.
+        /// </summary>
         public static void PlaceEnemies(IList<Combatant> enemies)
         {
             var used = new HashSet<int>();
             foreach (var e in enemies) if (e.Col >= 0) used.Add(e.Col * 10 + e.Row);
-            if (enemies.Count == 1 && enemies[0].Col < 0)
+            var todo = new List<Combatant>();
+            foreach (var e in enemies) if (e.Col < 0) todo.Add(e);
+            if (todo.Count == 0) return;
+            if (enemies.Count == 1)
             {
-                enemies[0].Col = 3; enemies[0].Row = 1;
+                todo[0].Col = 3; todo[0].Row = 1;
                 return;
             }
-            foreach (var e in enemies)
+
+            var shooters = new List<Combatant>();
+            var others = new List<Combatant>();
+            foreach (var e in todo) (IsSniper(e) ? shooters : others).Add(e);
+            if (others.Count == 0) { others.AddRange(shooters); shooters.Clear(); }   // an all-sniper group still needs a front line
+            // Stable sort by toughness, sturdiest first (ties keep the list order).
+            var order = new List<KeyValuePair<int, Combatant>>();
+            for (int i = 0; i < others.Count; i++) order.Add(new KeyValuePair<int, Combatant>(i, others[i]));
+            order.Sort((x, y) => { int c = Toughness(y.Value).CompareTo(Toughness(x.Value)); return c != 0 ? c : x.Key.CompareTo(y.Key); });
+
+            int frontCount = Math.Max(1, Math.Min(Math.Min(3, (todo.Count + 1) / 2), order.Count));
+            var next = new Dictionary<int, int>();   // per column: how many rows are taken
+            Action<Combatant, int> put = (e, startCol) =>
             {
-                if (e.Col >= 0 || !e.IsBoss) continue;
-                foreach (var s in BossSlots) if (used.Add(s[0] * 10 + s[1])) { e.Col = s[0]; e.Row = s[1]; break; }
-            }
-            foreach (var e in enemies)
-            {
-                if (e.Col >= 0) continue;
-                foreach (var s in EnemyFrontSlots) if (used.Add(s[0] * 10 + s[1])) { e.Col = s[0]; e.Row = s[1]; break; }
-            }
+                for (int col = startCol; col < Board.Cols; col++)
+                    foreach (int row in RowOrder)
+                        if (used.Add(col * 10 + row)) { e.Col = col; e.Row = row; return; }
+            };
+            for (int i = 0; i < order.Count; i++) put(order[i].Value, i < frontCount ? Board.PartyCols : Board.PartyCols + 1);
+            foreach (var e in shooters) put(e, order.Count > frontCount ? Board.PartyCols + 2 : Board.PartyCols + 1);
         }
     }
 }

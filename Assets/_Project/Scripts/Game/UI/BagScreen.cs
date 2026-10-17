@@ -169,7 +169,7 @@ namespace BiRyeoDo.Game.UI
                 var enhBtn = UiFactory.Button("Enhance", card.transform, new Vector2(0.52f, 0.13f), new Vector2(0.95f, 0.22f), cost < 0 ? "최대 강화" : "강화  " + cost.ToString("N0") + "두", cost >= 0 && save.Doo >= cost ? UiFactory.Red : UiFactory.InkSoft, () => { DoEnhance(item); }, 30);
                 enhBtn.interactable = cost >= 0;
             }
-            else if (item.Kind == ItemKind.Material)
+            else if (item.Kind == ItemKind.Material && item.SellValue > 0)
             {
                 int count = Inventory.Count(save, item.Id);
                 UiFactory.Button("Sell", card.transform, new Vector2(0.05f, 0.13f), new Vector2(0.95f, 0.22f), "전부 판매 +" + (item.SellValue * count).ToString("N0") + "두", UiFactory.Red, () => { DoMain(item); }, 32);
@@ -233,7 +233,7 @@ namespace BiRyeoDo.Game.UI
                     _flash = Inventory.Equip(save, item.Id, out error) ? item.Name + " 장착" : error;
                 }
             }
-            else if (item.Kind == ItemKind.Material)
+            else if (item.Kind == ItemKind.Material && item.SellValue > 0)
             {
                 int count = Inventory.Count(save, item.Id);
                 long gold = Inventory.Sell(save, item.Id, count);
@@ -382,11 +382,17 @@ namespace BiRyeoDo.Game.UI
                     row.ButtonImage.color = equipped ? UiFactory.InkSoft : UiFactory.Red;
                     row.Button.interactable = true;
                 }
-                else if (item.Kind == ItemKind.Material)
+                else if (item.Kind == ItemKind.Material && item.SellValue > 0)
                 {
                     row.ButtonLabel.text = "판매 +" + (item.SellValue * stack.Count).ToString("N0") + "두";
                     row.ButtonImage.color = UiFactory.Red;
                     row.Button.interactable = true;
+                }
+                else if (item.Kind == ItemKind.Material)
+                {
+                    row.ButtonLabel.text = "판매 불가";   // e.g. 심득석: only used in the 심법 page
+                    row.ButtonImage.color = UiFactory.InkSoft;
+                    row.Button.interactable = false;
                 }
                 else
                 {
