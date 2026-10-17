@@ -42,7 +42,7 @@ namespace BiRyeoDo.Game.UI
             public Text Name, Status, HpText, QiText, SpiritText;
             public UiFactory.Bar Hp, Qi, Spirit;
             public Vector2 Center;
-            public int ShownHp;   // HP as drawn; lags behind the unit while events are animated
+            public int ShownHp, ShownQi, ShownSpirit;   // as drawn; lag behind the unit while events are animated
         }
 
         private sealed class CommandButton
@@ -1196,13 +1196,13 @@ namespace BiRyeoDo.Game.UI
             foreach (var p in _panels)
             {
                 var u = p.Unit;
-                if (!_animating) p.ShownHp = u.Hp;
+                if (!_animating) { p.ShownHp = u.Hp; p.ShownQi = u.Qi; p.ShownSpirit = u.Spirit; }
                 p.Hp.SetPct((float)p.ShownHp / Math.Max(1, u.Stats.MaxHp));
-                p.Qi.SetPct((float)u.Qi / Math.Max(1, u.Stats.MaxQi));
-                p.Spirit.SetPct(u.Spirit / (float)InteractiveBattle.MaxSpirit);
+                p.Qi.SetPct((float)p.ShownQi / Math.Max(1, u.Stats.MaxQi));
+                p.Spirit.SetPct(p.ShownSpirit / (float)InteractiveBattle.MaxSpirit);
                 p.HpText.text = p.ShownHp + "/" + u.Stats.MaxHp;
-                p.QiText.text = u.Qi + "/" + u.Stats.MaxQi;
-                p.SpiritText.text = u.Spirit + "/" + InteractiveBattle.MaxSpirit;
+                p.QiText.text = p.ShownQi + "/" + u.Stats.MaxQi;
+                p.SpiritText.text = p.ShownSpirit + "/" + InteractiveBattle.MaxSpirit;
                 p.Status.text = !u.IsAlive ? "쓰러짐" : _battle != null && _battle.IsGuarded(u) ? "방어" : u.Evading ? "회피" : "";
                 p.Name.color = u.IsAlive ? UiFactory.Gold : new Color(0.5f, 0.5f, 0.5f, 1f);
                 bool current = _battle != null && _battle.Current == u && _battle.IsPlayerTurn;
@@ -1646,6 +1646,14 @@ namespace BiRyeoDo.Game.UI
             RefreshCards();
         }
 
+        // Qi and spirit are not carried by events: a member's bars catch up when they act, spirit again when they are hit.
+        private static void ShowResources(PartyPanel panel)
+        {
+            if (panel == null) return;
+            panel.ShownQi = panel.Unit.Qi;
+            panel.ShownSpirit = panel.Unit.Spirit;
+        }
+
         private void ShowHpAfter(string unitId, int hp)
         {
             var panel = PanelOf(unitId);
@@ -1661,6 +1669,7 @@ namespace BiRyeoDo.Game.UI
                 if (ev.Kind != EventKind.Attack) _cutInKey = "";
                 var actorPanel = PanelOf(ev.ActorId);
                 bool byParty = actorPanel != null;
+                ShowResources(actorPanel);
                 string actorName = NameOf(ev.ActorId);
 
                 switch (ev.Kind)
@@ -1797,6 +1806,7 @@ namespace BiRyeoDo.Game.UI
                     if (!ev.Guarded) SoundManager.Haptic(ev.IsCrit ? 60 : 25);
                     Float(victim.Center, "-" + ev.Damage + (ev.Guarded ? " 방어" : ev.IsCrit ? "!" : ""), ev.Guarded ? GuardBlue : UiFactory.Red, ev.IsCrit ? 84 : 66);
                     victim.ShownHp = ev.TargetHpAfter;
+                    ShowResources(victim);
                     victim.Hp.SetPct((float)ev.TargetHpAfter / Math.Max(1, victim.Unit.Stats.MaxHp));
                     victim.HpText.text = ev.TargetHpAfter + "/" + victim.Unit.Stats.MaxHp;
                     StartCoroutine(Shake(victim.Root, ev.Guarded ? 6f : 16f));
