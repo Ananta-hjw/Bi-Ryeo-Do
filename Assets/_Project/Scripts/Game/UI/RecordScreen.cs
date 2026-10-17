@@ -99,7 +99,7 @@ namespace BiRyeoDo.Game.UI
             if (!_built) return;
             var save = GameManager.Instance.Save;
             var hero = StatusSheet.Hero(save);
-            _statusE.Detail.text = "능력치와 장비를 확인합니다 · " + hero[0].Label + " " + hero[0].Value + " · " + hero[2].Label + " " + hero[2].Value;
+            _statusE.Detail.text = "능력치와 장비를 확인합니다 · 경지 " + Realm.Steps[Realm.StepOf(save)].Name + " · " + hero[0].Label + " " + hero[0].Value + " · " + hero[2].Label + " " + hero[2].Value;
             SetBadge(_statusE, 0);
             _codexE.Detail.text = "적 " + save.SeenEnemies.Count + "/" + Codex.EnemyTotal + " · 물품 " + save.SeenItems.Count + "/" + Codex.ItemTotal;
             SetBadge(_codexE, 0);
