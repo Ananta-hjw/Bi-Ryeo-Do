@@ -522,8 +522,11 @@ namespace BiRyeoDo.Game.UI
                 else if (cleared)
                 {
                     bool firstClear = save.ClearedStage < stage.Number;
+                    int highestBefore = save.HighestUnlockedStage;
                     save.ClearedStage = Math.Max(save.ClearedStage, stage.Number);
                     Daily.Record(save, DailyEvent.StageClear);
+                    var joiners = Roster.NewJoiners(highestBefore, save.HighestUnlockedStage);
+                    Roster.BenchNewcomers(save, joiners);
                     GameManager.Instance.SaveNow();
                     yield return ShowStory(stage.Name + " 돌파", stage.Outro);
                     var after = firstClear ? StoryBriefings.Aftermath(stage.Number) : null;
@@ -534,6 +537,13 @@ namespace BiRyeoDo.Game.UI
                     GameManager.Instance.SaveNow();
                     yield return ShowResult(tag + "스테이지 돌파!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (bondNote.Length > 0 ? "\n" + bondNote : "") + (reward.Count > 0 ? "\n\n첫 돌파 보상\n" + DescribeStacks(reward) : "")
                         + "\n\n" + StageStarSummary(save, stage.Number, diff) + (newStars > 0 ? "\n이번에 새로 얻은 별 +" + newStars : "") + (chests > 0 ? "\n별 보상을 받을 수 있습니다! (강호 탭)" : ""), false);
+                    if (joiners.Count > 0)
+                    {
+                        var joinNames = new List<string>();
+                        foreach (var j in joiners) joinNames.Add(j.Name);
+                        SoundManager.Sfx("levelup");
+                        yield return ShowResult("새 동료 합류!", string.Join(", ", joinNames) + (joiners.Count > 1 ? " 이(가) " : "이(가) ") + "파티에 합류했습니다.\n\n지금은 대기 상태입니다. 강호 탭의 「파티 편성」에서 출전 여부와 자리를 정해 주세요.", false);
+                    }
                 }
                 else
                 {
@@ -851,7 +861,7 @@ namespace BiRyeoDo.Game.UI
             var hero = new Combatant("player", "비류연", Team.Player, stats, skills);
             InnerArts.ApplyPerks(hero, save.EquippedInner, save.InnerLevels);
             var party = new List<Combatant> { hero };
-            foreach (var c in EarlyGameContent.SelectCompanionsFor(stage.Number, save))
+            foreach (var c in EarlyGameContent.SelectCompanionsFor(Roster.PartyStage(stage, save), save))
             {
                 int bondLevel = Bonds.Level(save, c.Id);
                 party.Add(c.CreateCombatant(save.Level, bondLevel, CompanionTraining.LevelOf(save, c.Id)));

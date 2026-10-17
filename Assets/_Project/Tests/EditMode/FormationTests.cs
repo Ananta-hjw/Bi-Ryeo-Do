@@ -228,6 +228,24 @@ public class FormationTests
     }
 
     [Test]
+    public void NewCompanionsJoinTheBenchAndLeaveTheCurrentPartyAlone()
+    {
+        var save = new SaveData();
+        save.ActiveCompanions.Add("hyo_ryong");
+        var joined = Roster.NewJoiners(7, 8);
+        Assert.IsTrue(joined.Exists(c => c.Id == "yun_junho"), "윤준호 joins when stage 8 opens");
+        Roster.BenchNewcomers(save, joined);
+        Assert.Contains("yun_junho", save.BenchedCompanions);
+        var party = EarlyGameContent.SelectCompanionsFor(8, save);
+        Assert.IsFalse(party.Exists(c => c.Id == "yun_junho"), "the newcomer waits until the player seats him");
+        Assert.IsTrue(party.Exists(c => c.Id == "hyo_ryong"), "the old party stays");
+        var quest = new StageData { Number = 3, IsQuest = true };
+        save.ClearedStage = 20;
+        Assert.AreEqual(21, Roster.PartyStage(quest, save), "a quest uses everyone who has joined so far");
+        Assert.AreEqual(5, Roster.PartyStage(new StageData { Number = 5 }, save));
+    }
+
+    [Test]
     public void ArtRangesFollowTheirKind()
     {
         Assert.AreEqual(1, SkillSpec.BasicAttack().Range);
