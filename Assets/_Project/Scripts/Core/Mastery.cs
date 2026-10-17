@@ -15,17 +15,20 @@ namespace BiRyeoDo.Core
     public enum ArtVariant { None = 0, Power = 1, Swift = 2, Flurry = 3 }
 
     /// <summary>
-    /// 무공 숙련: the protagonist's arts grow with use (입문 → 소성 → 대성 → 극의, +5% power each step). From 대성 on the player
-    /// may pick a 변초 that reshapes the art: 강 (stronger, costlier), 쾌 (cheaper, shorter cooldown) or 연 (one more, weaker hit).
+    /// 무공 숙련: the protagonist's arts grow with use (입문 → 소성 10 → 대성 25 → 극성 50 → 극의 80 uses; power +3/7/15/30%). From 극성 on the player
+    /// may pick a 변초 that reshapes the art: 강 (+50% power, costlier), 쾌 (cheaper, shorter cooldown) or 연 (one more, weaker hit).
+    /// 극의 also recharges one turn faster and costs 20% less qi.
     /// Pure upside for the balance bot, which ignores mastery on purpose.
     /// </summary>
     public static class Mastery
     {
-        public static readonly int[] Thresholds = { 0, 10, 20, 50 };
-        public static readonly string[] LevelNames = { "입문", "소성", "대성", "극의" };
-        public const int VariantLevel = 2;
-        public const float PowerPerLevel = 0.05f;
-        public const int MasterLevel = 3;   // 극의: every art of this level recharges one turn faster (never below 0)
+        public static readonly int[] Thresholds = { 0, 10, 25, 50, 80 };
+        public static readonly string[] LevelNames = { "입문", "소성", "대성", "극성", "극의" };
+        public static readonly float[] PowerBonus = { 0f, 0.03f, 0.07f, 0.15f, 0.30f };
+        public const int VariantLevel = 3;      // 극성: the 변초 opens
+        public const int MasterLevel = 4;       // 극의: one turn faster recharge (never below 0) and 20% less qi
+        public const float MasterQiFactor = 0.8f;
+        public const float PowerVariantFactor = 1.5f, FlurryPowerFactor = 0.65f;
 
         public static int LevelOf(int uses)
         {
@@ -47,10 +50,11 @@ namespace BiRyeoDo.Core
             return lv >= Thresholds.Length - 1 ? -1 : Thresholds[lv + 1] - Uses(save, artId);
         }
 
-        /// <summary>One line listing every step for the 무공 tab: "소성 10회(위력 +5%) · 대성 20회(+10%, 변초) · 극의 50회(+15%, 재사용 -1턴)".</summary>
+        /// <summary>One line listing every step for the 무공 tab: "소성 10회(위력 +3%) · 대성 25회(+7%) · 극성 50회(+15%, 변초) · 극의 80회(+30%, 재사용 -1턴, 내공 -20%)".</summary>
         public static string ConditionText()
         {
-            return LevelNames[1] + " " + Thresholds[1] + "회(위력 +5%) · " + LevelNames[2] + " " + Thresholds[2] + "회(+10%, 변초) · " + LevelNames[3] + " " + Thresholds[3] + "회(+15%, 재사용 -1턴)";
+            return LevelNames[1] + " " + Thresholds[1] + "회(위력 +3%) · " + LevelNames[2] + " " + Thresholds[2] + "회(+7%) · "
+                + LevelNames[3] + " " + Thresholds[3] + "회(+15%, 변초) · " + LevelNames[4] + " " + Thresholds[4] + "회(+30%, 재사용 -1턴, 내공 -20%)";
         }
 
         public static int Uses(SaveData save, string artId) { var e = Find(save, artId); return e != null ? e.Uses : 0; }
@@ -105,9 +109,9 @@ namespace BiRyeoDo.Core
         {
             switch (v)
             {
-                case ArtVariant.Power: return "강(剛): 위력 +25%, 내공 소모 +20%";
-                case ArtVariant.Swift: return "쾌(快): 내공 소모 -30%, 재사용 -1턴";
-                case ArtVariant.Flurry: return "연(連): 타수 +1, 타당 위력 ×0.7";
+                case ArtVariant.Power: return "강(剛): 위력 +50%, 내공 소모 +20%";
+                case ArtVariant.Swift: return "쾌(快): 내공 소모 -20%, 재사용 -1턴";
+                case ArtVariant.Flurry: return "연(連): 타수 +1, 타당 위력 ×0.65";
                 default: return "변초 없음";
             }
         }
@@ -129,24 +133,26 @@ namespace BiRyeoDo.Core
         {
             var spec = art.ToSpec();
             if (art.OwnerId != null) return spec;
-            spec.Power *= 1f + PowerPerLevel * Level(save, art.Id);
-            if (Level(save, art.Id) >= MasterLevel) spec.Cooldown = Math.Max(0, spec.Cooldown - 1);
-            var v = Level(save, art.Id) >= VariantLevel && AvailableVariants(art).Contains(VariantOf(save, art.Id)) ? VariantOf(save, art.Id) : ArtVariant.None;
+            int level = Level(save, art.Id);
+            spec.Power *= 1f + PowerBonus[level];
+            if (level >= MasterLevel) spec.Cooldown = Math.Max(0, spec.Cooldown - 1);
+            var v = level >= VariantLevel && AvailableVariants(art).Contains(VariantOf(save, art.Id)) ? VariantOf(save, art.Id) : ArtVariant.None;
             switch (v)
             {
                 case ArtVariant.Power:
-                    spec.Power *= 1.25f;
+                    spec.Power *= PowerVariantFactor;
                     spec.QiCost = (spec.QiCost * 12 + 9) / 10;   // x1.2 rounded up, in integers
                     break;
                 case ArtVariant.Swift:
-                    spec.QiCost = spec.QiCost * 7 / 10;          // x0.7 rounded down, in integers
+                    spec.QiCost = spec.QiCost * 8 / 10;          // x0.8 rounded down, in integers
                     spec.Cooldown = Math.Max(0, spec.Cooldown - 1);
                     break;
                 case ArtVariant.Flurry:
                     spec.Hits = Math.Max(1, spec.Hits) + 1;
-                    spec.Power *= 0.7f;
+                    spec.Power *= FlurryPowerFactor;
                     break;
             }
+            if (level >= MasterLevel && spec.QiCost > 0) spec.QiCost = Math.Max(1, (int)Math.Floor(spec.QiCost * MasterQiFactor + 0.0001f));   // after the variant
             if (v != ArtVariant.None) spec.Name += "(" + VariantName(v) + ")";
             return spec;
         }

@@ -47,11 +47,11 @@ namespace BiRyeoDo.Tests
         {
             var save = new SaveData();
             save.EquippedArts.Add("bunroesu");
-            for (int i = 0; i < 30; i++) Mastery.RecordUse(save, "bunroesu");
+            for (int i = 0; i < 50; i++) Mastery.RecordUse(save, "bunroesu");
             Mastery.Find(save, "bunroesu").Variant = (int)ArtVariant.Power;
             var line = StatusSheet.ArtLines(save).Single();
-            StringAssert.Contains("★★★☆", line);
-            StringAssert.Contains("대성", line);
+            StringAssert.Contains("★★★★☆", line);
+            StringAssert.Contains("극성", line);
             StringAssert.Contains("(강)", line);
         }
 
