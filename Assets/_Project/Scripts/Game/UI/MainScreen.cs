@@ -178,8 +178,12 @@ namespace BiRyeoDo.Game.UI
             if (!busy && Realm.PollRise(save, out from, out to))
             {
                 GameManager.Instance.SaveNow();
-                _realmTitle.text = "경지 상승!";
-                _realmBody.text = Realm.Label(from) + "  →  " + Realm.Label(to) + "\n\n" + Realm.Describe(save) + "\n\n비류연의 무공이 한 단계 깊어졌습니다.";
+                int gained = to - from;
+                _realmTitle.text = "경지 돌파";
+                _realmBody.text = "<color=#9AA3B2>" + Realm.Label(from) + "</color>   ▶   <size=46><color=#E8C860>" + Realm.Label(to) + "</color></size>"
+                    + "\n\n막혀 있던 벽이 소리 없이 무너지고,\n기혈이 새로운 길을 연다."
+                    + "\n\n<color=#9ADB9F>체력 · 내공 · 공격력 · 방어력 · 속도  각 +" + Mathf.RoundToInt(Realm.BonusPerStep * gained * 100f) + "%</color>"
+                    + "\n(지금까지 누적 +" + Mathf.RoundToInt(Realm.Bonus(to) * 100f) + "%)";
                 _realmModal.transform.SetAsLastSibling();
                 _realmModal.SetActive(true);
                 SoundManager.Sfx("levelup");

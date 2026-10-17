@@ -77,7 +77,23 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>The protagonist's current realm (gear, 심법 and 검룡위 included, like in battle).</summary>
-        public static int StepOf(SaveData save) { return StepOf(Power(InnerArts.HeroStats(save))); }
+        public static int StepOf(SaveData save) { return StepOf(Power(InnerArts.HeroStatsBeforeRealm(save))); }
+
+        public const float BonusPerStep = 0.10f;
+
+        /// <summary>Each step above 삼급 raises every stat of the protagonist by 10% (step 4 = +40%).</summary>
+        public static float Bonus(int step) { return BonusPerStep * Math.Max(0, step); }
+
+        public static CombatStats ApplyBonus(CombatStats stats, int step)
+        {
+            float m = 1f + Bonus(step);
+            stats.MaxHp = (int)Math.Round(stats.MaxHp * m);
+            stats.MaxQi = (int)Math.Round(stats.MaxQi * m);
+            stats.Attack = (int)Math.Round(stats.Attack * m);
+            stats.Defense = (int)Math.Round(stats.Defense * m);
+            stats.Speed = Math.Max(1, (int)Math.Round(stats.Speed * m));
+            return stats;
+        }
 
         /// <summary>"초절정 초입".</summary>
         public static string Label(int step) { return Steps[step].Name; }
@@ -120,7 +136,7 @@ namespace BiRyeoDo.Core
 
         public static string Describe(SaveData save)
         {
-            double p = Power(InnerArts.HeroStats(save));
+            double p = Power(InnerArts.HeroStatsBeforeRealm(save));
             return Label(StepOf(p)) + "  ·  종합 수치 " + Math.Round(p).ToString("N0");
         }
     }

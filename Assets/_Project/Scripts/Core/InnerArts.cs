@@ -167,6 +167,13 @@ namespace BiRyeoDo.Core
         /// <summary>The protagonist's stats with gear and 심법 applied (what battles and the 상태창 use).</summary>
         public static CombatStats HeroStats(SaveData save)
         {
+            var before = HeroStatsBeforeRealm(save);
+            return Realm.ApplyBonus(before, Realm.StepOf(Realm.Power(before)));
+        }
+
+        /// <summary>Stats with gear, 검룡위 and 심법 but without the 경지 bonus (the realm itself is read from these).</summary>
+        public static CombatStats HeroStatsBeforeRealm(SaveData save)
+        {
             return Apply(Promotion.ApplyRankBonus(Inventory.ApplyGear(Progression.HeroStatsFor(save.Level), save.EquippedGear, save.GearLevels), Promotion.EffectiveRank(save)), save.EquippedInner, save.InnerLevels);
         }
 
