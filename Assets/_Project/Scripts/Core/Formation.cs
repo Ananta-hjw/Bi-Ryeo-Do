@@ -122,7 +122,7 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>How much punishment a unit soaks up: the enemy puts its sturdiest units where the front-line-only attacks land.</summary>
-        private static long Toughness(Combatant e) { return (long)e.Stats.MaxHp * (100 + e.Stats.Defense); }
+        private static long Toughness(Combatant e) { return (long)e.Stats.MaxHp * ((long)BattleEngine.DefenseConstant + e.Stats.Defense); }
 
         /// <summary>
         /// Places enemies that have no tile yet the way a sensible commander would. Ordinary arts only reach the front line, so the front

@@ -71,11 +71,14 @@ namespace BiRyeoDo.Core
             return ev;
         }
 
+        /// <summary>Damage taken is x K/(K+Defense): 방어 1380 = x0.42. Defense numbers run ten times larger than the old scale for finer steps.</summary>
+        public const double DefenseConstant = 1000.0;
+
         public static int CalcDamage(CombatStats attacker, CombatStats defender, SkillSpec skill, bool crit)
         {
             double raw = attacker.Attack * skill.Power;
             if (crit) raw *= Math.Max(1f, attacker.CritDamage);
-            double reduced = raw * 100.0 / (100.0 + Math.Max(0, defender.Defense));
+            double reduced = raw * DefenseConstant / (DefenseConstant + Math.Max(0, defender.Defense));
             return Math.Max(1, (int)Math.Round(reduced));
         }
 

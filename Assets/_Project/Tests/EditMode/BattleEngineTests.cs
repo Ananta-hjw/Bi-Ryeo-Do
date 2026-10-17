@@ -77,5 +77,18 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(2, gained);
             Assert.AreEqual(3, save.Level);
         }
+
+        [Test]
+        public void DefenseOf1380TakesFortyTwoPercentAndFinerStepsStillCount()
+        {
+            var attacker = new CombatStats { MaxHp = 100, MaxQi = 0, Attack = 10000, Defense = 0, Speed = 100, CritRate = 0f, CritDamage = 1.5f };
+            var skill = new SkillSpec { Id = "t", Name = "t", Power = 1f };
+            int Taken(int def) { return BattleEngine.CalcDamage(attacker, new CombatStats { MaxHp = 100, Defense = def, Speed = 100 }, skill, false); }
+            Assert.AreEqual(10000, Taken(0));
+            Assert.AreEqual(4202, Taken(1380), 1);   // x1000/2380
+            Assert.AreEqual(5000, Taken(1000));
+            Assert.Less(Taken(1381), Taken(1380));   // one point of defense is still a step
+            Assert.Less(Taken(1385), Taken(1381));
+        }
     }
 }

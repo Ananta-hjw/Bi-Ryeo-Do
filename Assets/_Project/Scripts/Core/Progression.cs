@@ -58,7 +58,7 @@ namespace BiRyeoDo.Core
                 MaxHp = 100 + 20 * l,
                 MaxQi = 50 + 5 * l,
                 Attack = 10 + 3 * l,
-                Defense = 5 + 2 * l,
+                Defense = 50 + 20 * l,
                 Speed = 100 + l / 2,
                 CritRate = 0.01f,
                 CritDamage = 1.5f
