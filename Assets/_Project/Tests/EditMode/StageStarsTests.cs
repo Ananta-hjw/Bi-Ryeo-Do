@@ -48,7 +48,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void HarderDifficultiesOpenStageByStage()
         {
-            var save = new SaveData();
+            var save = new SaveData { Level = 60 };
             int Last(int stage) { return StageStars.FightCount(stage) - 1; }
             Assert.IsTrue(StageStars.Unlocked(save, 5, 0));
             Assert.IsFalse(StageStars.Unlocked(save, 1, 1));
@@ -67,7 +67,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void ExtremeNeedsTheSameStageOnHardAndThePreviousStageOnExtreme()
         {
-            var save = new SaveData();
+            var save = new SaveData { Level = 60 };
             int Last(int stage) { return StageStars.FightCount(stage) - 1; }
             foreach (int st in new[] { 1, 2 }) { StageStars.Record(save, st, Last(st), 0, 1); StageStars.Record(save, st, Last(st), 1, 1); }
             Assert.IsTrue(StageStars.Unlocked(save, 1, 2));
@@ -80,7 +80,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void SyncCreditsEveryFightOfClearedStagesOnNormal()
         {
-            var save = new SaveData { ClearedStage = 3 };
+            var save = new SaveData { ClearedStage = 3, Level = 60 };
             StageStars.Sync(save);
             int fights = Enumerable.Range(1, 3).Sum(n => StageStars.FightCount(n));
             Assert.AreEqual(fights, StageStars.Total(save));
@@ -192,6 +192,24 @@ namespace BiRyeoDo.Tests
                 Assert.GreaterOrEqual(extreme, hard, "stage " + n);
                 if (n > 1) { Assert.GreaterOrEqual(hard, 30); Assert.GreaterOrEqual(extreme, 60); }
             }
+        }
+
+        [Test]
+        public void HardNeedsLevelTwentyAndExtremeLevelForty()
+        {
+            var save = new SaveData { Level = 19 };
+            int last = StageStars.FightCount(1) - 1;
+            StageStars.Record(save, 1, last, 0, 1);
+            Assert.IsFalse(StageStars.Unlocked(save, 1, 1));
+            StringAssert.Contains("Lv.20", StageStars.LockLabel(save, 1, 1));
+            save.Level = 20;
+            Assert.IsTrue(StageStars.Unlocked(save, 1, 1));
+            StageStars.Record(save, 1, last, 1, 1);
+            Assert.IsFalse(StageStars.Unlocked(save, 1, 2));    // cleared on 어려움 but level 20 < 40
+            StringAssert.Contains("Lv.40", StageStars.LockLabel(save, 1, 2));
+            save.Level = 40;
+            Assert.IsTrue(StageStars.Unlocked(save, 1, 2));
+            Assert.AreEqual("", StageStars.LockLabel(save, 1, 0));
         }
     }
 }

@@ -197,12 +197,27 @@ namespace BiRyeoDo.Core
             return difficulty <= 0 ? "스테이지 " + stage + "에 도달" : DifficultyNames[Math.Min(difficulty, DifficultyNames.Length - 1)] + " 스테이지 " + stage + " 돌파";
         }
 
-        /// <summary>A harder difficulty opens stage by stage: the same stage must be cleared on the difficulty below AND the previous stage on this one.</summary>
+        /// <summary>Protagonist level needed before a difficulty can be entered at all: 어려움 from level 20, 극악 from level 40.</summary>
+        public static readonly int[] MinLevel = { 0, 20, 40 };
+
+        /// <summary>
+        /// A harder difficulty needs the protagonist level, then opens stage by stage: the same stage must be cleared on the difficulty
+        /// below AND the previous stage on this one.
+        /// </summary>
         public static bool Unlocked(SaveData save, int stage, int difficulty)
         {
-            if (difficulty <= 0) return true;
-            if (!StageCleared(save, stage, difficulty - 1)) return false;
-            return stage <= 1 || StageCleared(save, stage - 1, difficulty);
+            return LockLabel(save, stage, difficulty).Length == 0;
+        }
+
+        /// <summary>Short button text for why a stage is closed on a difficulty ("" when it is open).</summary>
+        public static string LockLabel(SaveData save, int stage, int difficulty)
+        {
+            difficulty = Clamp(difficulty);
+            if (difficulty <= 0) return "";
+            if (save.Level < MinLevel[difficulty]) return "Lv." + MinLevel[difficulty] + "\n필요";
+            if (!StageCleared(save, stage, difficulty - 1)) return DifficultyNames[difficulty - 1] + "\n돌파 필요";
+            if (stage > 1 && !StageCleared(save, stage - 1, difficulty)) return "앞 스테이지\n돌파 필요";
+            return "";
         }
 
         /// <summary>Stores the best result of a fight; returns how many new stars it earned.</summary>
