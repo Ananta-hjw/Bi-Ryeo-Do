@@ -29,9 +29,10 @@ namespace BiRyeoDo.Game.UI
             public Combatant Unit;
             public RectTransform Root;
             public Image Frame, Art;
-            public Text Name, Glyph, Intent, HpText, Badge;
+            public Text Name, Glyph, Intent, HpText, Badge, Realm;
             public UiFactory.Bar Hp;
             public Vector2 Center;
+            public EnemyData Data;
         }
 
         private sealed class PartyPanel
@@ -1025,7 +1026,7 @@ namespace BiRyeoDo.Game.UI
             {
                 var data = enemies[i];
                 var cell = TileCell(units[i].Col, units[i].Row);
-                var card = new EnemyCard { Unit = units[i], Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
+                var card = new EnemyCard { Unit = units[i], Data = data, Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
                 card.Root = UiFactory.Rect("Card" + i, _cardsRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
                 card.Frame = UiFactory.Panel("Marker", card.Root, new Vector2(0.10f, 0.285f), new Vector2(0.90f, 0.305f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks the target
                 card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.03f, 0.88f), new Vector2(0.97f, 0.99f), data.Name, data.IsBoss ? 24 : 20, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
@@ -1037,7 +1038,10 @@ namespace BiRyeoDo.Game.UI
                 card.Glyph = UiFactory.Label("Glyph", card.Root, new Vector2(0.05f, 0.30f), new Vector2(0.95f, 0.88f), art != null ? "" : FirstGlyph(data.Name), data.IsBoss ? 170 : 110, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
                 card.Hp = UiFactory.MakeBar("Hp", card.Root, new Vector2(0.06f, 0.215f), new Vector2(0.94f, 0.275f), new Color(0f, 0f, 0f, 0.7f), UiFactory.Red);
                 card.HpText = UiFactory.Label("HpText", card.Root, new Vector2(0.06f, 0.15f), new Vector2(0.94f, 0.215f), "", 18, UiFactory.PaperText);
-                card.Badge = UiFactory.Label("Badge", card.Root, new Vector2(0.04f, 0.74f), new Vector2(0.96f, 0.88f), "", 24, UiFactory.PaperText);
+                // 무공 경지 under the name, from the stats this fight actually uses (harder difficulties raise it)
+                string realm = Realm.HasRealm(data) ? Realm.Steps[Realm.StepOf(Realm.Power(units[i].Stats))].Name : "";
+                card.Realm = UiFactory.Label("Realm", card.Root, new Vector2(0.03f, 0.80f), new Vector2(0.97f, 0.885f), realm, 17, new Color(0.85f, 0.75f, 0.45f, 1f));
+                card.Badge = UiFactory.Label("Badge", card.Root, new Vector2(0.04f, 0.68f), new Vector2(0.96f, 0.80f), "", 24, UiFactory.PaperText);
                 card.Intent = UiFactory.Label("Intent", card.Root, new Vector2(0.04f, 0.01f), new Vector2(0.96f, 0.15f), "", 18, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
                 // Tap to attack (only while an attack is being aimed)
@@ -1047,6 +1051,7 @@ namespace BiRyeoDo.Game.UI
                 tap.targetGraphic = tapImg;
                 var captured = card;
                 tap.onClick.AddListener(() => OnEnemyPressed(captured));
+                card.Root.gameObject.AddComponent<LongPress>().OnLong = () => ShowEnemyTip(captured);
                 _cards.Add(card);
             }
         }
@@ -1165,6 +1170,7 @@ namespace BiRyeoDo.Game.UI
 
         private void OnEnemyPressed(EnemyCard card)
         {
+            if (LongPress.JustFired) return;
             if (!Aiming || _battle == null || !_battle.IsPlayerTurn || _hasCommand || !card.Unit.IsAlive) return;
             if (!Hittable(card.Unit))
             {
@@ -1547,6 +1553,20 @@ namespace BiRyeoDo.Game.UI
             string name = companion != null && !string.IsNullOrEmpty(companion.JointName) ? companion.JointName : "합공";
             string extra = spec == null ? "" : spec.Effect == SkillEffect.Stun ? "\n적을 굳혀 강타를 끊습니다." : spec.Effect == SkillEffect.GuardParty ? "\n파티 전체가 방어 태세를 취합니다." : spec.Effect == SkillEffect.HealAlly ? "\n가장 다친 동료를 치유합니다." : "";
             ShowTip(name + " (" + partner.Name + ")", "기세 " + InteractiveBattle.JointSpiritCost + " · 위력 ×" + (spec != null ? spec.Power.ToString("0.0") : "?") + "\n비류연과 " + partner.Name + "이(가) 연달아 칩니다. " + partner.Name + "은(는) 다음 행동을 씁니다." + extra, ArtLibrary.Icon("cmd_joint"));
+        }
+
+        /// <summary>Long press on an enemy: level, 무공 경지 and stats.</summary>
+        private void ShowEnemyTip(EnemyCard card)
+        {
+            if (card == null || card.Data == null) return;
+            var s = card.Unit.Stats;
+            double power = Realm.Power(s);
+            var lines = new List<string>();
+            lines.Add("Lv." + card.Data.Level + (card.Data.IsBoss ? "  ·  우두머리" : ""));
+            if (Realm.HasRealm(card.Data)) lines.Add("무공 경지  " + Realm.Label(Realm.StepOf(power)) + "\n종합 수치 " + System.Math.Round(power).ToString("N0"));
+            else lines.Add("무공 경지  해당 없음");
+            lines.Add("체력 " + card.Unit.Hp.ToString("N0") + " / " + s.MaxHp.ToString("N0") + "\n공격력 " + s.Attack.ToString("N0") + "   방어력 " + s.Defense.ToString("N0") + "   속도 " + s.Speed.ToString("N0"));
+            ShowTip(card.Data.Name, string.Join("\n\n", lines), ArtLibrary.Enemy(card.Data.ArtKey));
         }
 
         /// <summary>Long press on a party member's panel: every skill they have.</summary>
