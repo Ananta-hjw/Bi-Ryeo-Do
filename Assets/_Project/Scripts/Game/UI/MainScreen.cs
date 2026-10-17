@@ -22,6 +22,8 @@ namespace BiRyeoDo.Game.UI
         private GameObject _artsDot;
         private Text _artsDotText;
         private float _dotTimer;
+        private GameObject _battleOverlay, _realmModal;
+        private Text _realmTitle, _realmBody;
         private WorldScreen _world;
         private RecordScreen _record;
         private BattleScreen _battle;
@@ -74,6 +76,7 @@ namespace BiRyeoDo.Game.UI
             _battle = overlay.gameObject.AddComponent<BattleScreen>();
             _battle.Build(overlay);
             overlay.gameObject.SetActive(false);
+            _battleOverlay = overlay.gameObject;
 
             _world.Build((RectTransform)panels[(int)TabRouter.Tab.World].transform, stage =>
             {
@@ -112,6 +115,8 @@ namespace BiRyeoDo.Game.UI
             // Help card sits above everything (tutorial hints and the help list)
             var helpHost = UiFactory.Rect("HelpHost", safe, Vector2.zero, Vector2.one);
             helpHost.gameObject.AddComponent<HelpPanel>().Build(helpHost);
+
+            BuildRealmModal(safe);
 
             Select((int)_router.startTab);
             SoundManager.Bgm("lobby");
@@ -162,9 +167,37 @@ namespace BiRyeoDo.Game.UI
             _dotTimer -= Time.unscaledDeltaTime;
             if (_dotTimer > 0f || _artsDot == null || GameManager.Instance == null) return;
             _dotTimer = 0.4f;
-            int n = Discovery.Count(GameManager.Instance.Save);
+            var save = GameManager.Instance.Save;
+            int n = Discovery.Count(save);
             _artsDot.SetActive(n > 0);
             _artsDotText.text = n.ToString();
+
+            // 무공 경지 rose: tell the player once the battle overlay and any help card are out of the way.
+            bool busy = (_battleOverlay != null && _battleOverlay.activeSelf) || (HelpPanel.Instance != null && HelpPanel.Instance.IsOpen) || (_realmModal != null && _realmModal.activeSelf);
+            int from, to;
+            if (!busy && Realm.PollRise(save, out from, out to))
+            {
+                GameManager.Instance.SaveNow();
+                _realmTitle.text = "경지 상승!";
+                _realmBody.text = Realm.Label(from) + "  →  " + Realm.Label(to) + "\n\n" + Realm.Describe(save) + "\n\n비류연의 무공이 한 단계 깊어졌습니다.";
+                _realmModal.transform.SetAsLastSibling();
+                _realmModal.SetActive(true);
+                SoundManager.Sfx("levelup");
+            }
+        }
+
+        private void BuildRealmModal(RectTransform parent)
+        {
+            var rt = UiFactory.Rect("RealmModal", parent, Vector2.zero, Vector2.one);
+            _realmModal = rt.gameObject;
+            var dim = rt.gameObject.AddComponent<Image>();
+            dim.color = new Color(0f, 0f, 0f, 0.7f);   // blocks everything underneath
+            var card = UiFactory.Panel("Card", rt, new Vector2(0.08f, 0.32f), new Vector2(0.92f, 0.68f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
+            _realmTitle = UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.82f), new Vector2(0.95f, 0.97f), "", 46, UiFactory.Gold);
+            _realmBody = UiFactory.Body(UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.24f), new Vector2(0.94f, 0.82f), "", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal));
+            UiFactory.Button("Ok", card.transform, new Vector2(0.30f, 0.05f), new Vector2(0.70f, 0.20f), "확인", UiFactory.Red, () => _realmModal.SetActive(false), 36);
+            _realmModal.SetActive(false);
         }
 
         private void Select(int index)

@@ -15,12 +15,12 @@ namespace BiRyeoDo.Core
     /// <summary>
     /// 무공 경지: the protagonist's composite stat power (geometric mean of 체력·공격력·방어력·속도, gear and 심법 included)
     /// placed on a ladder of steps. Step i starts at <see cref="BasePower"/> x Ratio^i; the ratio is fixed so that
-    /// 대공자 비 (the strongest enemy so far) lands on the first step of 초절정. Pure stat flavour: nothing in battle reads it.
+    /// 대공자 비 on 어려움 (stage 30, the strongest enemy so far) lands on the first step of 초절정. Pure stat flavour: nothing in battle reads it.
     /// </summary>
     public static class Realm
     {
-        public const double BasePower = 27.8;    // a level 1 protagonist
-        public const double AnchorPower = 572.0; // 대공자 비 (about 572.7) = the anchor
+        public const double BasePower = 50.0;    // the start of 삼급's successor ladder: below this is still 삼급 (a level 1 protagonist is about 28)
+        public const double AnchorPower = 943.0; // 대공자 비 on 어려움 (about 943.8) = the anchor
         public const string AnchorRealm = "초절정", AnchorSub = "초입";
 
         private static readonly string[] Subs = { "초입", "완숙", "극" };
@@ -79,11 +79,19 @@ namespace BiRyeoDo.Core
         /// <summary>The protagonist's current realm (gear, 심법 and 검룡위 included, like in battle).</summary>
         public static int StepOf(SaveData save) { return StepOf(Power(InnerArts.HeroStats(save))); }
 
-        /// <summary>"초절정 초입 (상급)".</summary>
-        public static string Label(int step)
+        /// <summary>"초절정 초입".</summary>
+        public static string Label(int step) { return Steps[step].Name; }
+
+        /// <summary>Call now and then: returns true once when the protagonist's realm rose above the best one reached so far (nothing for a fall,
+        /// e.g. after taking off gear). The first call on an older save only records the current step.</summary>
+        public static bool PollRise(SaveData save, out int from, out int to)
         {
-            var s = Steps[step];
-            return s.Name + " (" + s.Group + ")";
+            from = to = StepOf(save);
+            if (save.RealmMax < 0) { save.RealmMax = to; return false; }
+            if (to <= save.RealmMax) return false;
+            from = save.RealmMax;
+            save.RealmMax = to;
+            return true;
         }
 
         /// <summary>The next step's name and the power still missing, or null at the top.</summary>

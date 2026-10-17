@@ -25,10 +25,35 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void StrongestEnemySoFarIsTheFirstStepOfChojeoljeong()
+        public void DaegongjaBiOnHardIsTheFirstStepOfChojeoljeong()
         {
-            var boss = EarlyGameContent.FindEnemy("bi_daegongja").CreateCombatant("b");
-            Assert.AreEqual(Realm.AnchorStep, Realm.StepOf(Realm.Power(boss.Stats)));
+            var hard = StageStars.ScaleEnemy(EarlyGameContent.FindEnemy("bi_daegongja"), 30, 1).CreateCombatant("b");
+            Assert.AreEqual(Realm.AnchorStep, Realm.StepOf(Realm.Power(hard.Stats)));
+            var normal = EarlyGameContent.FindEnemy("bi_daegongja").CreateCombatant("b");
+            Assert.Less(Realm.StepOf(Realm.Power(normal.Stats)), Realm.AnchorStep);   // on 일반 he is a step below
+        }
+
+        [Test]
+        public void EarlyStagesStayInTheLowRealms()
+        {
+            // Stage 5 (level 13) is still 하급·중급 and stage 30 (level 65) has not reached 초절정.
+            Assert.LessOrEqual(Realm.StepOf(Realm.Power(Progression.HeroStatsFor(13))), 1);
+            Assert.Less(Realm.StepOf(Realm.Power(Progression.HeroStatsFor(65))), Realm.AnchorStep);
+        }
+
+        [Test]
+        public void RisingIsReportedOnceAndNeverForFalls()
+        {
+            var save = new SaveData { Level = 1 };
+            int from, to;
+            Assert.IsFalse(Realm.PollRise(save, out from, out to));   // first call only records
+            Assert.AreEqual(Realm.StepOf(save), save.RealmMax);
+            save.Level = 80;
+            Assert.IsTrue(Realm.PollRise(save, out from, out to));
+            Assert.Greater(to, from);
+            Assert.IsFalse(Realm.PollRise(save, out from, out to));   // told once
+            save.Level = 10;                                          // a fall (e.g. gear off) is silent
+            Assert.IsFalse(Realm.PollRise(save, out from, out to));
         }
 
         [Test]
@@ -67,7 +92,7 @@ namespace BiRyeoDo.Tests
                 if (e == bi || e.HpMul > 20f || e.Id.StartsWith("mask_") || !Realm.HasRealm(e)) continue;
                 Assert.Greater(biPower, Realm.Power(e.CreateCombatant(e.Id).Stats), e.Id);
             }
-            Assert.AreEqual("초절정 초입", Realm.ForEnemy(bi));
+            Assert.AreEqual("절정 극", Realm.ForEnemy(bi));   // 초절정 초입 only on 어려움
             Assert.AreEqual("", Realm.ForEnemy(EarlyGameContent.FindEnemy("tiger")));
             foreach (var id in new[] { "tiger", "white_tiger", "mukrin_hyeolmang", "cave_viper" }) Assert.IsNotNull(EarlyGameContent.FindEnemy(id), id);
         }

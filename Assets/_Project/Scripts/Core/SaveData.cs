@@ -42,6 +42,7 @@ namespace BiRyeoDo.Core
         public List<GearLevel> GearLevels = new List<GearLevel>();   // 장비 강화 levels (additive field)
         public List<string> SeenArts = new List<string>();         // arts whose "new" red dot was already looked at (additive field)
         public List<string> SeenInner = new List<string>();        // same for 심법 (additive field)
+        public int RealmMax = -1;                                  // highest 무공 경지 step reached (-1 = not recorded yet, see Realm.PollRise)
         public bool DiscoveryInit;                                 // old saves are marked as seen once (see Discovery.Sync)
         public List<string> LearnedInner = new List<string>();     // 심법 learned (additive field)
         public List<string> EquippedInner = new List<string>();    // 심법 equipped (see InnerArts.SlotCount)
