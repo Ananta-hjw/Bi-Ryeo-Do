@@ -1442,7 +1442,7 @@ namespace BiRyeoDo.Game.UI
         private static string SkillDetails(SkillSpec s)
         {
             var parts = new List<string>();
-            if (s.Effect == SkillEffect.Evade) parts.Add("다음 차례까지 모든 공격 회피");
+            if (s.Effect == SkillEffect.Evade) parts.Add("다음 차례까지 공격을 " + Mathf.RoundToInt(s.EvadeChance * 100f) + "% 확률로 회피");
             else if (s.Effect == SkillEffect.GuardParty) parts.Add("파티 전체 방어 태세");
             else if (s.Effect == SkillEffect.HealAlly) parts.Add("가장 다친 동료 체력 " + Mathf.RoundToInt(s.HealPct * 100f) + "% 회복");
             else

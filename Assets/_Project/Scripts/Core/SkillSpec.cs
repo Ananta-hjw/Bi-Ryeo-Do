@@ -24,6 +24,7 @@ namespace BiRyeoDo.Core
         public int Range = 1;      // how many enemy lines the art reaches (1 = the front line only, 2+ = any line) (attacks and area arts; self/party effects ignore it)
         public SkillEffect Effect;
         public float HealPct;      // for HealAlly
+        public float EvadeChance = 1f;   // for Evade: chance that each incoming hit is dodged (mastery lowers it for the protagonist's 삼첩영)
 
         /// <summary>"맨 앞 줄" / "모든 줄": which of the enemy lines an art of this reach touches (a reach of 2 or more covers every line).</summary>
         public static string ReachText(int range)

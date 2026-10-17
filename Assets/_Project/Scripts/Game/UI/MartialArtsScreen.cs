@@ -78,6 +78,10 @@ namespace BiRyeoDo.Game.UI
                 var bg = rt.gameObject.AddComponent<Image>();
                 bg.color = UiFactory.Ink;
                 bg.raycastTarget = true;   // lets a drag that starts on a row still scroll
+                var tap = rt.gameObject.AddComponent<Button>();   // tapping the row itself opens the detail window
+                tap.targetGraphic = bg;
+                tap.transition = Selectable.Transition.None;
+                tap.onClick.AddListener(() => OpenDetail(art));
                 UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
                 row.Icon = UiFactory.Panel("Icon", rt, new Vector2(0.025f, 0.14f), new Vector2(0.135f, 0.86f), IconColor(art));
                 UiFactory.Frame(row.Icon.transform, UiFactory.Gold, 2f);
@@ -92,14 +96,95 @@ namespace BiRyeoDo.Game.UI
                 row.MasteryLabel = row.MasteryButton.GetComponentInChildren<Text>();
                 _rows.Add(row);
             }
+            _detail = UiFactory.Rect("ArtDetail", tab, Vector2.zero, Vector2.one);
+            _detail.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.78f);   // dims and blocks the list underneath
+            _detail.gameObject.SetActive(false);
             ShowPage(0);
         }
 
+        private RectTransform _detail;
+        private string _detailId;
+
+        private void CloseDetail()
+        {
+            _detailId = null;
+            if (_detail != null) _detail.gameObject.SetActive(false);
+        }
+
+        /// <summary>Full description of one art: numbers with the current mastery applied, the mastery steps and the 변초.</summary>
+        private void OpenDetail(ArtData art)
+        {
+            var save = GameManager.Instance.Save;
+            _detailId = art.Id;
+            for (int i = _detail.childCount - 1; i >= 0; i--) Destroy(_detail.GetChild(i).gameObject);
+            _detail.gameObject.SetActive(true);
+
+            bool learned = save.LearnedArts.Contains(art.Id);
+            bool equipped = save.EquippedArts.Contains(art.Id);
+            bool unlocked = art.IsUnlocked(save);
+            bool ultimate = Progression.IsUltimate(art);
+            int level = Mastery.Level(save, art.Id);
+            var variant = Mastery.VariantOf(save, art.Id);
+            var spec = learned ? Mastery.Apply(save, art) : art.ToSpec();
+
+            var card = UiFactory.Panel("Card", _detail, new Vector2(0.05f, 0.05f), new Vector2(0.95f, 0.93f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            UiFactory.Frame(card.transform, ultimate ? UiFactory.Gold : UiFactory.GoldDim, 3f);
+            var big = UiFactory.Panel("Picture", card.transform, new Vector2(0.74f, 0.87f), new Vector2(0.95f, 0.985f), IconColor(art));
+            var picture = ArtLibrary.Art(art.Id);
+            big.sprite = picture;
+            big.preserveAspect = true;
+            if (picture != null) big.color = Color.white;
+            UiFactory.Frame(big.transform, UiFactory.Gold, 2f);
+            if (picture == null) UiFactory.Label("Glyph", big.transform, Vector2.zero, Vector2.one, art.Name.Substring(0, 1), 60, UiFactory.PaperText);
+            UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.91f), new Vector2(0.72f, 0.985f), art.Name + (variant != ArtVariant.None && learned ? "(" + Mastery.VariantName(variant) + ")" : ""), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
+            string kind = (ultimate ? "비기 (기세 " + art.SpiritCost + ")" : art.AllEnemies ? "전체 무공" : art.Effect == SkillEffect.None ? "일반 무공" : "보조 무공")
+                + (equipped ? "  ·  장착 중" : learned ? "  ·  배움" : "");
+            UiFactory.Label("Kind", card.transform, new Vector2(0.05f, 0.86f), new Vector2(0.72f, 0.91f), kind, 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+
+            var lines = new List<string>();
+            lines.Add(art.Description);
+            string cost = art.SpiritCost > 0 ? "기세 " + art.SpiritCost : spec.QiCost > 0 ? "내공 " + spec.QiCost : "내공 0";
+            string effect = art.Effect == SkillEffect.Evade ? "다음 차례까지 공격을 " + Mathf.RoundToInt(spec.EvadeChance * 100f) + "% 확률로 회피"
+                : art.Effect == SkillEffect.GuardParty ? "파티 전원 방어 태세"
+                : art.Effect == SkillEffect.HealAlly ? "아군 체력 " + Mathf.RoundToInt(spec.HealPct * 100f) + "% 회복"
+                : "위력 ×" + spec.Power.ToString("0.00") + (spec.Hits > 1 ? " ×" + spec.Hits + "타" : "") + (spec.AllEnemies ? " · 적 전체" : "") + (art.Effect == SkillEffect.Stun ? " · 점혈(굳음)" : "");
+            lines.Add("<color=#9ADB9F>" + effect + "</color>\n" + cost + (spec.Cooldown > 0 ? " · 재사용 " + spec.Cooldown + "턴" : "") + " · 닿는 범위: " + SkillSpec.ReachText(art.EffectiveRange)
+                + (learned && (variant != ArtVariant.None || level > 0) ? "\n(숙련·변초가 반영된 값입니다)" : ""));
+            if (!learned && !unlocked) lines.Add(art.UnlockText + "하면 배울 수 있습니다.");
+
+            var steps = Mastery.LevelLines(art);
+            if (steps.Count > 0)
+            {
+                var sb = new System.Text.StringBuilder("숙련 " + (learned ? "(" + Mastery.Uses(save, art.Id) + "회 사용)" : "") + "\n");
+                for (int i = 0; i < steps.Count; i++) sb.Append(learned && i == level ? "▶ " : "   ").Append(steps[i]).Append(i < steps.Count - 1 ? "\n" : "");
+                lines.Add(sb.ToString());
+                var variants = Mastery.AvailableVariants(art);
+                if (ultimate) lines.Add("비기는 변초가 없는 대신 숙련 위력 보너스가 큽니다 (5% · 10% · 20% · 40%).");
+                else if (variants.Count > 0)
+                    lines.Add("변초 (" + Mastery.LevelNames[Mastery.VariantLevel] + "부터)\n" + string.Join("\n", variants.Select(v => Mastery.VariantHint(v))));
+                else lines.Add("이 무공에는 변초가 없습니다.");
+            }
+            UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.30f), new Vector2(0.94f, 0.85f), string.Join("\n\n", lines), 24, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal);
+
+            string mainLabel; Color mainColor; bool mainOn;
+            if (learned) { mainLabel = equipped ? "해제" : "장착"; mainColor = equipped ? UiFactory.InkSoft : UiFactory.Red; mainOn = true; }
+            else if (!unlocked) { mainLabel = "잠김"; mainColor = UiFactory.InkSoft; mainOn = false; }
+            else { mainOn = save.Doo >= art.LearnCost; mainLabel = "습득 " + art.LearnCost.ToString("N0") + "두"; mainColor = mainOn ? UiFactory.Red : UiFactory.InkSoft; }
+            var main = UiFactory.Button("Main", card.transform, new Vector2(0.05f, 0.19f), new Vector2(0.95f, 0.285f), mainLabel, mainColor, () => { OnPressed(art); OpenDetail(art); }, 34);
+            main.interactable = mainOn;
+            bool canVariant = learned && level >= Mastery.VariantLevel && Mastery.AvailableVariants(art).Count > 0;
+            if (canVariant)
+                UiFactory.Button("Variant", card.transform, new Vector2(0.05f, 0.10f), new Vector2(0.95f, 0.18f), "변초 바꾸기 (지금: " + (variant == ArtVariant.None ? "없음" : Mastery.VariantName(variant)) + ")", UiFactory.Gold, () => { OnMastery(art); OpenDetail(art); }, 30);
+            UiFactory.Button("Close", card.transform, new Vector2(0.30f, 0.015f), new Vector2(0.70f, 0.09f), "닫기", UiFactory.InkSoft, CloseDetail, 34);
+        }
+
         private void OnEnable() { if (_built) ShowPage(_page); }
+        private void OnDisable() { if (_built) CloseDetail(); }
 
         private void ShowPage(int page)
         {
             _page = page;
+            CloseDetail();
             _artsRoot.gameObject.SetActive(page == 0);
             _inner.Hide();
             _training.Hide();

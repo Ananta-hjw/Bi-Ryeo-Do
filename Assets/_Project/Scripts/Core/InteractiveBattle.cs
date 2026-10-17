@@ -310,6 +310,7 @@ namespace BiRyeoDo.Core
             {
                 case SkillEffect.Evade:
                     actor.Evading = true;
+                    actor.EvadeChance = skill.EvadeChance;
                     events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = skill.Id, Kind = EventKind.Evade, TargetHpAfter = actor.Hp, Message = actor.Name + "의 " + skill.Name + "!" });
                     return;
                 case SkillEffect.GuardParty:
@@ -538,7 +539,7 @@ namespace BiRyeoDo.Core
                     Turn = Turn, ActorId = enemy.Id, TargetId = target.Id, SkillId = move.Name, Kind = EventKind.Attack,
                     HitIndex = h, HitCount = hits
                 };
-                if (target.Evading)
+                if (target.Evading && (target.EvadeChance >= 1f || _rng.NextDouble() < target.EvadeChance))
                 {
                     ev.Dodged = true;
                     ev.TargetHpAfter = target.Hp;

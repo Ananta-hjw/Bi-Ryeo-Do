@@ -184,5 +184,56 @@ namespace BiRyeoDo.Tests
                 Assert.IsFalse(EarlyGameContent.FindItem(good.ItemId).InGacha);
             }
         }
+
+        [Test]
+        public void UltimatesGainFiveTenTwentyFortyPercentInsteadOfVariants()
+        {
+            var ult = EarlyGameContent.Arts.First(a => a.OwnerId == null && a.SpiritCost > 0 && a.Power > 0);
+            var save = new SaveData();
+            float[] expect = { 1f, 1.05f, 1.10f, 1.20f, 1.40f };
+            int[] uses = { 0, 10, 25, 50, 80 };
+            for (int lv = 0; lv < 5; lv++)
+            {
+                for (int i = Mastery.Uses(save, ult.Id); i < uses[lv]; i++) Mastery.RecordUse(save, ult.Id);
+                Assert.AreEqual(ult.Power * expect[lv], Mastery.Apply(save, ult).Power, 0.001f, "level " + lv);
+            }
+            Assert.AreEqual(0, Mastery.AvailableVariants(ult).Count);
+        }
+
+        [Test]
+        public void SamcheopyeongDodgeChanceFollowsMastery()
+        {
+            var art = EarlyGameContent.FindArt("samcheopyeong");
+            var save = new SaveData();
+            float[] expect = { 0.50f, 0.65f, 0.80f, 0.90f, 1.00f };
+            int[] uses = { 0, 10, 25, 50, 80 };
+            for (int lv = 0; lv < 5; lv++)
+            {
+                for (int i = Mastery.Uses(save, art.Id); i < uses[lv]; i++) Mastery.RecordUse(save, art.Id);
+                Assert.AreEqual(expect[lv], Mastery.Apply(save, art).EvadeChance, 0.0001f, "level " + lv);
+            }
+            Assert.AreEqual(1f, art.ToSpec().EvadeChance);   // the balance bot uses the plain art
+        }
+
+        [Test]
+        public void PartialDodgeChanceMissesOnlyAShareOfHits()
+        {
+            int dodged = 0, hit = 0;
+            for (int seed = 0; seed < 300; seed++)
+            {
+                var st = EarlyGameContent.FindStage(1);
+                var party = SimpleBot.BuildParty(1, st.RecommendedLevel);
+                var enemies = st.Encounters[0].Select((id, i) => EarlyGameContent.FindEnemy(id).CreateCombatant(id + i)).ToList();
+                var battle = new InteractiveBattle(party, enemies, new SeededRandom(seed));
+                battle.Begin();
+                var hero = party[0];
+                var evade = new SkillSpec { Id = "ev", Name = "ev", Effect = SkillEffect.Evade, EvadeChance = 0.5f };
+                foreach (var e in battle.PlayerAct(new PlayerCommand { Kind = CommandKind.Skill, Skill = evade }))
+                    if (e.Kind == EventKind.Attack && e.TargetId == hero.Id) { if (e.Dodged) dodged++; else hit++; }
+            }
+            Assert.Greater(dodged, 0);
+            Assert.Greater(hit, 0);
+            Assert.AreEqual(0.5, dodged / (double)(dodged + hit), 0.1);
+        }
     }
 }

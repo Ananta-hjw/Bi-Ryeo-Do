@@ -29,7 +29,8 @@ namespace BiRyeoDo.Core
         public int Col = -1, Row = -1;     // tile on the battle board (see Board); -1 = not placed yet
         public int Range = 1;              // enemies: how many tiles away their attacks reach
         public bool Guarding;              // damage taken is reduced until this unit's next turn
-        public bool Evading;               // all hits miss until this unit's next turn
+        public bool Evading;               // hits can miss until this unit's next turn
+        public float EvadeChance = 1f;     // chance each hit misses while Evading
         public bool Charging;              // enemy is winding up its next move (telegraph)
         public Combatant ChargeTarget;     // who the wound-up move will hit
         public bool Stunned;               // loses its next action

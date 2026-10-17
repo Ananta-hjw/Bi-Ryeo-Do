@@ -25,10 +25,38 @@ namespace BiRyeoDo.Core
         public static readonly int[] Thresholds = { 0, 10, 25, 50, 80 };
         public static readonly string[] LevelNames = { "입문", "소성", "대성", "극성", "극의" };
         public static readonly float[] PowerBonus = { 0f, 0.03f, 0.07f, 0.15f, 0.30f };
+        public static readonly float[] UltimatePowerBonus = { 0f, 0.05f, 0.10f, 0.20f, 0.40f };   // 비기 have no 변초, so they grow more
+        public static readonly float[] EvadeChanceByLevel = { 0.50f, 0.65f, 0.80f, 0.90f, 1.00f };   // 삼첩영: share of hits dodged
         public const int VariantLevel = 3;      // 극성: the 변초 opens
         public const int MasterLevel = 4;       // 극의: one turn faster recharge (never below 0) and 20% less qi
         public const float MasterQiFactor = 0.8f;
         public const float PowerVariantFactor = 1.5f, FlurryPowerFactor = 0.65f;
+
+        /// <summary>One line per mastery level for the detail window: what the art gains at that step.</summary>
+        public static List<string> LevelLines(ArtData art)
+        {
+            var lines = new List<string>();
+            if (art.OwnerId != null) return lines;
+            for (int i = 0; i < Thresholds.Length; i++)
+            {
+                var parts = new List<string>();
+                if (art.Effect == SkillEffect.Evade) parts.Add("회피 " + Math.Round(EvadeChanceByLevel[i] * 100f) + "%");
+                else if (i > 0) parts.Add("위력 +" + Math.Round(PowerBonusOf(art, i) * 100f) + "%");
+                if (i == VariantLevel && AvailableVariants(art).Count > 0) parts.Add("변초 해금");
+                if (i == MasterLevel)
+                {
+                    if (art.Cooldown > 0) parts.Add("재사용 -1턴");
+                    if (art.QiCost > 0) parts.Add("내공 -" + Math.Round((1f - MasterQiFactor) * 100f) + "%");
+                }
+                lines.Add(LevelNames[i] + " (" + Thresholds[i] + "회)  " + (parts.Count > 0 ? string.Join(" · ", parts) : "기본"));
+            }
+            return lines;
+        }
+
+        public static float PowerBonusOf(ArtData art, int level)
+        {
+            return art.SpiritCost > 0 ? UltimatePowerBonus[level] : PowerBonus[level];
+        }
 
         public static int LevelOf(int uses)
         {
@@ -180,7 +208,8 @@ namespace BiRyeoDo.Core
             var spec = art.ToSpec();
             if (art.OwnerId != null) return spec;
             int level = Level(save, art.Id);
-            spec.Power *= 1f + PowerBonus[level];
+            spec.Power *= 1f + PowerBonusOf(art, level);
+            if (art.Effect == SkillEffect.Evade) spec.EvadeChance = EvadeChanceByLevel[level];
             if (level >= MasterLevel) spec.Cooldown = Math.Max(0, spec.Cooldown - 1);
             var v = level >= VariantLevel && AvailableVariants(art).Contains(VariantOf(save, art.Id)) ? VariantOf(save, art.Id) : ArtVariant.None;
             switch (v)
