@@ -21,6 +21,15 @@ namespace BiRyeoDo.Core
         {
             return new PlayerCommand { Kind = CommandKind.Joint, Skill = spec, Partner = partner, Target = target };
         }
+        public Combatant AllyTarget;  // healing arts and healing items: the ally to heal (null/dead = the most wounded one)
+
+        public PlayerCommand WithAlly(Combatant ally)
+        {
+            var c = this;
+            c.AllyTarget = ally;
+            return c;
+        }
+
         public static PlayerCommand UseItem(ItemData item) { return new PlayerCommand { Kind = CommandKind.Item, Item = item }; }
         public static PlayerCommand Guard() { return new PlayerCommand { Kind = CommandKind.Guard }; }
         public static PlayerCommand Meditate() { return new PlayerCommand { Kind = CommandKind.Meditate }; }
@@ -258,7 +267,7 @@ namespace BiRyeoDo.Core
                         int heal = 0;
                         if (item.HealPct > 0f)
                         {
-                            target = MostWounded();
+                            target = ResolveAlly(cmd.AllyTarget);
                             heal = (int)Math.Round(target.Stats.MaxHp * item.HealPct);
                             target.Hp = Math.Min(target.Stats.MaxHp, target.Hp + heal);
                         }
@@ -282,6 +291,12 @@ namespace BiRyeoDo.Core
             return events;
         }
 
+        /// <summary>The ally a heal goes to: the player's pick if that member is alive and in the party, otherwise the most wounded one.</summary>
+        private Combatant ResolveAlly(Combatant wanted)
+        {
+            return wanted != null && wanted.IsAlive && _party.Contains(wanted) ? wanted : MostWounded();
+        }
+
         private void UseSkill(Combatant actor, PlayerCommand cmd, List<BattleEvent> events)
         {
             var skill = cmd.Skill;
@@ -301,7 +316,7 @@ namespace BiRyeoDo.Core
                     return;
                 case SkillEffect.HealAlly:
                     {
-                        var weakest = MostWounded();
+                        var weakest = ResolveAlly(cmd.AllyTarget);
                         int heal = (int)Math.Round(weakest.Stats.MaxHp * skill.HealPct);
                         weakest.Hp = Math.Min(weakest.Stats.MaxHp, weakest.Hp + heal);
                         events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = weakest.Id, SkillId = skill.Id, Kind = EventKind.Heal, Heal = heal, TargetHpAfter = weakest.Hp, Message = actor.Name + "의 " + skill.Name + "! " + weakest.Name + " 회복." });

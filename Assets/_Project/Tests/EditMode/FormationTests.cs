@@ -197,6 +197,25 @@ public class FormationTests
     }
 
     [Test]
+    public void HealsGoToTheChosenAllyAndFallBackToTheMostWounded()
+    {
+        var heal = new SkillSpec { Id = "heal", Name = "치유", Effect = SkillEffect.HealAlly, HealPct = 0.5f };
+        var hero = Hero(heal); var a = new Combatant("a", "윤준호", Team.Player, Stats(1000), null); var b = new Combatant("b", "장홍", Team.Player, Stats(1000), null);
+        var foe = Foe("e");
+        var battle = Fight(new[] { hero, a, b }, new[] { foe });
+        a.Hp = 400; b.Hp = 100;
+        battle.PlayerAct(PlayerCommand.UseSkill(heal, null).WithAlly(a));
+        Assert.AreEqual(900, a.Hp, "the chosen ally is healed even though another is more wounded");
+        Assert.AreEqual(100, b.Hp);
+        var item = new ItemData { Id = "bear", Name = "웅담", Kind = ItemKind.Consumable, HealPct = 0.4f };
+        while (battle.Current != hero && !battle.IsOver) battle.PlayerAct(PlayerCommand.Guard());
+        hero.Hp = 100;
+        battle.PlayerAct(PlayerCommand.UseItem(item).WithAlly(b));
+        Assert.That(b.Hp, Is.InRange(450, 500), "the chosen ally gets the potion");
+        Assert.LessOrEqual(hero.Hp, 100, "the wounded protagonist did not");
+    }
+
+    [Test]
     public void ArtRangesFollowTheirKind()
     {
         Assert.AreEqual(1, SkillSpec.BasicAttack().Range);

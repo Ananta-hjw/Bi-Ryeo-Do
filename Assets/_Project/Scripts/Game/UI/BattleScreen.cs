@@ -82,6 +82,9 @@ namespace BiRyeoDo.Game.UI
         private SkillSpec _aimSkill;
         private Combatant _aimPartner;   // set while aiming a 합공 (the ally who strikes with the protagonist)
         private bool Aiming { get { return _aimSkill != null; } }
+        // Ally aiming: healing arts and healing items ask which ally to heal before they are used.
+        private Func<Combatant, PlayerCommand> _allyAim;
+        private bool AimingAlly { get { return _allyAim != null; } }
 
         private bool _hasCommand, _panelDone, _retry, _leave, _fled, _itemMode, _jointMode, _drawn;
         private readonly List<Combatant> _jointPartners = new List<Combatant>();
@@ -932,7 +935,13 @@ namespace BiRyeoDo.Game.UI
                 p.QiText.gameObject.SetActive(false);
                 p.SpiritText.gameObject.SetActive(false);
                 var panelUnit = unit;
-                p.Root.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);   // catches the press
+                var catchImg = p.Root.gameObject.AddComponent<Image>();
+                catchImg.color = new Color(0f, 0f, 0f, 0f);   // catches the press
+                var allyBtn = p.Root.gameObject.AddComponent<Button>();
+                allyBtn.targetGraphic = catchImg;
+                allyBtn.transition = Selectable.Transition.None;
+                var allyPanel = p;
+                allyBtn.onClick.AddListener(() => OnAllyPressed(allyPanel));
                 p.Root.gameObject.AddComponent<LongPress>().OnLong = () => ShowMemberTip(panelUnit);
                 _panels.Add(p);
             }
@@ -1053,6 +1062,16 @@ namespace BiRyeoDo.Game.UI
             for (int c = 0; c < Board.Cols; c++)
                 for (int r = 0; r < Board.Rows; r++)
                     if (_tileHi[c, r] != null) _tileHi[c, r].color = new Color(0f, 0f, 0f, 0f);
+            if (AimingAlly)
+            {
+                foreach (var pn in _panels)
+                {
+                    var m = pn.Unit;
+                    if (m.Col < 0 || m.Col >= Board.Cols || m.Row < 0 || m.Row >= Board.Rows) continue;
+                    _tileHi[m.Col, m.Row].color = m.IsAlive ? new Color(0.30f, 0.90f, 0.40f, 0.55f) : new Color(0.75f, 0.15f, 0.15f, 0.40f);
+                }
+                return;
+            }
             if (!Aiming || _battle == null) return;
             foreach (var card in _cards)
             {
@@ -1073,10 +1092,32 @@ namespace BiRyeoDo.Game.UI
             RefreshCards();
         }
 
+        private void BeginAllyAim(string what, Func<Combatant, PlayerCommand> build)
+        {
+            _allyAim = build;
+            _itemMode = false;
+            SoundManager.Sfx("ui_click");
+            _log.text = "「" + what + "」 — 쓸 아군을 누르세요.  초록 = 선택 가능";
+            RefreshCommands();
+            RefreshParty();
+            RefreshBoard();
+        }
+
+        private void OnAllyPressed(PartyPanel panel)
+        {
+            if (!AimingAlly || _battle == null || !_battle.IsPlayerTurn || _hasCommand) return;
+            if (!panel.Unit.IsAlive) { _log.text = panel.Unit.Name + "은(는) 쓰러져 있어 쓸 수 없습니다."; return; }
+            var build = _allyAim;
+            EndAim();
+            RefreshParty();
+            Issue(build(panel.Unit));
+        }
+
         private void EndAim()
         {
             _aimSkill = null;
             _aimPartner = null;
+            _allyAim = null;
         }
 
         private void CancelAim()
@@ -1085,6 +1126,7 @@ namespace BiRyeoDo.Game.UI
             _log.text = "";
             RefreshCommands();
             RefreshCards();
+            RefreshParty();
         }
 
         private void OnEnemyPressed(EnemyCard card)
@@ -1153,6 +1195,13 @@ namespace BiRyeoDo.Game.UI
                 p.Name.color = u.IsAlive ? UiFactory.Gold : new Color(0.5f, 0.5f, 0.5f, 1f);
                 bool current = _battle != null && _battle.Current == u && _battle.IsPlayerTurn;
                 p.Frame.color = current ? UiFactory.Gold : new Color(0f, 0f, 0f, 0f);
+                p.Status.color = UiFactory.PaperText;
+                if (AimingAlly && u.IsAlive)
+                {
+                    p.Frame.color = new Color(0.30f, 0.90f, 0.40f, 1f);
+                    p.Status.text = "▶ 선택 가능";
+                    p.Status.color = new Color(0.45f, 1f, 0.55f, 1f);
+                }
             }
         }
 
@@ -1196,7 +1245,7 @@ namespace BiRyeoDo.Game.UI
             if (me == null) return;
             SetCommandsVisible(true);
 
-            if (Aiming)
+            if (Aiming || AimingAlly)
             {
                 for (int i = 0; i < _commands.Length; i++) if (i != 7) _commands[i].Root.SetActive(false);
                 SetCommand(7, "취소", "다시 고르기", true);
@@ -1465,7 +1514,7 @@ namespace BiRyeoDo.Game.UI
             if (_battle == null || !_battle.IsPlayerTurn || _hasCommand) return;
             var me = _battle.Current;
 
-            if (Aiming)
+            if (Aiming || AimingAlly)
             {
                 if (slot == 7) CancelAim();
                 return;
@@ -1484,7 +1533,9 @@ namespace BiRyeoDo.Game.UI
                 if (slot == 7) { _itemMode = false; RefreshCommands(); return; }
                 var items = UsableItems();
                 if (slot >= items.Count) return;
-                Issue(PlayerCommand.UseItem(items[slot]));
+                var picked = items[slot];
+                if (picked.HealPct > 0f) { BeginAllyAim(picked.Name, ally => PlayerCommand.UseItem(picked).WithAlly(ally)); return; }
+                Issue(PlayerCommand.UseItem(picked));
                 return;
             }
 
@@ -1525,6 +1576,12 @@ namespace BiRyeoDo.Game.UI
             if (!_battle.CanReach(chosen))
             {
                 _log.text = "닿는 적이 없습니다. 다른 무공을 골라 주세요.";
+                return;
+            }
+            if (chosen.Effect == SkillEffect.HealAlly)
+            {
+                var healArt = chosen;
+                BeginAllyAim(healArt.Name, ally => PlayerCommand.UseSkill(healArt, null).WithAlly(ally));
                 return;
             }
             // Attacks that need a target ask for one first; area arts, evasion, healing and guards go off at once.
