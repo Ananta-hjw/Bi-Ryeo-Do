@@ -47,8 +47,8 @@ namespace BiRyeoDo.Game.UI
             Text(realmCard, 0.04f, 0.96f, 0.52f, 0.98f, Realm.Label(realmStep), 40, UiFactory.Gold, TextAnchor.MiddleLeft);
             string nextText = Realm.NextText(power);
             Text(realmCard, 0.04f, 0.96f, 0.04f, 0.52f, "종합 수치 " + Math.Round(power).ToString("N0") + (nextText.Length > 0 ? "\n" + nextText : "\n더 오를 경지가 없습니다"), 26, UiFactory.PaperText, TextAnchor.UpperLeft);
-            var realmNote = Block(96f);
-            Text(realmNote, 0.04f, 0.97f, 0f, 1f, "체력·공격력·방어력·속도를 합친 수치(장비·심법 반영)로 정한 경지입니다. 기준: 지금까지 나온 가장 강한 적 대공자 비가 초절정 초입입니다.", 22, UiFactory.Dim, TextAnchor.MiddleLeft);
+            var realmNote = Block(72f);
+            Text(realmNote, 0.04f, 0.97f, 0f, 1f, "체력·공격력·방어력·속도를 합친 수치(장비·심법 반영)로 정한 경지입니다.", 22, UiFactory.Dim, TextAnchor.MiddleLeft);
 
             // Stats: two columns of equal rows
             Section("능력치");
