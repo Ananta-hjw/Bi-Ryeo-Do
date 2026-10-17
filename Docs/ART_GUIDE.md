@@ -286,6 +286,9 @@ AI 프롬프트 예시: "wuxia ink-wash style icon of <아이템 설명>, single
 
 | 파일 이름 | 아이템 | 등급 |
 |---|---|---|
+| `art_scroll_5.png` | 무공 수련서 (소) | Rare |
+| `art_scroll_10.png` | 무공 수련서 (중) | Epic |
+| `art_scroll_20.png` | 무공 수련서 (대) | Legendary |
 | `bear_gall.png` | 웅담 | Fine |
 | `biaoguk_ration.png` | 표국 건량 | Normal |
 | `ginseng.png` | 인형설삼 | Epic |

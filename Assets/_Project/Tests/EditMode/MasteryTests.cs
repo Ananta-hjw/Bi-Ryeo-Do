@@ -148,22 +148,27 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void ReadingAScrollAddsUsesToEveryEquippedArt()
+        public void ReadingAScrollRaisesOnlyTheChosenLearnedArt()
         {
             var save = new SaveData();
             bool used;
-            Inventory.Add(save, "art_scroll_10", 1);
-            StringAssert.Contains("장착한 무공이 없습니다", Mastery.UseScroll(save, "art_scroll_10", out used));
+            Inventory.Add(save, "art_scroll_10", 2);
+            save.LearnedArts.Add("bunroesu");
+            save.LearnedArts.Add("samcheopyeong");
+            StringAssert.Contains("배운 무공", Mastery.UseScroll(save, "art_scroll_10", "yeobanjang", out used));   // not learned
             Assert.IsFalse(used);
-            save.EquippedArts.Add("bunroesu");
-            save.EquippedArts.Add("samcheopyeong");
-            Mastery.UseScroll(save, "art_scroll_10", out used);
+            Assert.AreEqual(2, Inventory.Count(save, "art_scroll_10"));
+            CollectionAssert.AreEquivalent(new[] { "bunroesu", "samcheopyeong" }, Mastery.ScrollTargets(save).Select(a => a.Id));
+
+            string line = Mastery.UseScroll(save, "art_scroll_10", "bunroesu", out used);
             Assert.IsTrue(used);
             Assert.AreEqual(10, Mastery.Uses(save, "bunroesu"));
-            Assert.AreEqual(10, Mastery.Uses(save, "samcheopyeong"));
-            Assert.AreEqual(0, Inventory.Count(save, "art_scroll_10"));
-            Mastery.UseScroll(save, "art_scroll_10", out used);
-            Assert.IsFalse(used);
+            Assert.AreEqual(0, Mastery.Uses(save, "samcheopyeong"));
+            Assert.AreEqual(1, Inventory.Count(save, "art_scroll_10"));
+            StringAssert.Contains("소성", line);   // 10 uses is 소성
+            Mastery.UseScroll(save, "art_scroll_10", "bunroesu", out used);
+            Mastery.UseScroll(save, "art_scroll_10", "bunroesu", out used);
+            Assert.IsFalse(used);   // none left
         }
 
         [Test]

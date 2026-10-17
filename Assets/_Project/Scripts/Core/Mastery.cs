@@ -78,24 +78,33 @@ namespace BiRyeoDo.Core
             return found;
         }
 
-        /// <summary>Reads one 수련서 from the bag. Returns the result line; <paramref name="used"/> tells whether it was consumed.</summary>
-        public static string UseScroll(SaveData save, string itemId, out bool used)
+        /// <summary>The protagonist's learned arts a 수련서 can be read into (companion arts have no mastery).</summary>
+        public static List<ArtData> ScrollTargets(SaveData save)
+        {
+            var list = new List<ArtData>();
+            foreach (var artId in save.LearnedArts)
+            {
+                var art = EarlyGameContent.FindArt(artId);
+                if (art != null && art.OwnerId == null) list.Add(art);
+            }
+            return list;
+        }
+
+        /// <summary>Reads one 수련서 into one learned art. Returns the result line; <paramref name="used"/> tells whether it was consumed.</summary>
+        public static string UseScroll(SaveData save, string itemId, string artId, out bool used)
         {
             used = false;
             var item = EarlyGameContent.FindItem(itemId);
             if (item == null || item.MasteryUses <= 0) return "수련서가 아닙니다.";
             if (Inventory.Count(save, itemId) <= 0) return "수련서가 없습니다.";
-            int arts = 0;
-            foreach (var artId in save.EquippedArts)
-            {
-                var art = EarlyGameContent.FindArt(artId);
-                if (art != null && art.OwnerId == null) arts++;
-            }
-            if (arts == 0) return "장착한 무공이 없습니다. 무공 탭에서 먼저 장착해 주세요.";
+            var art = EarlyGameContent.FindArt(artId);
+            if (art == null || art.OwnerId != null || !save.LearnedArts.Contains(artId)) return "배운 무공을 골라 주세요.";
             Inventory.Remove(save, itemId, 1);
-            Train(save, item.MasteryUses);
+            int before = Level(save, artId);
+            for (int i = 0; i < item.MasteryUses; i++) RecordUse(save, artId);
             used = true;
-            return item.Name + "을(를) 읽었습니다. 장착한 무공 " + arts + "개의 숙련 +" + item.MasteryUses + "회.";
+            int after = Level(save, artId);
+            return art.Name + "의 숙련 +" + item.MasteryUses + "회 (" + Uses(save, artId) + "회)" + (after > before ? "  " + LevelNames[after] + "에 올랐습니다!" : "");
         }
 
         /// <summary>Free practice: counts <paramref name="uses"/> uses for every equipped art of the protagonist.</summary>

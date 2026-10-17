@@ -443,7 +443,7 @@ namespace BiRyeoDo.Game.UI
                         int fightNew = StageStars.Record(save, stage.Number, i, diff, fightMask);
                         int stones = StageStars.GrantClearInsight(save, stage.Number, diff, stageWasCleared);
                         if (stones > 0) { repLine += (repLine.Length > 0 ? "\n" : "") + "심득석 +" + stones; found.Add("심득석 x" + stones); }
-                        foreach (var scroll in Mastery.RollScrolls(save, new SeededRandom(Environment.TickCount)))
+                        if (!replay) foreach (var scroll in Mastery.RollScrolls(save, new SeededRandom(Environment.TickCount)))
                         {
                             var scrollData = EarlyGameContent.FindItem(scroll.Id);
                             if (scrollData != null) found.Add(scrollData.Name);
@@ -470,7 +470,11 @@ namespace BiRyeoDo.Game.UI
                         exp = (long)Math.Round(exp * (1f + Factions.Bonus(save, PerkKind.ExpPct)));
                         doo = (long)Math.Round(doo * (1f + Factions.Bonus(save, PerkKind.DooPct)));
                     }
-                    if (replay) exp = (long)Math.Round(exp * EarlyGameContent.ReplayExpFactor);
+                    if (replay)
+                    {
+                        exp = (long)Math.Round(exp * EarlyGameContent.ReplayExpFactor);
+                        doo = (long)Math.Round(doo * EarlyGameContent.ReplayDooFactor);
+                    }
                     var drops = new List<ItemStack>();
                     if (!stage.IsQuest && !stage.IsTower) for (int roll = 0; roll < StageStars.DropRolls(diff); roll++) drops.AddRange(RollDrops(stage.Encounters[i]));
                     int levels = Progression.AddExp(save, exp);
