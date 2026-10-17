@@ -220,7 +220,7 @@ namespace BiRyeoDo.Core
         public List<BattleEvent> PlayerAct(PlayerCommand cmd)
         {
             if (!IsPlayerTurn) throw new InvalidOperationException("Not the player's turn.");
-            if (cmd.Kind == CommandKind.Item && (cmd.Item == null || cmd.Item.Kind != ItemKind.Consumable)) throw new InvalidOperationException("Not a consumable.");
+            if (cmd.Kind == CommandKind.Item && (cmd.Item == null || cmd.Item.Kind != ItemKind.Consumable || cmd.Item.MasteryUses > 0)) throw new InvalidOperationException("Not a consumable.");
             // Validate everything before touching any state, so a rejected command leaves the turn intact.
             if (cmd.Kind == CommandKind.Joint && (cmd.Skill == null || !CanJoint(cmd.Partner))) throw new InvalidOperationException("Joint attack unavailable.");
             if (cmd.Kind == CommandKind.Skill && (cmd.Skill == null || !Current.CanUse(cmd.Skill))) throw new InvalidOperationException("Skill unavailable.");

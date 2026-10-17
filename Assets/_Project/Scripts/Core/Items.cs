@@ -17,6 +17,7 @@ namespace BiRyeoDo.Core
         public float HealPct;      // restores this share of max HP to the most wounded ally
         public int QiRestore;      // 내공 for the user
         public int SpiritGain;     // 기세 for the user
+        public int MasteryUses;    // 수련서: used from the bag, adds this many uses to every equipped art (never usable in battle)
 
         // Gear (protagonist only)
         public float AtkPct, DefPct, HpPct, QiPct, CritAdd;

@@ -428,6 +428,7 @@ namespace BiRyeoDo.Game.UI
                     // Every fight has its own stars: won, nobody fell, and fast enough.
                     _lastStarLine = "";
                     string repLine = "";
+                    var found = new List<string>();   // 심득석 / 수련서 discovered by this win
                     if (!stage.IsQuest && !stage.IsTower)
                     {
                         // Reputation comes from the first win of each fight on each difficulty, so replaying one fight cannot farm it.
@@ -441,7 +442,12 @@ namespace BiRyeoDo.Game.UI
                         bool stageWasCleared = StageStars.StageCleared(save, stage.Number, diff);
                         int fightNew = StageStars.Record(save, stage.Number, i, diff, fightMask);
                         int stones = StageStars.GrantClearInsight(save, stage.Number, diff, stageWasCleared);
-                        if (stones > 0) repLine += (repLine.Length > 0 ? "\n" : "") + "심득석 +" + stones;
+                        if (stones > 0) { repLine += (repLine.Length > 0 ? "\n" : "") + "심득석 +" + stones; found.Add("심득석 x" + stones); }
+                        foreach (var scroll in Mastery.RollScrolls(save, new SeededRandom(Environment.TickCount)))
+                        {
+                            var scrollData = EarlyGameContent.FindItem(scroll.Id);
+                            if (scrollData != null) found.Add(scrollData.Name);
+                        }
                         newStars += fightNew;
                         _lastStarLine = FightStarLine(stage.Number, i, diff, fightMask, _fightActions, fightNew);
                     }
@@ -474,6 +480,11 @@ namespace BiRyeoDo.Game.UI
                     if (levels > 0) RebuildPartyForNewLevel(stage);
                     SoundManager.Sfx(levels > 0 ? "levelup" : "win");
                     yield return Banner("승리!  경험 +" + exp + "  두 +" + doo + (drops.Count > 0 ? "\n획득: " + DescribeStacks(drops) : "") + (levels > 0 ? "\nLv." + save.Level + " 상승!" : "") + (_lastStarLine.Length > 0 ? "\n" + _lastStarLine : "") + (repLine.Length > 0 ? "\n" + repLine : ""), levels > 0 || drops.Count > 0 || _lastStarLine.Length > 0 ? 1.7f : 0.9f);
+                    if (found.Count > 0)
+                    {
+                        GameManager.Instance.SaveNow();
+                        yield return ShowResult("발견!", "전투 도중 귀한 물건을 발견했습니다.\n\n" + string.Join("\n", found) + "\n\n행낭에서 확인할 수 있습니다.", false);
+                    }
                     foreach (var m in _party) m.RestBetweenFights(0.5f + Factions.Bonus(save, PerkKind.RestHeal));
                     RefreshParty();
 
@@ -1246,7 +1257,7 @@ namespace BiRyeoDo.Game.UI
             foreach (var s in GameManager.Instance.Save.Items)
             {
                 var item = EarlyGameContent.FindItem(s.Id);
-                if (item != null && item.Kind == ItemKind.Consumable && s.Count > 0) list.Add(item);
+                if (item != null && item.Kind == ItemKind.Consumable && item.MasteryUses == 0 && s.Count > 0) list.Add(item);
             }
             return list;
         }

@@ -61,6 +61,43 @@ namespace BiRyeoDo.Core
         public static int Level(SaveData save, string artId) { return LevelOf(Uses(save, artId)); }
         public static ArtVariant VariantOf(SaveData save, string artId) { var e = Find(save, artId); return e != null ? (ArtVariant)e.Variant : ArtVariant.None; }
 
+        // 무공 수련서: found after winning a fight (each rolled on its own), also sold by the 천무학관 shelf.
+        public static readonly string[] ScrollIds = { "art_scroll_5", "art_scroll_10", "art_scroll_20" };
+        public static readonly float[] ScrollChance = { 0.10f, 0.05f, 0.02f };
+
+        /// <summary>Rolls the 수련서 for one won fight and puts what was found in the bag.</summary>
+        public static List<ItemStack> RollScrolls(SaveData save, IRandom rng)
+        {
+            var found = new List<ItemStack>();
+            for (int i = 0; i < ScrollIds.Length; i++)
+            {
+                if (rng.NextDouble() >= ScrollChance[i]) continue;
+                Inventory.Add(save, ScrollIds[i], 1);
+                found.Add(new ItemStack(ScrollIds[i], 1));
+            }
+            return found;
+        }
+
+        /// <summary>Reads one 수련서 from the bag. Returns the result line; <paramref name="used"/> tells whether it was consumed.</summary>
+        public static string UseScroll(SaveData save, string itemId, out bool used)
+        {
+            used = false;
+            var item = EarlyGameContent.FindItem(itemId);
+            if (item == null || item.MasteryUses <= 0) return "수련서가 아닙니다.";
+            if (Inventory.Count(save, itemId) <= 0) return "수련서가 없습니다.";
+            int arts = 0;
+            foreach (var artId in save.EquippedArts)
+            {
+                var art = EarlyGameContent.FindArt(artId);
+                if (art != null && art.OwnerId == null) arts++;
+            }
+            if (arts == 0) return "장착한 무공이 없습니다. 무공 탭에서 먼저 장착해 주세요.";
+            Inventory.Remove(save, itemId, 1);
+            Train(save, item.MasteryUses);
+            used = true;
+            return item.Name + "을(를) 읽었습니다. 장착한 무공 " + arts + "개의 숙련 +" + item.MasteryUses + "회.";
+        }
+
         /// <summary>Free practice: counts <paramref name="uses"/> uses for every equipped art of the protagonist.</summary>
         public static void Train(SaveData save, int uses)
         {

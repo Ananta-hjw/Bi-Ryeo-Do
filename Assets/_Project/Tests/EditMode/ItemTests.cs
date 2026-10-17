@@ -39,7 +39,7 @@ namespace BiRyeoDo.Tests
             {
                 switch (i.Kind)
                 {
-                    case ItemKind.Consumable: Assert.IsTrue(i.HealPct > 0 || i.QiRestore > 0 || i.SpiritGain > 0, i.Id); break;
+                    case ItemKind.Consumable: Assert.IsTrue(i.HealPct > 0 || i.QiRestore > 0 || i.SpiritGain > 0 || i.MasteryUses > 0, i.Id); break;
                     case ItemKind.Weapon:
                     case ItemKind.Armor:
                     case ItemKind.Accessory: Assert.IsTrue(i.AtkPct != 0 || i.DefPct != 0 || i.HpPct != 0 || i.QiPct != 0 || i.CritAdd != 0 || i.SpeedAdd != 0, i.Id); break;

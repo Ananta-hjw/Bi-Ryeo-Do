@@ -151,6 +151,7 @@ namespace BiRyeoDo.Game.UI
                 if (item.HealPct > 0f) fx.Add("체력 " + Mathf.RoundToInt(item.HealPct * 100f) + "% 회복");
                 if (item.QiRestore > 0) fx.Add("내공 " + (item.QiRestore >= 999 ? "가득" : "+" + item.QiRestore));
                 if (item.SpiritGain > 0) fx.Add("기세 +" + item.SpiritGain);
+                if (item.MasteryUses > 0) fx.Add("장착한 무공 모두 숙련 +" + item.MasteryUses + "회");
                 if (fx.Count > 0) lines.Add("<color=#9ADB9F>" + string.Join("  ", fx) + "</color>");
                 if (item.Kind == ItemKind.Material && item.SellValue > 0) lines.Add("판매가 " + item.SellValue.ToString("N0") + "두 (1개)");
             }
@@ -172,6 +173,10 @@ namespace BiRyeoDo.Game.UI
                 long cost = Gear.NextCost(save, item.Id);
                 var enhBtn = UiFactory.Button("Enhance", card.transform, new Vector2(0.05f, 0.14f), new Vector2(0.95f, 0.24f), cost < 0 ? "최대 강화" : "강화  " + cost.ToString("N0") + "두", cost >= 0 && save.Doo >= cost ? UiFactory.Red : UiFactory.InkSoft, () => { DoEnhance(item); }, 30);
                 enhBtn.interactable = cost >= 0;
+            }
+            else if (item.MasteryUses > 0)
+            {
+                UiFactory.Button("Read", card.transform, new Vector2(0.05f, 0.13f), new Vector2(0.95f, 0.22f), "읽기 (숙련 +" + item.MasteryUses + "회)", UiFactory.Red, () => { DoMain(item); }, 32);
             }
             else if (item.Kind == ItemKind.Material && item.SellValue > 0)
             {
@@ -199,7 +204,7 @@ namespace BiRyeoDo.Game.UI
                 case ItemKind.Weapon: return "무기";
                 case ItemKind.Armor: return "방어구";
                 case ItemKind.Accessory: return "장신구";
-                case ItemKind.Consumable: return "소모품 (전투 중 사용)";
+                case ItemKind.Consumable: return item.MasteryUses > 0 ? "수련서 (행낭에서 사용)" : "소모품 (전투 중 사용)";
                 case ItemKind.Material: return "재료";
                 default: return "중요 물품";
             }
@@ -241,6 +246,12 @@ namespace BiRyeoDo.Game.UI
                     string error;
                     _flash = Inventory.Equip(save, item.Id, out error) ? item.Name + " 장착" : error;
                 }
+            }
+            else if (item.MasteryUses > 0)
+            {
+                bool used;
+                _flash = Mastery.UseScroll(save, item.Id, out used);
+                if (used) SoundManager.Sfx("levelup");
             }
             else if (item.Kind == ItemKind.Material && item.SellValue > 0)
             {
@@ -388,6 +399,12 @@ namespace BiRyeoDo.Game.UI
                     row.ButtonLabel.text = "판매 불가";   // e.g. 심득석: only used in the 심법 page
                     row.ButtonImage.color = new Color(0.30f, 0.30f, 0.33f, 1f);
                     row.Button.interactable = false;
+                }
+                else if (item.MasteryUses > 0)
+                {
+                    row.ButtonLabel.text = "읽기 +" + item.MasteryUses;
+                    row.ButtonImage.color = UiFactory.Red;
+                    row.Button.interactable = true;
                 }
                 else
                 {

@@ -130,5 +130,54 @@ namespace BiRyeoDo.Tests
             for (int i = 0; i < 80; i++) Mastery.RecordUse(save, instant.Id);
             Assert.AreEqual(0, Mastery.Apply(save, instant).Cooldown);
         }
+
+        [Test]
+        public void ScrollsAreRolledSeparatelyAtTenFiveTwoPercent()
+        {
+            CollectionAssert.AreEqual(new[] { 0.10f, 0.05f, 0.02f }, Mastery.ScrollChance);
+            var save = new SaveData();
+            var rng = new SeededRandom(11);
+            int[] found = new int[3];
+            const int rolls = 20000;
+            for (int i = 0; i < rolls; i++)
+                foreach (var s in Mastery.RollScrolls(save, rng)) found[System.Array.IndexOf(Mastery.ScrollIds, s.Id)]++;
+            Assert.AreEqual(0.10, found[0] / (double)rolls, 0.01);
+            Assert.AreEqual(0.05, found[1] / (double)rolls, 0.007);
+            Assert.AreEqual(0.02, found[2] / (double)rolls, 0.005);
+            Assert.AreEqual(found[0], Inventory.Count(save, "art_scroll_5"));
+        }
+
+        [Test]
+        public void ReadingAScrollAddsUsesToEveryEquippedArt()
+        {
+            var save = new SaveData();
+            bool used;
+            Inventory.Add(save, "art_scroll_10", 1);
+            StringAssert.Contains("장착한 무공이 없습니다", Mastery.UseScroll(save, "art_scroll_10", out used));
+            Assert.IsFalse(used);
+            save.EquippedArts.Add("bunroesu");
+            save.EquippedArts.Add("samcheopyeong");
+            Mastery.UseScroll(save, "art_scroll_10", out used);
+            Assert.IsTrue(used);
+            Assert.AreEqual(10, Mastery.Uses(save, "bunroesu"));
+            Assert.AreEqual(10, Mastery.Uses(save, "samcheopyeong"));
+            Assert.AreEqual(0, Inventory.Count(save, "art_scroll_10"));
+            Mastery.UseScroll(save, "art_scroll_10", out used);
+            Assert.IsFalse(used);
+        }
+
+        [Test]
+        public void AcademyShelfSellsScrollsFromYuho()
+        {
+            long[] prices = { 3000, 5500, 10000 };
+            for (int i = 0; i < 3; i++)
+            {
+                var good = Shop.Goods.Single(g => g.ItemId == Mastery.ScrollIds[i]);
+                Assert.AreEqual("academy", good.FactionId);
+                Assert.AreEqual(2, good.MinTier);
+                Assert.AreEqual(prices[i], good.Price);
+                Assert.IsFalse(EarlyGameContent.FindItem(good.ItemId).InGacha);
+            }
+        }
     }
 }
