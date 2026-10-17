@@ -355,3 +355,15 @@ AI 프롬프트 예시: "wuxia ink-wash style icon of <아이템 설명>, single
 
 ### 필살기 슬롯 아이콘 (`Resources/Art/Icons/ultimate_slot.png`)
 전투 명령의 「필살기」 버튼 전용 그림이다. 비기를 배웠지만 장착하지 않았을 때 비어 있는 슬롯(비류연만)과, 장착한 비기에 그림이 없을 때 대신 나온다. 장착한 비기에 그림이 있으면 그 비기 그림이 나온다. 붉은 「必」 도장이 박힌 금빛 햇살 별 모양이다.
+
+### 전투 명령·설명 창 아이콘 (`Resources/Art/Icons/`)
+전투 명령 버튼 왼쪽과 길게 눌러 뜨는 설명 창 오른쪽 위에 나온다. 무공은 `Arts/<무공 id>.png`, 아이템은 `Items/<아이템 id>.png`, 인물(상태 설명)은 `Characters/`를 쓰고 아래 파일은 무공이 아닌 명령용이다. 파일이 없으면 그림 없이 글자만 나온다.
+
+| 파일 | 명령 |
+|---|---|
+| `cmd_attack.png` | 공격 |
+| `cmd_guard.png` | 방어 |
+| `cmd_meditate.png` | 운기 |
+| `cmd_item.png` | 아이템 |
+| `cmd_joint.png` | 합공 |
+

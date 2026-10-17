@@ -1316,13 +1316,13 @@ namespace BiRyeoDo.Game.UI
                 {
                     if (i >= items.Count) { _commands[i].Root.SetActive(false); continue; }
                     var item = items[i];
-                    SetCommand(i, item.Name + " x" + Inventory.Count(GameManager.Instance.Save, item.Id), ItemHint(item), true);
+                    SetCommand(i, item.Name + " x" + Inventory.Count(GameManager.Instance.Save, item.Id), ItemHint(item), true, ArtLibrary.Item(item));
                 }
                 SetCommand(7, "취소", "", true);
                 return;
             }
 
-            SetCommand(0, "공격", SkillSpec.ReachText(1), true);
+            SetCommand(0, "공격", SkillSpec.ReachText(1), true, ArtLibrary.Icon("cmd_attack"));
             var arts = ArtsOf(me);
             for (int i = 0; i < Progression.MaxEquippedArts; i++)
             {
@@ -1337,9 +1337,9 @@ namespace BiRyeoDo.Game.UI
                 else if (!reach) sub = "닿지 않음";
                 SetCommand(slot, s.Name, sub, ok, ArtLibrary.Art(s.Id));
             }
-            SetCommand(5, "방어", "피해 60% 감소", true);
-            SetCommand(6, "운기", "내공 +" + InteractiveBattle.MeditateQi + " 체력 소량", true);
-            SetCommand(7, "아이템", UsableItems().Count > 0 ? "" : "없음", UsableItems().Count > 0);
+            SetCommand(5, "방어", "피해 60% 감소", true, ArtLibrary.Icon("cmd_guard"));
+            SetCommand(6, "운기", "내공 +" + InteractiveBattle.MeditateQi + " 체력 소량", true, ArtLibrary.Icon("cmd_meditate"));
+            SetCommand(7, "아이템", UsableItems().Count > 0 ? "" : "없음", UsableItems().Count > 0, ArtLibrary.Icon("cmd_item"));
 
             RefreshJointPartners();
             var ult = UltimateOf(me);
@@ -1355,7 +1355,7 @@ namespace BiRyeoDo.Game.UI
                 SetCommand(9, "필살기\n" + ult.Name, ready ? "기세 " + ult.SpiritCost : "기세 " + Mathf.Min(me.Spirit, ult.SpiritCost) + "/" + ult.SpiritCost, ready, ArtLibrary.Art(ult.Id) ?? ArtLibrary.Icon("ultimate_slot"));
             }
             if (_jointPartners.Count == 0) _commands[8].Root.SetActive(false);
-            else SetCommand(8, "합공", me.Spirit >= InteractiveBattle.JointSpiritCost ? "기세 " + InteractiveBattle.JointSpiritCost : "기세 부족", me.Spirit >= InteractiveBattle.JointSpiritCost);
+            else SetCommand(8, "합공", me.Spirit >= InteractiveBattle.JointSpiritCost ? "기세 " + InteractiveBattle.JointSpiritCost : "기세 부족", me.Spirit >= InteractiveBattle.JointSpiritCost, ArtLibrary.Icon("cmd_joint"));
         }
 
         /// <summary>Living companions whose bond with the protagonist allows a 합공 (only on the protagonist's turn).</summary>
@@ -1436,6 +1436,8 @@ namespace BiRyeoDo.Game.UI
             close.onClick.AddListener(() => _tipRoot.SetActive(false));
             var card = UiFactory.Panel("Card", rt, new Vector2(0.06f, 0.28f), new Vector2(0.94f, 0.72f), new Color(0.05f, 0.07f, 0.11f, 0.98f));
             UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
+            _tipIcon = UiFactory.Panel("Icon", card.transform, new Vector2(0.76f, 0.76f), new Vector2(0.95f, 0.98f), Color.white);
+            _tipIcon.preserveAspect = true;
             _tipTitle = UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.86f), new Vector2(0.95f, 0.98f), "", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
             _tipBody = UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.10f), new Vector2(0.94f, 0.85f), "", 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal);
             _tipBody.lineSpacing = 1.25f;
@@ -1443,11 +1445,18 @@ namespace BiRyeoDo.Game.UI
             _tipRoot.SetActive(false);
         }
 
-        private void ShowTip(string title, string body)
+        private Image _tipIcon;
+
+        private void ShowTip(string title, string body, Sprite icon = null)
         {
             if (_tipRoot == null) return;
             _tipTitle.text = title;
             _tipBody.text = body;
+            _tipIcon.sprite = icon;
+            _tipIcon.gameObject.SetActive(icon != null);
+            // With a picture the title and the first lines make room for it on the right.
+            _tipTitle.rectTransform.anchorMax = new Vector2(icon != null ? 0.74f : 0.95f, _tipTitle.rectTransform.anchorMax.y);
+            _tipBody.rectTransform.anchorMax = new Vector2(0.94f, icon != null ? 0.76f : 0.85f);
             _tipRoot.transform.SetAsLastSibling();
             _tipRoot.SetActive(true);
             SoundManager.Sfx("ui_click");
@@ -1493,28 +1502,28 @@ namespace BiRyeoDo.Game.UI
             if (_itemMode)
             {
                 var items = UsableItems();
-                if (slot < items.Count) ShowTip(items[slot].Name, ItemTipText(items[slot]));
+                if (slot < items.Count) ShowTip(items[slot].Name, ItemTipText(items[slot]), ArtLibrary.Item(items[slot]));
                 return;
             }
-            if (slot == 0) ShowTip("공격", "기본 공격입니다. 내공을 쓰지 않고 기세가 오릅니다.");
+            if (slot == 0) ShowTip("공격", "기본 공격입니다. 내공을 쓰지 않고 기세가 오릅니다.", ArtLibrary.Icon("cmd_attack"));
             else if (slot >= 1 && slot <= Progression.MaxEquippedArts)
             {
                 var arts = ArtsOf(me);
-                if (slot - 1 < arts.Count) ShowTip(arts[slot - 1].Name, SkillBody(arts[slot - 1]));
+                if (slot - 1 < arts.Count) ShowTip(arts[slot - 1].Name, SkillBody(arts[slot - 1]), ArtLibrary.Art(arts[slot - 1].Id));
             }
             else if (slot == 9)
             {
                 var ultimateSkill = UltimateOf(me);
-                if (ultimateSkill == null) ShowTip("필살기 슬롯", "장착한 비기가 없습니다. 무공 탭에서 배운 비기를 장착하면 여기에서 쓸 수 있습니다. 기세가 가득 차면 쓸 수 있는 필살기 한 자리입니다.");
-                else ShowTip("필살기 · " + ultimateSkill.Name, SkillBody(ultimateSkill) + "\n기세가 가득 차면 쓸 수 있습니다.");
+                if (ultimateSkill == null) ShowTip("필살기 슬롯", "장착한 비기가 없습니다. 무공 탭에서 배운 비기를 장착하면 여기에서 쓸 수 있습니다. 기세가 가득 차면 쓸 수 있는 필살기 한 자리입니다.", ArtLibrary.Icon("ultimate_slot"));
+                else ShowTip("필살기 · " + ultimateSkill.Name, SkillBody(ultimateSkill) + "\n기세가 가득 차면 쓸 수 있습니다.", ArtLibrary.Art(ultimateSkill.Id) ?? ArtLibrary.Icon("ultimate_slot"));
             }
-            else if (slot == 5) ShowTip("방어", "다음 차례까지 받는 피해가 크게 줄어듭니다(피해 60% 감소). 기세가 조금 오릅니다.");
-            else if (slot == 6) ShowTip("운기", "내공 +" + InteractiveBattle.MeditateQi + "과 체력을 조금 회복합니다.");
-            else if (slot == 7) ShowTip("아이템", "행낭의 소모품을 씁니다. 가장 다친 동료의 체력이 회복됩니다.");
+            else if (slot == 5) ShowTip("방어", "다음 차례까지 받는 피해가 크게 줄어듭니다(피해 60% 감소). 기세가 조금 오릅니다.", ArtLibrary.Icon("cmd_guard"));
+            else if (slot == 6) ShowTip("운기", "내공 +" + InteractiveBattle.MeditateQi + "과 체력을 조금 회복합니다.", ArtLibrary.Icon("cmd_meditate"));
+            else if (slot == 7) ShowTip("아이템", "행낭의 소모품을 씁니다. 가장 다친 동료의 체력이 회복됩니다.", ArtLibrary.Icon("cmd_item"));
             else if (slot == 8 && _jointPartners.Count > 0)
             {
                 if (_jointPartners.Count == 1) ShowJointTip(_jointPartners[0]);
-                else ShowTip("합공", "기세 " + InteractiveBattle.JointSpiritCost + "를 쓰고 인연 있는 동료와 함께 연달아 칩니다. 동료는 다음 행동을 씁니다.");
+                else ShowTip("합공", "기세 " + InteractiveBattle.JointSpiritCost + "를 쓰고 인연 있는 동료와 함께 연달아 칩니다. 동료는 다음 행동을 씁니다.", ArtLibrary.Icon("cmd_joint"));
             }
         }
 
@@ -1533,7 +1542,7 @@ namespace BiRyeoDo.Game.UI
             var spec = companion != null ? Bonds.JointSpec(companion, Bonds.Level(GameManager.Instance.Save, partner.Id), Bonds.ReferencePower(_battle.Player.Skills)) : null;
             string name = companion != null && !string.IsNullOrEmpty(companion.JointName) ? companion.JointName : "합공";
             string extra = spec == null ? "" : spec.Effect == SkillEffect.Stun ? "\n적을 굳혀 강타를 끊습니다." : spec.Effect == SkillEffect.GuardParty ? "\n파티 전체가 방어 태세를 취합니다." : spec.Effect == SkillEffect.HealAlly ? "\n가장 다친 동료를 치유합니다." : "";
-            ShowTip(name + " (" + partner.Name + ")", "기세 " + InteractiveBattle.JointSpiritCost + " · 위력 ×" + (spec != null ? spec.Power.ToString("0.0") : "?") + "\n비류연과 " + partner.Name + "이(가) 연달아 칩니다. " + partner.Name + "은(는) 다음 행동을 씁니다." + extra);
+            ShowTip(name + " (" + partner.Name + ")", "기세 " + InteractiveBattle.JointSpiritCost + " · 위력 ×" + (spec != null ? spec.Power.ToString("0.0") : "?") + "\n비류연과 " + partner.Name + "이(가) 연달아 칩니다. " + partner.Name + "은(는) 다음 행동을 씁니다." + extra, ArtLibrary.Icon("cmd_joint"));
         }
 
         /// <summary>Long press on a party member's panel: every skill they have.</summary>
@@ -1545,7 +1554,7 @@ namespace BiRyeoDo.Game.UI
             var companion = EarlyGameContent.FindCompanion(unit.Id);
             if (companion != null && !string.IsNullOrEmpty(companion.JointName))
                 lines.Add("합공: " + companion.JointName + " (인연 " + Bonds.LevelNames[Bonds.Level(GameManager.Instance.Save, companion.Id)] + ", " + Bonds.BonusText(Bonds.Level(GameManager.Instance.Save, companion.Id)) + ")");
-            ShowTip(unit.Name + " — 스킬", string.Join("\n\n", lines));
+            ShowTip(unit.Name + " — 스킬", string.Join("\n\n", lines), unit.Id == "player" ? ArtLibrary.Player() : ArtLibrary.Companion(unit.Id));
         }
 
         private void SetCommandsVisible(bool visible)
