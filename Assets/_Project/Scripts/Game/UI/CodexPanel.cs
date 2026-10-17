@@ -100,7 +100,7 @@ namespace BiRyeoDo.Game.UI
                     var glyph = UiFactory.Panel("Icon", band, new Vector2(0.025f, 0.14f), new Vector2(0.125f, 0.86f), seen ? new Color(0.30f, 0.20f, 0.20f, 1f) : new Color(0.15f, 0.15f, 0.17f, 1f));
                     UiFactory.Label("Glyph", glyph.transform, Vector2.zero, Vector2.one, seen ? e.Name.Substring(0, 1) : "?", 44, UiFactory.PaperText);
                     UiFactory.Label("Name", band, new Vector2(0.15f, 0.52f), new Vector2(0.97f, 0.96f), seen ? e.Name + (e.IsBoss ? "  (우두머리)" : "") : "???", 32, seen ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
-                    UiFactory.Label("Info", band, new Vector2(0.15f, 0.06f), new Vector2(0.97f, 0.52f), seen ? "Lv." + e.Level : "아직 쓰러뜨리지 못했습니다", 22, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    UiFactory.Label("Info", band, new Vector2(0.15f, 0.06f), new Vector2(0.97f, 0.52f), seen ? "Lv." + e.Level + (Realm.HasRealm(e) ? "  ·  경지 " + Realm.ForEnemy(e) : "") : "아직 쓰러뜨리지 못했습니다", 22, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 }
             }
             else if (_tab == 1)

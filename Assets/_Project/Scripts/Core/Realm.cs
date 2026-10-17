@@ -94,6 +94,22 @@ namespace BiRyeoDo.Core
             return Steps[step + 1].Name + "까지 종합 수치 " + Math.Ceiling(LowerBound(step + 1) - power).ToString("N0") + " 남음";
         }
 
+        // Beasts, traps and objects have no 무공 경지.
+        private static readonly HashSet<string> NotMartial = new HashSet<string>
+        {
+            "tiger", "bear", "white_tiger", "trap_arrow", "trap_needle", "trap_log", "cave_viper", "mukrin_hyeolmang",
+            "bisa_snake", "cheonghong_ssanggaksa", "heuksaek_amhyeok", "hwaryong_hwayeom", "hwan_ying",
+        };
+
+        public static bool HasRealm(EnemyData enemy) { return enemy != null && !NotMartial.Contains(enemy.Id); }
+
+        /// <summary>An enemy's realm from its own stats on the 일반 난이도 ("" for beasts, traps and objects).</summary>
+        public static string ForEnemy(EnemyData enemy)
+        {
+            if (!HasRealm(enemy)) return "";
+            return Steps[StepOf(Power(enemy.CreateCombatant(enemy.Id).Stats))].Name;
+        }
+
         public static string Describe(SaveData save)
         {
             double p = Power(InnerArts.HeroStats(save));

@@ -55,5 +55,21 @@ namespace BiRyeoDo.Tests
             Assert.Greater(Realm.Power(InnerArts.HeroStats(save)), plain);
             StringAssert.Contains("종합 수치", Realm.Describe(save));
         }
+
+        [Test]
+        public void DaegongjaBiIsTheStrongestFightingEnemyAndBeastsHaveNoRealm()
+        {
+            var bi = EarlyGameContent.FindEnemy("bi_daegongja");
+            double biPower = Realm.Power(bi.CreateCombatant("b").Stats);
+            // Trial opponents (검후 and the 은가면, who are 천무삼성) stand above him on purpose.
+            foreach (var e in EarlyGameContent.Enemies)
+            {
+                if (e == bi || e.HpMul > 20f || e.Id.StartsWith("mask_") || !Realm.HasRealm(e)) continue;
+                Assert.Greater(biPower, Realm.Power(e.CreateCombatant(e.Id).Stats), e.Id);
+            }
+            Assert.AreEqual("초절정 초입", Realm.ForEnemy(bi));
+            Assert.AreEqual("", Realm.ForEnemy(EarlyGameContent.FindEnemy("tiger")));
+            foreach (var id in new[] { "tiger", "white_tiger", "mukrin_hyeolmang", "cave_viper" }) Assert.IsNotNull(EarlyGameContent.FindEnemy(id), id);
+        }
     }
 }
