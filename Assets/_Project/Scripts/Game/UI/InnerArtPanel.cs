@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using BiRyeoDo.Core;
 using BiRyeoDo.Game.Systems;
 using UnityEngine;
@@ -9,6 +10,9 @@ namespace BiRyeoDo.Game.UI
     /// <summary>심법 overlay: learn passive methods with 두 and equip them into the build slots.</summary>
     public sealed class InnerArtPanel : OverlayPanel
     {
+
+        /// <summary>Methods flagged new when the page was opened (tagged "새 심법" in the list); filled by MartialArtsScreen.</summary>
+        public readonly HashSet<string> NewIds = new HashSet<string>();
 
         public InnerArtPanel(RectTransform root, Action onChange) : base(root, onChange) { }
 
@@ -30,7 +34,7 @@ namespace BiRyeoDo.Game.UI
                 var a = InnerArts.All[i];
                 bool unlocked = InnerArts.IsUnlocked(save, a), learned = InnerArts.IsLearned(save, a.Id), equipped = InnerArts.IsEquipped(save, a.Id);
                 var band = CodexPanel.Band(content, i);
-                UiFactory.Label("Name", band, new Vector2(0.04f, 0.58f), new Vector2(0.66f, 0.97f), (unlocked ? a.Name : "???") + (InnerArts.Level(save, a.Id) > 0 ? "  +" + InnerArts.Level(save, a.Id) : "") + (equipped ? "  [장착]" : ""), 32, unlocked ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
+                UiFactory.Label("Name", band, new Vector2(0.04f, 0.58f), new Vector2(0.66f, 0.97f), (unlocked ? a.Name : "???") + (InnerArts.Level(save, a.Id) > 0 ? "  +" + InnerArts.Level(save, a.Id) : "") + (equipped ? "  [장착]" : "") + (NewIds.Contains(a.Id) && !learned ? "  <color=#FF6A5A>[새 심법]</color>" : ""), 32, unlocked ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
                 UiFactory.Label("Effect", band, new Vector2(0.04f, 0.30f), new Vector2(0.66f, 0.60f), unlocked ? InnerArts.EffectText(a, InnerArts.Level(save, a.Id)) : InnerArts.UnlockText(a) + "하면 열립니다", 22, new Color(0.45f, 0.85f, 0.5f, 1f), TextAnchor.MiddleLeft, FontStyle.Normal);
                 UiFactory.Label("Desc", band, new Vector2(0.04f, 0.02f), new Vector2(0.66f, 0.32f), unlocked ? a.Description : "", 18, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var id = a.Id;

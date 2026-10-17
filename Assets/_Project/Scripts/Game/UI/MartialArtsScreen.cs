@@ -227,6 +227,8 @@ namespace BiRyeoDo.Game.UI
             }
             else if (seen && page == 1)
             {
+                _inner.NewIds.Clear();
+                foreach (var a in Discovery.NewInner(save)) _inner.NewIds.Add(a.Id);
                 Discovery.MarkInnerSeen(save);
                 GameManager.Instance.SaveNow();
             }
