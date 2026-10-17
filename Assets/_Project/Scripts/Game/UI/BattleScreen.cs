@@ -42,6 +42,7 @@ namespace BiRyeoDo.Game.UI
             public Text Name, Status, HpText, QiText, SpiritText;
             public UiFactory.Bar Hp, Qi, Spirit;
             public Vector2 Center;
+            public int ShownHp;   // HP as drawn; lags behind the unit while events are animated
         }
 
         private sealed class CommandButton
@@ -1195,10 +1196,11 @@ namespace BiRyeoDo.Game.UI
             foreach (var p in _panels)
             {
                 var u = p.Unit;
-                p.Hp.SetPct((float)u.Hp / Math.Max(1, u.Stats.MaxHp));
+                if (!_animating) p.ShownHp = u.Hp;
+                p.Hp.SetPct((float)p.ShownHp / Math.Max(1, u.Stats.MaxHp));
                 p.Qi.SetPct((float)u.Qi / Math.Max(1, u.Stats.MaxQi));
                 p.Spirit.SetPct(u.Spirit / (float)InteractiveBattle.MaxSpirit);
-                p.HpText.text = u.Hp + "/" + u.Stats.MaxHp;
+                p.HpText.text = p.ShownHp + "/" + u.Stats.MaxHp;
                 p.QiText.text = u.Qi + "/" + u.Stats.MaxQi;
                 p.SpiritText.text = u.Spirit + "/" + InteractiveBattle.MaxSpirit;
                 p.Status.text = !u.IsAlive ? "쓰러짐" : _battle != null && _battle.IsGuarded(u) ? "방어" : u.Evading ? "회피" : "";
@@ -1631,7 +1633,26 @@ namespace BiRyeoDo.Game.UI
 
         private string _cutInKey = "", _masteryNotice;
 
+        // The engine resolves a whole round (our action plus the enemy replies) before the UI animates it, so while
+        // events play the party bars show the HP from the events rather than the already-final unit HP.
+        private bool _animating;
+
         private IEnumerator PlayEvents(List<BattleEvent> events)
+        {
+            _animating = true;
+            try { yield return PlayEventsInner(events); }
+            finally { _animating = false; }
+            RefreshParty();
+            RefreshCards();
+        }
+
+        private void ShowHpAfter(string unitId, int hp)
+        {
+            var panel = PanelOf(unitId);
+            if (panel != null) panel.ShownHp = hp;
+        }
+
+        private IEnumerator PlayEventsInner(List<BattleEvent> events)
         {
             _cutInKey = "";
             foreach (var ev in events)
@@ -1675,6 +1696,7 @@ namespace BiRyeoDo.Game.UI
                         SoundManager.Sfx("heal");
                         _log.text = ev.Message;
                         if (actorPanel != null) Float(actorPanel.Center, "+" + ev.Heal, HpGreen, 60);
+                        ShowHpAfter(ev.TargetId, ev.TargetHpAfter);
                         RefreshParty();
                         yield return new WaitForSeconds(Wait(SmallDelay));
                         break;
@@ -1683,6 +1705,7 @@ namespace BiRyeoDo.Game.UI
                         _log.text = ev.Message;
                         var healed = PanelOf(ev.TargetId);
                         if (healed != null) Float(healed.Center, "+" + ev.Heal, HpGreen, 70);
+                        ShowHpAfter(ev.TargetId, ev.TargetHpAfter);
                         RefreshParty();
                         yield return new WaitForSeconds(Wait(StepDelay));
                         break;
@@ -1692,6 +1715,7 @@ namespace BiRyeoDo.Game.UI
                         var itemTarget = PanelOf(ev.TargetId);
                         if (ev.Heal > 0 && itemTarget != null) Float(itemTarget.Center, "+" + ev.Heal, HpGreen, 70);
                         else if ((itemTarget ?? actorPanel) != null) Float((itemTarget ?? actorPanel).Center, "회복", QiBlue, 56);
+                        ShowHpAfter(ev.TargetId, ev.TargetHpAfter);
                         RefreshParty();
                         yield return new WaitForSeconds(Wait(StepDelay));
                         break;
@@ -1719,8 +1743,6 @@ namespace BiRyeoDo.Game.UI
                         break;
                 }
             }
-            RefreshParty();
-            RefreshCards();
         }
 
         private string SkillLabel(BattleEvent ev, PartyPanel actor)
@@ -1774,6 +1796,7 @@ namespace BiRyeoDo.Game.UI
                     SoundManager.Sfx(ev.Guarded ? "block" : "hit_taken");
                     if (!ev.Guarded) SoundManager.Haptic(ev.IsCrit ? 60 : 25);
                     Float(victim.Center, "-" + ev.Damage + (ev.Guarded ? " 방어" : ev.IsCrit ? "!" : ""), ev.Guarded ? GuardBlue : UiFactory.Red, ev.IsCrit ? 84 : 66);
+                    victim.ShownHp = ev.TargetHpAfter;
                     victim.Hp.SetPct((float)ev.TargetHpAfter / Math.Max(1, victim.Unit.Stats.MaxHp));
                     victim.HpText.text = ev.TargetHpAfter + "/" + victim.Unit.Stats.MaxHp;
                     StartCoroutine(Shake(victim.Root, ev.Guarded ? 6f : 16f));
