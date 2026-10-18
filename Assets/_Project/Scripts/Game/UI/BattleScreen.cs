@@ -970,7 +970,7 @@ namespace BiRyeoDo.Game.UI
         /// <summary>Numbers written over a gauge: light text with a dark outline so it reads on both the fill and the empty part.</summary>
         private static Text GaugeText(string name, RectTransform parent, float y0, float y1)
         {
-            var t = UiFactory.Label(name, parent, new Vector2(0.05f, y0), new Vector2(0.95f, y1), "", 22, Color.white);
+            var t = UiFactory.Label(name, parent, new Vector2(0.05f, y0), new Vector2(0.95f, y1), "", 19, Color.white);
             var outline = t.gameObject.AddComponent<Outline>();
             outline.effectColor = new Color(0f, 0f, 0f, 0.95f);
             outline.effectDistance = new Vector2(1.5f, -1.5f);
@@ -1205,11 +1205,11 @@ namespace BiRyeoDo.Game.UI
                 var u = c.Unit;
                 bool dead = !u.IsAlive;
                 c.Hp.SetPct(u.Stats.MaxHp > 0 ? (float)u.Hp / u.Stats.MaxHp : 0f);
-                c.HpText.text = "체력 " + u.Hp + " / " + u.Stats.MaxHp;
+                c.HpText.text = u.Hp + " / " + u.Stats.MaxHp;
                 c.Qi.SetPct(u.Stats.MaxQi > 0 ? (float)u.Qi / u.Stats.MaxQi : 0f);
-                c.QiText.text = "내공 " + u.Qi + " / " + u.Stats.MaxQi;
+                c.QiText.text = u.Qi + " / " + u.Stats.MaxQi;
                 c.Spirit.SetPct(u.Spirit / (float)InteractiveBattle.MaxSpirit);
-                c.SpiritText.text = "기세 " + u.Spirit + " / " + InteractiveBattle.MaxSpirit;
+                c.SpiritText.text = u.Spirit + " / " + InteractiveBattle.MaxSpirit;
                 bool aimOk = Hittable(u), aimNo = Aiming && !dead && !aimOk;
                 c.Frame.color = aimOk ? new Color(0.30f, 0.90f, 0.40f, 1f) : aimNo ? new Color(0.75f, 0.15f, 0.15f, 1f) : new Color(0f, 0f, 0f, 0f);
                 c.Badge.text = aimOk ? "▶ 공격 가능" : aimNo ? "✕ 공격 불가" : "";
@@ -1252,9 +1252,9 @@ namespace BiRyeoDo.Game.UI
                 p.Hp.SetPct((float)p.ShownHp / Math.Max(1, u.Stats.MaxHp));
                 p.Qi.SetPct((float)p.ShownQi / Math.Max(1, u.Stats.MaxQi));
                 p.Spirit.SetPct(p.ShownSpirit / (float)InteractiveBattle.MaxSpirit);
-                p.HpText.text = "체력 " + p.ShownHp + " / " + u.Stats.MaxHp;
-                p.QiText.text = "내공 " + p.ShownQi + " / " + u.Stats.MaxQi;
-                p.SpiritText.text = "기세 " + p.ShownSpirit + " / " + InteractiveBattle.MaxSpirit;
+                p.HpText.text = p.ShownHp + " / " + u.Stats.MaxHp;
+                p.QiText.text = p.ShownQi + " / " + u.Stats.MaxQi;
+                p.SpiritText.text = p.ShownSpirit + " / " + InteractiveBattle.MaxSpirit;
                 p.Status.text = !u.IsAlive ? "쓰러짐" : _battle != null && _battle.IsGuarded(u) ? "방어" : u.Evading ? "회피" : "";
                 p.Name.color = u.IsAlive ? UiFactory.Gold : new Color(0.5f, 0.5f, 0.5f, 1f);
                 bool current = _battle != null && _battle.Current == u && _battle.IsPlayerTurn;
@@ -1891,9 +1891,9 @@ namespace BiRyeoDo.Game.UI
             if (ev.Interrupted) Float(card.Center + new Vector2(0f, -0.07f), "차단!", UiFactory.Gold, 72);
             else if (ev.Stunned) Float(card.Center + new Vector2(0f, -0.07f), "굳음", GuardBlue, 60);
             card.Hp.SetPct(card.Unit.Stats.MaxHp > 0 ? (float)ev.TargetHpAfter / card.Unit.Stats.MaxHp : 0f);
-            card.HpText.text = "체력 " + ev.TargetHpAfter + " / " + card.Unit.Stats.MaxHp;
+            card.HpText.text = ev.TargetHpAfter + " / " + card.Unit.Stats.MaxHp;
             card.Spirit.SetPct(card.Unit.Spirit / (float)InteractiveBattle.MaxSpirit);
-            card.SpiritText.text = "기세 " + card.Unit.Spirit + " / " + InteractiveBattle.MaxSpirit;
+            card.SpiritText.text = card.Unit.Spirit + " / " + InteractiveBattle.MaxSpirit;
             StartCoroutine(Shake(card.Root, ev.IsCrit ? 22f : 14f));
             if (ev.TargetDefeated) { StartCoroutine(Collapse(card)); card.Intent.text = ev.Retreated ? "물러났다" : "쓰러졌다"; if (ev.Retreated) _log.text = ev.Message; }
             RefreshParty();
@@ -1923,7 +1923,7 @@ namespace BiRyeoDo.Game.UI
                     victim.ShownHp = ev.TargetHpAfter;
                     victim.ShownSpirit = ev.TargetSpiritAfter;
                     victim.Hp.SetPct((float)ev.TargetHpAfter / Math.Max(1, victim.Unit.Stats.MaxHp));
-                    victim.HpText.text = "체력 " + ev.TargetHpAfter + " / " + victim.Unit.Stats.MaxHp;
+                    victim.HpText.text = ev.TargetHpAfter + " / " + victim.Unit.Stats.MaxHp;
                     StartCoroutine(Shake(victim.Root, ev.Guarded ? 6f : 16f));
                     StartCoroutine(Flash(ev.Guarded ? 0.12f : 0.30f));
                     if (ev.TargetDefeated) victim.Status.text = "쓰러짐";
