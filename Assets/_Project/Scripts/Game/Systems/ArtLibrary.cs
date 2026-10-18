@@ -51,7 +51,7 @@ namespace BiRyeoDo.Game.Systems
         /// For full-bleed pictures (an opaque rectangle with a painted background): a copy whose four edges fade out, so the picture melts into whatever is behind it instead of showing a hard box.
         /// A picture that is already cut out (transparent corners) is returned unchanged. Works on non-readable textures by going through a RenderTexture and is cached.
         /// </summary>
-        public static Sprite Feathered(Sprite sprite, float fade = 0.16f)
+        public static Sprite Feathered(Sprite sprite, float fade = 0.07f)
         {
             if (sprite == null) return null;
             Sprite cached;
