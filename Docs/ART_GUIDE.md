@@ -33,6 +33,14 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, traditional Chinese, high quality, a handsome young martial artist around 19 years old, confident smile, simple dark traditional robe, black iron rings on his wrists, a black guqin on his back, upper body, plain white background
 ```
 
+## 전투용 SD 캐릭터 (`Resources/Art/Battle/<id>.png`)
+전투 화면에서만 쓰는 작은 SD(2등신) 그림이다. 파일이 있으면 전투가 이 그림을 쓰고, 없으면 예전처럼 큰 그림(`Characters`, `Enemies`)이나 글자 블록으로 그린다. 대화·상태창·로비·도감은 계속 큰 그림을 쓴다.
+- 이름: 주인공 `player.png`, 동료는 동료 id(`hyo_ryong.png` 등), 적은 `ArtKey`(`Enemies/` 그림 이름과 같다).
+- 형식: 배경이 투명한 PNG. 인물마다 캔버스 크기를 같게(권장 정사각 384x384 또는 가로 480x세로 384), 발끝을 하단 중앙에 둔다. 무기가 옆으로 나와도 캔버스 안에 들어가야 한다.
+- 방향: **모두 오른쪽을 보게** 그린다. 적은 코드가 좌우로 뒤집어 왼쪽을 보게 한다.
+- 크기: 비율을 유지한 채 전투 칸의 그림 영역(칸 폭의 96%, 칸 높이의 60%)에 맞춰 들어간다.
+- 애니메이션 프레임은 없고, 돌진·흔들림·쓰러짐은 코드가 정지 그림에 입힌다.
+
 ## 동료 (`Characters/<id>.png`)
 동료 초상은 파티 패널 배경에 깔린다. 얼굴보다 상반신 구도를 권장한다. 원작에서 확인된 특징만 적었다.
 

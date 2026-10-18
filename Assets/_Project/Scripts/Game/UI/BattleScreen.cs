@@ -932,10 +932,11 @@ namespace BiRyeoDo.Game.UI
                 var p = new PartyPanel { Unit = unit, Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
                 p.Root = UiFactory.Rect("Member" + i, _partyRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
                 p.Frame = UiFactory.Panel("Marker", p.Root, new Vector2(0.10f, 0.298f), new Vector2(0.90f, 0.314f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks whose turn it is
-                var sprite = i == 0 ? ArtLibrary.Player() : ArtLibrary.Companion(unit.Id);
+                var chibi = ArtLibrary.Chibi(i == 0 ? "player" : unit.Id);
+                var sprite = chibi ?? (i == 0 ? ArtLibrary.Player() : ArtLibrary.Companion(unit.Id));
                 if (sprite != null)
                 {
-                    p.Art = FitArt(p.Root, sprite, cell);
+                    p.Art = FitArt(p.Root, sprite, cell, chibi != null);
                 }
                 else
                 {
@@ -1024,10 +1025,11 @@ namespace BiRyeoDo.Game.UI
                 var rank = data.Rank;
                 card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.03f, 0.88f), new Vector2(0.97f, 0.99f), (rank == EnemyRank.Elite ? "◆ " : "") + data.Name, rank == EnemyRank.Boss ? 24 : 20,
                     rank == EnemyRank.Boss ? UiFactory.Gold : rank == EnemyRank.Elite ? new Color(0.62f, 0.82f, 1f, 1f) : UiFactory.PaperText);
-                var art = ArtLibrary.Enemy(data.ArtKey);
+                var enemyChibi = ArtLibrary.Chibi(data.ArtKey);
+                var art = enemyChibi ?? ArtLibrary.Enemy(data.ArtKey);
                 if (art != null)
                 {
-                    card.Art = FitArt(card.Root, art, cell);
+                    card.Art = FitArt(card.Root, art, cell, enemyChibi != null, true);
                 }
                 card.Glyph = UiFactory.Label("Glyph", card.Root, new Vector2(0.05f, 0.30f), new Vector2(0.95f, 0.88f), art != null ? "" : FirstGlyph(data.Name), data.IsBoss ? 170 : 110, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
                 // Same three gauges as the party, a little thinner to leave a line for the next move
@@ -1065,7 +1067,7 @@ namespace BiRyeoDo.Game.UI
         /// Draws a cut-out figure inside a cell: the sprite keeps its aspect ratio, is scaled to fill the cell's art area
         /// (never wider or taller), and stands on the cell's feet line so every unit shares one ground level.
         /// </summary>
-        private Image FitArt(RectTransform cellRoot, Sprite sprite, Rect cell)
+        private Image FitArt(RectTransform cellRoot, Sprite sprite, Rect cell, bool chibi = false, bool enemy = false)
         {
             const float x0 = 0.02f, x1 = 0.98f, y0 = 0.30f, y1 = 0.90f;
             var size = _cardsRoot != null ? _cardsRoot.rect.size : Vector2.zero;
@@ -1081,6 +1083,7 @@ namespace BiRyeoDo.Game.UI
             rt.pivot = new Vector2(0.5f, 0f);
             rt.anchoredPosition = Vector2.zero;
             rt.sizeDelta = new Vector2(w, h);
+            if (chibi && enemy) rt.localScale = new Vector3(-1f, 1f, 1f);   // chibi sheets face right: enemies stand on the right side and look left
             return pic;
         }
 
