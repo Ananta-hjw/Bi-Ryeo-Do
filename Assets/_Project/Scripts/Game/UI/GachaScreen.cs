@@ -141,8 +141,8 @@ namespace BiRyeoDo.Game.UI
 
             // Bulk pulls show the 10 best results; the summary line counts everything.
             var counts = new int[Grades.Names.Length];
-            long refunded = 0;
-            foreach (var r in results) { counts[(int)r.Item.Grade]++; refunded += r.Doo; }
+                        int dupes = 0;
+            foreach (var r in results) { counts[(int)r.Item.Grade]++; if (r.Duplicate) dupes++; }
             var shown = new List<PullResult>(results);
             shown.Sort((a, b) => ((int)b.Item.Grade).CompareTo((int)a.Item.Grade));
             if (shown.Count > _cards.Count) shown.RemoveRange(_cards.Count, shown.Count - _cards.Count);
@@ -157,7 +157,7 @@ namespace BiRyeoDo.Game.UI
                 ItemArt.Apply(card.Icon, card.IconGlyph, item);
                 card.Name.text = UiFactory.GradedName(item);
                 card.Effect.text = item.IsGear ? StatusSheet.EffectText(item) : item.Description;
-                card.Tag.text = r.Duplicate ? "분해 +" + r.Doo.ToString("N0") : item.IsGear ? "NEW" : "";
+                card.Tag.text = r.Duplicate ? "여분 +1" : item.IsGear ? "NEW" : "";
                 card.Root.SetActive(true);
                 if (item.Grade > best) best = item.Grade;
                 if (animate) SoundManager.Sfx(item.Grade >= ItemGrade.Legendary ? "gacha_mythic" : item.Grade >= ItemGrade.Epic ? "gacha_rare" : "gacha_pull");
@@ -167,7 +167,7 @@ namespace BiRyeoDo.Game.UI
 
             var parts = new List<string>();
             for (int g = counts.Length - 1; g >= 0; g--) if (counts[g] > 0) parts.Add("<color=" + UiFactory.GradeHex((ItemGrade)g) + ">" + Grades.Names[g] + " " + counts[g] + "</color>");
-            _hint.text = string.Join("  ", parts) + (refunded > 0 ? "  ·  분해 두 +" + refunded.ToString("N0") : "") + (results.Count > shown.Count ? "  (높은 등급 " + shown.Count + "개만 표시)" : "");
+            _hint.text = string.Join("  ", parts) + (dupes > 0 ? "  ·  같은 장비 " + dupes + "개는 행낭에 여분으로 쌓였습니다 (강화 또는 분해)" : "") + (results.Count > shown.Count ? "  (높은 등급 " + shown.Count + "개만 표시)" : "");
             _busy = false;
             _pending = null;
             Refresh();

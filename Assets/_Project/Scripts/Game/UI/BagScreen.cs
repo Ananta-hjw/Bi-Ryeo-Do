@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BiRyeoDo.Core;
@@ -159,8 +160,10 @@ namespace BiRyeoDo.Game.UI
             if (flavor.Length > 0) lines.Add(flavor);
             if (gear)
             {
-                long cost = Gear.NextCost(save, item.Id);
-                lines.Add("강화 +" + enh + " / +" + Gear.MaxLevel + (cost >= 0 ? "   다음 강화 " + cost.ToString("N0") + "두 (능력 +" + Mathf.RoundToInt(Gear.PerLevel * 100f) + "%)" : "   (최대)"));
+                int spares = Gear.Spares(save, item.Id);
+                lines.Add("강화 +" + enh + " / +" + Gear.MaxLevel + "   같은 장비 여분 " + spares + "개" + (enh < Gear.MaxLevel ? "  (여분 1개당 +1, 능력 +" + Mathf.RoundToInt(Gear.PerLevel * 100f) + "%)" : "  (최대)"));
+                var matInfo = Salvage.MaterialFor(item);
+                if (matInfo != null) lines.Add("분해: " + matInfo.Name + " 1~7개 (" + Grades.NameOf(item.Grade) + " " + Salvage.SlotLabel(item.Kind) + " 재료)");
                 var set = Gear.SetOf(item.Id);
                 lines.Add(set != null ? Gear.SetDetail(set, save.EquippedGear, save) : "세트 없음");
             }
@@ -170,13 +173,25 @@ namespace BiRyeoDo.Game.UI
             {
                 bool eq = Inventory.IsEquipped(save, item.Id);
                 UiFactory.Button("Equip", card.transform, new Vector2(0.05f, 0.255f), new Vector2(0.95f, 0.355f), eq ? "해제" : "장착", eq ? UiFactory.InkSoft : UiFactory.Red, () => { DoMain(item); }, 34);
-                long cost = Gear.NextCost(save, item.Id);
-                var enhBtn = UiFactory.Button("Enhance", card.transform, new Vector2(0.05f, 0.14f), new Vector2(0.95f, 0.24f), cost < 0 ? "최대 강화" : "강화  " + cost.ToString("N0") + "두", cost >= 0 && save.Doo >= cost ? UiFactory.Red : UiFactory.InkSoft, () => { DoEnhance(item); }, 30);
-                enhBtn.interactable = cost >= 0;
+                bool canEnh = Gear.CanEnhance(save, item.Id);
+                string enhLabel = enh >= Gear.MaxLevel ? "최대 강화" : canEnh ? "강화 +" + (enh + 1) + "\n(여분 1개 사용)" : "강화\n(여분 필요)";
+                var enhBtn = UiFactory.Button("Enhance", card.transform, new Vector2(0.05f, 0.14f), new Vector2(0.49f, 0.24f), enhLabel, canEnh ? UiFactory.Red : UiFactory.InkSoft, () => { DoEnhance(item); }, 24);
+                enhBtn.interactable = canEnh;
+                bool canDis = Salvage.CanDismantle(save, item.Id);
+                var disBtn = UiFactory.Button("Dismantle", card.transform, new Vector2(0.51f, 0.14f), new Vector2(0.95f, 0.24f), canDis ? "분해\n(재료 1~7개)" : "분해 불가", canDis ? new Color(0.55f, 0.36f, 0.14f, 1f) : UiFactory.InkSoft, () => { DoDismantle(item); }, 24);
+                disBtn.interactable = canDis;
             }
             else if (item.MasteryUses > 0)
             {
                 UiFactory.Button("Read", card.transform, new Vector2(0.05f, 0.13f), new Vector2(0.95f, 0.22f), "무공 고르기 (숙련 +" + item.MasteryUses + "회)", UiFactory.Red, () => { DoMain(item); }, 32);
+            }
+            else if (Salvage.IsFusable(item))
+            {
+                int have = Inventory.Count(save, item.Id), need = Salvage.Need(item);
+                var next = Grades.NameOf(item.Grade + 1);
+                bool ready = have >= need;
+                var fuseBtn = UiFactory.Button("Fuse", card.transform, new Vector2(0.05f, 0.13f), new Vector2(0.95f, 0.22f), "합성  " + have + " / " + need + "  →  " + next + " " + Salvage.SlotLabel(Salvage.SlotOf(item)) + " 무작위", ready ? UiFactory.Red : UiFactory.InkSoft, () => { DoFuse(item); }, 28);
+                fuseBtn.interactable = ready;
             }
             else if (item.Kind == ItemKind.Material && item.SellValue > 0)
             {
@@ -252,6 +267,11 @@ namespace BiRyeoDo.Game.UI
             else if (item.MasteryUses > 0)
             {
                 OpenScrollPicker(item);   // the art is chosen there; nothing else to refresh yet
+                return;
+            }
+            else if (Salvage.IsFusable(item))
+            {
+                DoFuse(item);
                 return;
             }
             else if (item.Kind == ItemKind.Material && item.SellValue > 0)
@@ -342,6 +362,39 @@ namespace BiRyeoDo.Game.UI
             if (string.IsNullOrEmpty(row.ItemId)) return;
             var item = EarlyGameContent.FindItem(row.ItemId);
             if (item != null && item.IsGear) DoEnhance(item);
+        }
+
+        private void DoDismantle(ItemData item)
+        {
+            var save = GameManager.Instance.Save;
+            string error;
+            var got = Salvage.Dismantle(save, item.Id, new SeededRandom(Environment.TickCount), out error);
+            if (got != null)
+            {
+                var mat = EarlyGameContent.FindItem(got.Id);
+                _flash = item.Name + " 분해: " + mat.Name + " x" + got.Count + " 획득";
+                SoundManager.Sfx("win");
+                GameManager.Instance.SaveNow();
+            }
+            else _flash = error;
+            Refresh();
+            ReopenDetail(item);
+        }
+
+        private void DoFuse(ItemData material)
+        {
+            var save = GameManager.Instance.Save;
+            string error;
+            var made = Salvage.Fuse(save, material.Id, new SeededRandom(Environment.TickCount), out error);
+            if (made != null)
+            {
+                _flash = "합성 성공! " + Grades.NameOf(made.Grade) + " " + made.Name + " 획득";
+                SoundManager.Sfx(made.Grade >= ItemGrade.Legendary ? "gacha_mythic" : "levelup");
+                GameManager.Instance.SaveNow();
+            }
+            else _flash = error;
+            Refresh();
+            ReopenDetail(material);
         }
 
         private void DoEnhance(ItemData item)
@@ -447,13 +500,20 @@ namespace BiRyeoDo.Game.UI
 
                 if (item.IsGear)
                 {
-                    long cost = Gear.NextCost(save, item.Id);
-                    row.EnhLabel.text = cost < 0 ? "최대 강화" : "강화 +" + (enh + 1) + "  " + cost.ToString("N0") + "두";
-                    row.EnhButton.interactable = cost >= 0;
-                    row.EnhButton.GetComponent<Image>().color = cost >= 0 && save.Doo >= cost ? UiFactory.Red : UiFactory.InkSoft;
+                    bool canEnh = Gear.CanEnhance(save, item.Id);
+                    row.EnhLabel.text = enh >= Gear.MaxLevel ? "최대 강화" : canEnh ? "강화 +" + (enh + 1) + "  (여분 " + Gear.Spares(save, item.Id) + ")" : "강화 (여분 필요)";
+                    row.EnhButton.interactable = canEnh;
+                    row.EnhButton.GetComponent<Image>().color = canEnh ? UiFactory.Red : UiFactory.InkSoft;
                     row.ButtonLabel.text = equipped ? "해제" : "장착";
                     row.ButtonImage.color = equipped ? UiFactory.InkSoft : UiFactory.Red;
                     row.Button.interactable = true;
+                }
+                else if (Salvage.IsFusable(item))
+                {
+                    int need = Salvage.Need(item);
+                    row.ButtonLabel.text = "합성 " + stack.Count + "/" + need;
+                    row.ButtonImage.color = stack.Count >= need ? UiFactory.Red : UiFactory.InkSoft;
+                    row.Button.interactable = stack.Count >= need;
                 }
                 else if (item.Kind == ItemKind.Material && item.SellValue > 0)
                 {

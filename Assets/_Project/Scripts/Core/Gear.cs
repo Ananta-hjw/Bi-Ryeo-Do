@@ -27,14 +27,13 @@ namespace BiRyeoDo.Core
     }
 
     /// <summary>
-    /// 장비 강화 and 세트 효과. Enhancing costs 두 and raises a piece's stats by 10% of its base per level (max +10).
+    /// 장비 강화 and 세트 효과. Enhancing melts a spare copy of the same piece (from the 뽑기) and raises its stats by 10% of its base per level (max +10).
     /// Wearing several pieces of one themed set adds a bonus (set bonuses are not scaled by enhancement).
     /// </summary>
     public static class Gear
     {
         public const int MaxLevel = 10;
         public const float PerLevel = 0.10f;
-        private static readonly long[] CostBase = { 75, 150, 300, 600, 1200, 2400, 4800 };   // by grade; the n-th level costs base x n
 
         public static int LevelOf(IList<GearLevel> levels, string id)
         {
@@ -47,19 +46,20 @@ namespace BiRyeoDo.Core
 
         public static float Multiplier(int level) { return 1f + PerLevel * Math.Max(0, Math.Min(MaxLevel, level)); }
 
-        /// <summary>두 for the step to <paramref name="toLevel"/>, or -1 when out of range.</summary>
-        public static long CostFor(ItemData item, int toLevel)
+        /// <summary>How many copies of a piece of gear are spare (every copy but one). Spares are what enhancing and dismantling use up.</summary>
+        public static int Spares(SaveData save, string id) { return Math.Max(0, Inventory.Count(save, id) - 1); }
+
+        public static bool CanEnhance(SaveData save, string id) { return Spares(save, id) > 0 && Level(save, id) < MaxLevel && IsGearId(id); }
+
+        private static bool IsGearId(string id) { var it = EarlyGameContent.FindItem(id); return it != null && it.IsGear; }
+
+        /// <summary>Takes a level off the books when the last copy of a piece is gone.</summary>
+        public static void ForgetLevel(SaveData save, string id)
         {
-            if (item == null || !item.IsGear || toLevel < 1 || toLevel > MaxLevel) return -1;
-            return CostBase[(int)item.Grade] * toLevel;
+            for (int i = save.GearLevels.Count - 1; i >= 0; i--) if (save.GearLevels[i].Id == id) save.GearLevels.RemoveAt(i);
         }
 
-        /// <summary>두 for the next step of this piece; -1 at max level or when not enhanceable.</summary>
-        public static long NextCost(SaveData save, string id)
-        {
-            return CostFor(EarlyGameContent.FindItem(id), Level(save, id) + 1);
-        }
-
+        /// <summary>강화: melts one spare copy of the same piece into +1 (up to +10). Costs no 두.</summary>
         public static bool Enhance(SaveData save, string id, out string error)
         {
             error = null;
@@ -67,9 +67,8 @@ namespace BiRyeoDo.Core
             if (item == null || !item.IsGear || Inventory.Count(save, id) <= 0) { error = "강화할 수 없는 물건입니다."; return false; }
             int cur = Level(save, id);
             if (cur >= MaxLevel) { error = "이미 최대 강화입니다."; return false; }
-            long cost = CostFor(item, cur + 1);
-            if (save.Doo < cost) { error = "두가 모자랍니다. (" + cost.ToString("N0") + "두 필요)"; return false; }
-            save.Doo -= cost;
+            if (Spares(save, id) <= 0) { error = "강화하려면 같은 장비가 하나 더 있어야 합니다. 뽑기에서 같은 장비가 나오면 쓸 수 있습니다."; return false; }
+            Inventory.Remove(save, id, 1);
             GearLevel entry = null;
             foreach (var l in save.GearLevels) if (l.Id == id) entry = l;
             if (entry == null) { entry = new GearLevel { Id = id }; save.GearLevels.Add(entry); }
@@ -162,6 +161,28 @@ namespace BiRyeoDo.Core
             sb.Append(string.Join("   ", names)).Append("\n");
             foreach (var t in set.Tiers) sb.Append(t.Pieces).Append("개: ").Append(TierText(t)).Append("\n");
             return sb.ToString().TrimEnd('\n');
+        }
+
+        /// <summary>One entry per set with at least one worn piece: title, the bonuses reached so far, and what the next piece would add.</summary>
+        public static List<string[]> SetStatus(IEnumerable<string> equipped)
+        {
+            var worn = new List<string>(equipped);
+            var list = new List<string[]>();
+            foreach (var s in Sets)
+            {
+                int n = WornPieces(s, worn);
+                if (n == 0) continue;
+                string title = s.Name + " 세트  " + n + " / " + s.Items.Length;
+                var active = new List<string>();
+                string next = "";
+                foreach (var t in s.Tiers)
+                {
+                    if (n >= t.Pieces) active.Add(t.Pieces + "개: " + TierText(t));
+                    else if (next.Length == 0) next = "다음 " + t.Pieces + "개: " + TierText(t);
+                }
+                list.Add(new[] { title, active.Count > 0 ? string.Join("\n", active) : "아직 효과 없음 (2개부터)", next });
+            }
+            return list;
         }
 
         /// <summary>One line per set that has at least one worn piece, with the worn count and the bonus reached so far.</summary>

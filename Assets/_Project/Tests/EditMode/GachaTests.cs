@@ -59,7 +59,7 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(500, cost);
             var r = Gacha.Pull(save, 1, new SeededRandom(1));
             Assert.AreEqual(1, r.Count);
-            Assert.AreEqual(100000 - cost + r[0].Doo, save.Doo);
+            Assert.AreEqual(100000 - cost, save.Doo);
             Assert.GreaterOrEqual(Inventory.Count(save, r[0].Item.Id), 1);
         }
 
@@ -84,7 +84,7 @@ namespace BiRyeoDo.Tests
                 long before = save.Doo;
                 var r = Gacha.Pull(save, n, new SeededRandom(3));
                 Assert.AreEqual(n, r.Count);
-                Assert.AreEqual(before - Gacha.CostFor(n) + r.Sum(x => x.Doo), save.Doo);
+                Assert.AreEqual(before - Gacha.CostFor(n), save.Doo);
             }
         }
 
@@ -98,16 +98,17 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void DuplicateGearTurnsIntoDoo()
+        public void DuplicateGearStaysAsASpareCopy()
         {
             var save = new SaveData { Doo = 1000000 };
             var rng = new SeededRandom(11);
             int dupes = 0;
+            var pulled = new System.Collections.Generic.Dictionary<string, int>();
             for (int i = 0; i < 400; i++)
             {
                 var r = Gacha.Pull(save, 1, rng)[0];
-                if (r.Duplicate) { dupes++; Assert.Greater(r.Doo, 0); Assert.IsTrue(r.Item.IsGear); }
-                if (r.Item.IsGear) Assert.AreEqual(1, Inventory.Count(save, r.Item.Id));
+                if (r.Duplicate) { dupes++; Assert.IsTrue(r.Item.IsGear); }
+                if (r.Item.IsGear) { pulled[r.Item.Id] = (pulled.ContainsKey(r.Item.Id) ? pulled[r.Item.Id] : 0) + 1; Assert.AreEqual(pulled[r.Item.Id], Inventory.Count(save, r.Item.Id)); }
             }
             Assert.Greater(dupes, 0);
         }

@@ -515,6 +515,7 @@ namespace BiRyeoDo.Core
             var list = new List<ItemData>(BaseItems);
             list.AddRange(GachaItems.All);
             list.AddRange(GachaItemsMore.All);
+            list.AddRange(Salvage.Materials);
             return list.ToArray();
         }
 

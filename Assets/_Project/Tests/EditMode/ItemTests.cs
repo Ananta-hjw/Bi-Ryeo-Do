@@ -43,14 +43,14 @@ namespace BiRyeoDo.Tests
                     case ItemKind.Weapon:
                     case ItemKind.Armor:
                     case ItemKind.Accessory: Assert.IsTrue(i.AtkPct != 0 || i.DefPct != 0 || i.HpPct != 0 || i.QiPct != 0 || i.CritAdd != 0 || i.SpeedAdd != 0, i.Id); break;
-                    case ItemKind.Material: if (i.Id != InnerArts.StoneId) Assert.Greater(i.SellValue, 0, i.Id); break;   // 심득석 is deliberately unsellable
+                    case ItemKind.Material: if (i.Id != InnerArts.StoneId && !i.Id.StartsWith("mat_")) Assert.Greater(i.SellValue, 0, i.Id); break;   // 심득석 and the 분해 materials are deliberately unsellable
                 }
                 Assert.IsFalse(string.IsNullOrEmpty(i.Description), i.Id);
             }
         }
 
         [Test]
-        public void ConsumablesStackAndGearIsUnique()
+        public void ConsumablesAndSpareGearStackButTranscendentGearIsUnique()
         {
             var save = new SaveData();
             Inventory.Add(save, "bear_gall", 2);
@@ -59,6 +59,9 @@ namespace BiRyeoDo.Tests
             Inventory.Add(save, "jin_biroedo", 1);
             Inventory.Add(save, "jin_biroedo", 1);
             Assert.AreEqual(1, Inventory.Count(save, "jin_biroedo"));
+            Inventory.Add(save, "iron_sword", 1);
+            Inventory.Add(save, "iron_sword", 1);
+            Assert.AreEqual(2, Inventory.Count(save, "iron_sword"));
             Assert.IsTrue(Inventory.Remove(save, "bear_gall", 5));
             Assert.AreEqual(0, Inventory.Count(save, "bear_gall"));
             Assert.IsFalse(Inventory.Remove(save, "bear_gall", 1));

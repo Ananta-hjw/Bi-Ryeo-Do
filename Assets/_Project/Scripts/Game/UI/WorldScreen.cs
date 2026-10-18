@@ -35,7 +35,7 @@ namespace BiRyeoDo.Game.UI
         private Action<StageData> _onStartRef;
         // Home / lobby card
         private Image _lobbyBg, _lobbyPortrait;
-        private Text _lobbyGlyph, _lobbyName, _lobbyLine;
+        private Text _lobbyGlyph, _lobbyName, _lobbyLine, _lobbyRealm, _lobbyPower;
         private int _lobbyStep;
         private float _lobbyTimer;
         private RectTransform _promoOverlay, _partyOverlay, _questOverlay, _fortuneOverlay, _settingsOverlay, _towerOverlay;
@@ -75,11 +75,14 @@ namespace BiRyeoDo.Game.UI
             talkBtn.targetGraphic = talkImg;
             talkBtn.transition = Selectable.Transition.None;
             talkBtn.onClick.AddListener(() => { _lobbyStep++; _lobbyTimer = 0f; ShowLobby(true); });
-            UiFactory.Label("TapHint", root, new Vector2(0.34f, 0.865f), new Vector2(0.81f, 0.925f), "인물을 눌러 이야기하기", 22, UiFactory.Dim, TextAnchor.MiddleRight, FontStyle.Normal);
+            UiFactory.Label("TapHint", root, new Vector2(0.60f, 0.865f), new Vector2(0.81f, 0.925f), "인물을 눌러 이야기하기", 20, UiFactory.Dim, TextAnchor.MiddleRight, FontStyle.Normal);
 
-            var plate = UiFactory.Panel("NamePlate", root, new Vector2(0.03f, 0.865f), new Vector2(0.33f, 0.925f), new Color(0.20f, 0.16f, 0.07f, 0.97f));
+            var plate = UiFactory.Panel("NamePlate", root, new Vector2(0.03f, 0.865f), new Vector2(0.58f, 0.925f), new Color(0.20f, 0.16f, 0.07f, 0.97f));
             UiFactory.Frame(plate.transform, UiFactory.Gold, 2f);
-            _lobbyName = UiFactory.Label("Name", plate.transform, new Vector2(0.04f, 0f), new Vector2(0.96f, 1f), "", 34, UiFactory.Gold);
+            _lobbyName = UiFactory.Label("Name", plate.transform, new Vector2(0.03f, 0f), new Vector2(0.40f, 1f), "", 34, UiFactory.Gold);
+            // The protagonist's 무공 경지 sits beside the name with the 종합 수치 small underneath
+            _lobbyRealm = UiFactory.Label("Realm", plate.transform, new Vector2(0.41f, 0.38f), new Vector2(0.98f, 0.98f), "", 28, new Color(0.90f, 0.82f, 0.55f, 1f), TextAnchor.MiddleLeft);
+            _lobbyPower = UiFactory.Label("Power", plate.transform, new Vector2(0.41f, 0.04f), new Vector2(0.98f, 0.40f), "", 16, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
 
             // Speech bubble with the day's line and the next destination (the "featured" stage) as one big button.
             // The bubble sits in a strip below the character so the whole picture stays visible.
@@ -291,6 +294,14 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             var scene = Lobby.Pick(save, _lobbyStep);
             _lobbyName.text = scene.Speaker;
+            bool hero = scene.Speaker == StoryLine.Protagonist;
+            if (hero)
+            {
+                double power = Realm.Power(InnerArts.HeroStatsBeforeRealm(save));
+                _lobbyRealm.text = Realm.Label(Realm.StepOf(power));
+                _lobbyPower.text = "종합 " + Math.Round(power).ToString("N0");
+            }
+            else { _lobbyRealm.text = ""; _lobbyPower.text = ""; }
             _lobbyLine.text = scene.Text;
 
             var bg = ArtLibrary.Background(Mathf.Max(1, Mathf.Min(save.ClearedStage, EarlyGameContent.Stages.Length)));

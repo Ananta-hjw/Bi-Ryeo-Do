@@ -23,11 +23,14 @@ namespace BiRyeoDo.Core
             foreach (var s in save.Items)
             {
                 if (s.Id != id) continue;
-                if (!item.IsGear && item.Kind != ItemKind.Key) s.Count += count; // gear and key items are unique
+                if (!IsUnique(item)) s.Count += count;   // spare copies of pullable gear stack (see Gear.Enhance / Salvage)
                 return;
             }
-            save.Items.Add(new ItemStack(id, item.IsGear || item.Kind == ItemKind.Key ? 1 : count));
+            save.Items.Add(new ItemStack(id, IsUnique(item) ? 1 : count));
         }
+
+        /// <summary>Key items and 초월 gear (earned once) never stack.</summary>
+        private static bool IsUnique(ItemData item) { return item.Kind == ItemKind.Key || item.Grade == ItemGrade.Transcendent; }
 
         public static bool Remove(SaveData save, string id, int count)
         {
@@ -41,6 +44,7 @@ namespace BiRyeoDo.Core
                 {
                     save.Items.RemoveAt(i);
                     save.EquippedGear.Remove(id);
+                    Gear.ForgetLevel(save, id);
                 }
                 return true;
             }

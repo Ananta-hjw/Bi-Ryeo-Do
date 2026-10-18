@@ -3,16 +3,15 @@ using System.Collections.Generic;
 
 namespace BiRyeoDo.Core
 {
-    /// <summary>One pulled item. A duplicate piece of gear is dismantled into 두 instead of being added again.</summary>
+    /// <summary>One pulled item. A duplicate piece of gear stays in the bag as a spare: enhance the owned copy with it or dismantle it (see <see cref="Salvage"/>).</summary>
     public sealed class PullResult
     {
         public ItemData Item;
         public bool Duplicate;
-        public long Doo;   // 두 refunded for a duplicate
     }
 
     /// <summary>
-    /// 뽑기: after the starting kit, gear comes from here, paid for with 두. Grade odds are fixed
+    /// 뽑기: after the starting kit, gear comes from here, paid for with 두 (a repeat becomes a spare copy). Grade odds are fixed
     /// (<see cref="Grades.Rates"/>); within a grade every item is equally likely.
     /// </summary>
     public static class Gacha
@@ -76,14 +75,8 @@ namespace BiRyeoDo.Core
             {
                 var item = RollItem(rng);
                 var r = new PullResult { Item = item };
-                if (item.IsGear && Inventory.Count(save, item.Id) > 0)
-                {
-                    r.Duplicate = true;
-                    Codex.SeeItem(save, item.Id);
-                    r.Doo = Grades.DismantleDoo[(int)item.Grade];
-                    save.Doo += r.Doo;
-                }
-                else Inventory.Add(save, item.Id, 1);
+                r.Duplicate = item.IsGear && Inventory.Count(save, item.Id) > 0;
+                Inventory.Add(save, item.Id, 1);
                 results.Add(r);
             }
             return results;

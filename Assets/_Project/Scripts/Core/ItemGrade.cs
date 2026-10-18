@@ -1,6 +1,6 @@
 namespace BiRyeoDo.Core
 {
-    /// <summary>Item rarity, from common to mythic; 초월 (Transcendent) is above mythic, never drops from 뽑기 and is earned only through special conditions (see Ritual). Drives 뽑기 odds, stat budgets and the 분해 refund of duplicates.</summary>
+    /// <summary>Item rarity, from common to mythic; 초월 (Transcendent) is above mythic, never drops from 뽑기 and is earned only through special conditions (see Ritual). Drives 뽑기 odds and stat budgets.</summary>
     public enum ItemGrade { Normal, Fine, Rare, Epic, Legendary, Mythic, Transcendent }
 
     public static class Grades
@@ -10,8 +10,6 @@ namespace BiRyeoDo.Core
         /// <summary>Chance of each grade in one pull: 62 / 20 / 10 / 5 / 2.5 / 0.5 percent (초월 is not pullable, so it has no entry).</summary>
         public static readonly double[] Rates = { 0.62, 0.20, 0.10, 0.05, 0.025, 0.005 };
 
-        /// <summary>두 gained when a duplicate piece of gear is pulled (it is dismantled instead of stacking).</summary>
-        public static readonly long[] DismantleDoo = { 20, 60, 160, 400, 1000, 2400, 6000 };
 
         public static string NameOf(ItemGrade grade) { return Names[(int)grade]; }
     }

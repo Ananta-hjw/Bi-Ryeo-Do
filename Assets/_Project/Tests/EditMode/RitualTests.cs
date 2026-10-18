@@ -30,7 +30,6 @@ public class RitualTests
         foreach (var other in EarlyGameContent.Items.Where(i => i.IsGear && i.Kind == ItemKind.Weapon && i.Id != sword.Id))
             Assert.Greater(sword.AtkPct, other.AtkPct, other.Id);
         Assert.AreEqual(Grades.Rates.Length + 1, Grades.Names.Length);
-        Assert.Greater(Gear.CostFor(sword, 1), Gear.CostFor(EarlyGameContent.FindItem("heaven_cutter"), 1));
     }
 
     [Test]

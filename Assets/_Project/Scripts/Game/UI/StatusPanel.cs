@@ -73,6 +73,26 @@ namespace BiRyeoDo.Game.UI
             var accs = StatusSheet.Accessories(save);
             for (int i = 0; i < Inventory.AccessorySlots; i++) GearCard("장신구 " + (i + 1), i < accs.Count ? accs[i] : null);
 
+            // 세트 효과: every set with a worn piece, what it gives now and what the next piece adds
+            Section("장비 세트 효과");
+            var setStatus = Gear.SetStatus(save.EquippedGear);
+            if (setStatus.Count == 0)
+            {
+                var none = Block(72f);
+                Text(none, 0.04f, 0.97f, 0f, 1f, "착용한 세트 장비가 없습니다. 같은 세트를 2개 이상 맞추면 효과가 붙습니다.", 24, UiFactory.Dim, TextAnchor.MiddleLeft);
+            }
+            foreach (var entry in setStatus)
+            {
+                int activeLines = entry[1].Split('\n').Length;
+                float h = 64f + activeLines * 34f + (entry[2].Length > 0 ? 38f : 0f);
+                var block = Block(h);
+                Text(block, 0.04f, 0.97f, 1f - 60f / h, 1f, entry[0], 30, UiFactory.Gold, TextAnchor.MiddleLeft);
+                float yTop = 1f - 62f / h;
+                float bodyBottom = (entry[2].Length > 0 ? 38f : 6f) / h;
+                Text(block, 0.04f, 0.97f, bodyBottom, yTop, entry[1], 24, UiFactory.PaperText, TextAnchor.UpperLeft);
+                if (entry[2].Length > 0) Text(block, 0.04f, 0.97f, 0.02f, bodyBottom, entry[2], 22, UiFactory.Dim, TextAnchor.MiddleLeft);
+            }
+
             // Arts
             Section("장착 무공");
             var artLines = StatusSheet.ArtLines(save);
