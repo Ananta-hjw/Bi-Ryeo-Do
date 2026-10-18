@@ -1589,7 +1589,7 @@ namespace BiRyeoDo.Game.UI
             if (Realm.HasRealm(card.Data)) lines.Add("무공 경지  " + Realm.Label(Realm.StepOf(power)) + "\n종합 수치 " + System.Math.Round(power).ToString("N0"));
             else lines.Add("무공 경지  해당 없음");
             lines.Add("체력 " + card.Unit.Hp.ToString("N0") + " / " + s.MaxHp.ToString("N0") + "\n공격력 " + s.Attack.ToString("N0") + "   방어력 " + s.Defense.ToString("N0") + "   속도 " + s.Speed.ToString("N0"));
-            ShowTip(card.Data.Name, string.Join("\n\n", lines), ArtLibrary.Feathered(ArtLibrary.Enemy(card.Data.ArtKey)));
+            ShowTip(card.Data.Name, string.Join("\n\n", lines), ArtLibrary.Chibi(card.Data.ArtKey) ?? ArtLibrary.Feathered(ArtLibrary.Enemy(card.Data.ArtKey)));
         }
 
         /// <summary>Tap on an ally: level, 경지, current gauges, stats and the skills they carry.</summary>
@@ -1612,7 +1612,7 @@ namespace BiRyeoDo.Game.UI
             var names = new List<string>();
             foreach (var k in unit.Skills) names.Add(k.Name);
             if (names.Count > 0) lines.Add("무공: " + string.Join(", ", names) + "\n(자세한 설명은 길게 누르세요)");
-            ShowTip(unit.Name, string.Join("\n\n", lines), ArtLibrary.Feathered(hero ? ArtLibrary.Player() : ArtLibrary.Companion(unit.Id)));
+            ShowTip(unit.Name, string.Join("\n\n", lines), ArtLibrary.Chibi(hero ? "player" : unit.Id) ?? ArtLibrary.Feathered(hero ? ArtLibrary.Player() : ArtLibrary.Companion(unit.Id)));
         }
 
         /// <summary>Long press on a party member's panel: every skill they have.</summary>
@@ -1624,7 +1624,7 @@ namespace BiRyeoDo.Game.UI
             var companion = EarlyGameContent.FindCompanion(unit.Id);
             if (companion != null && !string.IsNullOrEmpty(companion.JointName))
                 lines.Add("합공: " + companion.JointName + " (인연 " + Bonds.LevelNames[Bonds.Level(GameManager.Instance.Save, companion.Id)] + ", " + Bonds.BonusText(Bonds.Level(GameManager.Instance.Save, companion.Id)) + ")");
-            ShowTip(unit.Name + " — 스킬", string.Join("\n\n", lines), ArtLibrary.Feathered(unit.Id == "player" ? ArtLibrary.Player() : ArtLibrary.Companion(unit.Id)));
+            ShowTip(unit.Name + " — 스킬", string.Join("\n\n", lines), ArtLibrary.Chibi(unit.Id) ?? ArtLibrary.Feathered(unit.Id == "player" ? ArtLibrary.Player() : ArtLibrary.Companion(unit.Id)));
         }
 
         private void SetCommandsVisible(bool visible)
