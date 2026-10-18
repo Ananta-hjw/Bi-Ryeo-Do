@@ -476,7 +476,7 @@ namespace BiRyeoDo.Game.UI
                     if (levels > 0)
                     {
                         var hs = _party[0].Stats;
-                        yield return ShowResult("레벨 업!", "비류연이 Lv." + (save.Level - levels) + "에서 Lv." + save.Level + "(으)로 올랐습니다.\n체력과 내공이 가득 찼습니다.\n\n체력 " + hs.MaxHp.ToString("N0") + "   내공 " + hs.MaxQi.ToString("N0") + "\n공격력 " + hs.Attack.ToString("N0") + "   방어력 " + hs.Defense.ToString("N0") + "   속도 " + hs.Speed.ToString("N0"), false);
+                        yield return ShowResult("레벨 업!", "비류연이 Lv." + (save.Level - levels) + "에서 Lv." + save.Level + "(으)로 올랐습니다.\n비류연의 체력과 내공이 가득 찼습니다.\n\n체력 " + hs.MaxHp.ToString("N0") + "   내공 " + hs.MaxQi.ToString("N0") + "\n공격력 " + hs.Attack.ToString("N0") + "   방어력 " + hs.Defense.ToString("N0") + "   속도 " + hs.Speed.ToString("N0"), false);
                     }
                     if (found.Count > 0)
                     {
@@ -994,7 +994,13 @@ namespace BiRyeoDo.Game.UI
             var fresh = CreateParty(stage);
             for (int i = 0; i < fresh.Count && i < _party.Count; i++)
             {
-                // Levelling up fully restores 체력 and 내공 (a new Combatant starts full); 기세 is carried over
+                // Only the protagonist (who levels up) is fully restored: a new Combatant starts with full 체력 and 내공. Companions keep their wounds and 내공 by ratio; 기세 is carried over for everyone.
+                if (i > 0)
+                {
+                    float ratio = (float)_party[i].Hp / Math.Max(1, _party[i].Stats.MaxHp);
+                    fresh[i].Hp = _party[i].IsAlive ? Math.Max(1, (int)Math.Round(fresh[i].Stats.MaxHp * ratio)) : 0;
+                    fresh[i].Qi = Math.Min(fresh[i].Stats.MaxQi, (int)Math.Round(fresh[i].Stats.MaxQi * (float)_party[i].Qi / Math.Max(1, _party[i].Stats.MaxQi)));
+                }
                 fresh[i].Spirit = _party[i].Spirit;
                 if (i < _panels.Count) _panels[i].Unit = fresh[i];
             }
