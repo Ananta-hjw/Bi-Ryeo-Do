@@ -244,8 +244,9 @@ namespace BiRyeoDo.Game.UI
             var rt = _portrait[side].rectTransform;
             if (hasSprite)
             {
-                rt.anchorMin = side == 0 ? new Vector2(0.00f, 0.27f) : new Vector2(0.42f, 0.27f);
-                rt.anchorMax = side == 0 ? new Vector2(0.58f, 0.93f) : new Vector2(1.00f, 0.93f);
+                // Two halves with a small gap so the speakers never overlap (the speaking one is drawn 3% larger)
+                rt.anchorMin = side == 0 ? new Vector2(0.01f, 0.27f) : new Vector2(0.51f, 0.27f);
+                rt.anchorMax = side == 0 ? new Vector2(0.49f, 0.93f) : new Vector2(0.99f, 0.93f);
             }
             else
             {
