@@ -26,7 +26,7 @@ namespace BiRyeoDo.Core
         /// <summary>Enemy level of a floor: +2 per floor; floor 24 is level 65, the level of stage 30.</summary>
         public static int FloorLevel(int floor) { return 17 + 2 * floor; }
 
-        public static long RewardDoo(int floor) { return 600 + 350L * floor + (IsBossFloor(floor) ? 1500 : 0); }
+        public static long RewardDoo(int floor) { return (long)Math.Round((600 + 350L * floor + (IsBossFloor(floor) ? 1500 : 0)) * 1.5); }
 
         public static ItemStack[] RewardItems(int floor)
         {

@@ -127,7 +127,8 @@ namespace BiRyeoDo.Tests
             Assert.Greater(extreme.Defense, hard.Defense);
             Assert.Greater(hard.Defense, normal.Defense);
             Assert.AreEqual("초절정 극", Realm.Steps[Realm.StepOf(Realm.Power(extreme))].Name);
-            Assert.AreEqual(2210.0, Realm.Power(extreme), 3.0);
+            Assert.Greater(Realm.Power(extreme), 2200.0);   // not pinned to one number any more: difficulty rises, the ladder stays
+            Assert.Less(Realm.Power(extreme), 3000.0);
         }
     }
 }

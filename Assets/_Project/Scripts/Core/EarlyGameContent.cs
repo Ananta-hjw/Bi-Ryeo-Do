@@ -489,7 +489,7 @@ namespace BiRyeoDo.Core
             new ItemData { Id = "art_scroll_5", Grade = ItemGrade.Rare, Name = "무공 수련서 (소)", Kind = ItemKind.Consumable, MasteryUses = 5, Description = "초식을 정리한 얇은 수련서. 행낭에서 쓰면 배운 무공 하나의 숙련 +5회." },
             new ItemData { Id = "art_scroll_10", Grade = ItemGrade.Epic, Name = "무공 수련서 (중)", Kind = ItemKind.Consumable, MasteryUses = 10, Description = "요결을 풀이한 수련서. 행낭에서 쓰면 배운 무공 하나의 숙련 +10회." },
             new ItemData { Id = "art_scroll_20", Grade = ItemGrade.Legendary, Name = "무공 수련서 (대)", Kind = ItemKind.Consumable, MasteryUses = 20, Description = "고수의 깨달음이 담긴 비급. 행낭에서 쓰면 배운 무공 하나의 숙련 +20회." },
-            new ItemData { Id = "leather", Grade = ItemGrade.Normal, Name = "가죽", Kind = ItemKind.Material, SellValue = 70, Description = "사냥한 짐승의 가죽. 팔면 두가 된다." },
+            new ItemData { Id = "leather", Grade = ItemGrade.Normal, Name = "가죽", Kind = ItemKind.Material, SellValue = 105, Description = "사냥한 짐승의 가죽. 팔면 두가 된다." },
             new ItemData { Id = "laundry_bat", Grade = ItemGrade.Fine, Name = "강철 빨래방망이", Kind = ItemKind.Weapon, AtkPct = 0.08f, Description = "수련용 강철 방망이(50근). 무기라기엔 빨래용이다. 공격 +8%." },
             new ItemData { Id = "jin_biroedo", Grade = ItemGrade.Transcendent, Name = "진비뢰도", Kind = ItemKind.Weapon, AtkPct = 0.90f, CritAdd = 0.20f, SpeedAdd = 15, HpPct = 0.20f, CritDmgAdd = 0.30f, Description = "봉뢰함에 든 진짜 비뢰도 열 자루. 전승의식을 마친 이만이 쥘 수 있다. 공격 +90%, 치명타 +20%, 치명타 피해 +30%, 속도 +15, 체력 +20%." },
             new ItemData { Id = "mukryonghwan", Grade = ItemGrade.Rare, Name = "묵룡환", Kind = ItemKind.Accessory, AtkPct = 0.10f, DefPct = 0.10f, SpeedAdd = -6, Description = "사부가 11세부터 채운 증량 족쇄. 몸은 무거워지지만 단련된다. 공격·방어 +10%, 속도 -6." },
@@ -1598,7 +1598,7 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
         }
 
         /// <summary>Stage 두 payouts are raised by this factor on top of <see cref="StageData.DooTotal"/> (clears, replays and quests alike).</summary>
-        public const double StageDooFactor = 1.2;
+        public const double StageDooFactor = 1.8;   // x1.5 more 두 from fights than before (was 1.2)
 
         public static long DooReward(StageData st, string enemyId)
         {

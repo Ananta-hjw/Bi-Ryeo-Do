@@ -23,8 +23,8 @@ namespace BiRyeoDo.Core
         /// <summary>Today's date; tests replace it.</summary>
         public static Func<DateTime> Clock = () => DateTime.Now;
 
-        public static readonly long[] BaseDoo = { 700, 1500, 3000 };
-        public const long AllClearBonus = 2000;
+        public static readonly long[] BaseDoo = { 1050, 2250, 4500 };
+        public const long AllClearBonus = 3000;
         public static readonly int[] StreakMilestones = { 3, 7, 14, 30 };
 
         private static DailyMission M(string id, string name, DailyEvent ev, int target, int tier)

@@ -125,8 +125,8 @@ namespace BiRyeoDo.Tests
             Inventory.Add(save, "leather", 3);
             Inventory.Add(save, "bear_gall", 1);
             Assert.AreEqual(0, Inventory.Sell(save, "bear_gall", 1));
-            Assert.AreEqual(210, Inventory.Sell(save, "leather", 3));
-            Assert.AreEqual(210, save.Doo);
+            Assert.AreEqual(315, Inventory.Sell(save, "leather", 3));
+            Assert.AreEqual(315, save.Doo);
             Assert.AreEqual(0, Inventory.Count(save, "leather"));
         }
 

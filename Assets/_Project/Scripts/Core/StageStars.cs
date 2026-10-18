@@ -29,8 +29,8 @@ namespace BiRyeoDo.Core
     {
         public const int DifficultyCount = 3;
         public static readonly string[] DifficultyNames = { "일반", "어려움", "극악" };
-        public static readonly float[] HpScale = { 1.0f, 1.9094f, 3.296f };
-        public static readonly float[] AtkScale = { 1.0f, 1.5557f, 2.363f };
+        public static readonly float[] HpScale = { 1.0f, 2.005f, 3.461f };
+        public static readonly float[] AtkScale = { 1.0f, 1.602f, 2.434f };
         // Defense is raised only a little: it takes damage x K/(K+Defense), so a few percent already shows (극악 검후 이옥상 takes x0.4 = defense 1500).
         public static readonly float[] DefScale = { 1.0f, 1.0207f, 1.0579f };
         public static readonly float[] RewardFactor = { 1.0f, 1.5f, 2.2f };   // 두 and exp
@@ -129,11 +129,11 @@ namespace BiRyeoDo.Core
         public static float DefFor(int stage, int difficulty) { return 1f + (DefScale[Clamp(difficulty)] - 1f) * Ramp(stage); }
         private static int Clamp(int difficulty) { return Math.Max(0, Math.Min(DifficultyCount - 1, difficulty)); }
 
-        // 일반 난이도를 손본 배율(1~6은 조금 더 세게, 7부터는 동료가 나온 뒤라 많이 약하게). 어려움·극악은 이 조정 전 수치에서 출발하므로 ScaleEnemy가 되돌려 준다.
+        // 일반 난이도를 손본 배율(1~6은 조금 더 세게, 7부터는 동료가 나온 뒤라 많이 약하게). 어려움·극악은 이 조정 전의 원래 수치에서 출발하므로 ScaleEnemy가 되돌려 주고, 그 뒤의 일반 상향(스테이지별 x1.03~1.12)은 어려움·극악에도 그대로 이어진다.
         static readonly float[] NormalEaseTable =
         {
-            1f, 1f, 1f, 1.404f, 1.62f, 1.62f, 0.672f, 0.672f, 0.672f, 0.672f, 0.672f, 0.6695f, 0.6695f, 0.672f, 0.672f,
-            0.672f, 0.672f, 0.6695f, 0.672f, 0.672f, 0.672f, 0.672f, 0.672f, 0.672f, 0.672f, 0.672f, 0.672f, 0.672f, 0.672f, 0.6695f,
+            1f, 1f, 1f, 1.3f, 1.5f, 1.5f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.65f, 0.65f, 0.6f, 0.6f,
+            0.6f, 0.6f, 0.65f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.65f,
         };
 
         /// <summary>How much stronger (&gt;1) or weaker (&lt;1) a stage's 일반 enemies are than the enemy table the harder difficulties were tuned against.</summary>

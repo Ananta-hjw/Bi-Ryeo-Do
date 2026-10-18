@@ -72,7 +72,7 @@ namespace BiRyeoDo.Core
             return stageNumber < GateStage || EffectiveRank(save) >= GateRank;
         }
 
-        public static long BaseDoo(int rank) { return (long)Math.Round(900 * Math.Pow(rank, 1.7)); }
+        public static long BaseDoo(int rank) { return (long)Math.Round(1350 * Math.Pow(rank, 1.7)); }
 
         public static List<int> TargetRanks(SaveData save)
         {
