@@ -163,7 +163,7 @@ namespace BiRyeoDo.Game.UI
                 int spares = Gear.Spares(save, item.Id);
                 lines.Add("강화 +" + enh + " / +" + Gear.MaxLevel + "   같은 장비 여분 " + spares + "개" + (enh < Gear.MaxLevel ? "  (여분 1개당 +1, 능력 +" + Mathf.RoundToInt(Gear.PerLevel * 100f) + "%)" : "  (최대)"));
                 var matInfo = Salvage.MaterialFor(item);
-                if (matInfo != null) lines.Add("분해: " + matInfo.Name + " 1~7개 (" + Grades.NameOf(item.Grade) + " " + Salvage.SlotLabel(item.Kind) + " 재료)");
+                if (matInfo != null) lines.Add("분해: " + matInfo.Name + " " + Salvage.MinCount[(int)item.Grade] + "~" + Salvage.MaxCount(item.Grade) + "개 (" + Grades.NameOf(item.Grade) + " " + Salvage.SlotLabel(item.Kind) + " 재료)");
                 var set = Gear.SetOf(item.Id);
                 lines.Add(set != null ? Gear.SetDetail(set, save.EquippedGear, save) : "세트 없음");
             }
@@ -178,7 +178,7 @@ namespace BiRyeoDo.Game.UI
                 var enhBtn = UiFactory.Button("Enhance", card.transform, new Vector2(0.05f, 0.14f), new Vector2(0.49f, 0.24f), enhLabel, canEnh ? UiFactory.Red : UiFactory.InkSoft, () => { DoEnhance(item); }, 24);
                 enhBtn.interactable = canEnh;
                 bool canDis = Salvage.CanDismantle(save, item.Id);
-                var disBtn = UiFactory.Button("Dismantle", card.transform, new Vector2(0.51f, 0.14f), new Vector2(0.95f, 0.24f), canDis ? "분해\n(재료 1~7개)" : "분해 불가", canDis ? new Color(0.55f, 0.36f, 0.14f, 1f) : UiFactory.InkSoft, () => { DoDismantle(item); }, 24);
+                var disBtn = UiFactory.Button("Dismantle", card.transform, new Vector2(0.51f, 0.14f), new Vector2(0.95f, 0.24f), canDis ? "분해\n(재료 " + (item.Grade <= ItemGrade.Legendary ? Salvage.MinCount[(int)item.Grade] + "~" + Salvage.MaxCount(item.Grade) : "?") + "개)" : "분해 불가", canDis ? new Color(0.55f, 0.36f, 0.14f, 1f) : UiFactory.InkSoft, () => { DoDismantle(item); }, 24);
                 disBtn.interactable = canDis;
             }
             else if (item.MasteryUses > 0)

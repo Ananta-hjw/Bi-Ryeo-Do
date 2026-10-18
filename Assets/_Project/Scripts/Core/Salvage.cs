@@ -4,14 +4,15 @@ using System.Collections.Generic;
 namespace BiRyeoDo.Core
 {
     /// <summary>
-    /// 분해 and 합성. A spare copy of a piece of gear (일반 to 전설; 신화 and 초월 gear cannot be dismantled) can be dismantled into 1-7 materials of the same grade and slot
-    /// (the odds of 1..7 are 10/15/20/20/15/10/10%); enough materials of one grade and slot fuse into a random piece of the next grade in that slot
-    /// (일반 40, 고급 30, 희귀 20, 영웅 15, 전설 10). Neither costs 두.
+    /// 분해 and 합성. A spare copy of a piece of gear (일반 to 전설; 신화 and 초월 gear cannot be dismantled) can be dismantled into materials of the same grade and slot
+    /// (일반 7-12, 고급 5-10, 희귀 4-9, 영웅 3-8, 전설 2-7, with odds 10/20/30/20/10/10% across the six counts); enough materials of one grade and slot fuse into a random piece
+    /// of the next grade in that slot (일반 50, 고급 40, 희귀 30, 영웅 20, 전설 10). Neither costs 두.
     /// </summary>
     public static class Salvage
     {
-        public static readonly int[] CountOdds = { 10, 15, 20, 20, 15, 10, 10 };   // percent for 1..7 materials
-        public static readonly int[] FuseNeed = { 40, 30, 20, 15, 10 };            // 일반 .. 전설 -> next grade
+        public static readonly int[] CountOdds = { 10, 20, 30, 20, 10, 10 };   // percent for the lowest count .. lowest + 5
+        public static readonly int[] MinCount = { 7, 5, 4, 3, 2 };             // lowest count per grade (일반 7-12, 고급 5-10, 희귀 4-9, 영웅 3-8, 전설 2-7)
+        public static readonly int[] FuseNeed = { 50, 40, 30, 20, 10 };         // 일반 .. 전설 -> next grade
 
         private static readonly ItemKind[] Kinds = { ItemKind.Weapon, ItemKind.Armor, ItemKind.Pants, ItemKind.Boots, ItemKind.Accessory };
         private static readonly string[] KindKeys = { "weapon", "armor", "pants", "boots", "accessory" };
@@ -73,13 +74,16 @@ namespace BiRyeoDo.Core
 
         public static int Need(ItemData material) { return IsFusable(material) ? FuseNeed[(int)material.Grade] : 0; }
 
-        /// <summary>1..7 with the 10/15/20/20/15/10/10% odds.</summary>
-        public static int RollCount(IRandom rng)
+        /// <summary>How many materials a dismantled piece of this grade gives (e.g. 일반 7..12, odds 10/20/30/20/10/10%).</summary>
+        public static int RollCount(ItemGrade grade, IRandom rng)
         {
+            int min = MinCount[Math.Max(0, Math.Min(MinCount.Length - 1, (int)grade))];
             int roll = (int)(rng.NextDouble() * 100.0), acc = 0;
-            for (int i = 0; i < CountOdds.Length; i++) { acc += CountOdds[i]; if (roll < acc) return i + 1; }
-            return CountOdds.Length;
+            for (int i = 0; i < CountOdds.Length; i++) { acc += CountOdds[i]; if (roll < acc) return min + i; }
+            return min + CountOdds.Length - 1;
         }
+
+        public static int MaxCount(ItemGrade grade) { return MinCount[(int)grade] + CountOdds.Length - 1; }
 
         /// <summary>A copy can be dismantled when it is a spare, or when it is the only copy and is not worn. 초월 gear cannot.</summary>
         public static bool CanDismantle(SaveData save, string id)
@@ -98,7 +102,7 @@ namespace BiRyeoDo.Core
             var mat = MaterialFor(item);
             if (mat == null) { error = "분해할 수 없는 물건입니다."; return null; }
             if (!CanDismantle(save, id)) { error = "착용 중인 하나뿐인 장비는 분해할 수 없습니다."; return null; }
-            int n = RollCount(rng);
+            int n = RollCount(item.Grade, rng);
             Inventory.Remove(save, id, 1);
             Inventory.Add(save, mat.Id, n);
             return new ItemStack(mat.Id, n);

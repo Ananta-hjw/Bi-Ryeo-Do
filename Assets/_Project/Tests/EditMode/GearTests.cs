@@ -92,7 +92,7 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(ItemKind.Material, mat.Kind);
             Assert.AreEqual(ItemGrade.Normal, mat.Grade);
             Assert.AreEqual(Salvage.IdOf(ItemKind.Weapon, ItemGrade.Normal), mat.Id);
-            Assert.That(got.Count, Is.InRange(1, 7));
+            Assert.That(got.Count, Is.InRange(7, 12));   // 일반: 7..12
             Assert.AreEqual(got.Count, Inventory.Count(save, mat.Id));
             // the last copy can go only when it is not worn
             Inventory.Equip(save, "iron_sword", out err);
@@ -111,15 +111,26 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void MaterialCountFollowsTheRequestedOdds()
+        public void MaterialCountFollowsTheRequestedRangesAndOdds()
         {
-            var rng = new SeededRandom(5);
-            var seen = new int[8];
-            const int n = 20000;
-            for (int i = 0; i < n; i++) seen[Salvage.RollCount(rng)]++;
-            Assert.AreEqual(0, seen[0]);
-            for (int c = 1; c <= 7; c++) Assert.AreEqual(Salvage.CountOdds[c - 1] / 100.0, seen[c] / (double)n, 0.02, "count " + c);
-            Assert.AreEqual(new[] { 10, 15, 20, 20, 15, 10, 10 }, Salvage.CountOdds);
+            Assert.AreEqual(new[] { 10, 20, 30, 20, 10, 10 }, Salvage.CountOdds);
+            Assert.AreEqual(new[] { 7, 5, 4, 3, 2 }, Salvage.MinCount);
+            var grades = new[] { ItemGrade.Normal, ItemGrade.Fine, ItemGrade.Rare, ItemGrade.Epic, ItemGrade.Legendary };
+            foreach (var g in grades)
+            {
+                var rng = new SeededRandom(5);
+                int min = Salvage.MinCount[(int)g];
+                var seen = new int[6];
+                const int n = 20000;
+                for (int i = 0; i < n; i++)
+                {
+                    int c = Salvage.RollCount(g, rng);
+                    Assert.That(c, Is.InRange(min, min + 5), g.ToString());
+                    seen[c - min]++;
+                }
+                for (int k = 0; k < 6; k++) Assert.AreEqual(Salvage.CountOdds[k] / 100.0, seen[k] / (double)n, 0.02, g + " count " + (min + k));
+                Assert.AreEqual(min + 5, Salvage.MaxCount(g));
+            }
         }
 
         [Test]
@@ -140,7 +151,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void FusingSpendsTheNeededMaterialsForARandomPieceOfTheNextGrade()
         {
-            Assert.AreEqual(new[] { 40, 30, 20, 15, 10 }, Salvage.FuseNeed);
+            Assert.AreEqual(new[] { 50, 40, 30, 20, 10 }, Salvage.FuseNeed);
             var save = new SaveData();
             string err;
             foreach (var grade in new[] { ItemGrade.Normal, ItemGrade.Fine, ItemGrade.Rare, ItemGrade.Epic, ItemGrade.Legendary })
