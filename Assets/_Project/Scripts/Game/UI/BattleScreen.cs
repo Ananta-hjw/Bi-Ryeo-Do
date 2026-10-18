@@ -473,6 +473,11 @@ namespace BiRyeoDo.Game.UI
                     if (levels > 0) RebuildPartyForNewLevel(stage);
                     SoundManager.Sfx(levels > 0 ? "levelup" : "win");
                     yield return Banner("승리!  경험 +" + exp + "  두 +" + doo + (drops.Count > 0 ? "\n획득: " + DescribeStacks(drops) : "") + (levels > 0 ? "\nLv." + save.Level + " 상승!" : "") + (_lastStarLine.Length > 0 ? "\n" + _lastStarLine : "") + (repLine.Length > 0 ? "\n" + repLine : ""), levels > 0 || drops.Count > 0 || _lastStarLine.Length > 0 ? 1.7f : 0.9f);
+                    if (levels > 0)
+                    {
+                        var hs = _party[0].Stats;
+                        yield return ShowResult("레벨 업!", "비류연이 Lv." + (save.Level - levels) + "에서 Lv." + save.Level + "(으)로 올랐습니다.\n\n체력 " + hs.MaxHp.ToString("N0") + "   내공 " + hs.MaxQi.ToString("N0") + "\n공격력 " + hs.Attack.ToString("N0") + "   방어력 " + hs.Defense.ToString("N0") + "   속도 " + hs.Speed.ToString("N0"), false);
+                    }
                     if (found.Count > 0)
                     {
                         GameManager.Instance.SaveNow();
