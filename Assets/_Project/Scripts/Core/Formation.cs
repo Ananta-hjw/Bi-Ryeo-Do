@@ -68,50 +68,74 @@ namespace BiRyeoDo.Core
 
         private static readonly int[] PartyRowOrder = { 1, 0, 2 };
 
+        /// <summary>How many of <paramref name="n"/> members stand in the front, middle and back line: 1 / 0 / 0, 1 / 0 / 1, 1 / 1 / 1, 2 / 1 / 1, 2 / 2 / 1, ...</summary>
+        private static int[] LineSizes(int n)
+        {
+            if (n <= 1) return new[] { n, 0, 0 };
+            if (n == 2) return new[] { 1, 0, 1 };
+            int back = Math.Max(1, n / 4 + (n >= 3 ? 1 : 0) - (n >= 7 ? 1 : 0));
+            back = Math.Min(back, (n - 1) / 2);
+            int front = (n - back + 1) / 2;
+            return new[] { front, n - front - back, back };
+        }
+
         /// <summary>
-        /// The automatic arrangement by role: the better defenders (the top half of the group, at least one) stand in the front line, the strongest attackers and
-        /// the healers stand in the back line. Within a line the most extreme member takes the middle row.
+        /// The automatic arrangement by role: the best defenders stand in the front line, the strongest attackers in the back line and the rest in the middle line.
+        /// A healer stands just in front of the attackers' line (middle), or at the back when the party is only two. Within a line the most extreme member takes the middle row.
         /// </summary>
         public static Dictionary<string, int[]> Auto(IList<string> ids, SaveData save)
         {
             if (save == null) return Auto(ids);
-            var scored = new List<KeyValuePair<string, double>>();
-            foreach (var id in ids) scored.Add(new KeyValuePair<string, double>(id, FrontScore(save, ids, id)));
-            // sturdiest first; the protagonist wins ties, then the list order
-            scored.Sort((a, b) =>
+            var scores = new Dictionary<string, double>();
+            double lowestFighter = double.MaxValue;
+            foreach (var id in ids)
             {
-                int c = b.Value.CompareTo(a.Value);
+                scores[id] = FrontScore(save, ids, id);
+                if (!IsHealer(id)) lowestFighter = Math.Min(lowestFighter, scores[id]);
+            }
+            if (lowestFighter == double.MaxValue) lowestFighter = 0.0;
+            // a healer is ranked just above the weakest fighter: one step in front of the back line
+            foreach (var id in ids) if (IsHealer(id)) scores[id] = lowestFighter + 0.0001;
+            var order = new List<string>(ids);
+            // sturdiest first; the protagonist wins ties, then the list order
+            order.Sort((a, b) =>
+            {
+                int c = scores[b].CompareTo(scores[a]);
                 if (c != 0) return c;
-                if (a.Key == HeroId) return -1;
-                if (b.Key == HeroId) return 1;
+                if (a == HeroId) return -1;
+                if (b == HeroId) return 1;
                 return 0;
             });
             var map = new Dictionary<string, int[]>();
-            if (scored.Count == 1) { map[scored[0].Key] = new[] { Board.PartyCols - 1, 1 }; return map; }
-            int front = (scored.Count + 1) / 2;
-            for (int i = 0; i < scored.Count; i++)
+            if (order.Count == 1) { map[order[0]] = new[] { Board.PartyCols - 1, 1 }; return map; }
+            var sizes = LineSizes(order.Count);
+            int next = 0;
+            for (int line = 0; line < 3; line++)
             {
-                bool inFront = i < front;
-                int col = inFront ? Board.PartyCols - 1 : 0;
-                int idx = inFront ? i : scored.Count - 1 - i;   // back line: the strongest attacker (lowest score) is the one in the middle row
-                map[scored[i].Key] = new[] { col, PartyRowOrder[idx % PartyRowOrder.Length] };
+                int col = Board.PartyCols - 1 - line;   // front line first
+                for (int k = 0; k < sizes[line]; k++, next++)
+                {
+                    // front line: the sturdiest in the middle row; middle and back lines: the one sorted last in the line takes the middle row (the strongest attacker)
+                    int idx = line == 0 ? k : sizes[line] - 1 - k;
+                    map[order[next]] = new[] { col, PartyRowOrder[idx % PartyRowOrder.Length] };
+                }
             }
             return map;
         }
 
         /// <summary>
-        /// Gives <paramref name="id"/> the best free tile next to the members already standing: the front line when its role ranks in the better-defending half of the
-        /// group, the back line otherwise (healers always), the middle row first. The members in <paramref name="map"/> stay where they are.
+        /// Gives <paramref name="id"/> the best free tile next to the members already standing: the line it would stand in if the whole group were arranged automatically,
+        /// the nearest line with room otherwise, the middle row first. The members in <paramref name="map"/> stay where they are.
         /// </summary>
         public static void PlaceNewcomer(SaveData save, IList<string> ids, Dictionary<string, int[]> map, string id)
         {
             var used = new HashSet<int>();
             foreach (var kv in map) if (kv.Key != id) used.Add(kv.Value[0] * 10 + kv.Value[1]);
-            double mine = FrontScore(save, ids, id);
-            int better = 0;
-            foreach (var other in ids) if (other != id && FrontScore(save, ids, other) > mine) better++;
-            bool wantFront = !IsHealer(id) && better < (ids.Count + 1) / 2;
-            int[] cols = wantFront ? new[] { Board.PartyCols - 1, 1, 0 } : new[] { 0, 1, Board.PartyCols - 1 };
+            var ideal = Auto(ids, save);
+            int[] want;
+            int idealCol = ideal.TryGetValue(id, out want) ? want[0] : Board.PartyCols - 1;
+            var cols = new List<int> { 0, 1, Board.PartyCols - 1 };
+            cols.Sort((a, b) => Math.Abs(a - idealCol).CompareTo(Math.Abs(b - idealCol)));
             foreach (int col in cols)
                 foreach (int row in PartyRowOrder)
                     if (used.Add(col * 10 + row)) { map[id] = new[] { col, row }; return; }

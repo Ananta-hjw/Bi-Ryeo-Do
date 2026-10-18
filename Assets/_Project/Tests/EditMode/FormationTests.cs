@@ -266,19 +266,24 @@ public class FormationTests
     }
 
     [Test]
-    public void SmartAutoPutsDefendersInFrontAndAttackersAndHealersBehind()
+    public void SmartAutoPutsDefendersInFrontAttackersBehindAndUsesTheMiddleLine()
     {
         var save = Late();
         var ids = new[] { "player", "hyo_ryong", "yun_junho", "jang_hong" };
         var map = Formation.Auto(ids, save);
         Assert.AreEqual(4, map.Values.Select(t => t[0] * 10 + t[1]).Distinct().Count());
-        Assert.AreEqual(0, map["yun_junho"][0], "the healer stays in the back line");
         var front = ids.Where(id => map[id][0] == Board.PartyCols - 1).ToList();
+        var mid = ids.Where(id => map[id][0] == 1).ToList();
         var back = ids.Where(id => map[id][0] == 0).ToList();
         Assert.AreEqual(2, front.Count);
-        Assert.AreEqual(2, back.Count);
-        foreach (var f in front) foreach (var b in back)
+        Assert.AreEqual(1, mid.Count, "the middle line is used");
+        Assert.AreEqual(1, back.Count);
+        Assert.AreNotEqual("yun_junho", back[0], "the healer stands in front of the strongest attacker");
+        foreach (var f in front) foreach (var b in mid.Concat(back).Where(x => x != "yun_junho"))
             Assert.GreaterOrEqual(Formation.FrontScore(save, ids, f), Formation.FrontScore(save, ids, b), f + " in front of " + b);
+        // three members: one per line
+        var three = Formation.Auto(new[] { "player", "hyo_ryong", "jang_hong" }, save);
+        CollectionAssert.AreEquivalent(new[] { 0, 1, 2 }, three.Values.Select(t => t[0]).ToList());
     }
 
     [Test]
@@ -293,7 +298,7 @@ public class FormationTests
         var after = Formation.Resolve(save, now);
         CollectionAssert.AreEqual(before["player"], after["player"]);
         CollectionAssert.AreEqual(before["hyo_ryong"], after["hyo_ryong"]);
-        Assert.AreEqual(0, after["yun_junho"][0], "a healer joins the back line");
+        Assert.AreEqual(1, after["yun_junho"][0], "a healer joins the middle line, between the defender and the attacker");
         Assert.AreEqual(3, after.Values.Select(t => t[0] * 10 + t[1]).Distinct().Count());
         // a companion who leaves frees the tile; the rest stay
         var smaller = new List<string> { "player", "yun_junho" };
