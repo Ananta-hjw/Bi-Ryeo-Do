@@ -140,7 +140,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void FusingSpendsTheNeededMaterialsForARandomPieceOfTheNextGrade()
         {
-            Assert.AreEqual(new[] { 100, 90, 70, 50, 30 }, Salvage.FuseNeed);
+            Assert.AreEqual(new[] { 40, 30, 20, 15, 10 }, Salvage.FuseNeed);
             var save = new SaveData();
             string err;
             foreach (var grade in new[] { ItemGrade.Normal, ItemGrade.Fine, ItemGrade.Rare, ItemGrade.Epic, ItemGrade.Legendary })

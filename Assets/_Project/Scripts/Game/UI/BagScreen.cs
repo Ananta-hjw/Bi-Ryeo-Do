@@ -364,6 +364,31 @@ namespace BiRyeoDo.Game.UI
             if (item != null && item.IsGear) DoEnhance(item);
         }
 
+        // ------------------------------------------------------------------ result pop-up (강화 / 분해 / 합성)
+
+        private RectTransform _notice;
+
+        /// <summary>A small modal over the bag that says what just happened; tapping 확인 (or anywhere outside) closes it.</summary>
+        private void ShowNotice(string title, string body, Color accent)
+        {
+            if (_notice == null)
+            {
+                _notice = UiFactory.Rect("Notice", transform as RectTransform, Vector2.zero, Vector2.one);
+                _notice.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.7f);
+                var closeBtn = _notice.gameObject.AddComponent<Button>();
+                closeBtn.transition = Selectable.Transition.None;
+                closeBtn.onClick.AddListener(() => _notice.gameObject.SetActive(false));
+            }
+            for (int i = _notice.childCount - 1; i >= 0; i--) Destroy(_notice.GetChild(i).gameObject);
+            _notice.gameObject.SetActive(true);
+            _notice.SetAsLastSibling();
+            var card = UiFactory.Panel("Card", _notice, new Vector2(0.10f, 0.32f), new Vector2(0.90f, 0.68f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            UiFactory.Frame(card.transform, accent, 3f);
+            UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.70f), new Vector2(0.95f, 0.95f), title, 40, accent);
+            UiFactory.Body(UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.30f), new Vector2(0.94f, 0.70f), body, 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal));
+            UiFactory.Button("Ok", card.transform, new Vector2(0.30f, 0.05f), new Vector2(0.70f, 0.26f), "확인", UiFactory.Red, () => _notice.gameObject.SetActive(false), 34);
+        }
+
         private void DoDismantle(ItemData item)
         {
             var save = GameManager.Instance.Save;
@@ -375,8 +400,12 @@ namespace BiRyeoDo.Game.UI
                 _flash = item.Name + " 분해: " + mat.Name + " x" + got.Count + " 획득";
                 SoundManager.Sfx("win");
                 GameManager.Instance.SaveNow();
+                Refresh();
+                ReopenDetail(item);
+                ShowNotice("분해 완료", UiFactory.GradedName(item) + "을(를) 분해했습니다.\n\n<color=" + UiFactory.GradeHex(mat.Grade) + ">" + mat.Name + "</color> <b>" + got.Count + "개</b> 획득\n(보유 " + Inventory.Count(save, mat.Id) + "개)", UiFactory.Gold);
+                return;
             }
-            else _flash = error;
+            _flash = error;
             Refresh();
             ReopenDetail(item);
         }
@@ -391,8 +420,12 @@ namespace BiRyeoDo.Game.UI
                 _flash = "합성 성공! " + Grades.NameOf(made.Grade) + " " + made.Name + " 획득";
                 SoundManager.Sfx(made.Grade >= ItemGrade.Legendary ? "gacha_mythic" : "levelup");
                 GameManager.Instance.SaveNow();
+                Refresh();
+                ReopenDetail(material);
+                ShowNotice("합성 성공", UiFactory.GradedName(made) + "\n" + StatusSheet.EffectText(made) + "\n\n재료 " + Salvage.Need(material) + "개를 사용했습니다.", UiFactory.Gold);
+                return;
             }
-            else _flash = error;
+            _flash = error;
             Refresh();
             ReopenDetail(material);
         }
@@ -403,11 +436,16 @@ namespace BiRyeoDo.Game.UI
             string error;
             if (Gear.Enhance(save, item.Id, out error))
             {
-                _flash = item.Name + " +" + Gear.Level(save, item.Id) + " 강화 성공!";
+                int lv = Gear.Level(save, item.Id);
+                _flash = item.Name + " +" + lv + " 강화 성공!";
                 SoundManager.Sfx("levelup");
                 GameManager.Instance.SaveNow();
+                Refresh();
+                ReopenDetail(item);
+                ShowNotice("강화 성공", UiFactory.GradedName(item) + " <b>+" + lv + "</b>\n" + StatusSheet.EffectText(item, lv) + "\n\n여분 " + Gear.Spares(save, item.Id) + "개 남음", UiFactory.Gold);
+                return;
             }
-            else _flash = error;
+            _flash = error;
             Refresh();
             ReopenDetail(item);
         }
