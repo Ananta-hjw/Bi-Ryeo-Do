@@ -26,7 +26,7 @@ namespace BiRyeoDo.Tests
         {
             // Fight a boss with a hero who never kills it fast: its 기세 must fill and burst at least once, and a heavy strike must cost 내공.
             var st = EarlyGameContent.FindStage(24);
-            var party = SimpleBot.BuildParty(24, st.RecommendedLevel);
+            var party = SimpleBot.BuildParty(24, st.RecommendedPlayerLevel);
             var enemies = st.Encounters[2].Select((id, i) => EarlyGameContent.FindEnemy(id).Scaled(20f, 1f).CreateCombatant(id + i)).ToList();   // long fight
             var battle = new InteractiveBattle(party, enemies, new SeededRandom(3));
             battle.Begin();

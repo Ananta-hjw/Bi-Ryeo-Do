@@ -181,7 +181,8 @@ namespace BiRyeoDo.Core
         public TrialRule[] Trials;
         public TrialRule TrialFor(int encounter) { return Trials != null && encounter < Trials.Length ? Trials[encounter] : null; }
 
-        public int RecommendedLevel;
+        public int RecommendedLevel;   // the enemy stat-curve level of the stage (1..65); the player level to bring is RecommendedPlayerLevel
+        public int RecommendedPlayerLevel { get { return Progression.PlayerLevelAt(RecommendedLevel); } }
         public long DooTotal;   // 두 for clearing the stage once (split by enemy weight)
         public bool IsTower;    // a 무한 비무대 floor (see Tower): no stage progress, own rewards
         public int TowerFloor;
@@ -1582,7 +1583,7 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
         }
 
         /// <summary>Levels a first-clear-only run stays above the recommended level from stage 2 on (a small cushion).</summary>
-        public const int LevelHeadroom = 1;
+        public const int LevelHeadroom = 0;
 
         /// <summary>Share of exp (not 두) paid when replaying an already cleared stage.</summary>
         public const double ReplayExpFactor = 0.5;
@@ -1592,8 +1593,8 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
         public static long ExpReward(StageData st, string enemyId)
         {
             var next = FindStage(st.Number + 1);
-            int to = (next != null ? next.RecommendedLevel : st.RecommendedLevel + 3) + LevelHeadroom;
-            int from = st.RecommendedLevel + (st.Number > 1 ? LevelHeadroom : 0);
+            int to = (next != null ? next.RecommendedPlayerLevel : st.RecommendedPlayerLevel + 1) + LevelHeadroom;
+            int from = st.RecommendedPlayerLevel + (st.Number > 1 ? LevelHeadroom : 0);
             long total = CumulativeExp(to) - CumulativeExp(from);
             return (long)Math.Ceiling((double)total * RewardWeight(enemyId) / TotalWeight(st));
         }

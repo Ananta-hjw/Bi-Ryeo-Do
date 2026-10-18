@@ -43,7 +43,7 @@ namespace BiRyeoDo.Core
         public static int OpponentLevel(int rank) { return 5 + 4 * rank; }
 
         /// <summary>Opponents never fall below the player's own level, so out-levelling a rank does not make its duels trivial.</summary>
-        public static int OpponentLevelFor(int rank, int playerLevel) { return Math.Max(OpponentLevel(rank), playerLevel); }
+        public static int OpponentLevelFor(int rank, int playerLevel) { return Math.Max(OpponentLevel(rank), (int)Math.Round(Progression.CurveLevel(playerLevel))); }
 
         /// <summary>HP and attack multiplier of a rank's opponents on top of the base tuning: gentle at the bottom, steep at the top (rank 2 x1.49, rank 6 x2.92, rank 10 x5.13, on both HP and attack).</summary>
         public static float HardnessBase = 1.35f, HardnessCoef = 0.14f;
@@ -97,7 +97,7 @@ namespace BiRyeoDo.Core
                 Title = RankName(targetRank) + " 승급 · " + TierName[tier] + (skip ? " (월반)" : ""),
                 DooReward = doo,
                 Fee = doo / 6,
-                ExpReward = (long)Math.Round(Progression.ExpToNext(Math.Max(lvl, save.Level)) * 0.6 * TierPay[tier]),
+                ExpReward = (long)Math.Round(Progression.ExpToNext(Math.Max(Progression.PlayerLevelAt(lvl), save.Level)) * 0.6 * TierPay[tier]),
                 Opponents = new[] { MakeOpponent(targetRank, tier, 0, save.Level), MakeOpponent(targetRank, tier, 1, save.Level) }
             };
         }

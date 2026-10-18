@@ -938,7 +938,7 @@ namespace BiRyeoDo.Game.UI
                 bool featCleared = save.ClearedStage >= _featStage.Number;
                 bool featOk = Promotion.StageAllowed(save, _featStage.Number);
                 _featTitle.text = "다음 목적지 · 스테이지 " + _featStage.Number + " " + _featStage.Name;
-                _featSub.text = "권장 Lv." + _featStage.RecommendedLevel + " · 전투 " + _featStage.Encounters.Length + "회" + PartyText(_featStage)
+                _featSub.text = "권장 Lv." + _featStage.RecommendedPlayerLevel + " · 전투 " + _featStage.Encounters.Length + "회" + PartyText(_featStage)
                     + (featOk ? "" : "\n" + Promotion.RankName(Promotion.GateRank) + " 이상이어야 참가할 수 있습니다");
                 _featBtnLabel.text = !featOk ? "승급 필요" : StageProgress.Has(save, _featStage.Number) ? "이어하기" : featCleared ? "재도전" : "출전";
                 _featBtn.interactable = featOk;

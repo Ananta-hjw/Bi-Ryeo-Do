@@ -37,8 +37,8 @@ namespace BiRyeoDo.Tests
         public void EarlyStagesStayInTheLowRealms()
         {
             // Stage 5 (level 13) is still 하급·중급 and stage 30 (level 65) has not reached 초절정.
-            Assert.LessOrEqual(Realm.StepOf(Realm.Power(Progression.HeroStatsFor(13))), 1);
-            Assert.Less(Realm.StepOf(Realm.Power(Progression.HeroStatsFor(65))), Realm.AnchorStep);
+            Assert.LessOrEqual(Realm.StepOf(Realm.Power(Progression.HeroStatsAtCurve(13))), 1);
+            Assert.Less(Realm.StepOf(Realm.Power(Progression.HeroStatsAtCurve(65))), Realm.AnchorStep);
         }
 
         [Test]

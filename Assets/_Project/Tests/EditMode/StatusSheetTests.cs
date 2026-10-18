@@ -9,9 +9,9 @@ namespace BiRyeoDo.Tests
         [Test]
         public void HeroLinesMatchWhatBattleUses()
         {
-            var save = new SaveData { Level = 10 };
+            var save = new SaveData { Level = 2 };   // low enough to stand on the first realm step (no realm bonus yet)
             var lines = StatusSheet.Hero(save);
-            var b = Promotion.ApplyRankBonus(Progression.HeroStatsFor(10), 1);   // 일검룡 already gives +3%
+            var b = Promotion.ApplyRankBonus(Progression.HeroStatsFor(2), 1);   // 일검룡 already gives +3%
             Assert.AreEqual(b.MaxHp.ToString("N0"), lines.First(l => l.Label == "체력").Value);
             Assert.AreEqual(b.Attack.ToString("N0"), lines.First(l => l.Label == "공격력").Value);
             Assert.AreEqual(InnerArts.HeroStats(save).Attack, b.Attack);

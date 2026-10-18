@@ -85,7 +85,7 @@ namespace BiRyeoDo.Tests
             int ok = 0;
             for (int r = 0; r < runs; r++)
             {
-                var ps = Progression.HeroStatsFor(Promotion.OpponentLevel(rank)); ps.MaxHp = (int)(ps.MaxHp * power); ps.Attack = (int)(ps.Attack * power); ps.Defense = (int)(ps.Defense * power);
+                var ps = Progression.HeroStatsAtCurve(Promotion.OpponentLevel(rank)); ps.MaxHp = (int)(ps.MaxHp * power); ps.Attack = (int)(ps.Attack * power); ps.Defense = (int)(ps.Defense * power);
                 var player = new Combatant("p", "비류연", Team.Player, ps, SimpleBot.BestLoadout(13));
                 bool lost = false;
                 for (int k = 0; k < 2 && !lost; k++)
@@ -123,8 +123,9 @@ namespace BiRyeoDo.Tests
             Assert.Greater(Promotion.HardnessFor(2), 1.3f);
             Assert.Greater(Promotion.HardnessFor(10), 2.5f);
             Assert.AreEqual(Promotion.OpponentLevel(3), Promotion.OpponentLevelFor(3, 1));
-            Assert.AreEqual(40, Promotion.OpponentLevelFor(3, 40));
-            Assert.AreEqual(40, Promotion.BuildOffer(new SaveData { SwordRank = 2, Level = 40, Doo = 1 }, 3, 1).Opponents[0].Level);
+            int curve40 = (int)System.Math.Round(Progression.CurveLevel(40));   // the opponent follows the player's stat-curve level
+            Assert.AreEqual(curve40, Promotion.OpponentLevelFor(3, 40));
+            Assert.AreEqual(curve40, Promotion.BuildOffer(new SaveData { SwordRank = 2, Level = 40, Doo = 1 }, 3, 1).Opponents[0].Level);
             Assert.Greater(Promotion.TurnLimitFor(10), Promotion.TurnLimitFor(2));
         }
 

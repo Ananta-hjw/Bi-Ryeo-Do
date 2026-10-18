@@ -10,7 +10,7 @@ namespace BiRyeoDo.Tests
         public void EventsCarryTheResourcesNeededToAnimateBars()
         {
             var st = EarlyGameContent.FindStage(1);
-            var party = SimpleBot.BuildParty(1, st.RecommendedLevel);
+            var party = SimpleBot.BuildParty(1, st.RecommendedPlayerLevel);
             var enemies = st.Encounters[0].Select((id, i) => EarlyGameContent.FindEnemy(id).CreateCombatant(id + i)).ToList();
             var battle = new InteractiveBattle(party, enemies, new SeededRandom(5));
             battle.Begin();

@@ -113,9 +113,9 @@ namespace BiRyeoDo.Tests
             foreach (var s in EarlyGameContent.Stages.Take(EarlyGameContent.Stages.Length - 1))
             {
                 int head = EarlyGameContent.LevelHeadroom;
-                var save = new SaveData { Level = s.RecommendedLevel + (s.Number > 1 ? head : 0) };
+                var save = new SaveData { Level = s.RecommendedPlayerLevel + (s.Number > 1 ? head : 0) };
                 foreach (var enc in s.Encounters) foreach (var id in enc) Progression.AddExp(save, EarlyGameContent.ExpReward(s, id));
-                Assert.GreaterOrEqual(save.Level, EarlyGameContent.FindStage(s.Number + 1).RecommendedLevel + head, s.Name);
+                Assert.GreaterOrEqual(save.Level, EarlyGameContent.FindStage(s.Number + 1).RecommendedPlayerLevel + head, s.Name);
             }
         }
 

@@ -64,6 +64,9 @@ namespace BiRyeoDo.Core
 
         public static double HeroPowerAtLevel(int level) { return Realm.Power(Progression.HeroStatsFor(level)); }
 
+        /// <summary>The hero's 종합 수치 on the enemy stat curve (a stage's <see cref="StageData.RecommendedLevel"/> is a curve level).</summary>
+        public static double HeroPowerAtCurve(double curveLevel) { return Realm.Power(Progression.HeroStatsAtCurve(curveLevel)); }
+
         private static double StrongestEnemy(StageData st)
         {
             double best = 0.0;
@@ -84,11 +87,11 @@ namespace BiRyeoDo.Core
         {
             if (st.IsTower) return ForTowerFloor(st.TowerFloor);
             int diff = st.IsQuest ? 0 : st.Difficulty;
-            double byLevel = HeroPowerAtLevel(st.RecommendedLevel + StageStars.LevelAdd(st.Number, diff));
+            double byLevel = HeroPowerAtCurve(st.RecommendedLevel + StageStars.LevelAdd(st.Number, diff));
             return diff == 0 ? byLevel : Math.Max(byLevel, VersusStrongest * StrongestEnemy(st));
         }
 
-        public static double ForTowerFloor(int floor) { return HeroPowerAtLevel(Tower.FloorLevel(floor)); }
+        public static double ForTowerFloor(int floor) { return HeroPowerAtCurve(Tower.FloorLevel(floor)); }
 
         public static double ForPromotion(PromotionOffer offer)
         {

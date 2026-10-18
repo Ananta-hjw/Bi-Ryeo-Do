@@ -222,7 +222,7 @@ namespace BiRyeoDo.Tests
             for (int seed = 0; seed < 300; seed++)
             {
                 var st = EarlyGameContent.FindStage(1);
-                var party = SimpleBot.BuildParty(1, st.RecommendedLevel);
+                var party = SimpleBot.BuildParty(1, st.RecommendedPlayerLevel);
                 var enemies = st.Encounters[0].Select((id, i) => EarlyGameContent.FindEnemy(id).CreateCombatant(id + i)).ToList();
                 var battle = new InteractiveBattle(party, enemies, new SeededRandom(seed));
                 battle.Begin();

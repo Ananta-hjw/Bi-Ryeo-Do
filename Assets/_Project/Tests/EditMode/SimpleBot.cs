@@ -75,7 +75,7 @@ namespace BiRyeoDo.Tests
 
         public static bool ClearStage(StageData st, int seed)
         {
-            var party = BuildParty(st.Number, st.RecommendedLevel);
+            var party = BuildParty(st.Number, st.RecommendedPlayerLevel);
             for (int k = 0; k < st.Encounters.Length; k++)
             {
                 var enemies = st.Encounters[k].Select((id, i) => (st.IsQuest ? Quests.Scale(st.QuestId, EarlyGameContent.FindEnemy(id)) : EarlyGameContent.FindEnemy(id)).CreateCombatant(id + i)).ToList();
