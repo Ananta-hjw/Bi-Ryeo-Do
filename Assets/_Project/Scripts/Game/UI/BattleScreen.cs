@@ -257,7 +257,7 @@ namespace BiRyeoDo.Game.UI
             rt.offsetMax = Vector2.zero;
         }
 
-        private static Sprite PortraitFor(string name) { return ArtLibrary.Portrait(name); }
+        private static Sprite PortraitFor(string name) { return ArtLibrary.Feathered(ArtLibrary.Portrait(name)); }   // soft edges so full-bleed pictures blend into the backdrop
 
         private static Color PortraitTint(string name) { return ArtLibrary.TintFor(name); }
 
