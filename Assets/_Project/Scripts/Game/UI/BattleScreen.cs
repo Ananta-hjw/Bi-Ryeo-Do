@@ -991,6 +991,9 @@ namespace BiRyeoDo.Game.UI
             {
                 float ratio = (float)_party[i].Hp / Math.Max(1, _party[i].Stats.MaxHp);
                 fresh[i].Hp = _party[i].IsAlive ? Math.Max(1, (int)Math.Round(fresh[i].Stats.MaxHp * ratio)) : 0;
+                // A fresh Combatant starts with full 내공 and no 기세: carry the old values over so levelling up never refills them
+                fresh[i].Qi = Math.Min(fresh[i].Stats.MaxQi, (int)Math.Round(fresh[i].Stats.MaxQi * (float)_party[i].Qi / Math.Max(1, _party[i].Stats.MaxQi)));
+                fresh[i].Spirit = _party[i].Spirit;
                 if (i < _panels.Count) _panels[i].Unit = fresh[i];
             }
             _party = fresh;

@@ -9,6 +9,7 @@ namespace BiRyeoDo.Core
     {
         public string Id;
         public int Hp;
+        public int Qi;       // 내공 left after the rest (0 in saves from before it was stored)
         public int Spirit;   // 기세 carries over inside a stage, so a resumed stage keeps it
     }
 
@@ -29,7 +30,7 @@ namespace BiRyeoDo.Core
             save.ProgressStage = stageNumber;
             save.ProgressNext = nextEncounter;
             save.ProgressHp = new List<MemberHp>();
-            foreach (var m in party) save.ProgressHp.Add(new MemberHp { Id = m.Id, Hp = m.Hp, Spirit = m.Spirit });
+            foreach (var m in party) save.ProgressHp.Add(new MemberHp { Id = m.Id, Hp = m.Hp, Qi = m.Qi, Spirit = m.Spirit });
         }
 
         public static void Clear(SaveData save)
@@ -55,6 +56,7 @@ namespace BiRyeoDo.Core
                 foreach (var h in save.ProgressHp) if (h.Id == m.Id) found = h;
                 if (found == null) { unmatched.Add(m); continue; }
                 m.Hp = Math.Max(1, Math.Min(m.Stats.MaxHp, found.Hp));
+                if (found.Qi > 0) m.Qi = Math.Min(m.Stats.MaxQi, found.Qi);
                 m.Spirit = Math.Max(m.Spirit, Math.Min(InteractiveBattle.MaxSpirit, found.Spirit));
                 ratioSum += (double)m.Hp / Math.Max(1, m.Stats.MaxHp);
                 ratioCount++;

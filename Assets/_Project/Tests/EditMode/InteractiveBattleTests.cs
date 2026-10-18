@@ -269,6 +269,19 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(50, p.Spirit);
         }
 
+        [Test]
+        public void StageProgressKeepsQiAndSpirit()
+        {
+            var p = Player(Stats(1000, 1, 0, 100));
+            p.Qi = 40; p.Spirit = 70;
+            var save = new SaveData();
+            StageProgress.Store(save, 3, 1, new[] { p });
+            var q = Player(Stats(1000, 1, 0, 100));
+            StageProgress.Restore(save, new[] { q });
+            Assert.AreEqual(40, q.Qi);
+            Assert.AreEqual(70, q.Spirit);
+        }
+
         // ---- party battles
 
         private static Combatant Ally(string id, CombatStats s, params SkillSpec[] skills)
