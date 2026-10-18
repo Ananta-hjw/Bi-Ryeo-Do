@@ -61,6 +61,7 @@ namespace BiRyeoDo.Core
             if (item.DefPct != 0f) parts.Add("방어 " + Pct(item.DefPct * m));
             if (item.SpeedAdd != 0) { int sp = (int)Math.Round(item.SpeedAdd * m); parts.Add("속도 " + (sp > 0 ? "+" : "") + sp); }
             if (item.CritAdd != 0f) parts.Add("치명타 " + Pct(item.CritAdd * m));
+            if (item.CritDmgAdd != 0f) parts.Add("치명타 피해 " + Pct(item.CritDmgAdd * m));
             return parts.Count == 0 ? "특별한 효과 없음" : string.Join("  ", parts);
         }
 

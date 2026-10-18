@@ -101,7 +101,7 @@ namespace BiRyeoDo.Core
 
         public static CombatStats ApplyGear(CombatStats stats, IEnumerable<string> equipped, IList<GearLevel> levels = null)
         {
-            float atk = 0f, def = 0f, hp = 0f, qi = 0f, crit = 0f;
+            float atk = 0f, def = 0f, hp = 0f, qi = 0f, crit = 0f, critDmg = 0f;
             float speed = 0f;
             var worn = new List<string>();
             foreach (var id in equipped)
@@ -110,7 +110,7 @@ namespace BiRyeoDo.Core
                 if (item == null || !item.IsGear) continue;
                 worn.Add(id);
                 float m = Gear.Multiplier(Gear.LevelOf(levels, id));
-                atk += item.AtkPct * m; def += item.DefPct * m; hp += item.HpPct * m; qi += item.QiPct * m; crit += item.CritAdd * m; speed += item.SpeedAdd * m;
+                atk += item.AtkPct * m; def += item.DefPct * m; hp += item.HpPct * m; qi += item.QiPct * m; crit += item.CritAdd * m; critDmg += item.CritDmgAdd * m; speed += item.SpeedAdd * m;
             }
             foreach (var set in Gear.Sets)
             {
@@ -125,6 +125,7 @@ namespace BiRyeoDo.Core
             stats.Defense = (int)Math.Round(stats.Defense * (1f + def));
             stats.Speed = Math.Max(1, stats.Speed + (int)Math.Round(speed));
             stats.CritRate = Math.Max(0f, Math.Min(1f, stats.CritRate + crit));
+            stats.CritDamage += critDmg;
             return stats;
         }
 

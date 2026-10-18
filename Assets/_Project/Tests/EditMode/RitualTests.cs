@@ -16,6 +16,8 @@ public class RitualTests
         save.LearnedInner.Add("supreme");
         save.InnerLevels.Add(new GearLevel { Id = "supreme", Level = InnerArts.MaxLevel });
         Clear(save, 30, 1);
+        Inventory.Add(save, Ritual.BladeId, 1);
+        save.GearLevels.Add(new GearLevel { Id = Ritual.BladeId, Level = Gear.MaxLevel });
         return save;
     }
 
@@ -36,7 +38,7 @@ public class RitualTests
     public void EveryConditionMustBeMetAndTheRewardComesOnlyOnce()
     {
         var save = new SaveData();
-        Assert.AreEqual(5, Ritual.Conditions(save).Count);
+        Assert.AreEqual(6, Ritual.Conditions(save).Count);
         Assert.IsFalse(Ritual.CanComplete(save));
         Assert.IsNull(Ritual.Complete(save));
         Assert.AreEqual(0, Inventory.Count(save, Ritual.RewardId));
@@ -49,6 +51,13 @@ public class RitualTests
         save.InnerLevels[0].Level = 4;
         Assert.IsFalse(Ritual.CanComplete(save), "무극대성 must be fully enhanced");
         save.InnerLevels[0].Level = InnerArts.MaxLevel;
+        save.GearLevels.First(l => l.Id == Ritual.BladeId).Level = Gear.MaxLevel - 1;
+        Assert.IsFalse(Ritual.CanComplete(save), "비뢰도 낙뢰 must be +10");
+        save.GearLevels.First(l => l.Id == Ritual.BladeId).Level = Gear.MaxLevel;
+        Inventory.Remove(save, Ritual.BladeId, 1);
+        Assert.IsFalse(Ritual.CanComplete(save), "비뢰도 낙뢰 must be owned");
+        Inventory.Add(save, Ritual.BladeId, 1);
+        save.GearLevels.Add(new GearLevel { Id = Ritual.BladeId, Level = Gear.MaxLevel });
 
         Assert.IsNotNull(Ritual.Complete(save));
         Assert.IsTrue(save.RitualDone);

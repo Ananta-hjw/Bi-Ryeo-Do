@@ -31,7 +31,7 @@ namespace BiRyeoDo.Game.UI
 
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "전승의식", 44, UiFactory.Gold);
             UiFactory.Body(UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.92f),
-                toast ?? "봉뢰함의 진비뢰도를 쓰려면 전승의식을 마쳐야 합니다. 아래 다섯 가지를 모두 갖추면 의식을 치를 수 있습니다.", 24, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal));
+                toast ?? "봉뢰함의 진비뢰도를 쓰려면 전승의식을 마쳐야 합니다. 아래 여섯 가지를 모두 갖추면 의식을 치를 수 있습니다.", 24, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal));
 
             var sword = EarlyGameContent.FindItem(Ritual.RewardId);
             var conditions = Ritual.Conditions(save);

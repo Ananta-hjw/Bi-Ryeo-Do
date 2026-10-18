@@ -22,6 +22,7 @@ namespace BiRyeoDo.Core
 
         // Gear (protagonist only)
         public float AtkPct, DefPct, HpPct, QiPct, CritAdd;
+        public float CritDmgAdd;   // added to the 치명타 피해 multiplier (0.30 = +30%p, so 150% becomes 180%)
         public int SpeedAdd;
 
         public bool IsGear { get { return Kind == ItemKind.Weapon || Kind == ItemKind.Accessory || Kind == ItemKind.Armor || Kind == ItemKind.Pants || Kind == ItemKind.Boots; } }
