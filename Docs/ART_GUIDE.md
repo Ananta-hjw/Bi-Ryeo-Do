@@ -7,7 +7,7 @@
 | 위치 | 파일 이름 | 규격 |
 |---|---|---|
 | `Resources/Art/Backgrounds/` | `stage_01.png` … `stage_30.png` | 세로 1080×1920 (또는 9:16), 전투 화면 배경 |
-| `Resources/Art/Enemies/` | 아래 표의 id (예: `tiger.png`) | **투명 배경 PNG**, 512~1024px 정사각 |
+| `Resources/Art/Characters/` | 아래 표의 id (예: `tiger.png`) | **투명 배경 PNG**, 512~1024px 정사각 |
 | `Resources/Art/Characters/` | `player.png` | 투명 배경 PNG, 512px 정사각 (상반신 권장) |
 
 - PNG/JPG 모두 된다. 배경은 JPG로 해도 된다(이름만 `.jpg`).
@@ -35,7 +35,7 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 
 ## 전투용 SD 캐릭터 (`Resources/Art/Battle/<id>.png`)
 전투 화면에서만 쓰는 작은 SD(2등신) 그림이다. 파일이 있으면 전투가 이 그림을 쓰고, 없으면 예전처럼 큰 그림(`Characters`, `Enemies`)이나 글자 블록으로 그린다. 대화·상태창·로비·도감은 계속 큰 그림을 쓴다.
-- 이름: 주인공 `player.png`, 동료는 동료 id(`hyo_ryong.png` 등), 적은 `ArtKey`(`Enemies/` 그림 이름과 같다).
+- 이름: 주인공 `player.png`, 동료는 동료 id(`hyo_ryong.png` 등), 적은 `ArtKey`(`Characters/` 그림 이름과 같다).
 - 형식: 배경이 투명한 PNG. 인물마다 캔버스 크기를 같게(권장 정사각 384x384 또는 가로 480x세로 384), 발끝을 하단 중앙에 둔다. 무기가 옆으로 나와도 캔버스 안에 들어가야 한다.
 - 방향: **모두 오른쪽을 보게** 그린다. 적은 코드가 좌우로 뒤집어 왼쪽을 보게 한다.
 - 크기: 비율을 유지한 채 전투 칸의 그림 영역(칸 폭의 96%, 칸 높이의 60%)에 맞춰 들어간다.

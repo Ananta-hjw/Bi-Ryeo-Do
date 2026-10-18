@@ -5,7 +5,7 @@ namespace BiRyeoDo.Game.Systems
 {
     /// <summary>
     /// Optional artwork dropped into <c>Assets/_Project/Resources/Art</c>. Files are matched by name, so nothing has to be wired up:
-    /// <c>Backgrounds/stage_01.png</c>, <c>Enemies/tiger.png</c> (enemy id), <c>Characters/player.png</c>, <c>Items/laundry_bat.png</c> (item id). A file is found in either <c>Enemies</c> or <c>Characters</c> (by id), so a misplaced upload still works.
+    /// <c>Backgrounds/stage_01.png</c>, <c>Characters/tiger.png</c> (enemy id), <c>Characters/player.png</c>, <c>Items/laundry_bat.png</c> (item id). Player, companions, enemies and story-only NPCs all live in <c>Characters</c>, found by id.
     /// Any missing file returns null and the UI falls back to its flat-colour placeholder.
     /// Textures are turned into sprites at runtime, so the PNG import settings do not matter.
     /// </summary>
@@ -14,7 +14,7 @@ namespace BiRyeoDo.Game.Systems
         private static readonly Dictionary<string, Sprite> Cache = new Dictionary<string, Sprite>();
 
         public static Sprite Background(int stageNumber) { return Load("Backgrounds/stage_" + stageNumber.ToString("00")); }
-        public static Sprite Enemy(string enemyId) { return Load("Enemies/" + enemyId) ?? Load("Characters/" + enemyId); }
+        public static Sprite Enemy(string enemyId) { return Load("Characters/" + enemyId); }
         /// <summary>Home-screen button icon: <c>Icons/&lt;key&gt;.png</c> (daily, quest, fortune, star, tower, stage, promotion, party).</summary>
         public static Sprite Icon(string key) { return Load("Icons/" + key); }
         /// <summary>Item picture: <c>Items/&lt;item id&gt;.png</c>, else the kind's default <c>Items/_weapon|_armor|_pants|_boots|_accessory|_consumable|_material|_key.png</c>.</summary>
@@ -29,7 +29,7 @@ namespace BiRyeoDo.Game.Systems
         public static Sprite Chibi(string id) { return string.IsNullOrEmpty(id) ? null : Load("Battle/" + id); }
         public static Sprite Player() { return Load("Characters/player"); }
         /// <summary>Party member portrait: <c>Characters/&lt;id&gt;.png</c> (e.g. hyo_ryong.png).</summary>
-        public static Sprite Companion(string companionId) { return Load("Characters/" + companionId) ?? Load("Enemies/" + companionId); }
+        public static Sprite Companion(string companionId) { return Load("Characters/" + companionId); }
 
         /// <summary>Portrait by character name: the protagonist, a companion, or an enemy/NPC whose name matches (e.g. 나예린 → the 빙백봉 art).</summary>
         public static Sprite Portrait(string name)

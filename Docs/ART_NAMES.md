@@ -1,6 +1,6 @@
 # 캐릭터 그림 파일 이름표
 
-그림 파일은 아래 **파일 이름**(영문 id) 그대로 `Assets/_Project/Resources/Art/Characters/` 에 넣으면 된다 (`Enemies/` 폴더에 넣어도 인식한다). 확장자는 `.png`. 이름이 다르면 그냥 색 블록으로 나온다.
+그림 파일은 아래 **파일 이름**(영문 id) 그대로 `Assets/_Project/Resources/Art/Characters/` 에 넣으면 된다. 확장자는 `.png`. 이름이 다르면 그냥 색 블록으로 나온다.
 
 외형 묘사와 특징은 `Docs/ART_LOOKS.md`에 따로 정리했다.
 
@@ -18,7 +18,7 @@
 | 나예린 | `na_yerin.png` | **아군** (침투 시험 장면에서도 아군) | 있음 |
 | 임성진 | `im_seongjin.png` | **아군** | 있음 |
 
-## 적·등장인물 (Enemies/ 또는 Characters/ <파일 이름>.png)
+## 적·등장인물 (Characters/ <파일 이름>.png)
 
 | 이름 | 파일 이름 | 진영 | 구분 | 그림 |
 |---|---|---|---|---|
