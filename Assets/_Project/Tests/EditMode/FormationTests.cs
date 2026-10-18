@@ -44,9 +44,12 @@ public class FormationTests
         // a companion who is not in the party any more: the saved tiles still fit the three who are
         var two = Formation.Resolve(save, new[] { "player", "yun_junho" });
         CollectionAssert.AreEqual(new[] { 2, 1 }, two["yun_junho"]);
-        // a newcomer without a saved tile: back to the automatic arrangement
+        // a newcomer without a saved tile: the others stay where they are, the newcomer takes a free tile
         var four = Formation.Resolve(save, new[] { "player", "hyo_ryong", "yun_junho", "jang_hong" });
-        CollectionAssert.AreEqual(Formation.Auto(new[] { "player", "hyo_ryong", "yun_junho", "jang_hong" })["player"], four["player"]);
+        CollectionAssert.AreEqual(map["player"], four["player"]);
+        CollectionAssert.AreEqual(map["hyo_ryong"], four["hyo_ryong"]);
+        CollectionAssert.AreEqual(map["yun_junho"], four["yun_junho"]);
+        Assert.AreEqual(4, four.Values.Select(t => t[0] * 10 + t[1]).Distinct().Count());
         Formation.Reset(save);
         Assert.IsFalse(save.PlacementCustom);
     }
@@ -255,5 +258,48 @@ public class FormationTests
         Assert.AreEqual(1, EarlyGameContent.FindArt("jh_stun").EffectiveRange, "점혈");
         Assert.AreEqual(1, EarlyGameContent.FindArt("yeobanjang").EffectiveRange, "ordinary arts reach the front line only");
         Assert.AreEqual(4, EarlyGameContent.FindArt("bi_roe_do").ToSpec().Range);
+    }
+
+    private static SaveData Late()
+    {
+        return new SaveData { Level = 40, ClearedStage = 30 };
+    }
+
+    [Test]
+    public void SmartAutoPutsDefendersInFrontAndAttackersAndHealersBehind()
+    {
+        var save = Late();
+        var ids = new[] { "player", "hyo_ryong", "yun_junho", "jang_hong" };
+        var map = Formation.Auto(ids, save);
+        Assert.AreEqual(4, map.Values.Select(t => t[0] * 10 + t[1]).Distinct().Count());
+        Assert.AreEqual(0, map["yun_junho"][0], "the healer stays in the back line");
+        var front = ids.Where(id => map[id][0] == Board.PartyCols - 1).ToList();
+        var back = ids.Where(id => map[id][0] == 0).ToList();
+        Assert.AreEqual(2, front.Count);
+        Assert.AreEqual(2, back.Count);
+        foreach (var f in front) foreach (var b in back)
+            Assert.GreaterOrEqual(Formation.FrontScore(save, ids, f), Formation.FrontScore(save, ids, b), f + " in front of " + b);
+    }
+
+    [Test]
+    public void ANewcomerTakesTheBestFreeTileAndNobodyElseMoves()
+    {
+        var save = Late();
+        var old = new List<string> { "player", "hyo_ryong" };
+        var before = Formation.Resolve(save, old);
+        var now = new List<string> { "player", "hyo_ryong", "yun_junho" };
+        Formation.OnPartyChanged(save, old, now);
+        Assert.IsTrue(save.PlacementCustom);
+        var after = Formation.Resolve(save, now);
+        CollectionAssert.AreEqual(before["player"], after["player"]);
+        CollectionAssert.AreEqual(before["hyo_ryong"], after["hyo_ryong"]);
+        Assert.AreEqual(0, after["yun_junho"][0], "a healer joins the back line");
+        Assert.AreEqual(3, after.Values.Select(t => t[0] * 10 + t[1]).Distinct().Count());
+        // a companion who leaves frees the tile; the rest stay
+        var smaller = new List<string> { "player", "yun_junho" };
+        Formation.OnPartyChanged(save, now, smaller);
+        var last = Formation.Resolve(save, smaller);
+        CollectionAssert.AreEqual(after["player"], last["player"]);
+        CollectionAssert.AreEqual(after["yun_junho"], last["yun_junho"]);
     }
 }

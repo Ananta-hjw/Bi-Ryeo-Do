@@ -851,6 +851,8 @@ namespace BiRyeoDo.Game.UI
             int stage = Math.Max(1, save.HighestUnlockedStage);
             var picked = new List<string>();
             foreach (var x in EarlyGameContent.SelectCompanionsFor(stage, save)) picked.Add(x.Id);
+            var oldIds = new List<string> { Formation.HeroId };
+            oldIds.AddRange(picked);
             if (picked.Contains(c.Id))
             {
                 picked.Remove(c.Id);                                   // 출전 → 대기
@@ -863,6 +865,9 @@ namespace BiRyeoDo.Game.UI
             }
             else return;   // already full: bench someone first
             save.ActiveCompanions = picked;
+            var newIds = new List<string> { Formation.HeroId };
+            newIds.AddRange(picked);
+            Formation.OnPartyChanged(save, oldIds, newIds);   // the others stay put, a newcomer takes the best free tile
             GameManager.Instance.SaveNow();
             OpenPartyOverlay();
         }
