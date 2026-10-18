@@ -195,19 +195,19 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void HardNeedsLevelEightAndExtremeLevelFifteen()
+        public void HardNeedsLevelTenAndExtremeLevelTwenty()
         {
-            var save = new SaveData { Level = 7 };
+            var save = new SaveData { Level = 9 };
             int last = StageStars.FightCount(1) - 1;
             StageStars.Record(save, 1, last, 0, 1);
             Assert.IsFalse(StageStars.Unlocked(save, 1, 1));
-            StringAssert.Contains("Lv.8", StageStars.LockLabel(save, 1, 1));
-            save.Level = 8;
+            StringAssert.Contains("Lv.10", StageStars.LockLabel(save, 1, 1));
+            save.Level = 10;
             Assert.IsTrue(StageStars.Unlocked(save, 1, 1));
             StageStars.Record(save, 1, last, 1, 1);
-            Assert.IsFalse(StageStars.Unlocked(save, 1, 2));    // cleared on 어려움 but level 8 < 15
-            StringAssert.Contains("Lv.15", StageStars.LockLabel(save, 1, 2));
-            save.Level = 15;
+            Assert.IsFalse(StageStars.Unlocked(save, 1, 2));    // cleared on 어려움 but level 10 < 20
+            StringAssert.Contains("Lv.20", StageStars.LockLabel(save, 1, 2));
+            save.Level = 20;
             Assert.IsTrue(StageStars.Unlocked(save, 1, 2));
             Assert.AreEqual("", StageStars.LockLabel(save, 1, 0));
         }

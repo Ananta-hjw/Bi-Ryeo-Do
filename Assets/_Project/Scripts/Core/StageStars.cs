@@ -213,7 +213,7 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>Protagonist level needed before a difficulty can be entered at all: 어려움 from level 20, 극악 from level 40.</summary>
-        public static readonly int[] MinLevel = { 0, 8, 15 };   // player levels (stage 30 on 일반 is level 25)
+        public static readonly int[] MinLevel = { 0, 10, 20 };   // player levels (stage 30 on 일반 is level 25)
 
         /// <summary>
         /// A harder difficulty needs the protagonist level, then opens stage by stage: the same stage must be cleared on the difficulty
