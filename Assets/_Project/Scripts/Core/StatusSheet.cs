@@ -85,10 +85,20 @@ namespace BiRyeoDo.Core
             return null;
         }
 
-        /// <summary>The equipped armor (null when none).</summary>
+        /// <summary>The equipped 상의 (null when none).</summary>
         public static ItemData Armor(SaveData save)
         {
             foreach (var id in save.EquippedGear) { var it = EarlyGameContent.FindItem(id); if (it != null && it.Kind == ItemKind.Armor) return it; }
+            return null;
+        }
+
+        public static ItemData Pants(SaveData save) { return OfKind(save, ItemKind.Pants); }
+
+        public static ItemData Boots(SaveData save) { return OfKind(save, ItemKind.Boots); }
+
+        private static ItemData OfKind(SaveData save, ItemKind kind)
+        {
+            foreach (var id in save.EquippedGear) { var it = EarlyGameContent.FindItem(id); if (it != null && it.Kind == kind) return it; }
             return null;
         }
 

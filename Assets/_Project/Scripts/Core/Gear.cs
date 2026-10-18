@@ -84,26 +84,28 @@ namespace BiRyeoDo.Core
             return new SetTier { Pieces = pieces, AtkPct = atk, DefPct = def, HpPct = hp, QiPct = qi, CritAdd = crit, SpeedAdd = speed };
         }
 
+        // A set can list up to six pieces (weapon, 상의, 하의, 신발, two accessories); a Transcendent weapon may stand beside the weapon it replaces.
         public static readonly GearSet[] Sets =
         {
-            new GearSet { Id = "training", Name = "수련 시절", Items = new[] { "laundry_bat", "cloth_robe", "mukryonghwan", "claw_necklace" },
-                Tiers = new[] { T(2, atk: 0.03f), T(3, hp: 0.05f), T(4, atk: 0.04f, def: 0.04f) } },
-            new GearSet { Id = "ironwall", Name = "철벽", Items = new[] { "dumok_spear", "mountain_armor", "iron_bracer", "bronze_gauntlet" },
-                Tiers = new[] { T(2, def: 0.04f), T(3, hp: 0.06f), T(4, def: 0.06f, atk: 0.03f) } },
-            new GearSet { Id = "galewind", Name = "질풍", Items = new[] { "windcut_sword", "silk_battle_robe", "wind_boots", "straw_sandals" },
-                Tiers = new[] { T(2, speed: 2), T(3, crit: 0.03f), T(4, atk: 0.04f, speed: 3) } },
-            new GearSet { Id = "frost", Name = "한빙", Items = new[] { "frost_sword", "blackturtle_cloak", "snowlotus_charm", "moonlight_pendant" },
-                Tiers = new[] { T(2, def: 0.04f), T(3, crit: 0.03f), T(4, atk: 0.06f, qi: 0.10f) } },
-            new GearSet { Id = "flame", Name = "적염", Items = new[] { "crimson_saber", "crimson_longcoat", "phoenix_feather", "bloodjade_bracelet" },
-                Tiers = new[] { T(2, atk: 0.04f), T(3, hp: 0.06f), T(4, atk: 0.08f, crit: 0.04f) } },
-            new GearSet { Id = "thunder", Name = "뇌전", Items = new[] { "thunder_dagger", "thunder_beads", "thunder_crown" },
-                Tiers = new[] { T(2, crit: 0.03f), T(3, atk: 0.08f, speed: 2) } },
-            new GearSet { Id = "dragon", Name = "용", Items = new[] { "dragonfang_sword", "dragonscale_armor", "dragon_pearl" },
-                Tiers = new[] { T(2, hp: 0.05f), T(3, atk: 0.08f, def: 0.08f) } },
-            new GearSet { Id = "biroe", Name = "비뢰", Items = new[] { "jin_biroedo", "roegeum", "mukrin_talisman" },
-                Tiers = new[] { T(2, atk: 0.04f, crit: 0.02f), T(3, atk: 0.10f, speed: 3) } },
-            new GearSet { Id = "emperor", Name = "제왕", Items = new[] { "heaven_cutter", "taegeuk_jade", "emperor_seal" },
-                Tiers = new[] { T(2, atk: 0.05f, hp: 0.05f), T(3, atk: 0.10f, def: 0.08f, hp: 0.08f) } },
+            new GearSet { Id = "training", Name = "수련 시절", Items = new[] { "laundry_bat", "cloth_robe", "train_pants", "straw_sandals", "mukryonghwan", "claw_necklace" },
+                Tiers = new[] { T(2, atk: 0.02f), T(3, hp: 0.04f), T(4, def: 0.03f, hp: 0.03f), T(5, atk: 0.03f, speed: 1), T(6, atk: 0.04f, def: 0.04f, hp: 0.04f) } },
+            new GearSet { Id = "ironwall", Name = "철벽", Items = new[] { "dumok_spear", "mountain_armor", "ironwall_greaves", "ironwall_boots", "iron_bracer", "bronze_gauntlet" },
+                Tiers = new[] { T(2, def: 0.04f), T(3, hp: 0.05f), T(4, def: 0.05f, hp: 0.04f), T(5, atk: 0.03f, def: 0.05f), T(6, atk: 0.04f, def: 0.08f, hp: 0.08f) } },
+            new GearSet { Id = "galewind", Name = "질풍", Items = new[] { "windcut_sword", "silk_battle_robe", "gale_pants", "wind_boots", "gale_feather" },
+                Tiers = new[] { T(2, speed: 2), T(3, crit: 0.03f), T(4, atk: 0.04f, speed: 3), T(5, atk: 0.05f, crit: 0.03f, speed: 3) } },
+            new GearSet { Id = "frost", Name = "한빙", Items = new[] { "frost_sword", "blackturtle_cloak", "frost_pants", "frost_boots", "snowlotus_charm", "moonlight_pendant" },
+                Tiers = new[] { T(2, def: 0.04f), T(3, crit: 0.03f), T(4, atk: 0.05f, qi: 0.10f), T(5, def: 0.06f, crit: 0.03f), T(6, atk: 0.06f, def: 0.06f, qi: 0.12f) } },
+            new GearSet { Id = "flame", Name = "적염", Items = new[] { "crimson_saber", "crimson_longcoat", "flame_pants", "flame_boots", "phoenix_feather", "bloodjade_bracelet" },
+                Tiers = new[] { T(2, atk: 0.04f), T(3, hp: 0.05f), T(4, atk: 0.06f, crit: 0.03f), T(5, hp: 0.06f, speed: 2), T(6, atk: 0.10f, crit: 0.05f, hp: 0.06f) } },
+            new GearSet { Id = "thunder", Name = "뇌전", Items = new[] { "thunder_dagger", "thunder_robe", "thunder_pants", "thunder_boots", "thunder_beads", "thunder_crown" },
+                Tiers = new[] { T(2, crit: 0.03f), T(3, atk: 0.06f, speed: 2), T(4, atk: 0.06f, crit: 0.03f), T(5, qi: 0.10f, speed: 3), T(6, atk: 0.10f, crit: 0.06f, speed: 3) } },
+            new GearSet { Id = "dragon", Name = "용", Items = new[] { "dragonfang_sword", "dragonscale_armor", "dragon_greaves", "dragon_boots", "dragon_pearl" },
+                Tiers = new[] { T(2, hp: 0.05f), T(3, atk: 0.06f, def: 0.06f), T(4, atk: 0.06f, def: 0.06f, hp: 0.06f), T(5, atk: 0.10f, def: 0.10f, hp: 0.08f, qi: 0.10f) } },
+            // The strongest set in the game: six pieces, every tier above the other sets' (the Transcendent 진비뢰도 counts as the weapon piece too).
+            new GearSet { Id = "biroe", Name = "비뢰", Items = new[] { "biroe_blade", "jin_biroedo", "biroe_robe", "biroe_pants", "biroe_boots", "roegeum", "mukrin_talisman" },
+                Tiers = new[] { T(2, atk: 0.05f, crit: 0.03f), T(3, atk: 0.08f, speed: 3), T(4, atk: 0.08f, def: 0.08f, hp: 0.08f, crit: 0.03f), T(5, atk: 0.10f, crit: 0.04f, speed: 4, qi: 0.10f), T(6, atk: 0.15f, def: 0.10f, hp: 0.10f, crit: 0.05f, speed: 5, qi: 0.15f) } },
+            new GearSet { Id = "emperor", Name = "제왕", Items = new[] { "heaven_cutter", "emperor_robe", "emperor_pants", "emperor_boots", "taegeuk_jade", "emperor_seal" },
+                Tiers = new[] { T(2, atk: 0.05f, hp: 0.05f), T(3, atk: 0.06f, def: 0.06f), T(4, hp: 0.08f, def: 0.08f), T(5, atk: 0.08f, crit: 0.03f, speed: 3), T(6, atk: 0.12f, def: 0.10f, hp: 0.10f) } },
         };
 
         public static GearSet SetOf(string itemId)

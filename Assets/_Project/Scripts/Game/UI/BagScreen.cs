@@ -29,9 +29,9 @@ namespace BiRyeoDo.Game.UI
         private RectTransform _content;
         private int _filter;                       // 0 all, 1 gear, 2 consumables, 3 materials & keys
         private readonly Image[] _filterTabs = new Image[4];
-        private int _gearFilter;                   // within 장비: 0 all, 1 weapon, 2 armor, 3 accessory
-        private readonly Image[] _gearTabs = new Image[4];
-        private static readonly string[] GearFilterNames = { "전체", "무기", "방어구", "장신구" };
+        private int _gearFilter;                   // within 장비: 0 all, 1 weapon, 2 상의, 3 하의, 4 신발, 5 accessory
+        private readonly Image[] _gearTabs = new Image[6];
+        private static readonly string[] GearFilterNames = { "전체", "무기", "상의", "하의", "신발", "장신구" };
         private RectTransform _viewport;
         private GameObject _gearTabRow;
         private static readonly string[] FilterNames = { "전체", "장비", "소모품", "재료" };
@@ -56,13 +56,13 @@ namespace BiRyeoDo.Game.UI
                 _filterTabs[t] = btn.GetComponent<Image>();
             }
 
-            // Second row, only on the 장비 tab: weapon / armor / accessory
+            // Second row, only on the 장비 tab: weapon / 상의 / 하의 / 신발 / accessory
             _gearTabRow = UiFactory.Rect("GearTabs", root, new Vector2(0f, 0.728f), new Vector2(1f, 0.768f)).gameObject;
             for (int t = 0; t < GearFilterNames.Length; t++)
             {
                 int tab = t;
-                float x0 = 0.10f + t * 0.20f;   // smaller and indented so they read as sub-tabs of 장비
-                var btn = UiFactory.Button("GearFilter" + t, _gearTabRow.transform, new Vector2(x0, 0.06f), new Vector2(x0 + 0.185f, 0.94f), GearFilterNames[t], UiFactory.InkSoft, () => { _gearFilter = tab; Refresh(); }, 20);
+                float x0 = 0.04f + t * 0.16f;   // smaller and indented so they read as sub-tabs of 장비
+                var btn = UiFactory.Button("GearFilter" + t, _gearTabRow.transform, new Vector2(x0, 0.06f), new Vector2(x0 + 0.15f, 0.94f), GearFilterNames[t], UiFactory.InkSoft, () => { _gearFilter = tab; Refresh(); }, 20);
                 _gearTabs[t] = btn.GetComponent<Image>();
             }
 
@@ -202,7 +202,9 @@ namespace BiRyeoDo.Game.UI
             switch (item.Kind)
             {
                 case ItemKind.Weapon: return "무기";
-                case ItemKind.Armor: return "방어구";
+                case ItemKind.Armor: return "상의";
+                case ItemKind.Pants: return "하의";
+                case ItemKind.Boots: return "신발";
                 case ItemKind.Accessory: return "장신구";
                 case ItemKind.Consumable: return item.MasteryUses > 0 ? "수련서 (행낭에서 사용)" : "소모품 (전투 중 사용)";
                 case ItemKind.Material: return "재료";
@@ -359,15 +361,15 @@ namespace BiRyeoDo.Game.UI
 
         private static string GearLine(SaveData save)
         {
-            string weapon = "없음", armor = "없음";
+            string weapon = "없음", armor = "없음", pants = "없음", boots = "없음";
             var acc = new List<string>();
             foreach (var id in save.EquippedGear)
             {
                 var it = EarlyGameContent.FindItem(id);
                 if (it == null) continue;
-                if (it.Kind == ItemKind.Weapon) weapon = it.Name; else if (it.Kind == ItemKind.Armor) armor = it.Name; else acc.Add(it.Name);
+                if (it.Kind == ItemKind.Weapon) weapon = it.Name; else if (it.Kind == ItemKind.Armor) armor = it.Name; else if (it.Kind == ItemKind.Pants) pants = it.Name; else if (it.Kind == ItemKind.Boots) boots = it.Name; else acc.Add(it.Name);
             }
-            return "무기: " + weapon + "  ·  방어구: " + armor + "  ·  장신구: " + (acc.Count == 0 ? "없음" : string.Join(", ", acc)) + " (" + acc.Count + "/" + Inventory.AccessorySlots + ")";
+            return "무기: " + weapon + "  ·  상의: " + armor + "  ·  하의: " + pants + "  ·  신발: " + boots + "  ·  장신구: " + (acc.Count == 0 ? "없음" : string.Join(", ", acc)) + " (" + acc.Count + "/" + Inventory.AccessorySlots + ")";
         }
 
         /// <summary>Gear first (weapon, armor, accessory), then consumables, materials and keys.</summary>
@@ -377,10 +379,12 @@ namespace BiRyeoDo.Game.UI
             {
                 case ItemKind.Weapon: return 0;
                 case ItemKind.Armor: return 1;
-                case ItemKind.Accessory: return 2;
-                case ItemKind.Consumable: return 3;
-                case ItemKind.Material: return 4;
-                default: return 5;
+                case ItemKind.Pants: return 2;
+                case ItemKind.Boots: return 3;
+                case ItemKind.Accessory: return 4;
+                case ItemKind.Consumable: return 5;
+                case ItemKind.Material: return 6;
+                default: return 7;
             }
         }
 
@@ -390,7 +394,7 @@ namespace BiRyeoDo.Game.UI
             {
                 case 1:
                     if (!item.IsGear) return false;
-                    return _gearFilter == 0 || (_gearFilter == 1 && item.Kind == ItemKind.Weapon) || (_gearFilter == 2 && item.Kind == ItemKind.Armor) || (_gearFilter == 3 && item.Kind == ItemKind.Accessory);
+                    return _gearFilter == 0 || (_gearFilter == 1 && item.Kind == ItemKind.Weapon) || (_gearFilter == 2 && item.Kind == ItemKind.Armor) || (_gearFilter == 3 && item.Kind == ItemKind.Pants) || (_gearFilter == 4 && item.Kind == ItemKind.Boots) || (_gearFilter == 5 && item.Kind == ItemKind.Accessory);
                 case 2: return item.Kind == ItemKind.Consumable;
                 case 3: return item.Kind == ItemKind.Material || item.Kind == ItemKind.Key;
                 default: return true;

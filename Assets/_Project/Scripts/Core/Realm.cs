@@ -118,6 +118,24 @@ namespace BiRyeoDo.Core
             return Steps[step + 1].Name + "까지 종합 수치 " + Math.Ceiling(LowerBound(step + 1) - power).ToString("N0") + " 남음";
         }
 
+        /// <summary>How far the power has climbed from the start of its step to the start of the next (0..1); 1 at the top step.</summary>
+        public static double ProgressToNext(double power)
+        {
+            int step = StepOf(power);
+            if (step + 1 >= Steps.Count) return 1.0;
+            double lo = LowerBound(step), hi = LowerBound(step + 1);
+            return Math.Max(0.0, Math.Min(1.0, (power - lo) / Math.Max(1e-9, hi - lo)));
+        }
+
+        /// <summary>"다음 경지 절정 극까지 종합 수치 12 남음 (87 / 99)", or "" at the top.</summary>
+        public static string RemainingText(double power)
+        {
+            int step = StepOf(power);
+            if (step + 1 >= Steps.Count) return "";
+            double need = LowerBound(step + 1);
+            return "다음 경지 " + Steps[step + 1].Name + "까지 종합 수치 " + Math.Ceiling(need - power).ToString("N0") + " 남음 (" + Math.Round(power).ToString("N0") + " / " + Math.Ceiling(need).ToString("N0") + ")";
+        }
+
         // Beasts, traps and objects have no 무공 경지.
         private static readonly HashSet<string> NotMartial = new HashSet<string>
         {

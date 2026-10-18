@@ -2,7 +2,8 @@ using System;
 
 namespace BiRyeoDo.Core
 {
-    public enum ItemKind { Consumable, Weapon, Accessory, Material, Key, Armor }
+    /// <summary>Armor is the 상의 (top); Pants is the 하의 and Boots the 신발. One of each is worn, plus a weapon and two accessories.</summary>
+    public enum ItemKind { Consumable, Weapon, Accessory, Material, Key, Armor, Pants, Boots }
 
     /// <summary>Static item definition. Percent fields are fractions (0.10 = +10%).</summary>
     public sealed class ItemData
@@ -23,7 +24,21 @@ namespace BiRyeoDo.Core
         public float AtkPct, DefPct, HpPct, QiPct, CritAdd;
         public int SpeedAdd;
 
-        public bool IsGear { get { return Kind == ItemKind.Weapon || Kind == ItemKind.Accessory || Kind == ItemKind.Armor; } }
+        public bool IsGear { get { return Kind == ItemKind.Weapon || Kind == ItemKind.Accessory || Kind == ItemKind.Armor || Kind == ItemKind.Pants || Kind == ItemKind.Boots; } }
+
+        /// <summary>Name of the gear slot ("무기", "상의", "하의", "신발", "장신구"), or "" for things that are not gear.</summary>
+        public static string SlotName(ItemKind kind)
+        {
+            switch (kind)
+            {
+                case ItemKind.Weapon: return "무기";
+                case ItemKind.Armor: return "상의";
+                case ItemKind.Pants: return "하의";
+                case ItemKind.Boots: return "신발";
+                case ItemKind.Accessory: return "장신구";
+                default: return "";
+            }
+        }
         public bool InPool { get { return (IsGear || InGacha) && Grade != ItemGrade.Transcendent; } }   // 초월 gear is earned, never pulled
     }
 

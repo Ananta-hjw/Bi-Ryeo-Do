@@ -17,7 +17,7 @@ namespace BiRyeoDo.Game.Systems
         public static Sprite Enemy(string enemyId) { return Load("Enemies/" + enemyId) ?? Load("Characters/" + enemyId); }
         /// <summary>Home-screen button icon: <c>Icons/&lt;key&gt;.png</c> (daily, quest, fortune, star, tower, stage, promotion, party).</summary>
         public static Sprite Icon(string key) { return Load("Icons/" + key); }
-        /// <summary>Item picture: <c>Items/&lt;item id&gt;.png</c>, else the kind's default <c>Items/_weapon|_armor|_accessory|_consumable|_material|_key.png</c>.</summary>
+        /// <summary>Item picture: <c>Items/&lt;item id&gt;.png</c>, else the kind's default <c>Items/_weapon|_armor|_pants|_boots|_accessory|_consumable|_material|_key.png</c>.</summary>
         public static Sprite Item(BiRyeoDo.Core.ItemData item)
         {
             if (item == null) return null;

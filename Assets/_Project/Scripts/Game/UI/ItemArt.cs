@@ -17,6 +17,8 @@ namespace BiRyeoDo.Game.UI
             {
                 case ItemKind.Weapon: return new Color(0.55f, 0.18f, 0.18f, 1f);
                 case ItemKind.Armor: return new Color(0.18f, 0.34f, 0.58f, 1f);
+                case ItemKind.Pants: return new Color(0.16f, 0.42f, 0.52f, 1f);
+                case ItemKind.Boots: return new Color(0.30f, 0.38f, 0.22f, 1f);
                 case ItemKind.Accessory: return new Color(0.38f, 0.22f, 0.55f, 1f);
                 case ItemKind.Consumable: return new Color(0.20f, 0.46f, 0.30f, 1f);
                 case ItemKind.Key: return new Color(0.62f, 0.44f, 0.12f, 1f);

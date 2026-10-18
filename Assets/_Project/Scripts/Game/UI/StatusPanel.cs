@@ -43,10 +43,13 @@ namespace BiRyeoDo.Game.UI
             Section("무공 경지");
             double power = Realm.Power(InnerArts.HeroStatsBeforeRealm(save));
             int realmStep = Realm.StepOf(power);
-            var realmCard = Block(150f);
-            Text(realmCard, 0.04f, 0.96f, 0.52f, 0.98f, Realm.Label(realmStep), 40, UiFactory.Gold, TextAnchor.MiddleLeft);
-            string nextText = Realm.NextText(power);
-            Text(realmCard, 0.04f, 0.96f, 0.04f, 0.52f, "종합 수치 " + Math.Round(power).ToString("N0") + (nextText.Length > 0 ? "\n" + nextText : "\n더 오를 경지가 없습니다"), 26, UiFactory.PaperText, TextAnchor.UpperLeft);
+            var realmCard = Block(230f);
+            Text(realmCard, 0.04f, 0.96f, 0.66f, 0.98f, Realm.Label(realmStep), 40, UiFactory.Gold, TextAnchor.MiddleLeft);
+            Text(realmCard, 0.04f, 0.96f, 0.50f, 0.66f, "종합 수치 " + Math.Round(power).ToString("N0"), 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
+            string remaining = Realm.RemainingText(power);
+            var nextBar = UiFactory.MakeBar("NextBar", realmCard.transform, new Vector2(0.04f, 0.36f), new Vector2(0.96f, 0.46f), new Color(0f, 0f, 0f, 0.7f), UiFactory.Gold);
+            nextBar.SetPct((float)Realm.ProgressToNext(power));
+            Text(realmCard, 0.04f, 0.96f, 0.02f, 0.34f, remaining.Length > 0 ? remaining : "더 오를 경지가 없습니다", 24, remaining.Length > 0 ? UiFactory.PaperText : UiFactory.Gold, TextAnchor.MiddleLeft);
             var realmNote = Block(72f);
             Text(realmNote, 0.04f, 0.97f, 0f, 1f, "체력·공격력·방어력·속도를 합친 수치(장비·심법 반영)로 정한 경지입니다. 경지가 한 칸 오를 때마다 모든 능력치가 " + Mathf.RoundToInt(Realm.BonusPerStep * 100f) + "%씩 오릅니다(지금 +" + Mathf.RoundToInt(Realm.Bonus(realmStep) * 100f) + "%).", 22, UiFactory.Dim, TextAnchor.MiddleLeft);
 
@@ -64,7 +67,9 @@ namespace BiRyeoDo.Game.UI
             // Gear
             Section(GearTitle(save));
             GearCard("무기", StatusSheet.Weapon(save));
-            GearCard("방어구", StatusSheet.Armor(save));
+            GearCard("상의", StatusSheet.Armor(save));
+            GearCard("하의", StatusSheet.Pants(save));
+            GearCard("신발", StatusSheet.Boots(save));
             var accs = StatusSheet.Accessories(save);
             for (int i = 0; i < Inventory.AccessorySlots; i++) GearCard("장신구 " + (i + 1), i < accs.Count ? accs[i] : null);
 

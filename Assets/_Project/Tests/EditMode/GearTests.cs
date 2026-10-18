@@ -17,16 +17,17 @@ namespace BiRyeoDo.Tests
             var seen = new System.Collections.Generic.HashSet<string>();
             foreach (var set in Gear.Sets)
             {
-                int w = 0, a = 0, acc = 0;
+                int w = 0, a = 0, pa = 0, bo = 0, acc = 0;
                 foreach (var id in set.Items)
                 {
                     var it = EarlyGameContent.FindItem(id);
                     Assert.IsNotNull(it, set.Id + ":" + id);
                     Assert.IsTrue(it.IsGear, id);
                     Assert.IsTrue(seen.Add(id), id + " is in two sets");
-                    if (it.Kind == ItemKind.Weapon) w++; else if (it.Kind == ItemKind.Armor) a++; else acc++;
+                    if (it.Grade == ItemGrade.Transcendent) continue;   // a 초월 weapon stands beside the weapon it replaces
+                    if (it.Kind == ItemKind.Weapon) w++; else if (it.Kind == ItemKind.Armor) a++; else if (it.Kind == ItemKind.Pants) pa++; else if (it.Kind == ItemKind.Boots) bo++; else acc++;
                 }
-                Assert.LessOrEqual(w, 1, set.Id); Assert.LessOrEqual(a, 1, set.Id); Assert.LessOrEqual(acc, Inventory.AccessorySlots, set.Id);
+                Assert.LessOrEqual(w, 1, set.Id); Assert.LessOrEqual(a, 1, set.Id); Assert.LessOrEqual(pa, 1, set.Id); Assert.LessOrEqual(bo, 1, set.Id); Assert.LessOrEqual(acc, Inventory.AccessorySlots, set.Id);
                 foreach (var t in set.Tiers) Assert.LessOrEqual(t.Pieces, set.Items.Length, set.Id);
             }
         }
@@ -98,6 +99,49 @@ namespace BiRyeoDo.Tests
             for (int i = 0; i < 10; i++) Gear.Enhance(save, "iron_sword", out err);
             int after = int.Parse(StatusSheet.Hero(save)[2].Value.Replace(",", ""));
             Assert.Greater(after, before);
+        }
+
+        [Test]
+        public void TheCatalogHasTheRequestedNumberOfPiecesPerGrade()
+        {
+            int Added(ItemGrade g) { return GachaItemsMore.All.Count(i => i.Grade == g); }
+            Assert.AreEqual(50, Added(ItemGrade.Normal));
+            Assert.AreEqual(40, Added(ItemGrade.Fine));
+            Assert.AreEqual(35, Added(ItemGrade.Rare));
+            Assert.AreEqual(20, Added(ItemGrade.Epic));
+            Assert.AreEqual(13, Added(ItemGrade.Legendary));
+            Assert.AreEqual(10, Added(ItemGrade.Mythic));
+            Assert.AreEqual(EarlyGameContent.Items.Length, EarlyGameContent.Items.Select(i => i.Id).Distinct().Count(), "duplicate item id");
+        }
+
+        [Test]
+        public void OnePieceOfEachSlotIsWornAndANewOneReplacesTheOld()
+        {
+            var save = new SaveData();
+            foreach (var id in new[] { "cloth_robe", "snakescale_vest", "train_pants", "ironwall_greaves", "straw_sandals", "wind_boots" }) Inventory.Add(save, id, 1);
+            string err;
+            foreach (var id in new[] { "cloth_robe", "snakescale_vest", "train_pants", "ironwall_greaves", "straw_sandals", "wind_boots" }) Assert.IsTrue(Inventory.Equip(save, id, out err), id);
+            Assert.AreEqual(3, save.EquippedGear.Count);
+            Assert.IsTrue(save.EquippedGear.Contains("snakescale_vest"));
+            Assert.IsTrue(save.EquippedGear.Contains("ironwall_greaves"));
+            Assert.IsTrue(save.EquippedGear.Contains("wind_boots"));
+        }
+
+        [Test]
+        public void TheBiroeSetIsTheStrongestAndItsMythicPiecesBeatTheirKind()
+        {
+            float Total(GearSet s) { var b = Gear.ActiveBonus(s, 6); return b.AtkPct + b.DefPct + b.HpPct + b.QiPct + b.CritAdd * 4f + b.SpeedAdd * 0.02f; }
+            var biroe = Gear.Sets.First(s => s.Id == "biroe");
+            foreach (var s in Gear.Sets) if (s != biroe) Assert.Greater(Total(biroe), Total(s), s.Id);
+            Assert.AreEqual(6, biroe.Tiers.Max(t => t.Pieces));
+            float Score(ItemData i) { return i.AtkPct + i.DefPct + i.HpPct + i.QiPct + i.CritAdd * 4f + i.SpeedAdd * 0.02f; }
+            foreach (var id in new[] { "biroe_blade", "biroe_robe", "biroe_pants", "biroe_boots", "roegeum" })
+            {
+                var piece = EarlyGameContent.FindItem(id);
+                Assert.AreEqual(ItemGrade.Mythic, piece.Grade, id);
+                foreach (var other in EarlyGameContent.Items.Where(i => i.Grade == ItemGrade.Mythic && i.Kind == piece.Kind && i.Id != id))
+                    Assert.Greater(Score(piece), Score(other), id + " vs " + other.Id);
+            }
         }
     }
 }

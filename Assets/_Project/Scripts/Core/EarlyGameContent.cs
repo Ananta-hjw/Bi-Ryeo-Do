@@ -493,7 +493,7 @@ namespace BiRyeoDo.Core
             new ItemData { Id = "laundry_bat", Grade = ItemGrade.Fine, Name = "강철 빨래방망이", Kind = ItemKind.Weapon, AtkPct = 0.08f, Description = "수련용 강철 방망이(50근). 무기라기엔 빨래용이다. 공격 +8%." },
             new ItemData { Id = "jin_biroedo", Grade = ItemGrade.Transcendent, Name = "진비뢰도", Kind = ItemKind.Weapon, AtkPct = 0.45f, CritAdd = 0.10f, SpeedAdd = 6, Description = "봉뢰함에 든 진짜 비뢰도 열 자루. 전승의식을 마친 이만이 쥘 수 있다. 공격 +45%, 치명타 +10%, 속도 +6." },
             new ItemData { Id = "mukryonghwan", Grade = ItemGrade.Rare, Name = "묵룡환", Kind = ItemKind.Accessory, AtkPct = 0.10f, DefPct = 0.10f, SpeedAdd = -6, Description = "사부가 11세부터 채운 증량 족쇄. 몸은 무거워지지만 단련된다. 공격·방어 +10%, 속도 -6." },
-            new ItemData { Id = "roegeum", Grade = ItemGrade.Epic, Name = "뇌금 묵뢰", Kind = ItemKind.Accessory, QiPct = 0.30f, HpPct = 0.05f, Description = "뇌령사 현을 쓴 검은 칠현금. 내공 +30%, 체력 +5%." },
+            new ItemData { Id = "roegeum", Grade = ItemGrade.Mythic, Name = "뇌금 묵뢰", Kind = ItemKind.Accessory, QiPct = 0.35f, AtkPct = 0.20f, CritAdd = 0.10f, HpPct = 0.10f, SpeedAdd = 6, Description = "뇌령사 현을 쓴 검은 칠현금. 비뢰의 신화 장신구로, 울릴 때마다 번개가 깃든다. 내공 +35%, 공격 +20%, 치명타 +10%, 체력 +10%, 속도 +6." },
             new ItemData { Id = "claw_necklace", Grade = ItemGrade.Fine, Name = "발톱 목걸이", Kind = ItemKind.Accessory, CritAdd = 0.05f, SpeedAdd = 2, Description = "사냥한 짐승의 발톱을 꿴 목걸이. 치명타 +5%, 속도 +2." },
             new ItemData { Id = "ilgeup_yeongdan", Grade = ItemGrade.Legendary, InGacha = true, Name = "일급영단", Kind = ItemKind.Consumable, HealPct = 1.0f, QiRestore = 999, SpiritGain = 100, Description = "삼성무제 우승 부상. 가장 다친 동료를 완전히 회복하고 내공을 채우며 기세를 100까지 끌어올린다." },
             new ItemData { Id = "seungryong_pae", Grade = ItemGrade.Rare, Name = "승룡패", Kind = ItemKind.Key, Description = "녹옥으로 된 추천패. 천무학관 특별전형 입관의 증표." },
@@ -514,6 +514,7 @@ namespace BiRyeoDo.Core
         {
             var list = new List<ItemData>(BaseItems);
             list.AddRange(GachaItems.All);
+            list.AddRange(GachaItemsMore.All);
             return list.ToArray();
         }
 
@@ -601,7 +602,7 @@ namespace BiRyeoDo.Core
         /// <summary>What the protagonist starts with.</summary>
         public static readonly ItemStack[] StartKit =
         {
-            new ItemStack("mukryonghwan", 1), new ItemStack("laundry_bat", 1), new ItemStack("cloth_robe", 1), new ItemStack("bear_gall", 2), new ItemStack("okruju", 1),
+            new ItemStack("mukryonghwan", 1), new ItemStack("laundry_bat", 1), new ItemStack("cloth_robe", 1), new ItemStack("train_pants", 1), new ItemStack("straw_sandals", 1), new ItemStack("bear_gall", 2), new ItemStack("okruju", 1),
         };
 
         public static ItemData FindItem(string id)
