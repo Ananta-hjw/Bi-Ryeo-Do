@@ -934,6 +934,7 @@ namespace BiRyeoDo.Game.UI
                 p.Frame = UiFactory.Panel("Marker", p.Root, new Vector2(0.10f, 0.298f), new Vector2(0.90f, 0.314f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks whose turn it is
                 var chibi = ArtLibrary.Chibi(i == 0 ? "player" : unit.Id);
                 var sprite = chibi ?? (i == 0 ? ArtLibrary.Player() : ArtLibrary.Companion(unit.Id));
+                if (sprite == null) { chibi = ArtLibrary.DefaultChibi(unit.Id); sprite = chibi; }   // no picture at all: the default man/woman figure
                 if (sprite != null)
                 {
                     p.Art = FitArt(p.Root, sprite, cell, chibi != null);
@@ -1027,6 +1028,7 @@ namespace BiRyeoDo.Game.UI
                     rank == EnemyRank.Boss ? UiFactory.Gold : rank == EnemyRank.Elite ? new Color(0.62f, 0.82f, 1f, 1f) : UiFactory.PaperText);
                 var enemyChibi = ArtLibrary.Chibi(data.ArtKey);
                 var art = enemyChibi ?? ArtLibrary.Enemy(data.ArtKey);
+                if (art == null) { enemyChibi = ArtLibrary.DefaultChibi(data.ArtKey); art = enemyChibi; }   // no picture at all: the default man/woman figure
                 if (art != null)
                 {
                     card.Art = FitArt(card.Root, art, cell, enemyChibi != null, true);
