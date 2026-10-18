@@ -931,7 +931,7 @@ namespace BiRyeoDo.Game.UI
                 var cell = TileCell(unit.Col, unit.Row);
                 var p = new PartyPanel { Unit = unit, Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
                 p.Root = UiFactory.Rect("Member" + i, _partyRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
-                p.Frame = UiFactory.Panel("Marker", p.Root, new Vector2(0.10f, 0.285f), new Vector2(0.90f, 0.305f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks whose turn it is
+                p.Frame = UiFactory.Panel("Marker", p.Root, new Vector2(0.10f, 0.298f), new Vector2(0.90f, 0.314f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks whose turn it is
                 var sprite = i == 0 ? ArtLibrary.Player() : ArtLibrary.Companion(unit.Id);
                 if (sprite != null)
                 {
@@ -943,15 +943,14 @@ namespace BiRyeoDo.Game.UI
                 }
                 p.Name = UiFactory.Label("Name", p.Root, new Vector2(0.03f, 0.90f), new Vector2(0.97f, 0.99f), unit.Name, 22, UiFactory.Gold);
                 p.Status = UiFactory.Label("Status", p.Root, new Vector2(0.05f, 0.62f), new Vector2(0.95f, 0.76f), "", 26, UiFactory.PaperText);
-                // Thin gauges under the figure: 체력 / 내공 / 기세
-                p.Hp = UiFactory.MakeBar("Hp", p.Root, new Vector2(0.06f, 0.215f), new Vector2(0.94f, 0.275f), new Color(0f, 0f, 0f, 0.7f), HpGreen);
-                p.HpText = UiFactory.Label("HpText", p.Root, new Vector2(0.06f, 0.15f), new Vector2(0.94f, 0.215f), "", 18, UiFactory.PaperText);
-                p.Qi = UiFactory.MakeBar("Qi", p.Root, new Vector2(0.06f, 0.095f), new Vector2(0.94f, 0.140f), new Color(0f, 0f, 0f, 0.7f), QiBlue);
-                p.Spirit = UiFactory.MakeBar("Spirit", p.Root, new Vector2(0.06f, 0.04f), new Vector2(0.94f, 0.085f), new Color(0f, 0f, 0f, 0.7f), UiFactory.Gold);
-                p.QiText = UiFactory.Label("QiText", p.Root, new Vector2(0.06f, 0.095f), new Vector2(0.94f, 0.140f), "", 14, UiFactory.PaperText);
-                p.SpiritText = UiFactory.Label("SpiritText", p.Root, new Vector2(0.06f, 0.04f), new Vector2(0.94f, 0.085f), "", 14, UiFactory.PaperText);
-                p.QiText.gameObject.SetActive(false);
-                p.SpiritText.gameObject.SetActive(false);
+                // Three gauges under the figure, each with its numbers written inside: 체력 / 내공 / 기세
+                var gaugeBack = new Color(0f, 0f, 0f, 0.75f);
+                p.Hp = UiFactory.MakeBar("Hp", p.Root, new Vector2(0.04f, 0.205f), new Vector2(0.96f, 0.295f), gaugeBack, HpGreen);
+                p.Qi = UiFactory.MakeBar("Qi", p.Root, new Vector2(0.04f, 0.110f), new Vector2(0.96f, 0.200f), gaugeBack, QiBlue);
+                p.Spirit = UiFactory.MakeBar("Spirit", p.Root, new Vector2(0.04f, 0.015f), new Vector2(0.96f, 0.105f), gaugeBack, UiFactory.Gold);
+                p.HpText = GaugeText("HpText", p.Root, 0.205f, 0.295f);
+                p.QiText = GaugeText("QiText", p.Root, 0.110f, 0.200f);
+                p.SpiritText = GaugeText("SpiritText", p.Root, 0.015f, 0.105f);
                 var panelUnit = unit;
                 var catchImg = p.Root.gameObject.AddComponent<Image>();
                 catchImg.color = new Color(0f, 0f, 0f, 0f);   // catches the press
@@ -963,6 +962,16 @@ namespace BiRyeoDo.Game.UI
                 p.Root.gameObject.AddComponent<LongPress>().OnLong = () => ShowMemberTip(panelUnit);
                 _panels.Add(p);
             }
+        }
+
+        /// <summary>Numbers written over a gauge: light text with a dark outline so it reads on both the fill and the empty part.</summary>
+        private static Text GaugeText(string name, RectTransform parent, float y0, float y1)
+        {
+            var t = UiFactory.Label(name, parent, new Vector2(0.05f, y0), new Vector2(0.95f, y1), "", 22, Color.white);
+            var outline = t.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0f, 0f, 0f, 0.95f);
+            outline.effectDistance = new Vector2(1.5f, -1.5f);
+            return t;
         }
 
         private static void MakeStatRow(RectTransform parent, string label, float y0, Color fill, out UiFactory.Bar bar, out Text value)
@@ -1127,7 +1136,9 @@ namespace BiRyeoDo.Game.UI
 
         private void OnAllyPressed(PartyPanel panel)
         {
-            if (!AimingAlly || _battle == null || !_battle.IsPlayerTurn || _hasCommand) return;
+            if (LongPress.JustFired) return;
+            if (!AimingAlly) { ShowAllyTip(panel.Unit); return; }   // not choosing an ally: a tap reads their info
+            if (_battle == null || !_battle.IsPlayerTurn || _hasCommand) return;
             if (!panel.Unit.IsAlive) { _log.text = panel.Unit.Name + "은(는) 쓰러져 있어 쓸 수 없습니다."; return; }
             var build = _allyAim;
             EndAim();
@@ -1213,9 +1224,9 @@ namespace BiRyeoDo.Game.UI
                 p.Hp.SetPct((float)p.ShownHp / Math.Max(1, u.Stats.MaxHp));
                 p.Qi.SetPct((float)p.ShownQi / Math.Max(1, u.Stats.MaxQi));
                 p.Spirit.SetPct(p.ShownSpirit / (float)InteractiveBattle.MaxSpirit);
-                p.HpText.text = p.ShownHp + "/" + u.Stats.MaxHp;
-                p.QiText.text = p.ShownQi + "/" + u.Stats.MaxQi;
-                p.SpiritText.text = p.ShownSpirit + "/" + InteractiveBattle.MaxSpirit;
+                p.HpText.text = "체력 " + p.ShownHp + " / " + u.Stats.MaxHp;
+                p.QiText.text = "내공 " + p.ShownQi + " / " + u.Stats.MaxQi;
+                p.SpiritText.text = "기세 " + p.ShownSpirit + " / " + InteractiveBattle.MaxSpirit;
                 p.Status.text = !u.IsAlive ? "쓰러짐" : _battle != null && _battle.IsGuarded(u) ? "방어" : u.Evading ? "회피" : "";
                 p.Name.color = u.IsAlive ? UiFactory.Gold : new Color(0.5f, 0.5f, 0.5f, 1f);
                 bool current = _battle != null && _battle.Current == u && _battle.IsPlayerTurn;
@@ -1551,6 +1562,29 @@ namespace BiRyeoDo.Game.UI
             else lines.Add("무공 경지  해당 없음");
             lines.Add("체력 " + card.Unit.Hp.ToString("N0") + " / " + s.MaxHp.ToString("N0") + "\n공격력 " + s.Attack.ToString("N0") + "   방어력 " + s.Defense.ToString("N0") + "   속도 " + s.Speed.ToString("N0"));
             ShowTip(card.Data.Name, string.Join("\n\n", lines), ArtLibrary.Enemy(card.Data.ArtKey));
+        }
+
+        /// <summary>Tap on an ally: level, 경지, current gauges, stats and the skills they carry.</summary>
+        private void ShowAllyTip(Combatant unit)
+        {
+            if (unit == null) return;
+            var s = unit.Stats;
+            var lines = new List<string>();
+            bool hero = unit.Id == "player";
+            var companion = hero ? null : EarlyGameContent.FindCompanion(unit.Id);
+            int level = GameManager.Instance.Save.Level;
+            lines.Add("Lv." + level + (hero ? "  ·  무공 경지 " + Realm.Label(Realm.StepOf(Realm.Power(s))) + "  (종합 " + System.Math.Round(Realm.Power(s)).ToString("N0") + ")" : ""));
+            lines.Add("체력 " + unit.Hp.ToString("N0") + " / " + s.MaxHp.ToString("N0") + "\n내공 " + unit.Qi.ToString("N0") + " / " + s.MaxQi.ToString("N0") + "\n기세 " + unit.Spirit + " / " + InteractiveBattle.MaxSpirit);
+            lines.Add("공격력 " + s.Attack.ToString("N0") + "   방어력 " + s.Defense.ToString("N0") + "   속도 " + s.Speed.ToString("N0"));
+            if (companion != null && !string.IsNullOrEmpty(companion.JointName))
+            {
+                int bond = Bonds.Level(GameManager.Instance.Save, companion.Id);
+                lines.Add("인연 " + Bonds.LevelNames[bond] + " (" + Bonds.BonusText(bond) + ")  ·  합공 " + companion.JointName);
+            }
+            var names = new List<string>();
+            foreach (var k in unit.Skills) names.Add(k.Name);
+            if (names.Count > 0) lines.Add("무공: " + string.Join(", ", names) + "\n(자세한 설명은 길게 누르세요)");
+            ShowTip(unit.Name, string.Join("\n\n", lines), hero ? ArtLibrary.Player() : ArtLibrary.Companion(unit.Id));
         }
 
         /// <summary>Long press on a party member's panel: every skill they have.</summary>
