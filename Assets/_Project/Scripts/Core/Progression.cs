@@ -67,8 +67,8 @@ namespace BiRyeoDo.Core
         }
 
         // The party is stronger than the plain level curve (which enemies and balance clones use): the protagonist most, companions a bit less.
-        public const float HeroHp = 1.08f, HeroAtk = 1.06f, HeroDef = 1.04f, HeroQi = 1.08f;
-        public const float AllyHp = 1.45f, AllyAtk = 1.50f, AllyDef = 1.30f, AllyQi = 1.40f;
+        public const float HeroHp = 1.08f, HeroAtk = 1.06f, HeroDef = 1.04f, HeroQi = 1.296f;
+        public const float AllyHp = 1.45f, AllyAtk = 1.50f, AllyDef = 1.30f, AllyQi = 1.68f;
 
         private static CombatStats Scaled(CombatStats b, float hp, float atk, float def, float qi)
         {
