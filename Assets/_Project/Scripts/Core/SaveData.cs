@@ -18,6 +18,8 @@ namespace BiRyeoDo.Core
         // Items (added without a version bump: older saves simply start with empty lists)
         public List<ItemStack> Items = new List<ItemStack>();
         public List<string> EquippedGear = new List<string>();
+        public List<CompanionProgress> CompanionLevels = new List<CompanionProgress>();   // each companion's own level and exp (additive field, see CompanionGrowth)
+        public List<CompanionGearEntry> CompanionGear = new List<CompanionGearEntry>();   // gear each companion wears, drawn from the shared bag
         public List<int> RewardedStages = new List<int>();   // stages whose first-clear reward was already claimed
         public bool StartKitGiven;
         public List<string> ActiveCompanions = new List<string>();   // chosen party members (max EarlyGameContent.MaxCompanions); empty = join order
@@ -63,5 +65,20 @@ namespace BiRyeoDo.Core
 
         public List<string> LearnedArts = new List<string>();
         public List<string> EquippedArts = new List<string>();
+    }
+
+    [Serializable]
+    public sealed class CompanionProgress
+    {
+        public string Id;
+        public int Level = 1;
+        public long Exp;
+    }
+
+    [Serializable]
+    public sealed class CompanionGearEntry
+    {
+        public string Id;
+        public List<string> Items = new List<string>();
     }
 }

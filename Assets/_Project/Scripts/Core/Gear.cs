@@ -46,8 +46,8 @@ namespace BiRyeoDo.Core
 
         public static float Multiplier(int level) { return 1f + PerLevel * Math.Max(0, Math.Min(MaxLevel, level)); }
 
-        /// <summary>How many copies of a piece of gear are spare (every copy but one). Spares are what enhancing and dismantling use up.</summary>
-        public static int Spares(SaveData save, string id) { return Math.Max(0, Inventory.Count(save, id) - 1); }
+        /// <summary>How many copies of a piece of gear are spare (every copy but one, or but those worn when several people wear it). Spares are what enhancing and dismantling use up.</summary>
+        public static int Spares(SaveData save, string id) { return Math.Max(0, Inventory.Count(save, id) - Math.Max(1, Inventory.Worn(save, id))); }
 
         public static bool CanEnhance(SaveData save, string id) { return Spares(save, id) > 0 && Level(save, id) < MaxLevel && IsGearId(id); }
 

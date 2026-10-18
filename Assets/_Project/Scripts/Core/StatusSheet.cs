@@ -50,6 +50,38 @@ namespace BiRyeoDo.Core
             };
         }
 
+        /// <summary>Same as <see cref="Ally(CompanionData,int,int,int)"/> but with the companion's own level and gear from the save.</summary>
+        public static List<StatLine> Ally(SaveData save, CompanionData c)
+        {
+            var s = CompanionGrowth.Create(save, c).Stats;
+            return new List<StatLine>
+            {
+                new StatLine { Label = "체력", Value = s.MaxHp.ToString("N0"), Bonus = "" },
+                new StatLine { Label = "내공", Value = s.MaxQi.ToString("N0"), Bonus = "" },
+                new StatLine { Label = "공격력", Value = s.Attack.ToString("N0"), Bonus = "" },
+                new StatLine { Label = "방어력", Value = s.Defense.ToString("N0"), Bonus = "" },
+                new StatLine { Label = "속도", Value = s.Speed.ToString("N0"), Bonus = "" },
+            };
+        }
+
+        /// <summary>"용아검  적운 장포  ...": the names of the gear a companion wears, or a hint when nothing is worn.</summary>
+        public static string GearNames(SaveData save, string owner)
+        {
+            var names = new List<string>();
+            foreach (var id in Inventory.GearOf(save, owner))
+            {
+                var it = EarlyGameContent.FindItem(id);
+                if (it != null) names.Add(it.Name + (Gear.Level(save, id) > 0 ? " +" + Gear.Level(save, id) : ""));
+            }
+            return names.Count == 0 ? "착용한 장비가 없습니다 (행낭에서 동료에게 장착할 수 있습니다)" : string.Join("  ", names);
+        }
+
+        public static string AllyRealm(SaveData save, CompanionData c)
+        {
+            double power = Realm.Power(CompanionGrowth.Create(save, c).Stats);
+            return Realm.Label(Realm.StepOf(power)) + " (종합 " + Math.Round(power).ToString("N0") + ")";
+        }
+
         /// <summary>"삼급 (종합 57)": where a companion's composite stat power sits on the 무공 경지 ladder (the same stats the fight uses, no realm bonus).</summary>
         public static string AllyRealm(CompanionData c, int level, int bondLevel = 0, int trainLevel = 0)
         {

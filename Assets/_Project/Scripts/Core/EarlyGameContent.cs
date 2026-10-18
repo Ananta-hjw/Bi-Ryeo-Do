@@ -132,7 +132,7 @@ namespace BiRyeoDo.Core
         /// <summary>Companions' own arts hit and heal harder than the listed numbers (they were too weak next to the protagonist).</summary>
         public const float ArtPowerFactor = 1.4f;
 
-        public Combatant CreateCombatant(int level, int bondLevel = 0, int trainLevel = 0)
+        public Combatant CreateCombatant(int level, int bondLevel = 0, int trainLevel = 0, IEnumerable<string> gear = null, IList<GearLevel> gearLevels = null)
         {
             var b = Progression.AllyStatsFor(level);
             float bond = Bonds.StatMultiplier(bondLevel) * CompanionTraining.StatMultiplier(trainLevel);
@@ -146,6 +146,7 @@ namespace BiRyeoDo.Core
                 CritRate = 0.02f + Bonds.CritBonus(bondLevel),
                 CritDamage = 1.5f
             };
+            if (gear != null) stats = Inventory.ApplyGear(stats, gear, gearLevels);
             var skills = new List<SkillSpec>();
             foreach (var a in EarlyGameContent.Arts)
             {

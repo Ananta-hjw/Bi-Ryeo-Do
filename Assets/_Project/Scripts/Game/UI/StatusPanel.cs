@@ -111,10 +111,11 @@ namespace BiRyeoDo.Game.UI
                 Section("출전 동료");
                 foreach (var c in party)
                 {
-                    var l = StatusSheet.Ally(c, save.Level, Bonds.Level(save, c.Id), CompanionTraining.LevelOf(save, c.Id));
-                    var block = Block(130f);
-                    Text(block, 0.04f, 0.97f, 0.52f, 0.97f, c.Name + "   " + StatusSheet.AllyRealm(c, save.Level, Bonds.Level(save, c.Id), CompanionTraining.LevelOf(save, c.Id)), 32, UiFactory.Gold, TextAnchor.MiddleLeft);
-                    Text(block, 0.04f, 0.97f, 0.05f, 0.52f, "체력 " + l[0].Value + "   내공 " + l[1].Value + "   공격 " + l[2].Value + "   방어 " + l[3].Value, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                    var l = StatusSheet.Ally(save, c);
+                    var block = Block(190f);
+                    Text(block, 0.04f, 0.97f, 0.68f, 0.98f, c.Name + "  Lv." + CompanionGrowth.LevelOf(save, c.Id) + "   " + StatusSheet.AllyRealm(save, c), 32, UiFactory.Gold, TextAnchor.MiddleLeft);
+                    Text(block, 0.04f, 0.97f, 0.36f, 0.68f, "체력 " + l[0].Value + "   내공 " + l[1].Value + "   공격 " + l[2].Value + "   방어 " + l[3].Value, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                    Text(block, 0.04f, 0.97f, 0.02f, 0.36f, StatusSheet.GearNames(save, c.Id), 22, UiFactory.Dim, TextAnchor.MiddleLeft);
                 }
             }
 

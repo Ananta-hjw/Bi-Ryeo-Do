@@ -43,9 +43,9 @@ namespace BiRyeoDo.Core
                 if (s.Count == 0)
                 {
                     save.Items.RemoveAt(i);
-                    save.EquippedGear.Remove(id);
                     Gear.ForgetLevel(save, id);
                 }
+                TrimWorn(save, id);
                 return true;
             }
             return false;
@@ -63,41 +63,103 @@ namespace BiRyeoDo.Core
             return gold;
         }
 
+        /// <summary>The protagonist's gear.</summary>
+        public const string Hero = "player";
+
+        /// <summary>The gear list of the protagonist ("player") or of a companion (created on demand).</summary>
+        public static List<string> GearOf(SaveData save, string owner)
+        {
+            if (string.IsNullOrEmpty(owner) || owner == Hero) return save.EquippedGear;
+            foreach (var e in save.CompanionGear) if (e.Id == owner) return e.Items;
+            var made = new CompanionGearEntry { Id = owner };
+            save.CompanionGear.Add(made);
+            return made.Items;
+        }
+
+        /// <summary>How many people (protagonist and companions) currently wear this piece. Each needs its own copy.</summary>
+        public static int Worn(SaveData save, string id)
+        {
+            int n = save.EquippedGear.Contains(id) ? 1 : 0;
+            foreach (var e in save.CompanionGear) if (e.Items.Contains(id)) n++;
+            return n;
+        }
+
+        /// <summary>Copies that nobody wears.</summary>
+        public static int Free(SaveData save, string id) { return Math.Max(0, Count(save, id) - Worn(save, id)); }
+
+        /// <summary>Names of the companions wearing a piece, for the bag screen.</summary>
+        public static List<string> WearingCompanions(SaveData save, string id)
+        {
+            var names = new List<string>();
+            foreach (var e in save.CompanionGear)
+            {
+                if (!e.Items.Contains(id)) continue;
+                var c = EarlyGameContent.FindCompanion(e.Id);
+                names.Add(c != null ? c.Name : e.Id);
+            }
+            return names;
+        }
+
+        /// <summary>If copies were used up while more people wear the piece than copies remain, companions give it back.</summary>
+        private static void TrimWorn(SaveData save, string id)
+        {
+            int count = Count(save, id);
+            while (Worn(save, id) > count)
+            {
+                bool removed = false;
+                foreach (var e in save.CompanionGear) if (e.Items.Remove(id)) { removed = true; break; }
+                if (!removed) { save.EquippedGear.Remove(id); }
+            }
+        }
+
         public static bool IsEquipped(SaveData save, string id) { return save.EquippedGear.Contains(id); }
 
         /// <summary>Equips owned gear: one weapon, one 상의, one 하의, one 신발, <see cref="AccessorySlots"/> accessories. A new weapon replaces the old one.</summary>
-        public static bool Equip(SaveData save, string id, out string error)
+        public static bool Equip(SaveData save, string id, out string error) { return EquipFor(save, Hero, id, out error); }
+
+        /// <summary>Equips owned gear on the protagonist ("player") or a companion; the bag is shared, so every wearer needs a copy of their own.</summary>
+        public static bool EquipFor(SaveData save, string owner, string id, out string error)
         {
             error = null;
             var item = EarlyGameContent.FindItem(id);
             if (item == null || !item.IsGear) { error = "장비할 수 없는 물건입니다."; return false; }
             if (Count(save, id) == 0) { error = "가지고 있지 않습니다."; return false; }
-            if (IsEquipped(save, id)) return true;
+            var gear = GearOf(save, owner);
+            if (gear.Contains(id)) return true;
+            if (Free(save, id) <= 0)
+            {
+                var others = WearingCompanions(save, id);
+                if (gear.Contains(id)) others.Insert(0, "비류연");
+                error = string.Join(", ", others) + "이(가) 착용 중입니다. 같은 장비가 하나 더 있거나 먼저 해제해야 합니다.";
+                return false;
+            }
 
             if (item.Kind != ItemKind.Accessory)
             {
                 // one weapon, one 상의, one 하의, one 신발: a new piece replaces the old one of the same kind
-                foreach (var other in new List<string>(save.EquippedGear))
+                foreach (var other in new List<string>(gear))
                 {
                     var o = EarlyGameContent.FindItem(other);
-                    if (o != null && o.Kind == item.Kind) save.EquippedGear.Remove(other);
+                    if (o != null && o.Kind == item.Kind) gear.Remove(other);
                 }
             }
             else
             {
                 int worn = 0;
-                foreach (var other in save.EquippedGear)
+                foreach (var other in gear)
                 {
                     var o = EarlyGameContent.FindItem(other);
                     if (o != null && o.Kind == ItemKind.Accessory) worn++;
                 }
                 if (worn >= AccessorySlots) { error = "장신구는 " + AccessorySlots + "개까지 착용할 수 있습니다."; return false; }
             }
-            save.EquippedGear.Add(id);
+            gear.Add(id);
             return true;
         }
 
         public static void Unequip(SaveData save, string id) { save.EquippedGear.Remove(id); }
+
+        public static void UnequipFor(SaveData save, string owner, string id) { GearOf(save, owner).Remove(id); }
 
         public static CombatStats ApplyGear(CombatStats stats, IEnumerable<string> equipped, IList<GearLevel> levels = null)
         {

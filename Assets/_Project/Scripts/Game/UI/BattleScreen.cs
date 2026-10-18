@@ -467,16 +467,26 @@ namespace BiRyeoDo.Game.UI
                     var drops = new List<ItemStack>();
                     if (!stage.IsQuest && !stage.IsTower) for (int roll = 0; roll < StageStars.DropRolls(diff); roll++) drops.AddRange(RollDrops(stage.Encounters[i]));
                     int levels = Progression.AddExp(save, exp);
+                    // Everyone who fought gains the same exp and levels on their own; whoever levels up is fully restored
+                    var leveled = new List<string>();
+                    var levelLines = new List<string>();
+                    if (levels > 0) { leveled.Add("player"); levelLines.Add("비류연  Lv." + (save.Level - levels) + " → Lv." + save.Level + "  (체력·내공 가득)"); }
+                    for (int k = 1; k < _party.Count; k++)
+                    {
+                        int before = CompanionGrowth.LevelOf(save, _party[k].Id);
+                        int gained = CompanionGrowth.AddExp(save, _party[k].Id, exp);
+                        if (gained > 0) { leveled.Add(_party[k].Id); levelLines.Add(_party[k].Name + "  Lv." + before + " → Lv." + (before + gained) + "  (체력·내공 가득)"); }
+                    }
                     save.Doo += doo;
                     gainedExp += exp; gainedDoo += doo;
                     GameManager.Instance.SaveNow();
-                    if (levels > 0) RebuildPartyForNewLevel(stage);
-                    SoundManager.Sfx(levels > 0 ? "levelup" : "win");
+                    if (leveled.Count > 0) RebuildPartyForNewLevel(stage, leveled);
+                    SoundManager.Sfx(leveled.Count > 0 ? "levelup" : "win");
                     yield return Banner("승리!  경험 +" + exp + "  두 +" + doo + (drops.Count > 0 ? "\n획득: " + DescribeStacks(drops) : "") + (levels > 0 ? "\nLv." + save.Level + " 상승!" : "") + (_lastStarLine.Length > 0 ? "\n" + _lastStarLine : "") + (repLine.Length > 0 ? "\n" + repLine : ""), levels > 0 || drops.Count > 0 || _lastStarLine.Length > 0 ? 1.7f : 0.9f);
-                    if (levels > 0)
+                    if (leveled.Count > 0)
                     {
                         var hs = _party[0].Stats;
-                        yield return ShowResult("레벨 업!", "비류연이 Lv." + (save.Level - levels) + "에서 Lv." + save.Level + "(으)로 올랐습니다.\n비류연의 체력과 내공이 가득 찼습니다.\n\n체력 " + hs.MaxHp.ToString("N0") + "   내공 " + hs.MaxQi.ToString("N0") + "\n공격력 " + hs.Attack.ToString("N0") + "   방어력 " + hs.Defense.ToString("N0") + "   속도 " + hs.Speed.ToString("N0"), false);
+                        yield return ShowResult("레벨 업!", string.Join("\n", levelLines) + "\n\n비류연  체력 " + hs.MaxHp.ToString("N0") + "   내공 " + hs.MaxQi.ToString("N0") + "\n공격력 " + hs.Attack.ToString("N0") + "   방어력 " + hs.Defense.ToString("N0") + "   속도 " + hs.Speed.ToString("N0"), false);
                     }
                     if (found.Count > 0)
                     {
@@ -878,7 +888,7 @@ namespace BiRyeoDo.Game.UI
             foreach (var c in EarlyGameContent.SelectCompanionsFor(Roster.PartyStage(stage, save), save))
             {
                 int bondLevel = Bonds.Level(save, c.Id);
-                party.Add(c.CreateCombatant(save.Level, bondLevel, CompanionTraining.LevelOf(save, c.Id)));
+                party.Add(CompanionGrowth.Create(save, c));
                 if (bondLevel >= Bonds.RescueLevel && string.IsNullOrEmpty(hero.RescuerId)) hero.RescuerId = c.Id;
             }
             Formation.Apply(party, save);   // 앞줄/뒷줄 from the saved (or automatic) formation
@@ -989,13 +999,14 @@ namespace BiRyeoDo.Game.UI
             value = UiFactory.Label(label + "Value", parent, new Vector2(0.25f, y0), new Vector2(0.96f, y0 + 0.19f), "", 20, UiFactory.PaperText);
         }
 
-        private void RebuildPartyForNewLevel(StageData stage)
+        private void RebuildPartyForNewLevel(StageData stage, List<string> leveledIds)
         {
             var fresh = CreateParty(stage);
             for (int i = 0; i < fresh.Count && i < _party.Count; i++)
             {
-                // Only the protagonist (who levels up) is fully restored: a new Combatant starts with full 체력 and 내공. Companions keep their wounds and 내공 by ratio; 기세 is carried over for everyone.
-                if (i > 0)
+                // A new Combatant starts with full 체력 and 내공, which is exactly what a character who levelled up gets.
+                // Everyone else keeps their wounds and 내공 by ratio (the stats may still have changed through the protagonist's rank-ups etc.); 기세 is carried over for everyone.
+                if (!leveledIds.Contains(fresh[i].Id))
                 {
                     float ratio = (float)_party[i].Hp / Math.Max(1, _party[i].Stats.MaxHp);
                     fresh[i].Hp = _party[i].IsAlive ? Math.Max(1, (int)Math.Round(fresh[i].Stats.MaxHp * ratio)) : 0;
@@ -1611,7 +1622,7 @@ namespace BiRyeoDo.Game.UI
             var lines = new List<string>();
             bool hero = unit.Id == "player";
             var companion = hero ? null : EarlyGameContent.FindCompanion(unit.Id);
-            int level = GameManager.Instance.Save.Level;
+            int level = hero ? GameManager.Instance.Save.Level : CompanionGrowth.LevelOf(GameManager.Instance.Save, unit.Id);
             lines.Add("Lv." + level + "  ·  무공 경지 " + Realm.Label(Realm.StepOf(Realm.Power(s))) + "  (종합 " + System.Math.Round(Realm.Power(s)).ToString("N0") + ")");
             lines.Add("체력 " + unit.Hp.ToString("N0") + " / " + s.MaxHp.ToString("N0") + "\n내공 " + unit.Qi.ToString("N0") + " / " + s.MaxQi.ToString("N0") + "\n기세 " + unit.Spirit + " / " + InteractiveBattle.MaxSpirit);
             lines.Add("공격력 " + s.Attack.ToString("N0") + "   방어력 " + s.Defense.ToString("N0") + "   속도 " + s.Speed.ToString("N0"));

@@ -90,8 +90,7 @@ namespace BiRyeoDo.Core
         {
             var item = EarlyGameContent.FindItem(id);
             if (MaterialFor(item) == null) return false;
-            int have = Inventory.Count(save, id);
-            return have >= 2 || (have == 1 && !Inventory.IsEquipped(save, id));
+            return Inventory.Free(save, id) > 0;
         }
 
         /// <summary>분해: consumes one copy, returns the materials gained (null with an error when not allowed).</summary>
@@ -162,8 +161,9 @@ namespace BiRyeoDo.Core
                 if (MaterialFor(item) == null) continue;
                 int g = Array.IndexOf(BulkGrades, item.Grade), k = Array.IndexOf(BulkKinds, item.Kind);
                 if (g < 0 || k < 0 || !grades[g] || !slots[k]) continue;
-                int take = stack.Count - 1;
-                if (includeSingles && stack.Count >= 1 && !Inventory.IsEquipped(save, item.Id) && Gear.Level(save, item.Id) == 0) take = stack.Count;
+                int worn = Inventory.Worn(save, item.Id);
+                int take = stack.Count - Math.Max(1, worn);
+                if (includeSingles && stack.Count >= 1 && worn == 0 && Gear.Level(save, item.Id) == 0) take = stack.Count;
                 if (take > 0) list.Add(new BulkEntry { Item = item, Count = take });
             }
             list.Sort((a, b) =>
