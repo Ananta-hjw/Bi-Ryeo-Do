@@ -100,7 +100,7 @@ namespace BiRyeoDo.Core
             var item = EarlyGameContent.FindItem(id);
             var mat = MaterialFor(item);
             if (mat == null) { error = "분해할 수 없는 물건입니다."; return null; }
-            if (!CanDismantle(save, id)) { error = "착용 중인 하나뿐인 장비는 분해할 수 없습니다."; return null; }
+            if (!CanDismantle(save, id)) { error = "착용 중인 장비는 분해할 수 없습니다. (비류연이나 동료가 입은 장비는 같은 장비가 더 있어야 분해할 수 있습니다.)"; return null; }
             int n = RollCount(item.Grade, rng);
             Inventory.Remove(save, id, 1);
             Inventory.Add(save, mat.Id, n);

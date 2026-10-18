@@ -109,5 +109,24 @@ namespace BiRyeoDo.Tests
             }
             Assert.IsFalse(Gear.IsHeroOnly(EarlyGameContent.Items.First(i => i.IsGear && Gear.SetOf(i.Id) == null).Id));
         }
+
+        [Test]
+        public void GearWornByACompanionCannotBeDismantled()
+        {
+            var save = Save(10);
+            var w = AnyGear(ItemKind.Weapon);
+            Inventory.Add(save, w, 1);
+            string error;
+            Assert.IsTrue(Inventory.EquipFor(save, "hyo_ryong", w, out error), error);
+            Assert.IsFalse(Salvage.CanDismantle(save, w));
+            Assert.IsNull(Salvage.Dismantle(save, w, new SeededRandom(1), out error));
+            Assert.AreEqual(1, Inventory.Count(save, w));
+            Inventory.Add(save, w, 1);   // a spare copy can go, the worn one stays
+            Assert.IsTrue(Salvage.CanDismantle(save, w));
+            var plan = Salvage.BulkPlan(save, new[] { true, true, true, true, true }, new[] { true, true, true, true, true }, true);
+            var entry = plan.FirstOrDefault(e => e.Item.Id == w);
+            Assert.IsNotNull(entry);
+            Assert.AreEqual(1, entry.Count);
+        }
     }
 }
