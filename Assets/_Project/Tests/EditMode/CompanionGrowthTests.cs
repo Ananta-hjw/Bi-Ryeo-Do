@@ -146,7 +146,7 @@ namespace BiRyeoDo.Tests
                 save.ClearedStage = st.Number;
                 foreach (var id in party) Assert.AreEqual(save.Level, CompanionGrowth.LevelOf(save, id), id + " at stage " + st.Number);
             }
-            Assert.Less(CompanionGrowth.LevelOf(save, "na_yerin"), save.Level, "a companion who never fights does not level");
+            Assert.IsFalse(save.CompanionLevels.Any(p => p.Id == "na_yerin"), "a companion who never fights has no record and does not level");
         }
     }
 }
