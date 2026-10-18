@@ -259,14 +259,14 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void RestBetweenFightsHealsAndRefillsQi()
+        public void RestBetweenFightsHealsRefillsQiAndKeepsSpirit()
         {
             var p = Player(Stats(1000, 1, 0, 100));
             p.Hp = 100; p.Qi = 0; p.Spirit = 50;
             p.RestBetweenFights(0.5f);
             Assert.AreEqual(600, p.Hp);
             Assert.AreEqual(100, p.Qi);
-            Assert.AreEqual(0, p.Spirit);
+            Assert.AreEqual(50, p.Spirit);
         }
 
         // ---- party battles

@@ -62,13 +62,12 @@ namespace BiRyeoDo.Core
             return cd <= 0 && Qi >= skill.QiCost && Spirit >= skill.SpiritCost;
         }
 
-        /// <summary>Between fights of one stage: partial heal, full 내공, fresh gauge, cooldowns and 기세 cleared.</summary>
+        /// <summary>Between fights of one stage: partial heal, full 내공, fresh gauge and cleared cooldowns. 기세 is kept for the whole stage so a 비기 can be saved up for the boss.</summary>
         public void RestBetweenFights(float healPct)
         {
             Hp = Math.Min(Stats.MaxHp, Hp + (int)Math.Round(Stats.MaxHp * healPct));
             Qi = Stats.MaxQi;
             Gauge = 0;
-            Spirit = 0;
             Guarding = false;
             Evading = false;
             Stunned = false;
