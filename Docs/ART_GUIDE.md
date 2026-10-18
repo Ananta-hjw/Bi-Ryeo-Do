@@ -310,6 +310,38 @@ AI 프롬프트 예시: "wuxia ink-wash style icon of <아이템 설명>, single
 | `insight_stone.png` | 심득석 | Epic |
 | `leather.png` | 가죽 | Normal |
 
+### 분해 재료 (25개)
+
+분해 재료는 `Items/mat_<부위>_<등급 번호>.png` 규칙이다. 부위 = `weapon`(무기)·`armor`(상의)·`pants`(하의)·`boots`(신발)·`accessory`(장신구), 등급 번호 = 0 일반·1 고급·2 희귀·3 영웅·4 전설(신화·초월 장비는 분해되지 않아 재료가 없다).
+
+| 파일 이름 | 재료 | 부위 | 등급 |
+|---|---|---|---|
+| `mat_weapon_0.png` | 철 부스러기 | 무기 | Normal |
+| `mat_weapon_1.png` | 정련 철괴 | 무기 | Fine |
+| `mat_weapon_2.png` | 흑철 정 | 무기 | Rare |
+| `mat_weapon_3.png` | 현철 조각 | 무기 | Epic |
+| `mat_weapon_4.png` | 용린 강철 | 무기 | Legendary |
+| `mat_armor_0.png` | 삼베 조각 | 상의 | Normal |
+| `mat_armor_1.png` | 질긴 가죽 | 상의 | Fine |
+| `mat_armor_2.png` | 은사 실타래 | 상의 | Rare |
+| `mat_armor_3.png` | 자운 비단 | 상의 | Epic |
+| `mat_armor_4.png` | 천잠 명주 | 상의 | Legendary |
+| `mat_pants_0.png` | 광목 자투리 | 하의 | Normal |
+| `mat_pants_1.png` | 누빔 솜 | 하의 | Fine |
+| `mat_pants_2.png` | 흑견 천 | 하의 | Rare |
+| `mat_pants_3.png` | 청룡 직물 | 하의 | Epic |
+| `mat_pants_4.png` | 금강사 천 | 하의 | Legendary |
+| `mat_boots_0.png` | 가죽 밑창 | 신발 | Normal |
+| `mat_boots_1.png` | 징 쇠조각 | 신발 | Fine |
+| `mat_boots_2.png` | 경공 밑창 | 신발 | Rare |
+| `mat_boots_3.png` | 운보 가죽 | 신발 | Epic |
+| `mat_boots_4.png` | 천리 밑창 | 신발 | Legendary |
+| `mat_accessory_0.png` | 구슬 부스러기 | 장신구 | Normal |
+| `mat_accessory_1.png` | 옥 조각 | 장신구 | Fine |
+| `mat_accessory_2.png` | 보석 가루 | 장신구 | Rare |
+| `mat_accessory_3.png` | 영석 | 장신구 | Epic |
+| `mat_accessory_4.png` | 정령석 | 장신구 | Legendary |
+
 ### 핵심 아이템 (2개)
 
 | 파일 이름 | 아이템 | 등급 |
