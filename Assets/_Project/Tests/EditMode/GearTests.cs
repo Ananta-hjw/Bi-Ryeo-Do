@@ -114,7 +114,7 @@ namespace BiRyeoDo.Tests
         public void MaterialCountFollowsTheRequestedRangesAndOdds()
         {
             Assert.AreEqual(new[] { 10, 20, 30, 20, 10, 10 }, Salvage.CountOdds);
-            Assert.AreEqual(new[] { 7, 5, 4, 3, 2 }, Salvage.MinCount);
+            Assert.AreEqual(new[] { 7, 6, 5, 3, 1 }, Salvage.MinCount);
             var grades = new[] { ItemGrade.Normal, ItemGrade.Fine, ItemGrade.Rare, ItemGrade.Epic, ItemGrade.Legendary };
             foreach (var g in grades)
             {

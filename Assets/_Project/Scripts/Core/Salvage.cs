@@ -5,13 +5,13 @@ namespace BiRyeoDo.Core
 {
     /// <summary>
     /// 분해 and 합성. A spare copy of a piece of gear (일반 to 전설; 신화 and 초월 gear cannot be dismantled) can be dismantled into materials of the same grade and slot
-    /// (일반 7-12, 고급 5-10, 희귀 4-9, 영웅 3-8, 전설 2-7, with odds 10/20/30/20/10/10% across the six counts); enough materials of one grade and slot fuse into a random piece
+    /// (일반 7-12, 고급 6-11, 희귀 5-10, 영웅 3-8, 전설 1-6, with odds 10/20/30/20/10/10% across the six counts); enough materials of one grade and slot fuse into a random piece
     /// of the next grade in that slot (일반 50, 고급 40, 희귀 30, 영웅 20, 전설 10). Neither costs 두.
     /// </summary>
     public static class Salvage
     {
         public static readonly int[] CountOdds = { 10, 20, 30, 20, 10, 10 };   // percent for the lowest count .. lowest + 5
-        public static readonly int[] MinCount = { 7, 5, 4, 3, 2 };             // lowest count per grade (일반 7-12, 고급 5-10, 희귀 4-9, 영웅 3-8, 전설 2-7)
+        public static readonly int[] MinCount = { 7, 6, 5, 3, 1 };             // lowest count per grade (일반 7-12, 고급 6-11, 희귀 5-10, 영웅 3-8, 전설 1-6)
         public static readonly int[] FuseNeed = { 50, 40, 30, 20, 10 };         // 일반 .. 전설 -> next grade
 
         private static readonly ItemKind[] Kinds = { ItemKind.Weapon, ItemKind.Armor, ItemKind.Pants, ItemKind.Boots, ItemKind.Accessory };
