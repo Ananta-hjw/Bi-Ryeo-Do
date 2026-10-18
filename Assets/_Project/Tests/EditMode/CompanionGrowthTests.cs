@@ -128,5 +128,25 @@ namespace BiRyeoDo.Tests
             Assert.IsNotNull(entry);
             Assert.AreEqual(1, entry.Count);
         }
+
+        [Test]
+        public void FieldedCompanionsKeepPaceWithTheProtagonistAndBenchedOnesStayBehind()
+        {
+            var save = new SaveData { Level = 1 };
+            foreach (var st in EarlyGameContent.Stages)
+            {
+                var party = EarlyGameContent.SelectCompanionsFor(st.Number, save).Select(c => c.Id).ToList();
+                foreach (var id in party) CompanionGrowth.LevelOf(save, id);
+                for (int f = 0; f < st.Encounters.Length; f++)
+                {
+                    long exp = st.Encounters[f].Sum(id => EarlyGameContent.ExpReward(st, id));
+                    Progression.AddExp(save, exp);
+                    foreach (var id in party) CompanionGrowth.AddExp(save, id, exp);
+                }
+                save.ClearedStage = st.Number;
+                foreach (var id in party) Assert.AreEqual(save.Level, CompanionGrowth.LevelOf(save, id), id + " at stage " + st.Number);
+            }
+            Assert.Less(CompanionGrowth.LevelOf(save, "na_yerin"), save.Level, "a companion who never fights does not level");
+        }
     }
 }
