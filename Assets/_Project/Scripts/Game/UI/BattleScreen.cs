@@ -461,25 +461,8 @@ namespace BiRyeoDo.Game.UI
                     save.BattleWins++;
                     Daily.Record(save, DailyEvent.BattleWin);
                     if (!_fightFell) Daily.Record(save, DailyEvent.Flawless);
-                    foreach (var id in stage.Encounters[i])
-                    {
-                        Codex.SeeEnemy(save, id);
-                        exp += EarlyGameContent.ExpReward(stage, id);
-                        doo += EarlyGameContent.DooReward(stage, id);
-                    }
-                    if (stage.IsQuest) exp = Quests.ExpReward(save);
-                    if (stage.IsTower) { exp = towerFirst ? Tower.ExpReward(save, stage.TowerFloor) : 0; if (!towerFirst) doo = 0; }
-                    if (diff > 0) { exp = (long)Math.Round(exp * StageStars.RewardFactor[diff]); doo = (long)Math.Round(doo * StageStars.RewardFactor[diff]); }
-                    if (!stage.IsTower)
-                    {
-                        exp = (long)Math.Round(exp * (1f + Factions.Bonus(save, PerkKind.ExpPct)));
-                        doo = (long)Math.Round(doo * (1f + Factions.Bonus(save, PerkKind.DooPct)));
-                    }
-                    if (replay)
-                    {
-                        exp = (long)Math.Round(exp * EarlyGameContent.ReplayExpFactor);
-                        doo = (long)Math.Round(doo * EarlyGameContent.ReplayDooFactor);
-                    }
+                    foreach (var id in stage.Encounters[i]) Codex.SeeEnemy(save, id);
+                    Recommend.FightReward(save, stage, i, replay, out exp, out doo);
                     var drops = new List<ItemStack>();
                     if (!stage.IsQuest && !stage.IsTower) for (int roll = 0; roll < StageStars.DropRolls(diff); roll++) drops.AddRange(RollDrops(stage.Encounters[i]));
                     int levels = Progression.AddExp(save, exp);
@@ -1171,7 +1154,8 @@ namespace BiRyeoDo.Game.UI
         private void OnEnemyPressed(EnemyCard card)
         {
             if (LongPress.JustFired) return;
-            if (!Aiming || _battle == null || !_battle.IsPlayerTurn || _hasCommand || !card.Unit.IsAlive) return;
+            if (!Aiming) { ShowEnemyTip(card); return; }   // no command picked yet: a tap reads the enemy's info
+            if (_battle == null || !_battle.IsPlayerTurn || _hasCommand || !card.Unit.IsAlive) return;
             if (!Hittable(card.Unit))
             {
                 _log.text = card.Unit.Name + "에게는 닿지 않습니다. 앞 줄의 적을 먼저 쓰러뜨리거나, 뒷줄까지 닿는 무공을 쓰세요.";

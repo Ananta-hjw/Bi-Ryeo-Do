@@ -266,6 +266,22 @@ namespace BiRyeoDo.Game.UI
             if (!_built) return;
             _lobbyTimer += Time.unscaledDeltaTime;
             if (_lobbyTimer > 9f) { _lobbyTimer = 0f; _lobbyStep++; ShowLobby(true); }
+            RefreshStatusChips();   // 두/경험치 earned inside an overlay (일일 임무, 의뢰, 별 보상...) shows at once
+        }
+
+        /// <summary>Keeps the top chips (Lv, 경험치, 두, 검룡위) in step with the save; cheap enough to call every frame.</summary>
+        private void RefreshStatusChips()
+        {
+            if (_dooText == null || GameManager.Instance == null) return;
+            var save = GameManager.Instance.Save;
+            string doo = save.Doo.ToString("N0");
+            if (_dooText.text != doo) _dooText.text = doo;
+            string lv = "Lv." + save.Level;
+            if (_lvText.text != lv) _lvText.text = lv;
+            long need = Progression.ExpToNext(save.Level);
+            _expBar.SetPct(need > 0 ? Mathf.Clamp01((float)save.Exp / need) : 0f);
+            string rank = Promotion.RankName(Promotion.EffectiveRank(save));
+            if (_rankText.text != rank) _rankText.text = rank;
         }
 
         /// <summary>Puts the current lobby character and line on the card.</summary>
@@ -386,8 +402,11 @@ namespace BiRyeoDo.Game.UI
                     float y1 = y, y0 = y - 0.085f;
                     var band = UiFactory.Panel("Card", _promoOverlay, new Vector2(0.05f, y0), new Vector2(0.95f, y1), UiFactory.Ink);
                     UiFactory.Label("Name", band.transform, new Vector2(0.03f, 0.52f), new Vector2(0.64f, 0.97f), offer.Opponents[0].Name.Split(' ')[0] + " 비무첩", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                    UiFactory.Label("Info", band.transform, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.52f),
-                        "입장료 " + offer.Fee.ToString("N0") + "두 · 상금 " + offer.DooReward.ToString("N0") + "두", 24, afford ? UiFactory.PaperText : UiFactory.Red, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    UiFactory.Label("Info", band.transform, new Vector2(0.03f, 0.27f), new Vector2(0.64f, 0.52f),
+                        "입장료 " + offer.Fee.ToString("N0") + "두 · 상금 " + offer.DooReward.ToString("N0") + "두", 22, afford ? UiFactory.PaperText : UiFactory.Red, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    double need = Recommend.ForPromotion(offer);
+                    UiFactory.Label("Need", band.transform, new Vector2(0.03f, 0.02f), new Vector2(0.66f, 0.28f),
+                        "추천 최소 " + Recommend.Text(need), 19, Recommend.Meets(save, need) ? UiFactory.Dim : UiFactory.Red, TextAnchor.MiddleLeft, FontStyle.Normal);
                     var offerCopy = offer;
                     var go = UiFactory.Button("Go", band.transform, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), afford ? "도전" : "두 부족", afford ? UiFactory.Red : UiFactory.InkSoft, () => OnChallenge(offerCopy), 32);
                     go.interactable = afford;
@@ -552,7 +571,7 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Label("Info", card.transform, new Vector2(0.05f, 0.08f), new Vector2(0.95f, 0.62f),
                     "상대: " + string.Join(", ", names) + "\n권장 Lv." + Tower.FloorLevel(floor)
                     + "\n첫 돌파 보상: 두 " + Tower.RewardDoo(floor).ToString("N0") + (items.Count > 0 ? ", " + string.Join(", ", items) : "")
-                    + " + 경험", 28, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+                    + " + 경험\n" + Recommend.Line(save, Recommend.ForTowerFloor(floor)), 26, Recommend.Meets(save, Recommend.ForTowerFloor(floor)) ? UiFactory.PaperText : UiFactory.Red, TextAnchor.MiddleCenter, FontStyle.Normal);
                 UiFactory.Button("Go", _towerOverlay, new Vector2(0.25f, 0.34f), new Vector2(0.75f, 0.44f), "도전", UiFactory.Red, () => StartTower(floor), 44);
                 if (save.TowerBest > 0)
                 {
@@ -795,11 +814,20 @@ namespace BiRyeoDo.Game.UI
             var body = new System.Text.StringBuilder();
             body.Append("적의 공격은 기본적으로 앞 줄부터 향합니다. 앞 줄에는 맞아도 버티는 인물을, 뒷줄에는 공격이 강한 인물을 세우세요.");
             if (snipers) body.Append("\n뒷줄을 노리는 적이 있습니다. 이번에는 뒷줄에도 버틸 수 있는 인물을 두는 편이 좋습니다.");
-            UiFactory.Body(UiFactory.Label("Advice", _prepOverlay, new Vector2(0.05f, 0.70f), new Vector2(0.95f, 0.88f), body.ToString(), 26, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal));
+            UiFactory.Body(UiFactory.Label("Advice", _prepOverlay, new Vector2(0.05f, 0.775f), new Vector2(0.95f, 0.88f), body.ToString(), 24, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal));
+
+            Recommend.StageReward(save, st, out long rewardExp, out long rewardDoo);
+            double need = Recommend.ForStage(st);
+            bool enough = Recommend.Meets(save, need);
+            string payNote = Recommend.IsReplay(save, st) ? "  (이미 깬 곳이라 절반)" : "";
+            UiFactory.Body(UiFactory.Label("Reward", _prepOverlay, new Vector2(0.05f, 0.645f), new Vector2(0.95f, 0.775f),
+                "예상 보상  경험 " + rewardExp.ToString("N0") + " · 두 " + rewardDoo.ToString("N0") + payNote + "\n" + Recommend.Line(save, need),
+                24, enough ? UiFactory.PaperText : UiFactory.Red, TextAnchor.UpperLeft, FontStyle.Normal), 1.15f);
+
             var enemyText = new System.Text.StringBuilder("나올 적\n");
             int shown = 0;
-            foreach (var l in lines) { if (shown++ >= 7) { enemyText.Append("…"); break; } enemyText.Append(l).Append('\n'); }
-            UiFactory.Body(UiFactory.Label("Enemies", _prepOverlay, new Vector2(0.05f, 0.44f), new Vector2(0.95f, 0.70f), enemyText.ToString().TrimEnd('\n'), 24, UiFactory.Gold, TextAnchor.UpperLeft, FontStyle.Normal), 1.2f);
+            foreach (var l in lines) { if (shown++ >= 5) { enemyText.Append("…"); break; } enemyText.Append(l).Append('\n'); }
+            UiFactory.Body(UiFactory.Label("Enemies", _prepOverlay, new Vector2(0.05f, 0.44f), new Vector2(0.95f, 0.645f), enemyText.ToString().TrimEnd('\n'), 22, UiFactory.Gold, TextAnchor.UpperLeft, FontStyle.Normal), 1.15f);
 
             BuildFormationBlock(_prepOverlay, new List<CompanionData>(active), () => OpenPrep(st, go), 0.15f, 0.36f);
             UiFactory.Button("Go", _prepOverlay, new Vector2(0.52f, 0.02f), new Vector2(0.95f, 0.095f), "출전", UiFactory.Red, () => { _prepOverlay.gameObject.SetActive(false); go(); }, 38);

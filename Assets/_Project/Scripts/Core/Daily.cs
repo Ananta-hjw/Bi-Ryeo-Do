@@ -23,8 +23,8 @@ namespace BiRyeoDo.Core
         /// <summary>Today's date; tests replace it.</summary>
         public static Func<DateTime> Clock = () => DateTime.Now;
 
-        public static readonly long[] BaseDoo = { 400, 800, 1500 };
-        public const long AllClearBonus = 1000;
+        public static readonly long[] BaseDoo = { 700, 1500, 3000 };
+        public const long AllClearBonus = 2000;
         public static readonly int[] StreakMilestones = { 3, 7, 14, 30 };
 
         private static DailyMission M(string id, string name, DailyEvent ev, int target, int tier)
@@ -34,20 +34,20 @@ namespace BiRyeoDo.Core
 
         public static readonly DailyMission[] Pool =
         {
-            M("win3", "전투 3회 승리", DailyEvent.BattleWin, 3, 0),
-            M("skill10", "무공 10번 사용", DailyEvent.SkillUse, 10, 0),
-            M("clear1", "스테이지 1번 돌파", DailyEvent.StageClear, 1, 0),
-            M("win8", "전투 8회 승리", DailyEvent.BattleWin, 8, 1),
-            M("skill25", "무공 25번 사용", DailyEvent.SkillUse, 25, 1),
-            M("gacha1", "뽑기 1번", DailyEvent.GachaPull, 1, 1),
-            M("flawless3", "아무도 쓰러지지 않고 3전 승리", DailyEvent.Flawless, 3, 1),
-            M("clear2", "스테이지 2번 돌파", DailyEvent.StageClear, 2, 1),
-            M("ultimate3", "필살기 3번 사용", DailyEvent.UltimateUse, 3, 2),
-            M("joint3", "합공 3번 사용", DailyEvent.JointUse, 3, 2),
-            M("flawless6", "아무도 쓰러지지 않고 6전 승리", DailyEvent.Flawless, 6, 2),
-            M("quest1", "의뢰 1건 완수", DailyEvent.QuestDone, 1, 2),
-            M("tower1", "무한 비무대 1층 돌파", DailyEvent.TowerClear, 1, 2),
-            M("promo1", "승급 비무 도전 1번", DailyEvent.PromotionTry, 1, 2),
+            M("win6", "전투 6회 승리", DailyEvent.BattleWin, 6, 0),
+            M("skill20", "무공 20번 사용", DailyEvent.SkillUse, 20, 0),
+            M("clear2", "스테이지 2번 돌파", DailyEvent.StageClear, 2, 0),
+            M("win12", "전투 12회 승리", DailyEvent.BattleWin, 12, 1),
+            M("skill50", "무공 50번 사용", DailyEvent.SkillUse, 50, 1),
+            M("gacha3", "뽑기 3번", DailyEvent.GachaPull, 3, 1),
+            M("flawless5", "아무도 쓰러지지 않고 5전 승리", DailyEvent.Flawless, 5, 1),
+            M("clear3", "스테이지 3번 돌파", DailyEvent.StageClear, 3, 1),
+            M("ultimate8", "필살기 8번 사용", DailyEvent.UltimateUse, 8, 2),
+            M("joint8", "합공 8번 사용", DailyEvent.JointUse, 8, 2),
+            M("flawless10", "아무도 쓰러지지 않고 10전 승리", DailyEvent.Flawless, 10, 2),
+            M("quest2", "의뢰 2건 완수", DailyEvent.QuestDone, 2, 2),
+            M("tower3", "무한 비무대 3층 돌파", DailyEvent.TowerClear, 3, 2),
+            M("promo2", "승급 비무 도전 2번", DailyEvent.PromotionTry, 2, 2),
         };
 
         public static DailyMission Find(string id)
