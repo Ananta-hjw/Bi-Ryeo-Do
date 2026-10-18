@@ -262,5 +262,16 @@ namespace BiRyeoDo.Tests
             StringAssert.Contains("다음 3개:", status[0][2]);
             Assert.AreEqual(0, Gear.SetStatus(new string[0]).Count);
         }
+
+        [Test]
+        public void TheTranscendentSwordBeatsTheBestMythicWeaponOnEveryStat()
+        {
+            var jin = EarlyGameContent.FindItem("jin_biroedo");
+            var blade = EarlyGameContent.FindItem("biroe_blade");
+            Assert.Greater(jin.AtkPct, blade.AtkPct);
+            Assert.Greater(jin.CritAdd, blade.CritAdd);
+            Assert.Greater(jin.SpeedAdd, blade.SpeedAdd);
+            Assert.Greater(jin.HpPct, blade.HpPct);
+        }
     }
 }
