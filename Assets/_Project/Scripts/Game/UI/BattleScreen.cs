@@ -1021,7 +1021,9 @@ namespace BiRyeoDo.Game.UI
                 var card = new EnemyCard { Unit = units[i], Data = data, Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
                 card.Root = UiFactory.Rect("Card" + i, _cardsRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
                 card.Frame = UiFactory.Panel("Marker", card.Root, new Vector2(0.10f, 0.303f), new Vector2(0.90f, 0.319f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks the target
-                card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.03f, 0.88f), new Vector2(0.97f, 0.99f), data.Name, data.IsBoss ? 24 : 20, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
+                var rank = data.Rank;
+                card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.03f, 0.88f), new Vector2(0.97f, 0.99f), (rank == EnemyRank.Elite ? "◆ " : "") + data.Name, rank == EnemyRank.Boss ? 24 : 20,
+                    rank == EnemyRank.Boss ? UiFactory.Gold : rank == EnemyRank.Elite ? new Color(0.62f, 0.82f, 1f, 1f) : UiFactory.PaperText);
                 var art = ArtLibrary.Enemy(data.ArtKey);
                 if (art != null)
                 {
@@ -1036,6 +1038,11 @@ namespace BiRyeoDo.Game.UI
                 card.HpText = GaugeText("HpText", card.Root, 0.235f, 0.300f);
                 card.QiText = GaugeText("QiText", card.Root, 0.165f, 0.230f);
                 card.SpiritText = GaugeText("SpiritText", card.Root, 0.095f, 0.160f);
+                if (rank == EnemyRank.Normal)   // 일반 enemies have neither 내공 nor 기세: leave their rows out
+                {
+                    card.Qi.Root.gameObject.SetActive(false); card.Spirit.Root.gameObject.SetActive(false);
+                    card.QiText.gameObject.SetActive(false); card.SpiritText.gameObject.SetActive(false);
+                }
                 // 무공 경지 under the name, from the stats this fight actually uses (harder difficulties raise it)
                 string realm = Realm.HasRealm(data) ? Realm.Steps[Realm.StepOf(Realm.Power(units[i].Stats))].Name : "";
                 card.Realm = UiFactory.Label("Realm", card.Root, new Vector2(0.03f, 0.80f), new Vector2(0.97f, 0.885f), realm, 17, new Color(0.85f, 0.75f, 0.45f, 1f));
@@ -1220,6 +1227,11 @@ namespace BiRyeoDo.Game.UI
                 {
                     c.Intent.text = "다음: " + move.Name + (move.Hits > 1 ? " x" + move.Hits : "") + (move.Snipe ? " (뒤쪽 저격)" : "");
                     c.Intent.color = UiFactory.PaperText;
+                }
+                if (u.UsesResources && u.Spirit >= InteractiveBattle.MaxSpirit)
+                {
+                    c.Intent.text += "  ⚡기세 가득";
+                    c.Intent.color = UiFactory.Red;
                 }
             }
             RefreshBoard();
@@ -1567,7 +1579,7 @@ namespace BiRyeoDo.Game.UI
             var s = card.Unit.Stats;
             double power = Realm.Power(s);
             var lines = new List<string>();
-            lines.Add("Lv." + card.Data.Level + (card.Data.IsBoss ? "  ·  우두머리" : ""));
+            lines.Add("Lv." + card.Data.Level + "  ·  " + EnemyData.RankName(card.Data.Rank) + (card.Data.Rank == EnemyRank.Normal ? "" : "\n내공과 기세를 씁니다. 기세가 가득 차면 다음 공격이 강해지고, 내공이 모자라면 큰 기술의 힘이 빠집니다."));
             if (Realm.HasRealm(card.Data)) lines.Add("무공 경지  " + Realm.Label(Realm.StepOf(power)) + "\n종합 수치 " + System.Math.Round(power).ToString("N0"));
             else lines.Add("무공 경지  해당 없음");
             lines.Add("체력 " + card.Unit.Hp.ToString("N0") + " / " + s.MaxHp.ToString("N0") + "\n공격력 " + s.Attack.ToString("N0") + "   방어력 " + s.Defense.ToString("N0") + "   속도 " + s.Speed.ToString("N0"));
@@ -1886,6 +1898,8 @@ namespace BiRyeoDo.Game.UI
         {
             var attacker = CardOf(ev.ActorId);
             if (attacker != null && ev.HitIndex == 0) StartCoroutine(Lunge(attacker.Root, new Vector2(-130f, 0f)));
+            if (attacker != null && ev.HitIndex == 0 && ev.Burst) { Float(attacker.Center + new Vector2(0f, 0.06f), "기세 폭발!", UiFactory.Red, 70); SoundManager.Haptic(40); }
+            if (attacker != null && ev.HitIndex == 0 && ev.Weakened) Float(attacker.Center + new Vector2(0f, 0.06f), "내공 부족", GuardBlue, 56);
             var victim = PanelOf(ev.TargetId);
             if (victim != null && !ev.Dodged) SlashFx(victim.Center, ev.HitIndex, ev.IsCrit, false, true);
             if (victim != null)

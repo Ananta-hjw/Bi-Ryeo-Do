@@ -34,6 +34,7 @@ namespace BiRyeoDo.Core
         public bool Charging;              // enemy is winding up its next move (telegraph)
         public Combatant ChargeTarget;     // who the wound-up move will hit
         public bool Stunned;               // loses its next action
+        public EnemyRank Rank;             // enemies: 일반 / 정예 / 보스 (정예 and 보스 use 내공 and 기세)
         public bool IsBoss;                // bosses cannot be stun-locked, only interrupted
         public float RetreatHpPct;         // >0: a story boss that flees (leaves the fight) once its HP drops to this fraction of max
         public int MoveIndex;              // enemy script position
@@ -94,6 +95,9 @@ namespace BiRyeoDo.Core
             foreach (var k in keys)
                 if (Cooldowns[k] > 0) Cooldowns[k]--;
         }
+
+        /// <summary>정예 and 보스 enemies spend 내공 and build 기세; 일반 ones do not.</summary>
+        public bool UsesResources { get { return Team == Team.Enemy && Rank != EnemyRank.Normal; } }
 
         internal void RegenQi()
         {

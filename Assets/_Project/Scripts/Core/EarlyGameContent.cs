@@ -43,6 +43,9 @@ namespace BiRyeoDo.Core
         }
     }
 
+    /// <summary>일반 enemies only swing; 정예 and 보스 also carry 내공 and 기세 (see <see cref="EnemyData.QiPool"/> and InteractiveBattle.EnemyAct).</summary>
+    public enum EnemyRank { Normal, Elite, Boss }
+
     /// <summary>Plain-data enemy. Stats derive from the player curve at <see cref="Level"/> so difficulty tracks Progression.</summary>
     public sealed class EnemyData
     {
@@ -56,6 +59,26 @@ namespace BiRyeoDo.Core
         public int SpeedAdd;
         public int Range = 1;       // how many tiles away its attacks reach
         public EnemyMove[] Moves;
+
+        /// <summary>
+        /// 보스 = <see cref="IsBoss"/>. 정예 = a fighter with a real script (3+ moves) who is not a trap, beast-less object or the like (<see cref="Realm.HasRealm"/>).
+        /// Everything else is 일반 (henchmen with a two-move script, traps).
+        /// </summary>
+        public EnemyRank Rank
+        {
+            get
+            {
+                if (IsBoss) return EnemyRank.Boss;
+                if (Moves != null && Moves.Length >= 3 && Realm.HasRealm(this)) return EnemyRank.Elite;
+                return EnemyRank.Normal;
+            }
+        }
+
+        public static string RankName(EnemyRank rank) { return rank == EnemyRank.Boss ? "보스" : rank == EnemyRank.Elite ? "정예" : "일반"; }
+
+        /// <summary>내공 an enemy of this rank starts with (0 for 일반).</summary>
+        public const int EliteQi = 30, BossQi = 70;
+        public int QiPool { get { var r = Rank; return r == EnemyRank.Boss ? BossQi : r == EnemyRank.Elite ? EliteQi : 0; } }
 
         /// <summary>A copy with HP and attack multiplied (harder stage difficulties).</summary>
         public EnemyData Scaled(float hp, float atk, float def = 1f, int levelAdd = 0)
@@ -74,7 +97,7 @@ namespace BiRyeoDo.Core
             return new CombatStats
             {
                 MaxHp = (int)Math.Round(b.MaxHp * HpMul),
-                MaxQi = 0,
+                MaxQi = QiPool,
                 Attack = (int)Math.Round(b.Attack * AtkMul),
                 Defense = (int)Math.Round(b.Defense * DefMul),
                 Speed = b.Speed + SpeedAdd,
@@ -87,6 +110,7 @@ namespace BiRyeoDo.Core
         {
             var c = new Combatant(uniqueId, Name, Team.Enemy, BuildStats(), null);
             c.IsBoss = IsBoss;
+            c.Rank = Rank;
             c.RetreatHpPct = RetreatHpPct;
             c.Range = Range;
             c.Moves = Moves != null && Moves.Length > 0 ? new List<EnemyMove>(Moves) : new List<EnemyMove> { EnemyMove.Plain };

@@ -31,6 +31,8 @@ namespace BiRyeoDo.Core
         public bool Harmony;         // 내공합격: this hit was powered up by an unbroken chain of attacks
         public bool Joint;           // part of a 합공 (joint attack)
         public bool Rescued;         // the target would have fallen but a bonded companion saved them (see Bonds.RescueLevel)
+        public bool Burst;           // 기세 폭발: an enemy released a full 기세 into this strike
+        public bool Weakened;        // 기력 부족: the enemy lacked the 내공 for the move and struck weaker
         public bool Retreated;       // the target fled the fight (story boss) instead of being slain; TargetDefeated is also true
     }
 

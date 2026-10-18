@@ -53,6 +53,12 @@ namespace BiRyeoDo.Core
         public const int SpiritOnDealt = 10, SpiritOnTaken = 8, SpiritOnGuard = 12;
         public const float HarmonyDamageFactor = 2.5f;
         public const int JointSpiritCost = 50;
+        // 정예·보스 enemies: 내공 comes back every action; a heavy strike costs EnemyQiPerPower per point of power (x hits);
+        // a full 기세 makes the next strike hit EnemyBurstFactor harder; running dry weakens a heavy strike.
+        public const int EnemyQiRegen = 3, EnemyQiPerPower = 8, EnemySpiritOnDealt = 12;
+        public const float EnemyHeavyPower = 2.5f;
+        public const float EnemyBurstFactor = 1.5f, EnemyDryFactor = 0.6f;
+        public const int SpiritOnEnemyHit = 6;
         public const int SnipeReach = 4;
 
         private readonly List<Combatant> _units = new List<Combatant>();
@@ -353,6 +359,7 @@ namespace BiRyeoDo.Core
             int dmg = BattleEngine.CalcDamage(actor.Stats, t.Stats, skill, crit);
             if (_harmonyBoost) dmg = (int)Math.Round(dmg * HarmonyDamageFactor);
             t.Hp = Math.Max(0, t.Hp - dmg);
+            if (t.UsesResources && t.IsAlive) t.Spirit = Math.Min(MaxSpirit, t.Spirit + SpiritOnEnemyHit);
             if (actor.Lifesteal > 0f && actor.IsAlive) actor.Hp = Math.Min(actor.Stats.MaxHp, actor.Hp + (int)Math.Round(dmg * actor.Lifesteal));
             var ev = new BattleEvent
             {
@@ -497,6 +504,7 @@ namespace BiRyeoDo.Core
                 return;
             }
 
+            if (enemy.UsesResources) enemy.Qi = Math.Min(enemy.Stats.MaxQi, enemy.Qi + EnemyQiRegen);
             var move = enemy.PeekMove();
 
             if (move.Charge)
@@ -528,8 +536,20 @@ namespace BiRyeoDo.Core
             enemy.Charging = false;
             enemy.ChargeTarget = null;
 
-            var spec = new SkillSpec { Id = move.Name, Name = move.Name, Power = move.Power };
             int hits = Math.Max(1, move.Hits);
+            float power = move.Power;
+            bool burst = false, dry = false;
+            if (enemy.UsesResources)
+            {
+                int cost = EnemyQiCost(move);
+                if (cost > 0)
+                {
+                    if (enemy.Qi >= cost) enemy.Qi -= cost;
+                    else { dry = true; enemy.Qi = 0; power *= EnemyDryFactor; }
+                }
+                if (enemy.Spirit >= MaxSpirit) { burst = true; enemy.Spirit = 0; power *= EnemyBurstFactor; }
+            }
+            var spec = new SkillSpec { Id = move.Name, Name = move.Name, Power = power };
             bool hurt = false;
             int firstHit = events.Count;
             for (int h = 0; h < hits && target.IsAlive; h++)
@@ -537,7 +557,7 @@ namespace BiRyeoDo.Core
                 var ev = new BattleEvent
                 {
                     Turn = Turn, ActorId = enemy.Id, TargetId = target.Id, SkillId = move.Name, Kind = EventKind.Attack,
-                    HitIndex = h, HitCount = hits
+                    HitIndex = h, HitCount = hits, Burst = burst && h == 0, Weakened = dry && h == 0
                 };
                 if (target.Evading && (target.EvadeChance >= 1f || _rng.NextDouble() < target.EvadeChance))
                 {
@@ -559,7 +579,15 @@ namespace BiRyeoDo.Core
                 events.Add(ev);
             }
             if (hurt) target.Spirit = Math.Min(MaxSpirit, target.Spirit + SpiritOnTaken + target.SpiritTakenBonus);
+            if (enemy.UsesResources && !burst) enemy.Spirit = Math.Min(MaxSpirit, enemy.Spirit + EnemySpiritOnDealt);
             for (int i = firstHit; i < events.Count; i++) events[i].TargetSpiritAfter = target.Spirit;
+        }
+
+        /// <summary>내공 a 정예/보스 spends on a move: heavy strikes (power x hits of 2 or more) cost, light ones are free.</summary>
+        public static int EnemyQiCost(EnemyMove move)
+        {
+            float total = move.Power * Math.Max(1, move.Hits);
+            return move.Charge || total < EnemyHeavyPower ? 0 : (int)Math.Round(total * EnemyQiPerPower);
         }
 
         /// <summary>A bonded companion (의기투합) throws herself between the protagonist and a killing blow, once per fight.</summary>
