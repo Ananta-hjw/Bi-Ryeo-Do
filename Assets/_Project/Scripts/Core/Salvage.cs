@@ -135,5 +135,79 @@ namespace BiRyeoDo.Core
             Inventory.Add(save, result.Id, 1);
             return result;
         }
+
+        // ------------------------------------------------------------------ 일괄 분해
+
+        /// <summary>One line of a bulk dismantle: a piece of gear and how many of its copies would go.</summary>
+        public sealed class BulkEntry
+        {
+            public ItemData Item;
+            public int Count;
+        }
+
+        /// <summary>The grades a bulk dismantle can pick (일반 .. 전설) and the five gear slots, in list order.</summary>
+        public static readonly ItemGrade[] BulkGrades = { ItemGrade.Normal, ItemGrade.Fine, ItemGrade.Rare, ItemGrade.Epic, ItemGrade.Legendary };
+        public static readonly ItemKind[] BulkKinds = Kinds;
+
+        /// <summary>
+        /// Which copies a bulk dismantle would take for the ticked grades and slots: spare copies always; with <paramref name="includeSingles"/> also the only copy
+        /// of a piece that is not worn (never an enhanced one, and never a worn piece). Sorted by grade, then slot, then name.
+        /// </summary>
+        public static List<BulkEntry> BulkPlan(SaveData save, bool[] grades, bool[] slots, bool includeSingles)
+        {
+            var list = new List<BulkEntry>();
+            foreach (var stack in save.Items)
+            {
+                var item = EarlyGameContent.FindItem(stack.Id);
+                if (MaterialFor(item) == null) continue;
+                int g = Array.IndexOf(BulkGrades, item.Grade), k = Array.IndexOf(BulkKinds, item.Kind);
+                if (g < 0 || k < 0 || !grades[g] || !slots[k]) continue;
+                int take = stack.Count - 1;
+                if (includeSingles && stack.Count >= 1 && !Inventory.IsEquipped(save, item.Id) && Gear.Level(save, item.Id) == 0) take = stack.Count;
+                if (take > 0) list.Add(new BulkEntry { Item = item, Count = take });
+            }
+            list.Sort((a, b) =>
+            {
+                int c = ((int)a.Item.Grade).CompareTo((int)b.Item.Grade);
+                if (c != 0) return c;
+                c = Array.IndexOf(BulkKinds, a.Item.Kind).CompareTo(Array.IndexOf(BulkKinds, b.Item.Kind));
+                return c != 0 ? c : string.CompareOrdinal(a.Item.Name, b.Item.Name);
+            });
+            return list;
+        }
+
+        /// <summary>Total materials a plan will give: min and max per material (the real roll lands in between, 9.3 on average for 일반).</summary>
+        public static List<KeyValuePair<ItemData, int[]>> BulkYield(List<BulkEntry> plan)
+        {
+            var map = new Dictionary<string, int[]>();
+            var order = new List<ItemData>();
+            foreach (var e in plan)
+            {
+                var mat = MaterialFor(e.Item);
+                if (!map.ContainsKey(mat.Id)) { map[mat.Id] = new[] { 0, 0 }; order.Add(mat); }
+                map[mat.Id][0] += MinCount[(int)e.Item.Grade] * e.Count;
+                map[mat.Id][1] += MaxCount(e.Item.Grade) * e.Count;
+            }
+            var result = new List<KeyValuePair<ItemData, int[]>>();
+            foreach (var mat in order) result.Add(new KeyValuePair<ItemData, int[]>(mat, map[mat.Id]));
+            return result;
+        }
+
+        /// <summary>Dismantles every entry of a plan; returns the materials actually gained (in the order they first appeared).</summary>
+        public static List<ItemStack> DismantleBulk(SaveData save, List<BulkEntry> plan, IRandom rng)
+        {
+            var gained = new List<ItemStack>();
+            foreach (var e in plan)
+                for (int i = 0; i < e.Count; i++)
+                {
+                    string error;
+                    var got = Dismantle(save, e.Item.Id, rng, out error);
+                    if (got == null) break;
+                    ItemStack sum = null;
+                    foreach (var g in gained) if (g.Id == got.Id) sum = g;
+                    if (sum == null) gained.Add(new ItemStack(got.Id, got.Count)); else sum.Count += got.Count;
+                }
+            return gained;
+        }
     }
 }

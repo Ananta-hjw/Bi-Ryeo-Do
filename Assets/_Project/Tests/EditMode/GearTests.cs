@@ -284,5 +284,46 @@ namespace BiRyeoDo.Tests
             Assert.Greater(jin.SpeedAdd, blade.SpeedAdd);
             Assert.Greater(jin.HpPct, blade.HpPct);
         }
+
+        [Test]
+        public void BulkDismantleTakesOnlyTheTickedGradesAndSlots()
+        {
+            var save = new SaveData();
+            Inventory.Add(save, "iron_sword", 4);          // 일반 무기: 3 spares
+            Inventory.Add(save, "cloth_robe", 2);          // 일반 상의: 1 spare
+            Inventory.Add(save, "cheonggang_sword", 3);    // 고급 무기: 2 spares
+            Inventory.Add(save, "taegeuk_jade", 5);        // 신화 장신구: never
+            Inventory.Add(save, "oak_club", 1);            // 일반 무기, only copy
+            var all = new[] { true, true, true, true, true };
+            var onlyNormal = new[] { true, false, false, false, false };
+            var onlyWeapon = new[] { true, false, false, false, false };
+
+            var plan = Salvage.BulkPlan(save, onlyNormal, onlyWeapon, false);
+            Assert.AreEqual(1, plan.Count);
+            Assert.AreEqual("iron_sword", plan[0].Item.Id);
+            Assert.AreEqual(3, plan[0].Count);
+
+            var everything = Salvage.BulkPlan(save, all, all, false);
+            Assert.AreEqual(3, everything.Count);   // iron_sword, cloth_robe, cheonggang_sword; no mythic, no lone copy
+            Assert.IsFalse(everything.Any(e => e.Item.Grade == ItemGrade.Mythic));
+
+            var withSingles = Salvage.BulkPlan(save, onlyNormal, onlyWeapon, true);
+            Assert.AreEqual(2, withSingles.Count);   // oak_club joins; its only copy is not worn
+            Assert.AreEqual(1, withSingles.First(e => e.Item.Id == "oak_club").Count);
+            Inventory.Equip(save, "oak_club", out string err);
+            Assert.IsFalse(Salvage.BulkPlan(save, onlyNormal, onlyWeapon, true).Any(e => e.Item.Id == "oak_club"), "a worn piece stays");
+
+            var yield = Salvage.BulkYield(plan);
+            Assert.AreEqual(1, yield.Count);
+            Assert.AreEqual(7 * 3, yield[0].Value[0]);
+            Assert.AreEqual(12 * 3, yield[0].Value[1]);
+
+            var gained = Salvage.DismantleBulk(save, plan, new SeededRandom(3));
+            Assert.AreEqual(1, Inventory.Count(save, "iron_sword"));
+            Assert.AreEqual(1, gained.Count);
+            Assert.That(gained[0].Count, Is.InRange(21, 36));
+            Assert.AreEqual(gained[0].Count, Inventory.Count(save, gained[0].Id));
+            Assert.AreEqual(5, Inventory.Count(save, "taegeuk_jade"));
+        }
     }
 }
