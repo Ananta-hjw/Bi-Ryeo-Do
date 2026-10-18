@@ -164,6 +164,29 @@ namespace BiRyeoDo.Game.UI
             BuildStory(root);
             BuildTip(root);
             BuildPick(root);
+            BuildInputGuard(root);
+        }
+
+        private GameObject _inputGuard;
+
+        /// <summary>An invisible full-screen blocker above everything. It is switched on for a moment after the story or a result window closes, so a player who keeps tapping to read quickly does not hit the buttons that appear underneath.</summary>
+        private void BuildInputGuard(RectTransform root)
+        {
+            var rect = UiFactory.Rect("InputGuard", root, Vector2.zero, Vector2.one);
+            var img = rect.gameObject.AddComponent<Image>();
+            img.color = new Color(0f, 0f, 0f, 0f);
+            img.raycastTarget = true;
+            _inputGuard = rect.gameObject;
+            _inputGuard.SetActive(false);
+        }
+
+        private IEnumerator GuardTaps(float seconds = 0.5f)
+        {
+            if (_inputGuard == null) yield break;
+            _inputGuard.transform.SetAsLastSibling();
+            _inputGuard.SetActive(true);
+            yield return new WaitForSecondsRealtime(seconds);
+            _inputGuard.SetActive(false);
         }
 
         private void BuildPanel(RectTransform root)
@@ -292,6 +315,7 @@ namespace BiRyeoDo.Game.UI
 
         public void Open(StageData stage, Action onClose)
         {
+            if (_inputGuard != null) _inputGuard.SetActive(false);   // a guard left on by a window that closed the overlay must not block the next fight
             _onClose = onClose;
             StopAllCoroutines();
             ApplySavedSpeed();
@@ -604,6 +628,7 @@ namespace BiRyeoDo.Game.UI
         /// <summary>Plays a scene in the visual-novel layer without any fight, then calls <paramref name="onClose"/>.</summary>
         public void OpenStory(string title, string[] lines, Action onClose)
         {
+            if (_inputGuard != null) _inputGuard.SetActive(false);
             _onClose = onClose;
             StopAllCoroutines();
             StartCoroutine(RunStoryOnly(title, lines));
@@ -630,6 +655,7 @@ namespace BiRyeoDo.Game.UI
         /// <summary>Opens a 승급 비무: the fee was already paid by the caller. Two solo duels against the offer's opponents.</summary>
         public void OpenPromotion(PromotionOffer offer, Action onClose)
         {
+            if (_inputGuard != null) _inputGuard.SetActive(false);
             _onClose = onClose;
             StopAllCoroutines();
             StartCoroutine(RunPromotion(offer));
@@ -2211,6 +2237,7 @@ namespace BiRyeoDo.Game.UI
             }
             _storyRoot.SetActive(false);
             _storySkip = false;
+            StartCoroutine(GuardTaps());   // taps that were meant for the story must not fall through to the screen underneath
         }
 
         /// <summary>Pause between the fights of a stage: shows the party's state and waits for the player to challenge the next fight or step back.</summary>
@@ -2275,6 +2302,7 @@ namespace BiRyeoDo.Game.UI
             _leave = false;
             while (!_panelDone) yield return null;
             _panel.SetActive(false);
+            StartCoroutine(GuardTaps());
         }
     }
 }
