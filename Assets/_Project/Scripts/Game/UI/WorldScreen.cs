@@ -308,7 +308,7 @@ namespace BiRyeoDo.Game.UI
             _lobbyBg.sprite = bg;
             _lobbyBg.color = bg != null ? Color.white : new Color(0.10f, 0.13f, 0.20f, 1f);
 
-            var sprite = ArtLibrary.Portrait(scene.Speaker);
+            var sprite = ArtLibrary.Feathered(ArtLibrary.Portrait(scene.Speaker));   // soft edges so the picture blends into the stage background
             var rt = _lobbyPortrait.rectTransform;
             if (sprite != null)
             {

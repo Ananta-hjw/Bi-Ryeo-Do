@@ -45,6 +45,59 @@ namespace BiRyeoDo.Game.Systems
             return null;
         }
 
+        private static readonly Dictionary<Sprite, Sprite> FeatherCache = new Dictionary<Sprite, Sprite>();
+
+        /// <summary>
+        /// For full-bleed pictures (an opaque rectangle with a painted background): a copy whose four edges fade out, so the picture melts into whatever is behind it instead of showing a hard box.
+        /// A picture that is already cut out (transparent corners) is returned unchanged. Works on non-readable textures by going through a RenderTexture and is cached.
+        /// </summary>
+        public static Sprite Feathered(Sprite sprite, float fade = 0.16f)
+        {
+            if (sprite == null) return null;
+            Sprite cached;
+            if (FeatherCache.TryGetValue(sprite, out cached)) return cached;
+            Sprite result = sprite;
+            try
+            {
+                var src = sprite.texture;
+                int w = Mathf.Min(src.width, 1024), h = Mathf.Max(1, Mathf.RoundToInt(w * (float)src.height / src.width));
+                var rt = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGB32);
+                Graphics.Blit(src, rt);
+                var prev = RenderTexture.active;
+                RenderTexture.active = rt;
+                var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+                tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
+                RenderTexture.active = prev;
+                RenderTexture.ReleaseTemporary(rt);
+
+                var px = tex.GetPixels32();
+                bool cutOut = px[0].a < 40 && px[w - 1].a < 40 && px[(h - 1) * w].a < 40 && px[h * w - 1].a < 40;
+                if (cutOut) { Object.Destroy(tex); }
+                else
+                {
+                    for (int y = 0; y < h; y++)
+                    {
+                        float fy = Smooth(Mathf.Min(y, h - 1 - y) / (fade * h));
+                        for (int x = 0; x < w; x++)
+                        {
+                            float k = fy * Smooth(Mathf.Min(x, w - 1 - x) / (fade * w));
+                            var c = px[y * w + x];
+                            c.a = (byte)Mathf.RoundToInt(c.a * k);
+                            px[y * w + x] = c;
+                        }
+                    }
+                    tex.SetPixels32(px);
+                    tex.Apply(false, true);
+                    result = Sprite.Create(tex, new Rect(0f, 0f, w, h), new Vector2(0.5f, 0.5f), 100f);
+                }
+            }
+            catch (System.Exception) { result = sprite; }
+            FeatherCache[sprite] = result;
+            return result;
+        }
+
+        private static float Smooth(float t) { t = Mathf.Clamp01(t); return t * t * (3f - 2f * t); }
+
         /// <summary>Stable muted colour for a character without artwork.</summary>
         public static Color TintFor(string name)
         {
