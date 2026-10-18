@@ -19,6 +19,17 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void AssassinTypesGetTheAssassinFigureBeforeGender()
+        {
+            Assert.AreEqual("default_assassin", Genders.DefaultFigure("hogol_bandit"));
+            Assert.AreEqual("default_assassin", Genders.DefaultFigure("mu_jeong"));
+            Assert.AreEqual("default_woman", Genders.DefaultFigure("na_yerin"));
+            Assert.AreEqual("default_man", Genders.DefaultFigure("tiger"));
+            foreach (var key in new[] { "hogol_bandit", "yonggol_bandit", "heukrang_bandit", "baegin_jagaek", "ssanggwi", "chohon_gwigeom", "cheonsal", "jisal", "ssangsal_hapgyeok", "salgwi_daewon", "mu_jeong", "suda_bokmyeon", "baek_son_gosu" })
+                Assert.IsTrue(EarlyGameContent.Enemies.Any(e => e.ArtKey == key), key);
+        }
+
+        [Test]
         public void EveryListedWomanIsARealArtKey()
         {
             foreach (var key in new[] { "na_yerin", "geomhu_ioksang", "sunyeo", "ma_haryeong", "mask_gongpo", "mask_jeolmang", "mask_bitan", "chu_gayeon", "eonga_yeong", "baek_sayeong" })

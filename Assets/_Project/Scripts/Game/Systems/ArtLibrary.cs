@@ -27,8 +27,8 @@ namespace BiRyeoDo.Game.Systems
         public static Sprite Art(string artId) { return string.IsNullOrEmpty(artId) ? null : Load("Arts/" + artId); }
         /// <summary>Small chibi figure used only on the battle field: <c>Battle/&lt;id&gt;.png</c> (player, companion id or enemy ArtKey), drawn facing right. Null when missing, and the battle falls back to the large portrait.</summary>
         public static Sprite Chibi(string id) { return string.IsNullOrEmpty(id) ? null : Load("Battle/" + id); }
-        /// <summary>Stand-in battle figure for a character with neither a <c>Battle/</c> nor a <c>Characters/</c> picture: <c>Battle/default_woman.png</c> for the women listed in <c>Genders</c>, else <c>Battle/default_man.png</c>. Null when that file is missing too.</summary>
-        public static Sprite DefaultChibi(string artKey) { return Load("Battle/" + (BiRyeoDo.Core.Genders.IsFemale(artKey) ? "default_woman" : "default_man")); }
+        /// <summary>Stand-in battle figure for a character with neither a <c>Battle/</c> nor a <c>Characters/</c> picture: <c>Battle/default_assassin.png</c> for bandits and assassins, <c>default_woman.png</c> for the women listed in <c>Genders</c>, else <c>default_man.png</c> (all under <c>Battle/</c>). Null when that file is missing too.</summary>
+        public static Sprite DefaultChibi(string artKey) { return Load("Battle/" + BiRyeoDo.Core.Genders.DefaultFigure(artKey)); }
         public static Sprite Player() { return Load("Characters/player"); }
         /// <summary>Party member portrait: <c>Characters/&lt;id&gt;.png</c> (e.g. hyo_ryong.png).</summary>
         public static Sprite Companion(string companionId) { return Load("Characters/" + companionId); }
