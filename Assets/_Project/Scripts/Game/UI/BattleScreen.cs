@@ -1612,7 +1612,7 @@ namespace BiRyeoDo.Game.UI
             bool hero = unit.Id == "player";
             var companion = hero ? null : EarlyGameContent.FindCompanion(unit.Id);
             int level = GameManager.Instance.Save.Level;
-            lines.Add("Lv." + level + (hero ? "  ·  무공 경지 " + Realm.Label(Realm.StepOf(Realm.Power(s))) + "  (종합 " + System.Math.Round(Realm.Power(s)).ToString("N0") + ")" : ""));
+            lines.Add("Lv." + level + "  ·  무공 경지 " + Realm.Label(Realm.StepOf(Realm.Power(s))) + "  (종합 " + System.Math.Round(Realm.Power(s)).ToString("N0") + ")");
             lines.Add("체력 " + unit.Hp.ToString("N0") + " / " + s.MaxHp.ToString("N0") + "\n내공 " + unit.Qi.ToString("N0") + " / " + s.MaxQi.ToString("N0") + "\n기세 " + unit.Spirit + " / " + InteractiveBattle.MaxSpirit);
             lines.Add("공격력 " + s.Attack.ToString("N0") + "   방어력 " + s.Defense.ToString("N0") + "   속도 " + s.Speed.ToString("N0"));
             if (companion != null && !string.IsNullOrEmpty(companion.JointName))

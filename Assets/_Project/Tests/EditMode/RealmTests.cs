@@ -130,5 +130,16 @@ namespace BiRyeoDo.Tests
             Assert.Greater(Realm.Power(extreme), 2200.0);   // not pinned to one number any more: difficulty rises, the ladder stays
             Assert.Less(Realm.Power(extreme), 3000.0);
         }
+
+        [Test]
+        public void CompanionsHaveARealmLabel()
+        {
+            foreach (var c in EarlyGameContent.Companions)
+            {
+                var text = StatusSheet.AllyRealm(c, 20);
+                StringAssert.Contains("종합", text);
+                Assert.IsTrue(text.Length > 6, text);
+            }
+        }
     }
 }

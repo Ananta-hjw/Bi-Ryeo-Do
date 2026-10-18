@@ -50,6 +50,13 @@ namespace BiRyeoDo.Core
             };
         }
 
+        /// <summary>"삼급 (종합 57)": where a companion's composite stat power sits on the 무공 경지 ladder (the same stats the fight uses, no realm bonus).</summary>
+        public static string AllyRealm(CompanionData c, int level, int bondLevel = 0, int trainLevel = 0)
+        {
+            double power = Realm.Power(c.CreateCombatant(level, bondLevel, trainLevel).Stats);
+            return Realm.Label(Realm.StepOf(power)) + " (종합 " + Math.Round(power).ToString("N0") + ")";
+        }
+
         /// <summary>"공격 +10%  방어 +10%  속도 -6" for a piece of gear.</summary>
         public static string EffectText(ItemData item, int enhance = 0)
         {
