@@ -84,7 +84,7 @@ namespace BiRyeoDo.Tests
                 battle.Begin();
                 for (int guard = 0; !battle.IsOver && guard < 3000; guard++) battle.PlayerAct(Choose(battle));
                 if (!battle.PlayerWon) return false;
-                foreach (var m in party) m.RestBetweenFights(0.5f);
+                foreach (var m in party) m.RestBetweenFights();
             }
             return true;
         }

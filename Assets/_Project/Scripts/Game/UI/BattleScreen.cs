@@ -478,7 +478,7 @@ namespace BiRyeoDo.Game.UI
                         GameManager.Instance.SaveNow();
                         yield return ShowResult("발견!", "전투 도중 귀한 물건을 발견했습니다.\n\n" + string.Join("\n", found) + "\n\n행낭에서 확인할 수 있습니다.", false);
                     }
-                    foreach (var m in _party) m.RestBetweenFights(0.5f + Factions.Bonus(save, PerkKind.RestHeal));
+                    foreach (var m in _party) m.RestBetweenFights(Combatant.RestHealPct + Factions.Bonus(save, PerkKind.RestHeal));
                     RefreshParty();
 
                     if (singleFight && i < stage.Encounters.Length - 1) { singleDone = true; break; }
@@ -663,7 +663,7 @@ namespace BiRyeoDo.Game.UI
                         Daily.Record(save, DailyEvent.BattleWin);
                         yield return Banner("승리!", 0.7f);
                     }
-                    foreach (var m in _party) m.RestBetweenFights(0.5f);
+                    foreach (var m in _party) m.RestBetweenFights();
                     RefreshParty();
                 }
 

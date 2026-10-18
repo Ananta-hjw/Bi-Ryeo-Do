@@ -95,7 +95,7 @@ namespace BiRyeoDo.Tests
                     battle.Begin();
                     for (int a = 0; !battle.IsOver && a < Promotion.TurnLimit; a++) battle.PlayerAct(SimpleBot.Choose(battle));
                     if (battle.IsOver && !battle.PlayerWon) lost = true;
-                    player.RestBetweenFights(0.5f);
+                    player.RestBetweenFights();
                 }
                 if (!lost) ok++;
             }
