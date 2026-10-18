@@ -45,8 +45,8 @@ namespace BiRyeoDo.Core
         /// <summary>Opponents never fall below the player's own level, so out-levelling a rank does not make its duels trivial.</summary>
         public static int OpponentLevelFor(int rank, int playerLevel) { return Math.Max(OpponentLevel(rank), playerLevel); }
 
-        /// <summary>HP and attack multiplier of a rank's opponents on top of the base tuning: gentle at the bottom, steep at the top (rank 2 x1.02, rank 6 x1.22, rank 10 x1.54, on both HP and attack).</summary>
-        public static float HardnessBase = 1.35f, HardnessCoef = 0.11f;
+        /// <summary>HP and attack multiplier of a rank's opponents on top of the base tuning: gentle at the bottom, steep at the top (rank 2 x1.49, rank 6 x2.92, rank 10 x5.13, on both HP and attack).</summary>
+        public static float HardnessBase = 1.35f, HardnessCoef = 0.14f;
         public static float HardnessFor(int rank) { return HardnessBase + HardnessCoef * (float)Math.Pow(Math.Max(1, rank) - 1, 1.5); }
 
         /// <summary>Player actions allowed per duel; harder ranks get a little longer so a win stays possible.</summary>

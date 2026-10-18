@@ -43,31 +43,31 @@ namespace BiRyeoDo.Core
             new[] { 3, 5, 10 },   // 2
             new[] { 4, 5, 6 },   // 3
             new[] { 5, 6, 8 },   // 4
-            new[] { 3, 6 },   // 5
+            new[] { 3, 7 },   // 5
             new[] { 5, 7, 8 },   // 6
             new[] { 4, 7, 10, 9 },   // 7
-            new[] { 4, 8, 11 },   // 8
-            new[] { 6, 6, 12, 11 },   // 9
-            new[] { 6, 12, 11 },   // 10
-            new[] { 4, 4, 14 },   // 11
+            new[] { 4, 8, 12 },   // 8
+            new[] { 7, 7, 14, 14 },   // 9
+            new[] { 6, 12, 12 },   // 10
+            new[] { 5, 5, 14 },   // 11
             new[] { 6, 11, 12 },   // 12
-            new[] { 14, 18 },   // 13
-            new[] { 15, 11, 20 },   // 14
-            new[] { 10, 14, 7 },   // 15
-            new[] { 14, 11, 9 },   // 16
-            new[] { 18, 14, 11 },   // 17
-            new[] { 11, 17 },   // 18
-            new[] { 19, 18, 17 },   // 19
-            new[] { 19, 13, 18 },   // 20
-            new[] { 19, 17, 16 },   // 21
-            new[] { 24, 19, 17 },   // 22
-            new[] { 21, 17, 18 },   // 23
-            new[] { 25, 24, 26 },   // 24
-            new[] { 27, 25, 23 },   // 25
-            new[] { 28, 19, 19 },   // 26
-            new[] { 24, 28, 22 },   // 27
-            new[] { 18, 28, 23, 20 },   // 28
-            new[] { 27, 43, 21, 15, 41 },   // 29
+            new[] { 15, 18 },   // 13
+            new[] { 18, 14, 25 },   // 14
+            new[] { 12, 14, 8 },   // 15
+            new[] { 15, 12, 10 },   // 16
+            new[] { 19, 15, 12 },   // 17
+            new[] { 11, 18 },   // 18
+            new[] { 21, 18, 17 },   // 19
+            new[] { 20, 14, 19 },   // 20
+            new[] { 21, 17, 17 },   // 21
+            new[] { 24, 19, 18 },   // 22
+            new[] { 24, 19, 19 },   // 23
+            new[] { 26, 28, 27 },   // 24
+            new[] { 28, 25, 23 },   // 25
+            new[] { 29, 19, 22 },   // 26
+            new[] { 26, 29, 25 },   // 27
+            new[] { 18, 31, 25, 23 },   // 28
+            new[] { 28, 41, 22, 15, 45 },   // 29
             new[] { 37, 28, 21 },   // 30
         };
 
@@ -112,7 +112,7 @@ namespace BiRyeoDo.Core
         public static float AtkFor(int stage, int difficulty) { return 1f + (AtkScale[Clamp(difficulty)] - 1f) * Ramp(stage); }
         // The harder difficulties are meant for a protagonist who already cleared the easier one, so their enemies start at a higher level:
         // 어려움 stage 1 is built for level 30 and 극악 stage 1 for level 60, rising in a straight line to the level the last stage already has.
-        public static readonly int[] BaseLevel = { 0, 30, 60 };
+        public static readonly int[] BaseLevel = { 0, 33, 63 };
 
         /// <summary>How many levels every enemy of a stage gets on a difficulty (0 on 일반 or when the stage already is past the line).</summary>
         public static int LevelAdd(int stage, int difficulty)
@@ -132,8 +132,8 @@ namespace BiRyeoDo.Core
         // 일반 난이도를 손본 배율(1~6은 조금 더 세게, 7부터는 동료가 나온 뒤라 많이 약하게). 어려움·극악은 이 조정 전 수치에서 출발하므로 ScaleEnemy가 되돌려 준다.
         static readonly float[] NormalEaseTable =
         {
-            1.0f, 1.0f, 1.0f, 1.3f, 1.5f, 1.5f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.65f, 0.65f, 0.6f, 0.6f,
-            0.6f, 0.6f, 0.65f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.65f,
+            1f, 1f, 1f, 1.404f, 1.62f, 1.62f, 0.672f, 0.672f, 0.672f, 0.672f, 0.672f, 0.6695f, 0.6695f, 0.672f, 0.672f,
+            0.672f, 0.672f, 0.6695f, 0.672f, 0.672f, 0.672f, 0.672f, 0.672f, 0.672f, 0.672f, 0.672f, 0.672f, 0.672f, 0.672f, 0.6695f,
         };
 
         /// <summary>How much stronger (&gt;1) or weaker (&lt;1) a stage's 일반 enemies are than the enemy table the harder difficulties were tuned against.</summary>

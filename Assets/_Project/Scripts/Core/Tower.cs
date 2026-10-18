@@ -66,7 +66,7 @@ namespace BiRyeoDo.Core
         private static readonly EnemyMove[] NormalMoves = { EnemyMove.Attack("연타", 0.8f, 2), EnemyMove.Attack("일격", 1.2f) };
         private static readonly EnemyMove[] BossMoves = { EnemyMove.Attack("연격", 0.7f, 3), EnemyMove.Attack("강타", 1.3f), EnemyMove.Wind("기를 모은다"), EnemyMove.Attack("필살 일격", 3.0f) };
 
-        public const float NormalHpMul = 1.6f, BossHpMul = 3.2f;
+        public const float NormalHpMul = 1.7f, BossHpMul = 3.4f;
 
         // Attack multipliers per floor (index = floor, 0..TunedFloors), fitted with the balance bot so that a party whose level equals
         // the floor level wins most of the time on normal floors and about half the time on bosses.

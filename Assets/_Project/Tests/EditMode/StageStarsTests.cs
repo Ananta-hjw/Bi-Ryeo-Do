@@ -178,8 +178,8 @@ namespace BiRyeoDo.Tests
         {
             var tiger = EarlyGameContent.FindEnemy("tiger");
             Assert.AreEqual(1, StageStars.ScaleEnemy(tiger, 1, 0).Level);                 // 일반 is untouched
-            Assert.AreEqual(30, StageStars.ScaleEnemy(tiger, 1, 1).Level);                // 어려움 stage 1 is built for level 30
-            Assert.AreEqual(60, StageStars.ScaleEnemy(tiger, 1, 2).Level);                // 극악 stage 1 for level 60
+            Assert.AreEqual(33, StageStars.ScaleEnemy(tiger, 1, 1).Level);                // 어려움 stage 1 is built for level 33
+            Assert.AreEqual(63, StageStars.ScaleEnemy(tiger, 1, 2).Level);                // 극악 stage 1 for level 63
             int last = EarlyGameContent.Stages.Length;
             Assert.AreEqual(0, StageStars.LevelAdd(last, 1));                              // the last stage already has the top level
             Assert.AreEqual(0, StageStars.LevelAdd(last, 2));
@@ -190,7 +190,7 @@ namespace BiRyeoDo.Tests
                 int hard = st.RecommendedLevel + StageStars.LevelAdd(n, 1), extreme = st.RecommendedLevel + StageStars.LevelAdd(n, 2);
                 Assert.GreaterOrEqual(hard, st.RecommendedLevel);
                 Assert.GreaterOrEqual(extreme, hard, "stage " + n);
-                if (n > 1) { Assert.GreaterOrEqual(hard, 30); Assert.GreaterOrEqual(extreme, 60); }
+                if (n > 1) { Assert.GreaterOrEqual(hard, 33); Assert.GreaterOrEqual(extreme, 63); }
             }
         }
 
