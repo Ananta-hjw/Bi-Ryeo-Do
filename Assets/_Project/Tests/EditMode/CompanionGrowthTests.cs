@@ -86,12 +86,28 @@ namespace BiRyeoDo.Tests
         public void CompanionSlotsFollowTheSameRulesAsTheProtagonist()
         {
             var save = Save(10);
-            var a = EarlyGameContent.Items.Where(i => i.Kind == ItemKind.Accessory && i.IsGear).Take(3).Select(i => i.Id).ToList();
+            var a = EarlyGameContent.Items.Where(i => i.Kind == ItemKind.Accessory && i.IsGear && !Gear.IsHeroOnly(i.Id)).Take(3).Select(i => i.Id).ToList();
             string error;
             foreach (var id in a) Inventory.Add(save, id, 1);
             Assert.IsTrue(Inventory.EquipFor(save, "yun_junho", a[0], out error));
             Assert.IsTrue(Inventory.EquipFor(save, "yun_junho", a[1], out error));
             Assert.IsFalse(Inventory.EquipFor(save, "yun_junho", a[2], out error));
+        }
+
+        [Test]
+        public void BiroeSetIsHeroOnly()
+        {
+            var save = Save(10);
+            string error;
+            foreach (var id in Gear.SetOf("biroe_blade").Items)
+            {
+                Assert.IsTrue(Gear.IsHeroOnly(id), id);
+                Inventory.Add(save, id, 1);
+                Assert.IsFalse(Inventory.EquipFor(save, "hyo_ryong", id, out error), id);
+                StringAssert.Contains(Gear.HeroOnlyLabel, error);
+                Assert.IsTrue(Inventory.Equip(save, id, out error) || error != null, id);   // the protagonist is not blocked by this rule
+            }
+            Assert.IsFalse(Gear.IsHeroOnly(EarlyGameContent.Items.First(i => i.IsGear && Gear.SetOf(i.Id) == null).Id));
         }
     }
 }

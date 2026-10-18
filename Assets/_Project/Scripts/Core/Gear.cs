@@ -107,6 +107,17 @@ namespace BiRyeoDo.Core
                 Tiers = new[] { T(2, atk: 0.05f, hp: 0.05f), T(3, atk: 0.06f, def: 0.06f), T(4, hp: 0.08f, def: 0.08f), T(5, atk: 0.08f, crit: 0.03f, speed: 3), T(6, atk: 0.12f, def: 0.10f, hp: 0.10f) } },
         };
 
+        /// <summary>The 비뢰 set (including 진비뢰도) is exclusive to the protagonist: companions cannot wear it.</summary>
+        public const string HeroOnlySetId = "biroe";
+
+        public static bool IsHeroOnly(string itemId)
+        {
+            var set = SetOf(itemId);
+            return set != null && set.Id == HeroOnlySetId;
+        }
+
+        public const string HeroOnlyLabel = "비류연 전용";
+
         public static GearSet SetOf(string itemId)
         {
             foreach (var s in Sets) if (Array.IndexOf(s.Items, itemId) >= 0) return s;

@@ -144,7 +144,7 @@ namespace BiRyeoDo.Game.UI
             var bigGlyph = UiFactory.Label("Glyph", big.transform, Vector2.zero, Vector2.one, "", 60, UiFactory.PaperText);
             ItemArt.Apply(big, bigGlyph, item);
             UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.90f), new Vector2(0.72f, 0.98f), UiFactory.GradedName(item) + (enh > 0 ? " +" + enh : ""), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
-            string kind = KindName(item) + (gear && Inventory.IsEquipped(save, item.Id) ? "  ·  착용 중" : "") + (gear && Inventory.WearingCompanions(save, item.Id).Count > 0 ? "  ·  동료 " + string.Join(",", Inventory.WearingCompanions(save, item.Id)) : "") + (item.Kind == ItemKind.Consumable || item.Kind == ItemKind.Material ? "  ·  보유 " + Inventory.Count(save, item.Id) + "개" : "");
+            string kind = KindName(item) + (gear && Gear.IsHeroOnly(item.Id) ? "  ·  " + Gear.HeroOnlyLabel : "") + (gear && Inventory.IsEquipped(save, item.Id) ? "  ·  착용 중" : "") + (gear && Inventory.WearingCompanions(save, item.Id).Count > 0 ? "  ·  동료 " + string.Join(",", Inventory.WearingCompanions(save, item.Id)) : "") + (item.Kind == ItemKind.Consumable || item.Kind == ItemKind.Material ? "  ·  보유 " + Inventory.Count(save, item.Id) + "개" : "");
             UiFactory.Label("Kind", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.72f, 0.90f), kind, 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
 
             var lines = new List<string>();
@@ -175,7 +175,7 @@ namespace BiRyeoDo.Game.UI
             if (gear)
             {
                 bool eq = Inventory.IsEquipped(save, item.Id);
-                bool hasCompanions = JoinedCompanions(save).Count > 0;
+                bool hasCompanions = JoinedCompanions(save).Count > 0 && !Gear.IsHeroOnly(item.Id);
                 UiFactory.Button("Equip", card.transform, new Vector2(0.05f, 0.255f), new Vector2(hasCompanions ? 0.49f : 0.95f, 0.355f), hasCompanions ? (eq ? "비류연 해제" : "비류연 장착") : (eq ? "해제" : "장착"), eq ? UiFactory.InkSoft : UiFactory.Red, () => { DoMain(item); }, hasCompanions ? 28 : 34);
                 if (hasCompanions) UiFactory.Button("CompanionEquip", card.transform, new Vector2(0.51f, 0.255f), new Vector2(0.95f, 0.355f), "동료 장착", UiFactory.Ink, () => OpenWearerPicker(item), 28);
                 bool canEnh = Gear.CanEnhance(save, item.Id);
@@ -589,7 +589,7 @@ namespace BiRyeoDo.Game.UI
                 ItemArt.Apply(row.Icon, row.IconGlyph, item);
                 int enh = item.IsGear ? Gear.Level(save, item.Id) : 0;
                 var set = item.IsGear ? Gear.SetOf(item.Id) : null;
-                row.Title.text = UiFactory.GradedName(item) + (enh > 0 ? " +" + enh : "") + (stack.Count > 1 ? " x" + stack.Count : "") + (equipped ? "  [착용]" : "");
+                row.Title.text = UiFactory.GradedName(item) + (enh > 0 ? " +" + enh : "") + (stack.Count > 1 ? " x" + stack.Count : "") + (equipped ? "  [착용]" : "") + (item.IsGear && Gear.IsHeroOnly(item.Id) ? "  [" + Gear.HeroOnlyLabel + "]" : "");
                 row.Detail.text = item.IsGear ? StatusSheet.EffectText(item, enh) + (set != null ? "  ·  [" + set.Name + " 세트]" : "") + (StatusSheet.Flavor(item).Length > 0 ? "  —  " + StatusSheet.Flavor(item) : "") : item.Description;
                 row.EnhButton.gameObject.SetActive(item.IsGear);
                 var main = row.Button.GetComponent<RectTransform>();

@@ -124,6 +124,7 @@ namespace BiRyeoDo.Core
             var item = EarlyGameContent.FindItem(id);
             if (item == null || !item.IsGear) { error = "장비할 수 없는 물건입니다."; return false; }
             if (Count(save, id) == 0) { error = "가지고 있지 않습니다."; return false; }
+            if (owner != Hero && !string.IsNullOrEmpty(owner) && Gear.IsHeroOnly(id)) { error = item.Name + "은(는) " + Gear.HeroOnlyLabel + " 장비입니다."; return false; }
             var gear = GearOf(save, owner);
             if (gear.Contains(id)) return true;
             if (Free(save, id) <= 0)
