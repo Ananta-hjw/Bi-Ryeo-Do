@@ -29,8 +29,8 @@ namespace BiRyeoDo.Game.UI
             public Combatant Unit;
             public RectTransform Root;
             public Image Frame, Art;
-            public Text Name, Glyph, Intent, HpText, Badge, Realm;
-            public UiFactory.Bar Hp;
+            public Text Name, Glyph, Intent, HpText, QiText, SpiritText, Badge, Realm;
+            public UiFactory.Bar Hp, Qi, Spirit;
             public Vector2 Center;
             public EnemyData Data;
         }
@@ -1020,7 +1020,7 @@ namespace BiRyeoDo.Game.UI
                 var cell = TileCell(units[i].Col, units[i].Row);
                 var card = new EnemyCard { Unit = units[i], Data = data, Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
                 card.Root = UiFactory.Rect("Card" + i, _cardsRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
-                card.Frame = UiFactory.Panel("Marker", card.Root, new Vector2(0.10f, 0.285f), new Vector2(0.90f, 0.305f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks the target
+                card.Frame = UiFactory.Panel("Marker", card.Root, new Vector2(0.10f, 0.303f), new Vector2(0.90f, 0.319f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks the target
                 card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.03f, 0.88f), new Vector2(0.97f, 0.99f), data.Name, data.IsBoss ? 24 : 20, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
                 var art = ArtLibrary.Enemy(data.ArtKey);
                 if (art != null)
@@ -1028,13 +1028,19 @@ namespace BiRyeoDo.Game.UI
                     card.Art = FitArt(card.Root, art, cell);
                 }
                 card.Glyph = UiFactory.Label("Glyph", card.Root, new Vector2(0.05f, 0.30f), new Vector2(0.95f, 0.88f), art != null ? "" : FirstGlyph(data.Name), data.IsBoss ? 170 : 110, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
-                card.Hp = UiFactory.MakeBar("Hp", card.Root, new Vector2(0.06f, 0.215f), new Vector2(0.94f, 0.275f), new Color(0f, 0f, 0f, 0.7f), UiFactory.Red);
-                card.HpText = UiFactory.Label("HpText", card.Root, new Vector2(0.06f, 0.15f), new Vector2(0.94f, 0.215f), "", 18, UiFactory.PaperText);
+                // Same three gauges as the party, a little thinner to leave a line for the next move
+                var gaugeBack = new Color(0f, 0f, 0f, 0.75f);
+                card.Hp = UiFactory.MakeBar("Hp", card.Root, new Vector2(0.04f, 0.235f), new Vector2(0.96f, 0.300f), gaugeBack, UiFactory.Red);
+                card.Qi = UiFactory.MakeBar("Qi", card.Root, new Vector2(0.04f, 0.165f), new Vector2(0.96f, 0.230f), gaugeBack, QiBlue);
+                card.Spirit = UiFactory.MakeBar("Spirit", card.Root, new Vector2(0.04f, 0.095f), new Vector2(0.96f, 0.160f), gaugeBack, UiFactory.Gold);
+                card.HpText = GaugeText("HpText", card.Root, 0.235f, 0.300f);
+                card.QiText = GaugeText("QiText", card.Root, 0.165f, 0.230f);
+                card.SpiritText = GaugeText("SpiritText", card.Root, 0.095f, 0.160f);
                 // 무공 경지 under the name, from the stats this fight actually uses (harder difficulties raise it)
                 string realm = Realm.HasRealm(data) ? Realm.Steps[Realm.StepOf(Realm.Power(units[i].Stats))].Name : "";
                 card.Realm = UiFactory.Label("Realm", card.Root, new Vector2(0.03f, 0.80f), new Vector2(0.97f, 0.885f), realm, 17, new Color(0.85f, 0.75f, 0.45f, 1f));
                 card.Badge = UiFactory.Label("Badge", card.Root, new Vector2(0.04f, 0.68f), new Vector2(0.96f, 0.80f), "", 24, UiFactory.PaperText);
-                card.Intent = UiFactory.Label("Intent", card.Root, new Vector2(0.04f, 0.01f), new Vector2(0.96f, 0.15f), "", 18, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+                card.Intent = UiFactory.Label("Intent", card.Root, new Vector2(0.02f, 0.0f), new Vector2(0.98f, 0.09f), "", 18, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
                 // Tap to attack (only while an attack is being aimed)
                 var tap = card.Root.gameObject.AddComponent<Button>();
@@ -1186,7 +1192,11 @@ namespace BiRyeoDo.Game.UI
                 var u = c.Unit;
                 bool dead = !u.IsAlive;
                 c.Hp.SetPct(u.Stats.MaxHp > 0 ? (float)u.Hp / u.Stats.MaxHp : 0f);
-                c.HpText.text = u.Hp + " / " + u.Stats.MaxHp;
+                c.HpText.text = "체력 " + u.Hp + " / " + u.Stats.MaxHp;
+                c.Qi.SetPct(u.Stats.MaxQi > 0 ? (float)u.Qi / u.Stats.MaxQi : 0f);
+                c.QiText.text = "내공 " + u.Qi + " / " + u.Stats.MaxQi;
+                c.Spirit.SetPct(u.Spirit / (float)InteractiveBattle.MaxSpirit);
+                c.SpiritText.text = "기세 " + u.Spirit + " / " + InteractiveBattle.MaxSpirit;
                 bool aimOk = Hittable(u), aimNo = Aiming && !dead && !aimOk;
                 c.Frame.color = aimOk ? new Color(0.30f, 0.90f, 0.40f, 1f) : aimNo ? new Color(0.75f, 0.15f, 0.15f, 1f) : new Color(0f, 0f, 0f, 0f);
                 c.Badge.text = aimOk ? "▶ 공격 가능" : aimNo ? "✕ 공격 불가" : "";
@@ -1198,7 +1208,7 @@ namespace BiRyeoDo.Game.UI
                 var move = u.PeekMove();
                 if (u.Charging)
                 {
-                    c.Intent.text = "위험! " + move.Name + (u.ChargeTarget != null ? "\n→ " + u.ChargeTarget.Name : "");
+                    c.Intent.text = "위험! " + move.Name + (u.ChargeTarget != null ? " → " + u.ChargeTarget.Name : "");
                     c.Intent.color = UiFactory.Red;
                 }
                 else if (move.Charge)
@@ -1208,7 +1218,7 @@ namespace BiRyeoDo.Game.UI
                 }
                 else
                 {
-                    c.Intent.text = "다음: " + move.Name + (move.Hits > 1 ? " x" + move.Hits : "") + (move.Snipe ? "\n(뒤쪽 저격)" : "");
+                    c.Intent.text = "다음: " + move.Name + (move.Hits > 1 ? " x" + move.Hits : "") + (move.Snipe ? " (뒤쪽 저격)" : "");
                     c.Intent.color = UiFactory.PaperText;
                 }
             }
@@ -1863,7 +1873,9 @@ namespace BiRyeoDo.Game.UI
             if (ev.Interrupted) Float(card.Center + new Vector2(0f, -0.07f), "차단!", UiFactory.Gold, 72);
             else if (ev.Stunned) Float(card.Center + new Vector2(0f, -0.07f), "굳음", GuardBlue, 60);
             card.Hp.SetPct(card.Unit.Stats.MaxHp > 0 ? (float)ev.TargetHpAfter / card.Unit.Stats.MaxHp : 0f);
-            card.HpText.text = ev.TargetHpAfter + " / " + card.Unit.Stats.MaxHp;
+            card.HpText.text = "체력 " + ev.TargetHpAfter + " / " + card.Unit.Stats.MaxHp;
+            card.Spirit.SetPct(card.Unit.Spirit / (float)InteractiveBattle.MaxSpirit);
+            card.SpiritText.text = "기세 " + card.Unit.Spirit + " / " + InteractiveBattle.MaxSpirit;
             StartCoroutine(Shake(card.Root, ev.IsCrit ? 22f : 14f));
             if (ev.TargetDefeated) { StartCoroutine(Collapse(card)); card.Intent.text = ev.Retreated ? "물러났다" : "쓰러졌다"; if (ev.Retreated) _log.text = ev.Message; }
             RefreshParty();
@@ -1891,7 +1903,7 @@ namespace BiRyeoDo.Game.UI
                     victim.ShownHp = ev.TargetHpAfter;
                     victim.ShownSpirit = ev.TargetSpiritAfter;
                     victim.Hp.SetPct((float)ev.TargetHpAfter / Math.Max(1, victim.Unit.Stats.MaxHp));
-                    victim.HpText.text = ev.TargetHpAfter + "/" + victim.Unit.Stats.MaxHp;
+                    victim.HpText.text = "체력 " + ev.TargetHpAfter + " / " + victim.Unit.Stats.MaxHp;
                     StartCoroutine(Shake(victim.Root, ev.Guarded ? 6f : 16f));
                     StartCoroutine(Flash(ev.Guarded ? 0.12f : 0.30f));
                     if (ev.TargetDefeated) victim.Status.text = "쓰러짐";
