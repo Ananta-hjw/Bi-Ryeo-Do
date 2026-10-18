@@ -101,6 +101,13 @@ namespace BiRyeoDo.Tests
             Assert.IsNotNull(Salvage.Dismantle(save, "iron_sword", rng, out err));
             Assert.AreEqual(0, Inventory.Count(save, "iron_sword"));
             Assert.IsNull(Salvage.Dismantle(save, "jin_biroedo", rng, out err), "초월 gear is never dismantled");
+            foreach (var mythic in EarlyGameContent.Items.Where(i => i.IsGear && i.Grade == ItemGrade.Mythic))
+            {
+                Inventory.Add(save, mythic.Id, 2);
+                Assert.IsFalse(Salvage.CanDismantle(save, mythic.Id), mythic.Id + " must not be dismantled");
+                Assert.IsNull(Salvage.Dismantle(save, mythic.Id, rng, out err), mythic.Id);
+                Assert.AreEqual(2, Inventory.Count(save, mythic.Id));
+            }
         }
 
         [Test]
@@ -120,8 +127,8 @@ namespace BiRyeoDo.Tests
         {
             var names = new System.Collections.Generic.HashSet<string>();
             foreach (var m in Salvage.Materials) Assert.IsTrue(names.Add(m.Name), "duplicate name " + m.Name);
-            Assert.AreEqual(30, Salvage.Materials.Length);
-            foreach (var g in new[] { ItemGrade.Normal, ItemGrade.Fine, ItemGrade.Rare, ItemGrade.Epic, ItemGrade.Legendary, ItemGrade.Mythic })
+            Assert.AreEqual(25, Salvage.Materials.Length);
+            foreach (var g in new[] { ItemGrade.Normal, ItemGrade.Fine, ItemGrade.Rare, ItemGrade.Epic, ItemGrade.Legendary })
                 foreach (var k in new[] { ItemKind.Weapon, ItemKind.Armor, ItemKind.Pants, ItemKind.Boots, ItemKind.Accessory })
                 {
                     var m = EarlyGameContent.FindItem(Salvage.IdOf(k, g));
@@ -153,8 +160,7 @@ namespace BiRyeoDo.Tests
                     Assert.AreEqual(0, Inventory.Count(save, mat.Id));
                     Assert.AreEqual(1, Inventory.Count(save, made.Id));
                 }
-            var top = EarlyGameContent.FindItem(Salvage.IdOf(ItemKind.Weapon, ItemGrade.Mythic));
-            Assert.IsFalse(Salvage.IsFusable(top));
+            Assert.IsNull(EarlyGameContent.FindItem(Salvage.IdOf(ItemKind.Weapon, ItemGrade.Mythic)));   // nothing above 전설 to fuse from
         }
 
         [Test]

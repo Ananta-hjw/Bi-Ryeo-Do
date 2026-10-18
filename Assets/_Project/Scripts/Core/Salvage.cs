@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace BiRyeoDo.Core
 {
     /// <summary>
-    /// 분해 and 합성. A spare copy of a piece of gear can be dismantled into 1-7 materials of the same grade and slot
+    /// 분해 and 합성. A spare copy of a piece of gear (일반 to 전설; 신화 and 초월 gear cannot be dismantled) can be dismantled into 1-7 materials of the same grade and slot
     /// (the odds of 1..7 are 10/15/20/20/15/10/10%); enough materials of one grade and slot fuse into a random piece of the next grade in that slot
     /// (일반 100, 고급 90, 희귀 70, 영웅 50, 전설 30). Neither costs 두.
     /// </summary>
@@ -17,7 +17,7 @@ namespace BiRyeoDo.Core
         private static readonly string[] KindKeys = { "weapon", "armor", "pants", "boots", "accessory" };
         private static readonly string[] KindLabels = { "무기", "상의", "하의", "신발", "장신구" };
 
-        // names[grade][slot]: 무기, 상의, 하의, 신발, 장신구
+        // names[grade][slot]: 무기, 상의, 하의, 신발, 장신구 (일반 .. 전설; 신화 장비와 초월 장비는 분해할 수 없어 재료가 없다)
         private static readonly string[][] Names =
         {
             new[] { "철 부스러기", "삼베 조각", "광목 자투리", "가죽 밑창", "구슬 부스러기" },
@@ -25,7 +25,6 @@ namespace BiRyeoDo.Core
             new[] { "흑철 정", "은사 실타래", "흑견 천", "경공 밑창", "보석 가루" },
             new[] { "현철 조각", "자운 비단", "청룡 직물", "운보 가죽", "영석" },
             new[] { "용린 강철", "천잠 명주", "금강사 천", "천리 밑창", "정령석" },
-            new[] { "천외운철", "선녀 비단", "무극 직조", "축지 신가죽", "천지 원석" },
         };
 
         public static readonly ItemData[] Materials = Build();
@@ -33,13 +32,13 @@ namespace BiRyeoDo.Core
         private static ItemData[] Build()
         {
             var list = new List<ItemData>();
-            for (int g = 0; g <= (int)ItemGrade.Mythic; g++)
+            for (int g = 0; g <= (int)ItemGrade.Legendary; g++)
                 for (int k = 0; k < Kinds.Length; k++)
                 {
                     string grade = Grades.Names[g];
-                    string next = g < (int)ItemGrade.Mythic ? Grades.Names[g + 1] : null;
+                    string next = Grades.Names[g + 1];
                     string desc = grade + " " + KindLabels[k] + "을(를) 분해해서 나온 재료. " +
-                        (next != null ? "같은 재료 " + FuseNeed[g] + "개를 모아 합성하면 " + next + " " + KindLabels[k] + " 하나가 무작위로 나온다." : "더 올릴 등급이 없는 최고 재료다.");
+                        "같은 재료 " + FuseNeed[g] + "개를 모아 합성하면 " + next + " " + KindLabels[k] + " 하나가 무작위로 나온다.";
                     list.Add(new ItemData { Id = IdOf(Kinds[k], (ItemGrade)g), Name = Names[g][k], Kind = ItemKind.Material, Grade = (ItemGrade)g, SellValue = 0, Description = desc });
                 }
             return list.ToArray();
@@ -55,15 +54,15 @@ namespace BiRyeoDo.Core
 
         public static string SlotLabel(ItemKind slot) { return KindLabels[SlotIndex(slot)]; }
 
-        /// <summary>The material a piece of this slot and grade dismantles into (null for 초월 gear and non-gear).</summary>
+        /// <summary>The material a piece of this slot and grade dismantles into (null for 신화 and 초월 gear and for non-gear).</summary>
         public static ItemData MaterialFor(ItemData gear)
         {
-            if (gear == null || !gear.IsGear || gear.Grade > ItemGrade.Mythic) return null;
+            if (gear == null || !gear.IsGear || gear.Grade > ItemGrade.Legendary) return null;
             return EarlyGameContent.FindItem(IdOf(gear.Kind, gear.Grade));
         }
 
-        /// <summary>True for the 30 dismantling materials.</summary>
-        public static bool IsFusable(ItemData item) { return item != null && item.Id.StartsWith("mat_") && item.Grade < ItemGrade.Mythic; }
+        /// <summary>True for the 25 dismantling materials (일반 .. 전설).</summary>
+        public static bool IsFusable(ItemData item) { return item != null && item.Id.StartsWith("mat_") && item.Grade <= ItemGrade.Legendary; }
 
         /// <summary>Slot a material belongs to (Weapon, Armor, ...).</summary>
         public static ItemKind SlotOf(ItemData material)
