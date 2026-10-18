@@ -11,6 +11,7 @@ namespace BiRyeoDo.Tests
         {
             Assert.IsTrue(Genders.IsFemale("na_yerin"));
             Assert.IsTrue(Genders.IsFemale("geomhu_ioksang"));
+            Assert.IsTrue(Genders.IsFemale("chu_gayeon"));
             Assert.IsFalse(Genders.IsFemale("player"));
             Assert.IsFalse(Genders.IsFemale("tiger"));
             Assert.IsFalse(Genders.IsFemale(null));
@@ -19,7 +20,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void EveryListedWomanIsARealArtKey()
         {
-            foreach (var key in new[] { "na_yerin", "geomhu_ioksang", "sunyeo", "ma_haryeong", "mask_gongpo", "mask_jeolmang", "mask_bitan" })
+            foreach (var key in new[] { "na_yerin", "geomhu_ioksang", "sunyeo", "ma_haryeong", "mask_gongpo", "mask_jeolmang", "mask_bitan", "chu_gayeon", "eonga_yeong", "yeomdo", "baek_sayeong" })
                 Assert.IsTrue(EarlyGameContent.Enemies.Any(e => e.ArtKey == key) || EarlyGameContent.Companions.Any(c => c.Id == key), key);
         }
     }
