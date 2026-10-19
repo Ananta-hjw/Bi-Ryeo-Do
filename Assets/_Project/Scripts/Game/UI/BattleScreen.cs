@@ -387,6 +387,7 @@ namespace BiRyeoDo.Game.UI
             _pickIndex = -1;
             while (!_pickDone) yield return null;
             _pickRoot.SetActive(false);
+            StartCoroutine(GuardTaps());
         }
 
         private IEnumerator RunStage(StageData stage)
@@ -461,8 +462,10 @@ namespace BiRyeoDo.Game.UI
                     var found = new List<string>();   // 심득석 / 수련서 discovered by this win
                     if (!stage.IsQuest && !stage.IsTower)
                     {
-                        // Reputation comes from the first win of each fight on each difficulty, so replaying one fight cannot farm it.
-                        if ((StageStars.MaskOf(save, stage.Number, i, diff) & 1) == 0)
+                        // Reputation and 수련서 come from the first win of each fight on each difficulty, so replaying one fight cannot farm them
+                        // (losing a later fight and retrying the stage replays the fights already won).
+                        bool firstWin = (StageStars.MaskOf(save, stage.Number, i, diff) & 1) == 0;
+                        if (firstWin)
                         {
                             var rises = Factions.OnFightWon(save, stage.Number, diff);
                             string gains = Factions.GainText(stage.Number, diff);
@@ -473,7 +476,7 @@ namespace BiRyeoDo.Game.UI
                         int fightNew = StageStars.Record(save, stage.Number, i, diff, fightMask);
                         int stones = StageStars.GrantClearInsight(save, stage.Number, diff, stageWasCleared);
                         if (stones > 0) { repLine += (repLine.Length > 0 ? "\n" : "") + "심득석 +" + stones; found.Add("심득석 x" + stones); }
-                        if (!replay) foreach (var scroll in Mastery.RollScrolls(save, new SeededRandom(Environment.TickCount)))
+                        if (!replay && firstWin) foreach (var scroll in Mastery.RollScrolls(save, new SeededRandom(Environment.TickCount)))
                         {
                             var scrollData = EarlyGameContent.FindItem(scroll.Id);
                             if (scrollData != null) found.Add(scrollData.Name);
@@ -1507,7 +1510,8 @@ namespace BiRyeoDo.Game.UI
             var close = rt.gameObject.AddComponent<Button>();
             close.targetGraphic = dim;
             close.transition = Selectable.Transition.None;
-            close.onClick.AddListener(() => _tipRoot.SetActive(false));
+            // A quick second tap meant for the tip must not land on the command or card underneath it.
+            close.onClick.AddListener(() => { _tipRoot.SetActive(false); StartCoroutine(GuardTaps(0.3f)); });
             var card = UiFactory.Panel("Card", rt, new Vector2(0.06f, 0.28f), new Vector2(0.94f, 0.72f), new Color(0.05f, 0.07f, 0.11f, 0.98f));
             UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
             _tipIcon = UiFactory.Panel("Icon", card.transform, new Vector2(0.76f, 0.76f), new Vector2(0.95f, 0.98f), Color.white);
@@ -2272,6 +2276,7 @@ namespace BiRyeoDo.Game.UI
             _leave = false;
             while (!_panelDone) yield return null;
             _panel.SetActive(false);
+            StartCoroutine(GuardTaps());
             nextRt.anchorMin = oldMin; nextRt.anchorMax = oldMax;
             backRt.anchorMin = backMin; backRt.anchorMax = backMax;
             nextLabel.text = nextOld; backLabel.text = backOld;

@@ -130,7 +130,7 @@ namespace BiRyeoDo.Core
             if (Free(save, id) <= 0)
             {
                 var others = WearingCompanions(save, id);
-                if (gear.Contains(id)) others.Insert(0, "비류연");
+                if (gear != save.EquippedGear && save.EquippedGear.Contains(id)) others.Insert(0, "비류연");
                 error = string.Join(", ", others) + "이(가) 착용 중입니다. 같은 장비가 하나 더 있거나 먼저 해제해야 합니다.";
                 return false;
             }

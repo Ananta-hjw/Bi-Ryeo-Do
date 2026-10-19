@@ -61,7 +61,7 @@ namespace BiRyeoDo.Tests
             string error;
             Assert.IsTrue(Inventory.Equip(save, w, out error));
             Assert.IsFalse(Inventory.EquipFor(save, "hyo_ryong", w, out error), "one copy cannot be worn twice");
-            StringAssert.Contains("착용 중", error);
+            StringAssert.Contains("비류연이(가) 착용 중", error);   // the message names who wears it
             Inventory.Add(save, w, 1);
             Assert.IsTrue(Inventory.EquipFor(save, "hyo_ryong", w, out error), error);
             Assert.AreEqual(2, Inventory.Worn(save, w));

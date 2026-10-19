@@ -275,7 +275,14 @@ namespace BiRyeoDo.Core
             if (party.Count != ids.Count) return null;
             var key = new System.Text.StringBuilder();
             key.Append(st.Number).Append('/').Append(st.Difficulty).Append('/').Append(st.IsQuest ? st.QuestId : "").Append('/').Append(st.IsTower ? st.TowerFloor : 0);
-            foreach (var m in party) key.Append('|').Append(m.Id).Append(':').Append(m.Stats.MaxHp).Append(',').Append(m.Stats.Attack).Append(',').Append(m.Stats.Defense).Append(',').Append(m.Stats.Speed).Append(',').Append(m.Skills.Count);
+            foreach (var m in party)
+            {
+                key.Append('|').Append(m.Id).Append(':').Append(m.Stats.MaxHp).Append(',').Append(m.Stats.Attack).Append(',').Append(m.Stats.Defense).Append(',').Append(m.Stats.Speed);
+                // Every skill field the planner reads, so swapping an art, picking a variant or reaching 극의 re-plans.
+                foreach (var sk in m.Skills)
+                    key.Append(';').Append(sk.Id).Append(',').Append(sk.Power).Append(',').Append(sk.Hits).Append(',').Append(sk.Cooldown).Append(',').Append(sk.Range)
+                       .Append(',').Append(sk.AllEnemies ? 1 : 0).Append(',').Append((int)sk.Effect).Append(',').Append(sk.HealPct).Append(',').Append(sk.SpiritCost);
+            }
             Dictionary<string, int> fixedCols = null;
             if (pinned != null)
             {
