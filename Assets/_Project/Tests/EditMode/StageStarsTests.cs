@@ -95,7 +95,11 @@ namespace BiRyeoDo.Tests
         public void HarderDifficultiesScaleEnemiesMoreInLateStages()
         {
             var e = EarlyGameContent.FindEnemy("tiger");
-            Assert.AreSame(e, StageStars.ScaleEnemy(e, 1, 0));
+            Assert.AreEqual(e.HpMul * StageStars.NormalHpBoost(1), StageStars.ScaleEnemy(e, 1, 0).HpMul, 0.001f, "일반 gets the HP boost of its stage");
+            Assert.Greater(StageStars.NormalHpBoost(30), StageStars.NormalHpBoost(10), "the boost grows with the stage");
+            Assert.Greater(StageStars.NormalHpBoost(10), StageStars.NormalHpBoost(1));
+            var survival = EarlyGameContent.FindEnemy("geomhu_ioksang");
+            Assert.AreSame(survival, StageStars.ScaleEnemy(survival, 29, 0), "survival-only enemies keep their stats");
             var hard = StageStars.ScaleEnemy(e, 20, 1);
             var hell = StageStars.ScaleEnemy(e, 20, 2);
             Assert.Greater(hard.HpMul, e.HpMul);

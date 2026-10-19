@@ -17,6 +17,16 @@ namespace BiRyeoDo.Tests
 
         // A prepared player: start-kit gear, entry mastery, free breath, no training or faction bonuses.
         // Learning costs are checked separately by the first-clear campaign; fixed-level checks isolate combat.
+        /// <summary>
+        /// Levels a real player has over the balance bot at the stage's recommended level, standing for the gear, 심법, mastery and items the bot ignores.
+        /// The solo stages 1-6 (fought with the start kit) get none; from stage 7 on the bot is given ceil((stage - 6) / 3) more levels (stage 30: +8)
+        /// so that the enemy HP boost on 일반 (<see cref="StageStars.NormalHpBoost"/>) stays clearable by it. See Docs/BALANCE.md.
+        /// </summary>
+        public static int EdgeLevels(int stage) { return stage <= 6 ? 0 : (stage - 6 + 2) / 3; }
+
+        /// <summary>The level the bot plays a stage at: the recommended level plus <see cref="EdgeLevels"/>.</summary>
+        public static int BotLevel(StageData stage) { return stage.RecommendedPlayerLevel + EdgeLevels(stage.Number); }
+
         public static SaveData Starter(int stage, int level)
         {
             var save = new SaveData { Level = level, ClearedStage = stage - 1, SwordRank = stage >= Promotion.GateStage ? Promotion.GateRank : 1 };

@@ -68,7 +68,7 @@ namespace BiRyeoDo.Tests
 
         public static bool ClearStage(StageData st, int seed)
         {
-            return BalanceSimulation.Play(st, BalanceSimulation.Starter(st.Number, st.RecommendedPlayerLevel), seed).Won;
+            return BalanceSimulation.Play(st, BalanceSimulation.Starter(st.Number, BalanceSimulation.BotLevel(st)), seed).Won;
         }
     }
 }

@@ -36,39 +36,39 @@ namespace BiRyeoDo.Core
         public static readonly float[] RewardFactor = { 1.0f, 1.5f, 2.2f };   // 두 and exp
         public static readonly string[] StarNames = { "돌파", "전원 생존", "신속" };
 
-        /// <summary>Party actions allowed for the 신속 star of each fight (index = stage - 1, then fight). About 90% of the balance bot's median, plus one.</summary>
+        /// <summary>Party actions allowed for the 신속 star of each fight (index = stage - 1, then fight). About 90% of the balance bot's median, plus one; the bot plays the 일반 enemies with their HP boost (<see cref="NormalHpBoost"/>) at <c>BalanceSimulation.BotLevel</c>.</summary>
         private static readonly int[][] FastLimits =
         {
-            new[] { 4, 6, 7, 10 },   // 1
-            new[] { 3, 5, 10 },   // 2
-            new[] { 4, 5, 6 },   // 3
-            new[] { 5, 6, 8 },   // 4
-            new[] { 3, 7 },   // 5
-            new[] { 5, 7, 8 },   // 6
-            new[] { 4, 7, 10, 9 },   // 7
-            new[] { 4, 8, 12 },   // 8
-            new[] { 7, 7, 14, 14 },   // 9
-            new[] { 6, 12, 12 },   // 10
-            new[] { 5, 5, 14 },   // 11
-            new[] { 6, 11, 12 },   // 12
-            new[] { 15, 18 },   // 13
-            new[] { 18, 14, 25 },   // 14
-            new[] { 12, 14, 8 },   // 15
-            new[] { 15, 12, 10 },   // 16
-            new[] { 19, 15, 12 },   // 17
-            new[] { 11, 18 },   // 18
-            new[] { 21, 18, 17 },   // 19
-            new[] { 20, 14, 19 },   // 20
-            new[] { 21, 17, 17 },   // 21
-            new[] { 24, 19, 18 },   // 22
-            new[] { 24, 19, 19 },   // 23
-            new[] { 26, 28, 27 },   // 24
-            new[] { 28, 25, 23 },   // 25
-            new[] { 29, 19, 22 },   // 26
-            new[] { 26, 29, 25 },   // 27
-            new[] { 18, 31, 25, 23 },   // 28
-            new[] { 28, 41, 22, 15, 45 },   // 29
-            new[] { 37, 28, 21 },   // 30
+            new[] { 4, 8, 7, 10 },   // 1
+            new[] { 3, 5, 9 },   // 2
+            new[] { 4, 5, 5 },   // 3
+            new[] { 5, 8, 7 },   // 4
+            new[] { 3, 10 },   // 5
+            new[] { 6, 7, 8 },   // 6
+            new[] { 5, 9, 11, 10 },   // 7
+            new[] { 5, 10, 13 },   // 8
+            new[] { 7, 7, 15, 13 },   // 9
+            new[] { 6, 14, 13 },   // 10
+            new[] { 6, 6, 14 },   // 11
+            new[] { 6, 14, 12 },   // 12
+            new[] { 18, 17 },   // 13
+            new[] { 19, 17, 28 },   // 14
+            new[] { 16, 17, 10 },   // 15
+            new[] { 18, 15, 12 },   // 16
+            new[] { 21, 17, 13 },   // 17
+            new[] { 18, 21 },   // 18
+            new[] { 28, 21, 19 },   // 19
+            new[] { 28, 18, 26 },   // 20
+            new[] { 28, 22, 19 },   // 21
+            new[] { 33, 27, 28 },   // 22
+            new[] { 33, 28, 28 },   // 23
+            new[] { 37, 37, 34 },   // 24
+            new[] { 35, 32, 26 },   // 25
+            new[] { 39, 26, 28 },   // 26
+            new[] { 32, 39, 33 },   // 27
+            new[] { 26, 39, 31, 29 },   // 28
+            new[] { 35, 48, 29, 17, 61 },   // 29
+            new[] { 52, 38, 28 },   // 30
         };
 
         public static int FastLimit(int stage, int fight)
@@ -87,8 +87,8 @@ namespace BiRyeoDo.Core
             var st = EarlyGameContent.FindStage(stage);
             double d0 = st != null ? Progression.StatsFor(st.RecommendedLevel).Defense : 0.0;
             double defEffect = (BattleEngine.DefenseConstant + d0 * DefFor(stage, difficulty)) / (BattleEngine.DefenseConstant + d0);
-            // The table is measured on the eased 일반 enemies, while the harder difficulties scale the original ones (see NormalEase).
-            double hp = HpFor(stage, difficulty) / Math.Pow(NormalEase(stage), 0.7);
+            // The table is measured on the eased and boosted 일반 enemies, while the harder difficulties scale the original ones (see NormalEase, NormalHpBoost).
+            double hp = HpFor(stage, difficulty) / Math.Pow(NormalEase(stage), 0.7) / NormalHpBoost(stage);
             return (int)Math.Ceiling(FastLimit(stage, fight) * Math.Max(1.0, hp) * Math.Max(1.0, defEffect));
         }
 
@@ -141,13 +141,30 @@ namespace BiRyeoDo.Core
         /// <summary>How much stronger (&gt;1) or weaker (&lt;1) a stage's 일반 enemies are than the enemy table the harder difficulties were tuned against.</summary>
         public static float NormalEase(int stage) { return stage >= 1 && stage <= NormalEaseTable.Length ? NormalEaseTable[stage - 1] : 1f; }
 
+        /// <summary>
+        /// 일반 난이도 enemy boost on top of the enemy table: HP mostly (x1.1 on stage 1 up to x2.6 on stage 30, a little more every stage), attack a little.
+        /// Stages 1-6 are fought alone and sit on the balance bot's cliff, so their HP is kept lower (see Docs/BALANCE.md). 어려움·극악 start from the table and are not affected.
+        /// </summary>
+        static readonly float[] NormalHpBoostTable =
+        {
+            1.00f, 1.10f, 1.10f, 1.10f, 1.10f, 1.00f, 1.45f, 1.50f, 1.55f, 1.60f, 1.65f, 1.70f, 1.75f, 1.80f, 1.85f,
+            1.90f, 1.95f, 2.00f, 2.05f, 2.10f, 2.15f, 2.20f, 2.25f, 2.30f, 2.35f, 2.40f, 2.45f, 2.50f, 2.55f, 2.60f,
+        };
+        public static float NormalHpBoost(int stage) { return NormalHpBoostTable[Math.Max(1, Math.Min(NormalHpBoostTable.Length, stage)) - 1]; }
+        public static float NormalAtkBoost(int stage) { return stage <= 6 ? 1f : 1.05f + 0.005f * (Math.Min(30, stage) - 7); }
+
         public static EnemyData ScaleEnemy(EnemyData enemy, int stage, int difficulty)
         {
             difficulty = Clamp(difficulty);
             // Shorten the longest normal stages without removing pressure. Survival-only enemies keep their rules/stats.
             // Hard difficulties still start from the original table, so this does not move their progression targets.
             if (difficulty == 0)
-                return stage >= 24 && stage <= 30 && enemy.HpMul <= 10f ? enemy.Scaled(0.85f, 1.25f) : enemy;
+            {
+                if (enemy.HpMul > 10f) return enemy;   // survival-only enemies keep their stats
+                float hp = NormalHpBoost(stage), atk = NormalAtkBoost(stage);
+                if (stage >= 24 && stage <= 30) { hp *= 0.85f; atk *= 1.25f; }
+                return enemy.Scaled(hp, atk);
+            }
             float ease = NormalEase(stage);
             return enemy.Scaled(HpFor(stage, difficulty) / (float)Math.Pow(ease, 0.7), AtkFor(stage, difficulty) / (float)Math.Pow(ease, 0.3), DefFor(stage, difficulty), LevelAdd(stage, difficulty));
         }

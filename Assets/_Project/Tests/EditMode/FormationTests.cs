@@ -262,7 +262,7 @@ public class FormationTests
 
     private static SaveData Late()
     {
-        return new SaveData { Level = 40, ClearedStage = 30 };
+        return new SaveData { Level = 40, ClearedStage = 25 };
     }
 
     [Test]

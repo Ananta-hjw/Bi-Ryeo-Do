@@ -44,18 +44,18 @@ namespace BiRyeoDo.Tests
             for (int n = 0; n < 4; n++) Assert.GreaterOrEqual(wins[n], (int)(reached[n] * 0.9));
         }
 
-        [TestCase(24, 45, 71)]
-        [TestCase(25, 40, 63)]
-        [TestCase(26, 40, 63)]
-        [TestCase(27, 40, 65)]
-        [TestCase(28, 50, 79)]
-        [TestCase(29, 100, 142)]
-        [TestCase(30, 45, 75)]
+        [TestCase(24, 90, 145)]
+        [TestCase(25, 75, 122)]
+        [TestCase(26, 75, 123)]
+        [TestCase(27, 85, 131)]
+        [TestCase(28, 105, 165)]
+        [TestCase(29, 160, 256)]
+        [TestCase(30, 100, 158)]
         public void LateNormalStagesKeepPressureWithoutLongHpSlogs(int number, int minActions, int maxActions)
         {
             var stage = EarlyGameContent.FindStage(number);
             var runs = Enumerable.Range(301, 100).Select(seed => BalanceSimulation.Play(stage,
-                BalanceSimulation.Starter(number, stage.RecommendedPlayerLevel), seed)).ToList();
+                BalanceSimulation.Starter(number, BalanceSimulation.BotLevel(stage)), seed)).ToList();
             var wins = runs.Where(x => x.Won).ToList();
             Assert.GreaterOrEqual(wins.Count, 85, "prepared players should not need repeated grinding");
             double actions = wins.Average(x => x.Actions);
@@ -122,7 +122,7 @@ namespace BiRyeoDo.Tests
             var stage = EarlyGameContent.FindStage(26);
             var id = stage.Encounters[0][0];
             var raw = EarlyGameContent.FindEnemy(id);
-            Assert.Less(stage.EnemyFor(id).HpMul, raw.HpMul);
+            Assert.AreEqual(raw.HpMul * StageStars.NormalHpBoost(26) * 0.85f, stage.EnemyFor(id).HpMul, 0.001f);   // 일반 only: boosted, then the late-stage shortening
             var survivalEnemy = EarlyGameContent.FindEnemy("geomhu_ioksang");
             Assert.AreSame(survivalEnemy, EarlyGameContent.FindStage(29).EnemyFor(survivalEnemy.Id));
             var hard = stage.WithDifficulty(1).EnemyFor(id);
