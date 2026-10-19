@@ -850,7 +850,7 @@ namespace BiRyeoDo.Game.UI
                     foreach (var u in _party) if (u.Statuses.Count > 0) anyStatus = true;
                     foreach (var c in _cards) if (c.Unit.Statuses.Count > 0) anyStatus = true;
                     string hint = !Tutorial.IsDone(save0, "battle") ? "battle" : !Tutorial.IsDone(save0, "reach") ? "reach" : _jointPartners.Count > 0 && !Tutorial.IsDone(save0, "joint") ? "joint"
-                        : anyStatus && !Tutorial.IsDone(save0, "status") ? "status" : null;
+                        : anyStatus && !Tutorial.IsDone(save0, "status") ? "status" : _phaseSeen && !Tutorial.IsDone(save0, "phase") ? "phase" : null;
                     if (hint != null) yield return HelpPanel.Instance.ShowOnce(hint);
                 }
 
@@ -1654,6 +1654,8 @@ namespace BiRyeoDo.Game.UI
             lines.Add("체력 " + card.Unit.Hp.ToString("N0") + " / " + s.MaxHp.ToString("N0") + "\n공격력 " + s.Attack.ToString("N0") + "   방어력 " + s.Defense.ToString("N0") + "   속도 " + s.Speed.ToString("N0"));
             string statusLines = StatusLines(card.Unit);
             if (statusLines.Length > 0) lines.Add(statusLines);
+            string phaseLine = BossPhases.Describe(card.Unit);
+            if (phaseLine.Length > 0) lines.Add(phaseLine);
             var moveStatus = new List<string>();
             foreach (var m in card.Unit.Moves ?? new List<EnemyMove>()) if (m.Inflict != StatusKind.None && !moveStatus.Contains(m.Name + "(" + Statuses.Name(m.Inflict) + ")")) moveStatus.Add(m.Name + "(" + Statuses.Name(m.Inflict) + ")");
             if (moveStatus.Count > 0) lines.Add("상태 이상을 거는 기술: " + string.Join(", ", moveStatus));
@@ -1961,6 +1963,21 @@ namespace BiRyeoDo.Game.UI
                             yield return new WaitForSeconds(Wait(SmallDelay));
                             break;
                         }
+                    case EventKind.Phase:
+                        {
+                            // 보스 단계 전환: a shake and a banner, then the boss's lines over the battle
+                            SoundManager.Sfx("charge");
+                            SoundManager.Haptic(80);
+                            _log.text = ev.Message;
+                            _phaseSeen = true;
+                            var phaseCard = CardOf(ev.ActorId);
+                            if (phaseCard != null) { Float(phaseCard.Center, "기세 변화!", UiFactory.Red, 70); yield return Shake(phaseCard.Root, 14f); }
+                            yield return Banner(ev.Message, 0.9f);
+                            if (ev.Lines != null && ev.Lines.Length > 0 && !_fled)
+                                yield return ShowStory(phaseCard != null ? phaseCard.Unit.Name : "", ev.Lines);
+                            RefreshCards();
+                            break;
+                        }
                     case EventKind.StunSkip:
                         _log.text = ev.Message;
                         var frozen = CardOf(ev.ActorId);
@@ -1971,6 +1988,8 @@ namespace BiRyeoDo.Game.UI
                 }
             }
         }
+
+        private bool _phaseSeen;   // a boss changed phase in this screen session (shows the 「보스 단계」 help once)
 
         private static readonly Color StatusColor = new Color(0.86f, 0.62f, 1f, 1f);
 

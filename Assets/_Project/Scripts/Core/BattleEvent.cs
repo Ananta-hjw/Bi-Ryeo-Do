@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace BiRyeoDo.Core
 {
-    public enum EventKind { Attack, Guard, Meditate, Charge, Evade, Heal, StunSkip, Item, Status }
+    public enum EventKind { Attack, Guard, Meditate, Charge, Evade, Heal, StunSkip, Item, Status, Phase }
 
     /// <summary>One action in a battle. UI plays these back; the engine never touches UI.</summary>
     public sealed class BattleEvent
@@ -37,6 +37,8 @@ namespace BiRyeoDo.Core
         // Kind == Status: a 상태 이상 was applied to TargetId (Damage 0), hurt it (Damage > 0: 중독·화상 at its turn, 출혈 when struck) or was cured (StatusCured)
         public StatusKind Status;
         public bool StatusCured;
+        // Kind == Phase: the boss ActorId began phase HitIndex (1-based) of its fight; Lines are the StoryLine lines to play
+        public string[] Lines;
     }
 
     public sealed class BattleResult

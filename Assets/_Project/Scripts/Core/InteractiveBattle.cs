@@ -308,6 +308,7 @@ namespace BiRyeoDo.Core
             }
 
             for (int i = firstEvent; i < events.Count; i++) { events[i].ActorQiAfter = actor.Qi; events[i].ActorSpiritAfter = actor.Spirit; }
+            CheckPhases(events);
             if (Trial != null && (Trial.Kind == TrialKind.Deadline || Trial.Kind == TrialKind.Harmony) && PartyActions >= Trial.Limit && AnyEnemyAlive) TrialFailed = true;
             if (IsOver) return events;
             events.AddRange(RunUntilParty());
@@ -539,6 +540,7 @@ namespace BiRyeoDo.Core
                 bool wounded = actor.Has(StatusKind.InnerWound);   // 내상 this turn (read before the statuses tick down)
                 TickStatuses(actor, events);
                 if (!actor.IsAlive) continue;   // fell to 중독·화상 before acting
+                if (actor.Team == Team.Enemy) CheckPhases(events);   // 중독·화상 can push a boss into its next phase
 
                 if (actor.Team == Team.Player)
                 {
@@ -581,9 +583,45 @@ namespace BiRyeoDo.Core
             return far;
         }
 
+        /// <summary>보스 단계 전환: every boss whose HP has fallen to its next phase begins it (both at once if one blow crossed two).</summary>
+        private void CheckPhases(List<BattleEvent> events)
+        {
+            foreach (var e in _enemies)
+            {
+                if (!e.IsAlive || e.Phases == null) continue;
+                while (e.PhaseIndex < e.Phases.Count && e.Hp <= e.Stats.MaxHp * e.Phases[e.PhaseIndex].HpPct)
+                {
+                    var phase = e.Phases[e.PhaseIndex++];
+                    e.PowerMul = phase.PowerMul;
+                    e.Gauge = 0;   // the change of stance costs it a beat
+                    if (phase.Moves != null)
+                    {
+                        // a wind-up in progress still ends in its heavy blow; the new script starts after it
+                        if (e.Charging) e.PendingMoves = new List<EnemyMove>(phase.Moves);
+                        else { e.Moves = new List<EnemyMove>(phase.Moves); e.MoveIndex = 0; e.PendingMoves = null; }
+                    }
+                    events.Add(new BattleEvent
+                    {
+                        Turn = Turn, ActorId = e.Id, TargetId = e.Id, SkillId = "phase", Kind = EventKind.Phase, HitIndex = e.PhaseIndex,
+                        Lines = phase.Lines, TargetHpAfter = e.Hp, Message = e.Name + "의 기세가 달라졌다!"
+                    });
+                }
+            }
+        }
+
+        /// <summary>A phase's script that waited for a wind-up (see <see cref="CheckPhases"/>) starts once nothing is being wound up.</summary>
+        private static void StartPendingScript(Combatant enemy)
+        {
+            if (enemy.Charging || enemy.PendingMoves == null) return;
+            enemy.Moves = enemy.PendingMoves;
+            enemy.MoveIndex = 0;
+            enemy.PendingMoves = null;
+        }
+
         private void EnemyAct(Combatant enemy, List<BattleEvent> events, bool wounded = false)
         {
             EnemyActions++;
+            StartPendingScript(enemy);
             if (enemy.Stunned)
             {
                 enemy.Stunned = false;
@@ -617,9 +655,10 @@ namespace BiRyeoDo.Core
             bool heavy = enemy.Charging;
             enemy.Charging = false;
             enemy.ChargeTarget = null;
+            StartPendingScript(enemy);   // a phase that began during the wind-up takes over after this blow
 
             int hits = Math.Max(1, move.Hits);
-            float power = move.Power;
+            float power = move.Power * enemy.PowerMul;
             bool burst = false, dry = false;
             if (enemy.UsesResources)
             {
