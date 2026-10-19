@@ -83,9 +83,9 @@ namespace BiRyeoDo.Core
 
         public static int CalcDamage(CombatStats attacker, CombatStats defender, SkillSpec skill, bool crit)
         {
-            double raw = attacker.Attack * skill.Power / AttackScale;
+            double raw = attacker.EffAttack * skill.Power / AttackScale;
             if (crit) raw *= Math.Max(1f, attacker.CritDamage);
-            double reduced = raw * DefenseConstant / (DefenseConstant + Math.Max(0, defender.Defense));
+            double reduced = raw * DefenseConstant / (DefenseConstant + Math.Max(0.0, defender.EffDefense));
             return Math.Max(1, (int)Math.Round(reduced));
         }
 

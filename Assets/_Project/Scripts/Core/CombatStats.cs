@@ -13,6 +13,15 @@ namespace BiRyeoDo.Core
         public int Speed;       // gauge gained per tick; higher acts more often
         public float CritRate;  // 0..1
         public float CritDamage; // multiplier, e.g. 1.5
+        /// <summary>
+        /// Display units: what one shown point of attack / defense is worth in a fight (0 = 1). An enemy's attack and defense are shown re-balanced against each other
+        /// (see <see cref="EnemyData.DisplayRatio"/>), so a point of its attack counts for more than 1 and a point of its defense for less; the damage formula and
+        /// <see cref="Realm.Power"/> read <see cref="EffAttack"/> / <see cref="EffDefense"/>, which are the same fight values as before.
+        /// </summary>
+        public float AtkUnit, DefUnit;
+
+        public double EffAttack { get { return Attack * (AtkUnit > 0f ? AtkUnit : 1f); } }
+        public double EffDefense { get { return Defense * (DefUnit > 0f ? DefUnit : 1f); } }
 
         public static CombatStats Scale(CombatStats s, float multiplier)
         {

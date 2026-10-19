@@ -123,7 +123,7 @@ namespace BiRyeoDo.Tests
             var normal = StageStars.ScaleEnemy(queen, 29, 0).CreateCombatant("q").Stats;
             var hard = StageStars.ScaleEnemy(queen, 29, 1).CreateCombatant("q").Stats;
             var extreme = StageStars.ScaleEnemy(queen, 29, 2).CreateCombatant("q").Stats;
-            Assert.AreEqual(0.4, BattleEngine.DefenseConstant / (BattleEngine.DefenseConstant + extreme.Defense), 0.002);   // 극악: x0.4 (defense about 500 on the current scale)
+            Assert.AreEqual(0.4, BattleEngine.DefenseConstant / (BattleEngine.DefenseConstant + extreme.EffDefense), 0.002);   // 극악: x0.4 (defense about 500 on the current scale)
             Assert.Greater(extreme.Defense, hard.Defense);
             Assert.Greater(hard.Defense, normal.Defense);
             Assert.AreEqual("초절정 극", Realm.Steps[Realm.StepOf(Realm.Power(extreme))].Name);

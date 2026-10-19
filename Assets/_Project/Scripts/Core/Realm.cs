@@ -63,7 +63,7 @@ namespace BiRyeoDo.Core
         /// <summary>Composite power: the geometric mean of 체력, 공격력, 방어력 and 속도.</summary>
         public static double Power(CombatStats s)
         {
-            return Math.Pow((double)Math.Max(1, s.MaxHp) * Math.Max(1, s.Attack / BattleEngine.AttackScale) * Math.Max(1, s.Defense * BattleEngine.DefenseScale / 10.0) * Math.Max(1, s.Speed), 0.25);   // attack and defense are undone to the original scale (defense then ran ten times larger than the first version; /10 keeps the ladder where it was)
+            return Math.Pow((double)Math.Max(1, s.MaxHp) * Math.Max(1.0, s.EffAttack / BattleEngine.AttackScale) * Math.Max(1.0, s.EffDefense * BattleEngine.DefenseScale / 10.0) * Math.Max(1, s.Speed), 0.25);   // attack and defense are undone to the original scale (defense then ran ten times larger than the first version; /10 keeps the ladder where it was)
         }
 
         /// <summary>The composite power at which a step begins.</summary>

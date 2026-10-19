@@ -96,17 +96,27 @@ namespace BiRyeoDo.Core
         public CombatStats BuildStats()
         {
             var b = Progression.StatsFor(Level);
+            int attack = Math.Max(1, (int)Math.Round(b.Attack * AtkMul)), defense = Math.Max(1, (int)Math.Round(b.Defense * DefMul));
+            // Shown attack and defense are re-balanced against each other (their product stays the same) so that an enemy reads like a party member:
+            // the fight values are attack x AtkUnit and defense x DefUnit, exactly what they were before.
+            double s = Math.Sqrt((double)attack / (defense * DisplayRatio));
+            int shownAttack = Math.Max(1, (int)Math.Round(attack / s)), shownDefense = Math.Max(1, (int)Math.Round(defense * s));
             return new CombatStats
             {
                 MaxHp = (int)Math.Round(b.MaxHp * HpMul),
                 MaxQi = QiPool,
-                Attack = (int)Math.Round(b.Attack * AtkMul),
-                Defense = (int)Math.Round(b.Defense * DefMul),
+                Attack = shownAttack,
+                Defense = shownDefense,
+                AtkUnit = (float)attack / shownAttack,
+                DefUnit = (float)defense / shownDefense,
                 Speed = b.Speed + SpeedAdd,
                 CritRate = IsBoss ? 0.06f : 0.02f,
                 CritDamage = 1.5f
             };
         }
+
+        /// <summary>Shown attack / defense of every enemy (about what the protagonist's own curve gives: 1.4).</summary>
+        public const double DisplayRatio = 1.4;
 
         public Combatant CreateCombatant(string uniqueId)
         {
