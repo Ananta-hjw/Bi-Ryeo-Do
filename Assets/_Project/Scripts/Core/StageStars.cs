@@ -81,7 +81,9 @@ namespace BiRyeoDo.Core
         public static int FastLimit(int stage, int fight, int difficulty)
         {
             if (difficulty <= 0) return FastLimit(stage, fight);
-            // More HP and a little more defense (the stage's enemy defense is read off the level curve) both lengthen the fight.
+            // More HP and a little more defense both lengthen the fight. The defense is approximated by the curve at the stage's 일반 level
+            // The higher enemy level of the harder difficulties (LevelAdd) and the HP it brings are not counted, so on the early stages,
+            // where LevelAdd is largest, the limit mostly follows HpFor.
             var st = EarlyGameContent.FindStage(stage);
             double d0 = st != null ? Progression.StatsFor(st.RecommendedLevel).Defense : 0.0;
             double defEffect = (BattleEngine.DefenseConstant + d0 * DefFor(stage, difficulty)) / (BattleEngine.DefenseConstant + d0);

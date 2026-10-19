@@ -6,8 +6,9 @@ namespace BiRyeoDo.Core
     /// <summary>
     /// 진형: where the party and the enemies stand when a fight starts (see <see cref="Board"/>).
     /// The party's tiles are the player's choice (<see cref="SaveData.Placement"/>, set in the 파티 편성 screen); without a valid custom
-    /// choice an automatic arrangement puts the protagonist and the guard in front and the healer behind. Enemies are placed by rule:
-    /// the ordinary ones fill the column facing us, bosses always stand one column behind them.
+    /// choice the automatic arrangement picks the lines by expected damage against the stage's enemies (<see cref="FormationPlanner"/>), falling back to the
+    /// stat rule (<see cref="FrontScores"/>: the sturdiest in front, the strongest attackers at the back, healers in the middle). Enemies answer our lines the
+    /// same way, or by the stat rule for big groups; bosses follow the same rule as everyone else and snipers stand in the deepest column.
     /// </summary>
     public static class Formation
     {
@@ -404,11 +405,6 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>
-        /// Places enemies that have no tile yet by their stats, the way a sensible commander would: ordinary arts only reach the front line, so the best defenders
-        /// (sturdiness against damage rate, <see cref="FrontScores"/>) hold the front column, the strongest attackers stay at the back, and units that shoot at our
-        /// back line (<see cref="EnemyMove.Snipe"/>) always stand in the deepest column. A boss is just another unit. A lone enemy stands right in front of us.
-        /// </summary>
-        /// <summary>
         /// Places the enemies as the best answer to the lines our party stands in (expected damage, <see cref="FormationPlanner.PlanEnemyCols"/>);
         /// falls back to the simple stat rule for big groups, a lone enemy, or when some enemies already have a tile.
         /// </summary>
@@ -431,6 +427,11 @@ namespace BiRyeoDo.Core
             }
         }
 
+        /// <summary>
+        /// Places enemies that have no tile yet by their stats, the way a sensible commander would: ordinary arts only reach the front line, so the best defenders
+        /// (sturdiness against damage rate, <see cref="FrontScores"/>) hold the front column, the strongest attackers stay at the back, and units that shoot at our
+        /// back line (<see cref="EnemyMove.Snipe"/>) always stand in the deepest column. A boss is just another unit. A lone enemy stands right in front of us.
+        /// </summary>
         public static void PlaceEnemies(IList<Combatant> enemies)
         {
             var used = new HashSet<int>();

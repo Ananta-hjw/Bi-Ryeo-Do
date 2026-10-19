@@ -11,7 +11,7 @@ namespace BiRyeoDo.Core
     /// Every unit is turned into damage streams per unit of time (attack x skill power x hits x speed, using its own arts or
     /// enemy script) and an effective HP (HP / damage taken per point, i.e. HP x (K + defense) / K). A small event-driven
     /// simulation then lets both sides drain each other: a line shares the blows aimed at it so its members fall together
-    /// (enemies pick the most wounded member of the line), our side focuses the enemy that deals the most damage per remaining HP,
+    /// (the blows are split in proportion to each member's remaining effective HP), our side focuses the enemy that deals the most damage per remaining HP,
     /// and healing restores the front line. The score is how much of our side is left minus how much of theirs is left (-1..1).
     /// </para>
     /// Our party tries every way to split itself over the three lines and keeps the one whose worst case (the enemies answering

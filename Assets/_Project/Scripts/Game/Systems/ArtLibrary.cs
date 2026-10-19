@@ -49,7 +49,8 @@ namespace BiRyeoDo.Game.Systems
 
         /// <summary>
         /// For full-bleed pictures (an opaque rectangle with a painted background): a copy whose four edges fade out, so the picture melts into whatever is behind it instead of showing a hard box.
-        /// A picture that is already cut out (transparent corners) is returned unchanged. Works on non-readable textures by going through a RenderTexture and is cached.
+        /// A picture that is already cut out (its border is mostly transparent) is returned unchanged. Works on non-readable textures by going through a RenderTexture, reads only the sprite's own rect,
+        /// and is cached (the first call per picture costs one GPU read-back and one pass over at most 1024 px wide).
         /// </summary>
         public static Sprite Feathered(Sprite sprite, float fade = 0.07f)
         {
@@ -57,43 +58,92 @@ namespace BiRyeoDo.Game.Systems
             Sprite cached;
             if (FeatherCache.TryGetValue(sprite, out cached)) return cached;
             Sprite result = sprite;
+            Texture2D tex = null;
+            RenderTexture rt = null;
+            var prev = RenderTexture.active;
             try
             {
                 var src = sprite.texture;
-                int w = Mathf.Min(src.width, 1024), h = Mathf.Max(1, Mathf.RoundToInt(w * (float)src.height / src.width));
-                var rt = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGB32);
-                Graphics.Blit(src, rt);
-                var prev = RenderTexture.active;
+                var r = sprite.rect;
+                int w = Mathf.Max(1, Mathf.Min(Mathf.RoundToInt(r.width), 1024)), h = Mathf.Max(1, Mathf.RoundToInt(w * r.height / r.width));
+                rt = Downscale(src, r, w, h);
                 RenderTexture.active = rt;
-                var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+                tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
                 tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
                 RenderTexture.active = prev;
-                RenderTexture.ReleaseTemporary(rt);
 
                 var px = tex.GetPixels32();
-                bool cutOut = px[0].a < 40 && px[w - 1].a < 40 && px[(h - 1) * w].a < 40 && px[h * w - 1].a < 40;
-                if (cutOut) { Object.Destroy(tex); }
+                if (IsCutOut(px, w, h)) { Object.Destroy(tex); tex = null; }
                 else
                 {
+                    // separable fade: one weight per column and per row, multiplied per pixel
+                    var wx = new float[w];
+                    for (int x = 0; x < w; x++) wx[x] = Smooth(Mathf.Min(x, w - 1 - x) / (fade * w));
                     for (int y = 0; y < h; y++)
                     {
                         float fy = Smooth(Mathf.Min(y, h - 1 - y) / (fade * h));
+                        int row = y * w;
                         for (int x = 0; x < w; x++)
                         {
-                            float k = fy * Smooth(Mathf.Min(x, w - 1 - x) / (fade * w));
-                            var c = px[y * w + x];
-                            c.a = (byte)Mathf.RoundToInt(c.a * k);
-                            px[y * w + x] = c;
+                            float k = fy * wx[x];
+                            if (k >= 1f) continue;
+                            px[row + x].a = (byte)(px[row + x].a * k + 0.5f);
                         }
                     }
                     tex.SetPixels32(px);
                     tex.Apply(false, true);
                     result = Sprite.Create(tex, new Rect(0f, 0f, w, h), new Vector2(0.5f, 0.5f), 100f);
+                    tex = null;   // owned by the sprite now
                 }
             }
             catch (System.Exception) { result = sprite; }
+            finally
+            {
+                RenderTexture.active = prev;
+                if (rt != null) RenderTexture.ReleaseTemporary(rt);
+                if (tex != null) Object.Destroy(tex);
+            }
             FeatherCache[sprite] = result;
             return result;
+        }
+
+        /// <summary>The sprite's rect of <paramref name="src"/> at w x h, halving in steps so a big picture does not alias (the source has no mipmaps).</summary>
+        private static RenderTexture Downscale(Texture src, Rect r, int w, int h)
+        {
+            var scale = new Vector2(r.width / src.width, r.height / src.height);
+            var offset = new Vector2(r.x / src.width, r.y / src.height);
+            int cw = Mathf.RoundToInt(r.width), ch = Mathf.RoundToInt(r.height);
+            while (cw / 2 >= w * 2) { cw /= 2; ch /= 2; }
+            var cur = RenderTexture.GetTemporary(Mathf.Max(w, cw), Mathf.Max(h, ch), 0, RenderTextureFormat.ARGB32);
+            cur.filterMode = FilterMode.Bilinear;
+            Graphics.Blit(src, cur, scale, offset);
+            while (cur.width > w)
+            {
+                int nw = Mathf.Max(w, cur.width / 2), nh = cur.width / 2 <= w ? h : Mathf.Max(h, cur.height / 2);
+                var next = RenderTexture.GetTemporary(nw, nh, 0, RenderTextureFormat.ARGB32);
+                next.filterMode = FilterMode.Bilinear;
+                Graphics.Blit(cur, next);
+                RenderTexture.ReleaseTemporary(cur);
+                cur = next;
+            }
+            return cur;
+        }
+
+        /// <summary>True when most of the border is transparent (a cut-out figure; its feet may touch the edge). Rounded corners alone do not count.</summary>
+        private static bool IsCutOut(Color32[] px, int w, int h)
+        {
+            const int perEdge = 16;
+            int clear = 0, total = 0;
+            for (int i = 0; i < perEdge; i++)
+            {
+                int x = (int)((i + 0.5f) * w / perEdge), y = (int)((i + 0.5f) * h / perEdge);
+                if (px[x].a < 40) clear++;
+                if (px[(h - 1) * w + x].a < 40) clear++;
+                if (px[y * w].a < 40) clear++;
+                if (px[y * w + w - 1].a < 40) clear++;
+                total += 4;
+            }
+            return clear >= total * 0.6f;
         }
 
         private static float Smooth(float t) { t = Mathf.Clamp01(t); return t * t * (3f - 2f * t); }

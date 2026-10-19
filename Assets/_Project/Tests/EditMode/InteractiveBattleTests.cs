@@ -280,6 +280,16 @@ namespace BiRyeoDo.Tests
             StageProgress.Restore(save, new[] { q });
             Assert.AreEqual(40, q.Qi);
             Assert.AreEqual(70, q.Spirit);
+            p.Qi = 0;   // an empty 내공 bar stays empty
+            StageProgress.Store(save, 3, 1, new[] { p });
+            var r = Player(Stats(1000, 1, 0, 100));
+            StageProgress.Restore(save, new[] { r });
+            Assert.AreEqual(0, r.Qi);
+            save.ProgressHp[0].HasQi = false; save.ProgressHp[0].Qi = 0;   // an old save without 내공 starts full
+            var o = Player(Stats(1000, 1, 0, 100));
+            int full = o.Qi;
+            StageProgress.Restore(save, new[] { o });
+            Assert.AreEqual(full, o.Qi);
         }
 
         // ---- party battles

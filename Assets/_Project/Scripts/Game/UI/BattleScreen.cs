@@ -1062,7 +1062,7 @@ namespace BiRyeoDo.Game.UI
             int n = enemies.Length;
             var units = new List<Combatant>();
             for (int i = 0; i < n; i++) units.Add(enemies[i].CreateCombatant(enemies[i].Id + "#" + i));
-            Formation.PlaceEnemies(units, _party);   // bosses stand at the back, the others fill the front columns
+            Formation.PlaceEnemies(units, _party);   // the best answer to our lines (expected damage), or the stat rule for big groups
             for (int i = 0; i < n; i++)
             {
                 var data = enemies[i];
