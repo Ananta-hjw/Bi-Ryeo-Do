@@ -44,27 +44,41 @@ namespace BiRyeoDo.Core
             return c != null ? CompanionGrowth.Create(save, c).Stats : (CombatStats?)null;
         }
 
+        /// <summary>How much punishment a unit soaks up: HP x (K + defense), defense in fight values.</summary>
+        private static double Toughness(CombatStats s) { return (double)s.MaxHp * (BattleEngine.DefenseConstant + s.EffDefense); }
+
+        /// <summary>How much damage a unit deals over time: attack x speed (a fast unit acts more often).</summary>
+        private static double Offense(CombatStats s) { return s.EffAttack * Math.Max(1, s.Speed); }
+
         /// <summary>
-        /// How suited a member is to the front line: sturdiness (HP x (1000 + defense)) relative to the sturdiest of the group minus attack relative to the strongest,
-        /// so the best defenders score high and the best attackers low. Healers always stay behind.
+        /// How suited each unit of a group is to the front line, from its four stats: sturdiness (HP x defense) relative to the sturdiest of the group
+        /// minus damage rate (attack x speed) relative to the best attacker. Positive = a defender (front), negative = an attacker (back).
+        /// The same rule arranges our party and the enemies.
         /// </summary>
+        public static double[] FrontScores(IList<CombatStats> group)
+        {
+            double maxT = 1.0, maxO = 1.0;
+            foreach (var s in group) { maxT = Math.Max(maxT, Toughness(s)); maxO = Math.Max(maxO, Offense(s)); }
+            var scores = new double[group.Count];
+            for (int i = 0; i < scores.Length; i++) scores[i] = Toughness(group[i]) / maxT - Offense(group[i]) / maxO;
+            return scores;
+        }
+
+        /// <summary>The front-line score of one member of our party (healers always stay behind).</summary>
         public static double FrontScore(SaveData save, IList<string> ids, string id)
         {
             if (IsHealer(id)) return -10.0;
-            double maxTough = 1, maxAtk = 1;
+            var group = new List<CombatStats>();
+            int mine = -1;
             foreach (var other in ids)
             {
                 var s = StatsOf(save, other);
                 if (s == null) continue;
-                maxTough = Math.Max(maxTough, Toughness(s.Value));
-                maxAtk = Math.Max(maxAtk, s.Value.Attack);
+                if (other == id) mine = group.Count;
+                group.Add(s.Value);
             }
-            var mine = StatsOf(save, id);
-            if (mine == null) return 0.0;
-            return Toughness(mine.Value) / maxTough - mine.Value.Attack / maxAtk;
+            return mine < 0 ? 0.0 : FrontScores(group)[mine];
         }
-
-        private static long Toughness(CombatStats s) { return (long)s.MaxHp * ((long)BattleEngine.DefenseConstant + s.Defense); }
 
         private static readonly int[] PartyRowOrder = { 1, 0, 2 };
 
@@ -249,14 +263,22 @@ namespace BiRyeoDo.Core
             return false;
         }
 
-        /// <summary>How much punishment a unit soaks up: the enemy puts its sturdiest units where the front-line-only attacks land.</summary>
-        private static long Toughness(Combatant e) { return (long)e.Stats.MaxHp * ((long)BattleEngine.DefenseConstant + (long)e.Stats.EffDefense); }
+        /// <summary>How many of <paramref name="n"/> enemies stand in the front, middle and back column: 1/0/0, 1/1/0, 2/1/0, 2/1/1, then the front column fills up to three.</summary>
+        private static int[] EnemyLineSizes(int n)
+        {
+            if (n <= 1) return new[] { n, 0, 0 };
+            if (n == 2) return new[] { 1, 1, 0 };
+            if (n == 3) return new[] { 2, 1, 0 };
+            int front = Math.Min(Board.Rows, (n + 1) / 2), rest = n - front;
+            int back = Math.Min(Board.Rows, rest >= 2 ? Math.Max(1, rest / 2) : 0), mid = rest - back;
+            if (mid > Board.Rows) { back += mid - Board.Rows; mid = Board.Rows; }
+            return new[] { front, mid, back };
+        }
 
         /// <summary>
-        /// Places enemies that have no tile yet the way a sensible commander would. Ordinary arts only reach the front line, so the front
-        /// column (about half of the group, at most three) holds the sturdiest units, bosses included when they are the sturdiest; the others
-        /// stay behind it, and units that shoot at our back line (<see cref="EnemyMove.Snipe"/>) stand in the deepest column.
-        /// A lone enemy stands right in front of us.
+        /// Places enemies that have no tile yet by their stats, the way a sensible commander would: ordinary arts only reach the front line, so the best defenders
+        /// (sturdiness against damage rate, <see cref="FrontScores"/>) hold the front column, the strongest attackers stay at the back, and units that shoot at our
+        /// back line (<see cref="EnemyMove.Snipe"/>) always stand in the deepest column. A boss is just another unit. A lone enemy stands right in front of us.
         /// </summary>
         public static void PlaceEnemies(IList<Combatant> enemies)
         {
@@ -271,25 +293,52 @@ namespace BiRyeoDo.Core
                 return;
             }
 
-            var shooters = new List<Combatant>();
-            var others = new List<Combatant>();
-            foreach (var e in todo) (IsSniper(e) ? shooters : others).Add(e);
-            if (others.Count == 0) { others.AddRange(shooters); shooters.Clear(); }   // an all-sniper group still needs a front line
-            // Stable sort by toughness, sturdiest first (ties keep the list order).
+            var stats = new List<CombatStats>();
+            foreach (var e in todo) stats.Add(e.Stats);
+            var scores = FrontScores(stats);
+            int shooterCount = 0;
+            foreach (var e in todo) if (IsSniper(e)) shooterCount++;
+            bool shootersOnly = shooterCount == todo.Count;   // an all-sniper group still needs a front line
+            var keys = new Dictionary<Combatant, double>();
+            for (int i = 0; i < todo.Count; i++) keys[todo[i]] = !shootersOnly && IsSniper(todo[i]) ? -100.0 : scores[i];
+            // best defenders first, shooters last; ties keep the list order
             var order = new List<KeyValuePair<int, Combatant>>();
-            for (int i = 0; i < others.Count; i++) order.Add(new KeyValuePair<int, Combatant>(i, others[i]));
-            order.Sort((x, y) => { int c = Toughness(y.Value).CompareTo(Toughness(x.Value)); return c != 0 ? c : x.Key.CompareTo(y.Key); });
+            for (int i = 0; i < todo.Count; i++) order.Add(new KeyValuePair<int, Combatant>(i, todo[i]));
+            order.Sort((x, y) => { int c = keys[y.Value].CompareTo(keys[x.Value]); return c != 0 ? c : x.Key.CompareTo(y.Key); });
 
-            int frontCount = Math.Max(1, Math.Min(Math.Min(3, (todo.Count + 1) / 2), order.Count));
-            var next = new Dictionary<int, int>();   // per column: how many rows are taken
-            Action<Combatant, int> put = (e, startCol) =>
+            var sizes = EnemyLineSizes(todo.Count);
+            if (!shootersOnly && shooterCount > sizes[2])   // every shooter stands in the deepest column
             {
-                for (int col = startCol; col < Board.Cols; col++)
-                    foreach (int row in RowOrder)
-                        if (used.Add(col * 10 + row)) { e.Col = col; e.Row = row; return; }
-            };
-            for (int i = 0; i < order.Count; i++) put(order[i].Value, i < frontCount ? Board.PartyCols : Board.PartyCols + 1);
-            foreach (var e in shooters) put(e, order.Count > frontCount ? Board.PartyCols + 2 : Board.PartyCols + 1);
+                int extra = Math.Min(Board.Rows, shooterCount) - sizes[2];
+                sizes[2] += extra; sizes[1] = Math.Max(0, sizes[1] - extra);
+                sizes[0] = todo.Count - sizes[1] - sizes[2];
+            }
+            int next = 0;
+            for (int line = 0; line < 3; line++)
+            {
+                int col = Board.PartyCols + line;
+                for (int k = 0; k < sizes[line] && next < order.Count; k++, next++)
+                {
+                    // front line: the sturdiest takes the middle row; the other lines: the unit sorted last (the strongest attacker) does
+                    int idx = line == 0 ? k : sizes[line] - 1 - k;
+                    Place(order[next].Value, col, idx, used);
+                }
+            }
+        }
+
+        private static void Place(Combatant e, int startCol, int rowRank, HashSet<int> used)
+        {
+            for (int col = startCol; col < Board.Cols; col++)
+            {
+                for (int r = 0; r < RowOrder.Length; r++)
+                {
+                    int row = RowOrder[(rowRank + r) % RowOrder.Length];
+                    if (used.Add(col * 10 + row)) { e.Col = col; e.Row = row; return; }
+                }
+            }
+            for (int col = Board.PartyCols; col < Board.Cols; col++)   // everything behind was full: take any free tile
+                foreach (int row in RowOrder)
+                    if (used.Add(col * 10 + row)) { e.Col = col; e.Row = row; return; }
         }
     }
 }

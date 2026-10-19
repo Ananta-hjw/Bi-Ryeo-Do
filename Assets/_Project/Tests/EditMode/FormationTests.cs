@@ -54,9 +54,9 @@ public class FormationTests
         Assert.IsFalse(save.PlacementCustom);
     }
 
-    private static Combatant Unit(string id, int hp, int def, bool boss = false, bool sniper = false)
+    private static Combatant Unit(string id, int hp, int def, bool boss = false, bool sniper = false, int atk = 100, int speed = 100)
     {
-        var stats = new CombatStats { MaxHp = hp, MaxQi = 100, Attack = 100, Defense = def, Speed = 100, CritRate = 0f, CritDamage = 1.5f };
+        var stats = new CombatStats { MaxHp = hp, MaxQi = 100, Attack = atk, Defense = def, Speed = speed, CritRate = 0f, CritDamage = 1.5f };
         var move = EnemyMove.Attack("x", 0.1f);
         if (sniper) move.Sniping();
         return new Combatant(id, id, Team.Enemy, stats, null) { Moves = new List<EnemyMove> { move }, IsBoss = boss };
@@ -306,5 +306,41 @@ public class FormationTests
         var last = Formation.Resolve(save, smaller);
         CollectionAssert.AreEqual(after["player"], last["player"]);
         CollectionAssert.AreEqual(after["yun_junho"], last["yun_junho"]);
+    }
+
+    [Test]
+    public void EnemyAttackersStandAtTheBackAndFastOnesCountDouble()
+    {
+        var tank = Unit("tank", 4000, 120); var brute = Unit("brute", 2500, 80); var mook = Unit("mook", 900, 20);
+        var cannon = Unit("cannon", 900, 20, atk: 400);
+        Formation.PlaceEnemies(new[] { cannon, mook, brute, tank });
+        Assert.AreEqual(3, tank.Col); Assert.AreEqual(3, brute.Col);
+        Assert.AreEqual(4, mook.Col, "the weak, harmless one stands in the middle");
+        Assert.AreEqual(5, cannon.Col, "the strongest attacker stays at the back");
+        // speed counts as damage: a fast striker is hidden behind an equally strong slow one
+        var slow = Unit("slow", 900, 20, atk: 200, speed: 60); var fast = Unit("fast", 900, 20, atk: 200, speed: 160); var wall = Unit("wall", 3000, 100); var wall2 = Unit("wall2", 2800, 100);
+        Formation.PlaceEnemies(new[] { slow, fast, wall, wall2 });
+        Assert.AreEqual(5, fast.Col);
+        Assert.AreEqual(4, slow.Col);
+        Assert.AreEqual(4, new[] { slow, fast, wall, wall2 }.Select(e => e.Col * 10 + e.Row).Distinct().Count());
+    }
+
+    [Test]
+    public void ALargeEnemyGroupFillsTheBoardWithoutOverlap()
+    {
+        var group = Enumerable.Range(0, 9).Select(i => Unit("e" + i, 1000 + i * 300, 20 + i * 10, atk: 100 + (8 - i) * 30)).ToArray();
+        Formation.PlaceEnemies(group);
+        Assert.AreEqual(9, group.Select(e => e.Col * 10 + e.Row).Distinct().Count());
+        Assert.IsTrue(group.All(e => e.Col >= Board.PartyCols && e.Col < Board.Cols && e.Row >= 0 && e.Row < Board.Rows));
+        Assert.AreEqual(3, group.Count(e => e.Col == 3), "the front column is full with the three best defenders");
+    }
+
+    [Test]
+    public void SpeedAndAttackBothPushAPartyMemberBack()
+    {
+        var calm = new CombatStats { MaxHp = 1000, Attack = 100, Defense = 100, Speed = 100 };
+        var striker = new CombatStats { MaxHp = 1000, Attack = 100, Defense = 100, Speed = 200 };
+        var scores = Formation.FrontScores(new[] { calm, striker });
+        Assert.Greater(scores[0], scores[1], "the faster unit deals more damage over time, so it belongs further back");
     }
 }
