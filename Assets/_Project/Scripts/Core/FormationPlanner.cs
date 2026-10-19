@@ -194,6 +194,14 @@ namespace BiRyeoDo.Core
             return list;
         }
 
+        /// <summary>Every way to give n units a line (0, 1, 2) with at most three per line, empty lines anywhere.</summary>
+        private static List<int[]> AllAssignments(int n)
+        {
+            var all = new List<int[]>();
+            Fill(new int[n], 0, new int[3], all);
+            return all;
+        }
+
         private static void Fill(int[] cur, int i, int[] count, List<int[]> list)
         {
             if (i == cur.Length) { list.Add((int[])cur.Clone()); return; }
@@ -262,7 +270,10 @@ namespace BiRyeoDo.Core
 
             double bestScore = double.MinValue;
             int[] best = null;
-            foreach (var split in Splits(party.Count, 2))
+            // With pinned members (they keep the tiles the player chose) every assignment is tried, gaps in front included:
+            // the simulation reads the front line from whoever stands, so a lone 비류연 in the back column is still the front.
+            var candidates = fixedCols != null && fixedCols.Count > 0 ? AllAssignments(party.Count) : Splits(party.Count, 2);
+            foreach (var split in candidates)
             {
                 bool ok = true;
                 for (int i = 0; i < party.Count && ok; i++)

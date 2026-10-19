@@ -71,7 +71,8 @@ namespace BiRyeoDo.Core
             foreach (var id in Inventory.GearOf(save, owner))
             {
                 var it = EarlyGameContent.FindItem(id);
-                if (it != null) names.Add(it.Name + (Gear.Level(save, id) > 0 ? " +" + Gear.Level(save, id) : ""));
+                int lv = Gear.LevelFor(save, owner, id);
+                if (it != null) names.Add(it.Name + (lv > 0 ? " +" + lv : ""));
             }
             return names.Count == 0 ? "착용한 장비가 없습니다 (행낭에서 동료에게 장착할 수 있습니다)" : string.Join("  ", names);
         }

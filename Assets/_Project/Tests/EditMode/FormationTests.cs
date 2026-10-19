@@ -287,6 +287,17 @@ public class FormationTests
     }
 
     [Test]
+    public void PinnedMembersInABackColumnStillGetAPlan()
+    {
+        // 비류연 alone in the back column (no one in front of him) and a companion joining: the planner must still answer
+        var party = new List<Combatant> { Hero(), new Combatant("hyo_ryong", "효룡", Team.Player, Stats(atk: 200), null) };
+        var fights = new List<IList<Combatant>> { new List<Combatant> { Foe("a"), Foe("b") } };
+        var lines = FormationPlanner.PlanPartyLines(party, fights, null, new Dictionary<string, int> { { "player", 0 } });
+        Assert.AreEqual(0, lines["player"]);
+        Assert.IsTrue(lines.ContainsKey("hyo_ryong"));
+    }
+
+    [Test]
     public void ANewcomerTakesTheBestFreeTileAndNobodyElseMoves()
     {
         var save = Late();

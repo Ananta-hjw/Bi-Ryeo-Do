@@ -125,12 +125,14 @@ namespace BiRyeoDo.Game.UI
         private RectTransform _detail;
         private string _detailId;
         private BulkDismantlePanel _bulk;
+        private string _confirmDismantle;   // an enhanced last copy waiting for a second press of 분해
 
         private void OpenDetail(string itemId)
         {
             var item = string.IsNullOrEmpty(itemId) ? null : EarlyGameContent.FindItem(itemId);
             if (item == null) return;
             var save = GameManager.Instance.Save;
+            if (itemId != _detailId) _confirmDismantle = null;
             _detailId = itemId;
             for (int i = _detail.childCount - 1; i >= 0; i--) Destroy(_detail.GetChild(i).gameObject);
             _detail.gameObject.SetActive(true);
@@ -183,7 +185,7 @@ namespace BiRyeoDo.Game.UI
                 var enhBtn = UiFactory.Button("Enhance", card.transform, new Vector2(0.05f, 0.14f), new Vector2(0.49f, 0.24f), enhLabel, canEnh ? UiFactory.Red : UiFactory.InkSoft, () => { DoEnhance(item); }, 24);
                 enhBtn.interactable = canEnh;
                 bool canDis = Salvage.CanDismantle(save, item.Id);
-                var disBtn = UiFactory.Button("Dismantle", card.transform, new Vector2(0.51f, 0.14f), new Vector2(0.95f, 0.24f), canDis ? "분해\n(재료 " + (item.Grade <= ItemGrade.Legendary ? Salvage.MinCount[(int)item.Grade] + "~" + Salvage.MaxCount(item.Grade) : "?") + "개)" : "분해 불가", canDis ? new Color(0.55f, 0.36f, 0.14f, 1f) : UiFactory.InkSoft, () => { DoDismantle(item); }, 24);
+                var disBtn = UiFactory.Button("Dismantle", card.transform, new Vector2(0.51f, 0.14f), new Vector2(0.95f, 0.24f), canDis && _confirmDismantle == item.Id ? "분해 확인\n(+" + enh + " 강화 사라짐)" : canDis ? "분해\n(재료 " + (item.Grade <= ItemGrade.Legendary ? Salvage.MinCount[(int)item.Grade] + "~" + Salvage.MaxCount(item.Grade) : "?") + "개)" : "분해 불가", canDis ? new Color(0.55f, 0.36f, 0.14f, 1f) : UiFactory.InkSoft, () => { DoDismantle(item); }, 24);
                 disBtn.interactable = canDis;
             }
             else if (item.MasteryUses > 0)
@@ -307,7 +309,7 @@ namespace BiRyeoDo.Game.UI
             var card = UiFactory.Panel("Card", _detail, new Vector2(0.05f, 0.08f), new Vector2(0.95f, 0.90f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
             UiFactory.Frame(card.transform, UiFactory.GradeColor(item.Grade), 3f);
             UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.91f), new Vector2(0.95f, 0.99f), UiFactory.GradedName(item), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
-            UiFactory.Label("Hint", card.transform, new Vector2(0.05f, 0.82f), new Vector2(0.95f, 0.91f), "장비를 입힐 동료를 고르세요. 이미 입은 동료를 누르면 벗깁니다. (한 사람마다 같은 장비 한 개가 필요합니다. 보유 " + Inventory.Count(save, item.Id) + "개)", 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("Hint", card.transform, new Vector2(0.05f, 0.82f), new Vector2(0.95f, 0.91f), "장비를 입힐 동료를 고르세요. 이미 입은 동료를 누르면 벗깁니다. (한 사람마다 같은 장비 한 개가 필요합니다. 보유 " + Inventory.Count(save, item.Id) + "개)" + (Gear.Level(save, item.Id) > 0 ? " 강화 +" + Gear.Level(save, item.Id) + "는 한 벌에만 붙어, 비류연이 입으면 비류연, 아니면 먼저 입은 동료에게 적용됩니다." : ""), 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
             var companions = JoinedCompanions(save);
             const float rowH = 120f, gap = 12f;
             for (int i = 0; i < companions.Count; i++)
@@ -453,6 +455,16 @@ namespace BiRyeoDo.Game.UI
         {
             var save = GameManager.Instance.Save;
             string error;
+            if (Salvage.LosesEnhancement(save, item.Id) && _confirmDismantle != item.Id)
+            {
+                // the only copy carries the enhancement: ask once more before it is gone
+                _confirmDismantle = item.Id;
+                Refresh();
+                ReopenDetail(item);
+                ShowNotice("분해 확인", UiFactory.GradedName(item) + " <b>+" + Gear.Level(save, item.Id) + "</b>은(는) 하나뿐인 강화 장비입니다.\n분해하면 강화 단계도 사라집니다.\n\n그래도 분해하시려면 「분해 확인」을 한 번 더 눌러 주세요.", UiFactory.Gold);
+                return;
+            }
+            _confirmDismantle = null;
             var got = Salvage.Dismantle(save, item.Id, new SeededRandom(Environment.TickCount), out error);
             if (got != null)
             {

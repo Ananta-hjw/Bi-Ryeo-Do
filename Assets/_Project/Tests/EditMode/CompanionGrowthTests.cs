@@ -70,6 +70,51 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void AnEnhancementGoesToOneWearerOnly()
+        {
+            var save = Save(10);
+            var w = AnyGear(ItemKind.Weapon);
+            Inventory.Add(save, w, 3);
+            string error;
+            Assert.IsTrue(Gear.Enhance(save, w, out error), error);   // 3 copies -> 2, +1
+            Assert.IsTrue(Inventory.EquipFor(save, "hyo_ryong", w, out error), error);
+            Assert.AreEqual("hyo_ryong", Gear.HolderOf(save, w), "only a companion wears it, so the companion holds the enhanced copy");
+            Assert.AreEqual(1, Gear.LevelFor(save, "hyo_ryong", w));
+            Assert.IsTrue(Inventory.Equip(save, w, out error), error);
+            Assert.AreEqual(Inventory.Hero, Gear.HolderOf(save, w), "the protagonist takes the enhanced copy when he wears it");
+            Assert.AreEqual(0, Gear.LevelFor(save, "hyo_ryong", w));
+            Assert.AreEqual(0, Gear.LevelsFor(save, "hyo_ryong").Count);
+            var c = EarlyGameContent.FindCompanion("hyo_ryong");
+            var withEnh = CompanionGrowth.Create(save, c).Stats.Attack;
+            Assert.AreEqual(c.CreateCombatant(CompanionGrowth.LevelOf(save, c.Id), Bonds.Level(save, c.Id), CompanionTraining.LevelOf(save, c.Id), Inventory.GearOf(save, c.Id), null).Stats.Attack, withEnh);
+        }
+
+        [Test]
+        public void DismantlingTheLastEnhancedCopyIsFlagged()
+        {
+            var save = Save(10);
+            var w = AnyGear(ItemKind.Weapon);
+            Inventory.Add(save, w, 2);
+            string error;
+            Assert.IsFalse(Salvage.LosesEnhancement(save, w));
+            Assert.IsTrue(Gear.Enhance(save, w, out error), error);
+            Assert.IsTrue(Salvage.LosesEnhancement(save, w));
+            Inventory.Add(save, w, 1);
+            Assert.IsFalse(Salvage.LosesEnhancement(save, w), "a spare goes first, the enhancement stays");
+        }
+
+        [Test]
+        public void OldSaveCompanionsAreRecordedBeforeTheProtagonistLevels()
+        {
+            var save = Save(10);
+            CompanionGrowth.EnsureRecords(save);
+            Progression.AddExp(save, Progression.ExpToNext(10));
+            Assert.AreEqual(11, save.Level);
+            CompanionGrowth.AddExp(save, "hyo_ryong", Progression.ExpToNext(10));
+            Assert.AreEqual(11, CompanionGrowth.LevelOf(save, "hyo_ryong"), "same exp, same level as the protagonist");
+        }
+
+        [Test]
         public void UsingUpACopyTakesItOffACompanion()
         {
             var save = Save(10);

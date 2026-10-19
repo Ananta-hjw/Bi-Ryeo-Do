@@ -494,6 +494,7 @@ namespace BiRyeoDo.Game.UI
                     Recommend.FightReward(save, stage, i, replay || !firstWin, out exp, out doo);   // a fight already won pays the replay rate
                     var drops = new List<ItemStack>();
                     if (!stage.IsQuest && !stage.IsTower) for (int roll = 0; roll < StageStars.DropRolls(diff); roll++) drops.AddRange(RollDrops(stage.Encounters[i]));
+                    CompanionGrowth.EnsureRecords(save);   // before the protagonist levels, so old saves' companions start at the old level
                     int levels = Progression.AddExp(save, exp);
                     // Everyone who fought gains the same exp and levels on their own; whoever levels up is fully restored
                     var leveled = new List<string>();

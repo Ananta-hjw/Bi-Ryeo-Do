@@ -86,6 +86,9 @@ namespace BiRyeoDo.Core
         public static int MaxCount(ItemGrade grade) { return MinCount[(int)grade] + CountOdds.Length - 1; }
 
         /// <summary>A copy can be dismantled when it is a spare, or when it is the only copy and is not worn. 초월 gear cannot.</summary>
+        /// <summary>True when dismantling now would take the last copy of an enhanced piece, so its enhancement would be lost (the UI asks first).</summary>
+        public static bool LosesEnhancement(SaveData save, string id) { return Gear.Spares(save, id) <= 0 && Gear.Level(save, id) > 0; }
+
         public static bool CanDismantle(SaveData save, string id)
         {
             var item = EarlyGameContent.FindItem(id);

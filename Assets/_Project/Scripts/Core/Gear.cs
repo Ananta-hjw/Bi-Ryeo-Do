@@ -44,6 +44,36 @@ namespace BiRyeoDo.Core
 
         public static int Level(SaveData save, string id) { return LevelOf(save.GearLevels, id); }
 
+        /// <summary>
+        /// Who wears the enhanced copy of a piece: an enhancement is one physical copy, so when several people wear the piece only one of them gets it.
+        /// The protagonist when he wears it, else the first companion wearing it, else nobody (it lies in the bag).
+        /// </summary>
+        public static string HolderOf(SaveData save, string id)
+        {
+            if (save.EquippedGear.Contains(id)) return Inventory.Hero;
+            foreach (var e in save.CompanionGear) if (e.Items.Contains(id)) return e.Id;
+            return null;
+        }
+
+        /// <summary>The enhancement level <paramref name="owner"/> gets from a piece they wear (0 when another wearer holds the enhanced copy).</summary>
+        public static int LevelFor(SaveData save, string owner, string id)
+        {
+            if (string.IsNullOrEmpty(owner)) owner = Inventory.Hero;
+            return HolderOf(save, id) == owner ? Level(save, id) : 0;
+        }
+
+        /// <summary>The enhancement levels that apply to <paramref name="owner"/>'s gear (for <see cref="Inventory.ApplyGear"/>).</summary>
+        public static List<GearLevel> LevelsFor(SaveData save, string owner)
+        {
+            var list = new List<GearLevel>();
+            foreach (var id in Inventory.GearOf(save, owner))
+            {
+                int lv = LevelFor(save, owner, id);
+                if (lv > 0) list.Add(new GearLevel { Id = id, Level = lv });
+            }
+            return list;
+        }
+
         public static float Multiplier(int level) { return 1f + PerLevel * Math.Max(0, Math.Min(MaxLevel, level)); }
 
         /// <summary>How many copies of a piece of gear are spare (every copy but one, or but those worn when several people wear it). Spares are what enhancing and dismantling use up.</summary>

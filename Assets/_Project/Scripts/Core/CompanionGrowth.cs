@@ -27,6 +27,15 @@ namespace BiRyeoDo.Core
             return p.Level;
         }
 
+        /// <summary>
+        /// Creates the level record of every joined companion that has none yet (old saves), at the protagonist's current level.
+        /// Call before the protagonist gains exp, so a companion does not start at the new level and then also gain the same exp.
+        /// </summary>
+        public static void EnsureRecords(SaveData save)
+        {
+            foreach (var c in EarlyGameContent.Companions) if (c.JoinStage <= save.HighestUnlockedStage) LevelOf(save, c.Id);
+        }
+
         public static long ExpOf(SaveData save, string id) { LevelOf(save, id); var p = Find(save, id); return p != null ? p.Exp : 0; }
 
         /// <summary>Adds exp and applies level-ups. Returns the number of levels gained.</summary>
@@ -72,7 +81,7 @@ namespace BiRyeoDo.Core
         /// <summary>The fighting unit for a companion with everything the save gives it: own level, 인연, 수련 and gear.</summary>
         public static Combatant Create(SaveData save, CompanionData c)
         {
-            return c.CreateCombatant(LevelOf(save, c.Id), Bonds.Level(save, c.Id), CompanionTraining.LevelOf(save, c.Id), Inventory.GearOf(save, c.Id), save.GearLevels);
+            return c.CreateCombatant(LevelOf(save, c.Id), Bonds.Level(save, c.Id), CompanionTraining.LevelOf(save, c.Id), Inventory.GearOf(save, c.Id), Gear.LevelsFor(save, c.Id));
         }
     }
 }
