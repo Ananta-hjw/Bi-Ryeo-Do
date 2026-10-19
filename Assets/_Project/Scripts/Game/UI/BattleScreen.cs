@@ -460,11 +460,12 @@ namespace BiRyeoDo.Game.UI
                     _lastStarLine = "";
                     string repLine = "";
                     var found = new List<string>();   // 심득석 / 수련서 discovered by this win
+                    bool firstWin = true;
                     if (!stage.IsQuest && !stage.IsTower)
                     {
-                        // Reputation and 수련서 come from the first win of each fight on each difficulty, so replaying one fight cannot farm them
+                        // Reputation, 수련서 and full 경험/두 come from the first win of each fight on each difficulty, so replaying one fight cannot farm them
                         // (losing a later fight and retrying the stage replays the fights already won).
-                        bool firstWin = (StageStars.MaskOf(save, stage.Number, i, diff) & 1) == 0;
+                        firstWin = (StageStars.MaskOf(save, stage.Number, i, diff) & 1) == 0;
                         if (firstWin)
                         {
                             var rises = Factions.OnFightWon(save, stage.Number, diff);
@@ -490,7 +491,7 @@ namespace BiRyeoDo.Game.UI
                     Daily.Record(save, DailyEvent.BattleWin);
                     if (!_fightFell) Daily.Record(save, DailyEvent.Flawless);
                     foreach (var id in stage.Encounters[i]) Codex.SeeEnemy(save, id);
-                    Recommend.FightReward(save, stage, i, replay, out exp, out doo);
+                    Recommend.FightReward(save, stage, i, replay || !firstWin, out exp, out doo);   // a fight already won pays the replay rate
                     var drops = new List<ItemStack>();
                     if (!stage.IsQuest && !stage.IsTower) for (int roll = 0; roll < StageStars.DropRolls(diff); roll++) drops.AddRange(RollDrops(stage.Encounters[i]));
                     int levels = Progression.AddExp(save, exp);
