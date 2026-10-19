@@ -128,7 +128,7 @@ namespace BiRyeoDo.Core
             new TutorialTopic { Id = "phase", Title = "보스 단계", Pages = new[]
             {
                 "이야기의 우두머리는 체력이 절반, 4분의 1로 떨어질 때 기세가 바뀝니다(물러나는 적은 물러나기 전에 바뀝니다). 바뀌는 순간 우두머리는 자세를 고치느라 차례가 조금 늦어집니다.",
-                "절반에서는 기술 순서가 바뀌고, 4분의 1에서는 곧바로 힘을 모아 큰 기술을 노리며 모든 공격이 10% 강해집니다. 힘을 모으는 중에 바뀌면 그 큰 기술은 그대로 나온 뒤에 새 순서가 시작됩니다. 남은 단계는 적을 누르면 나오는 설명 창에서 볼 수 있습니다."
+                "절반에서는 기술 순서가 바뀌고 공격력이 10% 오릅니다. 4분의 1에서는 곧바로 힘을 모아 큰 기술을 노리며, 공격력이 원래보다 30%, 방어력이 20% 높아집니다. 힘을 모으는 중에 바뀌면 그 큰 기술은 그대로 나온 뒤에 새 순서가 시작됩니다. 남은 단계는 적을 누르면 나오는 설명 창에서 볼 수 있습니다."
             } },
             // Story trials (TrialRule): one topic per kind, shown before the first fight of that kind (Tutorial.TrialTopic)
             new TutorialTopic { Id = "trial_deadline", Title = "시험: 제한 행동", Pages = new[]

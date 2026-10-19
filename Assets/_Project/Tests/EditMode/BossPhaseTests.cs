@@ -14,14 +14,15 @@ namespace BiRyeoDo.Tests
 
         private static Combatant Boss(int hp)
         {
-            var c = new Combatant("boss", "보스", Team.Enemy, Stats(hp, 1, 100), null) { IsBoss = true, Rank = EnemyRank.Boss };
+            var s = Stats(hp, 100, 100); s.Defense = 100;
+            var c = new Combatant("boss", "보스", Team.Enemy, s, null) { IsBoss = true, Rank = EnemyRank.Boss };
             c.Moves = new List<EnemyMove> { Opener, Middle, Wind, Heavy };
             EnemyMove[] fierce, desperate;
             BossPhases.Reshape(c.Moves.ToArray(), out fierce, out desperate);
             c.Phases = new List<BossPhase>
             {
-                new BossPhase { HpPct = 0.5f, Lines = new[] { "보스|첫째" }, Moves = fierce, PowerMul = 1f },
-                new BossPhase { HpPct = 0.25f, Lines = new[] { "보스|둘째" }, Moves = desperate, PowerMul = 1.1f },
+                new BossPhase { HpPct = 0.5f, Lines = new[] { "보스|첫째" }, Moves = fierce, AtkMul = 1.1f },
+                new BossPhase { HpPct = 0.25f, Lines = new[] { "보스|둘째" }, Moves = desperate, AtkMul = 1.3f, DefMul = 1.2f },
             };
             return c;
         }
@@ -83,13 +84,15 @@ namespace BiRyeoDo.Tests
             CollectionAssert.AreEqual(new[] { "보스|첫째" }, phase.Lines);
             Assert.AreEqual(1, boss.PhaseIndex);
             Assert.AreEqual(Middle, boss.Moves[0], "phase 1 script");
+            Assert.AreEqual(110, boss.Stats.Attack, "attack +10%");
+            Assert.AreEqual(100, boss.Stats.Defense, "defense unchanged until 25%");
 
             ev = b.PlayerAct(PlayerCommand.Guard());
             Assert.IsFalse(ev.Any(x => x.Kind == EventKind.Phase), "only once");
         }
 
         [Test]
-        public void OneBlowAcrossBothThresholdsStartsBothAndTheLastPhaseHitsHarder()
+        public void OneBlowAcrossBothThresholdsStartsBothAndTheLastPhaseIsStrongest()
         {
             var p = new Combatant("p", "비류연", Team.Player, Stats(100000, 1, 1000), null);
             var boss = Boss(1000);
@@ -98,7 +101,8 @@ namespace BiRyeoDo.Tests
             boss.Hp = 200;
             var ev = b.PlayerAct(PlayerCommand.Guard());
             Assert.AreEqual(2, ev.Count(x => x.Kind == EventKind.Phase));
-            Assert.AreEqual(1.1f, boss.PowerMul, 1e-6);
+            Assert.AreEqual(130, boss.Stats.Attack, "+30% in all, not 1.1 x 1.3");
+            Assert.AreEqual(120, boss.Stats.Defense);
             Assert.AreEqual(Wind, boss.PeekMove(), "phase 2 opens with the wind-up");
         }
 

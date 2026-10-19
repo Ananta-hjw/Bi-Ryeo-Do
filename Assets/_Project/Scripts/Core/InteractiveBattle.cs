@@ -592,7 +592,7 @@ namespace BiRyeoDo.Core
                 while (e.PhaseIndex < e.Phases.Count && e.Hp <= e.Stats.MaxHp * e.Phases[e.PhaseIndex].HpPct)
                 {
                     var phase = e.Phases[e.PhaseIndex++];
-                    e.PowerMul = phase.PowerMul;
+                    e.ScaleAttackDefense(phase.AtkMul, phase.DefMul);
                     e.Gauge = 0;   // the change of stance costs it a beat
                     if (phase.Moves != null)
                     {
@@ -658,7 +658,7 @@ namespace BiRyeoDo.Core
             StartPendingScript(enemy);   // a phase that began during the wind-up takes over after this blow
 
             int hits = Math.Max(1, move.Hits);
-            float power = move.Power * enemy.PowerMul;
+            float power = move.Power;
             bool burst = false, dry = false;
             if (enemy.UsesResources)
             {

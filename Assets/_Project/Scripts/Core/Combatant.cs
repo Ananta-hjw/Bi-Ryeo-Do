@@ -12,7 +12,9 @@ namespace BiRyeoDo.Core
         public readonly string Id;
         public readonly string Name;
         public readonly Team Team;
-        public readonly CombatStats Stats;
+        public CombatStats Stats { get { return _stats; } }
+        private CombatStats _stats;
+        private CombatStats? _baseStats;   // the stats before a boss phase changed them
         public readonly List<SkillSpec> Skills = new List<SkillSpec>();
 
         public int Hp;
@@ -41,7 +43,6 @@ namespace BiRyeoDo.Core
         public List<EnemyMove> Moves;      // enemy attack script, cycled in order
         public List<BossPhase> Phases;     // story bosses: 단계 전환 still to come, in order (see BossPhases)
         public int PhaseIndex;             // how many phases have begun
-        public float PowerMul = 1f;        // the current phase's strike power
         public List<EnemyMove> PendingMoves;   // a phase's script waiting for the wind-up in progress to finish
         internal readonly Dictionary<string, int> Cooldowns = new Dictionary<string, int>();
         public readonly List<StatusEffect> Statuses = new List<StatusEffect>();   // 상태 이상 (see Statuses)
@@ -53,7 +54,7 @@ namespace BiRyeoDo.Core
             Id = id;
             Name = name;
             Team = team;
-            Stats = stats;
+            _stats = stats;
             Hp = stats.MaxHp;
             Qi = stats.MaxQi;
             Skills.Add(SkillSpec.BasicAttack());
@@ -81,6 +82,16 @@ namespace BiRyeoDo.Core
             Stunned = false;
             Statuses.Clear();
             Cooldowns.Clear();
+        }
+
+        /// <summary>보스 단계: attack and defense become these multiples of what the unit started the fight with (not compounded phase on phase).</summary>
+        public void ScaleAttackDefense(float attack, float defense)
+        {
+            if (_baseStats == null) _baseStats = _stats;
+            var s = _baseStats.Value;
+            s.Attack = Math.Max(1, (int)Math.Round(s.Attack * attack));
+            s.Defense = Math.Max(1, (int)Math.Round(s.Defense * defense));
+            _stats = s;
         }
 
         public bool Has(StatusKind kind) { foreach (var s in Statuses) if (s.Kind == kind) return true; return false; }
