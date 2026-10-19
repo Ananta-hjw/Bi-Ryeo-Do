@@ -1614,12 +1614,13 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
         /// <summary>
         /// Exp for one enemy: clearing stages in order keeps the player <see cref="LevelHeadroom"/> above each stage's recommended level (stage 1 pays the cushion up front).
         /// The span runs between unrounded player levels (<see cref="ExactPlayerLevel"/>), so two stages that round to the same recommended level still both pay;
-        /// the run as a whole still ends at stage 30's recommended level + 1.
+        /// the run as a whole still ends at stage 30's recommended level + 1 (a little into it).
         /// </summary>
         public static long ExpReward(StageData st, string enemyId)
         {
             var next = FindStage(st.Number + 1);
-            double to = (next != null ? ExactPlayerLevel(next) : st.RecommendedPlayerLevel + 1) + LevelHeadroom;
+            // the last stage has no next one: it spans the usual two curve steps, so it pays like the others and still ends at its recommended level + 1
+            double to = (next != null ? ExactPlayerLevel(next) : ExactPlayerLevel(st) + 2.0 / Progression.CurvePerPlayerLevel) + LevelHeadroom;
             double from = st.Number > 1 ? ExactPlayerLevel(st) + LevelHeadroom : st.RecommendedPlayerLevel;
             long total = Math.Max(0L, CumulativeExpAt(to) - CumulativeExpAt(from));
             return (long)Math.Ceiling((double)total * RewardWeight(enemyId) / TotalWeight(st));
