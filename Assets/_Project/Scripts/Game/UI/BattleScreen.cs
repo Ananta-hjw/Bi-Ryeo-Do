@@ -501,13 +501,19 @@ namespace BiRyeoDo.Game.UI
                         int gained = CompanionGrowth.AddExp(save, _party[k].Id, exp);
                         if (gained > 0) { leveled.Add(_party[k].Id); levelLines.Add(_party[k].Name + "  Lv." + before + " → Lv." + (before + gained) + "  (체력·내공 가득)"); }
                     }
+                    if (stage.Number > 0)   // companions who sat this fight out still gain half (not in the solo promotion duels)
+                    {
+                        var fielded = new List<string>();
+                        foreach (var m in _party) fielded.Add(m.Id);
+                        levelLines.AddRange(CompanionGrowth.ShareWithBench(save, fielded, exp));
+                    }
                     save.Doo += doo;
                     gainedExp += exp; gainedDoo += doo;
                     GameManager.Instance.SaveNow();
                     if (leveled.Count > 0) RebuildPartyForNewLevel(stage, leveled);
                     SoundManager.Sfx(leveled.Count > 0 ? "levelup" : "win");
                     yield return Banner("승리!  경험 +" + exp + "  두 +" + doo + (drops.Count > 0 ? "\n획득: " + DescribeStacks(drops) : "") + (levels > 0 ? "\nLv." + save.Level + " 상승!" : "") + (_lastStarLine.Length > 0 ? "\n" + _lastStarLine : "") + (repLine.Length > 0 ? "\n" + repLine : ""), levels > 0 || drops.Count > 0 || _lastStarLine.Length > 0 ? 1.7f : 0.9f);
-                    if (leveled.Count > 0)
+                    if (levelLines.Count > 0)
                     {
                         var hs = _party[0].Stats;
                         yield return ShowResult("레벨 업!", string.Join("\n", levelLines) + "\n\n비류연  체력 " + hs.MaxHp.ToString("N0") + "   내공 " + hs.MaxQi.ToString("N0") + "\n공격력 " + hs.Attack.ToString("N0") + "   방어력 " + hs.Defense.ToString("N0") + "   속도 " + hs.Speed.ToString("N0"), false);

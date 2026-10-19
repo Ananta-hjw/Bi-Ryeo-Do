@@ -47,6 +47,28 @@ namespace BiRyeoDo.Core
             return gained;
         }
 
+        /// <summary>Share of a fight's exp that companions who sat the fight out still gain.</summary>
+        public const double BenchExpShare = 0.5;
+
+        /// <summary>
+        /// Gives every companion who has joined but did not fight <see cref="BenchExpShare"/> of the exp.
+        /// Returns "name  Lv.a → Lv.b" for each one who levelled up.
+        /// </summary>
+        public static List<string> ShareWithBench(SaveData save, ICollection<string> fielded, long exp)
+        {
+            var lines = new List<string>();
+            long share = (long)Math.Round(exp * BenchExpShare);
+            if (share <= 0) return lines;
+            foreach (var c in EarlyGameContent.Companions)
+            {
+                if (c.JoinStage > save.HighestUnlockedStage || fielded.Contains(c.Id)) continue;
+                int before = LevelOf(save, c.Id);
+                int gained = AddExp(save, c.Id, share);
+                if (gained > 0) lines.Add(c.Name + "  Lv." + before + " → Lv." + (before + gained) + "  (대기)");
+            }
+            return lines;
+        }
+
         /// <summary>The fighting unit for a companion with everything the save gives it: own level, 인연, 수련 and gear.</summary>
         public static Combatant Create(SaveData save, CompanionData c)
         {

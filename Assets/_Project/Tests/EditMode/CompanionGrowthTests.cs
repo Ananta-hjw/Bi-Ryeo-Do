@@ -148,5 +148,21 @@ namespace BiRyeoDo.Tests
             }
             Assert.IsFalse(save.CompanionLevels.Any(p => p.Id == "na_yerin"), "a companion who never fights has no record and does not level");
         }
+
+        [Test]
+        public void BenchedCompanionsGainHalfTheExp()
+        {
+            var save = Save(10, 30);
+            foreach (var c in EarlyGameContent.Companions) CompanionGrowth.LevelOf(save, c.Id);
+            long exp = Progression.ExpToNext(10) + Progression.ExpToNext(11);   // two levels for a fighter, half of it is one level for the bench
+            CompanionGrowth.AddExp(save, "hyo_ryong", exp);
+            var lines = CompanionGrowth.ShareWithBench(save, new[] { "player", "hyo_ryong" }, exp);
+            Assert.AreEqual(12, CompanionGrowth.LevelOf(save, "hyo_ryong"));
+            Assert.AreEqual(11, CompanionGrowth.LevelOf(save, "na_yerin"));
+            Assert.AreEqual(EarlyGameContent.Companions.Count(c => c.Id != "hyo_ryong"), lines.Count);
+            var early = Save(10, 3);   // nobody has joined yet: nothing to share
+            Assert.AreEqual(0, CompanionGrowth.ShareWithBench(early, new[] { "player" }, exp).Count);
+            Assert.AreEqual(0, early.CompanionLevels.Count);
+        }
     }
 }
