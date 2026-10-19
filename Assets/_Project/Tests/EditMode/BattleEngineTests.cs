@@ -79,16 +79,16 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void DefenseOf1380TakesFortyTwoPercentAndFinerStepsStillCount()
+        public void DefenseOf460TakesFortyTwoPercentAndFinerStepsStillCount()
         {
-            var attacker = new CombatStats { MaxHp = 100, MaxQi = 0, Attack = 10000, Defense = 0, Speed = 100, CritRate = 0f, CritDamage = 1.5f };
+            var attacker = new CombatStats { MaxHp = 100, MaxQi = 0, Attack = 30000, Defense = 0, Speed = 100, CritRate = 0f, CritDamage = 1.5f };
             var skill = new SkillSpec { Id = "t", Name = "t", Power = 1f };
             int Taken(int def) { return BattleEngine.CalcDamage(attacker, new CombatStats { MaxHp = 100, Defense = def, Speed = 100 }, skill, false); }
-            Assert.AreEqual(10000, Taken(0));
-            Assert.AreEqual(4202, Taken(1380), 1);   // x1000/2380
-            Assert.AreEqual(5000, Taken(1000));
-            Assert.Less(Taken(1381), Taken(1380));   // one point of defense is still a step
-            Assert.Less(Taken(1385), Taken(1381));
+            Assert.AreEqual(10000, Taken(0));   // attack runs 3x larger and the formula divides it out again
+            Assert.AreEqual(4202, Taken(460), 1);   // x(1000/3)/(1000/3+460): the original 1380 on the old scale
+            Assert.AreEqual(5000, Taken(333), 5);
+            Assert.Less(Taken(461), Taken(460));   // one point of defense is still a step
+            Assert.Less(Taken(465), Taken(461));
         }
     }
 }

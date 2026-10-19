@@ -71,12 +71,19 @@ namespace BiRyeoDo.Core
             return ev;
         }
 
-        /// <summary>Damage taken is x K/(K+Defense): 방어 1380 = x0.42. Defense numbers run ten times larger than the old scale for finer steps.</summary>
-        public const double DefenseConstant = 1000.0;
+        /// <summary>
+        /// How the stat numbers are scaled for display: attack runs <see cref="AttackScale"/> times larger and defense <see cref="DefenseScale"/> times smaller
+        /// than the original curve (10 + 3 per level attack, 50 + 20 per level defense), so a character's attack and defense read at a similar size.
+        /// The damage formula undoes both, so fights play out exactly as before.
+        /// </summary>
+        public const double AttackScale = 3.0, DefenseScale = 3.0;
+
+        /// <summary>Damage taken is x K/(K+Defense): defense 460 = x0.42 (1380 on the original scale).</summary>
+        public const double DefenseConstant = 1000.0 / DefenseScale;
 
         public static int CalcDamage(CombatStats attacker, CombatStats defender, SkillSpec skill, bool crit)
         {
-            double raw = attacker.Attack * skill.Power;
+            double raw = attacker.Attack * skill.Power / AttackScale;
             if (crit) raw *= Math.Max(1f, attacker.CritDamage);
             double reduced = raw * DefenseConstant / (DefenseConstant + Math.Max(0, defender.Defense));
             return Math.Max(1, (int)Math.Round(reduced));

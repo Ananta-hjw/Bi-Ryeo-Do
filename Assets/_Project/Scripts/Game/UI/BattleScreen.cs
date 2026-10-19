@@ -1633,7 +1633,7 @@ namespace BiRyeoDo.Game.UI
             var s = card.Unit.Stats;
             double power = Realm.Power(s);
             var lines = new List<string>();
-            lines.Add("Lv." + card.Data.Level + "  ·  " + EnemyData.RankName(card.Data.Rank) + (card.Data.Rank == EnemyRank.Normal ? "" : "\n내공과 기세를 씁니다. 기세가 가득 차면 다음 공격이 강해지고, 내공이 모자라면 큰 기술의 힘이 빠집니다."));
+            lines.Add("Lv." + card.Data.DisplayLevel + "  ·  " + EnemyData.RankName(card.Data.Rank) + (card.Data.Rank == EnemyRank.Normal ? "" : "\n내공과 기세를 씁니다. 기세가 가득 차면 다음 공격이 강해지고, 내공이 모자라면 큰 기술의 힘이 빠집니다."));
             if (Realm.HasRealm(card.Data)) lines.Add("무공 경지  " + Realm.Label(Realm.StepOf(power)) + "\n종합 수치 " + System.Math.Round(power).ToString("N0"));
             else lines.Add("무공 경지  해당 없음");
             lines.Add("체력 " + card.Unit.Hp.ToString("N0") + " / " + s.MaxHp.ToString("N0") + "\n공격력 " + s.Attack.ToString("N0") + "   방어력 " + s.Defense.ToString("N0") + "   속도 " + s.Speed.ToString("N0"));

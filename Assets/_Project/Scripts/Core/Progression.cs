@@ -63,8 +63,8 @@ namespace BiRyeoDo.Core
             {
                 MaxHp = (int)Math.Round(100 + 20 * l),
                 MaxQi = (int)Math.Round(50 + 5 * l),
-                Attack = (int)Math.Round(10 + 3 * l),
-                Defense = (int)Math.Round(50 + 20 * l),
+                Attack = (int)Math.Round((10 + 3 * l) * BattleEngine.AttackScale),
+                Defense = (int)Math.Round((50 + 20 * l) / BattleEngine.DefenseScale),
                 Speed = 100 + (int)(l / 2),
                 CritRate = 0.01f,
                 CritDamage = 1.5f

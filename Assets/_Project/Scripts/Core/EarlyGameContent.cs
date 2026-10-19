@@ -52,6 +52,8 @@ namespace BiRyeoDo.Core
         public string Id, Name;
         public string ArtId;         // optional: share another enemy's artwork (balance clones)
         public string ArtKey { get { return string.IsNullOrEmpty(ArtId) ? Id : ArtId; } }
+        /// <summary>The level to show the player: the enemy's curve <see cref="Level"/> on the player level scale (curve 65 = level 25), so it reads next to the protagonist's own level.</summary>
+        public int DisplayLevel { get { return Progression.PlayerLevelAt(Level); } }
         public bool IsBoss;
         public float RetreatHpPct;   // >0: story boss that escapes at this HP fraction instead of dying
         public int Level;
