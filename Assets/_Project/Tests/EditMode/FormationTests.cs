@@ -298,7 +298,7 @@ public class FormationTests
         var after = Formation.Resolve(save, now);
         CollectionAssert.AreEqual(before["player"], after["player"]);
         CollectionAssert.AreEqual(before["hyo_ryong"], after["hyo_ryong"]);
-        Assert.AreEqual(1, after["yun_junho"][0], "a healer joins the middle line, between the defender and the attacker");
+        Assert.Less(after["yun_junho"][0], Board.PartyCols - 1, "the healer is planned behind the front line");
         Assert.AreEqual(3, after.Values.Select(t => t[0] * 10 + t[1]).Distinct().Count());
         // a companion who leaves frees the tile; the rest stay
         var smaller = new List<string> { "player", "yun_junho" };
@@ -342,5 +342,40 @@ public class FormationTests
         var striker = new CombatStats { MaxHp = 1000, Attack = 100, Defense = 100, Speed = 200 };
         var scores = Formation.FrontScores(new[] { calm, striker });
         Assert.Greater(scores[0], scores[1], "the faster unit deals more damage over time, so it belongs further back");
+    }
+
+    private static Combatant Member(string id, int hp, int atk, int def)
+    {
+        return new Combatant(id, id, Team.Player, new CombatStats { MaxHp = hp, MaxQi = 100, Attack = atk, Defense = def, Speed = 100, CritRate = 0f, CritDamage = 1.5f }, null);
+    }
+
+    private static Combatant Shooter(string id, bool snipe)
+    {
+        var move = EnemyMove.Attack("x", 1f);
+        if (snipe) move.Sniping();
+        return new Combatant(id, id, Team.Enemy, new CombatStats { MaxHp = 3000, Attack = 300, Defense = 100, Speed = 100, CritDamage = 1.5f }, null) { Moves = new List<EnemyMove> { move } };
+    }
+
+    [Test]
+    public void PlannedLinesHideTheFragileFromTheBlowsTheEnemiesActuallyThrow()
+    {
+        var tank = Member("tank", 3000, 100, 300); var glass = Member("glass", 800, 400, 30);
+        // ordinary blows land on the front line (on its most wounded member): the fragile attacker never stands ahead of the tank
+        Formation.ApplyPlanned(new[] { tank, glass }, new List<IList<Combatant>> { new List<Combatant> { Shooter("a", false), Shooter("b", false) } });
+        Assert.GreaterOrEqual(tank.Col, glass.Col);
+        // every blow is a 저격 at the back-most line: standing behind the tank would be the worst place
+        tank.Col = glass.Col = -1;
+        Formation.ApplyPlanned(new[] { tank, glass }, new List<IList<Combatant>> { new List<Combatant> { Shooter("a", true), Shooter("b", true) } });
+        Assert.GreaterOrEqual(glass.Col, tank.Col);
+    }
+
+    [Test]
+    public void EnemiesAnswerOurLinesSoTheirDamageDealersSurvive()
+    {
+        var hero = Member("player", 2000, 300, 100);
+        hero.Col = 2; hero.Row = 1;
+        var wall = Unit("wall", 6000, 300, atk: 50); var striker = Unit("striker", 1200, 20, atk: 500);
+        Formation.PlaceEnemies(new[] { striker, wall }, new[] { hero });
+        Assert.Less(wall.Col, striker.Col, "the wall takes our front-line blows, the striker keeps hitting from behind");
     }
 }

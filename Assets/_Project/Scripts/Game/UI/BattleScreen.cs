@@ -902,20 +902,7 @@ namespace BiRyeoDo.Game.UI
         private List<Combatant> CreateParty(StageData stage)
         {
             var save = GameManager.Instance.Save;
-            var skills = new List<SkillSpec>();
-            foreach (var id in save.EquippedArts)
-            {
-                var art = EarlyGameContent.FindArt(id);
-                if (art == null || art.OwnerId != null) continue;
-                // Ordinary arts fill four slots; one 비기 gets the dedicated 필살기 button (saves from older versions may hold more).
-                bool ultimate = Progression.IsUltimate(art);
-                int have = 0;
-                foreach (var s in skills) if ((s.SpiritCost > 0) == ultimate) have++;
-                if (have < (ultimate ? Progression.MaxEquippedUltimates : Progression.MaxEquippedArts)) skills.Add(Mastery.Apply(save, art));
-            }
-            var stats = InnerArts.HeroStats(save);
-            var hero = new Combatant("player", "비류연", Team.Player, stats, skills);
-            InnerArts.ApplyPerks(hero, save.EquippedInner, save.InnerLevels);
+            var hero = Formation.BuildHero(save);   // equipped arts (four + one 비기), stats and 심법 perks
             var party = new List<Combatant> { hero };
             foreach (var c in EarlyGameContent.SelectCompanionsFor(Roster.PartyStage(stage, save), save))
             {
@@ -923,7 +910,7 @@ namespace BiRyeoDo.Game.UI
                 party.Add(CompanionGrowth.Create(save, c));
                 if (bondLevel >= Bonds.RescueLevel && string.IsNullOrEmpty(hero.RescuerId)) hero.RescuerId = c.Id;
             }
-            Formation.Apply(party, save);   // 앞줄/뒷줄 from the saved (or automatic) formation
+            Formation.Apply(party, save, stage);   // 앞줄/뒷줄 from the saved formation, or planned against this stage's enemies
             return party;
         }
 
@@ -1070,7 +1057,7 @@ namespace BiRyeoDo.Game.UI
             int n = enemies.Length;
             var units = new List<Combatant>();
             for (int i = 0; i < n; i++) units.Add(enemies[i].CreateCombatant(enemies[i].Id + "#" + i));
-            Formation.PlaceEnemies(units);   // bosses stand at the back, the others fill the front columns
+            Formation.PlaceEnemies(units, _party);   // bosses stand at the back, the others fill the front columns
             for (int i = 0; i < n; i++)
             {
                 var data = enemies[i];

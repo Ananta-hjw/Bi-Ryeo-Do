@@ -141,13 +141,20 @@ namespace BiRyeoDo.Core
         /// Gives <paramref name="id"/> the best free tile next to the members already standing: the line it would stand in if the whole group were arranged automatically,
         /// the nearest line with room otherwise, the middle row first. The members in <paramref name="map"/> stay where they are.
         /// </summary>
-        public static void PlaceNewcomer(SaveData save, IList<string> ids, Dictionary<string, int[]> map, string id)
+        public static void PlaceNewcomer(SaveData save, IList<string> ids, Dictionary<string, int[]> map, string id, StageData st = null)
         {
             var used = new HashSet<int>();
             foreach (var kv in map) if (kv.Key != id) used.Add(kv.Value[0] * 10 + kv.Value[1]);
-            var ideal = Auto(ids, save);
-            int[] want;
-            int idealCol = ideal.TryGetValue(id, out want) ? want[0] : Board.PartyCols - 1;
+            int idealCol = Board.PartyCols - 1;
+            var lines = save != null ? PlanLines(save, ids, st, map, id) : null;
+            int planned;
+            if (lines != null && lines.TryGetValue(id, out planned)) idealCol = planned;
+            else
+            {
+                var ideal = Auto(ids, save);
+                int[] want;
+                if (ideal.TryGetValue(id, out want)) idealCol = want[0];
+            }
             var cols = new List<int> { 0, 1, Board.PartyCols - 1 };
             cols.Sort((a, b) => Math.Abs(a - idealCol).CompareTo(Math.Abs(b - idealCol)));
             foreach (int col in cols)
@@ -159,12 +166,12 @@ namespace BiRyeoDo.Core
         /// Call when the party changes (a companion sits out or joins the fight): everybody who stays keeps their tile, a newcomer takes the best free tile.
         /// The result is stored as the player's arrangement.
         /// </summary>
-        public static void OnPartyChanged(SaveData save, IList<string> oldIds, IList<string> newIds)
+        public static void OnPartyChanged(SaveData save, IList<string> oldIds, IList<string> newIds, StageData st = null)
         {
-            var before = Resolve(save, oldIds);
+            var before = Resolve(save, oldIds, st);
             var map = new Dictionary<string, int[]>();
             foreach (var id in newIds) { int[] t; if (before.TryGetValue(id, out t)) map[id] = t; }
-            foreach (var id in newIds) if (!map.ContainsKey(id)) PlaceNewcomer(save, newIds, map, id);
+            foreach (var id in newIds) if (!map.ContainsKey(id)) PlaceNewcomer(save, newIds, map, id, st);
             save.PlacementCustom = true;
             save.Placement = new List<string>();
             foreach (var kv in map) save.Placement.Add(kv.Key + ":" + kv.Value[0] + ":" + kv.Value[1]);
@@ -194,7 +201,7 @@ namespace BiRyeoDo.Core
         /// The tile of every party id: the saved custom arrangement (members without a valid saved tile, e.g. a newcomer, take the best free tile),
         /// or the strategic automatic arrangement.
         /// </summary>
-        public static Dictionary<string, int[]> Resolve(SaveData save, IList<string> ids)
+        public static Dictionary<string, int[]> Resolve(SaveData save, IList<string> ids, StageData st = null)
         {
             if (save != null && save.PlacementCustom)
             {
@@ -213,27 +220,141 @@ namespace BiRyeoDo.Core
                     if (saved.TryGetValue(id, out t) && t[0] >= 0 && t[0] < Board.PartyCols && t[1] >= 0 && t[1] < Board.Rows && used.Add(t[0] * 10 + t[1])) map[id] = t;
                     else missing.Add(id);
                 }
-                foreach (var id in missing) PlaceNewcomer(save, ids, map, id);
+                foreach (var id in missing) PlaceNewcomer(save, ids, map, id, st);
                 return map;
             }
-            return Auto(ids, save);
+            return AutoFor(save, ids, st);
         }
 
-        /// <summary>Puts the party on its tiles (the protagonist first in the list).</summary>
-        public static void Apply(IList<Combatant> party, SaveData save)
+        // ------------------------------------------------------------------ planned arrangement (expected damage, see FormationPlanner)
+
+        /// <summary>The protagonist as he fights: equipped arts (four ordinary + one 비기), stats and 심법 perks.</summary>
+        public static Combatant BuildHero(SaveData save)
+        {
+            var skills = new List<SkillSpec>();
+            foreach (var id in save.EquippedArts)
+            {
+                var art = EarlyGameContent.FindArt(id);
+                if (art == null || art.OwnerId != null) continue;
+                bool ultimate = Progression.IsUltimate(art);
+                int have = 0;
+                foreach (var s in skills) if ((s.SpiritCost > 0) == ultimate) have++;
+                if (have < (ultimate ? Progression.MaxEquippedUltimates : Progression.MaxEquippedArts)) skills.Add(Mastery.Apply(save, art));
+            }
+            var hero = new Combatant(HeroId, "비류연", Team.Player, InnerArts.HeroStats(save), skills);
+            InnerArts.ApplyPerks(hero, save.EquippedInner, save.InnerLevels);
+            return hero;
+        }
+
+        private static List<Combatant> BuildParty(SaveData save, IList<string> ids)
+        {
+            var party = new List<Combatant>();
+            foreach (var id in ids)
+            {
+                if (id == HeroId) { party.Add(BuildHero(save)); continue; }
+                var c = EarlyGameContent.FindCompanion(id);
+                if (c != null) party.Add(CompanionGrowth.Create(save, c));
+            }
+            return party;
+        }
+
+        /// <summary>The stage the party screen plans against when no fight is chosen: the next stage to clear.</summary>
+        public static StageData PlanningStage(SaveData save)
+        {
+            return EarlyGameContent.FindStage(Math.Max(1, Math.Min(save.HighestUnlockedStage, EarlyGameContent.Stages.Length)));
+        }
+
+        private static readonly Dictionary<string, Dictionary<string, int>> PlanCache = new Dictionary<string, Dictionary<string, int>>();
+
+        /// <summary>Planned lines (0..2) of every id against the stage's fights; members already in <paramref name="pinned"/> keep their lines.</summary>
+        private static Dictionary<string, int> PlanLines(SaveData save, IList<string> ids, StageData st, Dictionary<string, int[]> pinned = null, string except = null)
+        {
+            st = st ?? PlanningStage(save);
+            if (st == null) return null;
+            var party = BuildParty(save, ids);
+            if (party.Count != ids.Count) return null;
+            var key = new System.Text.StringBuilder();
+            key.Append(st.Number).Append('/').Append(st.Difficulty).Append('/').Append(st.IsQuest ? st.QuestId : "").Append('/').Append(st.IsTower ? st.TowerFloor : 0);
+            foreach (var m in party) key.Append('|').Append(m.Id).Append(':').Append(m.Stats.MaxHp).Append(',').Append(m.Stats.Attack).Append(',').Append(m.Stats.Defense).Append(',').Append(m.Stats.Speed).Append(',').Append(m.Skills.Count);
+            Dictionary<string, int> fixedCols = null;
+            if (pinned != null)
+            {
+                fixedCols = new Dictionary<string, int>();
+                foreach (var kv in pinned) if (kv.Key != except) { fixedCols[kv.Key] = kv.Value[0]; key.Append("#").Append(kv.Key).Append(kv.Value[0]); }
+            }
+            Dictionary<string, int> lines;
+            string k = key.ToString();
+            if (PlanCache.TryGetValue(k, out lines)) return lines;
+            var fights = FormationPlanner.FightsOf(st);
+            if (fights.Count == 0) return null;
+            var hint = new Dictionary<string, int>();
+            foreach (var kv in Auto(ids, save)) hint[kv.Key] = kv.Value[0];
+            lines = FormationPlanner.PlanPartyLines(party, fights, hint, fixedCols);
+            if (PlanCache.Count > 64) PlanCache.Clear();
+            PlanCache[k] = lines;
+            return lines;
+        }
+
+        /// <summary>
+        /// The automatic arrangement: lines chosen by expected damage against the stage's enemies (<see cref="FormationPlanner"/>; the next stage to clear
+        /// when none is given), rows by the simple stat rule (the most defensive member in the middle of the front line).
+        /// </summary>
+        public static Dictionary<string, int[]> AutoFor(SaveData save, IList<string> ids, StageData st = null)
+        {
+            if (save == null) return Auto(ids);
+            var lines = PlanLines(save, ids, st);
+            if (lines == null || lines.Count != ids.Count) return Auto(ids, save);
+            var scores = new Dictionary<string, double>();
+            foreach (var id in ids) scores[id] = FrontScore(save, ids, id);
+            return ArrangeRows(ids, lines, scores);
+        }
+
+        /// <summary>The planned lines for combatants built elsewhere (the balance bot): no save, the fights given directly.</summary>
+        public static void ApplyPlanned(IList<Combatant> party, IList<IList<Combatant>> fights)
         {
             var ids = new List<string>();
             foreach (var m in party) ids.Add(m.Id);
-            var map = Resolve(save, ids);
+            var hint = new Dictionary<string, int>();
+            foreach (var kv in Auto(ids)) hint[kv.Key] = kv.Value[0];
+            var lines = FormationPlanner.PlanPartyLines(party, fights, hint);
+            var stats = new List<CombatStats>();
+            foreach (var m in party) stats.Add(m.Stats);
+            var fs = FrontScores(stats);
+            var scores = new Dictionary<string, double>();
+            for (int i = 0; i < party.Count; i++) scores[party[i].Id] = IsHealer(party[i].Id) ? -10.0 : fs[i];
+            var map = lines.Count == party.Count ? ArrangeRows(ids, lines, scores) : Auto(ids);
+            foreach (var m in party) { var t = map[m.Id]; m.Col = t[0]; m.Row = t[1]; }
+        }
+
+        private static Dictionary<string, int[]> ArrangeRows(IList<string> ids, Dictionary<string, int> lines, Dictionary<string, double> scores)
+        {
+            var map = new Dictionary<string, int[]>();
+            for (int line = 0; line < Board.PartyCols; line++)
+            {
+                var members = new List<string>();
+                foreach (var id in ids) if (lines[id] == line) members.Add(id);
+                bool front = line == Board.PartyCols - 1;
+                members.Sort((a, b) => front ? scores[b].CompareTo(scores[a]) : scores[a].CompareTo(scores[b]));
+                for (int k = 0; k < members.Count; k++) map[members[k]] = new[] { line, PartyRowOrder[k % PartyRowOrder.Length] };
+            }
+            return map;
+        }
+
+        /// <summary>Puts the party on its tiles (the protagonist first in the list).</summary>
+        public static void Apply(IList<Combatant> party, SaveData save, StageData st = null)
+        {
+            var ids = new List<string>();
+            foreach (var m in party) ids.Add(m.Id);
+            var map = Resolve(save, ids, st);
             foreach (var m in party) { var t = map[m.Id]; m.Col = t[0]; m.Row = t[1]; }
         }
 
         /// <summary>Moves <paramref name="id"/> to a tile of our half; a member already standing there swaps places.</summary>
-        public static bool SetTile(SaveData save, IList<string> ids, string id, int col, int row, out string error)
+        public static bool SetTile(SaveData save, IList<string> ids, string id, int col, int row, out string error, StageData st = null)
         {
             error = null;
             if (col < 0 || col >= Board.PartyCols || row < 0 || row >= Board.Rows) { error = "그 칸에는 설 수 없습니다."; return false; }
-            var map = Resolve(save, ids);
+            var map = Resolve(save, ids, st);
             int[] mine;
             if (!map.TryGetValue(id, out mine)) { error = "출전하지 않는 인물입니다."; return false; }
             string other = null;
@@ -280,6 +401,29 @@ namespace BiRyeoDo.Core
         /// (sturdiness against damage rate, <see cref="FrontScores"/>) hold the front column, the strongest attackers stay at the back, and units that shoot at our
         /// back line (<see cref="EnemyMove.Snipe"/>) always stand in the deepest column. A boss is just another unit. A lone enemy stands right in front of us.
         /// </summary>
+        /// <summary>
+        /// Places the enemies as the best answer to the lines our party stands in (expected damage, <see cref="FormationPlanner.PlanEnemyCols"/>);
+        /// falls back to the simple stat rule for big groups, a lone enemy, or when some enemies already have a tile.
+        /// </summary>
+        public static void PlaceEnemies(IList<Combatant> enemies, IList<Combatant> party)
+        {
+            bool anyPlaced = false;
+            foreach (var e in enemies) if (e.Col >= 0) anyPlaced = true;
+            var cols = !anyPlaced && enemies.Count > 1 ? FormationPlanner.PlanEnemyCols(enemies, party) : null;
+            if (cols == null) { PlaceEnemies(enemies); return; }
+            var stats = new List<CombatStats>();
+            foreach (var e in enemies) stats.Add(e.Stats);
+            var scores = FrontScores(stats);
+            for (int col = Board.PartyCols; col < Board.Cols; col++)
+            {
+                var members = new List<int>();
+                for (int i = 0; i < enemies.Count; i++) if (cols[i] == col) members.Add(i);
+                bool front = col == Board.PartyCols;
+                members.Sort((a, b) => front ? scores[b].CompareTo(scores[a]) : scores[a].CompareTo(scores[b]));
+                for (int k = 0; k < members.Count; k++) { enemies[members[k]].Col = col; enemies[members[k]].Row = RowOrder[k % RowOrder.Length]; }
+            }
+        }
+
         public static void PlaceEnemies(IList<Combatant> enemies)
         {
             var used = new HashSet<int>();

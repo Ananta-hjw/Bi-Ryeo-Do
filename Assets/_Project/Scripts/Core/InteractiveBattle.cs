@@ -98,7 +98,7 @@ namespace BiRyeoDo.Core
             bool unplaced = false;
             foreach (var p in _party) if (p.Col < 0) unplaced = true;
             if (unplaced) Formation.Apply(_party, null);
-            Formation.PlaceEnemies(_enemies);
+            Formation.PlaceEnemies(_enemies, _party);
         }
 
         public bool AnyEnemyAlive { get { foreach (var e in _enemies) if (e.IsAlive) return true; return false; } }

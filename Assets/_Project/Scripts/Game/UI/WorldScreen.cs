@@ -733,13 +733,13 @@ namespace BiRyeoDo.Game.UI
         /// 진형: a 3 x 3 grid of our half of the board (the right column is the front line facing the enemy); tap a member, then a tile, to move or swap.
         /// Positions are fixed for the whole fight, so this is the place to decide who tanks in front and who attacks from behind.
         /// </summary>
-        private void BuildFormationBlock(RectTransform parent, List<CompanionData> active, Action redraw, float gy0, float gy1)
+        private void BuildFormationBlock(RectTransform parent, List<CompanionData> active, Action redraw, float gy0, float gy1, StageData st = null)
         {
             var save = GameManager.Instance.Save;
             var ids = new List<string> { Formation.HeroId };
             var names = new Dictionary<string, string> { { Formation.HeroId, "비류연" } };
             foreach (var c in active) { ids.Add(c.Id); names[c.Id] = c.Name; }
-            var map = Formation.Resolve(save, ids);
+            var map = Formation.Resolve(save, ids, st);   // auto lines are planned against this stage (the next one to clear on the party screen)
             if (_placeSelected != null && !map.ContainsKey(_placeSelected)) _placeSelected = null;
             UiFactory.Label("FormTitle", parent, new Vector2(0.05f, gy1 + 0.035f), new Vector2(0.60f, gy1 + 0.085f), "진형 (인물을 누르고 칸을 누릅니다)", 26, UiFactory.Gold, TextAnchor.MiddleLeft);
             UiFactory.Button("FormAuto", parent, new Vector2(0.64f, gy1 + 0.035f), new Vector2(0.95f, gy1 + 0.085f), save.PlacementCustom ? "자동 배치" : "자동 배치 중", save.PlacementCustom ? UiFactory.InkSoft : UiFactory.Gold, () => { Formation.Reset(save); _placeSelected = null; GameManager.Instance.SaveNow(); redraw(); }, 24);
@@ -758,14 +758,14 @@ namespace BiRyeoDo.Game.UI
                     bool selected = here != null && here == _placeSelected;
                     var tint = here == null ? new Color(0.28f, 0.50f, 0.85f, 0.25f) : selected ? UiFactory.Gold : UiFactory.Ink;
                     int cc = col, rr = row;
-                    UiFactory.Button("Tile" + col + rr, parent, new Vector2(x0 + 0.004f, y1 - ch + 0.003f), new Vector2(x0 + cw - 0.004f, y1 - 0.003f), here == null ? "" : names[here], tint, () => OnPlacementTile(ids, cc, rr, redraw), 26);
+                    UiFactory.Button("Tile" + col + rr, parent, new Vector2(x0 + 0.004f, y1 - ch + 0.003f), new Vector2(x0 + cw - 0.004f, y1 - 0.003f), here == null ? "" : names[here], tint, () => OnPlacementTile(ids, cc, rr, redraw, st), 26);
                 }
         }
 
-        private void OnPlacementTile(List<string> ids, int col, int row, Action redraw)
+        private void OnPlacementTile(List<string> ids, int col, int row, Action redraw, StageData st = null)
         {
             var save = GameManager.Instance.Save;
-            var map = Formation.Resolve(save, ids);
+            var map = Formation.Resolve(save, ids, st);
             string here = null;
             foreach (var kv in map) if (kv.Value[0] == col && kv.Value[1] == row) here = kv.Key;
             if (_placeSelected == null)
@@ -779,7 +779,7 @@ namespace BiRyeoDo.Game.UI
             else
             {
                 string error;
-                if (Formation.SetTile(save, ids, _placeSelected, col, row, out error)) GameManager.Instance.SaveNow();
+                if (Formation.SetTile(save, ids, _placeSelected, col, row, out error, st)) GameManager.Instance.SaveNow();
                 _placeSelected = null;
             }
             redraw();
@@ -840,7 +840,7 @@ namespace BiRyeoDo.Game.UI
             foreach (var l in lines) { if (shown++ >= 5) { enemyText.Append("…"); break; } enemyText.Append(l).Append('\n'); }
             UiFactory.Body(UiFactory.Label("Enemies", _prepOverlay, new Vector2(0.05f, 0.44f), new Vector2(0.95f, 0.645f), enemyText.ToString().TrimEnd('\n'), 22, UiFactory.Gold, TextAnchor.UpperLeft, FontStyle.Normal), 1.15f);
 
-            BuildFormationBlock(_prepOverlay, new List<CompanionData>(active), () => OpenPrep(st, go), 0.15f, 0.36f);
+            BuildFormationBlock(_prepOverlay, new List<CompanionData>(active), () => OpenPrep(st, go), 0.15f, 0.36f, st);
             UiFactory.Button("Go", _prepOverlay, new Vector2(0.52f, 0.02f), new Vector2(0.95f, 0.095f), "출전", UiFactory.Red, () => { _prepOverlay.gameObject.SetActive(false); go(); }, 38);
             UiFactory.Button("Cancel", _prepOverlay, new Vector2(0.05f, 0.02f), new Vector2(0.48f, 0.095f), "취소", UiFactory.InkSoft, () => { _prepOverlay.gameObject.SetActive(false); _placeSelected = null; }, 34);
         }

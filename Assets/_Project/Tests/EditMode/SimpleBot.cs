@@ -76,10 +76,10 @@ namespace BiRyeoDo.Tests
         public static bool ClearStage(StageData st, int seed)
         {
             var party = BuildParty(st.Number, st.RecommendedPlayerLevel);
+            Formation.ApplyPlanned(party, FormationPlanner.FightsOf(st));   // the same planned lines the 「자동 배치」 gives a player
             for (int k = 0; k < st.Encounters.Length; k++)
             {
                 var enemies = st.Encounters[k].Select((id, i) => (st.IsQuest ? Quests.Scale(st.QuestId, EarlyGameContent.FindEnemy(id)) : EarlyGameContent.FindEnemy(id)).CreateCombatant(id + i)).ToList();
-                Formation.Apply(party, null);   // every fight starts from the formation tiles
                 var battle = new InteractiveBattle(party, enemies, new SeededRandom(seed * 1000 + st.Number * 10 + k)) { Trial = st.TrialFor(k) };
                 battle.Begin();
                 for (int guard = 0; !battle.IsOver && guard < 3000; guard++) battle.PlayerAct(Choose(battle));
