@@ -15,14 +15,14 @@ namespace BiRyeoDo.Core
             return null;
         }
 
-        /// <summary>The companion's level. One that has joined but has no record yet is created at the protagonist's current level; one that has not joined follows the protagonist.</summary>
+        /// <summary>The companion's level. One that has joined but has no record yet is created at the protagonist's current level and exp; one that has not joined follows the protagonist.</summary>
         public static int LevelOf(SaveData save, string id)
         {
             var p = Find(save, id);
             if (p != null) return p.Level;
             var c = EarlyGameContent.FindCompanion(id);
             if (c == null || c.JoinStage > save.HighestUnlockedStage) return save.Level;
-            p = new CompanionProgress { Id = id, Level = save.Level };
+            p = new CompanionProgress { Id = id, Level = save.Level, Exp = save.Exp };   // the protagonist's level and his progress into the next one
             save.CompanionLevels.Add(p);
             return p.Level;
         }

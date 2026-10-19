@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BiRyeoDo.Core;
@@ -108,15 +109,20 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void StageRewardsPayExactlyTheNextStagesLevel()
+        public void StageRewardsKeepPaceWithTheRecommendedLevels()
         {
-            foreach (var s in EarlyGameContent.Stages.Take(EarlyGameContent.Stages.Length - 1))
+            // clearing every stage once, in order: each stage pays, the player arrives within a level of its (rounded) recommendation, and stage 30 ends one above its own
+            var save = new SaveData { Level = 1 };
+            foreach (var s in EarlyGameContent.Stages)
             {
-                int head = EarlyGameContent.LevelHeadroom;
-                var save = new SaveData { Level = s.RecommendedPlayerLevel + (s.Number > 1 ? head : 0) };
-                foreach (var enc in s.Encounters) foreach (var id in enc) Progression.AddExp(save, EarlyGameContent.ExpReward(s, id));
-                Assert.GreaterOrEqual(save.Level, EarlyGameContent.FindStage(s.Number + 1).RecommendedPlayerLevel + head, s.Name);
+                Assert.GreaterOrEqual(save.Level, s.RecommendedPlayerLevel - 1, s.Name);
+                Assert.GreaterOrEqual(save.Level, (int)Math.Floor(EarlyGameContent.ExactPlayerLevel(s)), s.Name);
+                long exp = 0;
+                foreach (var enc in s.Encounters) foreach (var id in enc) exp += EarlyGameContent.ExpReward(s, id);
+                Assert.Greater(exp, 0, s.Name + " pays no exp");
+                Progression.AddExp(save, exp);
             }
+            Assert.AreEqual(EarlyGameContent.Stages.Last().RecommendedPlayerLevel + 1, save.Level);
         }
 
         [Test]

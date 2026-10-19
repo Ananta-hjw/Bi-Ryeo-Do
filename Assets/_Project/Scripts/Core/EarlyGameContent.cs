@@ -1574,6 +1574,16 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
                 Encounters = new[] { new[] { "ma_chilgeol_jeoji", "ma_chilgeol_jeoji", "ma_chilgeol_jeoji" }, new[] { "hwaryong_hwayeom", "ma_chilgeol_jeoji" }, new[] { "bi_daegongja" } } },
         };
 
+        /// <summary>The player level a stage asks for before rounding (<see cref="StageData.RecommendedPlayerLevel"/> rounds it).</summary>
+        public static double ExactPlayerLevel(StageData st) { return 1.0 + Math.Max(1, st.RecommendedLevel) / Progression.CurvePerPlayerLevel; }
+
+        /// <summary>Exp from level 1 to a fractional level (part of the last level's bar for the fraction).</summary>
+        private static long CumulativeExpAt(double level)
+        {
+            int whole = (int)Math.Floor(level);
+            return CumulativeExp(whole) + (long)Math.Round((level - whole) * Progression.ExpToNext(whole));
+        }
+
         private static long CumulativeExp(int level)
         {
             long sum = 0;
@@ -1601,13 +1611,17 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
         public const double ReplayExpFactor = 0.5;
         public const double ReplayDooFactor = 0.5;
 
-        /// <summary>Exp for one enemy: clearing stages in order keeps the player <see cref="LevelHeadroom"/> above each stage's recommended level (stage 1 pays the cushion up front).</summary>
+        /// <summary>
+        /// Exp for one enemy: clearing stages in order keeps the player <see cref="LevelHeadroom"/> above each stage's recommended level (stage 1 pays the cushion up front).
+        /// The span runs between unrounded player levels (<see cref="ExactPlayerLevel"/>), so two stages that round to the same recommended level still both pay;
+        /// the run as a whole still ends at stage 30's recommended level + 1.
+        /// </summary>
         public static long ExpReward(StageData st, string enemyId)
         {
             var next = FindStage(st.Number + 1);
-            int to = (next != null ? next.RecommendedPlayerLevel : st.RecommendedPlayerLevel + 1) + LevelHeadroom;
-            int from = st.RecommendedPlayerLevel + (st.Number > 1 ? LevelHeadroom : 0);
-            long total = CumulativeExp(to) - CumulativeExp(from);
+            double to = (next != null ? ExactPlayerLevel(next) : st.RecommendedPlayerLevel + 1) + LevelHeadroom;
+            double from = st.Number > 1 ? ExactPlayerLevel(st) + LevelHeadroom : st.RecommendedPlayerLevel;
+            long total = Math.Max(0L, CumulativeExpAt(to) - CumulativeExpAt(from));
             return (long)Math.Ceiling((double)total * RewardWeight(enemyId) / TotalWeight(st));
         }
 
