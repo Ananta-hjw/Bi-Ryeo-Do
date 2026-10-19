@@ -15,7 +15,8 @@ namespace BiRyeoDo.Core
     /// <summary>
     /// Rules and numbers of the 상태 이상 (see <see cref="InteractiveBattle"/>):
     /// 중독·화상 lose a share of max HP at the start of each own turn, 한기 slows the action gauge, 내상 stops 내공 from coming back,
-    /// 출혈 adds a share of max HP to every attack that lands on the unit. Damage over time is weaker on 정예 and 보스, so it cannot melt a boss.
+    /// 출혈 adds a share of max HP to every attack that lands on the unit. A unit carries at most one status: until it runs out (or is cured)
+    /// nothing else takes hold and it is not lengthened (<see cref="Combatant.AddStatus"/>). Damage over time is weaker on 정예 and 보스, so it cannot melt a boss.
     /// Enemy moves get their status from their name (독 moves poison, 한빙 moves chill and so on, <see cref="ForMove"/>); every charged heavy
     /// blow that lands unguarded also leaves 내상. 운기 cures one status, 해독 영약 and 윤준호's 자하청심결 cure them all.
     /// </summary>

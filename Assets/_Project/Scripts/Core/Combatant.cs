@@ -81,12 +81,15 @@ namespace BiRyeoDo.Core
 
         public bool Has(StatusKind kind) { foreach (var s in Statuses) if (s.Kind == kind) return true; return false; }
 
-        /// <summary>Adds a status, or refreshes it to the longer duration when it is already there (statuses do not stack).</summary>
-        public void AddStatus(StatusKind kind, int turns)
+        /// <summary>
+        /// Gives the unit a status. A unit carries one status at a time: while it has one (even the same kind), nothing new takes hold
+        /// and the current one is not lengthened, so it always runs out. Returns false when it did not take.
+        /// </summary>
+        public bool AddStatus(StatusKind kind, int turns)
         {
-            if (kind == StatusKind.None || turns <= 0) return;
-            foreach (var s in Statuses) if (s.Kind == kind) { s.Turns = Math.Max(s.Turns, turns); return; }
+            if (kind == StatusKind.None || turns <= 0 || Statuses.Count > 0) return false;
             Statuses.Add(new StatusEffect { Kind = kind, Turns = turns });
+            return true;
         }
 
         public bool RemoveStatus(StatusKind kind)

@@ -84,10 +84,10 @@ namespace BiRyeoDo.Tests
             var e = Enemy("e", Stats(100000, 1, 1));
             var b = new InteractiveBattle(p, new[] { e }, new SeededRandom(1));
             b.Begin();
-            p.AddStatus(StatusKind.Poison, 9); p.AddStatus(StatusKind.Burn, 9); p.AddStatus(StatusKind.Chill, 9);
+            p.AddStatus(StatusKind.Burn, 9);
             b.PlayerAct(PlayerCommand.Meditate());
-            Assert.IsFalse(p.Has(StatusKind.Burn), "화상 goes first");
-            Assert.IsTrue(p.Has(StatusKind.Poison));
+            Assert.AreEqual(0, p.Statuses.Count, "운기 cures the status");
+            p.AddStatus(StatusKind.Poison, 9);
             b.PlayerAct(PlayerCommand.UseItem(EarlyGameContent.FindItem("antidote")));
             Assert.AreEqual(0, p.Statuses.Count);
         }
@@ -102,7 +102,7 @@ namespace BiRyeoDo.Tests
             var b = new InteractiveBattle(new[] { p, yun }, new[] { e }, new SeededRandom(1));
             b.Begin();
             while (b.Current != yun) b.PlayerAct(PlayerCommand.Guard());
-            p.AddStatus(StatusKind.Bleed, 3); p.AddStatus(StatusKind.InnerWound, 3);
+            p.AddStatus(StatusKind.Bleed, 3);
             b.PlayerAct(PlayerCommand.UseSkill(cleanse, null).WithAlly(p));
             Assert.AreEqual(0, p.Statuses.Count);
         }
@@ -119,6 +119,19 @@ namespace BiRyeoDo.Tests
             b.Begin();
             var order = b.PreviewOrder(6);
             Assert.Greater(order.Count(u => u == p), order.Count(u => u == e));
+        }
+
+        [Test]
+        public void OnlyOneStatusAtATimeAndItIsNotLengthened()
+        {
+            var p = new Combatant("p", "비류연", Team.Player, Stats(1000, 1, 100), null);
+            Assert.IsTrue(p.AddStatus(StatusKind.Burn, 2));
+            Assert.IsFalse(p.AddStatus(StatusKind.Poison, 3), "nothing else while burning");
+            Assert.IsFalse(p.AddStatus(StatusKind.Burn, 5), "not lengthened either");
+            Assert.AreEqual(1, p.Statuses.Count);
+            Assert.AreEqual(2, p.Statuses[0].Turns);
+            p.RemoveStatus(StatusKind.Burn);
+            Assert.IsTrue(p.AddStatus(StatusKind.Poison, 3), "free again once it is gone");
         }
 
         [Test]

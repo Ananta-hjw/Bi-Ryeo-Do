@@ -469,7 +469,7 @@ namespace BiRyeoDo.Core
         private void Inflict(Combatant source, Combatant target, StatusKind kind, List<BattleEvent> events)
         {
             if (kind == StatusKind.None || !target.IsAlive) return;
-            target.AddStatus(kind, Statuses.DefaultTurns(kind));
+            if (!target.AddStatus(kind, Statuses.DefaultTurns(kind))) return;   // already carries a status: nothing new takes hold
             events.Add(new BattleEvent { Turn = Turn, ActorId = source.Id, TargetId = target.Id, SkillId = "status", Kind = EventKind.Status, Status = kind, TargetHpAfter = target.Hp, Message = target.Name + ": " + Statuses.Name(kind) + "!" });
         }
 
