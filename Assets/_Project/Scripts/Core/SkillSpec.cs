@@ -6,7 +6,8 @@ namespace BiRyeoDo.Core
         Evade,      // the user dodges every hit until its next turn
         GuardParty, // every living ally guards until its next turn
         Stun,       // damages, then the target loses its next action (a charging enemy is interrupted instead of skipped on bosses)
-        HealAlly    // restores HealPct of max HP to the most wounded ally
+        HealAlly,   // restores HealPct of max HP to the most wounded ally
+        Cleanse     // cures every 상태 이상 of the chosen ally and restores HealPct of max HP
     }
 
     /// <summary>A usable martial art in battle (무공).</summary>
@@ -24,6 +25,8 @@ namespace BiRyeoDo.Core
         public int Range = 1;      // how many enemy lines the art reaches (1 = the front line only, 2+ = any line) (attacks and area arts; self/party effects ignore it)
         public SkillEffect Effect;
         public float HealPct;      // for HealAlly
+        public StatusKind Inflict;       // 상태 이상 the art may leave on each enemy it hits
+        public float InflictChance;      // chance per enemy hit (rolled once per use)
         public float EvadeChance = 1f;   // for Evade: chance that each incoming hit is dodged (mastery lowers it for the protagonist's 삼첩영)
 
         /// <summary>"맨 앞 줄" / "모든 줄": which of the enemy lines an art of this reach touches (a reach of 2 or more covers every line).</summary>

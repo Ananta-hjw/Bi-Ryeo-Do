@@ -167,9 +167,11 @@ namespace BiRyeoDo.Game.UI
             string effect = art.Effect == SkillEffect.Evade ? "다음 차례까지 공격을 " + Mathf.RoundToInt(spec.EvadeChance * 100f) + "% 확률로 회피"
                 : art.Effect == SkillEffect.GuardParty ? "파티 전원 방어 태세"
                 : art.Effect == SkillEffect.HealAlly ? "아군 체력 " + Mathf.RoundToInt(spec.HealPct * 100f) + "% 회복"
-                : "위력 ×" + spec.Power.ToString("0.00") + (spec.Hits > 1 ? " ×" + spec.Hits + "타" : "") + (spec.AllEnemies ? " · 적 전체" : "") + (art.Effect == SkillEffect.Stun ? " · 점혈(굳음)" : "");
+                : "위력 ×" + spec.Power.ToString("0.00") + (spec.Hits > 1 ? " ×" + spec.Hits + "타" : "") + (spec.AllEnemies ? " · 적 전체" : "") + (art.Effect == SkillEffect.Stun ? " · 점혈(굳음)" : "")
+                + (art.Inflict != StatusKind.None ? " · " + Statuses.Name(art.Inflict) + " " + Mathf.RoundToInt(art.InflictChance * 100f) + "%" : "");
             lines.Add("<color=#9ADB9F>" + effect + "</color>\n" + cost + (spec.Cooldown > 0 ? " · 재사용 " + spec.Cooldown + "턴" : "") + " · 닿는 범위: " + SkillSpec.ReachText(art.EffectiveRange)
                 + (learned && (variant != ArtVariant.None || level > 0) ? "\n(숙련·변초가 반영된 값입니다)" : ""));
+            if (art.Inflict != StatusKind.None) lines.Add(Statuses.Describe(art.Inflict));
             if (!learned && !unlocked) lines.Add(art.UnlockText + "하면 배울 수 있습니다.");
 
             var steps = Mastery.LevelLines(art);
@@ -315,7 +317,8 @@ namespace BiRyeoDo.Game.UI
         private static string Describe(ArtData a)
         {
             string cost = a.SpiritCost > 0 ? "기세 " + a.SpiritCost : a.QiCost > 0 ? "내공 " + a.QiCost : "내공 0";
-            string power = a.Effect == SkillEffect.Evade ? "회피" : "위력 ×" + a.Power.ToString("0.0") + (a.Hits > 1 ? " ×" + a.Hits + "타" : "") + (a.AllEnemies ? " 전체" : "") + " · " + SkillSpec.ReachText(a.EffectiveRange);
+            string power = a.Effect == SkillEffect.Evade ? "회피" : "위력 ×" + a.Power.ToString("0.0") + (a.Hits > 1 ? " ×" + a.Hits + "타" : "") + (a.AllEnemies ? " 전체" : "") + " · " + SkillSpec.ReachText(a.EffectiveRange)
+                + (a.Inflict != StatusKind.None ? " · " + Statuses.Name(a.Inflict) : "");
             string cd = a.Cooldown > 0 ? " · 재사용 " + a.Cooldown + "턴" : "";
             return power + " · " + cost + cd;
         }

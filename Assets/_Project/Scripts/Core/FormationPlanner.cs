@@ -58,7 +58,7 @@ namespace BiRyeoDo.Core
             foreach (var k in c.Skills)
             {
                 if (k.SpiritCost > 0) continue;
-                bool hurts = k.Power > 0f && k.Effect != SkillEffect.HealAlly && k.Effect != SkillEffect.GuardParty && k.Effect != SkillEffect.Evade;
+                bool hurts = k.Power > 0f && k.Effect != SkillEffect.HealAlly && k.Effect != SkillEffect.GuardParty && k.Effect != SkillEffect.Evade && k.Effect != SkillEffect.Cleanse;
                 bool heals = k.Effect == SkillEffect.HealAlly && k.HealPct > 0f;
                 if (!hurts && !heals) continue;
                 double w = 1.0 / (1 + Math.Max(0, k.Cooldown));

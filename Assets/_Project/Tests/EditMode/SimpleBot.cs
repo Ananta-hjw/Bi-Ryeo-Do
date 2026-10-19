@@ -30,6 +30,11 @@ namespace BiRyeoDo.Tests
                 }
             }
 
+            // cure a burning or poisoned ally (what a person would do with 자하청심결)
+            var cleanse = skills.FirstOrDefault(s => s.Effect == SkillEffect.Cleanse);
+            var sick = b.Party.FirstOrDefault(m => m.IsAlive && (m.Has(StatusKind.Burn) || m.Has(StatusKind.Poison) || m.Statuses.Count >= 2));
+            if (cleanse != null && sick != null) return PlayerCommand.UseSkill(cleanse, null).WithAlly(sick);
+
             var heal = skills.FirstOrDefault(s => s.Effect == SkillEffect.HealAlly);
             if (heal != null && b.Party.Any(m => m.IsAlive && m.Hp < m.Stats.MaxHp * 0.55f)) return PlayerCommand.UseSkill(heal, null);
 

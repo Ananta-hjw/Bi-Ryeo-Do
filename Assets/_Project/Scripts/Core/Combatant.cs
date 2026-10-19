@@ -40,6 +40,7 @@ namespace BiRyeoDo.Core
         public int MoveIndex;              // enemy script position
         public List<EnemyMove> Moves;      // enemy attack script, cycled in order
         internal readonly Dictionary<string, int> Cooldowns = new Dictionary<string, int>();
+        public readonly List<StatusEffect> Statuses = new List<StatusEffect>();   // 상태 이상 (see Statuses)
 
         public bool IsAlive { get { return Hp > 0; } }
 
@@ -74,7 +75,24 @@ namespace BiRyeoDo.Core
             Guarding = false;
             Evading = false;
             Stunned = false;
+            Statuses.Clear();
             Cooldowns.Clear();
+        }
+
+        public bool Has(StatusKind kind) { foreach (var s in Statuses) if (s.Kind == kind) return true; return false; }
+
+        /// <summary>Adds a status, or refreshes it to the longer duration when it is already there (statuses do not stack).</summary>
+        public void AddStatus(StatusKind kind, int turns)
+        {
+            if (kind == StatusKind.None || turns <= 0) return;
+            foreach (var s in Statuses) if (s.Kind == kind) { s.Turns = Math.Max(s.Turns, turns); return; }
+            Statuses.Add(new StatusEffect { Kind = kind, Turns = turns });
+        }
+
+        public bool RemoveStatus(StatusKind kind)
+        {
+            for (int i = 0; i < Statuses.Count; i++) if (Statuses[i].Kind == kind) { Statuses.RemoveAt(i); return true; }
+            return false;
         }
 
         public int CooldownLeft(SkillSpec skill)

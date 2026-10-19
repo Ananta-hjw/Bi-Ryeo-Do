@@ -13,6 +13,8 @@ namespace BiRyeoDo.Core
         public int Range;       // enemy lines reached (1 = the front line only, 2+ = any line); 0 = by kind (see EffectiveRange)
         public SkillEffect Effect;
         public float HealPct;
+        public StatusKind Inflict;      // 상태 이상 the art may leave (see Statuses)
+        public float InflictChance;
         public long LearnCost;
         public string OwnerId;   // null = a martial art the protagonist can learn; otherwise a companion's fixed art
 
@@ -38,7 +40,8 @@ namespace BiRyeoDo.Core
             return new SkillSpec
             {
                 Id = Id, Name = Name, Description = Description, Power = Power, Hits = Hits, QiCost = QiCost,
-                SpiritCost = SpiritCost, Cooldown = Cooldown, AllEnemies = AllEnemies, Range = EffectiveRange, Effect = Effect, HealPct = HealPct
+                SpiritCost = SpiritCost, Cooldown = Cooldown, AllEnemies = AllEnemies, Range = EffectiveRange, Effect = Effect, HealPct = HealPct,
+                Inflict = Inflict, InflictChance = InflictChance
             };
         }
     }
@@ -222,14 +225,14 @@ namespace BiRyeoDo.Core
         {
             new ArtData { Id = StarterArtId, Range = 4, Name = "비도 던지기", Description = "비뢰도의 기초. 비도를 날려 적을 맞힌다.", Power = 1.3f, Cooldown = 0 },
             new ArtData { Id = "samboku_chobok", Name = "삼복구타권법 초복", Description = "사부가 창안한 권법. 초복은 근육을 노린다.", Power = 2.2f, QiCost = 14, Cooldown = 1, LearnCost = 0, UnlockStage = 1 },
-            new ArtData { Id = "bunroesu", Name = "분뢰수", Description = "손을 강철처럼 만들어 내려친다.", Power = 3.0f, QiCost = 22, Cooldown = 2, LearnCost = 220, UnlockStage = 2 },
+            new ArtData { Id = "bunroesu", Name = "분뢰수", Description = "손을 강철처럼 만들어 내려친다.", Inflict = StatusKind.InnerWound, InflictChance = 0.4f, Power = 3.0f, QiCost = 22, Cooldown = 2, LearnCost = 220, UnlockStage = 2 },
             new ArtData { Id = "samcheopyeong", Name = "삼첩영", Description = "봉황무의 잔상 셋. 다음 차례까지 모든 공격을 피한다.", QiCost = 20, Cooldown = 3, Effect = SkillEffect.Evade, LearnCost = 400, UnlockStage = 3 },
-            new ArtData { Id = "bi_roe_do", Range = 4, Name = "비뢰도", Description = "비도 세 자루를 연달아 날린다.", Power = 1.7f, Hits = 3, QiCost = 32, Cooldown = 3, LearnCost = 900, UnlockStage = 3 },
+            new ArtData { Id = "bi_roe_do", Range = 4, Name = "비뢰도", Description = "비도 세 자루를 연달아 날린다.", Inflict = StatusKind.Bleed, InflictChance = 0.4f, Power = 1.7f, Hits = 3, QiCost = 32, Cooldown = 3, LearnCost = 900, UnlockStage = 3 },
             new ArtData { Id = "yeobanjang", Name = "여반장", Description = "손바닥을 뒤집는 회전력으로 일격에 제압하는 일장법.", Power = 5.2f, QiCost = 38, Cooldown = 3, LearnCost = 2200, UnlockStage = 5 },
-            new ArtData { Id = "roegwang_ryuhagok", Name = "뢰광류하곡", Description = "여섯 자루를 동시에 운용해 적 전체를 벤다.", Power = 2.6f, AllEnemies = true, QiCost = 46, Cooldown = 4, LearnCost = 4500, UnlockStage = 6 },
+            new ArtData { Id = "roegwang_ryuhagok", Name = "뢰광류하곡", Description = "여섯 자루를 동시에 운용해 적 전체를 벤다.", Inflict = StatusKind.Bleed, InflictChance = 0.25f, Power = 2.6f, AllEnemies = true, QiCost = 46, Cooldown = 4, LearnCost = 4500, UnlockStage = 6 },
             new ArtData { Id = "seonpung_roejeol", Name = "선풍뇌절", Description = "비기. 기세를 모두 쏟아 은빛 섬광으로 적을 쓰러뜨린다.", Power = 9.5f, SpiritCost = 100, LearnCost = 1500, UnlockStage = 4 },
             // Learned in volumes 7-9 (names from the original text)
-            new ArtData { Id = "cheongeun_roe", Name = "뇌격타 천근뢰", Description = "천 근의 무게를 실은 뇌전의 일격. 철각비마대의 창을 꺾은 기술.", Power = 6.4f, QiCost = 44, Cooldown = 3, LearnCost = 7000, UnlockStage = 10 },
+            new ArtData { Id = "cheongeun_roe", Name = "뇌격타 천근뢰", Description = "천 근의 무게를 실은 뇌전의 일격. 철각비마대의 창을 꺾은 기술.", Inflict = StatusKind.Burn, InflictChance = 0.5f, Power = 6.4f, QiCost = 44, Cooldown = 3, LearnCost = 7000, UnlockStage = 10 },
             new ArtData { Id = "cheonji_ibun", Name = "참단절영의 장 천지이분", Description = "손날로 말과 기수를 한꺼번에 가르는 절삭의 장.", Power = 7.8f, QiCost = 52, Cooldown = 4, LearnCost = 11000, UnlockStage = 15 },
             new ArtData { Id = "bongik_bisang", Name = "사신무 봉익비상", Description = "봉황이 날개를 펴듯 사방으로 쏟아내는 일격. 적 전체를 친다.", Power = 3.6f, AllEnemies = true, QiCost = 58, Cooldown = 4, LearnCost = 15000, UnlockStage = 19 },
             new ArtData { Id = "simroe", Name = "단심무형의 장 심뢰", Description = "비기. 마음을 베는 검기의 오의가 적의 중심을 꿰뚫는다.", Power = 13.0f, SpiritCost = 100, LearnCost = 9000, UnlockStage = 22 },
@@ -248,11 +251,13 @@ namespace BiRyeoDo.Core
             new ArtData { Id = "jh_stun", Name = "점혈", Description = "혈도를 짚어 상대를 굳힌다. 기를 모으는 중이면 끊는다.", Power = 0.8f, Effect = SkillEffect.Stun, QiCost = 20, Cooldown = 3, OwnerId = "jang_hong" },
             new ArtData { Id = "yj_slash", Name = "화산의 검", Description = "화산파의 기본 검격. 매화검법은 알레르기 때문에 쓰지 못한다.", Power = 2.2f, QiCost = 16, Cooldown = 1, OwnerId = "yun_junho" },
             new ArtData { Id = "yj_heal", Name = "자하신공", Description = "화산의 자색 기운으로 가장 다친 동료를 치유한다.", Effect = SkillEffect.HealAlly, HealPct = 0.35f, QiCost = 28, Cooldown = 3, OwnerId = "yun_junho" },
+            // 자하청심결: game addition (not named in the story) so the party has a way to cure 상태 이상 besides 운기 and items
+            new ArtData { Id = "yj_cleanse", Name = "자하청심결", Description = "자하신공의 맑은 기운으로 동료 한 명의 상태 이상을 모두 씻어 내고 조금 치유한다.", Effect = SkillEffect.Cleanse, HealPct = 0.10f, QiCost = 22, Cooldown = 3, OwnerId = "yun_junho" },
             new ArtData { Id = "isj_gon", Name = "진성십이곤", Description = "녹림 진성곤의 곤법. 방어는 원, 공격은 점, 힘의 이동은 나선.", Power = 2.0f, QiCost = 16, Cooldown = 1, OwnerId = "im_seongjin" },
             new ArtData { Id = "isj_seonggwang", Name = "성광일시", Description = "곤을 별처럼 흩뿌려 네 번 찌른다.", Power = 0.9f, Hits = 4, QiCost = 30, Cooldown = 3, OwnerId = "im_seongjin" },
             new ArtData { Id = "isj_iljeom", Range = 4, Name = "일점필중", Description = "진성십이곤 최종오의. 한 줄기 섬광이 되어 한 점을 꿰뚫는다.", Power = 5.0f, QiCost = 45, Cooldown = 4, OwnerId = "im_seongjin" },
             new ArtData { Id = "ny_baekhon", Name = "백혼검뢰천검식", Description = "나예린의 공격 검법. 흰 검뢰가 한 줄기로 내리꽂힌다.", Power = 2.4f, QiCost = 16, Cooldown = 1, OwnerId = "na_yerin" },
-            new ArtData { Id = "ny_hansang", Name = "한상옥령신검", Description = "얼음처럼 차가운 검기가 세 번 스친다.", Power = 1.2f, Hits = 3, QiCost = 30, Cooldown = 3, OwnerId = "na_yerin" },
+            new ArtData { Id = "ny_hansang", Name = "한상옥령신검", Description = "얼음처럼 차가운 검기가 세 번 스친다.", Inflict = StatusKind.Chill, InflictChance = 0.6f, Power = 1.2f, Hits = 3, QiCost = 30, Cooldown = 3, OwnerId = "na_yerin" },
             new ArtData { Id = "ny_simahn", Range = 4, Name = "심안검", Description = "용안으로 허점을 읽고 마음의 눈으로 한 점을 꿰뚫는다.", Power = 5.4f, QiCost = 42, Cooldown = 4, OwnerId = "na_yerin" },
         };
 
@@ -517,6 +522,7 @@ namespace BiRyeoDo.Core
             new ItemData { Id = "biaoguk_ration", Grade = ItemGrade.Normal, Name = "표국 건량", Kind = ItemKind.Consumable, HealPct = 0.35f, Description = "표행길에 챙기는 마른 식량. 체력을 35% 회복한다." },
             new ItemData { Id = "taegeuk_pill", Grade = ItemGrade.Rare, Name = "태극환", Kind = ItemKind.Consumable, HealPct = 0.80f, QiRestore = 50, Description = "무당의 단약. 가장 다친 동료의 체력을 80% 회복하고 내공 50을 얻는다." },
             new ItemData { Id = "plum_elixir", Grade = ItemGrade.Rare, Name = "매화 영단", Kind = ItemKind.Consumable, HealPct = 0.60f, QiRestore = 80, SpiritGain = 30, Description = "화산의 영단. 체력 60% 회복, 내공 80, 기세 30을 얻는다." },
+            new ItemData { Id = "antidote", Grade = ItemGrade.Fine, Name = "해독 영약", Kind = ItemKind.Consumable, Cleanse = true, Description = "독기와 열기, 한기와 내상을 씻어 내는 영약. 고른 동료의 상태 이상을 모두 푼다." },
             new ItemData { Id = "greenwood_liquor", Grade = ItemGrade.Fine, Name = "녹림 화주", Kind = ItemKind.Consumable, QiRestore = 100, SpiritGain = 60, Description = "독한 산채의 화주. 내공 100과 기세 60을 얻는다." },
             new ItemData { Id = "cheonyul_pae", Grade = ItemGrade.Epic, Name = "천율패", Kind = ItemKind.Key, Description = "화산규약지회 중토관의 신분 패. 조와 이름과 천율인이 새겨져 있다. 잃으면 탈락이다." },
         };
@@ -536,6 +542,11 @@ namespace BiRyeoDo.Core
         public static readonly DropData[] Drops =
         {
             new DropData { EnemyId = "tiger", ItemId = "leather", Chance = 0.60f },
+            // 해독 영약 from the poison users
+            new DropData { EnemyId = "sunyeo", ItemId = "antidote", Chance = 0.40f },
+            new DropData { EnemyId = "dang_munceon", ItemId = "antidote", Chance = 0.40f },
+            new DropData { EnemyId = "cave_viper", ItemId = "antidote", Chance = 0.25f },
+            new DropData { EnemyId = "bisa_snake", ItemId = "antidote", Chance = 0.25f },
             new DropData { EnemyId = "bear", ItemId = "bear_gall", Chance = 0.35f },
             new DropData { EnemyId = "bear", ItemId = "leather", Chance = 0.50f },
             new DropData { EnemyId = "bear", ItemId = "ginseng", Chance = 0.04f },

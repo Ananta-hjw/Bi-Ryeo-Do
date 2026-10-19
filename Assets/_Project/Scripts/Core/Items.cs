@@ -18,6 +18,7 @@ namespace BiRyeoDo.Core
         public float HealPct;      // restores this share of max HP to the most wounded ally
         public int QiRestore;      // 내공 for the user
         public int SpiritGain;     // 기세 for the user
+        public bool Cleanse;       // cures every 상태 이상 of the chosen ally (해독 영약)
         public int MasteryUses;    // 수련서: used from the bag, adds this many uses to one learned art the player picks (never usable in battle)
 
         // Gear (protagonist only)

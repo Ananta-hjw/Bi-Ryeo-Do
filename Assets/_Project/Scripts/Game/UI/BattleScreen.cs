@@ -847,7 +847,11 @@ namespace BiRyeoDo.Game.UI
                 if (!_fled && HelpPanel.Instance != null)
                 {
                     var save0 = GameManager.Instance.Save;
-                    string hint = !Tutorial.IsDone(save0, "battle") ? "battle" : !Tutorial.IsDone(save0, "reach") ? "reach" : _jointPartners.Count > 0 && !Tutorial.IsDone(save0, "joint") ? "joint" : null;
+                    bool anyStatus = false;
+                    foreach (var u in _party) if (u.Statuses.Count > 0) anyStatus = true;
+                    foreach (var c in _cards) if (c.Unit.Statuses.Count > 0) anyStatus = true;
+                    string hint = !Tutorial.IsDone(save0, "battle") ? "battle" : !Tutorial.IsDone(save0, "reach") ? "reach" : _jointPartners.Count > 0 && !Tutorial.IsDone(save0, "joint") ? "joint"
+                        : anyStatus && !Tutorial.IsDone(save0, "status") ? "status" : null;
                     if (hint != null) yield return HelpPanel.Instance.ShowOnce(hint);
                 }
 
@@ -1264,8 +1268,8 @@ namespace BiRyeoDo.Game.UI
                 c.SpiritText.text = u.Spirit + " / " + InteractiveBattle.MaxSpirit;
                 bool aimOk = Hittable(u), aimNo = Aiming && !dead && !aimOk;
                 c.Frame.color = aimOk ? new Color(0.30f, 0.90f, 0.40f, 1f) : aimNo ? new Color(0.75f, 0.15f, 0.15f, 1f) : new Color(0f, 0f, 0f, 0f);
-                c.Badge.text = aimOk ? "▶ 공격 가능" : aimNo ? "✕ 공격 불가" : "";
-                c.Badge.color = aimOk ? new Color(0.45f, 1f, 0.55f, 1f) : new Color(1f, 0.45f, 0.45f, 1f);
+                c.Badge.text = aimOk ? "▶ 공격 가능" : aimNo ? "✕ 공격 불가" : dead ? "" : Statuses.Line(u);
+                c.Badge.color = aimOk ? new Color(0.45f, 1f, 0.55f, 1f) : aimNo ? new Color(1f, 0.45f, 0.45f, 1f) : StatusColor;
                 if (c.Art != null) SetAlpha(c.Art, dead ? 0.25f : aimNo ? 0.35f : 1f);
                 if (dead) c.Glyph.color = new Color(1f, 1f, 1f, 0.2f);
                 if (dead) { c.Intent.text = "쓰러졌다"; continue; }
@@ -1283,7 +1287,7 @@ namespace BiRyeoDo.Game.UI
                 }
                 else
                 {
-                    c.Intent.text = "다음: " + move.Name + (move.Hits > 1 ? " x" + move.Hits : "") + (move.Snipe ? " (뒤쪽 저격)" : "");
+                    c.Intent.text = "다음: " + move.Name + (move.Hits > 1 ? " x" + move.Hits : "") + (move.Snipe ? " (뒤쪽 저격)" : "") + (move.Inflict != StatusKind.None ? " (" + Statuses.Name(move.Inflict) + ")" : "");
                     c.Intent.color = UiFactory.PaperText;
                 }
                 if (u.UsesResources && u.Spirit >= InteractiveBattle.MaxSpirit)
@@ -1307,11 +1311,13 @@ namespace BiRyeoDo.Game.UI
                 p.HpText.text = p.ShownHp + " / " + u.Stats.MaxHp;
                 p.QiText.text = p.ShownQi + " / " + u.Stats.MaxQi;
                 p.SpiritText.text = p.ShownSpirit + " / " + InteractiveBattle.MaxSpirit;
-                p.Status.text = !u.IsAlive ? "쓰러짐" : _battle != null && _battle.IsGuarded(u) ? "방어" : u.Evading ? "회피" : "";
+                string stance = !u.IsAlive ? "쓰러짐" : _battle != null && _battle.IsGuarded(u) ? "방어" : u.Evading ? "회피" : "";
+                string afflicted = u.IsAlive ? Statuses.Line(u) : "";
+                p.Status.text = stance + (stance.Length > 0 && afflicted.Length > 0 ? " · " : "") + afflicted;
                 p.Name.color = u.IsAlive ? UiFactory.Gold : new Color(0.5f, 0.5f, 0.5f, 1f);
                 bool current = _battle != null && _battle.Current == u && _battle.IsPlayerTurn;
                 p.Frame.color = current ? UiFactory.Gold : new Color(0f, 0f, 0f, 0f);
-                p.Status.color = UiFactory.PaperText;
+                p.Status.color = afflicted.Length > 0 ? StatusColor : UiFactory.PaperText;
                 if (AimingAlly && u.IsAlive)
                 {
                     p.Frame.color = new Color(0.30f, 0.90f, 0.40f, 1f);
@@ -1487,6 +1493,7 @@ namespace BiRyeoDo.Game.UI
             if (item.HealPct >= 1f) return "완전 회복";
             if (item.HealPct > 0f) return "체력 " + Mathf.RoundToInt(item.HealPct * 100f) + "%";
             if (item.QiRestore > 0) return "내공 +" + item.QiRestore;
+            if (item.Cleanse) return "상태 이상 해제";
             return "";
         }
 
@@ -1555,12 +1562,14 @@ namespace BiRyeoDo.Game.UI
             if (s.Effect == SkillEffect.Evade) parts.Add("다음 차례까지 공격을 " + Mathf.RoundToInt(s.EvadeChance * 100f) + "% 확률로 회피");
             else if (s.Effect == SkillEffect.GuardParty) parts.Add("파티 전체 방어 태세");
             else if (s.Effect == SkillEffect.HealAlly) parts.Add("가장 다친 동료 체력 " + Mathf.RoundToInt(s.HealPct * 100f) + "% 회복");
+            else if (s.Effect == SkillEffect.Cleanse) parts.Add("고른 동료의 상태 이상을 모두 풀고 체력 " + Mathf.RoundToInt(s.HealPct * 100f) + "% 회복");
             else
             {
                 parts.Add("위력 ×" + s.Power.ToString("0.0") + (s.Hits > 1 ? " · " + s.Hits + "타" : ""));
                 if (s.AllEnemies) parts.Add("닿는 범위의 적 전체");
                 parts.Add("닿는 범위 " + SkillSpec.ReachText(s.Range));
                 if (s.Effect == SkillEffect.Stun) parts.Add("굳힘 (기를 모으는 적의 강타를 끊습니다)");
+                if (s.Inflict != StatusKind.None && s.InflictChance > 0f) parts.Add(Statuses.Name(s.Inflict) + " " + Mathf.RoundToInt(s.InflictChance * 100f) + "%");
             }
             parts.Add(s.SpiritCost > 0 ? "기세 " + s.SpiritCost : s.QiCost > 0 ? "내공 " + s.QiCost : "내공 0");
             if (s.Cooldown > 0) parts.Add("재사용 " + s.Cooldown + "턴");
@@ -1570,7 +1579,8 @@ namespace BiRyeoDo.Game.UI
         private static string SkillBody(SkillSpec s)
         {
             string desc = s.Id == "basic" ? "기본 공격." : s.Description;
-            return SkillDetails(s) + (string.IsNullOrEmpty(desc) ? "" : "\n" + desc);
+            string status = s.Inflict != StatusKind.None && s.InflictChance > 0f ? "\n" + Statuses.Describe(s.Inflict) : "";
+            return SkillDetails(s) + (string.IsNullOrEmpty(desc) ? "" : "\n" + desc) + status;
         }
 
         private static string SkillBlock(SkillSpec s) { return s.Name + "\n" + SkillBody(s); }
@@ -1604,7 +1614,7 @@ namespace BiRyeoDo.Game.UI
                 else ShowTip("필살기 · " + ultimateSkill.Name, SkillBody(ultimateSkill) + "\n기세가 가득 차면 쓸 수 있습니다.", ArtLibrary.Art(ultimateSkill.Id) ?? ArtLibrary.Icon("ultimate_slot"));
             }
             else if (slot == 5) ShowTip("방어", "다음 차례까지 받는 피해가 크게 줄어듭니다(피해 60% 감소). 기세가 조금 오릅니다.", ArtLibrary.Icon("cmd_guard"));
-            else if (slot == 6) ShowTip("운기", "내공 +" + InteractiveBattle.MeditateQi + "과 체력을 조금 회복합니다.", ArtLibrary.Icon("cmd_meditate"));
+            else if (slot == 6) ShowTip("운기", "내공 +" + InteractiveBattle.MeditateQi + "과 체력을 조금 회복하고, 걸린 상태 이상 하나를 풉니다(화상 → 중독 → 출혈 → 내상 → 한기 순).", ArtLibrary.Icon("cmd_meditate"));
             else if (slot == 7) ShowTip("아이템", "행낭의 소모품을 씁니다. 가장 다친 동료의 체력이 회복됩니다.", ArtLibrary.Icon("cmd_item"));
             else if (slot == 8 && _jointPartners.Count > 0)
             {
@@ -1619,6 +1629,7 @@ namespace BiRyeoDo.Game.UI
             if (item.HealPct > 0f) fx.Add("체력 " + Mathf.RoundToInt(item.HealPct * 100f) + "% 회복");
             if (item.QiRestore > 0) fx.Add("내공 " + (item.QiRestore >= 999 ? "가득" : "+" + item.QiRestore));
             if (item.SpiritGain > 0) fx.Add("기세 +" + item.SpiritGain);
+            if (item.Cleanse) fx.Add("상태 이상 모두 해제");
             return (fx.Count > 0 ? string.Join(" · ", fx) + "\n" : "") + item.Description;
         }
 
@@ -1642,7 +1653,21 @@ namespace BiRyeoDo.Game.UI
             if (Realm.HasRealm(card.Data)) lines.Add("무공 경지  " + Realm.Label(Realm.StepOf(power)) + "\n종합 수치 " + System.Math.Round(power).ToString("N0"));
             else lines.Add("무공 경지  해당 없음");
             lines.Add("체력 " + card.Unit.Hp.ToString("N0") + " / " + s.MaxHp.ToString("N0") + "\n공격력 " + s.Attack.ToString("N0") + "   방어력 " + s.Defense.ToString("N0") + "   속도 " + s.Speed.ToString("N0"));
+            string statusLines = StatusLines(card.Unit);
+            if (statusLines.Length > 0) lines.Add(statusLines);
+            var moveStatus = new List<string>();
+            foreach (var m in card.Unit.Moves ?? new List<EnemyMove>()) if (m.Inflict != StatusKind.None && !moveStatus.Contains(m.Name + "(" + Statuses.Name(m.Inflict) + ")")) moveStatus.Add(m.Name + "(" + Statuses.Name(m.Inflict) + ")");
+            if (moveStatus.Count > 0) lines.Add("상태 이상을 거는 기술: " + string.Join(", ", moveStatus));
             ShowTip(card.Data.Name, string.Join("\n\n", lines), ArtLibrary.Chibi(card.Data.ArtKey) ?? ArtLibrary.Feathered(ArtLibrary.Enemy(card.Data.ArtKey)));
+        }
+
+        /// <summary>"걸린 상태 이상" with each one's rule and turns left ("" when none).</summary>
+        private static string StatusLines(Combatant unit)
+        {
+            if (unit.Statuses.Count == 0) return "";
+            var list = new List<string>();
+            foreach (var st in unit.Statuses) list.Add(Statuses.Describe(st.Kind) + " 남은 " + st.Turns + "턴");
+            return "걸린 상태 이상\n" + string.Join("\n", list);
         }
 
         /// <summary>Tap on an ally: level, 경지, current gauges, stats and the skills they carry.</summary>
@@ -1662,6 +1687,8 @@ namespace BiRyeoDo.Game.UI
                 int bond = Bonds.Level(GameManager.Instance.Save, companion.Id);
                 lines.Add("인연 " + Bonds.LevelNames[bond] + " (" + Bonds.BonusText(bond) + ")  ·  합공 " + companion.JointName);
             }
+            string statusLines = StatusLines(unit);
+            if (statusLines.Length > 0) lines.Add(statusLines);
             var names = new List<string>();
             foreach (var k in unit.Skills) names.Add(k.Name);
             if (names.Count > 0) lines.Add("무공: " + string.Join(", ", names) + "\n(자세한 설명은 길게 누르세요)");
@@ -1718,7 +1745,7 @@ namespace BiRyeoDo.Game.UI
                 var items = UsableItems();
                 if (slot >= items.Count) return;
                 var picked = items[slot];
-                if (picked.HealPct > 0f || picked.QiRestore > 0 || picked.SpiritGain > 0) { BeginAllyAim(picked.Name, ally => PlayerCommand.UseItem(picked).WithAlly(ally)); return; }
+                if (picked.HealPct > 0f || picked.QiRestore > 0 || picked.SpiritGain > 0 || picked.Cleanse) { BeginAllyAim(picked.Name, ally => PlayerCommand.UseItem(picked).WithAlly(ally)); return; }
                 Issue(PlayerCommand.UseItem(picked));
                 return;
             }
@@ -1762,7 +1789,7 @@ namespace BiRyeoDo.Game.UI
                 _log.text = "닿는 적이 없습니다. 다른 무공을 골라 주세요.";
                 return;
             }
-            if (chosen.Effect == SkillEffect.HealAlly)
+            if (chosen.Effect == SkillEffect.HealAlly || chosen.Effect == SkillEffect.Cleanse)
             {
                 var healArt = chosen;
                 BeginAllyAim(healArt.Name, ally => PlayerCommand.UseSkill(healArt, null).WithAlly(ally));
@@ -1833,7 +1860,7 @@ namespace BiRyeoDo.Game.UI
                 if (ev.Kind != EventKind.Attack) _cutInKey = "";
                 var actorPanel = PanelOf(ev.ActorId);
                 bool byParty = actorPanel != null;
-                if (actorPanel != null) { actorPanel.ShownQi = ev.ActorQiAfter; actorPanel.ShownSpirit = ev.ActorSpiritAfter; }
+                if (actorPanel != null && ev.Kind != EventKind.Status) { actorPanel.ShownQi = ev.ActorQiAfter; actorPanel.ShownSpirit = ev.ActorSpiritAfter; }   // status events carry no gauges
                 string actorName = NameOf(ev.ActorId);
 
                 switch (ev.Kind)
@@ -1907,6 +1934,34 @@ namespace BiRyeoDo.Game.UI
                         RefreshCards();
                         yield return new WaitForSeconds(Wait(SmallDelay));
                         break;
+                    case EventKind.Status:
+                        {
+                            var sufferPanel = PanelOf(ev.TargetId);
+                            var sufferCard = CardOf(ev.TargetId);
+                            Vector2? at = sufferPanel != null ? sufferPanel.Center : sufferCard != null ? sufferCard.Center : (Vector2?)null;
+                            _log.text = ev.Message;
+                            if (at != null)
+                            {
+                                if (ev.StatusCured) Float(at.Value, "해제", HpGreen, 58);
+                                else if (ev.Damage > 0) Float(at.Value + new Vector2(0f, -0.03f), Statuses.Name(ev.Status) + " " + ev.Damage, ColorOf(ev.Status), 58);
+                                else Float(at.Value + new Vector2(0f, 0.05f), Statuses.Name(ev.Status) + "!", ColorOf(ev.Status), 62);
+                            }
+                            if (ev.Damage > 0)
+                            {
+                                SoundManager.Sfx("hit");
+                                if (sufferPanel != null) ShowHpAfter(ev.TargetId, ev.TargetHpAfter);
+                                if (sufferCard != null)
+                                {
+                                    sufferCard.Hp.SetPct(sufferCard.Unit.Stats.MaxHp > 0 ? (float)ev.TargetHpAfter / sufferCard.Unit.Stats.MaxHp : 0f);
+                                    sufferCard.HpText.text = ev.TargetHpAfter + " / " + sufferCard.Unit.Stats.MaxHp;
+                                    if (ev.TargetDefeated) { StartCoroutine(Collapse(sufferCard)); sufferCard.Intent.text = ev.Retreated ? "물러났다" : "쓰러졌다"; }
+                                }
+                            }
+                            RefreshCards();
+                            RefreshParty();
+                            yield return new WaitForSeconds(Wait(SmallDelay));
+                            break;
+                        }
                     case EventKind.StunSkip:
                         _log.text = ev.Message;
                         var frozen = CardOf(ev.ActorId);
@@ -1916,6 +1971,21 @@ namespace BiRyeoDo.Game.UI
                         break;
                 }
             }
+        }
+
+        private static readonly Color StatusColor = new Color(0.86f, 0.62f, 1f, 1f);
+
+        private static Color ColorOf(StatusKind kind)
+        {
+            switch (kind)
+            {
+                case StatusKind.Poison: return new Color(0.55f, 0.95f, 0.35f, 1f);
+                case StatusKind.Burn: return new Color(1f, 0.55f, 0.2f, 1f);
+                case StatusKind.Chill: return new Color(0.6f, 0.85f, 1f, 1f);
+                case StatusKind.InnerWound: return new Color(0.85f, 0.6f, 1f, 1f);
+                case StatusKind.Bleed: return new Color(1f, 0.3f, 0.3f, 1f);
+            }
+            return StatusColor;
         }
 
         private string SkillLabel(BattleEvent ev, PartyPanel actor)

@@ -242,7 +242,7 @@ namespace BiRyeoDo.Core
             if (Trial != null && Trial.Kind == TrialKind.Harmony)
             {
                 bool attacking = cmd.Kind == CommandKind.Joint || (cmd.Kind == CommandKind.Skill && cmd.Skill != null && cmd.Skill.Effect != SkillEffect.Evade
-                    && cmd.Skill.Effect != SkillEffect.GuardParty && cmd.Skill.Effect != SkillEffect.HealAlly);
+                    && cmd.Skill.Effect != SkillEffect.GuardParty && cmd.Skill.Effect != SkillEffect.HealAlly && cmd.Skill.Effect != SkillEffect.Cleanse);
                 if (attacking)
                 {
                     // the chain is full once every living member has attacked in it (one fast member attacking again does not count twice);
@@ -273,6 +273,9 @@ namespace BiRyeoDo.Core
                         actor.Hp = Math.Min(actor.Stats.MaxHp, actor.Hp + heal);
                         actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + MeditateQi);
                         events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = "meditate", Kind = EventKind.Meditate, Heal = heal, TargetHpAfter = actor.Hp, Message = "운기조식. 내공 +" + MeditateQi });
+                        // 운기 also clears one 상태 이상, the one that hurts most
+                        foreach (var k in Statuses.CurePriority)
+                            if (actor.RemoveStatus(k)) { events.Add(Cured(actor, actor, k, actor.Name + "의 " + Statuses.Name(k) + "이(가) 풀렸다.")); break; }
                         break;
                     }
                 case CommandKind.Item:
@@ -280,7 +283,8 @@ namespace BiRyeoDo.Core
                         var item = cmd.Item;
                         if (item == null || item.Kind != ItemKind.Consumable) throw new InvalidOperationException("Not a consumable.");
                         // Every effect of the item lands on the chosen ally (healing items default to the most wounded one, the rest to the user).
-                        var target = cmd.AllyTarget != null && cmd.AllyTarget.IsAlive && _party.Contains(cmd.AllyTarget) ? cmd.AllyTarget : item.HealPct > 0f ? MostWounded() : actor;
+                        var target = cmd.AllyTarget != null && cmd.AllyTarget.IsAlive && _party.Contains(cmd.AllyTarget) ? cmd.AllyTarget
+                            : item.HealPct > 0f ? MostWounded() : item.Cleanse ? MostAfflicted() ?? actor : actor;
                         int heal = 0;
                         if (item.HealPct > 0f)
                         {
@@ -290,6 +294,7 @@ namespace BiRyeoDo.Core
                         if (item.QiRestore > 0) target.Qi = Math.Min(target.Stats.MaxQi, target.Qi + item.QiRestore);
                         if (item.SpiritGain > 0) target.Spirit = Math.Min(MaxSpirit, target.Spirit + item.SpiritGain);
                         events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = target.Id, SkillId = item.Id, Kind = EventKind.Item, Heal = heal, TargetHpAfter = target.Hp, Message = actor.Name + ": " + item.Name + (target != actor ? " → " + target.Name : "") + " 사용" });
+                        if (item.Cleanse && target.Statuses.Count > 0) { target.Statuses.Clear(); events.Add(Cured(actor, target, StatusKind.None, target.Name + "의 상태 이상이 모두 풀렸다.")); }
                         break;
                     }
                 case CommandKind.Joint:
@@ -340,6 +345,16 @@ namespace BiRyeoDo.Core
                         events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = weakest.Id, SkillId = skill.Id, Kind = EventKind.Heal, Heal = heal, TargetHpAfter = weakest.Hp, Message = actor.Name + "의 " + skill.Name + "! " + weakest.Name + " 회복." });
                         return;
                     }
+                case SkillEffect.Cleanse:
+                    {
+                        // the chosen ally, else the one carrying the most statuses (else the most wounded)
+                        var who = cmd.AllyTarget != null && cmd.AllyTarget.IsAlive && _party.Contains(cmd.AllyTarget) ? cmd.AllyTarget : MostAfflicted() ?? MostWounded();
+                        int heal = (int)Math.Round(who.Stats.MaxHp * skill.HealPct);
+                        who.Hp = Math.Min(who.Stats.MaxHp, who.Hp + heal);
+                        events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = who.Id, SkillId = skill.Id, Kind = EventKind.Heal, Heal = heal, TargetHpAfter = who.Hp, Message = actor.Name + "의 " + skill.Name + "! " + who.Name + "의 몸이 맑아진다." });
+                        if (who.Statuses.Count > 0) { who.Statuses.Clear(); events.Add(Cured(actor, who, StatusKind.None, who.Name + "의 상태 이상이 모두 풀렸다.")); }
+                        return;
+                    }
             }
 
             var targets = new List<Combatant>();
@@ -359,6 +374,10 @@ namespace BiRyeoDo.Core
                     DealHit(actor, t, skill, h, hits, skill.Effect == SkillEffect.Stun && h == hits - 1, events);
                 }
             }
+            // 상태 이상: one roll per enemy the art struck (and that is still standing)
+            if (skill.Inflict != StatusKind.None && skill.InflictChance > 0f)
+                foreach (var t in targets)
+                    if (t.IsAlive && _rng.NextDouble() < skill.InflictChance) Inflict(actor, t, skill.Inflict, events);
             if (skill.SpiritCost == 0) actor.Spirit = Math.Min(MaxSpirit, actor.Spirit + SpiritOnDealt + actor.SpiritDealtBonus);
         }
 
@@ -387,6 +406,7 @@ namespace BiRyeoDo.Core
             ev.TargetHpAfter = t.Hp;
             ev.TargetDefeated = !t.IsAlive;
             events.Add(ev);
+            if (h == 0 && t.IsAlive && t.Has(StatusKind.Bleed)) StatusHurt(t, StatusKind.Bleed, events);   // 출혈: once per attack that lands
             return ev;
         }
 
@@ -438,6 +458,59 @@ namespace BiRyeoDo.Core
             }
         }
 
+        // ------------------------------------------------------------------ 상태 이상
+
+        private static BattleEvent Cured(Combatant actor, Combatant target, StatusKind kind, string message)
+        {
+            return new BattleEvent { ActorId = actor.Id, TargetId = target.Id, SkillId = "status", Kind = EventKind.Status, Status = kind, StatusCured = true, TargetHpAfter = target.Hp, Message = message };
+        }
+
+        private void Inflict(Combatant source, Combatant target, StatusKind kind, List<BattleEvent> events)
+        {
+            if (kind == StatusKind.None || !target.IsAlive) return;
+            target.AddStatus(kind, Statuses.DefaultTurns(kind));
+            events.Add(new BattleEvent { Turn = Turn, ActorId = source.Id, TargetId = target.Id, SkillId = "status", Kind = EventKind.Status, Status = kind, TargetHpAfter = target.Hp, Message = target.Name + ": " + Statuses.Name(kind) + "!" });
+        }
+
+        /// <summary>중독·화상 at the unit's turn and 출혈 when struck: a share of max HP. Can fell the unit (a bonded companion may still save the protagonist; a story boss flees instead).</summary>
+        private void StatusHurt(Combatant unit, StatusKind kind, List<BattleEvent> events)
+        {
+            int dmg = Statuses.DotDamage(unit, kind);
+            if (dmg <= 0 || !unit.IsAlive) return;
+            unit.Hp = Math.Max(0, unit.Hp - dmg);
+            var ev = new BattleEvent { Turn = Turn, ActorId = unit.Id, TargetId = unit.Id, SkillId = "status", Kind = EventKind.Status, Status = kind, Damage = dmg, Message = unit.Name + ": " + Statuses.Name(kind) + " -" + dmg };
+            if (unit.Hp == 0 && unit.Team == Team.Player) TryRescue(unit, ev);
+            if (unit.IsAlive && unit.RetreatHpPct > 0f && unit.Hp <= unit.Stats.MaxHp * unit.RetreatHpPct)
+            {
+                unit.Hp = 0;
+                ev.Retreated = true;
+                ev.Message = unit.Name + "(이)가 물러난다!";
+            }
+            if (!unit.IsAlive) { unit.Charging = false; unit.ChargeTarget = null; }
+            ev.TargetHpAfter = unit.Hp;
+            ev.TargetDefeated = !unit.IsAlive;
+            events.Add(ev);
+        }
+
+        /// <summary>Start of a unit's own turn: 중독·화상 hurt, then every status loses a turn.</summary>
+        private void TickStatuses(Combatant unit, List<BattleEvent> events)
+        {
+            if (unit.Statuses.Count == 0) return;
+            foreach (var k in new[] { StatusKind.Poison, StatusKind.Burn }) if (unit.Has(k)) StatusHurt(unit, k, events);
+            for (int i = unit.Statuses.Count - 1; i >= 0; i--)
+                if (--unit.Statuses[i].Turns <= 0) unit.Statuses.RemoveAt(i);
+        }
+
+        /// <summary>The living member carrying the most statuses, or null when nobody carries any.</summary>
+        private Combatant MostAfflicted()
+        {
+            Combatant best = null;
+            foreach (var m in _party) if (m.IsAlive && m.Statuses.Count > 0 && (best == null || m.Statuses.Count > best.Statuses.Count)) best = m;
+            return best;
+        }
+
+        private static int GaugeGain(Combatant u) { return Math.Max(1, (int)Math.Round(u.Stats.Speed * Statuses.SpeedFactor(u))); }
+
         private Combatant MostWounded()
         {
             Combatant best = null;
@@ -462,14 +535,18 @@ namespace BiRyeoDo.Core
                 // A party-wide guard lasts until its caster's next turn; if the caster fell, until the next ally acts.
                 if (actor == _partyGuardOwner || (_partyGuardOwner != null && !_partyGuardOwner.IsAlive && actor.Team == Team.Player)) _partyGuardOwner = null;
 
+                bool wounded = actor.Has(StatusKind.InnerWound);   // 내상 this turn (read before the statuses tick down)
+                TickStatuses(actor, events);
+                if (!actor.IsAlive) continue;   // fell to 중독·화상 before acting
+
                 if (actor.Team == Team.Player)
                 {
                     actor.TickCooldowns();
-                    actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + QiRegenPerTurn + actor.QiRegenBonus);
+                    if (!wounded) actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + QiRegenPerTurn + actor.QiRegenBonus);
                     Current = actor;
                     return events;
                 }
-                EnemyAct(actor, events);
+                EnemyAct(actor, events, wounded);
             }
             Current = null;
             return events;
@@ -503,7 +580,7 @@ namespace BiRyeoDo.Core
             return far;
         }
 
-        private void EnemyAct(Combatant enemy, List<BattleEvent> events)
+        private void EnemyAct(Combatant enemy, List<BattleEvent> events, bool wounded = false)
         {
             EnemyActions++;
             if (enemy.Stunned)
@@ -513,7 +590,7 @@ namespace BiRyeoDo.Core
                 return;
             }
 
-            if (enemy.UsesResources) enemy.Qi = Math.Min(enemy.Stats.MaxQi, enemy.Qi + EnemyQiRegen);
+            if (enemy.UsesResources && !wounded) enemy.Qi = Math.Min(enemy.Stats.MaxQi, enemy.Qi + EnemyQiRegen);
             var move = enemy.PeekMove();
 
             if (move.Charge)
@@ -554,7 +631,8 @@ namespace BiRyeoDo.Core
                 if (enemy.Spirit >= MaxSpirit) { burst = true; enemy.Spirit = 0; power *= EnemyBurstFactor; }
             }
             var spec = new SkillSpec { Id = move.Name, Name = move.Name, Power = power };
-            bool hurt = false;
+            bool hurt = false, struck = false;   // struck: at least one hit landed without a guard (only those leave a 상태 이상)
+            bool bled = target.Has(StatusKind.Bleed);
             int firstHit = events.Count;
             for (int h = 0; h < hits && target.IsAlive; h++)
             {
@@ -579,6 +657,7 @@ namespace BiRyeoDo.Core
                     ev.TargetHpAfter = target.Hp;
                     ev.TargetDefeated = !target.IsAlive;
                     hurt = true;
+                    if (!ev.Guarded) struck = true;
                 }
                 events.Add(ev);
             }
@@ -587,6 +666,12 @@ namespace BiRyeoDo.Core
             {
                 LifelinesCut++;
                 if (LifelinesCut >= Trial.Limit) TrialFailed = true;
+            }
+            if (hurt && bled && target.IsAlive) StatusHurt(target, StatusKind.Bleed, events);
+            if (struck && target.IsAlive)
+            {
+                if (move.Inflict != StatusKind.None && _rng.NextDouble() < (heavy ? Statuses.ChargedChance : Statuses.MoveChance)) Inflict(enemy, target, move.Inflict, events);
+                if (heavy) Inflict(enemy, target, StatusKind.InnerWound, events);   // a charged blow taken without a guard leaves 내상
             }
             if (hurt) target.Spirit = Math.Min(MaxSpirit, target.Spirit + SpiritOnTaken + target.SpiritTakenBonus);
             if (enemy.UsesResources && !burst) enemy.Spirit = Math.Min(MaxSpirit, enemy.Spirit + EnemySpiritOnDealt);
@@ -626,7 +711,7 @@ namespace BiRyeoDo.Core
                 }
                 if (best != null) return best;
                 foreach (var u in _units)
-                    if (u.IsAlive) u.Gauge += Math.Max(1, u.Stats.Speed);
+                    if (u.IsAlive) u.Gauge += GaugeGain(u);
             }
         }
 
@@ -650,7 +735,7 @@ namespace BiRyeoDo.Core
                 if (best < 0)
                 {
                     for (int i = 0; i < _units.Count; i++)
-                        if (_units[i].IsAlive) gauges[i] += Math.Max(1, _units[i].Stats.Speed);
+                        if (_units[i].IsAlive) gauges[i] += GaugeGain(_units[i]);
                     continue;
                 }
                 gauges[best] -= GaugeThreshold;

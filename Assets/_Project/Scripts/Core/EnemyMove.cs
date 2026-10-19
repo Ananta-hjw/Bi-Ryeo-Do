@@ -8,6 +8,7 @@ namespace BiRyeoDo.Core
         public int Hits = 1;
         public bool Charge;
         public bool Snipe;   // 저격: aims at the farthest party member within reach instead of the nearest
+        public StatusKind Inflict;   // 상태 이상 the move may leave when it lands (from its name, see Statuses.ForMove)
 
         public EnemyMove Sniping() { Snipe = true; return this; }
 
@@ -15,7 +16,7 @@ namespace BiRyeoDo.Core
 
         public static EnemyMove Attack(string name, float power, int hits = 1)
         {
-            return new EnemyMove { Name = name, Power = power, Hits = hits };
+            return new EnemyMove { Name = name, Power = power, Hits = hits, Inflict = Statuses.ForMove(name) };
         }
 
         public static EnemyMove Wind(string name)

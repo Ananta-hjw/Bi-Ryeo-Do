@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace BiRyeoDo.Core
 {
-    public enum EventKind { Attack, Guard, Meditate, Charge, Evade, Heal, StunSkip, Item }
+    public enum EventKind { Attack, Guard, Meditate, Charge, Evade, Heal, StunSkip, Item, Status }
 
     /// <summary>One action in a battle. UI plays these back; the engine never touches UI.</summary>
     public sealed class BattleEvent
@@ -34,6 +34,9 @@ namespace BiRyeoDo.Core
         public bool Burst;           // 기세 폭발: an enemy released a full 기세 into this strike
         public bool Weakened;        // 기력 부족: the enemy lacked the 내공 for the move and struck weaker
         public bool Retreated;       // the target fled the fight (story boss) instead of being slain; TargetDefeated is also true
+        // Kind == Status: a 상태 이상 was applied to TargetId (Damage 0), hurt it (Damage > 0: 중독·화상 at its turn, 출혈 when struck) or was cured (StatusCured)
+        public StatusKind Status;
+        public bool StatusCured;
     }
 
     public sealed class BattleResult

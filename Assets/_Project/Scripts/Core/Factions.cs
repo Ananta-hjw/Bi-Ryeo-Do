@@ -205,6 +205,7 @@ namespace BiRyeoDo.Core
             // 객잔 itself
             Item("inn_gall", null, 0, "bear_gall", 300),
             Item("inn_okruju", null, 0, "okruju", 400),
+            Item("inn_antidote", null, 0, "antidote", 350),
             // 천무학관
             Item("aca_meal", "academy", 1, "meal_academy", 250),
             Item("aca_snow", "academy", 1, "snow_ginseng", 900),
