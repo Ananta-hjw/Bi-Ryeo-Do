@@ -107,18 +107,18 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void ThePhaseChangeCostsTheBossItsGauge()
+        public void ThePhaseChangeDoesNotCostTheBossItsTurn()
         {
             var p = new Combatant("p", "비류연", Team.Player, Stats(100000, 1, 100), null);
             var boss = Boss(1000);
             var b = new InteractiveBattle(p, new[] { boss }, new SeededRandom(1));
             b.Begin();
             boss.Hp = 400;
-            boss.Gauge = 900;
+            boss.Gauge = 900;   // the boss is next to act after the hero's move
             var ev = b.PlayerAct(PlayerCommand.Guard());
             int phaseAt = ev.FindIndex(x => x.Kind == EventKind.Phase);
             Assert.GreaterOrEqual(phaseAt, 0);
-            Assert.IsFalse(ev.Skip(phaseAt).Any(x => x.ActorId == boss.Id && x.Kind != EventKind.Phase), "it does not act before the hero's next turn");
+            Assert.IsTrue(ev.Skip(phaseAt + 1).Any(x => x.ActorId == boss.Id), "the boss still takes its turn right after the change");
         }
 
         [Test]
@@ -131,11 +131,12 @@ namespace BiRyeoDo.Tests
             b.Begin();
             while (!boss.Charging) b.PlayerAct(PlayerCommand.Guard());
             boss.Hp = 450;
-            b.PlayerAct(PlayerCommand.Guard());
-            Assert.IsNotNull(boss.PendingMoves, "the new script waits");
-            Assert.AreEqual(Heavy, boss.PeekMove(), "the telegraphed blow still comes");
-            while (boss.Charging) b.PlayerAct(PlayerCommand.Guard());
-            Assert.IsNull(boss.PendingMoves);
+            var ev = b.PlayerAct(PlayerCommand.Guard());
+            int phaseAt = ev.FindIndex(x => x.Kind == EventKind.Phase);
+            Assert.GreaterOrEqual(phaseAt, 0);
+            var next = ev.Skip(phaseAt + 1).First(x => x.ActorId == boss.Id);
+            Assert.AreEqual(Heavy.Name, next.SkillId, "the telegraphed blow still comes after the change");
+            Assert.IsNull(boss.PendingMoves, "the new script starts once the blow is done");
             Assert.AreEqual(Middle, boss.Moves[0]);
         }
     }

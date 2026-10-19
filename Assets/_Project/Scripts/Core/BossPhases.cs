@@ -13,8 +13,7 @@ namespace BiRyeoDo.Core
 
     /// <summary>
     /// 보스 단계 전환: a story boss (<see cref="BossPhaseLines"/>) changes its fight twice, at <see cref="FirstPct"/> and <see cref="SecondPct"/> of its HP
-    /// (a boss that retreats changes before it leaves, <see cref="RetreatPhasePct"/>). Each switch plays a few lines, costs the boss its action gauge
-    /// (the change of stance is a beat the party can use) and reshapes the script from the boss's own moves (<see cref="Reshape"/>):
+    /// (a boss that retreats changes before it leaves, <see cref="RetreatPhasePct"/>). Each switch plays a few lines (the boss keeps its turn: a boss that was next to act still acts right after the change) and reshapes the script from the boss's own moves (<see cref="Reshape"/>):
     /// phase 1 plays the light moves in reverse order before the wind-up and hits harder (<see cref="FirstAtk"/>),
     /// phase 2 opens with the wind-up at once, hits harder still and takes less (<see cref="SecondAtk"/>, <see cref="SecondDef"/>).
     /// <see cref="InteractiveBattle"/> applies it (<see cref="EventKind.Phase"/>); a switch during a wind-up waits until that heavy blow is done.

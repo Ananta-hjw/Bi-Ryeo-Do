@@ -593,7 +593,6 @@ namespace BiRyeoDo.Core
                 {
                     var phase = e.Phases[e.PhaseIndex++];
                     e.ScaleAttackDefense(phase.AtkMul, phase.DefMul);
-                    e.Gauge = 0;   // the change of stance costs it a beat
                     if (phase.Moves != null)
                     {
                         // a wind-up in progress still ends in its heavy blow; the new script starts after it
