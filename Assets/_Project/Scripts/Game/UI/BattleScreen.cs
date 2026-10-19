@@ -981,12 +981,10 @@ namespace BiRyeoDo.Game.UI
                 var p = new PartyPanel { Unit = unit, Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
                 p.Root = UiFactory.Rect("Member" + i, _partyRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
                 p.Frame = UiFactory.Panel("Marker", p.Root, new Vector2(0.10f, 0.298f), new Vector2(0.90f, 0.314f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks whose turn it is
-                var chibi = ArtLibrary.Chibi(i == 0 ? "player" : unit.Id);
-                var sprite = chibi ?? (i == 0 ? ArtLibrary.Player() : ArtLibrary.Companion(unit.Id));
-                if (sprite == null) { chibi = ArtLibrary.DefaultChibi(unit.Id); sprite = chibi; }   // no picture at all: the default man/woman figure
+                var sprite = BattleFigure(i == 0 ? "player" : unit.Id);
                 if (sprite != null)
                 {
-                    p.Art = FitArt(p.Root, sprite, cell, chibi != null);
+                    p.Art = FitArt(p.Root, sprite, cell, true);
                 }
                 else
                 {
@@ -1082,12 +1080,10 @@ namespace BiRyeoDo.Game.UI
                 var rank = data.Rank;
                 card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.03f, 0.88f), new Vector2(0.97f, 0.99f), (rank == EnemyRank.Elite ? "◆ " : "") + data.Name, rank == EnemyRank.Boss ? 24 : 20,
                     rank == EnemyRank.Boss ? UiFactory.Gold : rank == EnemyRank.Elite ? new Color(0.62f, 0.82f, 1f, 1f) : UiFactory.PaperText);
-                var enemyChibi = ArtLibrary.Chibi(data.ArtKey);
-                var art = enemyChibi ?? ArtLibrary.Enemy(data.ArtKey);
-                if (art == null) { enemyChibi = ArtLibrary.DefaultChibi(data.ArtKey); art = enemyChibi; }   // no picture at all: the default man/woman figure
+                var art = BattleFigure(data.ArtKey);
                 if (art != null)
                 {
-                    card.Art = FitArt(card.Root, art, cell, enemyChibi != null, true);
+                    card.Art = FitArt(card.Root, art, cell, true, true);
                 }
                 card.Glyph = UiFactory.Label("Glyph", card.Root, new Vector2(0.05f, 0.30f), new Vector2(0.95f, 0.88f), art != null ? "" : FirstGlyph(data.Name), data.IsBoss ? 170 : 110, data.IsBoss ? UiFactory.Gold : UiFactory.PaperText);
                 // Same three gauges as the party, a little thinner to leave a line for the next move
@@ -1659,7 +1655,7 @@ namespace BiRyeoDo.Game.UI
             var moveStatus = new List<string>();
             foreach (var m in card.Unit.Moves ?? new List<EnemyMove>()) if (m.Inflict != StatusKind.None && !moveStatus.Contains(m.Name + "(" + Statuses.Name(m.Inflict) + ")")) moveStatus.Add(m.Name + "(" + Statuses.Name(m.Inflict) + ")");
             if (moveStatus.Count > 0) lines.Add("상태 이상을 거는 기술: " + string.Join(", ", moveStatus));
-            ShowTip(card.Data.Name, string.Join("\n\n", lines), ArtLibrary.Chibi(card.Data.ArtKey) ?? ArtLibrary.Feathered(ArtLibrary.Enemy(card.Data.ArtKey)));
+            ShowTip(card.Data.Name, string.Join("\n\n", lines), BattleFigure(card.Data.ArtKey));
         }
 
         /// <summary>"걸린 상태 이상" with each one's rule and turns left ("" when none).</summary>
@@ -1693,7 +1689,7 @@ namespace BiRyeoDo.Game.UI
             var names = new List<string>();
             foreach (var k in unit.Skills) names.Add(k.Name);
             if (names.Count > 0) lines.Add("무공: " + string.Join(", ", names) + "\n(자세한 설명은 길게 누르세요)");
-            ShowTip(unit.Name, string.Join("\n\n", lines), ArtLibrary.Chibi(hero ? "player" : unit.Id) ?? ArtLibrary.Feathered(hero ? ArtLibrary.Player() : ArtLibrary.Companion(unit.Id)));
+            ShowTip(unit.Name, string.Join("\n\n", lines), BattleFigure(hero ? "player" : unit.Id));
         }
 
         /// <summary>Long press on a party member's panel: every skill they have.</summary>
@@ -1705,8 +1701,11 @@ namespace BiRyeoDo.Game.UI
             var companion = EarlyGameContent.FindCompanion(unit.Id);
             if (companion != null && !string.IsNullOrEmpty(companion.JointName))
                 lines.Add("합공: " + companion.JointName + " (인연 " + Bonds.LevelNames[Bonds.Level(GameManager.Instance.Save, companion.Id)] + ", " + Bonds.BonusText(Bonds.Level(GameManager.Instance.Save, companion.Id)) + ")");
-            ShowTip(unit.Name + " — 스킬", string.Join("\n\n", lines), ArtLibrary.Chibi(unit.Id) ?? ArtLibrary.Feathered(unit.Id == "player" ? ArtLibrary.Player() : ArtLibrary.Companion(unit.Id)));
+            ShowTip(unit.Name + " — 스킬", string.Join("\n\n", lines), BattleFigure(unit.Id));
         }
+
+        /// <summary>A unit's battle picture: <c>Battle/&lt;id&gt;.png</c>, else the stand-in figure (default_assassin / default_woman / default_man, <see cref="Genders.DefaultFigure"/>). Never the <c>Characters/</c> portrait.</summary>
+        private static Sprite BattleFigure(string artKey) { return ArtLibrary.Chibi(artKey) ?? ArtLibrary.DefaultChibi(artKey); }
 
         private void SetCommandsVisible(bool visible)
         {
