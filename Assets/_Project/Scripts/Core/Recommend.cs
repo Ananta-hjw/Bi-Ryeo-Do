@@ -55,9 +55,16 @@ namespace BiRyeoDo.Core
             bool replay = IsReplay(save, st);
             for (int i = 0; i < st.Encounters.Length; i++)
             {
-                FightReward(save, st, i, replay, out long e, out long d);
+                FightReward(save, st, i, replay || WonBefore(save, st, i), out long e, out long d);
                 exp += e; doo += d;
             }
+        }
+
+        /// <summary>True when this fight of a story stage was already won on the stage's difficulty, so it pays the replay rate (also before the stage is cleared, e.g. retrying after losing a later fight).</summary>
+        public static bool WonBefore(SaveData save, StageData st, int fight)
+        {
+            if (st.IsQuest || st.IsTower) return false;
+            return (StageStars.MaskOf(save, st.Number, fight, st.Difficulty) & 1) != 0;
         }
 
         // ------------------------------------------------------------------ recommended 경지

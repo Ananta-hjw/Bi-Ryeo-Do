@@ -24,6 +24,24 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void FightsAlreadyWonOnAnUnclearedStagePayTheReplayRate()
+        {
+            var save = new SaveData();
+            var st = EarlyGameContent.FindStage(5);
+            Assert.Greater(st.Encounters.Length, 1);
+            Recommend.StageReward(save, st, out long full, out long fullDoo);
+            Recommend.FightReward(save, st, 0, false, out long first, out long firstDoo);
+            Recommend.FightReward(save, st, 0, true, out long half, out long halfDoo);
+            StageStars.Record(save, st.Number, 0, 0, 1);   // won fight 1, then lost a later fight
+            Assert.IsTrue(Recommend.WonBefore(save, st, 0));
+            Assert.IsFalse(Recommend.WonBefore(save, st, 1));
+            Assert.IsFalse(Recommend.WonBefore(save, st.WithDifficulty(1), 0), "each difficulty keeps its own record");
+            Recommend.StageReward(save, st, out long exp, out long doo);
+            Assert.AreEqual(full - first + half, exp);
+            Assert.AreEqual(fullDoo - firstDoo + halfDoo, doo);
+        }
+
+        [Test]
         public void HarderDifficultiesAskForMoreAndTheTowerClimbs()
         {
             var st = EarlyGameContent.FindStage(20);
