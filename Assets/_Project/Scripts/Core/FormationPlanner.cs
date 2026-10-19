@@ -332,16 +332,13 @@ namespace BiRyeoDo.Core
         {
             var fights = new List<IList<Combatant>>();
             if (st == null || st.Encounters == null) return fights;
-            int diff = st.IsQuest || st.IsTower ? 0 : st.Difficulty;
             foreach (var group in st.Encounters)
             {
                 var list = new List<Combatant>();
                 for (int i = 0; i < group.Length; i++)
                 {
-                    var e = EarlyGameContent.FindEnemy(group[i]);
+                    var e = st.EnemyFor(group[i]);
                     if (e == null) continue;
-                    e = StageStars.ScaleEnemy(e, st.Number, diff);
-                    if (st.IsQuest) e = Quests.Scale(st.QuestId, e);
                     list.Add(e.CreateCombatant(e.Id + "#" + i));
                 }
                 fights.Add(list);

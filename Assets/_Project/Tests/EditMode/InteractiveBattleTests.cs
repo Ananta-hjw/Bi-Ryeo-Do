@@ -96,6 +96,75 @@ namespace BiRyeoDo.Tests
             Assert.IsFalse(b.PlayerWon);
         }
 
+        [TestCase(1f, 0)]
+        [TestCase(0f, 1)]
+        public void LifelineCountsALandedChargedMoveOnceRegardlessOfHitCount(float evadeChance, int cuts)
+        {
+            var p = Player(Stats(10000, 1, 0, 100));
+            var e = Enemy("chain", Stats(10000, 1, 0, 100), EnemyMove.Wind("wind"), EnemyMove.Attack("heavy", 1f, 3));
+            var evade = new SkillSpec { Id = "evade", Effect = SkillEffect.Evade, EvadeChance = evadeChance };
+            var b = new InteractiveBattle(p, new[] { e }, new SeededRandom(1)) { Trial = TrialRule.Lifeline("t", "b", 1) };
+            b.Begin();
+            var events = new List<BattleEvent>();
+            for (int i = 0; i < 2; i++) events.AddRange(b.PlayerAct(PlayerCommand.UseSkill(evade, null)));
+            Assert.AreEqual(cuts, b.LifelinesCut);
+            Assert.AreEqual(cuts > 0, b.TrialFailed);
+            Assert.AreEqual(3, events.Count(x => x.Kind == EventKind.Attack && x.Dodged == (evadeChance == 1f)));
+        }
+
+        [Test]
+        public void HarmonyRequiresEveryLivingMemberInsteadOfRepeatedActionsByOne()
+        {
+            var p = Player(Stats(10000, 30, 0, 100));
+            var ally = new Combatant("ally", "ally", Team.Player, Stats(10000, 30, 0, 100), null);
+            p.Gauge = 3000;
+            var e = Enemy("wall", Stats(100000, 1, 0, 1));
+            var b = new InteractiveBattle(new[] { p, ally }, new[] { e }, new SeededRandom(1)) { Trial = TrialRule.Harmony("t", "b", 50) };
+            b.Begin();
+            for (int i = 0; i < 3; i++)
+            {
+                Assert.AreSame(p, b.Current);
+                Assert.IsFalse(b.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), e)).Any(x => x.Harmony));
+                Assert.AreEqual(1, b.Combo);
+            }
+            while (b.Current == p) b.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), e));
+            Assert.AreSame(ally, b.Current);
+            Assert.IsFalse(b.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), e)).Any(x => x.Harmony));
+            Assert.AreEqual(2, b.Combo);
+            Assert.IsTrue(b.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), e)).Any(x => x.Harmony));
+            Assert.AreEqual(0, b.Combo);
+        }
+
+        [Test]
+        public void HarmonySupportActionBreaksTheChain()
+        {
+            var p = Player(Stats(10000, 30, 0, 100));
+            var ally = new Combatant("ally", "ally", Team.Player, Stats(10000, 30, 0, 100), null);
+            var e = Enemy("wall", Stats(100000, 1, 0, 1));
+            var b = new InteractiveBattle(new[] { p, ally }, new[] { e }, new SeededRandom(1)) { Trial = TrialRule.Harmony("t", "b", 50) };
+            b.Begin();
+            b.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), e));
+            Assert.AreEqual(1, b.Combo);
+            b.PlayerAct(PlayerCommand.Guard());
+            Assert.AreEqual(0, b.Combo);
+            Assert.IsFalse(b.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), e)).Any(x => x.Harmony));
+        }
+
+        [Test]
+        public void HarmonyJointAttackCountsBothParticipants()
+        {
+            var p = Player(Stats(10000, 30, 0, 100));
+            p.Spirit = InteractiveBattle.JointSpiritCost;
+            var ally = new Combatant("ally", "ally", Team.Player, Stats(10000, 30, 0, 100), null);
+            var e = Enemy("wall", Stats(100000, 1, 0, 1));
+            var b = new InteractiveBattle(new[] { p, ally }, new[] { e }, new SeededRandom(1)) { Trial = TrialRule.Harmony("t", "b", 50) };
+            b.Begin();
+            var events = b.PlayerAct(PlayerCommand.Joint(SkillSpec.BasicAttack(), ally, e));
+            Assert.IsTrue(events.Any(x => x.ActorId == ally.Id && x.Joint));
+            Assert.AreEqual(2, b.Combo);
+            Assert.IsTrue(b.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), e)).Any(x => x.Harmony));
+        }
+
         [Test]
         public void LifelineTrialKeepsTheRopeWhenTheChargedMoveIsDodged()
         {

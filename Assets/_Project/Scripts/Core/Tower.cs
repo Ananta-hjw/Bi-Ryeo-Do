@@ -81,7 +81,11 @@ namespace BiRyeoDo.Core
             float v;
             if (AtkOverride != null && AtkOverride.TryGetValue(floor, out v)) return v;
             var table = boss ? BossAtk : NormalAtk;
-            return table[Math.Max(0, Math.Min(floor, TunedFloors))];
+            // Correct only the measured boss-floor spikes, including their escorts. Do not ease ordinary floors.
+            // Beyond 30 keep the final correction while Clone's 3%-per-floor growth continues.
+            float pressure = floor == 5 ? 0.8f : floor == 15 ? 0.9f : floor == 25 ? 0.95f
+                : floor >= 30 && IsBossFloor(floor) ? 0.8f : 1f;
+            return table[Math.Max(0, Math.Min(floor, TunedFloors))] * pressure;
         }
 
         private static EnemyData Clone(EnemyData t, string id, int floor, int level, double creep)

@@ -80,10 +80,8 @@ namespace BiRyeoDo.Core
             foreach (var fight in st.Encounters)
                 foreach (var id in fight)
                 {
-                    var e = EarlyGameContent.FindEnemy(id);
+                    var e = st.EnemyFor(id);
                     if (e == null || !Realm.HasRealm(e)) continue;
-                    if (st.IsQuest) e = Quests.Scale(st.QuestId, e);
-                    else e = StageStars.ScaleEnemy(e, st.Number, st.Difficulty);
                     best = Math.Max(best, Realm.Power(e.CreateCombatant("rec").Stats));
                 }
             return best;

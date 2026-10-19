@@ -140,7 +140,8 @@ namespace BiRyeoDo.Tests
                 int wins = 0;
                 for (int seed = 1; seed <= 40; seed++)
                     if (SimpleBot.ClearStage(st, seed)) wins++;
-                Assert.GreaterOrEqual(wins, 20, st.Name + " is too hard: " + wins + "/40");
+                int minimum = st.Number == 5 ? 28 : 34;
+                Assert.GreaterOrEqual(wins, minimum, st.Name + " is too hard for the start-kit build: " + wins + "/40");
             }
         }
 
