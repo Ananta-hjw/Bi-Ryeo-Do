@@ -58,7 +58,8 @@ namespace BiRyeoDo.Game.UI
             _training = new CompanionPanel(UiFactory.Rect("TrainingPage", tab, Vector2.zero, new Vector2(1f, 0.92f)), Refresh) { Embedded = true };
 
             UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
-            _header = UiFactory.Label("Header", root, new Vector2(0.06f, 0.925f), new Vector2(0.94f, 0.985f), "", 42, UiFactory.Gold);
+            UiFactory.Glyph("arts", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
+            _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.94f, 0.985f), "", 42, UiFactory.Gold);
             _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
 
             // The list scrolls: the protagonist has far more arts than fit on one screen.

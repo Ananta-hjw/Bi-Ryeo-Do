@@ -7,15 +7,16 @@ namespace BiRyeoDo.Game.UI
     /// <summary>Tiny helpers to build uGUI from code (anchor-based, no prefabs needed). Ink-wash palette.</summary>
     public static class UiFactory
     {
-        // Dark navy + antique gold, in the spirit of a modern mobile RPG menu (step 1 of the Brown Dust-style UI pass).
-        public static readonly Color Parchment = new Color(0.05f, 0.06f, 0.09f, 1f);   // screen backdrop
-        public static readonly Color Ink = new Color(0.09f, 0.11f, 0.16f, 0.95f);       // panel / card fill
-        public static readonly Color InkSoft = new Color(0.17f, 0.20f, 0.27f, 0.92f);   // secondary button / chip fill
-        public static readonly Color Red = new Color(0.66f, 0.17f, 0.20f, 1f);          // primary action / danger
-        public static readonly Color Gold = new Color(0.86f, 0.72f, 0.42f, 1f);         // accents, titles
-        public static readonly Color GoldDim = new Color(0.52f, 0.43f, 0.26f, 1f);      // frames
-        public static readonly Color PaperText = new Color(0.93f, 0.94f, 0.96f, 1f);    // body text
-        public static readonly Color Dim = new Color(0.64f, 0.68f, 0.76f, 1f);          // hints on the backdrop
+        // Ink, celadon, aged paper and cinnabar: shared across every menu.
+        public static readonly Color Parchment = new Color(.035f, .065f, .067f, 1f);
+        public static readonly Color Ink = new Color(.065f, .105f, .108f, .97f);
+        public static readonly Color InkSoft = new Color(.13f, .19f, .19f, .96f);
+        public static readonly Color Red = new Color(.66f, .22f, .17f, 1f);
+        public static readonly Color Gold = new Color(.83f, .72f, .48f, 1f);
+        public static readonly Color GoldDim = new Color(.46f, .41f, .29f, 1f);
+        public static readonly Color PaperText = new Color(.94f, .91f, .82f, 1f);
+        public static readonly Color Dim = new Color(.65f, .71f, .67f, 1f);
+        public static readonly Color Jade = new Color(.39f, .62f, .55f, 1f);
 
         /// <summary>Colour of an item grade: 일반 grey, 고급 green, 희귀 blue, 영웅 purple, 전설 orange, 신화 red.</summary>
         public static Color GradeColor(BiRyeoDo.Core.ItemGrade grade)
@@ -63,26 +64,41 @@ namespace BiRyeoDo.Game.UI
             }
         }
 
-        /// <summary>Thin gold border drawn with four edge images (no sprite needed).</summary>
+        /// <summary>Quiet ruled edges with stronger scroll-like corner brackets.</summary>
         public static void Frame(Transform parent, Color color, float thickness = 3f)
         {
-            var root = Rect("Frame", parent, Vector2.zero, Vector2.one);
-            var edges = new[]
+            var graphic = Rect("Frame", parent, Vector2.zero, Vector2.one).gameObject.AddComponent<WuxiaGlyph>();
+            graphic.Key = "frame";
+            graphic.Stroke = thickness;
+            graphic.color = color;
+            graphic.raycastTarget = false;
+        }
+
+        public static WuxiaGlyph Glyph(string key, Transform parent, Vector2 min, Vector2 max, Color tint)
+        {
+            var glyph = Rect("Glyph_" + key, parent, min, max).gameObject.AddComponent<WuxiaGlyph>();
+            glyph.Key = key;
+            glyph.color = tint;
+            glyph.raycastTarget = false;
+            return glyph;
+        }
+
+        private static Font _displayFont;
+        public static Text Heading(Text text)
+        {
+            if (_displayFont == null)
             {
-                new[] { new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -thickness), new Vector2(0f, 0f) }, // top
-                new[] { new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(0f, thickness) },   // bottom
-                new[] { new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(0f, 0f), new Vector2(thickness, 0f) },  // left
-                new[] { new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(-thickness, 0f), new Vector2(0f, 0f) }, // right
-            };
-            foreach (var e in edges)
-            {
-                var rt = Rect("Edge", root, e[0], e[1]);
-                rt.offsetMin = e[2];
-                rt.offsetMax = e[3];
-                var img = rt.gameObject.AddComponent<Image>();
-                img.color = color;
-                img.raycastTarget = false;
+                _displayFont = KoreanFont;
+                var installed = Font.GetOSInstalledFontNames();
+                foreach (var candidate in new[] { "Noto Serif CJK KR", "Noto Serif KR", "NanumMyeongjo", "Batang" })
+                    if (System.Array.IndexOf(installed, candidate) >= 0)
+                    {
+                        _displayFont = Font.CreateDynamicFontFromOSFont(candidate, 40);
+                        break;
+                    }
             }
+            text.font = _displayFont;
+            return text;
         }
 
         private static Font _font;
@@ -140,9 +156,10 @@ namespace BiRyeoDo.Game.UI
             t.resizeTextMinSize = 12;
             t.resizeTextMaxSize = size;
             t.raycastTarget = false;
+            if (name == "Title" || name == "Header") Heading(t);
             var shadow = t.gameObject.AddComponent<Shadow>();
-            shadow.effectColor = new Color(0f, 0f, 0f, 0.65f);
-            shadow.effectDistance = new Vector2(2f, -2f);
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.45f);
+            shadow.effectDistance = new Vector2(1f, -1f);
             return t;
         }
 
@@ -163,10 +180,16 @@ namespace BiRyeoDo.Game.UI
             img.color = bg;
             var btn = img.gameObject.AddComponent<Button>();
             btn.targetGraphic = img;
+            var colors = btn.colors;
+            colors.highlightedColor = new Color(1f, .96f, .86f, 1f);
+            colors.pressedColor = new Color(.68f, .71f, .65f, 1f);
+            colors.disabledColor = new Color(.55f, .58f, .55f, .65f);
+            colors.fadeDuration = .12f;
+            btn.colors = colors;
             if (onClick != null) btn.onClick.AddListener(onClick);
             btn.onClick.AddListener(() => Systems.SoundManager.Sfx("ui_click"));
             if (bg.a > 0.05f) Frame(img.transform, GoldDim, 2f);
-            Label("Label", img.transform, Vector2.zero, Vector2.one, label, fontSize, PaperText);
+            Label("Label", img.transform, new Vector2(.04f, 0f), new Vector2(.96f, 1f), label, fontSize, PaperText);
             return btn;
         }
 
@@ -186,6 +209,7 @@ namespace BiRyeoDo.Game.UI
         {
             var bg = Panel(name, parent, min, max, back);
             var fillImg = Panel("Fill", bg.transform, Vector2.zero, Vector2.one, fill);
+            fillImg.sprite = Gradient;
             return new Bar { Root = bg.rectTransform, Fill = fillImg.rectTransform };
         }
 

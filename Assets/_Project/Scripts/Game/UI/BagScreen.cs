@@ -44,7 +44,8 @@ namespace BiRyeoDo.Game.UI
             _built = true;
 
             UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
-            _header = UiFactory.Label("Header", root, new Vector2(0.06f, 0.925f), new Vector2(0.68f, 0.985f), "", 40, UiFactory.Gold);
+            UiFactory.Glyph("bag", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
+            _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.68f, 0.985f), "", 40, UiFactory.Gold);
             UiFactory.Button("BulkOpen", root, new Vector2(0.70f, 0.93f), new Vector2(0.945f, 0.98f), "일괄 분해", new Color(0.55f, 0.36f, 0.14f, 1f), () => _bulk.Show(), 26);
             _gear = UiFactory.Label("Gear", root, new Vector2(0.05f, 0.875f), new Vector2(0.95f, 0.922f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter);
             _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.840f), new Vector2(0.95f, 0.875f), "", 24, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);

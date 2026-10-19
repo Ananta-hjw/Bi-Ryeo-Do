@@ -30,18 +30,16 @@ namespace BiRyeoDo.Game.UI
             _built = true;
 
             UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
-            UiFactory.Label("Header", root, new Vector2(0.06f, 0.925f), new Vector2(0.94f, 0.985f), "기록", 42, UiFactory.Gold);
+            UiFactory.Glyph("record", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
+            UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.94f, 0.985f), "기록", 42, UiFactory.Gold);
 
-            // Five tiles stacked in the space below the header
-            const float top = 0.90f, h = 0.11f, gap = 0.01f;
-            float y = top;
-            _statusE = Tile(root, ref y, h, gap, "상태창", () => _status.Open());
-            _codexE = Tile(root, ref y, h, gap, "도감", () => _codex.OpenCodex());
-            _achE = Tile(root, ref y, h, gap, "업적", () => _codex.OpenAchievements());
-            _storyE = Tile(root, ref y, h, gap, "이야기 줄거리", () => _storyLog.Open());
-            _memoryE = Tile(root, ref y, h, gap, "나예린 추억", () => _memories.Open());
-            _factionE = Tile(root, ref y, h, gap, "세력과 객잔", () => _factions.Open());
-            _ritualE = Tile(root, ref y, h, gap, "전승의식", () => _ritual.Open());
+            _statusE = Tile(root, .04f, .96f, .71f, .90f, "상태창", "party", () => _status.Open());
+            _codexE = Tile(root, .04f, .49f, .48f, .695f, "도감", "record", () => _codex.OpenCodex());
+            _achE = Tile(root, .51f, .96f, .48f, .695f, "업적", "star", () => _codex.OpenAchievements());
+            _storyE = Tile(root, .04f, .96f, .34f, .465f, "이야기 줄거리", "quest", () => _storyLog.Open());
+            _memoryE = Tile(root, .04f, .49f, .175f, .325f, "나예린 추억", "fortune", () => _memories.Open());
+            _factionE = Tile(root, .51f, .96f, .175f, .325f, "세력과 객잔", "tower", () => _factions.Open());
+            _ritualE = Tile(root, .04f, .96f, .025f, .16f, "전승의식", "arts", () => _ritual.Open());
 
             var panelH = new Vector2(1f, 1f);
             _status = new StatusPanel(UiFactory.Rect("StatusOverlay", root, Vector2.zero, panelH), Refresh);
@@ -53,22 +51,27 @@ namespace BiRyeoDo.Game.UI
             Refresh();
         }
 
-        private static Entry Tile(RectTransform root, ref float y, float h, float gap, string title, UnityEngine.Events.UnityAction onClick)
+        private static Entry Tile(RectTransform root, float x0, float x1, float y0, float y1, string title, string icon, UnityEngine.Events.UnityAction onClick)
         {
-            var rt = UiFactory.Rect("Tile", root, new Vector2(0.04f, y - h), new Vector2(0.96f, y));
+            var rt = UiFactory.Rect("Tile", root, new Vector2(x0, y0), new Vector2(x1, y1));
             var img = rt.gameObject.AddComponent<Image>();
             img.sprite = UiFactory.Gradient;
-            img.color = new Color(0.16f, 0.19f, 0.27f, 1f);
+            img.color = UiFactory.Ink;
             var btn = rt.gameObject.AddComponent<Button>();
             btn.targetGraphic = img;
             btn.onClick.AddListener(onClick);
             UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
-            UiFactory.Label("Title", rt, new Vector2(0.06f, 0.58f), new Vector2(0.80f, 0.94f), title, 40, UiFactory.Gold, TextAnchor.MiddleLeft);
+            bool wide = x1 - x0 > .6f;
+            UiFactory.Glyph(icon, rt, wide ? new Vector2(.025f, .17f) : new Vector2(.06f, .65f),
+                wide ? new Vector2(.22f, .83f) : new Vector2(.28f, .95f), UiFactory.Gold);
+            UiFactory.Heading(UiFactory.Label("Title", rt, wide ? new Vector2(.26f, .57f) : new Vector2(.33f, .64f),
+                new Vector2(.94f, .94f), title, wide ? 38 : 30, UiFactory.PaperText, TextAnchor.MiddleLeft));
             var e = new Entry();
-            e.Detail = UiFactory.Label("Detail", rt, new Vector2(0.06f, 0.08f), new Vector2(0.94f, 0.58f), "", 24, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal);
-            var dot = UiFactory.Panel("Dot", rt, new Vector2(0.84f, 0.62f), new Vector2(0.95f, 0.92f), UiFactory.Red);
-            e.Badge = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 28, UiFactory.PaperText);
-            y -= h + gap;
+            e.Detail = UiFactory.Body(UiFactory.Label("Detail", rt, wide ? new Vector2(.26f, .08f) : new Vector2(.08f, .07f),
+                wide ? new Vector2(.94f, .56f) : new Vector2(.92f, .61f), "", 22, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 1.15f);
+            UiFactory.Label("Arrow", rt, new Vector2(.90f, .15f), new Vector2(.98f, .50f), "›", 36, UiFactory.Gold);
+            var dot = UiFactory.Panel("Dot", rt, new Vector2(.84f, .78f), new Vector2(.97f, .96f), UiFactory.Red);
+            e.Badge = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 22, UiFactory.PaperText);
             return e;
         }
 

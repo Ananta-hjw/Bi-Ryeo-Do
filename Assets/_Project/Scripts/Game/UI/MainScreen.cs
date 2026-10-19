@@ -19,6 +19,9 @@ namespace BiRyeoDo.Game.UI
 
         private TabRouter _router;
         private Image[] _tabButtons;
+        private Graphic[] _tabIcons;
+        private Text[] _tabLabels;
+        private GameObject[] _tabMarks;
         private GameObject _artsDot;
         private Text _artsDotText;
         private float _dotTimer;
@@ -49,6 +52,8 @@ namespace BiRyeoDo.Game.UI
             safe.anchorMax = new Vector2(sa.xMax / Screen.width, sa.yMax / Screen.height);
 
             UiFactory.Panel("Backdrop", safe, Vector2.zero, Vector2.one, UiFactory.Parchment);
+            var wash = UiFactory.Panel("MountainWash", safe, Vector2.zero, Vector2.one, new Color(.36f, .47f, .43f, .12f));
+            wash.sprite = ArtLibrary.Background(1);
 
             var content = UiFactory.Rect("Content", safe, Vector2.zero, Vector2.one);
             content.offsetMin = new Vector2(0f, TabBarHeight);
@@ -132,32 +137,36 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Panel("TabBarTopLine", bar, new Vector2(0f, 0.98f), Vector2.one, UiFactory.GoldDim);
 
             _tabButtons = new Image[TabNames.Length];
+            _tabIcons = new Graphic[TabNames.Length];
+            _tabLabels = new Text[TabNames.Length];
+            _tabMarks = new GameObject[TabNames.Length];
             float w = 1f / TabNames.Length;
             for (int i = 0; i < TabNames.Length; i++)
             {
                 int index = i;
-                var btn = UiFactory.Button("Tab_" + TabNames[i], bar, new Vector2(i * w + 0.005f, 0.08f), new Vector2((i + 1) * w - 0.005f, 0.92f),
-                    TabNames[i], new Color(0f, 0f, 0f, 0f), () => Select(index), 44);
+                var btn = UiFactory.Button("Tab_" + TabNames[i], bar, new Vector2(i*w+.006f, .04f), new Vector2((i+1)*w-.006f, .96f),
+                    TabNames[i], Color.clear, () => Select(index), 28);
                 _tabButtons[i] = btn.GetComponent<Image>();
-                if (i == (int)TabRouter.Tab.MartialArts)
-                {
-                    // Red dot like the 기연 one: something new can be learned (cleared once the page has been looked at).
-                    var dot = UiFactory.Panel("NewDot", btn.transform, new Vector2(0.60f, 0.62f), new Vector2(0.98f, 1.0f), UiFactory.Red);
-                    _artsDotText = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 26, UiFactory.PaperText);
-                    _artsDot = dot.gameObject;
-                    _artsDot.SetActive(false);
-                }
+                var label = btn.GetComponentInChildren<Text>();
+                label.rectTransform.anchorMin = new Vector2(.02f, .04f);
+                label.rectTransform.anchorMax = new Vector2(.98f, .34f);
+                _tabLabels[i] = label;
                 var icon = ArtLibrary.Icon(TabIconKeys[i]);
                 if (icon != null)
                 {
-                    // With a picture: the image on top, a small caption below (the text label is moved down and shrunk).
-                    var label = btn.GetComponentInChildren<Text>();
-                    var lrt = label.rectTransform;
-                    lrt.anchorMin = new Vector2(0.02f, 0.02f); lrt.anchorMax = new Vector2(0.98f, 0.34f);
-                    label.resizeTextMaxSize = 26;
-                    var pic = UiFactory.Panel("TabIcon", btn.transform, new Vector2(0.18f, 0.34f), new Vector2(0.82f, 0.96f), Color.white);
+                    var pic = UiFactory.Panel("TabIcon", btn.transform, new Vector2(.25f, .37f), new Vector2(.75f, .89f), UiFactory.Dim);
                     pic.sprite = icon;
                     pic.preserveAspect = true;
+                    _tabIcons[i] = pic;
+                }
+                else _tabIcons[i] = UiFactory.Glyph(TabIconKeys[i], btn.transform, new Vector2(.25f, .37f), new Vector2(.75f, .89f), UiFactory.Dim);
+                _tabMarks[i] = UiFactory.Panel("SelectedRule", btn.transform, new Vector2(.22f, .965f), new Vector2(.78f, .985f), UiFactory.Gold).gameObject;
+                if (i == (int)TabRouter.Tab.MartialArts)
+                {
+                    var dot = UiFactory.Panel("NewDot", btn.transform, new Vector2(.65f, .68f), new Vector2(.96f, .94f), UiFactory.Red);
+                    _artsDotText = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 22, UiFactory.PaperText);
+                    _artsDot = dot.gameObject;
+                    _artsDot.SetActive(false);
                 }
             }
         }
@@ -210,7 +219,13 @@ namespace BiRyeoDo.Game.UI
             if (index == (int)TabRouter.Tab.Gacha && HelpPanel.Instance != null && !Tutorial.IsDone(GameManager.Instance.Save, "gacha"))
                 HelpPanel.Instance.Show("gacha", true);
             for (int i = 0; i < _tabButtons.Length; i++)
-                _tabButtons[i].color = i == index ? new Color(0.56f, 0.44f, 0.22f, 1f) : new Color(0f, 0f, 0f, 0f);
+            {
+                bool selected = i == index;
+                _tabButtons[i].color = selected ? UiFactory.InkSoft : Color.clear;
+                _tabLabels[i].color = selected ? UiFactory.Gold : UiFactory.Dim;
+                _tabIcons[i].color = selected ? UiFactory.Gold : UiFactory.Dim;
+                _tabMarks[i].SetActive(selected);
+            }
         }
 
         private static void EnsureEventSystem()

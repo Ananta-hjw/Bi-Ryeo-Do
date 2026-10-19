@@ -14,7 +14,7 @@ namespace BiRyeoDo.Game.UI
         {
             Root = root;
             OnChange = onChange;
-            root.gameObject.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
+            root.gameObject.AddComponent<Image>().color = UiFactory.Parchment;
             root.gameObject.SetActive(false);
         }
 

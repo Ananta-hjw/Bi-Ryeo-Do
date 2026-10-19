@@ -34,8 +34,9 @@ namespace BiRyeoDo.Game.UI
             _built = true;
 
             UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
-            _header = UiFactory.Label("Header", root, new Vector2(0.06f, 0.925f), new Vector2(0.94f, 0.985f), "", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
-            _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "두를 내고 장비와 영약을 뽑습니다. 같은 장비가 나오면 분해되어 두가 돌아옵니다.", 24, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.Glyph("gacha", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
+            _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.94f, 0.985f), "", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
+            _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "같은 장비는 여분으로 쌓입니다. 강화하거나 분해해 재료를 얻을 수 있습니다.", 24, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
 
             // Odds
             var odds = UiFactory.Panel("Odds", root, new Vector2(0.04f, 0.735f), new Vector2(0.96f, 0.88f), UiFactory.Ink);
@@ -52,7 +53,8 @@ namespace BiRyeoDo.Game.UI
             }
 
             // Result cards: 2 columns x 5 rows
-            _emptyNote = UiFactory.Label("Empty", root, new Vector2(0.06f, 0.35f), new Vector2(0.94f, 0.55f), "아직 뽑지 않았습니다.\n아래 버튼으로 뽑아 보세요.", 34, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+            _emptyNote = UiFactory.Label("Empty", root, new Vector2(0.06f, 0.26f), new Vector2(0.94f, 0.68f), "아직 뽑지 않았습니다.\n아래 버튼으로 뽑아 보세요.", 32, UiFactory.Dim, TextAnchor.LowerCenter, FontStyle.Normal);
+            UiFactory.Glyph("gacha", _emptyNote.transform, new Vector2(.3f, .35f), new Vector2(.7f, .94f), new Color(.83f, .72f, .48f, .35f));
             for (int i = 0; i < Gacha.TenPullCount; i++)
             {
                 int col = i % 2, row = i / 2;
