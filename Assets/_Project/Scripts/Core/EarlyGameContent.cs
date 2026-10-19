@@ -306,7 +306,7 @@ namespace BiRyeoDo.Core
             // Stage 5: 윤하루 (2권)
             new EnemyData { Id = "jang_ugang", Name = "장우강", Level = 12, HpMul = 1.333f, AtkMul = 1.254f,
                 Moves = new[] { EnemyMove.Attack("청성검", 1.0f), EnemyMove.Attack("청성검", 1.2f), EnemyMove.Wind("검을 거둔다"), EnemyMove.Attack("찌르기", 2.2f) } },
-            new EnemyData { Id = "yeomdo", Name = "염도 곽영희", Level = 14, IsBoss = true, HpMul = 2.666f, AtkMul = 1.458f,
+            new EnemyData { Id = "yeomdo", Name = "염도 곽영희", Level = 14, IsBoss = true, HpMul = 3.3f, AtkMul = 1.0f,
                 Moves = new[] { EnemyMove.Attack("진홍십칠염", 0.8f, 3), EnemyMove.Attack("검염기", 1.3f), EnemyMove.Wind("화령신공을 끌어올린다"), EnemyMove.Attack("화령염천도세", 3.2f) } },
             // Stage 6: 호아장 (2권)
             new EnemyData { Id = "hoajang_disciple", Name = "호아장 제자", Level = 15, HpMul = 1.383f, AtkMul = 0.821f,

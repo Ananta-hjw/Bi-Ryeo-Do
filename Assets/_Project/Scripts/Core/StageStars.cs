@@ -87,8 +87,8 @@ namespace BiRyeoDo.Core
             var st = EarlyGameContent.FindStage(stage);
             double d0 = st != null ? Progression.StatsFor(st.RecommendedLevel).Defense : 0.0;
             double defEffect = (BattleEngine.DefenseConstant + d0 * DefFor(stage, difficulty)) / (BattleEngine.DefenseConstant + d0);
-            // The table is measured on the eased and boosted 일반 enemies, while the harder difficulties scale the original ones (see NormalEase, NormalHpBoost).
-            double hp = HpFor(stage, difficulty) / Math.Pow(NormalEase(stage), 0.7) / NormalHpBoost(stage);
+            // The table is measured on the eased 일반 enemies, while the harder difficulties scale the original ones (see NormalEase); both carry the same stage boost (NormalHpBoost).
+            double hp = HpFor(stage, difficulty) / Math.Pow(NormalEase(stage), 0.7);
             return (int)Math.Ceiling(FastLimit(stage, fight) * Math.Max(1.0, hp) * Math.Max(1.0, defEffect));
         }
 
@@ -143,13 +143,19 @@ namespace BiRyeoDo.Core
 
         /// <summary>
         /// 일반 난이도 enemy boost on top of the enemy table: HP mostly (x1.1 on stage 1 up to x2.6 on stage 30, a little more every stage), attack a little.
-        /// Stages 1-6 are fought alone and sit on the balance bot's cliff, so their HP is kept lower (see Docs/BALANCE.md). 어려움·극악 start from the table and are not affected.
+        /// Stages 1-6 are fought alone and sit on the balance bot's cliff, so their HP is kept lower (see Docs/BALANCE.md). 어려움·극악 get the same boost on top of their own scaling.
         /// </summary>
         static readonly float[] NormalHpBoostTable =
         {
             1.00f, 1.10f, 1.10f, 1.10f, 1.10f, 1.00f, 1.45f, 1.50f, 1.55f, 1.60f, 1.65f, 1.70f, 1.75f, 1.80f, 1.85f,
             1.90f, 1.95f, 2.00f, 2.05f, 2.10f, 2.15f, 2.20f, 2.25f, 2.30f, 2.35f, 2.40f, 2.45f, 2.50f, 2.55f, 2.60f,
         };
+        /// <summary>
+        /// Player levels a prepared player (gear, 심법, mastery, items) is expected to have over the stage's recommended level now that 일반 enemies have more HP:
+        /// 0 for the solo stages 1-6, then (stage - 4) / 3 from stage 7 (+1) to stage 30 (+8). The balance bot is given the same levels, and the 추천 경지 of 일반 stages counts them.
+        /// </summary>
+        public static int NormalEdgeLevels(int stage) { return stage <= 6 ? 0 : (stage - 4) / 3; }
+
         public static float NormalHpBoost(int stage) { return NormalHpBoostTable[Math.Max(1, Math.Min(NormalHpBoostTable.Length, stage)) - 1]; }
         public static float NormalAtkBoost(int stage) { return stage <= 6 ? 1f : 1.05f + 0.005f * (Math.Min(30, stage) - 7); }
 
@@ -166,7 +172,8 @@ namespace BiRyeoDo.Core
                 return enemy.Scaled(hp, atk);
             }
             float ease = NormalEase(stage);
-            return enemy.Scaled(HpFor(stage, difficulty) / (float)Math.Pow(ease, 0.7), AtkFor(stage, difficulty) / (float)Math.Pow(ease, 0.3), DefFor(stage, difficulty), LevelAdd(stage, difficulty));
+            if (enemy.HpMul > 10f) return enemy.Scaled(HpFor(stage, difficulty) / (float)Math.Pow(ease, 0.7), AtkFor(stage, difficulty) / (float)Math.Pow(ease, 0.3), DefFor(stage, difficulty), LevelAdd(stage, difficulty));   // survival-only enemies are not boosted
+            return enemy.Scaled(HpFor(stage, difficulty) / (float)Math.Pow(ease, 0.7) * NormalHpBoost(stage), AtkFor(stage, difficulty) / (float)Math.Pow(ease, 0.3) * NormalAtkBoost(stage), DefFor(stage, difficulty), LevelAdd(stage, difficulty));
         }
 
         public static string TagFor(int difficulty) { return difficulty <= 0 ? "" : "[" + DifficultyNames[Math.Min(DifficultyCount - 1, difficulty)] + "] "; }

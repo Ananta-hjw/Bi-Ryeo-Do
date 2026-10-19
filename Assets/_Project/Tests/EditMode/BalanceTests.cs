@@ -126,7 +126,7 @@ namespace BiRyeoDo.Tests
             var survivalEnemy = EarlyGameContent.FindEnemy("geomhu_ioksang");
             Assert.AreSame(survivalEnemy, EarlyGameContent.FindStage(29).EnemyFor(survivalEnemy.Id));
             var hard = stage.WithDifficulty(1).EnemyFor(id);
-            Assert.AreEqual(raw.HpMul * StageStars.HpFor(26, 1) / (float)Math.Pow(StageStars.NormalEase(26), 0.7), hard.HpMul, 0.001f);
+            Assert.AreEqual(raw.HpMul * StageStars.HpFor(26, 1) / (float)Math.Pow(StageStars.NormalEase(26), 0.7) * StageStars.NormalHpBoost(26), hard.HpMul, 0.001f);   // 어려움 carries the stage boost but not the late-stage x0.85
             var quest = Quests.ToStage(Quests.Find("q_salgwi"));
             id = quest.Encounters[0][0];
             Assert.AreEqual(Quests.Scale(quest.QuestId, EarlyGameContent.FindEnemy(id)).HpMul, quest.EnemyFor(id).HpMul);
