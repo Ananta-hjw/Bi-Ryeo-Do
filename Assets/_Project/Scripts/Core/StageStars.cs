@@ -144,7 +144,10 @@ namespace BiRyeoDo.Core
         public static EnemyData ScaleEnemy(EnemyData enemy, int stage, int difficulty)
         {
             difficulty = Clamp(difficulty);
-            if (difficulty == 0) return enemy;
+            // Shorten the longest normal stages without removing pressure. Survival-only enemies keep their rules/stats.
+            // Hard difficulties still start from the original table, so this does not move their progression targets.
+            if (difficulty == 0)
+                return stage >= 24 && stage <= 30 && enemy.HpMul <= 10f ? enemy.Scaled(0.85f, 1.25f) : enemy;
             float ease = NormalEase(stage);
             return enemy.Scaled(HpFor(stage, difficulty) / (float)Math.Pow(ease, 0.7), AtkFor(stage, difficulty) / (float)Math.Pow(ease, 0.3), DefFor(stage, difficulty), LevelAdd(stage, difficulty));
         }

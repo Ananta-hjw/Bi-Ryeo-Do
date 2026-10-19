@@ -61,37 +61,14 @@ namespace BiRyeoDo.Tests
             return eq.Select(a => a.ToSpec()).ToList();
         }
 
-        // Stages 1-6 are fought alone, so they are tuned for a protagonist who already has decent gear (용아검, 적운 장포, 태극 옥패, 구미 부적).
-        // From stage 7 on the party carries the fight and the bot wears nothing.
-        public static readonly string[] EarlyKit = { "dragonfang_sword", "crimson_longcoat", "taegeuk_jade", "ninetail_charm" };
-        public const int EarlyKitLastStage = 6;
-
         public static List<Combatant> BuildParty(int stageNumber, int level)
         {
-            // The bot gets the 경지 bonus of the realm its stats reach.
-            var heroBase = Progression.HeroStatsFor(level);
-            if (stageNumber >= 1 && stageNumber <= EarlyKitLastStage) heroBase = Inventory.ApplyGear(heroBase, new List<string>(EarlyKit), null);
-            var hero = Realm.ApplyBonus(heroBase, Realm.StepOf(Realm.Power(heroBase)));
-            var party = new List<Combatant> { new Combatant("p", "비류연", Team.Player, hero, BestLoadout(stageNumber)) };
-            foreach (var c in EarlyGameContent.SelectCompanions(stageNumber, null)) party.Add(c.CreateCombatant(level));
-            Formation.Apply(party, null);
-            return party;
+            return BalanceSimulation.Party(BalanceSimulation.Starter(stageNumber, level), EarlyGameContent.FindStage(stageNumber));
         }
 
         public static bool ClearStage(StageData st, int seed)
         {
-            var party = BuildParty(st.Number, st.RecommendedPlayerLevel);
-            Formation.ApplyPlanned(party, FormationPlanner.FightsOf(st));   // the same planned lines the 「자동 배치」 gives a player
-            for (int k = 0; k < st.Encounters.Length; k++)
-            {
-                var enemies = st.Encounters[k].Select((id, i) => (st.IsQuest ? Quests.Scale(st.QuestId, EarlyGameContent.FindEnemy(id)) : EarlyGameContent.FindEnemy(id)).CreateCombatant(id + i)).ToList();
-                var battle = new InteractiveBattle(party, enemies, new SeededRandom(seed * 1000 + st.Number * 10 + k)) { Trial = st.TrialFor(k) };
-                battle.Begin();
-                for (int guard = 0; !battle.IsOver && guard < 3000; guard++) battle.PlayerAct(Choose(battle));
-                if (!battle.PlayerWon) return false;
-                foreach (var m in party) m.RestBetweenFights();
-            }
-            return true;
+            return BalanceSimulation.Play(st, BalanceSimulation.Starter(st.Number, st.RecommendedPlayerLevel), seed).Won;
         }
     }
 }

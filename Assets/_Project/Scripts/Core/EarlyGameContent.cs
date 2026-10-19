@@ -205,6 +205,14 @@ namespace BiRyeoDo.Core
         public string QuestId;
         public int Difficulty;  // 0 일반, 1 어려움, 2 극악 (see StageStars); set on a copy made by WithDifficulty
 
+        /// <summary>Enemy data for this workflow, shared by combat, previews and formation planning.</summary>
+        public EnemyData EnemyFor(string id)
+        {
+            var enemy = EarlyGameContent.FindEnemy(id);
+            if (enemy == null || IsTower) return enemy;
+            return IsQuest ? Quests.Scale(QuestId, enemy) : StageStars.ScaleEnemy(enemy, Number, Difficulty);
+        }
+
         public StageData WithDifficulty(int difficulty)
         {
             var c = (StageData)MemberwiseClone();

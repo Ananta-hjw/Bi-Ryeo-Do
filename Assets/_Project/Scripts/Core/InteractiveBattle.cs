@@ -149,6 +149,7 @@ namespace BiRyeoDo.Core
         public List<BattleEvent> Begin()
         {
             _partyGuardOwner = null;
+            _chain.Clear();
             foreach (var m in _party) m.RescueUsed = false;
             foreach (var m in _party) if (m.Spirit < m.StartSpirit) m.Spirit = m.StartSpirit;
             return RunUntilParty();

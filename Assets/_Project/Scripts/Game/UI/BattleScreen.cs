@@ -451,7 +451,7 @@ namespace BiRyeoDo.Game.UI
                     _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + tag + stage.Name + "  (" + (i + 1) + "/" + stage.Encounters.Length + ")";
                     _lastFightNumber = i + 1;
                     yield return Banner(i == stage.Encounters.Length - 1 ? "결전!" : "전투 " + (i + 1), 0.7f);
-                    yield return Fight(stage.Encounters[i], stage.TrialFor(i), stage.Number, diff, stage.IsQuest ? stage.QuestId : null);
+                    yield return Fight(stage.Encounters[i], stage.TrialFor(i), stage);
 
                     if (_fled) { cleared = false; break; }
                     if (!_battle.PlayerWon) { cleared = false; break; }
@@ -797,13 +797,12 @@ namespace BiRyeoDo.Game.UI
             return "별 " + StageStars.StarsOfStage(save, stageNumber, difficulty) + "/" + StageStars.MaxStarsOfStage(stageNumber) + "\n" + string.Join("   ", lines);
         }
 
-        private IEnumerator Fight(string[] enemyIds, TrialRule trial, int stageNumber = 0, int difficulty = 0, string questId = null)
+        private IEnumerator Fight(string[] enemyIds, TrialRule trial, StageData stage)
         {
             var data = new EnemyData[enemyIds.Length];
             for (int i = 0; i < data.Length; i++)
             {
-                data[i] = StageStars.ScaleEnemy(EarlyGameContent.FindEnemy(enemyIds[i]), stageNumber, difficulty);
-                if (questId != null) data[i] = Quests.Scale(questId, data[i]);
+                data[i] = stage.EnemyFor(enemyIds[i]);
             }
             if (trial != null)
             {
