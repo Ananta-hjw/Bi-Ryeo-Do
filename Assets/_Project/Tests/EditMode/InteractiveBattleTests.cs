@@ -97,6 +97,36 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void LifelineTrialKeepsTheRopeWhenTheChargedMoveIsDodged()
+        {
+            var evade = new SkillSpec { Id = "ev", Name = "삼첩영", Effect = SkillEffect.Evade };
+            var p = Player(Stats(1000000, 1, 0, 100), evade);
+            var e = Enemy("chain", Stats(1000000, 1, 0, 100), EnemyMove.Wind("w"), EnemyMove.Attack("h", 3f));
+            var b = new InteractiveBattle(p, new[] { e }, new SeededRandom(1)) { Trial = TrialRule.Lifeline("t", "b", 2) };
+            b.Begin();
+            for (int i = 0; i < 20 && !b.IsOver; i++) b.PlayerAct(PlayerCommand.UseSkill(evade, null));
+            Assert.AreEqual(0, b.LifelinesCut, "a fully dodged charged blow cuts no rope");
+            Assert.IsFalse(b.TrialFailed);
+        }
+
+        [Test]
+        public void HarmonyNeedsEveryLivingMemberNotJustOneFastAttacker()
+        {
+            var p = Player(Stats(1000000, 100, 0, 300));
+            var c = Ally("c", Stats(1000000, 100, 0, 1));   // so slow that 비류연 acts again and again before it
+            var e = Enemy("wall", Stats(1000000, 1, 0, 1));
+            var b = new InteractiveBattle(new[] { p, c }, new[] { e }, new SeededRandom(1)) { Trial = TrialRule.Harmony("t", "b", 50) };
+            b.Begin();
+            for (int i = 0; i < 4; i++)
+            {
+                Assert.AreSame(p, b.Current);
+                var hit = b.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), e)).First(x => x.ActorId == "p" && x.Kind == EventKind.Attack);
+                Assert.IsFalse(hit.Harmony, "attack " + (i + 1) + " by the same member");
+            }
+            Assert.AreEqual(1, b.Combo);
+        }
+
+        [Test]
         public void HarmonyChainBoostsTheNextHit()
         {
             var p = Player(Stats(1000000, 100, 0, 100));

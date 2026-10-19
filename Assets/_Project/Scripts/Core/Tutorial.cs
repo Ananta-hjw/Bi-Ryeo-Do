@@ -119,7 +119,42 @@ namespace BiRyeoDo.Core
                 "승급 시험장에서 비무첩을 사서 상대 둘을 연달아 꺾으면 검룡위가 오릅니다. 입장료가 필요하며, 지면 돌려받지 못합니다.",
                 "한 판은 12턴 안에 끝내야 하며, 시간이 넘으면 무승부입니다. 삼검룡 이상이어야 삼성무제(스테이지 12, 13)에 나갈 수 있습니다."
             } },
+            // Story trials (TrialRule): one topic per kind, shown before the first fight of that kind (Tutorial.TrialTopic)
+            new TutorialTopic { Id = "trial_deadline", Title = "시험: 제한 행동", Pages = new[]
+            {
+                "이 싸움은 정해진 행동 수 안에 이겨야 하는 시험입니다. 우리 편이 한 번 움직일 때마다(공격, 무공, 방어, 운기, 아이템 모두) 1행동이 쌓이며, 남은 수는 화면 위쪽에 「제한 3/30행동」처럼 나옵니다.",
+                "제한에 닿았을 때 적이 남아 있으면 시험에 실패합니다. 방어나 운기도 1행동이니, 강한 무공과 전체 공격으로 빠르게 끝내는 것이 좋습니다."
+            } },
+            new TutorialTopic { Id = "trial_lifeline", Title = "시험: 생명줄", Pages = new[]
+            {
+                "이 싸움에서는 우리 편이 생명줄로 묶여 있습니다. 적이 힘을 모았다가 치는 큰 공격(「위험!」 예고 뒤의 일격)에 맞을 때마다 줄이 하나씩 끊어지고, 남은 줄은 화면 위쪽에 ●○로 나옵니다. 줄이 모두 끊어지면 시험에 실패합니다.",
+                "큰 공격은 미리 예고됩니다. 점혈로 힘 모으기를 끊거나, 회피(삼첩영)로 모든 타격을 피하면 줄이 끊어지지 않습니다. 방어로 받으면 피해는 줄지만 맞은 것이라 줄이 하나 끊어집니다. 큰 공격 한 번에는 몇 번을 때려도 한 줄만 끊어집니다."
+            } },
+            new TutorialTopic { Id = "trial_survive", Title = "시험: 버티기", Pages = new[]
+            {
+                "이 싸움은 이기는 것이 아니라 버티는 시험입니다. 적이 정해진 횟수만큼 움직일 때까지 쓰러지지 않으면 성공이며, 남은 횟수는 화면 위쪽에 「버텨라 4/12」처럼 나옵니다.",
+                "방어, 회피, 치유, 운기로 오래 살아남는 데 집중하세요. 적을 쓰러뜨려도 성공입니다."
+            } },
+            new TutorialTopic { Id = "trial_harmony", Title = "시험: 내공합격", Pages = new[]
+            {
+                "이 싸움은 파티 전원이 힘을 합쳐야 하는 시험입니다. 살아 있는 우리 편이 모두 한 번씩 공격하면 합격이 이어지고, 그다음 공격이 2.5배로 강해집니다. 진행은 화면 위쪽에 「합격 2/4」처럼 나옵니다.",
+                "한 사람이 여러 번 공격해도 한 번으로만 셉니다. 누군가 방어, 운기, 치유, 회피, 아이템을 쓰면 합격이 끊어져 처음부터 다시 셉니다. 합공은 비류연과 동료 둘 다 공격한 것으로 셉니다.",
+                "정해진 행동 수 안에 이겨야 하는 제한도 함께 있습니다. 제한에 닿았을 때 적이 남아 있으면 시험에 실패합니다."
+            } },
         };
+
+        /// <summary>The help topic explaining a story trial's rule.</summary>
+        public static string TrialTopic(TrialKind kind)
+        {
+            switch (kind)
+            {
+                case TrialKind.Deadline: return "trial_deadline";
+                case TrialKind.Lifeline: return "trial_lifeline";
+                case TrialKind.Survive: return "trial_survive";
+                case TrialKind.Harmony: return "trial_harmony";
+            }
+            return null;
+        }
 
         public static TutorialTopic Find(string id)
         {

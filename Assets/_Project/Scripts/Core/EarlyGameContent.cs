@@ -1530,9 +1530,9 @@ namespace BiRyeoDo.Core
                 Encounters = new[] { new[] { "oh_munchu_b", "baek_sayeong_b" }, new[] { "geomhu_ioksang" }, new[] { "heuksaek_amhyeok", "wiji_hyeolpok" }, new[] { "mask_gongpo", "mask_jeolmang", "mask_bitan" }, new[] { "suda_bokmyeon", "mu_jeong" } },
                 Trials = new[]
                 {
-                    TrialRule.Lifeline("금요관", "절벽의 마천칠걸이 줄을 노린다. 힘을 모으는 공격을 끊지 못해 세 번 맞으면 줄이 끊어진다!", 3),
+                    TrialRule.Lifeline("금요관", "절벽의 마천칠걸이 줄을 노린다. 힘을 모은 일격에 세 번 맞으면 줄이 끊어진다. 점혈로 끊거나 피하라!", 3),
                     TrialRule.Survive("검후의 십초지적", "검후의 공격을 12번 버텨라. 이길 수는 없다. 피하고 막아 살아남아라!", 12),
-                    TrialRule.Harmony("수화관 내공합격", "쉬지 않고 모두가 공격을 이으면 다음 일격이 크게 강해진다. 32행동 안에 암벽과 위지천을 쓰러뜨려라!", 32),
+                    TrialRule.Harmony("수화관 내공합격", "모두가 한 번씩 쉬지 않고 공격을 이으면 다음 일격이 2.5배가 된다. 32행동 안에 암벽과 위지천을 쓰러뜨려라!", 32),
                     TrialRule.Survive("은가면 삼성의 습격", "공포·절망·비탄 셋을 이길 수는 없다. 열두 번의 공격을 버텨 천율패를 지켜라!", 12),
                     null
                 } },

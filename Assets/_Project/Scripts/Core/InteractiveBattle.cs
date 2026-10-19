@@ -79,9 +79,11 @@ namespace BiRyeoDo.Core
         public int PartyActions { get; private set; }
         public int EnemyActions { get; private set; }
         public int LifelinesCut { get; private set; }
-        public int Combo { get; private set; }
+        /// <summary>수화관: how many of the living members have attacked in the current unbroken chain.</summary>
+        public int Combo { get { int n = 0; foreach (var m in _party) if (m.IsAlive && _chain.Contains(m.Id)) n++; return n; } }
         public bool TrialFailed { get; private set; }
         private bool _harmonyBoost;
+        private readonly HashSet<string> _chain = new HashSet<string>();   // who has attacked in the current 수화관 chain
 
         public InteractiveBattle(Combatant player, IEnumerable<Combatant> enemies, IRandom rng)
             : this(new[] { player }, enemies, rng)
@@ -243,11 +245,18 @@ namespace BiRyeoDo.Core
                     && cmd.Skill.Effect != SkillEffect.GuardParty && cmd.Skill.Effect != SkillEffect.HealAlly);
                 if (attacking)
                 {
+                    // the chain is full once every living member has attacked in it (one fast member attacking again does not count twice);
+                    // the attack after that is boosted and starts a new chain
                     int alive = 0; foreach (var m in _party) if (m.IsAlive) alive++;
                     _harmonyBoost = Combo >= alive;
-                    Combo = _harmonyBoost ? 0 : Combo + 1;
+                    if (_harmonyBoost) _chain.Clear();
+                    else
+                    {
+                        _chain.Add(actor.Id);
+                        if (cmd.Kind == CommandKind.Joint && cmd.Partner != null) _chain.Add(cmd.Partner.Id);
+                    }
                 }
-                else Combo = 0;
+                else _chain.Clear();
             }
 
             int firstEvent = events.Count;
@@ -528,11 +537,6 @@ namespace BiRyeoDo.Core
 
             enemy.MoveIndex++;
             bool heavy = enemy.Charging;
-            if (heavy && Trial != null && Trial.Kind == TrialKind.Lifeline)
-            {
-                LifelinesCut++;
-                if (LifelinesCut >= Trial.Limit) TrialFailed = true;
-            }
             enemy.Charging = false;
             enemy.ChargeTarget = null;
 
@@ -577,6 +581,12 @@ namespace BiRyeoDo.Core
                     hurt = true;
                 }
                 events.Add(ev);
+            }
+            // 금요관: a charged blow that lands (even guarded) cuts one rope, however many hits it had; one fully dodged cuts nothing
+            if (heavy && hurt && Trial != null && Trial.Kind == TrialKind.Lifeline)
+            {
+                LifelinesCut++;
+                if (LifelinesCut >= Trial.Limit) TrialFailed = true;
             }
             if (hurt) target.Spirit = Math.Min(MaxSpirit, target.Spirit + SpiritOnTaken + target.SpiritTakenBonus);
             if (enemy.UsesResources && !burst) enemy.Spirit = Math.Min(MaxSpirit, enemy.Spirit + EnemySpiritOnDealt);

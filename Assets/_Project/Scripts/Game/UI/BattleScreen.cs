@@ -805,7 +805,13 @@ namespace BiRyeoDo.Game.UI
                 data[i] = StageStars.ScaleEnemy(EarlyGameContent.FindEnemy(enemyIds[i]), stageNumber, difficulty);
                 if (questId != null) data[i] = Quests.Scale(questId, data[i]);
             }
-            if (trial != null) yield return Banner("[" + trial.Title + "]\n" + trial.Brief, 2.4f);
+            if (trial != null)
+            {
+                yield return Banner("[" + trial.Title + "]\n" + trial.Brief, 2.4f);
+                // the full rule once, before the first fight of each trial kind (always in 도움말 afterwards)
+                string topic = Tutorial.TrialTopic(trial.Kind);
+                if (topic != null && HelpPanel.Instance != null) yield return HelpPanel.Instance.ShowOnce(topic);
+            }
             yield return Fight(data, 0, trial);
         }
 

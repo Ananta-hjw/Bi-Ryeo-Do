@@ -22,6 +22,7 @@ namespace BiRyeoDo.Tests
         public void TopicsUsedByTheGameExist()
         {
             foreach (var id in new[] { "intro", "battle", "joint", "mastery", "board", "promotion" }) Assert.IsNotNull(Tutorial.Find(id), id);
+            foreach (TrialKind kind in System.Enum.GetValues(typeof(TrialKind))) if (kind != TrialKind.None) Assert.IsNotNull(Tutorial.Find(Tutorial.TrialTopic(kind)), kind.ToString());
         }
 
         [Test]
