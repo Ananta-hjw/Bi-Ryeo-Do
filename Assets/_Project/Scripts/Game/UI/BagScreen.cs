@@ -124,7 +124,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Kind", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.72f, 0.90f), kind, 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
 
             var lines = new List<string>();
-            if (gear) lines.Add("<color=#9ADB9F>" + StatusSheet.EffectText(item, enh) + "</color>" + (enh > 0 ? "   (기본 " + StatusSheet.EffectText(item, 0) + ")" : ""));
+            if (gear) lines.Add("장착 · 해제는 상태창의 부위 칸을 눌러 변경합니다.\n\n<color=#9ADB9F>" + StatusSheet.EffectText(item, enh) + "</color>" + (enh > 0 ? "   (기본 " + StatusSheet.EffectText(item, 0) + ")" : ""));
             else
             {
                 var fx = new List<string>();
@@ -146,14 +146,10 @@ namespace BiRyeoDo.Game.UI
                 var set = Gear.SetOf(item.Id);
                 lines.Add(set != null ? Gear.SetDetail(set, save.EquippedGear, save) : "세트 없음");
             }
-            UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(0.06f, gear ? 0.37f : 0.24f), new Vector2(0.94f, 0.83f), string.Join("\n\n", lines), 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 36);
+            UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.24f), new Vector2(0.94f, 0.83f), string.Join("\n\n", lines), 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 36);
 
             if (gear)
             {
-                bool eq = Inventory.IsEquipped(save, item.Id);
-                bool hasCompanions = JoinedCompanions(save).Count > 0 && !Gear.IsHeroOnly(item.Id);
-                UiFactory.Button("Equip", card.transform, new Vector2(0.05f, 0.255f), new Vector2(hasCompanions ? 0.49f : 0.95f, 0.355f), hasCompanions ? (eq ? "비류연 해제" : "비류연 장착") : (eq ? "해제" : "장착"), eq ? UiFactory.InkSoft : UiFactory.Red, () => { DoMain(item); }, hasCompanions ? 28 : 34);
-                if (hasCompanions) UiFactory.Button("CompanionEquip", card.transform, new Vector2(0.51f, 0.255f), new Vector2(0.95f, 0.355f), "동료 장착", UiFactory.Ink, () => OpenWearerPicker(item), 28);
                 bool canEnh = Gear.CanEnhance(save, item.Id);
                 string enhLabel = enh >= Gear.MaxLevel ? "최대 강화" : canEnh ? "강화 +" + (enh + 1) + "\n(여분 1개 사용)" : "강화\n(여분 필요)";
                 var enhBtn = UiFactory.Button("Enhance", card.transform, new Vector2(0.05f, 0.14f), new Vector2(0.49f, 0.24f), enhLabel, canEnh ? UiFactory.Red : UiFactory.InkSoft, () => { DoEnhance(item); }, 24);
@@ -219,25 +215,12 @@ namespace BiRyeoDo.Game.UI
                 HelpPanel.Instance.Show("gear", true);
         }
 
-        /// <summary>Equip / unequip gear or sell a material stack from item details.</summary>
+        /// <summary>Use a training scroll or sell a material stack from item details.</summary>
         private void DoMain(ItemData item)
         {
             var save = GameManager.Instance.Save;
 
-            if (item.IsGear)
-            {
-                if (Inventory.IsEquipped(save, item.Id))
-                {
-                    Inventory.Unequip(save, item.Id);
-                    _flash = item.Name + " 해제";
-                }
-                else
-                {
-                    string error;
-                    _flash = Inventory.Equip(save, item.Id, out error) ? item.Name + " 장착" : error;
-                }
-            }
-            else if (item.MasteryUses > 0)
+            if (item.MasteryUses > 0)
             {
                 OpenScrollPicker(item);   // the art is chosen there; nothing else to refresh yet
                 return;
@@ -256,61 +239,6 @@ namespace BiRyeoDo.Game.UI
             GameManager.Instance.SaveNow();
             Refresh();
             ReopenDetail(item);
-        }
-
-        private static List<CompanionData> JoinedCompanions(SaveData save)
-        {
-            var list = new List<CompanionData>();
-            foreach (var c in EarlyGameContent.Companions) if (c.JoinStage <= save.HighestUnlockedStage) list.Add(c);
-            return list;
-        }
-
-        /// <summary>Lists the companions that have joined; tapping one equips this piece on them (or takes it off if they already wear it).</summary>
-        private void OpenWearerPicker(ItemData item)
-        {
-            var save = GameManager.Instance.Save;
-            _detailId = item.Id;
-            for (int i = _detail.childCount - 1; i >= 0; i--) Destroy(_detail.GetChild(i).gameObject);
-            _detail.gameObject.SetActive(true);
-            var card = UiFactory.Panel("Card", _detail, new Vector2(0.05f, 0.08f), new Vector2(0.95f, 0.90f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
-            UiFactory.Frame(card.transform, UiFactory.GradeColor(item.Grade), 3f);
-            UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.91f), new Vector2(0.95f, 0.99f), UiFactory.GradedName(item), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
-            UiFactory.ScrollBody(UiFactory.Label("Hint", card.transform, new Vector2(0.05f, 0.82f), new Vector2(0.95f, 0.91f), "장비를 입힐 동료를 고르세요. 이미 입은 동료를 누르면 벗깁니다. (한 사람마다 같은 장비 한 개가 필요합니다. 보유 " + Inventory.Count(save, item.Id) + "개)" + (Gear.Level(save, item.Id) > 0 ? " 강화 +" + Gear.Level(save, item.Id) + "는 한 벌에만 붙어, 비류연이 입으면 비류연, 아니면 먼저 입은 동료에게 적용됩니다." : ""), 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 30);
-            var companions = JoinedCompanions(save);
-            var wearers = CodexPanel.Scroller(card.rectTransform, .19f, .80f);
-            for (int i = 0; i < companions.Count; i++)
-            {
-                var c = companions[i];
-                bool wears = Inventory.GearOf(save, c.Id).Contains(item.Id);
-                var wearerRow = CodexPanel.Band(wearers, i);
-                string id = c.Id;
-                var btn = UiFactory.Button("Wearer" + i, wearerRow, new Vector2(.02f, .05f), new Vector2(.98f, .95f), "", wears ? UiFactory.InkSoft : UiFactory.Ink, () => ToggleCompanionGear(item, id), 28);
-                UiFactory.Frame(btn.transform, wears ? UiFactory.Gold : UiFactory.GoldDim, 2f);
-                UiFactory.Label("Name", btn.transform, new Vector2(0.04f, 0.5f), new Vector2(0.96f, 0.98f), c.Name + "  Lv." + CompanionGrowth.LevelOf(save, c.Id) + (wears ? "   [착용 중]" : ""), 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                UiFactory.Label("Gear", btn.transform, new Vector2(0.04f, 0.02f), new Vector2(0.96f, 0.5f), StatusSheet.GearNames(save, c.Id), 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
-            }
-            if (!string.IsNullOrEmpty(_flash)) UiFactory.Label("Flash", card.transform, new Vector2(0.05f, 0.11f), new Vector2(0.95f, 0.18f), _flash, 30, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal);
-            UiFactory.Button("Close", card.transform, new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.10f), "뒤로", UiFactory.InkSoft, () => OpenDetail(item.Id), 34);
-        }
-
-        private void ToggleCompanionGear(ItemData item, string companionId)
-        {
-            var save = GameManager.Instance.Save;
-            var c = EarlyGameContent.FindCompanion(companionId);
-            string who = c != null ? c.Name : companionId;
-            if (Inventory.GearOf(save, companionId).Contains(item.Id))
-            {
-                Inventory.UnequipFor(save, companionId, item.Id);
-                _flash = who + "의 " + item.Name + " 해제";
-            }
-            else
-            {
-                string error;
-                _flash = Inventory.EquipFor(save, companionId, item.Id, out error) ? who + "에게 " + item.Name + " 장착" : error;
-            }
-            GameManager.Instance.SaveNow();
-            Refresh();
-            OpenWearerPicker(item);
         }
 
         /// <summary>Lists the learned arts; tapping one reads the 수련서 into it.</summary>
@@ -517,7 +445,7 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             _header.text = "행낭 · " + save.Doo.ToString("N0") + "두";
             _gear.text = "아이템을 누르면 상세 정보와 관리 버튼이 열립니다.";
-            _hint.text = !string.IsNullOrEmpty(_flash) ? _flash : "장착 · 해제 · 강화 · 분해는 장비 상세창에서 합니다.";
+            _hint.text = !string.IsNullOrEmpty(_flash) ? _flash : "강화 · 분해는 상세창에서, 장착 · 해제는 상태창에서 합니다.";
             _flash = null;
 
             var stacks = save.Items
@@ -544,11 +472,12 @@ namespace BiRyeoDo.Game.UI
                 if (!has) continue;
                 var stack = stacks[i];
                 var item = EarlyGameContent.FindItem(stack.Id);
-                bool equipped = Inventory.IsEquipped(save, item.Id) || Inventory.WearingCompanions(save, item.Id).Count > 0;
+                var wearers = Inventory.WearingCompanions(save, item.Id);
+                if (Inventory.IsEquipped(save, item.Id)) wearers.Insert(0, "비류연");
                 ItemArt.Apply(row.Icon, row.IconGlyph, item);
                 int enh = item.IsGear ? Gear.Level(save, item.Id) : 0;
                 var set = item.IsGear ? Gear.SetOf(item.Id) : null;
-                row.Title.text = UiFactory.GradedName(item) + (enh > 0 ? " +" + enh : "") + (stack.Count > 1 ? " ×" + stack.Count : "") + (equipped ? "\n착용 중" : "");
+                row.Title.text = UiFactory.GradedName(item) + (enh > 0 ? " +" + enh : "") + (stack.Count > 1 ? " ×" + stack.Count : "") + (wearers.Count > 0 ? "\n착용: " + string.Join(", ", wearers) : "");
                 row.Detail.text = item.IsGear
                     ? StatusSheet.EffectText(item, enh).Replace("  ", "\n") + "\n\n" + (set != null ? set.Name + " 세트" : "세트 없음")
                     : item.MasteryUses > 0 ? "숙련 +" + item.MasteryUses + "회"

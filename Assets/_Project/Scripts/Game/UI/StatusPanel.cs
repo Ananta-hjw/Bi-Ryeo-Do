@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using BiRyeoDo.Core;
 using BiRyeoDo.Game.Systems;
 using UnityEngine;
@@ -18,6 +19,10 @@ namespace BiRyeoDo.Game.UI
 
         private RectTransform _content;
         private float _y;
+        private RectTransform _picker;
+        private string _equipmentMessage;
+        private static readonly ItemKind[] SlotKinds = { ItemKind.Weapon, ItemKind.Armor, ItemKind.Pants, ItemKind.Boots, ItemKind.Accessory, ItemKind.Accessory };
+        private static readonly string[] SlotNames = { "무기", "상의", "하의", "신발", "장신구 1", "장신구 2" };
 
         public StatusPanel(RectTransform root, Action onChange) : base(root, onChange) { }
 
@@ -38,6 +43,35 @@ namespace BiRyeoDo.Game.UI
             long need = Progression.ExpToNext(save.Level);
             Text(head, 0.23f, 0.97f, 0.50f, 0.96f, "비류연  Lv." + save.Level + "  ·  " + Promotion.RankName(Promotion.EffectiveRank(save)), 38, UiFactory.Gold);
             Text(head, 0.23f, 0.97f, 0.06f, 0.50f, "경험 " + save.Exp.ToString("N0") + " / " + need.ToString("N0") + "\n두 " + save.Doo.ToString("N0"), 28, UiFactory.PaperText, TextAnchor.UpperLeft);
+
+            // Gear
+            Section(GearTitle(save));
+            GearCard("무기", StatusSheet.Weapon(save), 0);
+            GearCard("상의", StatusSheet.Armor(save), 1);
+            GearCard("하의", StatusSheet.Pants(save), 2);
+            GearCard("신발", StatusSheet.Boots(save), 3);
+            var accs = StatusSheet.Accessories(save);
+            for (int i = 0; i < Inventory.AccessorySlots; i++) GearCard("장신구 " + (i + 1), i < accs.Count ? accs[i] : null, 4 + i);
+
+            // 세트 효과: every set with a worn piece, what it gives now and what the next piece adds
+            Section("장비 세트 효과");
+            var setStatus = Gear.SetStatus(save.EquippedGear);
+            if (setStatus.Count == 0)
+            {
+                var none = Block(72f);
+                Text(none, 0.04f, 0.97f, 0f, 1f, "착용한 세트 장비가 없습니다. 같은 세트를 2개 이상 맞추면 효과가 붙습니다.", 24, UiFactory.Dim, TextAnchor.MiddleLeft);
+            }
+            foreach (var entry in setStatus)
+            {
+                int activeLines = entry[1].Split('\n').Length;
+                float h = 64f + activeLines * 34f + (entry[2].Length > 0 ? 38f : 0f);
+                var block = Block(h);
+                Text(block, 0.04f, 0.97f, 1f - 60f / h, 1f, entry[0], 30, UiFactory.Gold, TextAnchor.MiddleLeft);
+                float yTop = 1f - 62f / h;
+                float bodyBottom = (entry[2].Length > 0 ? 38f : 6f) / h;
+                Text(block, 0.04f, 0.97f, bodyBottom, yTop, entry[1], 24, UiFactory.PaperText, TextAnchor.UpperLeft);
+                if (entry[2].Length > 0) Text(block, 0.04f, 0.97f, 0.02f, bodyBottom, entry[2], 22, UiFactory.Dim, TextAnchor.MiddleLeft);
+            }
 
             // 무공 경지: composite stat power placed on the realm ladder (체력·공격·방어·속도, gear included)
             Section("무공 경지");
@@ -64,35 +98,6 @@ namespace BiRyeoDo.Game.UI
                 _y += 136f + Gap;
             }
 
-            // Gear
-            Section(GearTitle(save));
-            GearCard("무기", StatusSheet.Weapon(save));
-            GearCard("상의", StatusSheet.Armor(save));
-            GearCard("하의", StatusSheet.Pants(save));
-            GearCard("신발", StatusSheet.Boots(save));
-            var accs = StatusSheet.Accessories(save);
-            for (int i = 0; i < Inventory.AccessorySlots; i++) GearCard("장신구 " + (i + 1), i < accs.Count ? accs[i] : null);
-
-            // 세트 효과: every set with a worn piece, what it gives now and what the next piece adds
-            Section("장비 세트 효과");
-            var setStatus = Gear.SetStatus(save.EquippedGear);
-            if (setStatus.Count == 0)
-            {
-                var none = Block(72f);
-                Text(none, 0.04f, 0.97f, 0f, 1f, "착용한 세트 장비가 없습니다. 같은 세트를 2개 이상 맞추면 효과가 붙습니다.", 24, UiFactory.Dim, TextAnchor.MiddleLeft);
-            }
-            foreach (var entry in setStatus)
-            {
-                int activeLines = entry[1].Split('\n').Length;
-                float h = 64f + activeLines * 34f + (entry[2].Length > 0 ? 38f : 0f);
-                var block = Block(h);
-                Text(block, 0.04f, 0.97f, 1f - 60f / h, 1f, entry[0], 30, UiFactory.Gold, TextAnchor.MiddleLeft);
-                float yTop = 1f - 62f / h;
-                float bodyBottom = (entry[2].Length > 0 ? 38f : 6f) / h;
-                Text(block, 0.04f, 0.97f, bodyBottom, yTop, entry[1], 24, UiFactory.PaperText, TextAnchor.UpperLeft);
-                if (entry[2].Length > 0) Text(block, 0.04f, 0.97f, 0.02f, bodyBottom, entry[2], 22, UiFactory.Dim, TextAnchor.MiddleLeft);
-            }
-
             // Arts
             Section("장착 무공");
             var artLines = StatusSheet.ArtLines(save);
@@ -105,17 +110,19 @@ namespace BiRyeoDo.Game.UI
             }
 
             // Party
-            var party = EarlyGameContent.SelectCompanionsFor(Math.Max(1, save.HighestUnlockedStage), save);
+            var party = EarlyGameContent.Companions.Where(c => c.JoinStage <= save.HighestUnlockedStage).ToList();
             if (party.Count > 0)
             {
-                Section("출전 동료");
+                Section("동료 상태 · 장비");
                 foreach (var c in party)
                 {
                     var l = StatusSheet.Ally(save, c);
-                    var block = Block(300f);
-                    Text(block, 0.04f, 0.97f, 0.68f, 0.98f, c.Name + "  Lv." + CompanionGrowth.LevelOf(save, c.Id) + "   " + StatusSheet.AllyRealm(save, c), 32, UiFactory.Gold, TextAnchor.MiddleLeft);
-                    Text(block, 0.04f, 0.97f, 0.36f, 0.68f, "체력 " + l[0].Value + "    내공 " + l[1].Value + "\n공격 " + l[2].Value + "    방어 " + l[3].Value, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                    Text(block, 0.04f, 0.97f, 0.02f, 0.36f, StatusSheet.GearNames(save, c.Id), 22, UiFactory.Dim, TextAnchor.MiddleLeft);
+                    var block = Block(400f);
+                    Text(block, 0.04f, 0.97f, 0.76f, 0.98f, c.Name + "  Lv." + CompanionGrowth.LevelOf(save, c.Id) + "   " + StatusSheet.AllyRealm(save, c), 32, UiFactory.Gold, TextAnchor.MiddleLeft);
+                    Text(block, 0.04f, 0.97f, 0.48f, 0.76f, "체력 " + l[0].Value + "    내공 " + l[1].Value + "\n공격 " + l[2].Value + "    방어 " + l[3].Value, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                    Text(block, 0.04f, 0.97f, 0.22f, 0.48f, StatusSheet.GearNames(save, c.Id), 22, UiFactory.Dim, TextAnchor.MiddleLeft);
+                    string owner = c.Id;
+                    UiFactory.Button("ManageGear", block, new Vector2(.04f, .02f), new Vector2(.96f, .20f), "장비 장착 · 해제", UiFactory.InkSoft, () => OpenEquipmentPicker(owner, 0), 32);
                 }
             }
 
@@ -170,13 +177,17 @@ namespace BiRyeoDo.Game.UI
                 Text(cell.rectTransform, 0.40f, 0.95f, 0f, 0.45f, "장비 " + line.Bonus, 22, Green, TextAnchor.MiddleRight);
         }
 
-        private void GearCard(string slot, ItemData item)
+        private void GearCard(string slot, ItemData item, int slotIndex)
         {
             var save = GameManager.Instance.Save;
             bool has = item != null;
             var card = Block(has ? 220f : 120f);
+            var tap = card.gameObject.AddComponent<Button>();
+            tap.targetGraphic = card.GetComponent<Image>();
+            tap.transition = Selectable.Transition.None;
+            tap.onClick.AddListener(() => OpenEquipmentPicker(Inventory.Hero, slotIndex));
             UiFactory.Frame(card, has ? UiFactory.GoldDim : new Color(0.25f, 0.25f, 0.28f, 1f), 2f);
-            string name = has ? UiFactory.GradedName(item) + (Gear.Level(save, item.Id) > 0 ? " +" + Gear.Level(save, item.Id) : "") : "비어 있음";
+            string name = has ? UiFactory.GradedName(item) + (Gear.Level(save, item.Id) > 0 ? " +" + Gear.Level(save, item.Id) : "") : "비어 있음 · 눌러서 장착";
             Text(card, 0.04f, 0.26f, has ? 0.58f : 0f, 1f, slot, 26, UiFactory.Dim);
             Text(card, 0.27f, has ? 0.83f : 0.97f, has ? 0.58f : 0f, 1f, name, 32, has ? UiFactory.PaperText : UiFactory.InkSoft);
             if (has)
@@ -188,6 +199,79 @@ namespace BiRyeoDo.Game.UI
             }
         }
 
-        private static string GearTitle(SaveData save) { return "착용 장비"; }
+        private void OpenEquipmentPicker(string owner, int slotIndex)
+        {
+            if (_picker != null) { _picker.gameObject.SetActive(false); UnityEngine.Object.Destroy(_picker.gameObject); }
+            _picker = UiFactory.Rect("EquipmentPicker", Root, Vector2.zero, Vector2.one);
+            UiFactory.Panel("Background", _picker, Vector2.zero, Vector2.one, UiFactory.Parchment).raycastTarget = true;
+            var save = GameManager.Instance.Save;
+            var kind = SlotKinds[slotIndex];
+            int slot = slotIndex == 5 ? 1 : 0;
+            var current = Inventory.InSlot(save, owner, kind, slot);
+            var owners = new List<string> { Inventory.Hero };
+            owners.AddRange(EarlyGameContent.Companions.Where(c => c.JoinStage <= save.HighestUnlockedStage).Select(c => c.Id));
+            for (int i = 0; i < owners.Count; i++)
+            {
+                string id = owners[i];
+                string name = id == Inventory.Hero ? "비류연" : EarlyGameContent.FindCompanion(id).Name;
+                float left = .04f + (i % 3) * .31f;
+                float top = .99f - (i / 3) * .05f;
+                UiFactory.Button("Owner" + i, _picker, new Vector2(left, top - .045f), new Vector2(left + .30f, top), name,
+                    id == owner ? UiFactory.Red : UiFactory.InkSoft, () => { _equipmentMessage = null; OpenEquipmentPicker(id, slotIndex); }, 30);
+            }
+            for (int i = 0; i < SlotNames.Length; i++)
+            {
+                int selected = i;
+                float left = .04f + (i % 3) * .31f;
+                float top = .88f - (i / 3) * .055f;
+                UiFactory.Button("Slot" + i, _picker, new Vector2(left, top - .05f), new Vector2(left + .30f, top), SlotNames[i],
+                    i == slotIndex ? UiFactory.Red : UiFactory.InkSoft, () => { _equipmentMessage = null; OpenEquipmentPicker(owner, selected); }, 30);
+            }
+            string currentName = current != null ? UiFactory.GradedName(current) : "비어 있음";
+            UiFactory.ScrollBody(UiFactory.Label("Current", _picker, new Vector2(.05f, .70f), new Vector2(.72f, .77f), "현재 " + SlotNames[slotIndex] + "\n" + currentName, 32, UiFactory.PaperText, TextAnchor.MiddleLeft), 32);
+            var remove = UiFactory.Button("Unequip", _picker, new Vector2(.74f, .705f), new Vector2(.95f, .765f), "해제", UiFactory.InkSoft, () =>
+            {
+                if (current == null) return;
+                Inventory.UnequipFor(save, owner, current.Id);
+                GameManager.Instance.SaveNow();
+                _equipmentMessage = current.Name + "을(를) 해제했습니다.";
+                OpenEquipmentPicker(owner, slotIndex);
+            }, 32);
+            remove.interactable = current != null;
+            string summary = current != null ? StatusSheet.EffectText(current, Gear.LevelFor(save, owner, current.Id)) : "아래에서 이 부위에 장착할 장비를 선택합니다.";
+            UiFactory.ScrollBody(UiFactory.Label("CurrentEffect", _picker, new Vector2(.05f, .64f), new Vector2(.95f, .70f), summary, 30, UiFactory.Dim), 30);
+            UiFactory.ScrollBody(UiFactory.Label("Message", _picker, new Vector2(.05f, .59f), new Vector2(.95f, .64f), _equipmentMessage ?? "착용 중인 장비는 강조 표시됩니다. 다른 인물의 장비는 먼저 해제합니다.", 30, UiFactory.Gold), 30);
+            var content = CodexPanel.Scroller(_picker, .095f, .585f);
+            var candidates = save.Items.Select(stack => EarlyGameContent.FindItem(stack.Id))
+                .Where(item => item != null && item.IsGear && item.Kind == kind && Inventory.Count(save, item.Id) > 0
+                    && (owner == Inventory.Hero || !Gear.IsHeroOnly(item.Id)))
+                .OrderByDescending(item => current != null && item.Id == current.Id).ThenByDescending(item => item.Grade).ThenBy(item => item.Name).ToList();
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                var item = candidates[i];
+                bool worn = current != null && current.Id == item.Id;
+                bool otherSlot = !worn && Inventory.GearOf(save, owner).Contains(item.Id);
+                bool available = !worn && !otherSlot && Inventory.Free(save, item.Id) > 0;
+                var row = CodexPanel.Band(content, i);
+                if (worn) row.GetComponent<Image>().color = new Color(.15f, .28f, .25f, 1f);
+                string state = worn ? "착용 중" : otherSlot ? "다른 칸 착용 중" : !available ? "다른 인물 착용 중" : "보유 " + Inventory.Count(save, item.Id) + "개";
+                var set = Gear.SetOf(item.Id);
+                UiFactory.Body(UiFactory.Label("Name", row, new Vector2(.04f, .57f), new Vector2(.72f, .97f), UiFactory.GradedName(item) + "  ·  " + state, 32, worn ? UiFactory.Gold : UiFactory.PaperText, TextAnchor.MiddleLeft));
+                UiFactory.Body(UiFactory.Label("Effect", row, new Vector2(.04f, .04f), new Vector2(.72f, .57f), (worn ? StatusSheet.EffectText(item, Gear.LevelFor(save, owner, item.Id)) : "기본 효과: " + StatusSheet.EffectText(item)) + "\n" + (set != null ? set.Name + " 세트" : "세트 없음"), 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal));
+                var equip = UiFactory.Button("Equip", row, new Vector2(.75f, .15f), new Vector2(.96f, .85f), worn ? "착용 중" : "장착", available ? UiFactory.Red : UiFactory.InkSoft, () =>
+                {
+                    string error;
+                    bool success = Inventory.EquipInSlot(save, owner, kind, slot, item.Id, out error);
+                    _equipmentMessage = success ? item.Name + "을(를) 장착했습니다." : error;
+                    if (success) GameManager.Instance.SaveNow();
+                    OpenEquipmentPicker(owner, slotIndex);
+                }, 30);
+                equip.interactable = available;
+            }
+            if (candidates.Count == 0) UiFactory.Label("Empty", content.parent, new Vector2(.05f, .35f), new Vector2(.95f, .65f), "이 부위에 장착할 수 있는 장비가 없습니다.", 32, UiFactory.Dim);
+            UiFactory.Button("Back", _picker, new Vector2(.25f, .01f), new Vector2(.75f, .085f), "상태창으로", UiFactory.InkSoft, () => { _equipmentMessage = null; Open(); OnChange(); }, 34);
+        }
+
+        private static string GearTitle(SaveData save) { return "착용 장비 · 부위를 눌러 변경"; }
     }
 }

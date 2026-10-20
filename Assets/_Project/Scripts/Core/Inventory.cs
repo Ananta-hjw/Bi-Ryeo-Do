@@ -158,6 +158,46 @@ namespace BiRyeoDo.Core
             return true;
         }
 
+        /// <summary>Returns the item in a kind-specific slot; accessories use indices 0 and 1.</summary>
+        public static ItemData InSlot(SaveData save, string owner, ItemKind kind, int slot = 0)
+        {
+            int index = 0;
+            foreach (var id in GearOf(save, owner))
+            {
+                var item = EarlyGameContent.FindItem(id);
+                if (item != null && item.Kind == kind && index++ == slot) return item;
+            }
+            return null;
+        }
+
+        /// <summary>Replaces exactly the selected slot, restoring the original loadout on failure.</summary>
+        public static bool EquipInSlot(SaveData save, string owner, ItemKind kind, int slot, string id, out string error)
+        {
+            var item = EarlyGameContent.FindItem(id);
+            if (item == null || !item.IsGear || item.Kind != kind || slot < 0 || slot >= (kind == ItemKind.Accessory ? AccessorySlots : 1))
+            {
+                error = "선택한 부위에 장착할 수 없는 장비입니다.";
+                return false;
+            }
+            var gear = GearOf(save, owner);
+            var previous = InSlot(save, owner, kind, slot);
+            if (previous != null && previous.Id == id) { error = null; return true; }
+            if (gear.Contains(id)) { error = "다른 장신구 칸에 이미 착용 중입니다."; return false; }
+            var original = new List<string>(gear);
+            int position = previous != null ? gear.IndexOf(previous.Id) : gear.Count;
+            if (previous != null) gear.Remove(previous.Id);
+            if (!EquipFor(save, owner, id, out error))
+            {
+                gear.Clear();
+                gear.AddRange(original);
+                return false;
+            }
+            // Keep the other accessory in its original slot when replacing the first one.
+            gear.Remove(id);
+            gear.Insert(Math.Min(position, gear.Count), id);
+            return true;
+        }
+
         public static void Unequip(SaveData save, string id) { save.EquippedGear.Remove(id); }
 
         public static void UnequipFor(SaveData save, string owner, string id) { GearOf(save, owner).Remove(id); }
