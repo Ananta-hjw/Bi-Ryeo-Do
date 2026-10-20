@@ -454,7 +454,7 @@ namespace BiRyeoDo.Game.UI
                         int fightNew = StageStars.Record(save, stage.Number, i, diff, fightMask);
                         int stones = StageStars.GrantClearInsight(save, stage.Number, diff, stageWasCleared);
                         if (stones > 0) { repLine += (repLine.Length > 0 ? "\n" : "") + "심득석 +" + stones; found.Add("심득석 x" + stones); }
-                        if (!replay && firstWin) foreach (var scroll in Mastery.RollScrolls(save, new SeededRandom(Environment.TickCount)))
+                        if (!replay && firstWin) foreach (var scroll in Mastery.RollScrolls(save, new SeededRandom(Environment.TickCount), stage.Number, diff))
                         {
                             var scrollData = EarlyGameContent.FindItem(scroll.Id);
                             if (scrollData != null) found.Add(scrollData.Name);

@@ -105,12 +105,22 @@ namespace BiRyeoDo.Core
         public static readonly string[] ScrollIds = { "art_scroll_5", "art_scroll_10", "art_scroll_20" };
         public static readonly float[] ScrollChance = { 0.10f, 0.05f, 0.02f };
 
-        /// <summary>Rolls the 수련서 for one won fight and puts what was found in the bag.</summary>
-        public static List<ItemStack> RollScrolls(SaveData save, IRandom rng)
+        /// <summary>First stage of the given difficulty (0 normal, 1 어려움, 2 극악) where each 수련서 starts to drop: 소 from the start, 중 from normal 20, 대 from 어려움 10.</summary>
+        public static readonly int[] ScrollDropDifficulty = { 0, 0, 1 }, ScrollDropStage = { 1, 20, 10 };
+
+        public static bool ScrollCanDrop(int scroll, int stage, int difficulty)
+        {
+            if (difficulty != ScrollDropDifficulty[scroll]) return difficulty > ScrollDropDifficulty[scroll];
+            return stage >= ScrollDropStage[scroll];
+        }
+
+        /// <summary>Rolls the 수련서 for one won fight and puts what was found in the bag. Only the scrolls that can drop at that stage and difficulty are rolled.</summary>
+        public static List<ItemStack> RollScrolls(SaveData save, IRandom rng, int stage = 1, int difficulty = 0)
         {
             var found = new List<ItemStack>();
             for (int i = 0; i < ScrollIds.Length; i++)
             {
+                if (!ScrollCanDrop(i, stage, difficulty)) continue;
                 if (rng.NextDouble() >= ScrollChance[i]) continue;
                 Inventory.Add(save, ScrollIds[i], 1);
                 found.Add(new ItemStack(ScrollIds[i], 1));

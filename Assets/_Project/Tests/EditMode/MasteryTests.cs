@@ -140,11 +140,27 @@ namespace BiRyeoDo.Tests
             int[] found = new int[3];
             const int rolls = 20000;
             for (int i = 0; i < rolls; i++)
-                foreach (var s in Mastery.RollScrolls(save, rng)) found[System.Array.IndexOf(Mastery.ScrollIds, s.Id)]++;
+                foreach (var s in Mastery.RollScrolls(save, rng, 30, 1)) found[System.Array.IndexOf(Mastery.ScrollIds, s.Id)]++;
             Assert.AreEqual(0.10, found[0] / (double)rolls, 0.01);
             Assert.AreEqual(0.05, found[1] / (double)rolls, 0.007);
             Assert.AreEqual(0.02, found[2] / (double)rolls, 0.005);
             Assert.AreEqual(found[0], Inventory.Count(save, "art_scroll_5"));
+        }
+
+        [Test]
+        public void ScrollsStartDroppingAtTheirOwnStage()
+        {
+            Assert.IsTrue(Mastery.ScrollCanDrop(0, 1, 0));
+            Assert.IsFalse(Mastery.ScrollCanDrop(1, 19, 0));
+            Assert.IsTrue(Mastery.ScrollCanDrop(1, 20, 0));
+            Assert.IsTrue(Mastery.ScrollCanDrop(1, 1, 1));
+            Assert.IsFalse(Mastery.ScrollCanDrop(2, 30, 0));
+            Assert.IsFalse(Mastery.ScrollCanDrop(2, 9, 1));
+            Assert.IsTrue(Mastery.ScrollCanDrop(2, 10, 1));
+            Assert.IsTrue(Mastery.ScrollCanDrop(2, 1, 2));
+            var save = new SaveData();
+            var rng = new SeededRandom(3);
+            for (int i = 0; i < 5000; i++) foreach (var s in Mastery.RollScrolls(save, rng, 5, 0)) Assert.AreEqual("art_scroll_5", s.Id);
         }
 
         [Test]
