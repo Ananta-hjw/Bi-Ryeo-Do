@@ -35,7 +35,7 @@ namespace BiRyeoDo.Game.UI
 
             var sword = EarlyGameContent.FindItem(Ritual.RewardId);
             var conditions = Ritual.Conditions(save);
-            var content = CodexPanel.Scroller(Root, 0.34f, 0.79f);
+            var content = CodexPanel.Scroller(Root, 0.45f, 0.79f);
             for (int i = 0; i < conditions.Count; i++)
             {
                 var c = conditions[i];
@@ -46,8 +46,14 @@ namespace BiRyeoDo.Game.UI
             }
             SetListHeight(content, conditions.Count);
 
-            UiFactory.Body(UiFactory.Label("Reward", Root, new Vector2(0.05f, 0.215f), new Vector2(0.95f, 0.33f),
-                "보상  " + UiFactory.GradedName(sword) + " · 5성\n" + StatusSheet.EffectText(sword, 0, Gear.MaxStars), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal));
+            var rewardIcon = UiFactory.Panel("RewardIcon", Root, new Vector2(.40f, .34f), new Vector2(.60f, .435f), Color.white);
+            UiFactory.Frame(rewardIcon.transform, UiFactory.GradeColor(sword.Grade), 2f);
+            var rewardGlyph = UiFactory.Label("Glyph", rewardIcon.transform, Vector2.zero, Vector2.one, "", 54, UiFactory.PaperText);
+            ItemArt.Apply(rewardIcon, rewardGlyph, sword);
+            UiFactory.Body(UiFactory.Label("Reward", Root, new Vector2(0.05f, 0.282f), new Vector2(0.95f, 0.333f),
+                "보상  " + UiFactory.GradedName(sword) + " · 5성", 32, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal));
+            UiFactory.ScrollBody(UiFactory.Label("RewardEffects", Root, new Vector2(.06f, .21f), new Vector2(.94f, .282f),
+                StatusSheet.EffectText(sword, 0, Gear.MaxStars), 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 30);
 
             if (save.RitualDone)
             {

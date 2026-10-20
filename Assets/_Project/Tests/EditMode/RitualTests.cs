@@ -23,6 +23,36 @@ public class RitualTests
     }
 
     [Test]
+    public void FiveStarRewardEffectsMatchPreviewAndBattleWithoutDoubleBonus()
+    {
+        var save = new SaveData();
+        Inventory.Add(save, Ritual.RewardId, 1);
+        string error;
+        Assert.IsTrue(Inventory.Equip(save, Ritual.RewardId, out error), error);
+        var item = EarlyGameContent.FindItem(Ritual.RewardId);
+        Assert.AreEqual(5, Gear.Stars(save, item.Id));
+        var stats = new CombatStats { MaxHp = 1000, MaxQi = 100, Attack = 1000, Defense = 100, Speed = 100, CritRate = 0f, CritDamage = 1.5f };
+        var actual = Inventory.ApplyGear(stats, save.EquippedGear, Gear.LevelsFor(save, Inventory.Hero));
+        Assert.AreEqual(1300, actual.MaxHp);
+        Assert.AreEqual(2200, actual.Attack);
+        Assert.AreEqual(120, actual.Speed);
+        Assert.AreEqual(.30f, actual.CritRate, .00001f);
+        Assert.AreEqual(2f, actual.CritDamage, .00001f);
+        Assert.AreEqual(100, actual.Defense);
+        Assert.AreEqual(100, actual.MaxQi);
+        var effects = StatusSheet.EffectText(item, 0, Gear.MaxStars);
+        StringAssert.Contains("체력 +30%", effects);
+        StringAssert.Contains("공격 +120%", effects);
+        StringAssert.Contains("속도 +20", effects);
+        StringAssert.Contains("치명타 +30%", effects);
+        StringAssert.Contains("치명타 피해 +50%", effects);
+        Assert.AreEqual(effects, StatusSheet.EffectText(item));
+        Assert.AreEqual(1f, Gear.EffectMultiplier(item, 0, 5), .00001f);
+        Assert.AreEqual(Gear.Multiplier(100, 5) / Gear.Multiplier(0, 5), Gear.EffectMultiplier(item, 100, 5), .00001f);
+        Assert.Greater(Gear.EffectMultiplier(item, 10, 5), 1f, "slot enhancement must still improve the reward");
+    }
+
+    [Test]
     public void TheRewardIsATranscendentWeaponAboveEveryGachaGradeAndNeverInThePool()
     {
         var sword = EarlyGameContent.FindItem(Ritual.RewardId);

@@ -93,7 +93,7 @@ namespace BiRyeoDo.Core
         /// <summary>"공격 +10%  방어 +10%  속도 -6" for a piece of gear.</summary>
         public static string EffectText(ItemData item, int enhance = 0, int stars = 0)
         {
-            float m = Gear.Multiplier(enhance, stars);
+            float m = Gear.EffectMultiplier(item, enhance, stars);
             var parts = new List<string>();
             if (item.HpPct != 0f) parts.Add("체력 " + Pct(item.HpPct * m));
             if (item.QiPct != 0f) parts.Add("내공 " + Pct(item.QiPct * m));
