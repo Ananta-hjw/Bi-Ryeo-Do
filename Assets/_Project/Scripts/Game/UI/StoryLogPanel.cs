@@ -22,8 +22,8 @@ namespace BiRyeoDo.Game.UI
             Begin();
             var readable = StoryBriefings.Readable(save);
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "이야기 줄거리", 40, UiFactory.Gold);
-            UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.845f), new Vector2(0.95f, 0.92f),
-                "지금까지의 이야기를 인물과 사정 중심으로 다시 읽습니다. 돌파한 스테이지와 다음 스테이지가 열려 있습니다.", 22, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.ScrollBody(UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.845f), new Vector2(0.95f, 0.92f),
+                "지금까지의 이야기를 인물과 사정 중심으로 다시 읽습니다. 돌파한 스테이지와 다음 스테이지가 열려 있습니다.", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             var content = CodexPanel.Scroller(Root, 0.09f, 0.84f);
             for (int i = 0; i < readable.Count; i++)
@@ -32,7 +32,7 @@ namespace BiRyeoDo.Game.UI
                 var band = CodexPanel.Band(content, i);
                 bool cleared = save.ClearedStage >= stage.Number;
                 UiFactory.Label("Name", band, new Vector2(0.04f, 0.54f), new Vector2(0.48f, 0.97f), stage.Number + ". " + stage.Name, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                UiFactory.Label("Info", band, new Vector2(0.04f, 0.04f), new Vector2(0.48f, 0.54f), cleared ? "돌파한 이야기" : "다음 이야기", 20, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Info", band, new Vector2(0.04f, 0.04f), new Vector2(0.48f, 0.54f), cleared ? "돌파한 이야기" : "다음 이야기", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var s = stage;
                 UiFactory.Button("Before", band, new Vector2(0.50f, 0.14f), new Vector2(0.64f, 0.86f), "배경", UiFactory.InkSoft, () => Play(s.Name + " — 배경", StoryBriefings.Briefing(s.Number)), 24);
                 var between = StoryBriefings.Interlude(s.Number);

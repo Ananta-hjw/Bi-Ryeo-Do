@@ -14,7 +14,7 @@ namespace BiRyeoDo.Game.UI
     public sealed class StatusPanel : OverlayPanel
     {
         private static readonly Color Green = new Color(0.45f, 0.85f, 0.5f, 1f);
-        private const float Gap = 14f, SectionH = 64f;
+        private const float Gap = 20f, SectionH = 88f;
 
         private RectTransform _content;
         private float _y;
@@ -30,7 +30,7 @@ namespace BiRyeoDo.Game.UI
             _y = Gap;
 
             // Header: portrait + name, level, rank, exp
-            var head = Block(150f);
+            var head = Block(230f);
             var pic = UiFactory.Panel("Pic", head, new Vector2(0.02f, 0.06f), new Vector2(0.20f, 0.94f), ArtLibrary.TintFor("비류연"));
             var sprite = ArtLibrary.Player();
             if (sprite != null) { pic.sprite = sprite; pic.color = Color.white; pic.preserveAspect = true; }
@@ -43,7 +43,7 @@ namespace BiRyeoDo.Game.UI
             Section("무공 경지");
             double power = Realm.Power(InnerArts.HeroStatsBeforeRealm(save));
             int realmStep = Realm.StepOf(power);
-            var realmCard = Block(230f);
+            var realmCard = Block(280f);
             Text(realmCard, 0.04f, 0.96f, 0.66f, 0.98f, Realm.Label(realmStep), 40, UiFactory.Gold, TextAnchor.MiddleLeft);
             Text(realmCard, 0.04f, 0.96f, 0.50f, 0.66f, "종합 수치 " + Math.Round(power).ToString("N0"), 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
             string remaining = Realm.RemainingText(power);
@@ -58,10 +58,10 @@ namespace BiRyeoDo.Game.UI
             var stats = StatusSheet.Hero(save);
             for (int i = 0; i < stats.Count; i += 2)
             {
-                var row = Place(84f, false);
+                var row = Place(136f, false);
                 StatCell(row, stats[i], 0f, 0.495f);
                 if (i + 1 < stats.Count) StatCell(row, stats[i + 1], 0.505f, 1f);
-                _y += 84f + Gap;
+                _y += 136f + Gap;
             }
 
             // Gear
@@ -112,15 +112,15 @@ namespace BiRyeoDo.Game.UI
                 foreach (var c in party)
                 {
                     var l = StatusSheet.Ally(save, c);
-                    var block = Block(190f);
+                    var block = Block(300f);
                     Text(block, 0.04f, 0.97f, 0.68f, 0.98f, c.Name + "  Lv." + CompanionGrowth.LevelOf(save, c.Id) + "   " + StatusSheet.AllyRealm(save, c), 32, UiFactory.Gold, TextAnchor.MiddleLeft);
-                    Text(block, 0.04f, 0.97f, 0.36f, 0.68f, "체력 " + l[0].Value + "   내공 " + l[1].Value + "   공격 " + l[2].Value + "   방어 " + l[3].Value, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                    Text(block, 0.04f, 0.97f, 0.36f, 0.68f, "체력 " + l[0].Value + "    내공 " + l[1].Value + "\n공격 " + l[2].Value + "    방어 " + l[3].Value, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
                     Text(block, 0.04f, 0.97f, 0.02f, 0.36f, StatusSheet.GearNames(save, c.Id), 22, UiFactory.Dim, TextAnchor.MiddleLeft);
                 }
             }
 
             _content.sizeDelta = new Vector2(0f, _y + Gap);
-            UiFactory.Button("Close", Root, new Vector2(0.3f, 0.01f), new Vector2(0.7f, 0.065f), "닫기", UiFactory.InkSoft, () => { Root.gameObject.SetActive(false); OnChange(); }, 34);
+            UiFactory.Button("Close", Root, new Vector2(0.25f, 0.005f), new Vector2(0.75f, 0.075f), "닫기", UiFactory.InkSoft, () => { Root.gameObject.SetActive(false); OnChange(); }, 34);
         }
 
         // ------------------------------------------------------------------ layout helpers (pixel rows inside the scroll content)
@@ -143,6 +143,7 @@ namespace BiRyeoDo.Game.UI
             bg.color = framed ? UiFactory.Ink : new Color(0f, 0f, 0f, 0f);
             bg.raycastTarget = true;   // lets a drag that starts on a row still scroll
             if (framed) UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
+            ReadingList.Register(rt, h, Gap);
             return rt;
         }
 
@@ -156,7 +157,7 @@ namespace BiRyeoDo.Game.UI
         /// <summary>A fixed-size, wrapping text (no shrink-to-fit) inside a row.</summary>
         private static Text Text(RectTransform parent, float x0, float x1, float y0, float y1, string text, int size, Color color, TextAnchor anchor = TextAnchor.MiddleLeft)
         {
-            return UiFactory.Body(UiFactory.Label("Text", parent, new Vector2(x0, y0), new Vector2(x1, y1), text, size, color, anchor, FontStyle.Normal), 1.2f);
+            return UiFactory.Body(UiFactory.Label("Text", parent, new Vector2(x0, y0), new Vector2(x1, y1), text, Mathf.Max(32, size), color, anchor, FontStyle.Normal), 1.2f);
         }
 
         private static void StatCell(RectTransform row, StatLine line, float x0, float x1)
@@ -173,7 +174,7 @@ namespace BiRyeoDo.Game.UI
         {
             var save = GameManager.Instance.Save;
             bool has = item != null;
-            var card = Block(has ? 150f : 84f);
+            var card = Block(has ? 220f : 120f);
             UiFactory.Frame(card, has ? UiFactory.GoldDim : new Color(0.25f, 0.25f, 0.28f, 1f), 2f);
             string name = has ? UiFactory.GradedName(item) + (Gear.Level(save, item.Id) > 0 ? " +" + Gear.Level(save, item.Id) : "") : "비어 있음";
             Text(card, 0.04f, 0.26f, has ? 0.58f : 0f, 1f, slot, 26, UiFactory.Dim);
@@ -187,15 +188,6 @@ namespace BiRyeoDo.Game.UI
             }
         }
 
-        private static string GearTitle(SaveData save)
-        {
-            var parts = new List<string>();
-            foreach (var set in Gear.Sets)
-            {
-                int n = Gear.WornPieces(set, save.EquippedGear);
-                if (n >= 2) parts.Add(set.Name + " 세트 " + n + "/" + set.Items.Length);
-            }
-            return parts.Count == 0 ? "장비" : "장비   <color=#9ADB9F>" + string.Join(" · ", parts) + "</color>";
-        }
+        private static string GearTitle(SaveData save) { return "착용 장비"; }
     }
 }

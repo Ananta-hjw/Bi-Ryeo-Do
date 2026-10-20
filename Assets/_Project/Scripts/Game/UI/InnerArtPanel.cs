@@ -26,7 +26,7 @@ namespace BiRyeoDo.Game.UI
             int slots = InnerArts.SlotCount(save);
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "심법 · 장착 " + save.EquippedInner.Count + "/" + slots, 44, UiFactory.Gold);
             string slotNote = slots >= 4 ? "모든 칸이 열렸습니다" : "다음 칸: " + (save.ClearedStage < 10 ? "스테이지 10 돌파" : save.ClearedStage < 20 ? "스테이지 20 돌파" : "어려움 스테이지 " + InnerArts.FourthSlotStage + " 돌파");
-            UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.855f), new Vector2(0.95f, 0.92f), toast ?? ("두 " + save.Doo.ToString("N0") + "  ·  심득석 " + InnerArts.Stones(save) + "  ·  " + slotNote), 26, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.ScrollBody(UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.855f), new Vector2(0.95f, 0.92f), toast ?? ("두 " + save.Doo.ToString("N0") + "  ·  심득석 " + InnerArts.Stones(save) + "  ·  " + slotNote), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             var content = CodexPanel.Scroller(Root, 0.09f, 0.85f);
             for (int i = 0; i < InnerArts.All.Length; i++)
@@ -35,8 +35,8 @@ namespace BiRyeoDo.Game.UI
                 bool unlocked = InnerArts.IsUnlocked(save, a), learned = InnerArts.IsLearned(save, a.Id), equipped = InnerArts.IsEquipped(save, a.Id);
                 var band = CodexPanel.Band(content, i);
                 UiFactory.Label("Name", band, new Vector2(0.04f, 0.58f), new Vector2(0.66f, 0.97f), (unlocked ? a.Name : "???") + (InnerArts.Level(save, a.Id) > 0 ? "  +" + InnerArts.Level(save, a.Id) : "") + (equipped ? "  [장착]" : "") + (NewIds.Contains(a.Id) && !learned ? "  <color=#FF6A5A>[새 심법]</color>" : ""), 32, unlocked ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
-                UiFactory.Label("Effect", band, new Vector2(0.04f, 0.30f), new Vector2(0.66f, 0.60f), unlocked ? InnerArts.EffectText(a, InnerArts.Level(save, a.Id)) : InnerArts.UnlockText(a) + "하면 열립니다", 22, new Color(0.45f, 0.85f, 0.5f, 1f), TextAnchor.MiddleLeft, FontStyle.Normal);
-                UiFactory.Label("Desc", band, new Vector2(0.04f, 0.02f), new Vector2(0.66f, 0.32f), unlocked ? a.Description : "", 18, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Effect", band, new Vector2(0.04f, 0.30f), new Vector2(0.66f, 0.60f), unlocked ? InnerArts.EffectText(a, InnerArts.Level(save, a.Id)) : InnerArts.UnlockText(a) + "하면 열립니다", 30, new Color(0.45f, 0.85f, 0.5f, 1f), TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Desc", band, new Vector2(0.04f, 0.02f), new Vector2(0.66f, 0.32f), unlocked ? a.Description : "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var id = a.Id;
                 string label; Color color; bool enabled;
                 if (learned) { label = equipped ? "해제" : "장착"; color = equipped ? UiFactory.InkSoft : UiFactory.Red; enabled = true; }

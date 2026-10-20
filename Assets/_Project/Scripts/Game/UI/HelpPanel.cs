@@ -27,11 +27,11 @@ namespace BiRyeoDo.Game.UI
             var dim = rect.gameObject.AddComponent<Image>();
             dim.color = new Color(0f, 0f, 0f, 0.72f);   // blocks taps on whatever is underneath
 
-            var card = UiFactory.Panel("Card", rect, new Vector2(0.05f, 0.20f), new Vector2(0.95f, 0.80f), new Color(0.05f, 0.07f, 0.11f, 0.98f));
+            var card = UiFactory.Panel("Card", rect, new Vector2(0.04f, 0.10f), new Vector2(0.96f, 0.90f), new Color(0.05f, 0.07f, 0.11f, 0.98f));
             UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
             _title = UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.88f), new Vector2(0.95f, 0.98f), "", 42, UiFactory.Gold);
             UiFactory.Panel("Line", card.transform, new Vector2(0.06f, 0.875f), new Vector2(0.94f, 0.879f), UiFactory.GoldDim);
-            _body = UiFactory.Body(UiFactory.Label("Body", card.transform, new Vector2(0.07f, 0.26f), new Vector2(0.93f, 0.86f), "", 36, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 1.35f);
+            _body = UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(0.07f, 0.26f), new Vector2(0.93f, 0.86f), "", 36, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 36), 1.35f);
             _pageLabel = UiFactory.Label("Page", card.transform, new Vector2(0.07f, 0.12f), new Vector2(0.50f, 0.22f), "", 28, UiFactory.Dim, TextAnchor.MiddleLeft);
             var btn = UiFactory.Button("Next", card.transform, new Vector2(0.52f, 0.03f), new Vector2(0.95f, 0.20f), "다음", UiFactory.Red, () => _tapped = true, 36);
             _buttonLabel = btn.GetComponentInChildren<Text>();

@@ -22,7 +22,7 @@ namespace BiRyeoDo.Game.UI
 
             int total = StageStars.Total(save), ready = StageStars.ClaimableCount(save);
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "별 보상  ★ " + total + " / " + StageStars.MaxStars, 44, UiFactory.Gold);
-            UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.865f), new Vector2(0.62f, 0.92f), toast ?? "전투(작은 스테이지)마다 별 3개: 돌파 · 전원 생존 · 신속. 난이도마다 따로 모읍니다.", 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.ScrollBody(UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.865f), new Vector2(0.62f, 0.92f), toast ?? "전투(작은 스테이지)마다 별 3개: 돌파 · 전원 생존 · 신속. 난이도마다 따로 모읍니다.", 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal), 30);
             var all = UiFactory.Button("ClaimAll", Root, new Vector2(0.64f, 0.865f), new Vector2(0.95f, 0.92f), "모두 받기", ready > 0 ? UiFactory.Red : UiFactory.InkSoft, ClaimAll, 28);
             all.interactable = ready > 0;
 
@@ -36,7 +36,7 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Label("Name", band, new Vector2(0.04f, 0.54f), new Vector2(0.66f, 0.97f), "★ " + c.Stars + "개", 34, claimed ? UiFactory.InkSoft : UiFactory.Gold, TextAnchor.MiddleLeft);
                 string item = "";
                 if (!string.IsNullOrEmpty(c.ItemId)) { var it = EarlyGameContent.FindItem(c.ItemId); if (it != null) item = " + " + it.Name + (c.ItemCount > 1 ? " x" + c.ItemCount : ""); }
-                UiFactory.Label("Reward", band, new Vector2(0.04f, 0.04f), new Vector2(0.66f, 0.54f), "두 " + c.Doo.ToString("N0") + item + (claimed || can ? "" : "  (" + Math.Max(0, c.Stars - total) + "개 더)"), 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Reward", band, new Vector2(0.04f, 0.04f), new Vector2(0.66f, 0.54f), "두 " + c.Doo.ToString("N0") + item + (claimed || can ? "" : "  (" + Math.Max(0, c.Stars - total) + "개 더)"), 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var btn = UiFactory.Button("Claim", band, new Vector2(0.69f, 0.14f), new Vector2(0.97f, 0.86f), claimed ? "받음" : can ? "받기" : "잠김", can ? UiFactory.Red : UiFactory.InkSoft, () => ClaimOne(chest), 26);
                 btn.interactable = can;
             }

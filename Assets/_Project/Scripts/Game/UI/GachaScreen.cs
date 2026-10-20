@@ -36,7 +36,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
             UiFactory.Glyph("gacha", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
             _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.94f, 0.985f), "", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
-            _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "같은 장비는 여분으로 쌓입니다. 강화하거나 분해해 재료를 얻을 수 있습니다.", 24, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+            _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "같은 장비는 여분으로 쌓입니다. 강화하거나 분해해 재료를 얻을 수 있습니다.", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             // Odds
             var odds = UiFactory.Panel("Odds", root, new Vector2(0.04f, 0.735f), new Vector2(0.96f, 0.88f), UiFactory.Ink);
@@ -49,27 +49,29 @@ namespace BiRyeoDo.Game.UI
                 var chip = UiFactory.Panel("Chip" + g, odds.transform, new Vector2(x0, y1 - 0.42f), new Vector2(x0 + 0.31f, y1), new Color(0.04f, 0.05f, 0.08f, 0.9f));
                 UiFactory.Frame(chip.transform, UiFactory.GradeColor(grade), 2f);
                 UiFactory.Label("Name", chip.transform, new Vector2(0.04f, 0.5f), new Vector2(0.96f, 1f), Grades.Names[g] + "  " + ((float)Grades.Rates[g] * 100f).ToString("0.#") + "%", 28, UiFactory.GradeColor(grade));
-                UiFactory.Label("Count", chip.transform, new Vector2(0.04f, 0f), new Vector2(0.96f, 0.5f), Gacha.Pool(grade).Count + "종", 22, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+                UiFactory.Label("Count", chip.transform, new Vector2(0.04f, 0f), new Vector2(0.96f, 0.5f), Gacha.Pool(grade).Count + "종", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
             }
 
-            // Result cards: 2 columns x 5 rows
+            // Full-width result rows keep long names and effects readable.
             _emptyNote = UiFactory.Label("Empty", root, new Vector2(0.06f, 0.26f), new Vector2(0.94f, 0.68f), "아직 뽑지 않았습니다.\n아래 버튼으로 뽑아 보세요.", 32, UiFactory.Dim, TextAnchor.LowerCenter, FontStyle.Normal);
             UiFactory.Glyph("gacha", _emptyNote.transform, new Vector2(.3f, .35f), new Vector2(.7f, .94f), new Color(.83f, .72f, .48f, .35f));
+            var resultsContent = CodexPanel.Scroller(root, .21f, .72f);
             for (int i = 0; i < Gacha.TenPullCount; i++)
             {
-                int col = i % 2, row = i / 2;
-                float x0 = col == 0 ? 0.04f : 0.52f;
-                float y1 = 0.72f - row * 0.098f, y0 = y1 - 0.09f;
                 var c = new Card();
-                var rt = UiFactory.Rect("Card" + i, root, new Vector2(x0, y0), new Vector2(x0 + 0.44f, y1));
+                var rt = UiFactory.Rect("Card" + i, resultsContent, new Vector2(.04f, 1f), new Vector2(.96f, 1f));
+                rt.pivot = new Vector2(.5f, 1f);
+                rt.sizeDelta = new Vector2(0f, 230f);
+                ReadingList.Register(rt, 230f, 16f);
+                rt.gameObject.AddComponent<Image>().color = UiFactory.Ink;
                 c.Root = rt.gameObject;
                 c.Frame = UiFactory.Panel("Frame", rt, Vector2.zero, Vector2.one, UiFactory.GoldDim);
                 c.Bg = UiFactory.Panel("Bg", rt, new Vector2(0.015f, 0.04f), new Vector2(0.985f, 0.96f), new Color(0.06f, 0.08f, 0.12f, 0.96f));
                 c.Icon = UiFactory.Panel("Icon", rt, new Vector2(0.03f, 0.10f), new Vector2(0.20f, 0.90f), Color.white);
                 c.IconGlyph = UiFactory.Label("Glyph", c.Icon.transform, Vector2.zero, Vector2.one, "", 34, UiFactory.PaperText);
-                c.Name = UiFactory.Label("Name", rt, new Vector2(0.22f, 0.50f), new Vector2(0.78f, 0.96f), "", 24, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                c.Effect = UiFactory.Label("Effect", rt, new Vector2(0.22f, 0.04f), new Vector2(0.97f, 0.50f), "", 17, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
-                c.Tag = UiFactory.Label("Tag", rt, new Vector2(0.76f, 0.52f), new Vector2(0.97f, 0.96f), "", 20, UiFactory.Gold, TextAnchor.MiddleRight);
+                c.Name = UiFactory.Label("Name", rt, new Vector2(0.22f, 0.50f), new Vector2(0.78f, 0.96f), "", 30, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                c.Effect = UiFactory.Label("Effect", rt, new Vector2(0.22f, 0.04f), new Vector2(0.97f, 0.50f), "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                c.Tag = UiFactory.Label("Tag", rt, new Vector2(0.76f, 0.52f), new Vector2(0.97f, 0.96f), "", 30, UiFactory.Gold, TextAnchor.MiddleRight);
                 c.Root.SetActive(false);
                 _cards.Add(c);
             }

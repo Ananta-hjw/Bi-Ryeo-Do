@@ -30,8 +30,8 @@ namespace BiRyeoDo.Game.UI
             if (!Tutorial.IsDone(save, "ritual") && HelpPanel.Instance != null) HelpPanel.Instance.Show("ritual", true);
 
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "전승의식", 44, UiFactory.Gold);
-            UiFactory.Body(UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.92f),
-                toast ?? "봉뢰함의 진비뢰도를 쓰려면 전승의식을 마쳐야 합니다. 아래 여섯 가지를 모두 갖추면 의식을 치를 수 있습니다.", 24, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal));
+            UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.92f),
+                toast ?? "봉뢰함의 진비뢰도를 쓰려면 전승의식을 마쳐야 합니다. 아래 여섯 가지를 모두 갖추면 의식을 치를 수 있습니다.", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30));
 
             var sword = EarlyGameContent.FindItem(Ritual.RewardId);
             var conditions = Ritual.Conditions(save);
@@ -42,12 +42,12 @@ namespace BiRyeoDo.Game.UI
                 var band = CodexPanel.Band(content, i);
                 UiFactory.Label("Mark", band, new Vector2(0.03f, 0.1f), new Vector2(0.14f, 0.9f), c.Done ? "✔" : "✘", 44, c.Done ? new Color(0.45f, 0.85f, 0.5f, 1f) : UiFactory.Red);
                 UiFactory.Label("Text", band, new Vector2(0.16f, 0.50f), new Vector2(0.97f, 0.96f), c.Text, 30, c.Done ? UiFactory.PaperText : UiFactory.Dim, TextAnchor.MiddleLeft);
-                UiFactory.Label("Progress", band, new Vector2(0.16f, 0.04f), new Vector2(0.97f, 0.50f), "현재: " + c.Progress, 22, c.Done ? new Color(0.45f, 0.85f, 0.5f, 1f) : UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Progress", band, new Vector2(0.16f, 0.04f), new Vector2(0.97f, 0.50f), "현재: " + c.Progress, 30, c.Done ? new Color(0.45f, 0.85f, 0.5f, 1f) : UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
             }
             SetListHeight(content, conditions.Count);
 
             UiFactory.Body(UiFactory.Label("Reward", Root, new Vector2(0.05f, 0.215f), new Vector2(0.95f, 0.33f),
-                "보상  " + UiFactory.GradedName(sword) + "\n" + StatusSheet.EffectText(sword), 26, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal));
+                "보상  " + UiFactory.GradedName(sword) + "\n" + StatusSheet.EffectText(sword), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal));
 
             if (save.RitualDone)
             {

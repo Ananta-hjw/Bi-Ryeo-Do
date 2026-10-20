@@ -15,7 +15,7 @@ namespace BiRyeoDo.Game.UI
     {
         private static readonly string[] TabNames = { "강호", "무공", "행낭", "뽑기", "기록" };
         private static readonly string[] TabIconKeys = { "tab_world", "tab_arts", "tab_bag", "tab_gacha", "tab_record" };
-        private const float TabBarHeight = 170f;
+        private const float TabBarHeight = 190f;
 
         private TabRouter _router;
         private Image[] _tabButtons;
@@ -44,7 +44,7 @@ namespace BiRyeoDo.Game.UI
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080f, 1920f);
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = 0f;
 
             var safe = UiFactory.Rect("SafeArea", canvasGo.transform, Vector2.zero, Vector2.one);
             var sa = Screen.safeArea;
@@ -145,21 +145,21 @@ namespace BiRyeoDo.Game.UI
             {
                 int index = i;
                 var btn = UiFactory.Button("Tab_" + TabNames[i], bar, new Vector2(i*w+.006f, .04f), new Vector2((i+1)*w-.006f, .96f),
-                    TabNames[i], Color.clear, () => Select(index), 28);
+                    TabNames[i], Color.clear, () => Select(index), 36);
                 _tabButtons[i] = btn.GetComponent<Image>();
                 var label = btn.GetComponentInChildren<Text>();
                 label.rectTransform.anchorMin = new Vector2(.02f, .04f);
-                label.rectTransform.anchorMax = new Vector2(.98f, .34f);
+                label.rectTransform.anchorMax = new Vector2(.98f, .39f);
                 _tabLabels[i] = label;
                 var icon = ArtLibrary.Icon(TabIconKeys[i]);
                 if (icon != null)
                 {
-                    var pic = UiFactory.Panel("TabIcon", btn.transform, new Vector2(.25f, .37f), new Vector2(.75f, .89f), UiFactory.Dim);
+                    var pic = UiFactory.Panel("TabIcon", btn.transform, new Vector2(.25f, .43f), new Vector2(.75f, .89f), UiFactory.Dim);
                     pic.sprite = icon;
                     pic.preserveAspect = true;
                     _tabIcons[i] = pic;
                 }
-                else _tabIcons[i] = UiFactory.Glyph(TabIconKeys[i], btn.transform, new Vector2(.25f, .37f), new Vector2(.75f, .89f), UiFactory.Dim);
+                else _tabIcons[i] = UiFactory.Glyph(TabIconKeys[i], btn.transform, new Vector2(.25f, .43f), new Vector2(.75f, .89f), UiFactory.Dim);
                 _tabMarks[i] = UiFactory.Panel("SelectedRule", btn.transform, new Vector2(.22f, .965f), new Vector2(.78f, .985f), UiFactory.Gold).gameObject;
                 if (i == (int)TabRouter.Tab.MartialArts)
                 {
@@ -205,10 +205,10 @@ namespace BiRyeoDo.Game.UI
             _realmModal = rt.gameObject;
             var dim = rt.gameObject.AddComponent<Image>();
             dim.color = new Color(0f, 0f, 0f, 0.7f);   // blocks everything underneath
-            var card = UiFactory.Panel("Card", rt, new Vector2(0.08f, 0.32f), new Vector2(0.92f, 0.68f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            var card = UiFactory.Panel("Card", rt, new Vector2(0.05f, 0.17f), new Vector2(0.95f, 0.83f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
             UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
             _realmTitle = UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.82f), new Vector2(0.95f, 0.97f), "", 46, UiFactory.Gold);
-            _realmBody = UiFactory.Body(UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.24f), new Vector2(0.94f, 0.82f), "", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal));
+            _realmBody = UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.24f), new Vector2(0.94f, 0.82f), "", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 36));
             UiFactory.Button("Ok", card.transform, new Vector2(0.30f, 0.05f), new Vector2(0.70f, 0.20f), "확인", UiFactory.Red, () => _realmModal.SetActive(false), 36);
             _realmModal.SetActive(false);
         }

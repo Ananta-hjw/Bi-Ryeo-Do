@@ -12,7 +12,7 @@ namespace BiRyeoDo.Game.UI
     public class BagScreen : MonoBehaviour
     {
         private const int MaxRows = 60;
-        private const float RowH = 180f, RowGap = 10f;   // gear rows stack 장착/해제 over 강화 as two big buttons
+        private const float RowH = 240f, RowGap = 16f;   // gear rows stack 장착/해제 over 강화 as two big buttons
 
         private sealed class Row
         {
@@ -47,25 +47,26 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Glyph("bag", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
             _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.68f, 0.985f), "", 40, UiFactory.Gold);
             UiFactory.Button("BulkOpen", root, new Vector2(0.70f, 0.93f), new Vector2(0.945f, 0.98f), "일괄 분해", new Color(0.55f, 0.36f, 0.14f, 1f), () => _bulk.Show(), 26);
-            _gear = UiFactory.Label("Gear", root, new Vector2(0.05f, 0.875f), new Vector2(0.95f, 0.922f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter);
-            _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.840f), new Vector2(0.95f, 0.875f), "", 24, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+            _gear = UiFactory.ScrollBody(UiFactory.Label("Gear", root, new Vector2(0.05f, 0.875f), new Vector2(0.95f, 0.922f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter), 30);
+            _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, 0.840f), new Vector2(0.95f, 0.875f), "", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             // Filter tabs
             for (int t = 0; t < FilterNames.Length; t++)
             {
                 int tab = t;
                 float x0 = 0.04f + t * 0.24f;
-                var btn = UiFactory.Button("Filter" + t, root, new Vector2(x0, 0.778f), new Vector2(x0 + 0.225f, 0.832f), FilterNames[t], UiFactory.InkSoft, () => { _filter = tab; Refresh(); }, 28);
+                var btn = UiFactory.Button("Filter" + t, root, new Vector2(x0, 0.755f), new Vector2(x0 + 0.225f, 0.835f), FilterNames[t], UiFactory.InkSoft, () => { _filter = tab; Refresh(); }, 28);
                 _filterTabs[t] = btn.GetComponent<Image>();
             }
 
             // Second row, only on the 장비 tab: weapon / 상의 / 하의 / 신발 / accessory
-            _gearTabRow = UiFactory.Rect("GearTabs", root, new Vector2(0f, 0.728f), new Vector2(1f, 0.768f)).gameObject;
+            _gearTabRow = UiFactory.Rect("GearTabs", root, new Vector2(0f, 0.57f), new Vector2(1f, 0.74f)).gameObject;
             for (int t = 0; t < GearFilterNames.Length; t++)
             {
                 int tab = t;
-                float x0 = 0.04f + t * 0.16f;   // smaller and indented so they read as sub-tabs of 장비
-                var btn = UiFactory.Button("GearFilter" + t, _gearTabRow.transform, new Vector2(x0, 0.06f), new Vector2(x0 + 0.15f, 0.94f), GearFilterNames[t], UiFactory.InkSoft, () => { _gearFilter = tab; Refresh(); }, 20);
+                float x0 = 0.04f + (t % 3) * 0.32f;
+                float top = .95f - (t / 3) * .49f;
+                var btn = UiFactory.Button("GearFilter" + t, _gearTabRow.transform, new Vector2(x0, top - .44f), new Vector2(x0 + .30f, top), GearFilterNames[t], UiFactory.InkSoft, () => { _gearFilter = tab; Refresh(); }, 20);
                 _gearTabs[t] = btn.GetComponent<Image>();
             }
 
@@ -82,6 +83,7 @@ namespace BiRyeoDo.Game.UI
             scroll.horizontal = false;
             scroll.movementType = ScrollRect.MovementType.Clamped;
             scroll.scrollSensitivity = 40f;
+            UiFactory.ScrollIndicator(scroll, viewport);
 
             for (int i = 0; i < MaxRows; i++)
             {
@@ -90,6 +92,7 @@ namespace BiRyeoDo.Game.UI
                 rt.pivot = new Vector2(0.5f, 1f);
                 rt.anchoredPosition = new Vector2(0f, -(RowGap + i * (RowH + RowGap)));
                 rt.sizeDelta = new Vector2(0f, RowH);
+                ReadingList.Register(rt, RowH, RowGap);
                 row.Band = rt.gameObject;
                 var bg = rt.gameObject.AddComponent<Image>();
                 bg.color = UiFactory.Ink;
@@ -104,7 +107,7 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Frame(row.Icon.transform, UiFactory.Gold, 2f);
                 row.IconGlyph = UiFactory.Label("Glyph", row.Icon.transform, Vector2.zero, Vector2.one, "", 44, UiFactory.PaperText);
                 row.Title = UiFactory.Label("Title", rt, new Vector2(0.14f, 0.50f), new Vector2(0.66f, 0.98f), "", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.14f, 0.02f), new Vector2(0.66f, 0.50f), "", 20, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.14f, 0.02f), new Vector2(0.66f, 0.50f), "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 int index = i;
                 row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(0.68f, 0.14f), new Vector2(0.97f, 0.86f), "", UiFactory.Red, () => OnPressed(index), 28);
                 row.ButtonImage = row.Button.GetComponent<Image>();
@@ -148,7 +151,7 @@ namespace BiRyeoDo.Game.UI
             ItemArt.Apply(big, bigGlyph, item);
             UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.90f), new Vector2(0.72f, 0.98f), UiFactory.GradedName(item) + (enh > 0 ? " +" + enh : ""), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
             string kind = KindName(item) + (gear && Gear.IsHeroOnly(item.Id) ? "  ·  " + Gear.HeroOnlyLabel : "") + (gear && Inventory.IsEquipped(save, item.Id) ? "  ·  착용 중" : "") + (gear && Inventory.WearingCompanions(save, item.Id).Count > 0 ? "  ·  동료 " + string.Join(",", Inventory.WearingCompanions(save, item.Id)) : "") + (item.Kind == ItemKind.Consumable || item.Kind == ItemKind.Material ? "  ·  보유 " + Inventory.Count(save, item.Id) + "개" : "");
-            UiFactory.Label("Kind", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.72f, 0.90f), kind, 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("Kind", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.72f, 0.90f), kind, 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
 
             var lines = new List<string>();
             if (gear) lines.Add("<color=#9ADB9F>" + StatusSheet.EffectText(item, enh) + "</color>" + (enh > 0 ? "   (기본 " + StatusSheet.EffectText(item, 0) + ")" : ""));
@@ -173,7 +176,7 @@ namespace BiRyeoDo.Game.UI
                 var set = Gear.SetOf(item.Id);
                 lines.Add(set != null ? Gear.SetDetail(set, save.EquippedGear, save) : "세트 없음");
             }
-            UiFactory.Label("Body", card.transform, new Vector2(0.06f, gear ? 0.37f : 0.24f), new Vector2(0.94f, 0.83f), string.Join("\n\n", lines), 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal);
+            UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(0.06f, gear ? 0.37f : 0.24f), new Vector2(0.94f, 0.83f), string.Join("\n\n", lines), 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 36);
 
             if (gear)
             {
@@ -310,21 +313,21 @@ namespace BiRyeoDo.Game.UI
             var card = UiFactory.Panel("Card", _detail, new Vector2(0.05f, 0.08f), new Vector2(0.95f, 0.90f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
             UiFactory.Frame(card.transform, UiFactory.GradeColor(item.Grade), 3f);
             UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.91f), new Vector2(0.95f, 0.99f), UiFactory.GradedName(item), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
-            UiFactory.Label("Hint", card.transform, new Vector2(0.05f, 0.82f), new Vector2(0.95f, 0.91f), "장비를 입힐 동료를 고르세요. 이미 입은 동료를 누르면 벗깁니다. (한 사람마다 같은 장비 한 개가 필요합니다. 보유 " + Inventory.Count(save, item.Id) + "개)" + (Gear.Level(save, item.Id) > 0 ? " 강화 +" + Gear.Level(save, item.Id) + "는 한 벌에만 붙어, 비류연이 입으면 비류연, 아니면 먼저 입은 동료에게 적용됩니다." : ""), 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.ScrollBody(UiFactory.Label("Hint", card.transform, new Vector2(0.05f, 0.82f), new Vector2(0.95f, 0.91f), "장비를 입힐 동료를 고르세요. 이미 입은 동료를 누르면 벗깁니다. (한 사람마다 같은 장비 한 개가 필요합니다. 보유 " + Inventory.Count(save, item.Id) + "개)" + (Gear.Level(save, item.Id) > 0 ? " 강화 +" + Gear.Level(save, item.Id) + "는 한 벌에만 붙어, 비류연이 입으면 비류연, 아니면 먼저 입은 동료에게 적용됩니다." : ""), 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 30);
             var companions = JoinedCompanions(save);
-            const float rowH = 120f, gap = 12f;
+            var wearers = CodexPanel.Scroller(card.rectTransform, .19f, .80f);
             for (int i = 0; i < companions.Count; i++)
             {
                 var c = companions[i];
                 bool wears = Inventory.GearOf(save, c.Id).Contains(item.Id);
-                float top = 0.80f - i * 0.13f;
+                var wearerRow = CodexPanel.Band(wearers, i);
                 string id = c.Id;
-                var btn = UiFactory.Button("Wearer" + i, card.transform, new Vector2(0.04f, top - 0.115f), new Vector2(0.96f, top), "", wears ? UiFactory.InkSoft : UiFactory.Ink, () => ToggleCompanionGear(item, id), 28);
+                var btn = UiFactory.Button("Wearer" + i, wearerRow, new Vector2(.02f, .05f), new Vector2(.98f, .95f), "", wears ? UiFactory.InkSoft : UiFactory.Ink, () => ToggleCompanionGear(item, id), 28);
                 UiFactory.Frame(btn.transform, wears ? UiFactory.Gold : UiFactory.GoldDim, 2f);
                 UiFactory.Label("Name", btn.transform, new Vector2(0.04f, 0.5f), new Vector2(0.96f, 0.98f), c.Name + "  Lv." + CompanionGrowth.LevelOf(save, c.Id) + (wears ? "   [착용 중]" : ""), 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                UiFactory.Label("Gear", btn.transform, new Vector2(0.04f, 0.02f), new Vector2(0.96f, 0.5f), StatusSheet.GearNames(save, c.Id), 20, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Gear", btn.transform, new Vector2(0.04f, 0.02f), new Vector2(0.96f, 0.5f), StatusSheet.GearNames(save, c.Id), 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
             }
-            if (!string.IsNullOrEmpty(_flash)) UiFactory.Label("Flash", card.transform, new Vector2(0.05f, 0.11f), new Vector2(0.95f, 0.18f), _flash, 24, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal);
+            if (!string.IsNullOrEmpty(_flash)) UiFactory.Label("Flash", card.transform, new Vector2(0.05f, 0.11f), new Vector2(0.95f, 0.18f), _flash, 30, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal);
             UiFactory.Button("Close", card.transform, new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.10f), "뒤로", UiFactory.InkSoft, () => OpenDetail(item.Id), 34);
         }
 
@@ -358,7 +361,7 @@ namespace BiRyeoDo.Game.UI
             var card = UiFactory.Panel("Card", _detail, new Vector2(0.05f, 0.08f), new Vector2(0.95f, 0.90f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
             UiFactory.Frame(card.transform, UiFactory.GradeColor(scroll.Grade), 3f);
             UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.91f), new Vector2(0.95f, 0.99f), UiFactory.GradedName(scroll), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
-            UiFactory.Label("Hint", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.91f), "숙련을 +" + scroll.MasteryUses + "회 올릴 무공을 하나 고르세요. (보유 " + Inventory.Count(save, scroll.Id) + "개)", 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.ScrollBody(UiFactory.Label("Hint", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.91f), "숙련을 +" + scroll.MasteryUses + "회 올릴 무공을 하나 고르세요. (보유 " + Inventory.Count(save, scroll.Id) + "개)", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 30);
 
             var arts = Mastery.ScrollTargets(save);
             var viewport = UiFactory.Rect("PickViewport", card.transform, new Vector2(0.03f, 0.13f), new Vector2(0.97f, 0.83f));
@@ -374,6 +377,7 @@ namespace BiRyeoDo.Game.UI
             scrollRect.horizontal = false;
             scrollRect.movementType = ScrollRect.MovementType.Clamped;
             scrollRect.scrollSensitivity = 40f;
+            UiFactory.ScrollIndicator(scrollRect, viewport);
             for (int i = 0; i < arts.Count; i++)
             {
                 var art = arts[i];
@@ -384,6 +388,7 @@ namespace BiRyeoDo.Game.UI
                 rt.pivot = new Vector2(0.5f, 1f);
                 rt.anchoredPosition = new Vector2(0f, -(gap + i * (rowH + gap)));
                 rt.sizeDelta = new Vector2(0f, rowH);
+                ReadingList.Register(rt, rowH, gap);
                 string artId = art.Id;
                 var btn = UiFactory.Button("PickBtn" + i, rt, Vector2.zero, Vector2.one, "", UiFactory.Ink, () => ApplyScroll(scroll, artId), 28);
                 UiFactory.Frame(btn.transform, UiFactory.GoldDim, 2f);
@@ -396,7 +401,7 @@ namespace BiRyeoDo.Game.UI
                     textX = 0.16f;
                 }
                 UiFactory.Label("Name", btn.transform, new Vector2(textX, 0.5f), new Vector2(0.96f, 0.98f), art.Name + (Progression.IsUltimate(art) ? "  (비기)" : ""), 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                UiFactory.Label("Progress", btn.transform, new Vector2(textX, 0.02f), new Vector2(0.96f, 0.5f), progress, 22, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Progress", btn.transform, new Vector2(textX, 0.02f), new Vector2(0.96f, 0.5f), progress, 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
             }
             if (arts.Count == 0) UiFactory.Label("None", card.transform, new Vector2(0.05f, 0.4f), new Vector2(0.95f, 0.6f), "배운 무공이 없습니다.", 32, UiFactory.Dim);
             UiFactory.Button("Close", card.transform, new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.10f), "취소", UiFactory.InkSoft, () => OpenDetail(scroll.Id), 34);
@@ -445,10 +450,10 @@ namespace BiRyeoDo.Game.UI
             for (int i = _notice.childCount - 1; i >= 0; i--) Destroy(_notice.GetChild(i).gameObject);
             _notice.gameObject.SetActive(true);
             _notice.SetAsLastSibling();
-            var card = UiFactory.Panel("Card", _notice, new Vector2(0.10f, 0.32f), new Vector2(0.90f, 0.68f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            var card = UiFactory.Panel("Card", _notice, new Vector2(0.05f, 0.15f), new Vector2(0.95f, 0.85f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
             UiFactory.Frame(card.transform, accent, 3f);
             UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.70f), new Vector2(0.95f, 0.95f), title, 40, accent);
-            UiFactory.Body(UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.30f), new Vector2(0.94f, 0.70f), body, 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal));
+            UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.30f), new Vector2(0.94f, 0.70f), body, 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 36));
             UiFactory.Button("Ok", card.transform, new Vector2(0.30f, 0.05f), new Vector2(0.70f, 0.26f), "확인", UiFactory.Red, () => _notice.gameObject.SetActive(false), 34);
         }
 
@@ -583,7 +588,7 @@ namespace BiRyeoDo.Game.UI
                 .Where(s => PassesFilter(EarlyGameContent.FindItem(s.Id)))
                 .ToList();
             _gearTabRow.SetActive(_filter == 1);
-            _viewport.anchorMax = new Vector2(1f, _filter == 1 ? 0.722f : 0.772f);
+            _viewport.anchorMax = new Vector2(1f, _filter == 1 ? .56f : .745f);
             for (int t = 0; t < _gearTabs.Length; t++) _gearTabs[t].color = t == _gearFilter ? new Color(0.30f, 0.48f, 0.44f, 1f) : new Color(0.12f, 0.15f, 0.20f, 0.92f);
             for (int t = 0; t < _filterTabs.Length; t++) _filterTabs[t].color = t == _filter ? new Color(0.56f, 0.44f, 0.22f, 1f) : UiFactory.InkSoft;
 

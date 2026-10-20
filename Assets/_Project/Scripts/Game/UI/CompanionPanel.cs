@@ -21,7 +21,7 @@ namespace BiRyeoDo.Game.UI
             if (!Tutorial.IsDone(save, "training") && HelpPanel.Instance != null) HelpPanel.Instance.Show("training", true);
 
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "동료 수련 · " + save.Doo.ToString("N0") + "두", 40, UiFactory.Gold);
-            UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.845f), new Vector2(0.95f, 0.92f), toast ?? "수련 단계마다 체력·공격·방어 +4%. 인연이 깊을수록 더 높이 수련할 수 있습니다 (서먹 3 · 친분 5 · 신뢰 8 · 의기투합 10).", 22, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.ScrollBody(UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.845f), new Vector2(0.95f, 0.92f), toast ?? "수련 단계마다 체력·공격·방어 +4%. 인연이 깊을수록 더 높이 수련할 수 있습니다 (서먹 3 · 친분 5 · 신뢰 8 · 의기투합 10).", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             var content = CodexPanel.Scroller(Root, 0.09f, 0.84f);
             int n = 0;
@@ -33,8 +33,8 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Label("Name", band, new Vector2(0.04f, 0.58f), new Vector2(0.66f, 0.97f), c.Name + "  수련 Lv." + level + "/" + cap, 32, level >= CompanionTraining.MaxLevel ? UiFactory.Gold : UiFactory.PaperText, TextAnchor.MiddleLeft);
                 string next = CompanionTraining.NextMilestone(c.Id, level);
                 UiFactory.Label("Info", band, new Vector2(0.04f, 0.30f), new Vector2(0.66f, 0.58f),
-                    "능력 +" + Math.Round((CompanionTraining.StatMultiplier(level) - 1f) * 100f) + "%  ·  인연 " + Bonds.LevelNames[bond], 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-                UiFactory.Label("Next", band, new Vector2(0.04f, 0.02f), new Vector2(0.66f, 0.30f), next.Length > 0 ? "다음: " + next : "모든 단계 달성 (" + CompanionTraining.AwakeningText(c.Id) + ")", 17, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    "능력 +" + Math.Round((CompanionTraining.StatMultiplier(level) - 1f) * 100f) + "%  ·  인연 " + Bonds.LevelNames[bond], 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Next", band, new Vector2(0.04f, 0.02f), new Vector2(0.66f, 0.30f), next.Length > 0 ? "다음: " + next : "모든 단계 달성 (" + CompanionTraining.AwakeningText(c.Id) + ")", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var companion = c;
                 bool maxed = level >= CompanionTraining.MaxLevel, capped = level >= cap;
                 bool can = !maxed && !capped && save.Doo >= cost;

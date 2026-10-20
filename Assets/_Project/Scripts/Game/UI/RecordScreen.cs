@@ -68,10 +68,10 @@ namespace BiRyeoDo.Game.UI
                 new Vector2(.94f, .94f), title, wide ? 38 : 30, UiFactory.PaperText, TextAnchor.MiddleLeft));
             var e = new Entry();
             e.Detail = UiFactory.Body(UiFactory.Label("Detail", rt, wide ? new Vector2(.26f, .08f) : new Vector2(.08f, .07f),
-                wide ? new Vector2(.94f, .56f) : new Vector2(.92f, .61f), "", 22, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 1.15f);
+                wide ? new Vector2(.94f, .56f) : new Vector2(.92f, .61f), "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 1.15f);
             UiFactory.Label("Arrow", rt, new Vector2(.90f, .15f), new Vector2(.98f, .50f), "›", 36, UiFactory.Gold);
             var dot = UiFactory.Panel("Dot", rt, new Vector2(.84f, .78f), new Vector2(.97f, .96f), UiFactory.Red);
-            e.Badge = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 22, UiFactory.PaperText);
+            e.Badge = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 30, UiFactory.PaperText);
             return e;
         }
 

@@ -37,7 +37,7 @@ namespace BiRyeoDo.Game.UI
         private Image _lobbyBg, _lobbyPortrait;
         private Text _lobbyGlyph, _lobbyName, _lobbyLine, _lobbyRealm, _lobbyPower;
         private int _lobbyStep;
-        private float _lobbyTimer;
+        private float _lobbyTimer, _lobbyReadTime = 12f;
         private RectTransform _promoOverlay, _partyOverlay, _questOverlay, _fortuneOverlay, _settingsOverlay, _towerOverlay;
         private bool _confirmReset;
         private Action<StageData> _onStart;
@@ -66,7 +66,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Panel("FloorShade", root, Vector2.zero, new Vector2(1f, .44f), new Color(.025f, .06f, .065f, .84f));
             UiFactory.Glyph("halo", root, new Vector2(-.08f, .43f), new Vector2(.78f, .91f), new Color(.75f, .66f, .43f, .16f));
             UiFactory.Heading(UiFactory.Label("Masthead", root, new Vector2(.04f, .873f), new Vector2(.54f, .927f), "비뢰도", 58, UiFactory.PaperText, TextAnchor.MiddleLeft));
-            UiFactory.Label("ChapterLabel", root, new Vector2(.57f, .88f), new Vector2(.96f, .916f), "강호 · 나의 여정", 22, UiFactory.Gold, TextAnchor.MiddleRight, FontStyle.Normal);
+            UiFactory.Label("ChapterLabel", root, new Vector2(.57f, .88f), new Vector2(.96f, .916f), "강호 · 나의 여정", 30, UiFactory.Gold, TextAnchor.MiddleRight, FontStyle.Normal);
             UiFactory.Panel("MastheadRule", root, new Vector2(.04f, .865f), new Vector2(.96f, .866f), UiFactory.GoldDim);
 
             _lobbyPortrait = UiFactory.Panel("Portrait", root, new Vector2(.01f, .44f), new Vector2(.75f, .86f), Color.white);
@@ -79,26 +79,26 @@ namespace BiRyeoDo.Game.UI
             talkBtn.targetGraphic = talkImg;
             talkBtn.transition = Selectable.Transition.None;
             talkBtn.onClick.AddListener(() => { _lobbyStep++; _lobbyTimer = 0f; ShowLobby(true); });
-            UiFactory.Label("TapHint", root, new Vector2(.06f, .505f), new Vector2(.69f, .529f), "인물을 눌러 이야기하기", 18, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("TapHint", root, new Vector2(.06f, .505f), new Vector2(.69f, .529f), "인물을 눌러 이야기하기", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
 
             var plate = UiFactory.Panel("NamePlate", root, new Vector2(.035f, .445f), new Vector2(.74f, .50f), new Color(.055f, .10f, .105f, .88f));
             UiFactory.Panel("IdentityAccent", plate.transform, Vector2.zero, new Vector2(.008f, 1f), UiFactory.Red);
             _lobbyName = UiFactory.Heading(UiFactory.Label("Name", plate.transform, new Vector2(.04f, .08f), new Vector2(.43f, .94f), "", 38, UiFactory.PaperText, TextAnchor.MiddleLeft));
-            _lobbyRealm = UiFactory.Label("Realm", plate.transform, new Vector2(.46f, .43f), new Vector2(.98f, .96f), "", 24, UiFactory.Gold, TextAnchor.MiddleLeft);
-            _lobbyPower = UiFactory.Label("Power", plate.transform, new Vector2(.46f, .03f), new Vector2(.98f, .43f), "", 18, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            _lobbyRealm = UiFactory.Label("Realm", plate.transform, new Vector2(.46f, .43f), new Vector2(.98f, .96f), "", 30, UiFactory.Gold, TextAnchor.MiddleLeft);
+            _lobbyPower = UiFactory.Label("Power", plate.transform, new Vector2(.46f, .03f), new Vector2(.98f, .43f), "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
 
             var bubble = UiFactory.Panel("Dialogue", root, new Vector2(.035f, .352f), new Vector2(.965f, .433f), UiFactory.Ink);
             UiFactory.Frame(bubble.transform, UiFactory.GoldDim, 2f);
             UiFactory.Heading(UiFactory.Label("Quote", bubble.transform, new Vector2(.02f, .25f), new Vector2(.10f, .95f), "“", 62, UiFactory.Gold));
-            _lobbyLine = UiFactory.Body(UiFactory.Label("Line", bubble.transform, new Vector2(.12f, .1f), new Vector2(.95f, .91f), "", 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal), 1.2f);
+            _lobbyLine = UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Line", bubble.transform, new Vector2(.12f, .1f), new Vector2(.95f, .91f), "", 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal), 30), 1.2f);
 
             var journey = UiFactory.Panel("Journey", root, new Vector2(.035f, .213f), new Vector2(.965f, .340f), UiFactory.InkSoft);
             _featArt = UiFactory.Panel("Landscape", journey.transform, Vector2.zero, Vector2.one, new Color(.36f, .43f, .36f, .25f));
             _featArt.sprite = ArtLibrary.Background(1);
             UiFactory.Frame(journey.transform, UiFactory.Gold, 3f);
-            UiFactory.Label("JourneyKicker", journey.transform, new Vector2(.035f, .76f), new Vector2(.7f, .96f), "다 음  여 정", 18, UiFactory.Gold, TextAnchor.MiddleLeft);
+            UiFactory.Label("JourneyKicker", journey.transform, new Vector2(.035f, .76f), new Vector2(.7f, .96f), "다 음  여 정", 30, UiFactory.Gold, TextAnchor.MiddleLeft);
             _featTitle = UiFactory.Heading(UiFactory.Label("FeatTitle", journey.transform, new Vector2(.035f, .43f), new Vector2(.73f, .77f), "", 36, UiFactory.PaperText, TextAnchor.MiddleLeft));
-            _featSub = UiFactory.Body(UiFactory.Label("FeatSub", journey.transform, new Vector2(.035f, .06f), new Vector2(.73f, .43f), "", 21, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 1.1f);
+            _featSub = UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("FeatSub", journey.transform, new Vector2(.035f, .06f), new Vector2(.73f, .43f), "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 30), 1.1f);
             _featBtn = UiFactory.Button("Go", journey.transform, new Vector2(.76f, .17f), new Vector2(.96f, .79f), "출전", UiFactory.Red, OnFeaturedPressed, 32);
             _featBtnLabel = _featBtn.GetComponentInChildren<Text>();
 
@@ -133,6 +133,7 @@ namespace BiRyeoDo.Game.UI
             scroll.horizontal = false;
             scroll.movementType = ScrollRect.MovementType.Clamped;
             scroll.scrollSensitivity = 40f;
+            UiFactory.ScrollIndicator(scroll, viewport);
             float y = gap;
 
             // Difficulty picker for the whole list
@@ -144,6 +145,7 @@ namespace BiRyeoDo.Game.UI
                 var btn = UiFactory.Button("Diff" + d, diffRow, new Vector2(x0, 0.04f), new Vector2(x0 + 0.325f, 0.96f), StageStars.DifficultyNames[d], UiFactory.InkSoft, () => { GameManager.Instance.Save.Difficulty = diffIndex; GameManager.Instance.SaveNow(); Refresh(); }, 30);
                 _diffTabs[d] = btn.GetComponent<Image>();
             }
+            ReadingList.Register(diffRow, 100f, gap);
             y += 84f + gap;
 
             for (int i = 0; i < stages.Length; i++)
@@ -156,11 +158,12 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Frame(badge.transform, UiFactory.Gold, 2f);
                 UiFactory.Label("Num", badge.transform, Vector2.zero, Vector2.one, st.Number.ToString(), 46, UiFactory.Gold);
                 row.Title = UiFactory.Label("Title", rt, new Vector2(0.16f, 0.50f), new Vector2(0.64f, 0.96f), "", 36, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.16f, 0.04f), new Vector2(0.64f, 0.50f), "", 22, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.16f, 0.04f), new Vector2(0.64f, 0.50f), "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 row.Button = UiFactory.Button("Go" + i, rt, new Vector2(0.66f, 0.15f), new Vector2(0.97f, 0.85f), "", UiFactory.Red, () => OnStagePressed(st, onStart, true), 34);
                 row.ButtonImage = row.Button.GetComponent<Image>();
                 row.ButtonLabel = row.Button.GetComponentInChildren<Text>();
                 _rows.Add(row);
+                ReadingList.Register(rt, Mathf.Max(240f, cardH), gap);
                 y += cardH + gap;
             }
             content.sizeDelta = new Vector2(0f, y + gap);
@@ -219,7 +222,7 @@ namespace BiRyeoDo.Game.UI
 
             var rank = UiFactory.Panel("RankChip", root, new Vector2(0.71f, 0.932f), new Vector2(0.865f, 0.988f), UiFactory.Ink);
             UiFactory.Frame(rank.transform, UiFactory.GoldDim, 2f);
-            _rankText = UiFactory.Label("Rank", rank.transform, new Vector2(0.04f, 0f), new Vector2(0.96f, 1f), "", 22, UiFactory.PaperText);
+            _rankText = UiFactory.Label("Rank", rank.transform, new Vector2(0.04f, 0f), new Vector2(0.96f, 1f), "", 30, UiFactory.PaperText);
             var settings = UiFactory.Button("Settings", root, new Vector2(.88f, .932f), new Vector2(.97f, .988f), "설정", UiFactory.InkSoft, OpenSettingsOverlay, 16);
             settings.GetComponentInChildren<Text>().rectTransform.anchorMax = new Vector2(.96f, .28f);
             UiFactory.Glyph("settings", settings.transform, new Vector2(.15f, .28f), new Vector2(.85f, .96f), UiFactory.Gold);
@@ -262,12 +265,13 @@ namespace BiRyeoDo.Game.UI
             }
             else UiFactory.Glyph(iconKey, rt, iconMin, iconMax, UiFactory.Gold);
             UiFactory.Heading(UiFactory.Label("Title", rt, wide ? new Vector2(.29f, .38f) : new Vector2(.04f, .03f),
-                wide ? new Vector2(.94f, .90f) : new Vector2(.96f, .37f), title.Replace("\n", " "), size, UiFactory.PaperText,
+                wide ? new Vector2(.94f, .90f) : new Vector2(.96f, .37f), title.Replace("\n", " "), Mathf.Max(30, size), UiFactory.PaperText,
                 wide ? TextAnchor.MiddleLeft : TextAnchor.MiddleCenter));
-            var detail = UiFactory.Body(UiFactory.Label("Detail", rt, new Vector2(.29f, .08f), new Vector2(.94f, .39f), "", 18, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 1.05f);
+            var detail = UiFactory.Body(UiFactory.Label("Detail", rt, new Vector2(.29f, .08f), new Vector2(.94f, .39f), "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 1.05f);
+            if (wide) UiFactory.ScrollBody(detail, 30);
             detail.gameObject.SetActive(wide);
             var dot = UiFactory.Panel("Dot", rt, new Vector2(.76f, .72f), new Vector2(.97f, .97f), UiFactory.Red);
-            badge = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 22, UiFactory.PaperText);
+            badge = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 30, UiFactory.PaperText);
             badgeRoots.Add(dot.gameObject);
             return detail;
         }
@@ -278,7 +282,7 @@ namespace BiRyeoDo.Game.UI
         {
             if (!_built) return;
             _lobbyTimer += Time.unscaledDeltaTime;
-            if (_lobbyTimer > 9f) { _lobbyTimer = 0f; _lobbyStep++; ShowLobby(true); }
+            if (_lobbyTimer > _lobbyReadTime) { _lobbyTimer = 0f; _lobbyStep++; ShowLobby(true); }
             RefreshStatusChips();   // 두/경험치 earned inside an overlay (일일 임무, 의뢰, 별 보상...) shows at once
         }
 
@@ -313,6 +317,7 @@ namespace BiRyeoDo.Game.UI
             }
             else { _lobbyRealm.text = ""; _lobbyPower.text = ""; }
             _lobbyLine.text = scene.Text;
+            _lobbyReadTime = Mathf.Max(12f, scene.Text.Length * .14f + 5f);
 
             var bg = ArtLibrary.Background(Mathf.Max(1, Mathf.Min(save.ClearedStage, EarlyGameContent.Stages.Length))) ?? ArtLibrary.Background(1);
             _lobbyBg.sprite = bg;
@@ -391,6 +396,7 @@ namespace BiRyeoDo.Game.UI
             img.color = color;
             img.raycastTarget = true;   // lets a drag that starts on a row still scroll
             UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
+            ReadingList.Register(rt, h, gap);
             return rt;
         }
 
@@ -402,41 +408,43 @@ namespace BiRyeoDo.Game.UI
 
             int rank = Promotion.EffectiveRank(save);
             UiFactory.Label("Title", _promoOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "승급 시험장 · 현재 " + Promotion.RankName(rank), 44, UiFactory.Gold);
-            UiFactory.Label("Rules", _promoOverlay, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.92f),
-                "상대 둘을 혼자서 연달아 꺾어야 합니다. 한 판은 " + Promotion.TurnLimit + "턴(상위 단계일수록 조금 깁니다) 안에 끝내야 하며, 시간 초과는 무승부(상금 절반)입니다. 패배하면 입장료는 돌려받지 못합니다.\n단계가 오를수록 상대는 훨씬 강해지지만, 검룡위 1당 모든 능력치 +3% (지금 +" + Math.Round(Promotion.StatBonusPerRank * 100f * rank) + "%).", 26, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.ScrollBody(UiFactory.Label("Rules", _promoOverlay, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.92f),
+                "상대 둘을 혼자서 연달아 꺾어야 합니다. 한 판은 " + Promotion.TurnLimit + "턴(상위 단계일수록 조금 깁니다) 안에 끝내야 하며, 시간 초과는 무승부(상금 절반)입니다. 패배하면 입장료는 돌려받지 못합니다.\n단계가 오를수록 상대는 훨씬 강해지지만, 검룡위 1당 모든 능력치 +3% (지금 +" + Math.Round(Promotion.StatBonusPerRank * 100f * rank) + "%).", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 32);
 
             var targets = Promotion.TargetRanks(save);
             if (targets.Count == 0)
                 UiFactory.Label("Max", _promoOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "이미 최고 경지의 검룡입니다.", 40, UiFactory.PaperText);
 
-            float y = 0.82f;
+            var offers = CodexPanel.Scroller(_promoOverlay, .10f, .835f);
+            int offerIndex = 0;
             foreach (int target in targets)
             {
                 bool skip = target == rank + 2;
-                UiFactory.Label("Target" + target, _promoOverlay, new Vector2(0.05f, y - 0.05f), new Vector2(0.95f, y),
+                var heading = UiFactory.Rect("Rank", offers, new Vector2(.04f, 1f), new Vector2(.96f, 1f));
+                heading.pivot = new Vector2(.5f, 1f);
+                heading.sizeDelta = new Vector2(0f, 90f);
+                ReadingList.Register(heading, 90f, CodexPanel.RowGap);
+                offerIndex++;
+                UiFactory.Label("Target" + target, heading, Vector2.zero, Vector2.one,
                     Promotion.RankName(target) + (skip ? "  (월반: 상금 x" + Promotion.SkipPayFactor + ")" : ""), 34, UiFactory.Gold, TextAnchor.MiddleLeft);
-                y -= 0.055f;
                 for (int tier = 0; tier < 3; tier++)
                 {
                     var offer = Promotion.BuildOffer(save, target, tier);
                     bool afford = Promotion.CanAfford(save, offer);
-                    float y1 = y, y0 = y - 0.085f;
-                    var band = UiFactory.Panel("Card", _promoOverlay, new Vector2(0.05f, y0), new Vector2(0.95f, y1), UiFactory.Ink);
-                    UiFactory.Label("Name", band.transform, new Vector2(0.03f, 0.52f), new Vector2(0.64f, 0.97f), offer.Opponents[0].Name.Split(' ')[0] + " 비무첩", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                    UiFactory.Label("Info", band.transform, new Vector2(0.03f, 0.27f), new Vector2(0.64f, 0.52f),
-                        "입장료 " + offer.Fee.ToString("N0") + "두 · 상금 " + offer.DooReward.ToString("N0") + "두", 22, afford ? UiFactory.PaperText : UiFactory.Red, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    var band = CodexPanel.Band(offers, offerIndex++);
+                    UiFactory.Label("Name", band, new Vector2(0.03f, 0.52f), new Vector2(0.64f, 0.97f), offer.Opponents[0].Name.Split(' ')[0] + " 비무첩", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                    UiFactory.Label("Info", band, new Vector2(0.03f, 0.27f), new Vector2(0.64f, 0.52f),
+                        "입장료 " + offer.Fee.ToString("N0") + "두 · 상금 " + offer.DooReward.ToString("N0") + "두", 30, afford ? UiFactory.PaperText : UiFactory.Red, TextAnchor.MiddleLeft, FontStyle.Normal);
                     double need = Recommend.ForPromotion(offer);
-                    UiFactory.Label("Need", band.transform, new Vector2(0.03f, 0.02f), new Vector2(0.66f, 0.28f),
-                        "추천 최소 " + Recommend.Text(need), 19, Recommend.Meets(save, need) ? UiFactory.Dim : UiFactory.Red, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    UiFactory.Label("Need", band, new Vector2(0.03f, 0.02f), new Vector2(0.66f, 0.28f),
+                        "추천 최소 " + Recommend.Text(need), 30, Recommend.Meets(save, need) ? UiFactory.Dim : UiFactory.Red, TextAnchor.MiddleLeft, FontStyle.Normal);
                     var offerCopy = offer;
-                    var go = UiFactory.Button("Go", band.transform, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), afford ? "도전" : "두 부족", afford ? UiFactory.Red : UiFactory.InkSoft, () => OnChallenge(offerCopy), 32);
+                    var go = UiFactory.Button("Go", band, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), afford ? "도전" : "두 부족", afford ? UiFactory.Red : UiFactory.InkSoft, () => OnChallenge(offerCopy), 32);
                     go.interactable = afford;
-                    y = y0 - 0.008f;
                 }
-                y -= 0.02f;
             }
 
-            UiFactory.Button("Close", _promoOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => _promoOverlay.gameObject.SetActive(false), 36);
+            UiFactory.Button("Close", _promoOverlay, new Vector2(0.25f, 0.01f), new Vector2(0.75f, 0.09f), "닫기", UiFactory.InkSoft, () => _promoOverlay.gameObject.SetActive(false), 36);
         }
 
 
@@ -471,22 +479,24 @@ namespace BiRyeoDo.Game.UI
             reset.interactable = true;
 
             UiFactory.Label("Info", _settingsOverlay, new Vector2(0.06f, 0.12f), new Vector2(0.94f, 0.22f),
-                "소리 파일(Resources/Audio)을 넣으면 효과음과 배경음이 자동으로 나옵니다. 파일이 없으면 조용히 넘어갑니다.", 22, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
-            UiFactory.Button("Close", _settingsOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { GameManager.Instance.SaveNow(); _settingsOverlay.gameObject.SetActive(false); Refresh(); }, 36);
+                "효과음과 배경음의 크기, 전투 속도와 진동을 설정할 수 있습니다.", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.Button("Close", _settingsOverlay, new Vector2(0.25f, 0.01f), new Vector2(0.75f, 0.09f), "닫기", UiFactory.InkSoft, () => { GameManager.Instance.SaveNow(); _settingsOverlay.gameObject.SetActive(false); Refresh(); }, 36);
         }
 
         private void OpenHelpList()
         {
             ClearChildren(_settingsOverlay);
             UiFactory.Label("Title", _settingsOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "도움말", 44, UiFactory.Gold);
-            float y = 0.88f;
+            var content = CodexPanel.Scroller(_settingsOverlay, .10f, .91f);
+            int index = 0;
             foreach (var topic in Tutorial.All)
             {
                 var id = topic.Id;
-                UiFactory.Button("Topic_" + id, _settingsOverlay, new Vector2(0.08f, y - 0.085f), new Vector2(0.92f, y), topic.Title, UiFactory.InkSoft, () => HelpPanel.Instance.Show(id), 34);
-                y -= 0.10f;
+                var row = CodexPanel.Band(content, index++);
+                UiFactory.Button("Topic_" + id, row, new Vector2(.02f, .08f), new Vector2(.98f, .92f), topic.Title, UiFactory.InkSoft, () => HelpPanel.Instance.Show(id), 36);
             }
-            UiFactory.Button("Back", _settingsOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "돌아가기", UiFactory.InkSoft, BuildSettings, 36);
+            content.sizeDelta = new Vector2(0f, index * (CodexPanel.RowH + CodexPanel.RowGap));
+            UiFactory.Button("Back", _settingsOverlay, new Vector2(0.25f, 0.01f), new Vector2(0.75f, 0.09f), "돌아가기", UiFactory.InkSoft, BuildSettings, 36);
         }
 
         private void VolumeRow(string label, float value, ref float y, Action<int> change)
@@ -527,13 +537,13 @@ namespace BiRyeoDo.Game.UI
             _questOverlay.gameObject.SetActive(true);
             if (!Tutorial.IsDone(save, "board") && HelpPanel.Instance != null) HelpPanel.Instance.Show("board", true);
             UiFactory.Label("Title", _questOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "의뢰 게시판", 44, UiFactory.Gold);
-            UiFactory.Label("Rules", _questOverlay, new Vector2(0.05f, 0.85f), new Vector2(0.95f, 0.92f),
-                "이미 지나온 싸움에 조건이 붙어 다시 나옵니다. 한 번씩만 받을 수 있고, 두와 보상을 얻습니다.", 26, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.ScrollBody(UiFactory.Label("Rules", _questOverlay, new Vector2(0.05f, 0.85f), new Vector2(0.95f, 0.92f),
+                "이미 지나온 싸움에 조건이 붙어 다시 나옵니다. 한 번씩만 받을 수 있고, 두와 보상을 얻습니다.", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 32);
 
             var partyNow = new List<string>();
             foreach (var c in EarlyGameContent.SelectCompanionsFor(Math.Max(1, save.HighestUnlockedStage), save)) partyNow.Add(c.Name);
             UiFactory.Label("Party", _questOverlay, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.85f),
-                partyNow.Count > 0 ? "함께 싸울 동료: " + string.Join(", ", partyNow) : "함께 싸울 동료가 없습니다 (비류연 혼자 나갑니다)", 24, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal);
+                partyNow.Count > 0 ? "함께 싸울 동료: " + string.Join(", ", partyNow) : "함께 싸울 동료가 없습니다 (비류연 혼자 나갑니다)", 30, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal);
             var questList = CodexPanel.Scroller(_questOverlay, 0.10f, 0.80f);
             int shown = 0;
             foreach (var q in Quests.All)
@@ -542,7 +552,7 @@ namespace BiRyeoDo.Game.UI
                 bool done = Quests.IsDone(save, q.Id);
                 var band = CodexPanel.Band(questList, shown);
                 UiFactory.Label("Name", band, new Vector2(0.03f, 0.54f), new Vector2(0.66f, 0.97f), q.Name + (done ? "  (완료)" : ""), 32, done ? UiFactory.InkSoft : UiFactory.PaperText, TextAnchor.MiddleLeft);
-                UiFactory.Label("Info", band, new Vector2(0.03f, 0.03f), new Vector2(0.66f, 0.54f), q.Trial.Brief + " · 보상 " + q.RewardDoo.ToString("N0") + "두", 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Info", band, new Vector2(0.03f, 0.03f), new Vector2(0.66f, 0.54f), q.Trial.Brief + " · 보상 " + q.RewardDoo.ToString("N0") + "두", 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var quest = q;
                 var go = UiFactory.Button("Go", band, new Vector2(0.69f, 0.12f), new Vector2(0.97f, 0.88f), done ? "완료" : "수락", done ? UiFactory.InkSoft : UiFactory.Red, () => AcceptQuest(quest), 32);
                 go.interactable = !done;
@@ -552,7 +562,7 @@ namespace BiRyeoDo.Game.UI
             if (shown == 0)
                 UiFactory.Label("None", _questOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "아직 받을 수 있는 의뢰가 없습니다. 스테이지를 돌파하면 의뢰가 생깁니다.", 34, UiFactory.PaperText);
 
-            UiFactory.Button("Close", _questOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _questOverlay.gameObject.SetActive(false); Refresh(); }, 36);
+            UiFactory.Button("Close", _questOverlay, new Vector2(0.25f, 0.01f), new Vector2(0.75f, 0.09f), "닫기", UiFactory.InkSoft, () => { _questOverlay.gameObject.SetActive(false); Refresh(); }, 36);
         }
 
         // ------------------------------------------------------------------ 무한 비무대
@@ -592,15 +602,15 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Label("Info", card.transform, new Vector2(0.05f, 0.08f), new Vector2(0.95f, 0.62f),
                     "상대: " + string.Join(", ", names) + "\n권장 Lv." + Tower.FloorLevel(floor)
                     + "\n첫 돌파 보상: 두 " + Tower.RewardDoo(floor).ToString("N0") + (items.Count > 0 ? ", " + string.Join(", ", items) : "")
-                    + " + 경험\n" + Recommend.Line(save, Recommend.ForTowerFloor(floor)), 26, Recommend.Meets(save, Recommend.ForTowerFloor(floor)) ? UiFactory.PaperText : UiFactory.Red, TextAnchor.MiddleCenter, FontStyle.Normal);
+                    + " + 경험\n" + Recommend.Line(save, Recommend.ForTowerFloor(floor)), 30, Recommend.Meets(save, Recommend.ForTowerFloor(floor)) ? UiFactory.PaperText : UiFactory.Red, TextAnchor.MiddleCenter, FontStyle.Normal);
                 UiFactory.Button("Go", _towerOverlay, new Vector2(0.25f, 0.34f), new Vector2(0.75f, 0.44f), "도전", UiFactory.Red, () => StartTower(floor), 44);
                 if (save.TowerBest > 0)
                 {
-                    UiFactory.Label("Again", _towerOverlay, new Vector2(0.05f, 0.24f), new Vector2(0.95f, 0.30f), "이미 돌파한 층은 보상 없이 다시 겨룰 수 있습니다", 24, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+                    UiFactory.Label("Again", _towerOverlay, new Vector2(0.05f, 0.24f), new Vector2(0.95f, 0.30f), "이미 돌파한 층은 보상 없이 다시 겨룰 수 있습니다", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
                     UiFactory.Button("Prev", _towerOverlay, new Vector2(0.25f, 0.15f), new Vector2(0.75f, 0.23f), save.TowerBest + "층 다시 도전", UiFactory.InkSoft, () => StartTower(save.TowerBest), 30);
                 }
             }
-            UiFactory.Button("Close", _towerOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _towerOverlay.gameObject.SetActive(false); Refresh(); }, 36);
+            UiFactory.Button("Close", _towerOverlay, new Vector2(0.25f, 0.01f), new Vector2(0.75f, 0.09f), "닫기", UiFactory.InkSoft, () => { _towerOverlay.gameObject.SetActive(false); Refresh(); }, 36);
             if (!Tutorial.IsDone(save, "tower") && HelpPanel.Instance != null && Tower.Unlocked(save)) HelpPanel.Instance.Show("tower", true);
         }
 
@@ -660,7 +670,7 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Button("Go", band, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), "마주치기", UiFactory.Red, () => ShowFortune(e), 30);
             }
             fortuneList.sizeDelta = new Vector2(0f, CodexPanel.RowGap + open.Count * (CodexPanel.RowH + CodexPanel.RowGap));
-            UiFactory.Button("Close", _fortuneOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _fortuneOverlay.gameObject.SetActive(false); Refresh(); }, 36);
+            UiFactory.Button("Close", _fortuneOverlay, new Vector2(0.25f, 0.01f), new Vector2(0.75f, 0.09f), "닫기", UiFactory.InkSoft, () => { _fortuneOverlay.gameObject.SetActive(false); Refresh(); }, 36);
         }
 
         private void ShowFortune(FortuneEvent ev)
@@ -668,7 +678,7 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             ClearChildren(_fortuneOverlay);
             UiFactory.Label("Title", _fortuneOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), ev.Title, 44, UiFactory.Gold);
-            UiFactory.Label("Text", _fortuneOverlay, new Vector2(0.07f, 0.52f), new Vector2(0.93f, 0.90f), string.Join("\n\n", ev.Text), 34, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.ScrollBody(UiFactory.Label("Text", _fortuneOverlay, new Vector2(0.07f, 0.52f), new Vector2(0.93f, 0.90f), string.Join("\n\n", ev.Text), 34, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 32);
             float y = 0.46f;
             foreach (var ch in ev.Choices)
             {
@@ -689,7 +699,7 @@ namespace BiRyeoDo.Game.UI
             GameManager.Instance.SaveNow();
             ClearChildren(_fortuneOverlay);
             UiFactory.Label("Title", _fortuneOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), ev.Title, 44, UiFactory.Gold);
-            UiFactory.Label("Result", _fortuneOverlay, new Vector2(0.07f, 0.35f), new Vector2(0.93f, 0.85f), result, 36, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.ScrollBody(UiFactory.Label("Result", _fortuneOverlay, new Vector2(0.07f, 0.35f), new Vector2(0.93f, 0.85f), result, 36, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 32);
             UiFactory.Button("Done", _fortuneOverlay, new Vector2(0.3f, 0.12f), new Vector2(0.7f, 0.22f), "확인", UiFactory.Red, OpenFortuneOverlay, 40);
         }
 
@@ -715,26 +725,26 @@ namespace BiRyeoDo.Game.UI
             var available = AvailableCompanions(save);
             var active = EarlyGameContent.SelectCompanionsFor(Math.Max(1, save.HighestUnlockedStage), save);
             UiFactory.Label("Title", _partyOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "파티 편성", 44, UiFactory.Gold);
-            UiFactory.Label("Rules", _partyOverlay, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.92f),
-                "비류연과 함께 싸울 동료는 최대 " + EarlyGameContent.MaxCompanions + "명입니다. 눌러서 출전과 대기를 바꿉니다.", 28, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.ScrollBody(UiFactory.Label("Rules", _partyOverlay, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.92f),
+                "비류연과 함께 싸울 동료는 최대 " + EarlyGameContent.MaxCompanions + "명입니다. 눌러서 출전과 대기를 바꿉니다.", 28, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 32);
 
             if (available.Count == 0)
                 UiFactory.Label("None", _partyOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "아직 함께할 동료가 없습니다.", 40, UiFactory.PaperText);
 
-            float y = 0.82f;
+            var roster = CodexPanel.Scroller(_partyOverlay, .34f, .835f);
+            int memberIndex = 0;
             foreach (var c in available)
             {
                 bool on = active.Contains(c);
-                var band = UiFactory.Panel("Card", _partyOverlay, new Vector2(0.05f, y - 0.08f), new Vector2(0.95f, y), UiFactory.Ink);
-                UiFactory.Label("Name", band.transform, new Vector2(0.03f, 0.52f), new Vector2(0.64f, 0.97f), c.Name, 36, on ? UiFactory.Gold : UiFactory.PaperText, TextAnchor.MiddleLeft);
-                UiFactory.Label("Role", band.transform, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.52f), c.Role + "  ·  인연 " + Bonds.LevelNames[Bonds.Level(save, c.Id)] + " (" + Bonds.BonusText(Bonds.Level(save, c.Id)) + ")", 20, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                var band = CodexPanel.Band(roster, memberIndex++);
+                UiFactory.Label("Name", band, new Vector2(0.03f, 0.52f), new Vector2(0.64f, 0.97f), c.Name, 36, on ? UiFactory.Gold : UiFactory.PaperText, TextAnchor.MiddleLeft);
+                UiFactory.Label("Role", band, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.52f), c.Role + "  ·  인연 " + Bonds.LevelNames[Bonds.Level(save, c.Id)] + " (" + Bonds.BonusText(Bonds.Level(save, c.Id)) + ")", 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var companion = c;
-                UiFactory.Button("Toggle", band.transform, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), on ? "출전" : "대기", on ? UiFactory.Red : UiFactory.InkSoft, () => ToggleCompanion(companion), 32);
-                y -= 0.088f;
+                UiFactory.Button("Toggle", band, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), on ? "출전" : "대기", on ? UiFactory.Red : UiFactory.InkSoft, () => ToggleCompanion(companion), 32);
             }
 
             BuildFormationBlock(_partyOverlay, active, OpenPartyOverlay, 0.13f, 0.29f);
-            UiFactory.Button("Close", _partyOverlay, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { _partyOverlay.gameObject.SetActive(false); Refresh(); }, 36);
+            UiFactory.Button("Close", _partyOverlay, new Vector2(0.25f, 0.01f), new Vector2(0.75f, 0.09f), "닫기", UiFactory.InkSoft, () => { _partyOverlay.gameObject.SetActive(false); Refresh(); }, 36);
         }
 
         private string _placeSelected;   // the member picked in the placement grid (tap a tile next to move or swap)
@@ -751,14 +761,14 @@ namespace BiRyeoDo.Game.UI
             foreach (var c in active) { ids.Add(c.Id); names[c.Id] = c.Name; }
             var map = Formation.Resolve(save, ids, st);   // auto lines are planned against this stage (the next one to clear on the party screen)
             if (_placeSelected != null && !map.ContainsKey(_placeSelected)) _placeSelected = null;
-            UiFactory.Label("FormTitle", parent, new Vector2(0.05f, gy1 + 0.035f), new Vector2(0.60f, gy1 + 0.085f), "진형 (인물을 누르고 칸을 누릅니다)", 26, UiFactory.Gold, TextAnchor.MiddleLeft);
+            UiFactory.Label("FormTitle", parent, new Vector2(0.05f, gy1 + 0.035f), new Vector2(0.60f, gy1 + 0.085f), "진형 · 인물 선택 후 칸 선택", 30, UiFactory.Gold, TextAnchor.MiddleLeft);
             UiFactory.Button("FormAuto", parent, new Vector2(0.64f, gy1 + 0.035f), new Vector2(0.95f, gy1 + 0.085f), save.PlacementCustom ? "자동 배치" : "자동 배치 중", save.PlacementCustom ? UiFactory.InkSoft : UiFactory.Gold, () => { Formation.Reset(save); _placeSelected = null; GameManager.Instance.SaveNow(); redraw(); }, 24);
-            UiFactory.Label("FormHint", parent, new Vector2(0.05f, gy0 - 0.045f), new Vector2(0.95f, gy0 - 0.005f), "싸움이 시작되면 자리를 바꿀 수 없습니다. 오른쪽이 적과 마주한 앞 줄입니다.", 20, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.Label("FormHint", parent, new Vector2(0.05f, gy0 - 0.045f), new Vector2(0.95f, gy0 - 0.005f), "배치는 전투 전에만 바꿀 수 있습니다. 오른쪽이 앞줄입니다.", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
             float gx0 = 0.05f, gx1 = 0.95f;
             float cw = (gx1 - gx0) / Board.PartyCols, ch = (gy1 - gy0) / Board.Rows;
             string[] lineNames = { "뒤 줄", "중 줄", "앞 줄" };
             for (int col = 0; col < Board.PartyCols; col++)
-                UiFactory.Label("Line" + col, parent, new Vector2(gx0 + col * cw, gy1), new Vector2(gx0 + (col + 1) * cw, gy1 + 0.03f), lineNames[col], 22, col == Board.PartyCols - 1 ? UiFactory.Gold : UiFactory.PaperText);
+                UiFactory.Label("Line" + col, parent, new Vector2(gx0 + col * cw, gy1), new Vector2(gx0 + (col + 1) * cw, gy1 + 0.03f), lineNames[col], 30, col == Board.PartyCols - 1 ? UiFactory.Gold : UiFactory.PaperText);
             for (int col = 0; col < Board.PartyCols; col++)
                 for (int row = 0; row < Board.Rows; row++)
                 {
@@ -835,20 +845,18 @@ namespace BiRyeoDo.Game.UI
             var body = new System.Text.StringBuilder();
             body.Append("적의 공격은 기본적으로 앞 줄부터 향합니다. 앞 줄에는 맞아도 버티는 인물을, 뒷줄에는 공격이 강한 인물을 세우세요.");
             if (snipers) body.Append("\n뒷줄을 노리는 적이 있습니다. 이번에는 뒷줄에도 버틸 수 있는 인물을 두는 편이 좋습니다.");
-            UiFactory.Body(UiFactory.Label("Advice", _prepOverlay, new Vector2(0.05f, 0.775f), new Vector2(0.95f, 0.88f), body.ToString(), 24, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal));
+            UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Advice", _prepOverlay, new Vector2(0.05f, 0.775f), new Vector2(0.95f, 0.88f), body.ToString(), 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 32));
 
             Recommend.StageReward(save, st, out long rewardExp, out long rewardDoo);
             double need = Recommend.ForStage(st);
             bool enough = Recommend.Meets(save, need);
             string payNote = Recommend.IsReplay(save, st) ? "  (이미 깬 곳이라 절반)" : "";
-            UiFactory.Body(UiFactory.Label("Reward", _prepOverlay, new Vector2(0.05f, 0.645f), new Vector2(0.95f, 0.775f),
-                "예상 보상  경험 " + rewardExp.ToString("N0") + " · 두 " + rewardDoo.ToString("N0") + payNote + "\n" + Recommend.Line(save, need),
-                24, enough ? UiFactory.PaperText : UiFactory.Red, TextAnchor.UpperLeft, FontStyle.Normal), 1.15f);
+            UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Reward", _prepOverlay, new Vector2(0.05f, 0.645f), new Vector2(0.95f, 0.775f),
+                "예상 보상  경험 " + rewardExp.ToString("N0") + " · 두 " + rewardDoo.ToString("N0") + payNote + "\n" + Recommend.Line(save, need), 30, enough ? UiFactory.PaperText : UiFactory.Red, TextAnchor.UpperLeft, FontStyle.Normal), 32), 1.15f);
 
             var enemyText = new System.Text.StringBuilder("나올 적\n");
-            int shown = 0;
-            foreach (var l in lines) { if (shown++ >= 5) { enemyText.Append("…"); break; } enemyText.Append(l).Append('\n'); }
-            UiFactory.Body(UiFactory.Label("Enemies", _prepOverlay, new Vector2(0.05f, 0.44f), new Vector2(0.95f, 0.645f), enemyText.ToString().TrimEnd('\n'), 22, UiFactory.Gold, TextAnchor.UpperLeft, FontStyle.Normal), 1.15f);
+            foreach (var l in lines) enemyText.Append(l).Append('\n');
+            UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Enemies", _prepOverlay, new Vector2(0.05f, 0.44f), new Vector2(0.95f, 0.645f), enemyText.ToString().TrimEnd('\n'), 30, UiFactory.Gold, TextAnchor.UpperLeft, FontStyle.Normal), 32), 1.15f);
 
             BuildFormationBlock(_prepOverlay, new List<CompanionData>(active), () => OpenPrep(st, go), 0.15f, 0.36f, st);
             UiFactory.Button("Go", _prepOverlay, new Vector2(0.52f, 0.02f), new Vector2(0.95f, 0.095f), "출전", UiFactory.Red, () => { _prepOverlay.gameObject.SetActive(false); go(); }, 38);

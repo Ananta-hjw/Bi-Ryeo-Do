@@ -34,7 +34,7 @@ namespace BiRyeoDo.Game.UI
         protected void AddClose()
         {
             if (Embedded) return;
-            UiFactory.Button("Close", Root, new Vector2(0.3f, 0.02f), new Vector2(0.7f, 0.08f), "닫기", UiFactory.InkSoft, () => { Root.gameObject.SetActive(false); OnChange(); }, 36);
+            UiFactory.Button("Close", Root, new Vector2(0.25f, 0.01f), new Vector2(0.75f, 0.09f), "닫기", UiFactory.InkSoft, () => { Root.gameObject.SetActive(false); OnChange(); }, 36);
         }
 
         protected static void SetListHeight(RectTransform content, int rows)

@@ -15,7 +15,7 @@ namespace BiRyeoDo.Game.UI
         public static readonly Color Gold = new Color(.83f, .72f, .48f, 1f);
         public static readonly Color GoldDim = new Color(.46f, .41f, .29f, 1f);
         public static readonly Color PaperText = new Color(.94f, .91f, .82f, 1f);
-        public static readonly Color Dim = new Color(.65f, .71f, .67f, 1f);
+        public static readonly Color Dim = new Color(.73f, .78f, .73f, 1f);
         public static readonly Color Jade = new Color(.39f, .62f, .55f, 1f);
 
         /// <summary>Colour of an item grade: 일반 grey, 고급 green, 희귀 blue, 영웅 purple, 전설 orange, 신화 red.</summary>
@@ -148,12 +148,12 @@ namespace BiRyeoDo.Game.UI
             t.text = text;
             t.fontSize = size;
             t.fontStyle = style;
-            t.color = color;
+            t.color = color == InkSoft ? Dim : color;
             t.alignment = anchor;
             t.horizontalOverflow = HorizontalWrapMode.Wrap;
             t.verticalOverflow = VerticalWrapMode.Truncate;
             t.resizeTextForBestFit = true;
-            t.resizeTextMinSize = 12;
+            t.resizeTextMinSize = Mathf.Min(size, 28);
             t.resizeTextMaxSize = size;
             t.raycastTarget = false;
             if (name == "Title" || name == "Header") Heading(t);
@@ -169,6 +169,73 @@ namespace BiRyeoDo.Game.UI
             t.resizeTextForBestFit = false;
             t.lineSpacing = lineSpacing;
             return t;
+        }
+
+        /// <summary>Measured wrapping height, in canvas units, including rich text and the current font.</summary>
+        public static float MeasureHeight(Text text, string value, float width)
+        {
+            var settings = text.GetGenerationSettings(new Vector2(Mathf.Max(1f, width), 0f));
+            settings.verticalOverflow = VerticalWrapMode.Overflow;
+            settings.resizeTextForBestFit = false;
+            return Mathf.Ceil(text.cachedTextGeneratorForLayout.GetPreferredHeight(value ?? "", settings) / text.pixelsPerUnit);
+        }
+
+        /// <summary>Wraps an existing paragraph in a masked, draggable reading area without shrinking its letters.</summary>
+        public static Text ScrollBody(Text text, int fontSize = 36)
+        {
+            if (text.GetComponent<ReadingText>() != null) return text;
+            var rect = text.rectTransform;
+            var viewport = Rect(text.name + "Viewport", rect.parent, rect.anchorMin, rect.anchorMax);
+            viewport.offsetMin = rect.offsetMin; viewport.offsetMax = rect.offsetMax;
+            viewport.SetSiblingIndex(rect.GetSiblingIndex());
+            var hit = viewport.gameObject.AddComponent<Image>();
+            hit.color = Color.clear;
+            viewport.gameObject.AddComponent<RectMask2D>();
+            rect.SetParent(viewport, false);
+            rect.anchorMin = new Vector2(0f, 1f); rect.anchorMax = Vector2.one;
+            rect.pivot = new Vector2(.5f, 1f);
+            rect.offsetMin = Vector2.zero; rect.offsetMax = Vector2.zero;
+            rect.sizeDelta = new Vector2(-26f, 0f);
+            rect.anchoredPosition = new Vector2(-13f, 0f);
+            text.fontSize = fontSize;
+            text.fontStyle = FontStyle.Normal;
+            text.alignment = TextAnchor.UpperLeft;
+            Body(text, 1.3f);
+            var scroll = viewport.gameObject.AddComponent<ScrollRect>();
+            scroll.viewport = viewport; scroll.content = rect;
+            scroll.horizontal = false; scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 50f;
+            ScrollIndicator(scroll, viewport);
+            var reading = text.gameObject.AddComponent<ReadingText>();
+            reading.Viewport = viewport; reading.Scroll = scroll;
+            return text;
+        }
+
+        public static void ScrollIndicator(ScrollRect scroll, RectTransform viewport)
+        {
+            var track = Panel("ScrollTrack", viewport, new Vector2(1f, 0f), Vector2.one, InkSoft);
+            track.rectTransform.offsetMin = new Vector2(-8f, 0f);
+            var thumb = Panel("Thumb", track.transform, Vector2.zero, Vector2.one, GoldDim);
+            track.raycastTarget = true; thumb.raycastTarget = true;
+            var bar = track.gameObject.AddComponent<Scrollbar>();
+            bar.targetGraphic = thumb; bar.handleRect = thumb.rectTransform;
+            bar.direction = Scrollbar.Direction.BottomToTop;
+            scroll.verticalScrollbar = bar;
+            scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHide;
+        }
+
+        public static RectTransform ReadingViewport(Text text)
+        {
+            var reading = text.GetComponent<ReadingText>();
+            return reading != null ? reading.Viewport : text.rectTransform;
+        }
+
+        /// <summary>Story-only pagination. Keeps the original characters and line breaks intact.</summary>
+        public static System.Collections.Generic.List<string> Pages(Text layout, string value)
+        {
+            float width = Mathf.Max(1f, layout.rectTransform.rect.width);
+            float height = Mathf.Max(layout.fontSize * 2f, layout.rectTransform.rect.height - layout.fontSize * .5f);
+            return ReadingPages.Split(value, text => MeasureHeight(layout, text, width), height);
         }
 
         public static Button Button(string name, Transform parent, Vector2 min, Vector2 max, string label, Color bg,
@@ -189,7 +256,7 @@ namespace BiRyeoDo.Game.UI
             if (onClick != null) btn.onClick.AddListener(onClick);
             btn.onClick.AddListener(() => Systems.SoundManager.Sfx("ui_click"));
             if (bg.a > 0.05f) Frame(img.transform, GoldDim, 2f);
-            Label("Label", img.transform, new Vector2(.04f, 0f), new Vector2(.96f, 1f), label, fontSize, PaperText);
+            Label("Label", img.transform, new Vector2(.05f, .08f), new Vector2(.95f, .92f), label, Mathf.Max(30, fontSize), PaperText);
             return btn;
         }
 

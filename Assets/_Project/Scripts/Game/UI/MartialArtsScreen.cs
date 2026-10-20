@@ -42,25 +42,25 @@ namespace BiRyeoDo.Game.UI
             {
                 int page = p;
                 float x0 = 0.04f + p * 0.32f;
-                var btn = UiFactory.Button("Page" + p, tab, new Vector2(x0, 0.932f), new Vector2(x0 + 0.30f, 0.988f), PageNames[p], UiFactory.InkSoft, () => ShowPage(page), 30);
+                var btn = UiFactory.Button("Page" + p, tab, new Vector2(x0, 0.918f), new Vector2(x0 + 0.30f, 0.992f), PageNames[p], UiFactory.InkSoft, () => ShowPage(page), 30);
                 _pageTabs[p] = btn.GetComponent<Image>();
                 if (p < 2)
                 {
                     var dot = UiFactory.Panel("NewDot", btn.transform, new Vector2(0.80f, 0.55f), new Vector2(1.04f, 1.12f), UiFactory.Red);
-                    _pageDotTexts[p] = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 24, UiFactory.PaperText);
+                    _pageDotTexts[p] = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 30, UiFactory.PaperText);
                     _pageDots[p] = dot.gameObject;
                     _pageDots[p].SetActive(false);
                 }
             }
-            var root = UiFactory.Rect("ArtsPage", tab, Vector2.zero, new Vector2(1f, 0.92f));
+            var root = UiFactory.Rect("ArtsPage", tab, Vector2.zero, new Vector2(1f, 0.905f));
             _artsRoot = root;
-            _inner = new InnerArtPanel(UiFactory.Rect("InnerArtPage", tab, Vector2.zero, new Vector2(1f, 0.92f)), Refresh) { Embedded = true };
-            _training = new CompanionPanel(UiFactory.Rect("TrainingPage", tab, Vector2.zero, new Vector2(1f, 0.92f)), Refresh) { Embedded = true };
+            _inner = new InnerArtPanel(UiFactory.Rect("InnerArtPage", tab, Vector2.zero, new Vector2(1f, 0.905f)), Refresh) { Embedded = true };
+            _training = new CompanionPanel(UiFactory.Rect("TrainingPage", tab, Vector2.zero, new Vector2(1f, 0.905f)), Refresh) { Embedded = true };
 
             UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
             UiFactory.Glyph("arts", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
             _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.94f, 0.985f), "", 42, UiFactory.Gold);
-            _hint = UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+            _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             // The list scrolls: the protagonist has far more arts than fit on one screen.
             var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, 0.88f));
@@ -74,9 +74,10 @@ namespace BiRyeoDo.Game.UI
             scroll.horizontal = false;
             scroll.movementType = ScrollRect.MovementType.Clamped;
             scroll.scrollSensitivity = 40f;
+            UiFactory.ScrollIndicator(scroll, viewport);
 
             var arts = EarlyGameContent.Arts.Where(a => a.OwnerId == null).ToArray();
-            const float rowH = 170f, gap = 12f;
+            const float rowH = 240f, gap = 16f;
             content.sizeDelta = new Vector2(0f, arts.Length * (rowH + gap) + gap);
             for (int i = 0; i < arts.Length; i++)
             {
@@ -86,6 +87,7 @@ namespace BiRyeoDo.Game.UI
                 rt.pivot = new Vector2(0.5f, 1f);
                 rt.anchoredPosition = new Vector2(0f, -(gap + i * (rowH + gap)));
                 rt.sizeDelta = new Vector2(0f, rowH);
+                ReadingList.Register(rt, rowH, gap);
                 var bg = rt.gameObject.AddComponent<Image>();
                 bg.color = UiFactory.Ink;
                 bg.raycastTarget = true;   // lets a drag that starts on a row still scroll
@@ -98,7 +100,7 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Frame(row.Icon.transform, UiFactory.Gold, 2f);
                 row.IconGlyph = UiFactory.Label("Glyph", row.Icon.transform, Vector2.zero, Vector2.one, art.Name.Substring(0, 1), 50, UiFactory.PaperText);
                 row.Title = UiFactory.Label("Title", rt, new Vector2(0.15f, 0.50f), new Vector2(0.51f, 0.97f), "", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.15f, 0.03f), new Vector2(0.51f, 0.50f), "", 20, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.15f, 0.03f), new Vector2(0.51f, 0.50f), "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(0.52f, 0.12f), new Vector2(0.73f, 0.88f), "", UiFactory.Red, () => OnPressed(art), 28);
                 row.ButtonImage = row.Button.GetComponent<Image>();
                 row.ButtonLabel = row.Button.GetComponentInChildren<Text>();
@@ -160,7 +162,7 @@ namespace BiRyeoDo.Game.UI
                 ki.preserveAspect = true;
                 kindX = 0.125f;
             }
-            UiFactory.Label("Kind", card.transform, new Vector2(kindX, 0.86f), new Vector2(0.72f, 0.91f), kind, 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("Kind", card.transform, new Vector2(kindX, 0.86f), new Vector2(0.72f, 0.91f), kind, 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
 
             var lines = new List<string>();
             lines.Add(art.Description);
@@ -187,7 +189,7 @@ namespace BiRyeoDo.Game.UI
                     lines.Add("변초 (" + Mastery.LevelNames[Mastery.VariantLevel] + "부터)\n" + string.Join("\n", variants.Select(v => Mastery.VariantHint(v))));
                 else lines.Add("이 무공에는 변초가 없습니다.");
             }
-            UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.30f), new Vector2(0.94f, 0.85f), string.Join("\n\n", lines), 24, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal);
+            UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.30f), new Vector2(0.94f, 0.85f), string.Join("\n\n", lines), 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 36);
 
             string mainLabel; Color mainColor; bool mainOn;
             if (learned) { mainLabel = equipped ? "해제" : "장착"; mainColor = equipped ? UiFactory.InkSoft : UiFactory.Red; mainOn = true; }

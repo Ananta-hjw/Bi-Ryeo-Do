@@ -37,17 +37,17 @@ namespace BiRyeoDo.Game.UI
                 int prog = Daily.ProgressOf(save, m);
                 var bar = UiFactory.MakeBar("Bar", band.transform, new Vector2(0.04f, 0.32f), new Vector2(0.62f, 0.46f), new Color(0f, 0f, 0f, 0.7f), done ? UiFactory.Gold : new Color(0.38f, 0.62f, 0.95f, 1f));
                 bar.SetPct(m.Target > 0 ? (float)prog / m.Target : 0f);
-                UiFactory.Label("Count", band.transform, new Vector2(0.64f, 0.28f), new Vector2(0.70f, 0.50f), prog + "/" + m.Target, 20, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-                UiFactory.Label("Reward", band.transform, new Vector2(0.04f, 0.04f), new Vector2(0.66f, 0.30f), "보상 두 " + Daily.RewardDoo(save, m).ToString("N0"), 20, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Count", band.transform, new Vector2(0.04f, 0.28f), new Vector2(0.66f, 0.50f), prog + "/" + m.Target, 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Reward", band.transform, new Vector2(0.04f, 0.04f), new Vector2(0.66f, 0.30f), "보상 두 " + Daily.RewardDoo(save, m).ToString("N0"), 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 int index = i;
                 var btn = UiFactory.Button("Claim", band.transform, new Vector2(0.72f, 0.16f), new Vector2(0.97f, 0.84f), claimed ? "수령 완료" : done ? "받기" : "진행 중", done && !claimed ? UiFactory.Red : UiFactory.InkSoft, () => Claim(index), 26);
                 btn.interactable = done && !claimed;
             }
 
             string bonus = Daily.AllClaimed(save) ? "오늘의 세 임무를 모두 끝냈습니다!" : "세 임무를 모두 받으면 보너스: 두 " + Daily.AllClearDoo(save).ToString("N0") + " + 웅담 2개, 연속 수련 +1일";
-            UiFactory.Label("Bonus", Root, new Vector2(0.05f, 0.26f), new Vector2(0.95f, 0.33f), bonus, 24, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal);
-            UiFactory.Label("Milestones", Root, new Vector2(0.05f, 0.17f), new Vector2(0.95f, 0.26f), "연속 보상: 3일 옥루주 3 · 7일 인형설삼 · 14일 일급영단+심득석 2 · 30일마다 일급영단 2+심득석 4 + 두 20,000", 20, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
-            UiFactory.Label("Toast", Root, new Vector2(0.05f, 0.09f), new Vector2(0.95f, 0.17f), toast ?? "임무는 내일 0시에 새로 바뀝니다 (기기 시간 기준)", 22, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.ScrollBody(UiFactory.Label("Bonus", Root, new Vector2(0.05f, 0.26f), new Vector2(0.95f, 0.33f), bonus, 30, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            UiFactory.ScrollBody(UiFactory.Label("Milestones", Root, new Vector2(0.05f, 0.17f), new Vector2(0.95f, 0.26f), "연속 보상: 3일 옥루주 3 · 7일 인형설삼 · 14일 일급영단+심득석 2 · 30일마다 일급영단 2+심득석 4 + 두 20,000", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            UiFactory.ScrollBody(UiFactory.Label("Toast", Root, new Vector2(0.05f, 0.09f), new Vector2(0.95f, 0.17f), toast ?? "임무는 내일 0시에 새로 바뀝니다 (기기 시간 기준)", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
             AddClose();
         }
 

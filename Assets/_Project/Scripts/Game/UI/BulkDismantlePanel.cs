@@ -47,14 +47,14 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
             UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.93f), new Vector2(0.95f, 0.99f), "일괄 분해", 42, UiFactory.Gold);
 
-            UiFactory.Label("GradeLabel", card.transform, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.93f), "등급 (신화·초월은 분해할 수 없습니다)", 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("GradeLabel", card.transform, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.93f), "등급 (신화·초월은 분해할 수 없습니다)", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
             for (int i = 0; i < Salvage.BulkGrades.Length; i++)
             {
                 int idx = i;
                 var grade = Salvage.BulkGrades[i];
                 Toggle(card.transform, "G" + i, 0.04f + i * 0.186f, 0.04f + i * 0.186f + 0.176f, 0.815f, 0.88f, Grades.NameOf(grade), _grades[i], UiFactory.GradeColor(grade), () => { _grades[idx] = !_grades[idx]; Rebuild(); });
             }
-            UiFactory.Label("SlotLabel", card.transform, new Vector2(0.05f, 0.765f), new Vector2(0.95f, 0.81f), "부위", 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("SlotLabel", card.transform, new Vector2(0.05f, 0.765f), new Vector2(0.95f, 0.81f), "부위", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
             for (int i = 0; i < SlotNames.Length; i++)
             {
                 int idx = i;
@@ -79,6 +79,7 @@ namespace BiRyeoDo.Game.UI
             var scroll = viewport.gameObject.AddComponent<ScrollRect>();
             scroll.viewport = viewport; scroll.content = content; scroll.horizontal = false;
             scroll.movementType = ScrollRect.MovementType.Clamped; scroll.scrollSensitivity = 40f;
+            UiFactory.ScrollIndicator(scroll, viewport);
             for (int i = 0; i < plan.Count; i++)
             {
                 var e = plan[i];
@@ -87,22 +88,23 @@ namespace BiRyeoDo.Game.UI
                 rt.pivot = new Vector2(0.5f, 1f);
                 rt.anchoredPosition = new Vector2(0f, -(gap + i * (rowH + gap)));
                 rt.sizeDelta = new Vector2(0f, rowH);
+                ReadingList.Register(rt, rowH, gap);
                 var band = rt.gameObject.AddComponent<Image>();
                 band.color = UiFactory.Ink;
                 var accent = UiFactory.Panel("Accent", rt, new Vector2(0f, 0.08f), new Vector2(0.012f, 0.92f), UiFactory.GradeColor(e.Item.Grade));
-                UiFactory.Label("Name", rt, new Vector2(0.03f, 0f), new Vector2(0.60f, 1f), UiFactory.GradedName(e.Item) + "  <size=20>" + Salvage.SlotLabel(e.Item.Kind) + "</size>", 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Name", rt, new Vector2(0.03f, 0f), new Vector2(0.60f, 1f), UiFactory.GradedName(e.Item) + "  <size=28>" + Salvage.SlotLabel(e.Item.Kind) + "</size>", 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
                 UiFactory.Label("Count", rt, new Vector2(0.60f, 0f), new Vector2(0.72f, 1f), "x" + e.Count, 28, UiFactory.Gold);
-                UiFactory.Label("Mat", rt, new Vector2(0.72f, 0f), new Vector2(0.99f, 1f), "→ " + mat.Name, 20, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Mat", rt, new Vector2(0.72f, 0f), new Vector2(0.99f, 1f), "→ " + mat.Name, 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
             }
             if (plan.Count == 0)
-                UiFactory.Label("Empty", viewport, Vector2.zero, Vector2.one, _singles ? "고른 등급·부위에 분해할 장비가 없습니다." : "고른 등급·부위에 여분이 없습니다.\n(「하나뿐인 장비도 포함」을 켜면 안 입은 장비도 나옵니다)", 24, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+                UiFactory.Label("Empty", viewport, Vector2.zero, Vector2.one, _singles ? "고른 등급·부위에 분해할 장비가 없습니다." : "고른 등급·부위에 여분이 없습니다.\n(「하나뿐인 장비도 포함」을 켜면 안 입은 장비도 나옵니다)", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
 
             // Expected materials
             var yield = Salvage.BulkYield(plan);
             var lines = new List<string>();
             foreach (var kv in yield) lines.Add(kv.Key.Name + " " + kv.Value[0] + "~" + kv.Value[1] + "개");
             UiFactory.Body(UiFactory.Label("Yield", card.transform, new Vector2(0.05f, 0.105f), new Vector2(0.95f, 0.21f),
-                lines.Count == 0 ? "" : "예상 재료  " + string.Join(" · ", lines), 22, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal));
+                lines.Count == 0 ? "" : "예상 재료  " + string.Join(" · ", lines), 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal));
 
             var go = UiFactory.Button("Go", card.transform, new Vector2(0.05f, 0.02f), new Vector2(0.62f, 0.10f), plan.Count == 0 ? "분해할 장비 없음" : "선택한 " + total + "개 분해", plan.Count == 0 ? UiFactory.InkSoft : UiFactory.Red, () => Perform(plan), 32);
             go.interactable = plan.Count > 0;

@@ -74,17 +74,17 @@ namespace BiRyeoDo.Game.UI
             _actorPortrait.preserveAspect = true;
             _actorGlyph = UiFactory.Label("Fallback", portraitFrame.transform, Vector2.zero, Vector2.one, "", 48, UiFactory.Gold);
             _actorName = UiFactory.Heading(UiFactory.Label("Actor", header, new Vector2(.19f, .58f), new Vector2(.98f, 1f), "", 34, UiFactory.PaperText, TextAnchor.MiddleLeft));
-            _actorResources = UiFactory.Label("Resources", header, new Vector2(.19f, .31f), new Vector2(.98f, .59f), "", 24, UiFactory.Jade, TextAnchor.MiddleLeft);
-            _commandHint = UiFactory.Label("Hint", header, new Vector2(.19f, .02f), new Vector2(.98f, .30f), "", 22, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            _actorResources = UiFactory.Label("Resources", header, new Vector2(.19f, .31f), new Vector2(.98f, .59f), "", 28, UiFactory.Jade, TextAnchor.MiddleLeft);
+            _commandHint = UiFactory.Label("Hint", header, new Vector2(.19f, .02f), new Vector2(.98f, .30f), "", 26, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
 
             for (int i = 0; i < _commands.Length; i++)
             {
                 int index = i;
                 var btn = UiFactory.Button("Command" + i, root, Vector2.zero, Vector2.one, "", UiFactory.InkSoft, () => OnCommandPressed(index), 32);
                 var label = btn.GetComponentInChildren<Text>();
-                label.resizeTextMinSize = 21;
-                var detail = UiFactory.Label("Detail", btn.transform, Vector2.zero, Vector2.one, "", 23, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
-                detail.resizeTextMinSize = 17;
+                label.resizeTextMinSize = 28;
+                var detail = UiFactory.Label("Detail", btn.transform, Vector2.zero, Vector2.one, "", 28, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+                detail.resizeTextMinSize = 26;
                 var icon = UiFactory.Panel("Icon", btn.transform, Vector2.zero, Vector2.one, Color.white);
                 icon.preserveAspect = true;
                 icon.gameObject.SetActive(false);
@@ -133,17 +133,24 @@ namespace BiRyeoDo.Game.UI
                 }
                 if (art || picker)
                 {
-                    PlaceHud(c.Icon.rectTransform, .37f, .64f, .63f, .94f);
-                    PlaceHud(c.Fallback.rectTransform, .37f, .64f, .63f, .94f);
-                    PlaceHud(c.Label.rectTransform, .04f, .29f, .96f, .64f);
-                    PlaceHud(c.Detail.rectTransform, .03f, .045f, .97f, .28f);
+                    PlaceHud(c.Icon.rectTransform, .37f, .73f, .63f, .95f);
+                    PlaceHud(c.Fallback.rectTransform, .37f, .73f, .63f, .95f);
+                    PlaceHud(c.Label.rectTransform, .04f, .24f, .96f, .72f);
+                    PlaceHud(c.Detail.rectTransform, .03f, .025f, .97f, .235f);
+                }
+                else if (i == 9)
+                {
+                    PlaceHud(c.Icon.rectTransform, .045f, .08f, .22f, .35f);
+                    PlaceHud(c.Fallback.rectTransform, .045f, .08f, .22f, .35f);
+                    PlaceHud(c.Label.rectTransform, .05f, .40f, .95f, .96f);
+                    PlaceHud(c.Detail.rectTransform, .24f, .04f, .97f, .38f);
                 }
                 else
                 {
                     PlaceHud(c.Icon.rectTransform, .06f, .57f, .29f, .89f);
                     PlaceHud(c.Fallback.rectTransform, .06f, .57f, .29f, .89f);
-                    PlaceHud(c.Label.rectTransform, .31f, .43f, .95f, .94f);
-                    PlaceHud(c.Detail.rectTransform, .04f, .05f, .96f, .40f);
+                    PlaceHud(c.Label.rectTransform, .31f, .54f, .95f, .96f);
+                    PlaceHud(c.Detail.rectTransform, .04f, .02f, .96f, .51f);
                 }
             }
         }
@@ -165,7 +172,7 @@ namespace BiRyeoDo.Game.UI
             _actorName.text = me.Name + (_animating ? " · 초식 전개" : " · 행동 선택");
             _actorResources.text = "내공 " + qi + " / " + me.Stats.MaxQi + "    기세 " + spirit + " / " + InteractiveBattle.MaxSpirit;
             _commandHint.text = _animating ? "전황을 확인해 주세요." : Aiming ? "금색으로 표시된 적을 선택해 주세요." : AimingAlly ? "회복할 아군을 선택해 주세요."
-                : _itemMode ? "사용할 아이템을 선택해 주세요." : _jointMode ? "함께 공격할 동료를 선택해 주세요." : "무공 선택 후 대상 지정 · 길게 눌러 상세 보기";
+                : _itemMode ? "사용할 아이템을 선택해 주세요." : _jointMode ? "함께 공격할 동료를 선택해 주세요." : "무공 선택 → 대상 지정 · 길게 눌러 설명";
             var pic = UnitPortrait(me);
             _actorPortrait.sprite = pic;
             _actorPortrait.gameObject.SetActive(pic != null);

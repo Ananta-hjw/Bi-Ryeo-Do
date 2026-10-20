@@ -30,7 +30,7 @@ namespace BiRyeoDo.Game.UI
                 float x0 = 0.05f + t * 0.47f;
                 UiFactory.Button("Tab" + t, Root, new Vector2(x0, 0.855f), new Vector2(x0 + 0.43f, 0.91f), TabNames[t], t == _tab ? UiFactory.Red : UiFactory.InkSoft, () => { _tab = tab; Open(); }, 30);
             }
-            UiFactory.Label("Toast", Root, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.855f), toast ?? (_tab == 0 ? "그 세력의 스테이지에서 전투를 이기면 평판이 쌓입니다 (일반 +1, 어려움 +2, 극악 +3)" : "세력 평판이 오르면 그 세력의 선반이 열립니다"), 22, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.ScrollBody(UiFactory.Label("Toast", Root, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.855f), toast ?? (_tab == 0 ? "그 세력의 스테이지에서 전투를 이기면 평판이 쌓입니다 (일반 +1, 어려움 +2, 극악 +3)" : "세력 평판이 오르면 그 세력의 선반이 열립니다"), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             var content = CodexPanel.Scroller(Root, 0.09f, 0.795f);
             int n = _tab == 0 ? DrawReputation(content, save) : DrawShop(content, save);
@@ -47,8 +47,8 @@ namespace BiRyeoDo.Game.UI
                 int tier = Factions.Tier(save, f.Id), points = Factions.Points(save, f.Id), next = Factions.ToNext(save, f.Id);
                 UiFactory.Label("Name", band, new Vector2(0.04f, 0.58f), new Vector2(0.96f, 0.97f), f.Name + "  ·  " + Factions.TierNames[tier], 32, tier >= 4 ? UiFactory.Gold : UiFactory.PaperText, TextAnchor.MiddleLeft);
                 string perk = f.PerkText + " " + (tier >= 2 ? "+" + Math.Round(Factions.PerkValue(save, f) * 100f) + (f.Perk == PerkKind.RestHeal ? "%p" : "%") : "(우호부터)");
-                UiFactory.Label("Info", band, new Vector2(0.04f, 0.32f), new Vector2(0.96f, 0.58f), "평판 " + points + (next >= 0 ? " (다음 단계까지 " + next + ")" : " (최고)") + "  ·  " + perk, 22, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-                UiFactory.Label("Where", band, new Vector2(0.04f, 0.02f), new Vector2(0.96f, 0.32f), "얻는 곳: 스테이지 " + string.Join(", ", f.Stages), 17, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Info", band, new Vector2(0.04f, 0.32f), new Vector2(0.96f, 0.58f), "평판 " + points + (next >= 0 ? " (다음 단계까지 " + next + ")" : " (최고)") + "  ·  " + perk, 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Where", band, new Vector2(0.04f, 0.02f), new Vector2(0.96f, 0.32f), "얻는 곳: 스테이지 " + string.Join(", ", f.Stages), 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
             }
             return n;
         }
@@ -72,7 +72,7 @@ namespace BiRyeoDo.Game.UI
                 string limit = g.Limit > 0 ? "  (" + Shop.Bought(save, g.Id) + "/" + g.Limit + ")" : "";
                 UiFactory.Label("Name", band, new Vector2(0.04f, 0.54f), new Vector2(0.66f, 0.97f), (open ? Shop.NameOf(g) : "???") + limit, 30, open ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
                 UiFactory.Label("Info", band, new Vector2(0.04f, 0.04f), new Vector2(0.66f, 0.54f),
-                    open ? "[" + owner + "] " + Shop.DescriptionOf(g) : owner + " 평판 " + Factions.TierNames[g.MinTier] + " 필요", 18, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    open ? "[" + owner + "] " + Shop.DescriptionOf(g) : owner + " 평판 " + Factions.TierNames[g.MinTier] + " 필요", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var good = g;
                 bool can = open && !sold && afford;
                 var btn = UiFactory.Button("Buy", band, new Vector2(0.69f, 0.14f), new Vector2(0.97f, 0.86f), sold ? "매진" : open ? g.Price.ToString("N0") + "두" : "잠김", can ? UiFactory.Red : UiFactory.InkSoft, () => Buy(good), 26);
