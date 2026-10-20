@@ -239,6 +239,38 @@ namespace BiRyeoDo.Game.UI
             return ReadingPages.Split(value, text => MeasureHeight(layout, text, width), height);
         }
 
+        /// <summary>The small 「?」 button at the right end of a tab's header band (next to the 두 figure).</summary>
+        public static Button HelpButton(Transform parent, UnityAction onClick)
+        {
+            return Button("Help", parent, new Vector2(0.855f, 0.935f), new Vector2(0.935f, 0.975f), "?", InkSoft, onClick, 34);
+        }
+
+        /// <summary>A small explanation window over a tab (hidden at first): tap anywhere or 「닫기」 to close. Show it with <see cref="ShowInfo"/>.</summary>
+        public static RectTransform InfoWindow(Transform parent, string title, string body)
+        {
+            var window = Rect("InfoWindow", parent, Vector2.zero, Vector2.one);
+            var dim = window.gameObject.AddComponent<Image>();
+            dim.color = new Color(0f, 0f, 0f, 0.78f);   // dims and blocks what is underneath
+            var tap = window.gameObject.AddComponent<Button>();
+            tap.targetGraphic = dim;
+            tap.transition = Selectable.Transition.None;
+            tap.onClick.AddListener(() => window.gameObject.SetActive(false));
+            var card = Panel("Card", window, new Vector2(0.06f, 0.28f), new Vector2(0.94f, 0.72f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            Frame(card.transform, GoldDim, 3f);
+            Label("Title", card.transform, new Vector2(0.05f, 0.86f), new Vector2(0.95f, 0.98f), title, 40, Gold);
+            Body(Label("Body", card.transform, new Vector2(0.06f, 0.20f), new Vector2(0.94f, 0.86f), body, 30, PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 1.35f);
+            Button("Close", card.transform, new Vector2(0.30f, 0.04f), new Vector2(0.70f, 0.17f), "닫기", InkSoft, () => window.gameObject.SetActive(false), 34);
+            window.gameObject.SetActive(false);
+            return window;
+        }
+
+        public static void ShowInfo(RectTransform window)
+        {
+            if (window == null) return;
+            window.SetAsLastSibling();
+            window.gameObject.SetActive(true);
+        }
+
         public static Button Button(string name, Transform parent, Vector2 min, Vector2 max, string label, Color bg,
             UnityAction onClick, int fontSize = 40)
         {

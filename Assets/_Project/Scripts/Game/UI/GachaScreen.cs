@@ -19,6 +19,7 @@ namespace BiRyeoDo.Game.UI
         }
 
         private Text _header, _hint;
+        private RectTransform _help;   // the ? window
         private readonly int[] _sizes = { 1, Gacha.TenPullCount, Gacha.FiftyPullCount };
         private readonly Button[] _buttons = new Button[3];
         private readonly Image[] _buttonImages = new Image[3];
@@ -35,8 +36,10 @@ namespace BiRyeoDo.Game.UI
 
             UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
             UiFactory.Glyph("gacha", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
-            _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.94f, 0.985f), "", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
-            _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "같은 장비는 여분으로 쌓입니다. 한계돌파하거나 분해해 재료를 얻을 수 있습니다.", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.84f, 0.985f), "", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
+            UiFactory.HelpButton(root, () => UiFactory.ShowInfo(_help));   // at the right end of the header band, next to the 두 figure
+            _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            _help = UiFactory.InfoWindow(root, "뽑기 안내", "같은 장비는 여분으로 쌓입니다.\n한계돌파하거나 분해해 재료를 얻을 수 있습니다.\n뽑은 결과는 행낭에 들어갑니다.");
 
             // Odds
             var odds = UiFactory.Panel("Odds", root, new Vector2(0.04f, 0.735f), new Vector2(0.96f, 0.88f), UiFactory.Ink);

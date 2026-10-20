@@ -59,7 +59,8 @@ namespace BiRyeoDo.Game.UI
 
             UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
             UiFactory.Glyph("arts", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
-            _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.94f, 0.985f), "", 42, UiFactory.Gold);
+            _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.84f, 0.985f), "", 42, UiFactory.Gold);
+            UiFactory.HelpButton(root, () => UiFactory.ShowInfo(_masteryHelp));   // right next to the 두 figure, inside the header band
             _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             // The list scrolls: the protagonist has far more arts than fit on one screen.
@@ -112,11 +113,13 @@ namespace BiRyeoDo.Game.UI
             _detail = UiFactory.Rect("ArtDetail", tab, Vector2.zero, Vector2.one);
             _detail.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.78f);   // dims and blocks the list underneath
             _detail.gameObject.SetActive(false);
+            _masteryHelp = UiFactory.InfoWindow(tab, "무공 숙련", Mastery.HelpText());
             ShowPage(0, false);
         }
 
         private RectTransform _detail;
         private string _detailId;
+        private RectTransform _masteryHelp;
 
         private void CloseDetail()
         {
@@ -331,7 +334,6 @@ namespace BiRyeoDo.Game.UI
             if (_page != 0) return;   // an embedded panel redraws itself
             var save = GameManager.Instance.Save;
             _header.text = "무공 · 장착 " + Progression.EquippedCount(save, false) + "/" + Progression.MaxEquippedArts + " · 필살 " + Progression.EquippedCount(save, true) + "/" + Progression.MaxEquippedUltimates + " · " + save.Doo.ToString("N0") + "두";
-            if (string.IsNullOrEmpty(_hint.text)) _hint.text = "숙련(사용 횟수): " + Mastery.ConditionText();
 
             foreach (var r in _rows)
             {

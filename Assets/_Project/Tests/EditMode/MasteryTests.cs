@@ -235,5 +235,16 @@ namespace BiRyeoDo.Tests
             Assert.Greater(hit, 0);
             Assert.AreEqual(0.5, dodged / (double)(dodged + hit), 0.1);
         }
+
+        [Test]
+        public void TheHelpTextListsEveryMasteryStep()
+        {
+            var text = Mastery.HelpText();
+            for (int i = 1; i < Mastery.Thresholds.Length; i++)
+                StringAssert.Contains(Mastery.LevelNames[i] + " " + Mastery.Thresholds[i] + "회", text);
+            StringAssert.Contains("+3%", text);
+            StringAssert.Contains("+30%", text);
+            StringAssert.Contains("변초", text);
+        }
     }
 }

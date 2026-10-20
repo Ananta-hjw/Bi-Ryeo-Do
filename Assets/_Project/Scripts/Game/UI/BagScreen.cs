@@ -26,6 +26,7 @@ namespace BiRyeoDo.Game.UI
         private readonly List<Row> _rows = new List<Row>();
         private Text _header, _gear, _hint, _empty;
         private string _flash;
+        private RectTransform _help;   // the ? window: what the bag's buttons do
         private RectTransform _content;
         private int _filter = 1;                       // 0 all, 1 gear, 2 consumables, 3 materials & keys
         private readonly Image[] _filterTabs = new Image[4];
@@ -48,9 +49,12 @@ namespace BiRyeoDo.Game.UI
 
             UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
             UiFactory.Glyph("bag", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
-            _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.94f, 0.985f), "", 40, UiFactory.Gold);
+            _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.84f, 0.985f), "", 40, UiFactory.Gold);
+            UiFactory.HelpButton(root, () => UiFactory.ShowInfo(_help));   // right next to the 두 figure, inside the header band
             _gear = UiFactory.ScrollBody(UiFactory.Label("Gear", root, new Vector2(0.05f, 0.875f), new Vector2(0.95f, 0.922f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter), 30);
             _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, 0.840f), new Vector2(0.95f, 0.875f), "", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+
+            _help = UiFactory.InfoWindow(root, "행낭 안내", "아이템을 누르면 상세 정보와 관리 버튼이 열립니다.\n· 돌파·분해: 아이템 상세창에서 합니다.\n· 강화·장착: 상태창에서 합니다.");
 
             // Filter tabs
             for (int t = 0; t < FilterNames.Length; t++)
@@ -446,8 +450,8 @@ namespace BiRyeoDo.Game.UI
             if (!_built) return;
             var save = GameManager.Instance.Save;
             _header.text = "행낭 · " + save.Doo.ToString("N0") + "두";
-            _gear.text = "아이템을 누르면 상세 정보와 관리 버튼이 열립니다.";
-            _hint.text = !string.IsNullOrEmpty(_flash) ? _flash : "돌파·분해: 상세창 / 강화·장착: 상태창";
+            _gear.text = "";
+            _hint.text = !string.IsNullOrEmpty(_flash) ? _flash : "";
             _flash = null;
 
             var stacks = save.Items
