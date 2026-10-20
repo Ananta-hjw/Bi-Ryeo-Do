@@ -173,6 +173,14 @@ namespace BiRyeoDo.Core
                 + Math.Max(0, Math.Min(n, 90) - 70) * .10f + Math.Max(0, n - 90) * .15f + StarBonus(stars);
         }
 
+        /// <summary>Transcendent definitions already describe their innate five-star effects.</summary>
+        public static float EffectMultiplier(ItemData item, int level, int stars)
+        {
+            if (item.Grade != ItemGrade.Transcendent) return Multiplier(level, stars);
+            // Normalize five-star reference values so the innate bonus is not applied twice.
+            return Multiplier(level, MaxStars) / Multiplier(0, MaxStars);
+        }
+
         public static string HolderOf(SaveData save, string id)
         {
             if (save.EquippedGear.Contains(id)) return Inventory.Hero;

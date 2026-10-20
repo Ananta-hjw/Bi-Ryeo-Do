@@ -217,7 +217,7 @@ namespace BiRyeoDo.Core
                 worn.Add(id);
                 int stars = 0;
                 if (levels != null) foreach (var entry in levels) if (entry.Id == id) { stars = entry.Stars; break; }
-                float m = Gear.Multiplier(Gear.LevelOf(levels, id), stars);
+                float m = Gear.EffectMultiplier(item, Gear.LevelOf(levels, id), stars);
                 atk += item.AtkPct * m; def += item.DefPct * m; hp += item.HpPct * m; qi += item.QiPct * m; crit += item.CritAdd * m; critDmg += item.CritDmgAdd * m; speed += item.SpeedAdd * m;
             }
             foreach (var set in Gear.Sets)
