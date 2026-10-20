@@ -15,10 +15,10 @@ namespace BiRyeoDo.Game.UI
     /// they will hit, so guarding, evading, healing or interrupting at the right time matters.
     /// The rules live in <see cref="InteractiveBattle"/>; this class only draws and animates what it reports.
     /// </summary>
-    public class BattleScreen : MonoBehaviour
+    public partial class BattleScreen : MonoBehaviour
     {
         private const float StepDelay = 0.42f, HitDelay = 0.16f, SmallDelay = 0.30f;
-        private static readonly Color Backdrop = new Color(0.13f, 0.12f, 0.11f, 1f);
+        private static readonly Color Backdrop = new Color(0.025f, 0.055f, 0.06f, 1f);
         private static readonly Color QiBlue = new Color(0.30f, 0.50f, 0.80f, 1f);
         private static readonly Color HpGreen = new Color(0.30f, 0.62f, 0.34f, 1f);
         private static readonly Color GuardBlue = new Color(0.5f, 0.7f, 0.95f, 1f);
@@ -28,7 +28,9 @@ namespace BiRyeoDo.Game.UI
         {
             public Combatant Unit;
             public RectTransform Root;
-            public Image Frame, Art;
+            public Image Frame, Art, IntentBack;
+            public WuxiaGlyph TargetFrame;
+            public int ShownHp, ShownPhase;
             public Text Name, Glyph, Intent, HpText, QiText, SpiritText, Badge, Realm;
             public UiFactory.Bar Hp, Qi, Spirit;
             public Vector2 Center;
@@ -40,6 +42,7 @@ namespace BiRyeoDo.Game.UI
             public Combatant Unit;
             public RectTransform Root;
             public Image Frame, Art;
+            public WuxiaGlyph ActiveFrame;
             public Text Name, Status, HpText, QiText, SpiritText;
             public UiFactory.Bar Hp, Qi, Spirit;
             public Vector2 Center;
@@ -50,7 +53,8 @@ namespace BiRyeoDo.Game.UI
         {
             public Button Button;
             public Image Image;
-            public Text Label;
+            public Text Label, Detail;
+            public WuxiaGlyph Fallback;
             public GameObject Root;
             public Image Icon;   // martial art picture on the left of the button (hidden when there is none)
         }
@@ -108,51 +112,9 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Panel("Dim", root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.35f)); // keeps text readable over artwork
             BuildBoard(root);
 
-            // Top bar
-            UiFactory.Panel("TopBar", root, new Vector2(0f, 0.945f), new Vector2(1f, 1f), UiFactory.Ink);
-            UiFactory.Panel("TopBarLine", root, new Vector2(0f, 0.944f), new Vector2(1f, 0.9465f), UiFactory.GoldDim);
-            _stageLabel = UiFactory.Label("Stage", root, new Vector2(0.04f, 0.947f), new Vector2(0.60f, 0.998f), "", 34, UiFactory.PaperText, TextAnchor.MiddleLeft);
-            var speed = UiFactory.Button("Speed", root, new Vector2(0.62f, 0.953f), new Vector2(0.80f, 0.992f), "속도 x1", UiFactory.InkSoft, OnSpeedPressed, 28);
-            _speedLabel = speed.GetComponentInChildren<Text>();
-            UiFactory.Button("Flee", root, new Vector2(0.82f, 0.953f), new Vector2(0.97f, 0.992f), "포기", UiFactory.InkSoft, OnFleePressed, 28);
-
-            // Turn order
-            UiFactory.Label("TurnLabel", root, new Vector2(0.02f, 0.905f), new Vector2(0.14f, 0.940f), "순서", 24, UiFactory.Gold);
-            for (int i = 0; i < 7; i++)
-            {
-                float x0 = 0.15f + i * 0.123f;
-                var chip = UiFactory.Panel("Chip" + i, root, new Vector2(x0, 0.905f), new Vector2(x0 + 0.115f, 0.940f), UiFactory.InkSoft);
-                var label = UiFactory.Label("ChipText", root, new Vector2(x0, 0.905f), new Vector2(x0 + 0.115f, 0.940f), "", 22, UiFactory.PaperText);
-                _turnChips.Add(chip);
-                _turnLabels.Add(label);
-            }
-
-            // Ground strip under the two formations (side-view field); drawn behind the figures and ending below the lowest row
-            UiFactory.Panel("Ground", root, new Vector2(0f, 0.335f), new Vector2(1f, 0.345f), new Color(0f, 0f, 0f, 0.28f));
-            UiFactory.Panel("GroundLine", root, new Vector2(0f, 0.343f), new Vector2(1f, 0.347f), UiFactory.GoldDim);
             _cardsRoot = UiFactory.Rect("Cards", root, Vector2.zero, Vector2.one);
-
-            UiFactory.Frame(UiFactory.Panel("LogBand", root, new Vector2(0.04f, 0.292f), new Vector2(0.96f, 0.334f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
-            _log = UiFactory.Label("Log", root, new Vector2(0.06f, 0.292f), new Vector2(0.94f, 0.334f), "", 28, UiFactory.PaperText);
-
-            // Party panels are created per stage (their count depends on who has joined)
             _partyRoot = UiFactory.Rect("Party", root, Vector2.zero, Vector2.one);
-
-            // Commands: 2 rows x 4 columns
-            for (int i = 0; i < _commands.Length; i++)
-            {
-                int index = i;
-                int row = i / 4, col = i % 4;
-                float x0 = 0.03f + col * 0.2425f;
-                float y1 = 0.285f - row * 0.087f;
-                float y0 = y1 - 0.083f;
-                var btn = UiFactory.Button("Cmd" + i, root, new Vector2(x0, y0), new Vector2(x0 + 0.2275f, y1), "", UiFactory.Red, () => OnCommandPressed(index), 28);
-                var icon = UiFactory.Panel("Icon", btn.transform, new Vector2(0.04f, 0.14f), new Vector2(0.30f, 0.86f), Color.white);
-                icon.preserveAspect = true;
-                icon.gameObject.SetActive(false);
-                _commands[i] = new CommandButton { Button = btn, Image = btn.GetComponent<Image>(), Label = btn.GetComponentInChildren<Text>(), Root = btn.gameObject, Icon = icon };
-                btn.gameObject.AddComponent<LongPress>().OnLong = () => ShowCommandTip(index);
-            }
+            BuildBattleHud(root);
 
             // Effects layers (above everything except panels)
             _fx = UiFactory.Rect("Fx", root, Vector2.zero, Vector2.one);
@@ -397,7 +359,7 @@ namespace BiRyeoDo.Game.UI
             int diff = stage.IsTower || stage.IsQuest ? 0 : stage.Difficulty;
             string tag = StageStars.TagFor(diff);
             _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + tag + stage.Name;
-            var bg = ArtLibrary.Background(stage.Number);
+            var bg = ArtLibrary.Background(stage.Number) ?? ArtLibrary.Background(1);
             _backdropImage.sprite = bg;
             _backdropImage.color = bg != null ? Color.white : new Color(1f, 1f, 1f, 0f);
             ClearCards();
@@ -930,8 +892,8 @@ namespace BiRyeoDo.Game.UI
 
         // ------------------------------------------------------------------ the board (6 x 3 tiles, our side left, the enemies right)
 
-        private const float FieldTop = 0.862f, FieldBottom = 0.345f, HeaderBottom = 0.862f, HeaderTop = 0.900f;
-        private static readonly Color PartyTile = new Color(0.28f, 0.50f, 0.85f, 0.13f), EnemyTile = new Color(0.80f, 0.28f, 0.22f, 0.13f);
+        private const float FieldTop = 0.776f, FieldBottom = 0.380f, HeaderBottom = 0.778f, HeaderTop = 0.798f;
+        private static readonly Color PartyTile = new Color(0.18f, 0.42f, 0.37f, 0.07f), EnemyTile = new Color(0.52f, 0.20f, 0.15f, 0.07f);
 
         /// <summary>The screen rectangle (fractions of the battle root) of a board tile.</summary>
         private static Rect TileCell(int col, int row)
@@ -945,12 +907,14 @@ namespace BiRyeoDo.Game.UI
         /// <summary>The floor: our half tinted blue, the enemy half red; tiles light up green where the acting member may walk.</summary>
         private void BuildBoard(RectTransform root)
         {
+            UiFactory.Panel("FieldWash", root, new Vector2(0f, FieldBottom), new Vector2(1f, HeaderTop), new Color(.02f, .045f, .05f, .32f));
+            UiFactory.Glyph("halo", root, new Vector2(.23f, .43f), new Vector2(.77f, .76f), new Color(.83f, .72f, .48f, .065f));
             // Column header: 앞 (facing the other side) / 중 / 뒤, so it is clear where the front and back lines are.
             string[] names = { "뒤", "중", "앞", "앞", "중", "뒤" };
             for (int c = 0; c < Board.Cols; c++)
             {
                 bool front = c == Board.PartyCols - 1 || c == Board.PartyCols;
-                var tint = c < Board.PartyCols ? new Color(0.22f, 0.40f, 0.70f, front ? 0.85f : 0.45f) : new Color(0.65f, 0.22f, 0.18f, front ? 0.85f : 0.45f);
+                var tint = c < Board.PartyCols ? new Color(.12f, .29f, .26f, front ? .75f : .35f) : new Color(.35f, .15f, .12f, front ? .75f : .35f);
                 float x0 = c / (float)Board.Cols, x1 = (c + 1) / (float)Board.Cols;
                 UiFactory.Panel("Head" + c, root, new Vector2(x0 + 0.004f, HeaderBottom + 0.004f), new Vector2(x1 - 0.004f, HeaderTop), tint);
                 UiFactory.Label("HeadText" + c, root, new Vector2(x0, HeaderBottom), new Vector2(x1, HeaderTop), names[c] + (c == 0 ? " 줄" : c == Board.Cols - 1 ? " 줄" : front ? " 줄" : ""), 22, front ? UiFactory.Gold : UiFactory.PaperText);
@@ -961,17 +925,18 @@ namespace BiRyeoDo.Game.UI
                     var cell = TileCell(c, r);
                     bool frontCol = c == Board.PartyCols - 1 || c == Board.PartyCols;
                     var baseColor = c < Board.PartyCols ? PartyTile : EnemyTile;
-                    if (frontCol) baseColor.a = 0.24f;
+                    if (frontCol) baseColor.a = 0.13f;
                     var tile = UiFactory.Panel("Tile", root, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height), baseColor);
-                    UiFactory.Frame(tile.transform, new Color(1f, 1f, 1f, 0.16f), 1.5f);
+                    UiFactory.Frame(tile.transform, new Color(.69f, .73f, .62f, .10f), 1f);
                     _tileHi[c, r] = UiFactory.Panel("Hi", tile.transform, new Vector2(0.03f, 0.03f), new Vector2(0.97f, 0.97f), new Color(0f, 0f, 0f, 0f));
                 }
-            UiFactory.Panel("CampLine", root, new Vector2(0.5f - 0.0025f, FieldBottom), new Vector2(0.5f + 0.0025f, HeaderTop), new Color(1f, 0.85f, 0.4f, 0.55f));
+            UiFactory.Panel("CampLine", root, new Vector2(0.5f - 0.0025f, FieldBottom), new Vector2(0.5f + 0.0025f, HeaderTop), new Color(.83f, .72f, .48f, .22f));
         }
 
         private void BuildParty(StageData stage)
         {
             _party = CreateParty(stage);
+            _hudActor = null;
             ClearPanels();
             int n = _party.Count;
             for (int i = 0; i < n; i++)
@@ -980,6 +945,8 @@ namespace BiRyeoDo.Game.UI
                 var cell = TileCell(unit.Col, unit.Row);
                 var p = new PartyPanel { Unit = unit, Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
                 p.Root = UiFactory.Rect("Member" + i, _partyRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
+                p.ActiveFrame = UiFactory.Glyph("frame", p.Root, new Vector2(.015f, .005f), new Vector2(.985f, .995f), Color.clear);
+                UiFactory.Glyph("stance", p.Root, new Vector2(.12f, .285f), new Vector2(.88f, .35f), new Color(.39f, .62f, .55f, .55f));
                 p.Frame = UiFactory.Panel("Marker", p.Root, new Vector2(0.10f, 0.298f), new Vector2(0.90f, 0.314f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks whose turn it is
                 var sprite = BattleFigure(i == 0 ? "player" : unit.Id);
                 if (sprite != null)
@@ -991,7 +958,7 @@ namespace BiRyeoDo.Game.UI
                     UiFactory.Label("Glyph", p.Root, new Vector2(0.04f, 0.32f), new Vector2(0.96f, 0.90f), FirstGlyph(unit.Name), 110, i == 0 ? UiFactory.Gold : UiFactory.PaperText);
                 }
                 p.Name = UiFactory.Label("Name", p.Root, new Vector2(0.03f, 0.90f), new Vector2(0.97f, 0.99f), unit.Name, 22, UiFactory.Gold);
-                p.Status = UiFactory.Label("Status", p.Root, new Vector2(0.05f, 0.62f), new Vector2(0.95f, 0.76f), "", 26, UiFactory.PaperText);
+                p.Status = UiFactory.Label("Status", p.Root, new Vector2(0.05f, 0.60f), new Vector2(0.95f, 0.80f), "", 22, UiFactory.PaperText);
                 // Three gauges under the figure, each with its numbers written inside: 체력 / 내공 / 기세
                 var gaugeBack = new Color(0f, 0f, 0f, 0.75f);
                 p.Hp = UiFactory.MakeBar("Hp", p.Root, new Vector2(0.04f, 0.205f), new Vector2(0.96f, 0.295f), gaugeBack, HpGreen);
@@ -1074,8 +1041,10 @@ namespace BiRyeoDo.Game.UI
             {
                 var data = enemies[i];
                 var cell = TileCell(units[i].Col, units[i].Row);
-                var card = new EnemyCard { Unit = units[i], Data = data, Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
+                var card = new EnemyCard { Unit = units[i], Data = data, ShownHp = units[i].Hp, Center = new Vector2(cell.x + cell.width / 2f, cell.y + cell.height / 2f) };
                 card.Root = UiFactory.Rect("Card" + i, _cardsRoot, new Vector2(cell.x, cell.y), new Vector2(cell.x + cell.width, cell.y + cell.height));
+                card.TargetFrame = UiFactory.Glyph("frame", card.Root, new Vector2(.015f, .005f), new Vector2(.985f, .995f), Color.clear);
+                UiFactory.Glyph("stance", card.Root, new Vector2(.12f, .285f), new Vector2(.88f, .35f), new Color(.66f, .30f, .21f, .55f));
                 card.Frame = UiFactory.Panel("Marker", card.Root, new Vector2(0.10f, 0.303f), new Vector2(0.90f, 0.319f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks the target
                 var rank = data.Rank;
                 card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.03f, 0.88f), new Vector2(0.97f, 0.99f), (rank == EnemyRank.Elite ? "◆ " : "") + data.Name, rank == EnemyRank.Boss ? 24 : 20,
@@ -1103,6 +1072,7 @@ namespace BiRyeoDo.Game.UI
                 string realm = Realm.HasRealm(data) ? Realm.Steps[Realm.StepOf(Realm.Power(units[i].Stats))].Name : "";
                 card.Realm = UiFactory.Label("Realm", card.Root, new Vector2(0.03f, 0.80f), new Vector2(0.97f, 0.885f), realm, 17, new Color(0.85f, 0.75f, 0.45f, 1f));
                 card.Badge = UiFactory.Label("Badge", card.Root, new Vector2(0.04f, 0.68f), new Vector2(0.96f, 0.80f), "", 24, UiFactory.PaperText);
+                card.IntentBack = UiFactory.Panel("IntentBack", card.Root, new Vector2(.01f, 0f), new Vector2(.99f, .095f), HudInk);
                 card.Intent = UiFactory.Label("Intent", card.Root, new Vector2(0.02f, 0.0f), new Vector2(0.98f, 0.09f), "", 18, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
                 // Tap to attack (only while an attack is being aimed)
@@ -1169,7 +1139,7 @@ namespace BiRyeoDo.Game.UI
                 {
                     var m = pn.Unit;
                     if (m.Col < 0 || m.Col >= Board.Cols || m.Row < 0 || m.Row >= Board.Rows) continue;
-                    _tileHi[m.Col, m.Row].color = m.IsAlive ? new Color(0.30f, 0.90f, 0.40f, 0.55f) : new Color(0.75f, 0.15f, 0.15f, 0.40f);
+                    _tileHi[m.Col, m.Row].color = m.IsAlive ? new Color(.39f, .62f, .55f, .24f) : new Color(.66f, .22f, .17f, .16f);
                 }
                 return;
             }
@@ -1178,7 +1148,7 @@ namespace BiRyeoDo.Game.UI
             {
                 var u = card.Unit;
                 if (!u.IsAlive || u.Col < 0 || u.Col >= Board.Cols || u.Row < 0 || u.Row >= Board.Rows) continue;
-                _tileHi[u.Col, u.Row].color = Hittable(u) ? new Color(0.30f, 0.90f, 0.40f, 0.62f) : new Color(0.75f, 0.15f, 0.15f, 0.45f);
+                _tileHi[u.Col, u.Row].color = Hittable(u) ? new Color(.83f, .72f, .48f, .20f) : new Color(.66f, .22f, .17f, .16f);
             }
         }
 
@@ -1254,17 +1224,20 @@ namespace BiRyeoDo.Game.UI
             foreach (var c in _cards)
             {
                 var u = c.Unit;
-                bool dead = !u.IsAlive;
-                c.Hp.SetPct(u.Stats.MaxHp > 0 ? (float)u.Hp / u.Stats.MaxHp : 0f);
-                c.HpText.text = u.Hp + " / " + u.Stats.MaxHp;
+                if (!_animating) { c.ShownHp = u.Hp; c.ShownPhase = u.PhaseIndex; }
+                bool dead = c.ShownHp <= 0;
+                c.Hp.SetPct(u.Stats.MaxHp > 0 ? (float)c.ShownHp / u.Stats.MaxHp : 0f);
+                c.HpText.text = c.ShownHp.ToString("N0") + " / " + u.Stats.MaxHp.ToString("N0");
                 c.Qi.SetPct(u.Stats.MaxQi > 0 ? (float)u.Qi / u.Stats.MaxQi : 0f);
                 c.QiText.text = u.Qi + " / " + u.Stats.MaxQi;
                 c.Spirit.SetPct(u.Spirit / (float)InteractiveBattle.MaxSpirit);
                 c.SpiritText.text = u.Spirit + " / " + InteractiveBattle.MaxSpirit;
                 bool aimOk = Hittable(u), aimNo = Aiming && !dead && !aimOk;
-                c.Frame.color = aimOk ? new Color(0.30f, 0.90f, 0.40f, 1f) : aimNo ? new Color(0.75f, 0.15f, 0.15f, 1f) : new Color(0f, 0f, 0f, 0f);
-                c.Badge.text = aimOk ? "▶ 공격 가능" : aimNo ? "✕ 공격 불가" : dead ? "" : Statuses.Line(u);
-                c.Badge.color = aimOk ? new Color(0.45f, 1f, 0.55f, 1f) : aimNo ? new Color(1f, 0.45f, 0.45f, 1f) : StatusColor;
+                c.Frame.color = aimOk ? UiFactory.Gold : aimNo ? new Color(0.75f, 0.15f, 0.15f, 1f) : new Color(0f, 0f, 0f, 0f);
+                c.TargetFrame.color = aimOk ? UiFactory.Gold : Color.clear;
+                c.IntentBack.color = u.Charging && !dead ? new Color(.45f, .13f, .10f, .95f) : HudInk;
+                c.Badge.text = aimOk ? "선택 가능" : aimNo ? "사거리 밖" : dead ? "" : Statuses.Line(u);
+                c.Badge.color = aimOk ? UiFactory.Gold : aimNo ? new Color(1f, 0.45f, 0.45f, 1f) : StatusColor;
                 if (c.Art != null) SetAlpha(c.Art, dead ? 0.25f : aimNo ? 0.35f : 1f);
                 if (dead) c.Glyph.color = new Color(1f, 1f, 1f, 0.2f);
                 if (dead) { c.Intent.text = "쓰러졌다"; continue; }
@@ -1273,7 +1246,7 @@ namespace BiRyeoDo.Game.UI
                 if (u.Charging)
                 {
                     c.Intent.text = "위험! " + move.Name + (u.ChargeTarget != null ? " → " + u.ChargeTarget.Name : "");
-                    c.Intent.color = UiFactory.Red;
+                    c.Intent.color = ThreatRed;
                 }
                 else if (move.Charge)
                 {
@@ -1288,10 +1261,11 @@ namespace BiRyeoDo.Game.UI
                 if (u.UsesResources && u.Spirit >= InteractiveBattle.MaxSpirit)
                 {
                     c.Intent.text += "  ⚡기세 가득";
-                    c.Intent.color = UiFactory.Red;
+                    c.Intent.color = ThreatRed;
                 }
             }
             RefreshBoard();
+            RefreshFocusHud();
         }
 
         private void RefreshParty()
@@ -1308,18 +1282,26 @@ namespace BiRyeoDo.Game.UI
                 p.SpiritText.text = p.ShownSpirit + " / " + InteractiveBattle.MaxSpirit;
                 string stance = !u.IsAlive ? "쓰러짐" : _battle != null && _battle.IsGuarded(u) ? "방어" : u.Evading ? "회피" : "";
                 string afflicted = u.IsAlive ? Statuses.Line(u) : "";
-                p.Status.text = stance + (stance.Length > 0 && afflicted.Length > 0 ? " · " : "") + afflicted;
+                bool incoming = false;
+                if (_battle != null && u.IsAlive)
+                    foreach (var enemy in _battle.Enemies)
+                        if (enemy.IsAlive && enemy.Charging && enemy.ChargeTarget == u) { incoming = true; break; }
+                p.Status.text = incoming ? "강타 대상" + (afflicted.Length > 0 ? "\n" + afflicted : "")
+                    : stance + (stance.Length > 0 && afflicted.Length > 0 ? " · " : "") + afflicted;
                 p.Name.color = u.IsAlive ? UiFactory.Gold : new Color(0.5f, 0.5f, 0.5f, 1f);
                 bool current = _battle != null && _battle.Current == u && _battle.IsPlayerTurn;
                 p.Frame.color = current ? UiFactory.Gold : new Color(0f, 0f, 0f, 0f);
-                p.Status.color = afflicted.Length > 0 ? StatusColor : UiFactory.PaperText;
+                p.ActiveFrame.color = current ? UiFactory.Gold : Color.clear;
+                p.Status.color = incoming ? ThreatRed : afflicted.Length > 0 ? StatusColor : UiFactory.PaperText;
                 if (AimingAlly && u.IsAlive)
                 {
-                    p.Frame.color = new Color(0.30f, 0.90f, 0.40f, 1f);
-                    p.Status.text = "▶ 선택 가능";
-                    p.Status.color = new Color(0.45f, 1f, 0.55f, 1f);
+                    p.Frame.color = UiFactory.Jade;
+                    p.ActiveFrame.color = UiFactory.Jade;
+                    p.Status.text = "선택 가능";
+                    p.Status.color = UiFactory.Jade;
                 }
             }
+            RefreshActorHud();
         }
 
         private void RefreshTurnOrder()
@@ -1329,12 +1311,16 @@ namespace BiRyeoDo.Game.UI
             {
                 bool has = i < order.Count;
                 _turnChips[i].gameObject.SetActive(has);
-                _turnLabels[i].gameObject.SetActive(has);
                 if (!has) continue;
                 bool ours = order[i].Team == Team.Player;
-                _turnChips[i].color = ours ? UiFactory.Gold : new Color(0.55f, 0.16f, 0.14f, 1f);
+                _turnChips[i].color = i == 0 ? new Color(.29f, .27f, .18f, 1f) : HudInk;
+                _turnEdges[i].color = i == 0 ? UiFactory.Gold : ours ? UiFactory.Jade : ThreatRed;
                 _turnLabels[i].text = ShortName(order[i].Name);
-                _turnLabels[i].color = ours ? UiFactory.Ink : UiFactory.PaperText;
+                _turnLabels[i].color = i == 0 ? UiFactory.Gold : UiFactory.PaperText;
+                var pic = UnitPortrait(order[i]);
+                _turnPortraits[i].sprite = pic;
+                _turnPortraits[i].gameObject.SetActive(pic != null);
+                _turnGlyphs[i].text = pic == null ? FirstGlyph(order[i].Name) : "";
             }
         }
 
@@ -1371,6 +1357,9 @@ namespace BiRyeoDo.Game.UI
             var me = _battle.Current;
             if (me == null) return;
             SetCommandsVisible(true);
+            _hudActor = me;
+            LayoutCommands(_itemMode || _jointMode);
+            RefreshActorHud();
 
             if (Aiming || AimingAlly)
             {
@@ -1424,7 +1413,7 @@ namespace BiRyeoDo.Game.UI
                 SetCommand(slot, s.Name, sub, ok, ArtLibrary.Art(s.Id));
             }
             SetCommand(5, "방어", "피해 60% 감소", true, ArtLibrary.Icon("cmd_guard"));
-            SetCommand(6, "운기", "내공 +" + InteractiveBattle.MeditateQi + " 체력 소량", true, ArtLibrary.Icon("cmd_meditate"));
+            SetCommand(6, "운기", "내공 +" + InteractiveBattle.MeditateQi + "\n체력 소량 회복", true, ArtLibrary.Icon("cmd_meditate"));
             SetCommand(7, "아이템", UsableItems().Count > 0 ? "" : "없음", UsableItems().Count > 0, ArtLibrary.Icon("cmd_item"));
 
             RefreshJointPartners();
@@ -1438,7 +1427,7 @@ namespace BiRyeoDo.Game.UI
             else
             {
                 bool ready = _battle.CanUse(ult) && _battle.CanReach(ult);
-                SetCommand(9, "필살기\n" + ult.Name, ready ? "기세 " + ult.SpiritCost : "기세 " + Mathf.Min(me.Spirit, ult.SpiritCost) + "/" + ult.SpiritCost, ready, ArtLibrary.Art(ult.Id) ?? ArtLibrary.Icon("ultimate_slot"));
+                SetCommand(9, ult.Name, ready ? "기세 " + ult.SpiritCost : "기세 " + Mathf.Min(me.Spirit, ult.SpiritCost) + "/" + ult.SpiritCost, ready, ArtLibrary.Art(ult.Id) ?? ArtLibrary.Icon("ultimate_slot"));
             }
             if (_jointPartners.Count == 0) _commands[8].Root.SetActive(false);
             else SetCommand(8, "합공", me.Spirit >= InteractiveBattle.JointSpiritCost ? "기세 " + InteractiveBattle.JointSpiritCost : "기세 부족", me.Spirit >= InteractiveBattle.JointSpiritCost, ArtLibrary.Icon("cmd_joint"));
@@ -1498,12 +1487,19 @@ namespace BiRyeoDo.Game.UI
             c.Root.SetActive(true);
             c.Icon.gameObject.SetActive(icon != null);
             c.Icon.sprite = icon;
-            c.Icon.color = enabled ? Color.white : new Color(1f, 1f, 1f, 0.45f);
-            var labelRect = c.Label.rectTransform;
-            labelRect.anchorMin = new Vector2(icon != null ? 0.30f : 0f, labelRect.anchorMin.y);
-            c.Label.text = name + (string.IsNullOrEmpty(sub) ? "" : "\n" + sub);
+            c.Icon.color = enabled ? Color.white : new Color(1f, 1f, 1f, .35f);
+            c.Fallback.gameObject.SetActive(icon == null);
+            c.Fallback.Key = _itemMode ? "bag" : _jointMode ? "party" : CommandGlyph(slot);
+            c.Fallback.SetVerticesDirty();
+            c.Fallback.color = enabled ? UiFactory.Gold : UiFactory.Dim;
+            c.Label.text = name;
+            c.Detail.text = sub;
+            c.Label.color = enabled ? UiFactory.PaperText : UiFactory.Dim;
+            c.Detail.color = enabled ? (slot == 9 ? UiFactory.Gold : UiFactory.Dim) : new Color(.72f, .54f, .47f, 1f);
             c.Button.interactable = enabled;
-            c.Image.color = enabled ? (slot == 5 ? new Color(0.25f, 0.40f, 0.55f, 1f) : slot == 6 ? new Color(0.25f, 0.45f, 0.35f, 1f) : slot == 9 ? new Color(0.72f, 0.50f, 0.10f, 1f) : UiFactory.Red) : Disabled;
+            c.Image.color = !enabled ? Disabled : _itemMode || _jointMode ? UiFactory.InkSoft
+                : slot == 0 ? new Color(.48f, .18f, .13f, 1f) : slot == 5 ? new Color(.15f, .27f, .32f, 1f)
+                : slot == 6 ? new Color(.13f, .28f, .23f, 1f) : slot == 9 ? new Color(.37f, .28f, .12f, 1f) : UiFactory.InkSoft;
         }
 
         // ------------------------------------------------------------------ long-press tips
@@ -1709,6 +1705,7 @@ namespace BiRyeoDo.Game.UI
 
         private void SetCommandsVisible(bool visible)
         {
+            if (_commandHeader != null) _commandHeader.SetActive(visible);
             foreach (var c in _commands) if (c != null) c.Root.SetActive(visible);
         }
 
@@ -1839,6 +1836,7 @@ namespace BiRyeoDo.Game.UI
         private IEnumerator PlayEvents(List<BattleEvent> events)
         {
             _animating = true;
+            RefreshActorHud();
             try { yield return PlayEventsInner(events); }
             finally { _animating = false; }
             RefreshParty();
@@ -1952,6 +1950,7 @@ namespace BiRyeoDo.Game.UI
                                 if (sufferPanel != null) ShowHpAfter(ev.TargetId, ev.TargetHpAfter);
                                 if (sufferCard != null)
                                 {
+                                    sufferCard.ShownHp = ev.TargetHpAfter;
                                     sufferCard.Hp.SetPct(sufferCard.Unit.Stats.MaxHp > 0 ? (float)ev.TargetHpAfter / sufferCard.Unit.Stats.MaxHp : 0f);
                                     sufferCard.HpText.text = ev.TargetHpAfter + " / " + sufferCard.Unit.Stats.MaxHp;
                                     if (ev.TargetDefeated) { StartCoroutine(Collapse(sufferCard)); sufferCard.Intent.text = ev.Retreated ? "물러났다" : "쓰러졌다"; }
@@ -1970,6 +1969,8 @@ namespace BiRyeoDo.Game.UI
                             _log.text = ev.Message;
                             _phaseSeen = true;
                             var phaseCard = CardOf(ev.ActorId);
+                            if (phaseCard != null) phaseCard.ShownPhase = ev.HitIndex;
+                            RefreshFocusHud();
                             if (phaseCard != null) { Float(phaseCard.Center, "기세 변화!", UiFactory.Red, 70); yield return Shake(phaseCard.Root, 14f); }
                             yield return Banner(ev.Message, 0.9f);
                             if (ev.Lines != null && ev.Lines.Length > 0 && !_fled)
@@ -2030,6 +2031,8 @@ namespace BiRyeoDo.Game.UI
             if (ev.Harmony) Float(card.Center + new Vector2(0f, 0.08f), "합격!", UiFactory.Gold, 80);
             if (ev.Interrupted) Float(card.Center + new Vector2(0f, -0.07f), "차단!", UiFactory.Gold, 72);
             else if (ev.Stunned) Float(card.Center + new Vector2(0f, -0.07f), "굳음", GuardBlue, 60);
+            card.ShownHp = ev.TargetHpAfter;
+            RefreshFocusHud();
             card.Hp.SetPct(card.Unit.Stats.MaxHp > 0 ? (float)ev.TargetHpAfter / card.Unit.Stats.MaxHp : 0f);
             card.HpText.text = ev.TargetHpAfter + " / " + card.Unit.Stats.MaxHp;
             card.Spirit.SetPct(card.Unit.Spirit / (float)InteractiveBattle.MaxSpirit);

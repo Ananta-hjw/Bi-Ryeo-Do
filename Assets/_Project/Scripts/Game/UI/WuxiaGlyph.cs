@@ -18,9 +18,27 @@ namespace BiRyeoDo.Game.UI
             _size = Mathf.Min(_bounds.width, _bounds.height);
             if (_size <= 0f) return;
             if (Key == "frame") { Frame(mesh); return; }
+            if (Key == "stance")
+            {
+                for (int i = 0; i < 48; i++)
+                {
+                    float a = i * Mathf.PI / 24f, b = (i + 1) * Mathf.PI / 24f;
+                    var radius = new Vector2(_bounds.width * .46f, _bounds.height * .4f);
+                    Segment(mesh, _bounds.center + new Vector2(Mathf.Cos(a) * radius.x, Mathf.Sin(a) * radius.y),
+                        _bounds.center + new Vector2(Mathf.Cos(b) * radius.x, Mathf.Sin(b) * radius.y), Stroke, color);
+                }
+                return;
+            }
             string key = Key.Replace("tab_", "");
             switch (key)
             {
+                case "guard":
+                    Path(mesh,.5f,.92f,.83f,.78f,.77f,.35f,.5f,.09f,.23f,.35f,.17f,.78f,.5f,.92f);
+                    Line(mesh,.5f,.76f,.5f,.27f); Line(mesh,.34f,.57f,.66f,.57f);
+                    break;
+                case "lightning":
+                    Path(mesh,.59f,.93f,.19f,.43f,.47f,.43f,.35f,.07f,.83f,.61f,.55f,.61f,.59f,.93f);
+                    break;
                 case "halo":
                     Ring(mesh, .5f, .5f, .46f, 64); Ring(mesh, .5f, .5f, .41f, 64);
                     for (int i = 0; i < 12; i++)
