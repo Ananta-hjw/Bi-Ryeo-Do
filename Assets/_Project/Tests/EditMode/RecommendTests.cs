@@ -61,5 +61,25 @@ namespace BiRyeoDo.Tests
             double high = Recommend.ForPromotion(Promotion.BuildOffer(save, 8, 2));
             Assert.Greater(high, low);
         }
+
+        [Test]
+        public void QuestBoardAndTowerShowWhatTheFightPays()
+        {
+            var save = new SaveData { ClearedStage = 30, Level = 26 };
+            foreach (var q in Quests.All)
+            {
+                var st = Quests.ToStage(q);
+                Recommend.FightReward(save, st, 0, false, out long exp, out long doo);
+                Assert.AreEqual(doo, Recommend.QuestDoo(save, q), q.Id);
+                Assert.Greater(doo, Income.Boost(q.RewardDoo), q.Id + ": the stage 두 factor is part of the payout");
+            }
+            for (int floor = 1; floor <= 10; floor++)
+            {
+                Recommend.FightReward(save, Tower.ToStage(save, floor), 0, false, out long exp, out long doo);
+                Assert.AreEqual(doo, Recommend.TowerDoo(save, floor), "floor " + floor);
+            }
+            save.TowerBest = 5;
+            Assert.AreEqual(0, Recommend.TowerDoo(save, 5), "a cleared floor pays nothing");
+        }
     }
 }

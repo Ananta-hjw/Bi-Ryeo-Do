@@ -13,7 +13,7 @@ namespace BiRyeoDo.Game.UI
         private sealed class Row
         {
             public ArtData Art;
-            public Text Title, Detail, ButtonLabel, MasteryLabel;
+            public Text Title, Detail, ButtonLabel, MasteryLabel, Tag;
             public Button Button, MasteryButton;
             public Image ButtonImage, MasteryImage, Icon;
             public Text IconGlyph;
@@ -97,15 +97,22 @@ namespace BiRyeoDo.Game.UI
                 tap.transition = Selectable.Transition.None;
                 tap.onClick.AddListener(() => OpenDetail(art));
                 UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
-                row.Icon = UiFactory.Panel("Icon", rt, new Vector2(0.025f, 0.14f), new Vector2(0.135f, 0.86f), IconColor(art));
+                row.Icon = UiFactory.Panel("Icon", rt, new Vector2(0.025f, 0.5f), new Vector2(0.135f, 0.5f), IconColor(art));
+                FixHeight(row.Icon.rectTransform, IconH);
                 UiFactory.Frame(row.Icon.transform, UiFactory.Gold, 2f);
                 row.IconGlyph = UiFactory.Label("Glyph", row.Icon.transform, Vector2.zero, Vector2.one, art.Name.Substring(0, 1), 50, UiFactory.PaperText);
+                // 장착 중 / 새 무공 sit on the icon instead of the title, so the title never gains a second line
+                var tagBack = UiFactory.Panel("TagBack", row.Icon.transform, new Vector2(0f, 0f), new Vector2(1f, 0.26f), new Color(0f, 0f, 0f, 0.72f));
+                tagBack.raycastTarget = false;
+                row.Tag = UiFactory.Label("Tag", tagBack.transform, Vector2.zero, Vector2.one, "", 22, UiFactory.Gold);
                 row.Title = UiFactory.Label("Title", rt, new Vector2(0.15f, 0.50f), new Vector2(0.51f, 0.97f), "", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
                 row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.15f, 0.03f), new Vector2(0.51f, 0.50f), "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
-                row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(0.52f, 0.12f), new Vector2(0.73f, 0.88f), "", UiFactory.Red, () => OnPressed(art), 28);
+                row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(0.52f, 0.5f), new Vector2(0.73f, 0.5f), "", UiFactory.Red, () => OnPressed(art), 28);
+                FixHeight(row.Button.GetComponent<RectTransform>(), ButtonH);
                 row.ButtonImage = row.Button.GetComponent<Image>();
                 row.ButtonLabel = row.Button.GetComponentInChildren<Text>();
-                row.MasteryButton = UiFactory.Button("Mastery" + i, rt, new Vector2(0.75f, 0.12f), new Vector2(0.97f, 0.88f), "", UiFactory.InkSoft, () => OnMastery(art), 24);
+                row.MasteryButton = UiFactory.Button("Mastery" + i, rt, new Vector2(0.75f, 0.5f), new Vector2(0.97f, 0.5f), "", UiFactory.InkSoft, () => OnMastery(art), 24);
+                FixHeight(row.MasteryButton.GetComponent<RectTransform>(), ButtonH);
                 row.MasteryImage = row.MasteryButton.GetComponent<Image>();
                 row.MasteryLabel = row.MasteryButton.GetComponentInChildren<Text>();
                 _rows.Add(row);
@@ -115,6 +122,15 @@ namespace BiRyeoDo.Game.UI
             _detail.gameObject.SetActive(false);
             _masteryHelp = UiFactory.InfoWindow(tab, "무공 숙련", Mastery.HelpText());
             ShowPage(0, false);
+        }
+
+        // Row parts keep one size: learning, equipping or a 변초 changes only the words, never the row or its buttons.
+        private const float ButtonH = 180f, IconH = 170f;
+
+        private static void FixHeight(RectTransform rt, float height)
+        {
+            rt.offsetMin = new Vector2(rt.offsetMin.x, -height / 2f);
+            rt.offsetMax = new Vector2(rt.offsetMax.x, height / 2f);
         }
 
         private RectTransform _detail;
@@ -350,12 +366,15 @@ namespace BiRyeoDo.Game.UI
                 r.IconGlyph.text = picture != null ? "" : a.Name.Substring(0, 1);
                 r.Icon.color = picture != null ? ((learned || unlocked) ? Color.white : new Color(0.35f, 0.35f, 0.38f, 1f))
                     : (learned || unlocked) ? IconColor(a) : new Color(0.2f, 0.2f, 0.22f, 1f);
-                r.Title.text = a.Name + (variant != ArtVariant.None ? "(" + Mastery.VariantName(variant) + ")" : "") + (equipped ? "  [장착]" : "") + (_newArtIds.Contains(a.Id) && !learned ? "  <color=#FF6A5A>[새 무공]</color>" : "");
+                r.Title.text = a.Name + (variant != ArtVariant.None ? "(" + Mastery.VariantName(variant) + ")" : "");
+                r.Tag.text = equipped ? "장착 중" : _newArtIds.Contains(a.Id) && !learned ? "<color=#FF6A5A>새 무공</color>" : "";
+                r.Tag.transform.parent.gameObject.SetActive(r.Tag.text.Length > 0);
                 bool canVariant = Mastery.AvailableVariants(a).Count > 0;
                 r.MasteryButton.gameObject.SetActive(learned);
-                r.MasteryLabel.text = Mastery.LevelNames[mLevel] + (mLevel >= Mastery.VariantLevel && canVariant ? "\n변초 바꾸기" : "\n" + Mastery.Uses(save, a.Id) + "회");
+                r.MasteryLabel.text = Stars(mLevel) + " " + Mastery.LevelNames[mLevel] + (mLevel >= Mastery.VariantLevel && canVariant ? "\n변초 바꾸기"
+                    : "\n" + (Mastery.UsesToNext(save, a.Id) < 0 ? Mastery.Uses(save, a.Id) + "회" : Mastery.Uses(save, a.Id) + "/" + Mastery.Thresholds[mLevel + 1] + "회"));
                 r.MasteryImage.color = mLevel >= Mastery.VariantLevel && canVariant ? UiFactory.Gold : UiFactory.InkSoft;
-                r.Detail.text = learned || unlocked ? (learned && a.OwnerId == null ? Stars(mLevel) + " " + (Mastery.UsesToNext(save, a.Id) < 0 ? "극의" : Mastery.Uses(save, a.Id) + "/" + Mastery.Thresholds[mLevel + 1] + "회") + "  " : "") + Describe(a) : a.UnlockText + "하면 열립니다";
+                r.Detail.text = learned || unlocked ? Describe(a) : a.UnlockText + "하면 열립니다";
 
                 if (learned)
                 {

@@ -61,6 +61,22 @@ namespace BiRyeoDo.Core
             }
         }
 
+        /// <summary>두 a quest pays when it is completed now (the quest board shows this, so it matches the payout: stage 두 factor, 평판 bonus and the income boost included).</summary>
+        public static long QuestDoo(SaveData save, QuestData q)
+        {
+            long exp, doo;
+            StageReward(save, Quests.ToStage(q), out exp, out doo);
+            return doo;
+        }
+
+        /// <summary>두 for the first clear of a tower floor, exactly as the battle screen pays it (0 for a floor already cleared).</summary>
+        public static long TowerDoo(SaveData save, int floor)
+        {
+            long exp, doo;
+            StageReward(save, Tower.ToStage(save, floor), out exp, out doo);
+            return doo;
+        }
+
         /// <summary>True when this fight of a story stage was already won on the stage's difficulty, so it pays the replay rate (also before the stage is cleared, e.g. retrying after losing a later fight).</summary>
         public static bool WonBefore(SaveData save, StageData st, int fight)
         {

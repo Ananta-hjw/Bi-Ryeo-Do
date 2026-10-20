@@ -16,7 +16,7 @@ namespace BiRyeoDo.Game.UI
 
         public bool IsActive { get { return _visual != null; } }
 
-        public IEnumerator Approach(Graphic source, Graphic target, RectTransform layer, int speed)
+        public IEnumerator Approach(Graphic source, Graphic target, RectTransform layer, float speed)
         {
             Cancel();
             if (source == null || target == null || layer == null || !source.enabled || !source.gameObject.activeInHierarchy) yield break;
@@ -57,14 +57,14 @@ namespace BiRyeoDo.Game.UI
             yield return MoveTo(destination + new Vector2(direction * 16f, 0f), .06f, 0f, -12f * direction, 1.04f, speed);
         }
 
-        public IEnumerator Return(int speed)
+        public IEnumerator Return(float speed)
         {
             if (!IsActive) yield break;
             try { yield return MoveTo(_origin, .18f, 8f, 0f, 1f, speed); }
             finally { Cancel(); }
         }
 
-        private IEnumerator MoveTo(Vector2 destination, float seconds, float arc, float tilt, float scale, int speed)
+        private IEnumerator MoveTo(Vector2 destination, float seconds, float arc, float tilt, float scale, float speed)
         {
             if (!IsActive) yield break;
             Vector2 start = _visual.anchoredPosition;
@@ -72,7 +72,7 @@ namespace BiRyeoDo.Game.UI
             Vector3 size = _visual.localScale;
             Quaternion finishRotation = _rotation * Quaternion.Euler(0f, 0f, tilt);
             Vector3 finishScale = _scale * scale;
-            float duration = seconds / Mathf.Clamp(speed, 1, 3);
+            float duration = seconds / Mathf.Clamp(speed, 0.5f, 3f);
             for (float elapsed = 0f; elapsed < duration; elapsed += Time.deltaTime)
             {
                 if (!IsActive) yield break;

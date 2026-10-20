@@ -159,6 +159,7 @@ namespace BiRyeoDo.Core
                 foreach (var id in companionIds) Bonds.Add(save, id, c.BondPoints);
             if (c.MasteryUses > 0)
                 Mastery.Train(save, c.MasteryUses);
+            if (c.Doo > 0) text += "\n두 +" + c.Doo.ToString("N0");   // the payout is shown, like every other reward
             return text;
         }
     }

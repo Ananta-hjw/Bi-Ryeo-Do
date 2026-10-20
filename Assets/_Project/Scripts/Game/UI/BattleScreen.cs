@@ -101,6 +101,9 @@ namespace BiRyeoDo.Game.UI
         private string _jointName = "합공";
         private PlayerCommand _command;
         private int _speed = 1;
+        /// <summary>Every battle animation runs at this share of the chosen x1/x2/x3 speed (0.8 = 80%, a little slower than the raw setting).</summary>
+        private const float PaceScale = 0.8f;
+        private float Pace { get { return _speed * PaceScale; } }
         private Action _onClose;
         private bool _built;
 
@@ -417,6 +420,7 @@ namespace BiRyeoDo.Game.UI
                 BuildParty(stage);
                 if (resume) { StageProgress.Restore(save, _party); RefreshParty(); }
                 long gainedExp = 0, gainedDoo = 0;
+                var materialLines = new List<string>();   // 강화 재료 found in each fight of this run, for the result window
                 bool cleared = true;
                 int newStars = 0;   // stars earned in this run (each fight has its own three)
                 bool replay = !stage.IsQuest && !stage.IsTower && (diff == 0 ? save.ClearedStage >= stage.Number : StageStars.StageCleared(save, stage.Number, diff));
@@ -476,6 +480,7 @@ namespace BiRyeoDo.Game.UI
                         Inventory.Add(save, materialDrop.Id, materialDrop.Count);
                         drops.Add(materialDrop);
                     }
+                    if (!stage.IsQuest && !stage.IsTower) materialLines.Add("전투 " + (i + 1) + ": " + (materialDrop != null ? MaterialName(materialDrop.Id) + " " + materialDrop.Count + "개" : "없음"));
                     if (!stage.IsQuest && !stage.IsTower) for (int roll = 0; roll < StageStars.DropRolls(diff); roll++) drops.AddRange(RollDrops(stage.Encounters[i]));
                     CompanionGrowth.EnsureRecords(save);   // before the protagonist levels, so old saves' companions start at the old level
                     int levels = Progression.AddExp(save, exp);
@@ -543,7 +548,7 @@ namespace BiRyeoDo.Game.UI
                 if (!_fled && !stage.IsQuest && !stage.IsTower) { StageProgress.Clear(save); GameManager.Instance.SaveNow(); }
                 if (singleDone)
                 {
-                    yield return ShowResult("전투 " + (_lastFightNumber) + " 승리!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (_lastStarLine.Length > 0 ? "\n" + _lastStarLine : "") + "\n\n다른 전투는 스테이지를 다시 눌러 고를 수 있습니다.", false);
+                    yield return ShowResult("전투 " + (_lastFightNumber) + " 승리!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + MaterialSummary(materialLines) + (_lastStarLine.Length > 0 ? "\n" + _lastStarLine : "") + "\n\n다른 전투는 스테이지를 다시 눌러 고를 수 있습니다.", false);
                     break;
                 }
                 if (cleared && stage.IsQuest)
@@ -579,7 +584,7 @@ namespace BiRyeoDo.Game.UI
                     var reward = Inventory.GrantStageReward(save, stage.Number);
                     int chests = StageStars.ClaimableCount(save);
                     GameManager.Instance.SaveNow();
-                    yield return ShowResult(tag + "스테이지 돌파!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (bondNote.Length > 0 ? "\n" + bondNote : "") + (reward.Count > 0 ? "\n\n첫 돌파 보상\n" + DescribeStacks(reward) : "")
+                    yield return ShowResult(tag + "스테이지 돌파!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + MaterialSummary(materialLines) + (bondNote.Length > 0 ? "\n" + bondNote : "") + (reward.Count > 0 ? "\n\n첫 돌파 보상\n" + DescribeStacks(reward) : "")
                         + "\n\n" + StageStarSummary(save, stage.Number, diff) + (newStars > 0 ? "\n이번에 새로 얻은 별 +" + newStars : "") + (chests > 0 ? "\n별 보상을 받을 수 있습니다! (강호 탭)" : ""), false);
                     if (joiners.Count > 0)
                     {
@@ -749,7 +754,19 @@ namespace BiRyeoDo.Game.UI
             return all;
         }
 
-        private static string DescribeStacks(List<ItemStack> stacks)
+        /// <summary>"강화 재료" block of the result window: one line per fight played in this run (fights skipped by a resume or a picked start are not listed).</summary>
+        private static string MaterialName(string id)
+        {
+            var item = EarlyGameContent.FindItem(id);
+            return item != null ? item.Name : id;
+        }
+
+        private static string MaterialSummary(List<string> lines)
+        {
+            return lines.Count > 0 ? "\n\n강화 재료\n" + string.Join("\n", lines) : "";
+        }
+
+                private static string DescribeStacks(List<ItemStack> stacks)
         {
             var names = new List<string>();
             foreach (var s in stacks) names.Add(Inventory.Describe(s));
@@ -885,7 +902,7 @@ namespace BiRyeoDo.Game.UI
             RefreshParty();
             RefreshCards();
             SetCommandsVisible(false);
-            yield return new WaitForSeconds(0.25f);
+            yield return new WaitForSeconds(Wait(0.25f));
         }
 
         // ------------------------------------------------------------------ setup
@@ -1278,7 +1295,7 @@ namespace BiRyeoDo.Game.UI
                 var move = u.PeekMove();
                 if (u.AwakeningStrike != null)
                 {
-                    c.Intent.text = BossPhases.AwakeningName + " " + (u.PhaseIndex == 1 ? "70%" : "100%");
+                    c.Intent.text = "⚡" + BossPhases.AwakeningName + " " + (u.PhaseIndex == 1 ? "70%" : "100%") + " 예고";
                     c.Intent.color = ThreatRed;
                 }
                 else if (u.Charging)
@@ -1862,7 +1879,7 @@ namespace BiRyeoDo.Game.UI
 
         // ------------------------------------------------------------------ playback
 
-        private float Wait(float seconds) { return seconds / _speed; }
+        private float Wait(float seconds) { return seconds / Pace; }
 
         private PartyPanel PanelOf(string unitId) { return _panels.Find(p => p.Unit.Id == unitId); }
 
@@ -2074,7 +2091,7 @@ namespace BiRyeoDo.Game.UI
             bool basic = IsBasicAttack(ev) && _basicMotion != null;
             if (basic)
             {
-                yield return _basicMotion.Approach(PartyFigure(striker), EnemyFigure(card), _fx, _speed);
+                yield return _basicMotion.Approach(PartyFigure(striker), EnemyFigure(card), _fx, Pace);
                 if (_fled) { CancelBasicMotion(); yield break; }
             }
             else if (striker != null && ev.HitIndex == 0) StartCoroutine(Lunge(striker.Root, new Vector2(130f, 0f)));
@@ -2102,7 +2119,7 @@ namespace BiRyeoDo.Game.UI
             if (basic && _basicMotion.IsActive)
             {
                 yield return new WaitForSeconds(Wait(.08f));
-                yield return _basicMotion.Return(_speed);
+                yield return _basicMotion.Return(Pace);
             }
             else yield return new WaitForSeconds(Wait(ev.HitCount > 1 ? HitDelay : StepDelay));
         }
@@ -2111,15 +2128,11 @@ namespace BiRyeoDo.Game.UI
         {
             var attacker = CardOf(ev.ActorId);
             var victim = PanelOf(ev.TargetId);
-            if (ev.Awakening && ev.HitIndex == 0)
-            {
-                _log.text = NameOf(ev.ActorId) + "의 " + BossPhases.AwakeningName + "!";
-                yield return SkillCutIn(BossPhases.AwakeningName, false);
-            }
+            if (ev.Awakening && ev.HitIndex == 0) yield return AwakeningCutIn(attacker, NameOf(ev.ActorId));
             bool basic = IsBasicAttack(ev) && _basicMotion != null;
             if (basic)
             {
-                yield return _basicMotion.Approach(EnemyFigure(attacker), PartyFigure(victim), _fx, _speed);
+                yield return _basicMotion.Approach(EnemyFigure(attacker), PartyFigure(victim), _fx, Pace);
                 if (_fled) { CancelBasicMotion(); yield break; }
             }
             else if (attacker != null && ev.HitIndex == 0) StartCoroutine(Lunge(attacker.Root, new Vector2(-130f, 0f)));
@@ -2156,7 +2169,7 @@ namespace BiRyeoDo.Game.UI
             if (basic && _basicMotion.IsActive)
             {
                 yield return new WaitForSeconds(Wait(.08f));
-                yield return _basicMotion.Return(_speed);
+                yield return _basicMotion.Return(Pace);
             }
             else yield return new WaitForSeconds(Wait(ev.HitCount > 1 ? HitDelay : StepDelay));
         }
@@ -2200,7 +2213,7 @@ namespace BiRyeoDo.Game.UI
 
         private IEnumerator FloatUp(RectTransform rt, Text t)
         {
-            float duration = 0.7f / _speed;
+            float duration = 0.7f / Pace;
             Vector2 start = rt.anchoredPosition;
             for (float e = 0f; e < duration; e += Time.deltaTime)
             {
@@ -2232,7 +2245,7 @@ namespace BiRyeoDo.Game.UI
             {
                 if (rt == null) yield break;
                 rt.anchoredPosition = origin + new Vector2(UnityEngine.Random.Range(-amount, amount), UnityEngine.Random.Range(-amount, amount) * 0.5f);
-                yield return new WaitForSeconds(0.02f / _speed);
+                yield return new WaitForSeconds(0.02f / Pace);
             }
             if (rt != null) rt.anchoredPosition = origin;
         }
@@ -2253,7 +2266,7 @@ namespace BiRyeoDo.Game.UI
         {
             if (rt == null) yield break;
             Vector2 origin = HomeOf(rt);
-            float out_ = 0.09f / _speed, back = 0.14f / _speed;
+            float out_ = 0.09f / Pace, back = 0.14f / Pace;
             for (float e = 0f; e < out_; e += Time.deltaTime)
             {
                 if (rt == null) yield break;
@@ -2298,7 +2311,7 @@ namespace BiRyeoDo.Game.UI
 
         private IEnumerator StreakAnim(RectTransform rt, Image img)
         {
-            float d = 0.22f / _speed;
+            float d = 0.22f / Pace;
             for (float e = 0f; e < d; e += Time.deltaTime)
             {
                 if (rt == null) yield break;
@@ -2312,7 +2325,7 @@ namespace BiRyeoDo.Game.UI
 
         private IEnumerator SparkAnim(RectTransform rt, Image img, float angle)
         {
-            float d = 0.30f / _speed;
+            float d = 0.30f / Pace;
             Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
             float dist = UnityEngine.Random.Range(90f, 190f);
             for (float e = 0f; e < d; e += Time.deltaTime)
@@ -2329,7 +2342,7 @@ namespace BiRyeoDo.Game.UI
         /// <summary>Brief zoom of the enemy field on a critical hit.</summary>
         private IEnumerator Punch(float scale)
         {
-            float d = 0.18f / _speed;
+            float d = 0.18f / Pace;
             for (float e = 0f; e < d; e += Time.deltaTime)
             {
                 float k = e / d;
@@ -2344,7 +2357,7 @@ namespace BiRyeoDo.Game.UI
         private IEnumerator Collapse(EnemyCard card)
         {
             SoundManager.Sfx("enemy_down");
-            float d = 0.45f / _speed;
+            float d = 0.45f / Pace;
             Vector2 origin = card.Root.anchoredPosition;
             for (float e = 0f; e < d; e += Time.deltaTime)
             {
@@ -2375,11 +2388,32 @@ namespace BiRyeoDo.Game.UI
             _bannerBg.color = new Color(0f, 0f, 0f, 0f);
         }
 
+        /// <summary>The boss phase strike gets its own loud cut-in: red full-width band, the boss's name and the strike's share of its heavy blow, so it never reads like an ordinary move.</summary>
+        private IEnumerator AwakeningCutIn(EnemyCard attacker, string bossName)
+        {
+            string share = attacker != null && attacker.Unit.PhaseIndex == 1 ? "70%" : "100%";
+            _log.text = bossName + "의 " + BossPhases.AwakeningName + "! (기존 강타의 " + share + ")";
+            SoundManager.Sfx("ultimate");
+            SoundManager.Haptic(120);
+            if (attacker != null) Float(attacker.Center + new Vector2(0f, 0.08f), "각성!", UiFactory.Red, 84);
+            _banner.fontSize = 92;
+            _banner.color = new Color(1f, 0.42f, 0.32f, 1f);
+            _banner.text = "\u300e " + BossPhases.AwakeningName + " \u300f\n<size=48>" + bossName + " · 위력 " + share + "</size>";
+            _bannerBg.color = new Color(0.32f, 0.03f, 0.02f, 0.9f);
+            StartCoroutine(Punch(1.12f));
+            if (attacker != null) StartCoroutine(Shake(attacker.Root, 18f));
+            yield return new WaitForSeconds(Wait(0.95f));
+            _banner.text = "";
+            _banner.fontSize = 64;
+            _banner.color = UiFactory.Gold;
+            _bannerBg.color = new Color(0f, 0f, 0f, 0f);
+        }
+
         private IEnumerator Banner(string text, float seconds)
         {
             _banner.text = text;
             _bannerBg.color = new Color(0f, 0f, 0f, 0.65f);
-            yield return new WaitForSeconds(seconds / _speed);
+            yield return new WaitForSeconds(seconds / Pace);
             _banner.text = "";
             _bannerBg.color = new Color(0f, 0f, 0f, 0f);
         }

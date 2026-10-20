@@ -552,7 +552,7 @@ namespace BiRyeoDo.Game.UI
                 bool done = Quests.IsDone(save, q.Id);
                 var band = CodexPanel.Band(questList, shown);
                 UiFactory.Label("Name", band, new Vector2(0.03f, 0.54f), new Vector2(0.66f, 0.97f), q.Name + (done ? "  (완료)" : ""), 32, done ? UiFactory.InkSoft : UiFactory.PaperText, TextAnchor.MiddleLeft);
-                UiFactory.Label("Info", band, new Vector2(0.03f, 0.03f), new Vector2(0.66f, 0.54f), q.Trial.Brief + " · 보상 " + Income.Boost(q.RewardDoo).ToString("N0") + "두", 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Info", band, new Vector2(0.03f, 0.03f), new Vector2(0.66f, 0.54f), q.Trial.Brief + " · 보상 " + Recommend.QuestDoo(save, q).ToString("N0") + "두", 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var quest = q;
                 var go = UiFactory.Button("Go", band, new Vector2(0.69f, 0.12f), new Vector2(0.97f, 0.88f), done ? "완료" : "수락", done ? UiFactory.InkSoft : UiFactory.Red, () => AcceptQuest(quest), 32);
                 go.interactable = !done;
@@ -601,7 +601,7 @@ namespace BiRyeoDo.Game.UI
                 foreach (var s in Tower.RewardItems(floor)) { var it = EarlyGameContent.FindItem(s.Id); if (it != null) items.Add(it.Name); }
                 UiFactory.Label("Info", card.transform, new Vector2(0.05f, 0.08f), new Vector2(0.95f, 0.62f),
                     "상대: " + string.Join(", ", names) + "\n권장 Lv." + Tower.FloorLevel(floor)
-                    + "\n첫 돌파 보상: 두 " + Income.Boost(Tower.RewardDoo(floor)).ToString("N0") + (items.Count > 0 ? ", " + string.Join(", ", items) : "")
+                    + "\n첫 돌파 보상: 두 " + Recommend.TowerDoo(save, floor).ToString("N0") + (items.Count > 0 ? ", " + string.Join(", ", items) : "")
                     + " + 경험\n" + Recommend.Line(save, Recommend.ForTowerFloor(floor)), 30, Recommend.Meets(save, Recommend.ForTowerFloor(floor)) ? UiFactory.PaperText : UiFactory.Red, TextAnchor.MiddleCenter, FontStyle.Normal);
                 UiFactory.Button("Go", _towerOverlay, new Vector2(0.25f, 0.34f), new Vector2(0.75f, 0.44f), "도전", UiFactory.Red, () => StartTower(floor), 44);
                 if (save.TowerBest > 0)
