@@ -187,8 +187,8 @@ namespace BiRyeoDo.Game.UI
             foreach (var c in _cards)
             {
                 if (c.ShownHp <= 0) continue;
-                if (focus == null || c.Unit.Charging || (c.Unit.IsBoss && !focus.Unit.Charging)) focus = c;
-                if (c.Unit.Charging) break;
+                if (focus == null || c.Unit.AwakeningStrike != null || c.Unit.Charging || (c.Unit.IsBoss && !focus.Unit.Charging)) focus = c;
+                if (c.Unit.Charging || c.Unit.AwakeningStrike != null) break;
             }
             if (focus == null)
             {
@@ -198,14 +198,15 @@ namespace BiRyeoDo.Game.UI
                 return;
             }
             var u = focus.Unit;
-            bool threat = u.Charging;
+            bool threat = u.Charging || u.AwakeningStrike != null;
             _focusAccent.color = threat ? UiFactory.Red : UiFactory.InkSoft;
             _focusTag.text = threat ? "위험" : u.IsBoss ? "보스" : "敵";
             _focusName.text = u.Name;
             _focusHealth.text = focus.ShownHp.ToString("N0") + " / " + u.Stats.MaxHp.ToString("N0");
             _focusHp.SetPct(focus.ShownHp / (float)System.Math.Max(1, u.Stats.MaxHp));
             string phase = u.Phases != null && u.Phases.Count > 0 ? "  ·  단계 " + (focus.ShownPhase + 1) + "/" + (u.Phases.Count + 1) : "";
-            _focusDetail.text = threat ? u.PeekMove().Name + (u.ChargeTarget != null ? " → " + u.ChargeTarget.Name : "") + "  ·  방어·회피·중단으로 대비하세요."
+            _focusDetail.text = u.AwakeningStrike != null ? BossPhases.AwakeningName + " · 기존 강타의 " + (u.PhaseIndex == 1 ? "70%" : "100%") + " · 방어·회피·점혈로 대비하세요."
+                : threat ? u.PeekMove().Name + (u.ChargeTarget != null ? " → " + u.ChargeTarget.Name : "") + "  ·  방어·회피·중단으로 대비하세요."
                 : (u.Stunned ? "행동 불능" : "다음: " + u.PeekMove().Name) + phase + (u.Statuses.Count > 0 ? "  ·  " + Statuses.Line(u) : "");
             _focusDetail.color = threat ? ThreatRed : UiFactory.Dim;
             for (int i = 0; i < _phaseMarks.Count; i++)

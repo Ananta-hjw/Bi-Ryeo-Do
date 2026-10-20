@@ -43,7 +43,7 @@ namespace BiRyeoDo.Core
         public List<EnemyMove> Moves;      // enemy attack script, cycled in order
         public List<BossPhase> Phases;     // story bosses: 단계 전환 still to come, in order (see BossPhases)
         public int PhaseIndex;             // how many phases have begun
-        public List<EnemyMove> PendingMoves;   // a phase's script waiting for the wind-up in progress to finish
+        public EnemyMove AwakeningStrike;   // phase strike that runs once before the unchanged normal script
         internal readonly Dictionary<string, int> Cooldowns = new Dictionary<string, int>();
         public readonly List<StatusEffect> Statuses = new List<StatusEffect>();   // 상태 이상 (see Statuses)
 
@@ -123,7 +123,7 @@ namespace BiRyeoDo.Core
         /// <summary>The move this enemy will make on its next turn (for the intent display).</summary>
         public EnemyMove PeekMove()
         {
-            if (!Charging && PendingMoves != null && PendingMoves.Count > 0) return PendingMoves[0];
+            if (AwakeningStrike != null) return AwakeningStrike;
             if (Moves == null || Moves.Count == 0) return EnemyMove.Plain;
             return Moves[MoveIndex % Moves.Count];
         }

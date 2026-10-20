@@ -43,6 +43,7 @@ namespace BiRyeoDo.Core
         public List<GearLevel> InnerLevels = new List<GearLevel>();  // 심법 강화 (심득석) levels (additive field)
         public List<GearLevel> GearLevels = new List<GearLevel>();   // legacy item enhancements; migrated once
         public bool GearProgressionMigrated;
+        public bool GearGradeUnlocksMigrated;
         public List<GearLevel> GearBreakthroughs = new List<GearLevel>();
         public List<GearSlot> GearSlots = new List<GearSlot>();
         public List<string> SeenArts = new List<string>();         // arts whose "new" red dot was already looked at (additive field)

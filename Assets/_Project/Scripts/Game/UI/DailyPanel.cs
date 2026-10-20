@@ -38,7 +38,7 @@ namespace BiRyeoDo.Game.UI
                 var bar = UiFactory.MakeBar("Bar", band.transform, new Vector2(0.04f, 0.32f), new Vector2(0.62f, 0.46f), new Color(0f, 0f, 0f, 0.7f), done ? UiFactory.Gold : new Color(0.38f, 0.62f, 0.95f, 1f));
                 bar.SetPct(m.Target > 0 ? (float)prog / m.Target : 0f);
                 UiFactory.Label("Count", band.transform, new Vector2(0.04f, 0.28f), new Vector2(0.66f, 0.50f), prog + "/" + m.Target, 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-                UiFactory.Label("Reward", band.transform, new Vector2(0.04f, 0.04f), new Vector2(0.66f, 0.30f), "보상 두 " + Daily.RewardDoo(save, m).ToString("N0") + " · 연마석 " + Gear.DailyPolish + "개", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.ScrollBody(UiFactory.Label("Reward", band.transform, new Vector2(0.04f, 0.04f), new Vector2(0.66f, 0.30f), "보상 두 " + Daily.RewardDoo(save, m).ToString("N0") + "\n" + Gear.RewardMaterial(save.HighestUnlockedStage).Name + " " + Gear.DailyPolish + "개", 28, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 28);
                 int index = i;
                 var btn = UiFactory.Button("Claim", band.transform, new Vector2(0.72f, 0.16f), new Vector2(0.97f, 0.84f), claimed ? "수령 완료" : done ? "받기" : "진행 중", done && !claimed ? UiFactory.Red : UiFactory.InkSoft, () => Claim(index), 26);
                 btn.interactable = done && !claimed;

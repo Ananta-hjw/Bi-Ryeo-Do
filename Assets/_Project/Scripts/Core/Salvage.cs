@@ -6,7 +6,7 @@ namespace BiRyeoDo.Core
     /// <summary>
     /// 분해 and 합성. A spare copy of a piece of gear (일반 to 전설; 신화 and 초월 gear cannot be dismantled) can be dismantled into materials of the same grade and slot
     /// (일반 7-12, 고급 6-11, 희귀 5-10, 영웅 3-8, 전설 1-6, with odds 10/20/30/20/10/10% across the six counts); enough materials of one grade and slot fuse into a random piece
-    /// of the next grade in that slot (일반 50, 고급 40, 희귀 30, 영웅 20, 전설 10). Neither costs 두.
+    /// of the next grade in that slot (일반 50, 고급 40, 희귀 30, 영웅 20, 전설 10). Also grants the matching enhancement material, 1-5 at 20% each. Neither costs 두.
     /// </summary>
     public static class Salvage
     {
@@ -99,6 +99,13 @@ namespace BiRyeoDo.Core
         /// <summary>분해: consumes one copy, returns the materials gained (null with an error when not allowed).</summary>
         public static ItemStack Dismantle(SaveData save, string id, IRandom rng, out string error)
         {
+            ItemStack enhancement;
+            return Dismantle(save, id, rng, out enhancement, out error);
+        }
+
+        public static ItemStack Dismantle(SaveData save, string id, IRandom rng, out ItemStack enhancement, out string error)
+        {
+            enhancement = null;
             error = null;
             var item = EarlyGameContent.FindItem(id);
             var mat = MaterialFor(item);
@@ -107,11 +114,18 @@ namespace BiRyeoDo.Core
             int n = RollCount(item.Grade, rng);
             Inventory.Remove(save, id, 1);
             Inventory.Add(save, mat.Id, n);
-            Inventory.Add(save, Gear.StoneId, PolishYield(item));
+            enhancement = new ItemStack(EnhancementMaterialFor(item).Id, RollEnhancementCount(rng));
+            Inventory.Add(save, enhancement.Id, enhancement.Count);
             return new ItemStack(mat.Id, n);
         }
 
-        public static int PolishYield(ItemData item) { return MaterialFor(item) != null ? 1 + (int)item.Grade : 0; }
+        public static ItemData EnhancementMaterialFor(ItemData item)
+        {
+            return item != null && item.IsGear && item.Grade <= ItemGrade.Legendary ? Gear.Materials[(int)item.Grade] : null;
+        }
+
+        /// <summary>One through five enhancement materials, with 20% probability for each count.</summary>
+        public static int RollEnhancementCount(IRandom rng) { return 1 + Math.Min(4, (int)(rng.NextDouble() * 5)); }
 
         public static bool CanFuse(SaveData save, ItemData material) { return IsFusable(material) && Inventory.Count(save, material.Id) >= Need(material); }
 
@@ -193,6 +207,10 @@ namespace BiRyeoDo.Core
                 if (!map.ContainsKey(mat.Id)) { map[mat.Id] = new[] { 0, 0 }; order.Add(mat); }
                 map[mat.Id][0] += MinCount[(int)e.Item.Grade] * e.Count;
                 map[mat.Id][1] += MaxCount(e.Item.Grade) * e.Count;
+                var enhancement = EnhancementMaterialFor(e.Item);
+                if (!map.ContainsKey(enhancement.Id)) { map[enhancement.Id] = new[] { 0, 0 }; order.Add(enhancement); }
+                map[enhancement.Id][0] += e.Count;
+                map[enhancement.Id][1] += 5 * e.Count;
             }
             var result = new List<KeyValuePair<ItemData, int[]>>();
             foreach (var mat in order) result.Add(new KeyValuePair<ItemData, int[]>(mat, map[mat.Id]));
@@ -207,11 +225,15 @@ namespace BiRyeoDo.Core
                 for (int i = 0; i < e.Count; i++)
                 {
                     string error;
-                    var got = Dismantle(save, e.Item.Id, rng, out error);
+                    ItemStack enhancement;
+                    var got = Dismantle(save, e.Item.Id, rng, out enhancement, out error);
                     if (got == null) break;
-                    ItemStack sum = null;
-                    foreach (var g in gained) if (g.Id == got.Id) sum = g;
-                    if (sum == null) gained.Add(new ItemStack(got.Id, got.Count)); else sum.Count += got.Count;
+                    foreach (var stack in new[] { got, enhancement })
+                    {
+                        ItemStack sum = null;
+                        foreach (var g in gained) if (g.Id == stack.Id) sum = g;
+                        if (sum == null) gained.Add(new ItemStack(stack.Id, stack.Count)); else sum.Count += stack.Count;
+                    }
                 }
             return gained;
         }

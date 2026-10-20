@@ -318,14 +318,18 @@ namespace BiRyeoDo.Tests
             Assert.IsFalse(Salvage.BulkPlan(save, onlyNormal, onlyWeapon, true).Any(e => e.Item.Id == "oak_club"), "a worn piece stays");
 
             var yield = Salvage.BulkYield(plan);
-            Assert.AreEqual(1, yield.Count);
+            Assert.AreEqual(2, yield.Count);
             Assert.AreEqual(7 * 3, yield[0].Value[0]);
             Assert.AreEqual(12 * 3, yield[0].Value[1]);
+            Assert.AreEqual(Gear.StoneId, yield[1].Key.Id);
+            CollectionAssert.AreEqual(new[] { 3, 15 }, yield[1].Value);
 
             var gained = Salvage.DismantleBulk(save, plan, new SeededRandom(3));
             Assert.AreEqual(1, Inventory.Count(save, "iron_sword"));
-            Assert.AreEqual(1, gained.Count);
+            Assert.AreEqual(2, gained.Count);
             Assert.That(gained[0].Count, Is.InRange(21, 36));
+            Assert.That(gained[1].Count, Is.InRange(3, 15));
+            Assert.AreEqual(gained[1].Count, Inventory.Count(save, Gear.StoneId));
             Assert.AreEqual(gained[0].Count, Inventory.Count(save, gained[0].Id));
             Assert.AreEqual(5, Inventory.Count(save, "taegeuk_jade"));
         }
