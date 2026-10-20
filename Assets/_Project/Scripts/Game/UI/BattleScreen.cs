@@ -44,6 +44,7 @@ namespace BiRyeoDo.Game.UI
             public Image Frame, Art;
             public WuxiaGlyph ActiveFrame;
             public Text Name, Status, HpText, QiText, SpiritText;
+            public Text FigureGlyph;
             public UiFactory.Bar Hp, Qi, Spirit;
             public Vector2 Center;
             public int ShownHp, ShownQi, ShownSpirit;   // as drawn; lag behind the unit while events are animated
@@ -60,6 +61,7 @@ namespace BiRyeoDo.Game.UI
         }
 
         private RectTransform _cardsRoot, _partyRoot, _fx;
+        private BasicAttackMotion _basicMotion;
         private Image _backdropImage;
         private Text _stageLabel, _speedLabel, _log, _banner;
         private Image _flash, _bannerBg;
@@ -105,6 +107,7 @@ namespace BiRyeoDo.Game.UI
         {
             if (_built) return;
             _built = true;
+            _basicMotion = root.gameObject.AddComponent<BasicAttackMotion>();
 
             UiFactory.Panel("Backdrop", root, Vector2.zero, Vector2.one, Backdrop).raycastTarget = true;   // swallows taps so nothing underneath (the 강호 tab) is pressed during the battle
             _backdropImage = UiFactory.Panel("StageArt", root, Vector2.zero, Vector2.one, new Color(1f, 1f, 1f, 0f));
@@ -281,6 +284,7 @@ namespace BiRyeoDo.Game.UI
         {
             if (_inputGuard != null) _inputGuard.SetActive(false);   // a guard left on by a window that closed the overlay must not block the next fight
             _onClose = onClose;
+            CancelBasicMotion();
             StopAllCoroutines();
             ApplySavedSpeed();
             StartCoroutine(RunStage(stage));
@@ -613,6 +617,7 @@ namespace BiRyeoDo.Game.UI
         {
             if (_inputGuard != null) _inputGuard.SetActive(false);
             _onClose = onClose;
+            CancelBasicMotion();
             StopAllCoroutines();
             StartCoroutine(RunStoryOnly(title, lines));
         }
@@ -640,6 +645,7 @@ namespace BiRyeoDo.Game.UI
         {
             if (_inputGuard != null) _inputGuard.SetActive(false);
             _onClose = onClose;
+            CancelBasicMotion();
             StopAllCoroutines();
             StartCoroutine(RunPromotion(offer));
         }
@@ -965,7 +971,7 @@ namespace BiRyeoDo.Game.UI
                 }
                 else
                 {
-                    UiFactory.Label("Glyph", p.Root, new Vector2(0.04f, 0.32f), new Vector2(0.96f, 0.90f), FirstGlyph(unit.Name), 110, i == 0 ? UiFactory.Gold : UiFactory.PaperText);
+                    p.FigureGlyph = UiFactory.Label("Glyph", p.Root, new Vector2(0.04f, 0.32f), new Vector2(0.96f, 0.90f), FirstGlyph(unit.Name), 110, i == 0 ? UiFactory.Gold : UiFactory.PaperText);
                 }
                 p.Name = UiFactory.Label("Name", p.Root, new Vector2(0.03f, 0.845f), new Vector2(0.97f, 0.995f), unit.Name, 24, UiFactory.Gold);
                 p.Status = UiFactory.Label("Status", p.Root, new Vector2(0.05f, 0.52f), new Vector2(0.95f, 0.80f), "", 22, UiFactory.PaperText);
@@ -1029,6 +1035,7 @@ namespace BiRyeoDo.Game.UI
 
         private void ClearCards()
         {
+            CancelBasicMotion();
             foreach (var c in _cards) if (c.Root != null) Destroy(c.Root.gameObject);
             _cards.Clear();
             _home.Clear();
@@ -1036,6 +1043,7 @@ namespace BiRyeoDo.Game.UI
 
         private void ClearPanels()
         {
+            CancelBasicMotion();
             foreach (var p in _panels) if (p.Root != null) Destroy(p.Root.gameObject);
             _panels.Clear();
             _home.Clear();
@@ -1829,6 +1837,7 @@ namespace BiRyeoDo.Game.UI
         private void OnFleePressed()
         {
             _fled = true;
+            CancelBasicMotion();
             _panelDone = true;
             _retry = false;
         }
@@ -1860,7 +1869,7 @@ namespace BiRyeoDo.Game.UI
             _animating = true;
             RefreshActorHud();
             try { yield return PlayEventsInner(events); }
-            finally { _animating = false; }
+            finally { CancelBasicMotion(); _animating = false; }
             RefreshParty();
             RefreshCards();
         }
@@ -2044,9 +2053,19 @@ namespace BiRyeoDo.Game.UI
             var card = CardOf(ev.TargetId);
             if (card == null) yield break;
             var striker = PanelOf(ev.ActorId);
-            if (striker != null && ev.HitIndex == 0) StartCoroutine(Lunge(striker.Root, new Vector2(130f, 0f)));
+            bool basic = IsBasicAttack(ev) && _basicMotion != null;
+            if (basic)
+            {
+                yield return _basicMotion.Approach(PartyFigure(striker), EnemyFigure(card), _fx, _speed);
+                if (_fled) { CancelBasicMotion(); yield break; }
+            }
+            else if (striker != null && ev.HitIndex == 0) StartCoroutine(Lunge(striker.Root, new Vector2(130f, 0f)));
             SlashFx(card.Center, ev.HitIndex, ev.IsCrit, striker != null && striker.Unit.Skills.Find(x => x.Id == ev.SkillId) is SkillSpec sp && sp.SpiritCost >= 100);
-            if (ev.IsCrit) { StartCoroutine(Punch(1.06f)); yield return new WaitForSeconds(Wait(0.07f)); }
+            if (ev.IsCrit)
+            {
+                StartCoroutine(Punch(1.06f));
+                if (!basic) yield return new WaitForSeconds(Wait(0.07f));
+            }
             SoundManager.Sfx(ev.IsCrit ? "hit_crit" : "hit");
             if (ev.IsCrit) SoundManager.Haptic(40);
             Float(card.Center + new Vector2(UnityEngine.Random.Range(-0.05f, 0.05f), 0.02f * ev.HitIndex), ev.Damage + (ev.IsCrit ? "!" : ""), ev.IsCrit ? UiFactory.Gold : UiFactory.PaperText, ev.IsCrit ? 84 : 64);
@@ -2062,16 +2081,27 @@ namespace BiRyeoDo.Game.UI
             StartCoroutine(Shake(card.Root, ev.IsCrit ? 22f : 14f));
             if (ev.TargetDefeated) { StartCoroutine(Collapse(card)); card.Intent.text = ev.Retreated ? "물러났다" : "쓰러졌다"; if (ev.Retreated) _log.text = ev.Message; }
             RefreshParty();
-            yield return new WaitForSeconds(Wait(ev.HitCount > 1 ? HitDelay : StepDelay));
+            if (basic && _basicMotion.IsActive)
+            {
+                yield return new WaitForSeconds(Wait(.08f));
+                yield return _basicMotion.Return(_speed);
+            }
+            else yield return new WaitForSeconds(Wait(ev.HitCount > 1 ? HitDelay : StepDelay));
         }
 
         private IEnumerator EnemyHit(BattleEvent ev)
         {
             var attacker = CardOf(ev.ActorId);
-            if (attacker != null && ev.HitIndex == 0) StartCoroutine(Lunge(attacker.Root, new Vector2(-130f, 0f)));
+            var victim = PanelOf(ev.TargetId);
+            bool basic = IsBasicAttack(ev) && _basicMotion != null;
+            if (basic)
+            {
+                yield return _basicMotion.Approach(EnemyFigure(attacker), PartyFigure(victim), _fx, _speed);
+                if (_fled) { CancelBasicMotion(); yield break; }
+            }
+            else if (attacker != null && ev.HitIndex == 0) StartCoroutine(Lunge(attacker.Root, new Vector2(-130f, 0f)));
             if (attacker != null && ev.HitIndex == 0 && ev.Burst) { Float(attacker.Center + new Vector2(0f, 0.06f), "기세 폭발!", UiFactory.Red, 70); SoundManager.Haptic(40); }
             if (attacker != null && ev.HitIndex == 0 && ev.Weakened) Float(attacker.Center + new Vector2(0f, 0.06f), "내공 부족", GuardBlue, 56);
-            var victim = PanelOf(ev.TargetId);
             if (victim != null && !ev.Dodged) SlashFx(victim.Center, ev.HitIndex, ev.IsCrit, false, true);
             if (victim != null)
             {
@@ -2100,8 +2130,31 @@ namespace BiRyeoDo.Game.UI
                     }
                 }
             }
-            yield return new WaitForSeconds(Wait(ev.HitCount > 1 ? HitDelay : StepDelay));
+            if (basic && _basicMotion.IsActive)
+            {
+                yield return new WaitForSeconds(Wait(.08f));
+                yield return _basicMotion.Return(_speed);
+            }
+            else yield return new WaitForSeconds(Wait(ev.HitCount > 1 ? HitDelay : StepDelay));
         }
+
+        private static bool IsBasicAttack(BattleEvent ev)
+        {
+            return ev.Kind == EventKind.Attack && !ev.Joint && ev.HitIndex == 0 && ev.HitCount == 1
+                && (ev.SkillId == "basic" || ev.SkillId == EnemyMove.Plain.Name);
+        }
+
+        private static Graphic PartyFigure(PartyPanel panel)
+        {
+            return panel == null ? null : panel.Art != null ? (Graphic)panel.Art : panel.FigureGlyph;
+        }
+
+        private static Graphic EnemyFigure(EnemyCard card)
+        {
+            return card == null ? null : card.Art != null ? (Graphic)card.Art : card.Glyph;
+        }
+
+        private void CancelBasicMotion() { if (_basicMotion != null) _basicMotion.Cancel(); }
 
         // ------------------------------------------------------------------ effects
 
