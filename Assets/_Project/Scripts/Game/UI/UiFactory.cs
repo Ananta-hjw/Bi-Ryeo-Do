@@ -193,10 +193,11 @@ namespace BiRyeoDo.Game.UI
             viewport.gameObject.AddComponent<RectMask2D>();
             rect.SetParent(viewport, false);
             rect.anchorMin = new Vector2(0f, 1f); rect.anchorMax = Vector2.one;
-            rect.pivot = new Vector2(.5f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
             rect.offsetMin = Vector2.zero; rect.offsetMax = Vector2.zero;
-            rect.sizeDelta = new Vector2(-26f, 0f);
-            rect.anchoredPosition = new Vector2(-13f, 0f);
+            // Keep a left gutter and reserve the right gutter for the scrollbar.
+            rect.sizeDelta = new Vector2(-58f, 0f);
+            rect.anchoredPosition = new Vector2(16f, 0f);
             text.fontSize = fontSize;
             text.fontStyle = FontStyle.Normal;
             text.alignment = TextAnchor.UpperLeft;

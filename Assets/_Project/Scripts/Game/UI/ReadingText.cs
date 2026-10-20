@@ -27,9 +27,9 @@ namespace BiRyeoDo.Game.UI
             if (!_dirty && !changed && Mathf.Abs(_width - size.x) < .5f && Mathf.Abs(_height - size.y) < .5f) return;
             _dirty = false;
             _width = size.x; _height = size.y;
-            float height = Mathf.Max(size.y, UiFactory.MeasureHeight(_text, _text.text, size.x - 26f) + 20f);
+            float height = Mathf.Max(size.y, UiFactory.MeasureHeight(_text, _text.text, size.x - 58f) + 20f);
             var rect = _text.rectTransform;
-            if (Mathf.Abs(rect.sizeDelta.y - height) > .5f) rect.sizeDelta = new Vector2(0f, height);
+            if (Mathf.Abs(rect.sizeDelta.y - height) > .5f) rect.sizeDelta = new Vector2(-58f, height);
             if (changed) { Scroll.StopMovement(); Scroll.verticalNormalizedPosition = 1f; }
             _lastText = _text.text;
         }
