@@ -190,7 +190,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void AcademyShelfSellsScrollsFromYuho()
         {
-            long[] prices = { 3000, 5500, 10000 };
+            long[] prices = { 4500, 8200, 13000 };
             for (int i = 0; i < 3; i++)
             {
                 var good = Shop.Goods.Single(g => g.ItemId == Mastery.ScrollIds[i]);

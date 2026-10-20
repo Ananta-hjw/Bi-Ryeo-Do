@@ -111,7 +111,7 @@ namespace BiRyeoDo.Tests
             long before = save.Doo;
             var note = Shop.Buy(save, "aca_scroll", out error);
             Assert.IsNotNull(note);
-            Assert.AreEqual(before - 5000, save.Doo);
+            Assert.AreEqual(before - 7500, save.Doo);
             Assert.AreEqual(1, Shop.Bought(save, "aca_scroll"));
             for (int i = 0; i < 4; i++) Assert.IsNotNull(Shop.Buy(save, "aca_scroll", out error));
             Assert.IsTrue(Shop.SoldOut(save, Shop.Find("aca_scroll")));
@@ -129,7 +129,7 @@ namespace BiRyeoDo.Tests
             string error;
             Shop.Buy(save, "inn_gall", out error);
             Assert.AreEqual(1, Inventory.Count(save, "bear_gall"));
-            Assert.AreEqual(100000 - 300, save.Doo);
+            Assert.AreEqual(100000 - 600, save.Doo);
             save.EquippedArts.Add("samboku_chobok");
             Factions.Gain(save, "wudang", Factions.Thresholds[2]);
             Shop.Buy(save, "wud_train1", out error);

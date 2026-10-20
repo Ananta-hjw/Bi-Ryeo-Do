@@ -135,11 +135,11 @@ namespace BiRyeoDo.Tests
         }
     
         [Test]
-        public void IncomeBoostRaisesBy30PercentAndRoundsToTens()
+        public void IncomeBoostRaisesBy30ThenBy20PercentAndRoundsToTens()
         {
-            Assert.AreEqual(2800, Income.Boost(2150));
-            Assert.AreEqual(2780, Income.Boost(2142));
-            Assert.AreEqual(140, Income.Boost(105));
+            Assert.AreEqual(3360, Income.Boost(2150));   // 2150 -> 2800 -> 3360
+            Assert.AreEqual(3340, Income.Boost(2142));   // 2142 -> 2780 -> 3336
+            Assert.AreEqual(170, Income.Boost(105));
             Assert.AreEqual(0, Income.Boost(0));
         }
     }

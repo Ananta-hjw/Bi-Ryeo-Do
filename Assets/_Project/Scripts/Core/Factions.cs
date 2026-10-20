@@ -203,36 +203,36 @@ namespace BiRyeoDo.Core
         public static readonly ShopGood[] Goods =
         {
             // 객잔 itself
-            Item("inn_gall", null, 0, "bear_gall", 300),
-            Item("inn_okruju", null, 0, "okruju", 400),
-            Item("inn_antidote", null, 0, "antidote", 350),
+            Item("inn_gall", null, 0, "bear_gall", 600),
+            Item("inn_okruju", null, 0, "okruju", 800),
+            Item("inn_antidote", null, 0, "antidote", 700),
             // 천무학관
-            Item("aca_meal", "academy", 1, "meal_academy", 250),
-            Item("aca_snow", "academy", 1, "snow_ginseng", 900),
-            Item("aca_art5", "academy", 2, "art_scroll_5", 3000),
-            Item("aca_art10", "academy", 2, "art_scroll_10", 5500),
-            Item("aca_art20", "academy", 2, "art_scroll_20", 10000),
-            new ShopGood { Id = "aca_scroll", FactionId = "academy", MinTier = 2, Kind = ShopKind.ExpScroll, Amount = 20, Name = "수련 일지", Description = "한 단계 오르는 데 필요한 경험치의 20%를 얻습니다.", Price = 5000, Limit = 5 },
-            Item("aca_ginseng", "academy", 3, "ginseng", 3500),
-            new ShopGood { Id = "aca_scroll2", FactionId = "academy", MinTier = 4, Kind = ShopKind.ExpScroll, Amount = 50, Name = "비전 수련 일지", Description = "한 단계 오르는 데 필요한 경험치의 50%를 얻습니다.", Price = 15000, Limit = 3 },
+            Item("aca_meal", "academy", 1, "meal_academy", 500),
+            Item("aca_snow", "academy", 1, "snow_ginseng", 1800),
+            Item("aca_art5", "academy", 2, "art_scroll_5", 4500),
+            Item("aca_art10", "academy", 2, "art_scroll_10", 8200),
+            Item("aca_art20", "academy", 2, "art_scroll_20", 13000),
+            new ShopGood { Id = "aca_scroll", FactionId = "academy", MinTier = 2, Kind = ShopKind.ExpScroll, Amount = 20, Name = "수련 일지", Description = "한 단계 오르는 데 필요한 경험치의 20%를 얻습니다.", Price = 7500, Limit = 5 },
+            Item("aca_ginseng", "academy", 3, "ginseng", 5200),
+            new ShopGood { Id = "aca_scroll2", FactionId = "academy", MinTier = 4, Kind = ShopKind.ExpScroll, Amount = 50, Name = "비전 수련 일지", Description = "한 단계 오르는 데 필요한 경험치의 50%를 얻습니다.", Price = 19500, Limit = 3 },
             // 중양표국
-            Item("bia_ration", "biaoguk", 1, "biaoguk_ration", 200),
-            Item("bia_ginseng", "biaoguk", 2, "ginseng", 3200),
-            Item("bia_yeongdan", "biaoguk", 3, "ilgeup_yeongdan", 14000, 3),
-            Item("bia_yeongdan2", "biaoguk", 4, "ilgeup_yeongdan", 11000, 5),
+            Item("bia_ration", "biaoguk", 1, "biaoguk_ration", 400),
+            Item("bia_ginseng", "biaoguk", 2, "ginseng", 4800),
+            Item("bia_yeongdan", "biaoguk", 3, "ilgeup_yeongdan", 18200, 3),
+            Item("bia_yeongdan2", "biaoguk", 4, "ilgeup_yeongdan", 14300, 5),
             // 무당파
-            new ShopGood { Id = "wud_train1", FactionId = "wudang", MinTier = 2, Kind = ShopKind.Training, Amount = 10, Name = "태극 연공", Description = "장착한 무공 모두 숙련 +10회.", Price = 3000, Limit = 10 },
-            Item("wud_pill", "wudang", 3, "taegeuk_pill", 1500),
-            new ShopGood { Id = "wud_train2", FactionId = "wudang", MinTier = 3, Kind = ShopKind.Training, Amount = 25, Name = "태극 심연공", Description = "장착한 무공 모두 숙련 +25회.", Price = 7000, Limit = 10 },
-            new ShopGood { Id = "wud_train3", FactionId = "wudang", MinTier = 4, Kind = ShopKind.Training, Amount = 60, Name = "태극 대연공", Description = "장착한 무공 모두 숙련 +60회.", Price = 15000, Limit = 5 },
+            new ShopGood { Id = "wud_train1", FactionId = "wudang", MinTier = 2, Kind = ShopKind.Training, Amount = 10, Name = "태극 연공", Description = "장착한 무공 모두 숙련 +10회.", Price = 4500, Limit = 10 },
+            Item("wud_pill", "wudang", 3, "taegeuk_pill", 2200),
+            new ShopGood { Id = "wud_train2", FactionId = "wudang", MinTier = 3, Kind = ShopKind.Training, Amount = 25, Name = "태극 심연공", Description = "장착한 무공 모두 숙련 +25회.", Price = 10500, Limit = 10 },
+            new ShopGood { Id = "wud_train3", FactionId = "wudang", MinTier = 4, Kind = ShopKind.Training, Amount = 60, Name = "태극 대연공", Description = "장착한 무공 모두 숙련 +60회.", Price = 19500, Limit = 5 },
             // 녹림
-            Item("gre_liquor", "greenwood", 1, "greenwood_liquor", 500),
-            Item("gre_gall", "greenwood", 2, "bear_gall", 250),
-            Item("gre_snow", "greenwood", 3, "snow_ginseng", 700),
+            Item("gre_liquor", "greenwood", 1, "greenwood_liquor", 1000),
+            Item("gre_gall", "greenwood", 2, "bear_gall", 500),
+            Item("gre_snow", "greenwood", 3, "snow_ginseng", 1400),
             // 화산파
-            Item("hua_elixir", "huashan", 2, "plum_elixir", 1200),
-            Item("hua_snow", "huashan", 3, "snow_ginseng", 750),
-            Item("hua_ginseng", "huashan", 4, "ginseng", 3000),
+            Item("hua_elixir", "huashan", 2, "plum_elixir", 1800),
+            Item("hua_snow", "huashan", 3, "snow_ginseng", 1500),
+            Item("hua_ginseng", "huashan", 4, "ginseng", 4500),
         };
 
         public static ShopGood Find(string id)

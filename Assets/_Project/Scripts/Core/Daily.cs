@@ -200,7 +200,7 @@ namespace BiRyeoDo.Core
                 case 3: Inventory.Add(save, "okruju", 3); return "연속 3일 보상: 옥루주 x3";
                 case 7: Inventory.Add(save, "ginseng", 1); return "연속 7일 보상: 인형설삼";
                 case 14: Inventory.Add(save, "ilgeup_yeongdan", 1); Inventory.Add(save, InnerArts.StoneId, 2); return "연속 14일 보상: 일급영단, 심득석 x2";
-                case 30: Inventory.Add(save, "ilgeup_yeongdan", 2); save.Doo += 26000; Inventory.Add(save, InnerArts.StoneId, 4); return "연속 30일 보상: 일급영단 x2, 심득석 x4, 두 +26,000";
+                case 30: Inventory.Add(save, "ilgeup_yeongdan", 2); save.Doo += 31200; Inventory.Add(save, InnerArts.StoneId, 4); return "연속 30일 보상: 일급영단 x2, 심득석 x4, 두 +31,200";
             }
             return null;
         }
