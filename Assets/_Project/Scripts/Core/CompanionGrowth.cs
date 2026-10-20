@@ -56,6 +56,24 @@ namespace BiRyeoDo.Core
             return gained;
         }
 
+        /// <summary>"윤준호  자하청심결 습득!" for each art the companion learns on the way from level <paramref name="before"/> to <paramref name="after"/>.</summary>
+        public static List<string> NewArtLines(CompanionData c, int before, int after)
+        {
+            var lines = new List<string>();
+            foreach (var a in EarlyGameContent.Arts)
+                if (a.OwnerId == c.Id && a.OwnerLevel > before && a.OwnerLevel <= after) lines.Add(c.Name + "  " + a.Name + " 습득!");
+            return lines;
+        }
+
+        /// <summary>The arts a companion will still learn at a higher level, as "자하청심결 (Lv.15)".</summary>
+        public static List<string> PendingArtLines(CompanionData c, int level)
+        {
+            var lines = new List<string>();
+            foreach (var a in EarlyGameContent.Arts)
+                if (a.OwnerId == c.Id && a.OwnerLevel > level) lines.Add(a.Name + " (Lv." + a.OwnerLevel + ")");
+            return lines;
+        }
+
         /// <summary>Share of a fight's exp that companions who sat the fight out still gain.</summary>
         public const double BenchExpShare = 0.5;
 
@@ -73,7 +91,7 @@ namespace BiRyeoDo.Core
                 if (c.JoinStage > save.HighestUnlockedStage || fielded.Contains(c.Id)) continue;
                 int before = LevelOf(save, c.Id);
                 int gained = AddExp(save, c.Id, share);
-                if (gained > 0) lines.Add(c.Name + "  Lv." + before + " → Lv." + (before + gained) + "  (대기)");
+                if (gained > 0) { lines.Add(c.Name + "  Lv." + before + " → Lv." + (before + gained) + "  (대기)"); lines.AddRange(NewArtLines(c, before, before + gained)); }
             }
             return lines;
         }

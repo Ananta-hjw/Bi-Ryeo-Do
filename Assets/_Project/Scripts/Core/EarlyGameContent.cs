@@ -17,6 +17,7 @@ namespace BiRyeoDo.Core
         public float InflictChance;
         public long LearnCost;
         public string OwnerId;   // null = a martial art the protagonist can learn; otherwise a companion's fixed art
+        public int OwnerLevel;   // companion arts: the companion's own level at which the art is learned (0 = known from joining)
 
         /// <summary>
         /// How far the art reaches: an explicit <see cref="Range"/>, otherwise 3 for area arts and 비기, 1 for everything else (the front line only)
@@ -166,7 +167,7 @@ namespace BiRyeoDo.Core
             var skills = new List<SkillSpec>();
             foreach (var a in EarlyGameContent.Arts)
             {
-                if (a.OwnerId != Id) continue;
+                if (a.OwnerId != Id || a.OwnerLevel > level) continue;   // some arts are only learned at a level
                 var spec = a.ToSpec();
                 spec.Power *= ArtPowerFactor;
                 spec.HealPct *= ArtPowerFactor;
@@ -261,7 +262,7 @@ namespace BiRyeoDo.Core
             new ArtData { Id = "yj_slash", Name = "화산의 검", Description = "화산파의 기본 검격. 매화검법은 알레르기 때문에 쓰지 못한다.", Power = 2.2f, QiCost = 16, Cooldown = 1, OwnerId = "yun_junho" },
             new ArtData { Id = "yj_heal", Name = "자하신공", Description = "화산의 자색 기운으로 가장 다친 동료를 치유한다.", Effect = SkillEffect.HealAlly, HealPct = 0.35f, QiCost = 28, Cooldown = 3, OwnerId = "yun_junho" },
             // 자하청심결: game addition (not named in the story) so the party has a way to cure 상태 이상 besides 운기 and items
-            new ArtData { Id = "yj_cleanse", Name = "자하청심결", Description = "자하신공의 맑은 기운으로 동료 한 명의 상태 이상을 모두 씻어 내고 조금 치유한다.", Effect = SkillEffect.Cleanse, HealPct = 0.10f, QiCost = 22, Cooldown = 3, OwnerId = "yun_junho" },
+            new ArtData { Id = "yj_cleanse", Name = "자하청심결", Description = "자하신공의 맑은 기운으로 동료 한 명의 상태 이상을 모두 씻어 내고 조금 치유한다.", Effect = SkillEffect.Cleanse, HealPct = 0.10f, QiCost = 22, Cooldown = 3, OwnerId = "yun_junho", OwnerLevel = 15 },
             new ArtData { Id = "isj_gon", Name = "진성십이곤", Description = "녹림 진성곤의 곤법. 방어는 원, 공격은 점, 힘의 이동은 나선.", Power = 2.0f, QiCost = 16, Cooldown = 1, OwnerId = "im_seongjin" },
             new ArtData { Id = "isj_seonggwang", Name = "성광일시", Description = "곤을 별처럼 흩뿌려 네 번 찌른다.", Power = 0.9f, Hits = 4, QiCost = 30, Cooldown = 3, OwnerId = "im_seongjin" },
             new ArtData { Id = "isj_iljeom", Range = 4, Name = "일점필중", Description = "진성십이곤 최종오의. 한 줄기 섬광이 되어 한 점을 꿰뚫는다.", Power = 5.0f, QiCost = 45, Cooldown = 4, OwnerId = "im_seongjin" },

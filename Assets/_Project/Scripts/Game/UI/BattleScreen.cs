@@ -468,7 +468,13 @@ namespace BiRyeoDo.Game.UI
                     {
                         int before = CompanionGrowth.LevelOf(save, _party[k].Id);
                         int gained = CompanionGrowth.AddExp(save, _party[k].Id, exp);
-                        if (gained > 0) { leveled.Add(_party[k].Id); levelLines.Add(_party[k].Name + "  Lv." + before + " → Lv." + (before + gained) + "  (체력·내공 가득)"); }
+                        if (gained > 0)
+                        {
+                            leveled.Add(_party[k].Id);
+                            levelLines.Add(_party[k].Name + "  Lv." + before + " → Lv." + (before + gained) + "  (체력·내공 가득)");
+                            var learner = EarlyGameContent.FindCompanion(_party[k].Id);
+                            if (learner != null) levelLines.AddRange(CompanionGrowth.NewArtLines(learner, before, before + gained));
+                        }
                     }
                     if (stage.Number > 0)   // companions who sat this fight out still gain half (not in the solo promotion duels)
                     {
@@ -1693,6 +1699,12 @@ namespace BiRyeoDo.Game.UI
             var names = new List<string>();
             foreach (var k in unit.Skills) names.Add(k.Name);
             if (names.Count > 0) lines.Add("무공: " + string.Join(", ", names) + "\n(자세한 설명은 길게 누르세요)");
+            var companionData = EarlyGameContent.FindCompanion(unit.Id);
+            if (companionData != null)
+            {
+                var pending = CompanionGrowth.PendingArtLines(companionData, CompanionGrowth.LevelOf(GameManager.Instance.Save, unit.Id));
+                if (pending.Count > 0) lines.Add("앞으로 배울 무공: " + string.Join(", ", pending));
+            }
             ShowTip(unit.Name, string.Join("\n\n", lines), BattleFigure(hero ? "player" : unit.Id));
         }
 

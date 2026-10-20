@@ -387,6 +387,7 @@ AI 프롬프트 예시: "wuxia ink-wash style icon of <아이템 설명>, single
 | `jh_stun` | 장홍 점혈 |
 | `yj_slash` | 윤준호 화산의 검 |
 | `yj_heal` | 윤준호 자하신공 |
+| `yj_cleanse` | 윤준호 자하청심결 (상태 이상을 씻고 회복하는 무공이라 물방울과 초록 십자) |
 | `isj_gon` | 임성진 진성십이곤 |
 | `isj_seonggwang` | 임성진 성광일시 |
 | `isj_iljeom` | 임성진 일점필중 |

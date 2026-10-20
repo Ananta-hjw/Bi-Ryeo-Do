@@ -108,7 +108,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void YunJunhosCleanseClearsTheChosenAlly()
         {
-            var yun = EarlyGameContent.FindCompanion("yun_junho").CreateCombatant(10);
+            var yun = EarlyGameContent.FindCompanion("yun_junho").CreateCombatant(15);
             var cleanse = yun.Skills.First(s => s.Effect == SkillEffect.Cleanse);
             var p = new Combatant("p", "비류연", Team.Player, Stats(100000, 1, 1), null);
             var e = Enemy("e", Stats(100000, 1, 1));
@@ -118,6 +118,31 @@ namespace BiRyeoDo.Tests
             p.AddStatus(StatusKind.Bleed, 3);
             b.PlayerAct(PlayerCommand.UseSkill(cleanse, null).WithAlly(p));
             Assert.AreEqual(0, p.Statuses.Count);
+        }
+
+        [Test]
+        public void YunJunhoLearnsTheCleanseAtLevelFifteen()
+        {
+            var yun = EarlyGameContent.FindCompanion("yun_junho");
+            Assert.IsFalse(yun.CreateCombatant(14).Skills.Any(s => s.Effect == SkillEffect.Cleanse), "not yet at level 14");
+            Assert.IsTrue(yun.CreateCombatant(15).Skills.Any(s => s.Effect == SkillEffect.Cleanse), "learned at level 15");
+            Assert.IsTrue(yun.CreateCombatant(14).Skills.Any(s => s.Effect == SkillEffect.HealAlly), "the other arts are known from joining");
+            CollectionAssert.AreEqual(new[] { "윤준호  자하청심결 습득!" }, CompanionGrowth.NewArtLines(yun, 14, 15));
+            CollectionAssert.AreEqual(new[] { "윤준호  자하청심결 습득!" }, CompanionGrowth.NewArtLines(yun, 10, 20), "a jump over the level still learns it");
+            Assert.IsEmpty(CompanionGrowth.NewArtLines(yun, 15, 20));
+            CollectionAssert.AreEqual(new[] { "자하청심결 (Lv.15)" }, CompanionGrowth.PendingArtLines(yun, 10));
+            Assert.IsEmpty(CompanionGrowth.PendingArtLines(yun, 15));
+        }
+
+        [Test]
+        public void ABenchedCompanionWhoLevelsPastFifteenLearnsItToo()
+        {
+            var save = new SaveData { Level = 20, ClearedStage = 30 };
+            CompanionGrowth.EnsureRecords(save);
+            var p = save.CompanionLevels.First(x => x.Id == "yun_junho");
+            p.Level = 14; p.Exp = 0;
+            var lines = CompanionGrowth.ShareWithBench(save, new List<string>(), Progression.ExpToNext(14) * 4);
+            Assert.IsTrue(lines.Any(l => l.Contains("자하청심결 습득!")), string.Join("|", lines));
         }
 
         [Test]
