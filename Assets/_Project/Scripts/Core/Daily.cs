@@ -14,8 +14,8 @@ namespace BiRyeoDo.Core
     }
 
     /// <summary>
-    /// 일일 수련 임무: three missions per day (easy, medium, hard) chosen from a pool by the date. Progress is counted from play
-    /// (see <see cref="Record"/>) and resets at midnight (device clock). Finishing all three pays a bonus and keeps the 연속 수련
+    /// 일일 수련 임무: six missions per day (two easy, two medium, two hard) chosen from a pool by the date. Progress is counted from play
+    /// (see <see cref="Record"/>) and resets at midnight (device clock). Finishing all six pays a bonus and keeps the 연속 수련
     /// streak alive; the streak opens rewards at 3, 7, 14 and 30 days.
     /// </summary>
     public static class Daily
@@ -25,6 +25,7 @@ namespace BiRyeoDo.Core
 
         public static readonly long[] BaseDoo = { 1050, 2250, 4500 };
         public const long AllClearBonus = 3000;
+        public const int PerTier = 2, Count = PerTier * 3;
         public static readonly int[] StreakMilestones = { 3, 7, 14, 30 };
 
         private static DailyMission M(string id, string name, DailyEvent ev, int target, int tier)
@@ -34,20 +35,19 @@ namespace BiRyeoDo.Core
 
         public static readonly DailyMission[] Pool =
         {
-            M("win6", "전투 6회 승리", DailyEvent.BattleWin, 6, 0),
+            M("win8", "전투 8회 승리", DailyEvent.BattleWin, 8, 0),
             M("skill20", "무공 20번 사용", DailyEvent.SkillUse, 20, 0),
             M("clear2", "스테이지 2번 돌파", DailyEvent.StageClear, 2, 0),
-            M("win12", "전투 12회 승리", DailyEvent.BattleWin, 12, 1),
-            M("skill50", "무공 50번 사용", DailyEvent.SkillUse, 50, 1),
-            M("gacha3", "뽑기 3번", DailyEvent.GachaPull, 3, 1),
-            M("flawless5", "아무도 쓰러지지 않고 5전 승리", DailyEvent.Flawless, 5, 1),
+            M("flawless2", "아무도 쓰러지지 않고 2전 승리", DailyEvent.Flawless, 2, 0),
+            M("win16", "전투 16회 승리", DailyEvent.BattleWin, 16, 1),
+            M("skill40", "무공 40번 사용", DailyEvent.SkillUse, 40, 1),
+            M("gacha4", "뽑기 4번", DailyEvent.GachaPull, 4, 1),
+            M("flawless6", "아무도 쓰러지지 않고 6전 승리", DailyEvent.Flawless, 6, 1),
             M("clear3", "스테이지 3번 돌파", DailyEvent.StageClear, 3, 1),
-            M("ultimate8", "필살기 8번 사용", DailyEvent.UltimateUse, 8, 2),
-            M("joint8", "합공 8번 사용", DailyEvent.JointUse, 8, 2),
-            M("flawless10", "아무도 쓰러지지 않고 10전 승리", DailyEvent.Flawless, 10, 2),
-            M("quest2", "의뢰 2건 완수", DailyEvent.QuestDone, 2, 2),
-            M("tower3", "무한 비무대 3층 돌파", DailyEvent.TowerClear, 3, 2),
-            M("promo2", "승급 비무 도전 2번", DailyEvent.PromotionTry, 2, 2),
+            M("flawless12", "아무도 쓰러지지 않고 12전 승리", DailyEvent.Flawless, 12, 2),
+            M("win24", "전투 24회 승리", DailyEvent.BattleWin, 24, 2),
+            M("skill60", "무공 60번 사용", DailyEvent.SkillUse, 60, 2),
+            M("clear4", "스테이지 4번 돌파", DailyEvent.StageClear, 4, 2),
         };
 
         public static DailyMission Find(string id)
@@ -108,19 +108,25 @@ namespace BiRyeoDo.Core
             {
                 var options = new List<DailyMission>();
                 foreach (var m in Pool) if (m.Tier == tier && Available(save, m)) options.Add(m);
-                if (options.Count == 0) foreach (var m in Pool) if (m.Tier == tier) options.Add(m);
-                save.DailyMissionIds.Add(options[rng.Next(options.Count)].Id);
+                // Not enough open goals for the tier: top up from the rest of its pool so there are always PerTier distinct missions.
+                if (options.Count < PerTier) foreach (var m in Pool) if (m.Tier == tier && !options.Contains(m)) options.Add(m);
+                for (int k = 0; k < PerTier; k++)
+                {
+                    int pick = rng.Next(options.Count);
+                    save.DailyMissionIds.Add(options[pick].Id);
+                    options.RemoveAt(pick);
+                }
             }
         }
 
         private static bool StoredMissionsValid(SaveData save)
         {
-            if (save.DailyMissionIds.Count != 3) return false;
+            if (save.DailyMissionIds.Count != Count) return false;
             foreach (var id in save.DailyMissionIds) if (Find(id) == null) return false;   // a pool entry was renamed or removed
             return true;
         }
 
-        public static bool AllClaimed(SaveData save) { return save.DailyClaimed.Count >= 3; }
+        public static bool AllClaimed(SaveData save) { return save.DailyClaimed.Count >= Count; }
 
         public static List<DailyMission> Missions(SaveData save)
         {
@@ -172,7 +178,7 @@ namespace BiRyeoDo.Core
             save.Doo += doo;
             Inventory.Add(save, Gear.StoneId, Gear.DailyPolish);
             notes.Add(ms[index].Name + ": 두 +" + doo.ToString("N0") + ", 연마석 x" + Gear.DailyPolish);
-            if (save.DailyClaimed.Count == 3)
+            if (save.DailyClaimed.Count == Count)
             {
                 long bonus = AllClearDoo(save);
                 save.Doo += bonus;
@@ -184,7 +190,7 @@ namespace BiRyeoDo.Core
                 save.DailyStreak = continues ? save.DailyStreak + 1 : 1;
                 save.DailyLastClear = today;
                 save.DailyBest = Math.Max(save.DailyBest, save.DailyStreak);
-                notes.Add("세 임무 완수! 두 +" + bonus.ToString("N0") + ", 웅담 x2, 심득석 x1 · 연속 수련 " + save.DailyStreak + "일");
+                notes.Add("여섯 임무 완수! 두 +" + bonus.ToString("N0") + ", 웅담 x2, 심득석 x1 · 연속 수련 " + save.DailyStreak + "일");
                 string reward = StreakReward(save);
                 if (reward != null) notes.Add(reward);
             }

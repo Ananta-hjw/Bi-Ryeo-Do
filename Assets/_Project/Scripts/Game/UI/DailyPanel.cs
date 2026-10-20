@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace BiRyeoDo.Game.UI
 {
-    /// <summary>일일 수련 임무 overlay: today's three missions, the all-clear bonus and the streak.</summary>
+    /// <summary>일일 수련 임무 overlay: today's six missions, the all-clear bonus and the streak.</summary>
     public sealed class DailyPanel : OverlayPanel
     {
 
@@ -25,11 +25,32 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Streak", Root, new Vector2(0.05f, 0.855f), new Vector2(0.95f, 0.92f),
                 "연속 수련 " + save.DailyStreak + "일" + (next > 0 ? "  ·  " + next + "일째 보상까지 " + (next - save.DailyStreak) + "일" : ""), 28, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
+            // Six missions do not fit one screen: they scroll between the streak line and the bonus text.
+            const float bandHeight = 210f, bandGap = 14f;
+            var viewport = UiFactory.Rect("MissionViewport", Root, new Vector2(0.05f, 0.34f), new Vector2(0.95f, 0.85f));
+            viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
+            viewport.gameObject.AddComponent<RectMask2D>();
+            var content = UiFactory.Rect("MissionContent", viewport, new Vector2(0f, 1f), new Vector2(1f, 1f));
+            content.pivot = new Vector2(0.5f, 1f);
+            content.sizeDelta = new Vector2(0f, missions.Count * (bandHeight + bandGap));
+            var scroll = viewport.gameObject.AddComponent<ScrollRect>();
+            scroll.viewport = viewport;
+            scroll.content = content;
+            scroll.horizontal = false;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 40f;
+            UiFactory.ScrollIndicator(scroll, viewport);
+
             for (int i = 0; i < missions.Count; i++)
             {
                 var m = missions[i];
-                float y1 = 0.83f - i * 0.17f;
-                var band = UiFactory.Panel("Mission" + i, Root, new Vector2(0.05f, y1 - 0.15f), new Vector2(0.95f, y1), UiFactory.Ink);
+                var band = UiFactory.Panel("Mission" + i, content, Vector2.zero, Vector2.one, UiFactory.Ink);
+                var bandRect = band.rectTransform;
+                bandRect.anchorMin = new Vector2(0f, 1f);
+                bandRect.anchorMax = new Vector2(1f, 1f);
+                bandRect.pivot = new Vector2(0.5f, 1f);
+                bandRect.offsetMin = new Vector2(0f, -(i * (bandHeight + bandGap) + bandHeight));
+                bandRect.offsetMax = new Vector2(0f, -(i * (bandHeight + bandGap)));
                 UiFactory.Frame(band.transform, UiFactory.GoldDim, 2f);
                 bool done = Daily.IsDone(save, m), claimed = Daily.IsClaimed(save, i);
                 string tier = m.Tier == 0 ? "쉬움" : m.Tier == 1 ? "보통" : "어려움";
@@ -44,9 +65,9 @@ namespace BiRyeoDo.Game.UI
                 btn.interactable = done && !claimed;
             }
 
-            string bonus = Daily.AllClaimed(save) ? "오늘의 세 임무를 모두 끝냈습니다!" : "세 임무를 모두 받으면 보너스: 두 " + Daily.AllClearDoo(save).ToString("N0") + " + 웅담 2개, 연속 수련 +1일";
+            string bonus = Daily.AllClaimed(save) ? "오늘의 여섯 임무를 모두 끝냈습니다!" : "여섯 임무를 모두 받으면 보너스: 두 " + Daily.AllClearDoo(save).ToString("N0") + " + 웅담 2개, 연속 수련 +1일";
             UiFactory.ScrollBody(UiFactory.Label("Bonus", Root, new Vector2(0.05f, 0.26f), new Vector2(0.95f, 0.33f), bonus, 30, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
-            UiFactory.ScrollBody(UiFactory.Label("Milestones", Root, new Vector2(0.05f, 0.17f), new Vector2(0.95f, 0.26f), "연속 보상: 3일 옥루주 3 · 7일 인형설삼 · 14일 일급영단+심득석 2 · 30일마다 일급영단 2+심득석 4 + 두 20,000", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            UiFactory.ScrollBody(UiFactory.Label("Milestones", Root, new Vector2(0.05f, 0.17f), new Vector2(0.95f, 0.26f), "연속 보상: 3일 옥루주 3 · 7일 인형설삼 · 14일 일급영단+심득석 2 · 30일마다 일급영단 2+심득석 4 + 두 31,200", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
             UiFactory.ScrollBody(UiFactory.Label("Toast", Root, new Vector2(0.05f, 0.09f), new Vector2(0.95f, 0.17f), toast ?? "임무는 내일 0시에 새로 바뀝니다 (기기 시간 기준)", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
             AddClose();
         }

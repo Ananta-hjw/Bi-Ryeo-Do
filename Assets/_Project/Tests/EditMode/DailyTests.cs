@@ -30,17 +30,18 @@ namespace BiRyeoDo.Tests
         public void PoolIsValidAndEveryTierHasMissions()
         {
             Assert.AreEqual(Daily.Pool.Length, Daily.Pool.Select(m => m.Id).Distinct().Count());
-            for (int t = 0; t < 3; t++) Assert.GreaterOrEqual(Daily.Pool.Count(m => m.Tier == t), 3, "tier " + t);
+            for (int t = 0; t < 3; t++) Assert.GreaterOrEqual(Daily.Pool.Count(m => m.Tier == t), 4, "tier " + t);
             foreach (var m in Daily.Pool) Assert.Greater(m.Target, 0, m.Id);
         }
 
         [Test]
-        public void ThreeMissionsOneOfEachTierAndStableWithinADay()
+        public void SixMissionsTwoOfEachTierAndStableWithinADay()
         {
             var save = Player();
             var a = Daily.Missions(save);
-            Assert.AreEqual(3, a.Count);
-            CollectionAssert.AreEqual(new[] { 0, 1, 2 }, a.Select(m => m.Tier));
+            Assert.AreEqual(Daily.Count, a.Count);
+            CollectionAssert.AreEqual(new[] { 0, 0, 1, 1, 2, 2 }, a.Select(m => m.Tier));
+            Assert.AreEqual(Daily.Count, a.Select(m => m.Id).Distinct().Count());
             var b = Daily.Missions(save);
             CollectionAssert.AreEqual(a.Select(m => m.Id), b.Select(m => m.Id));
         }
@@ -57,7 +58,7 @@ namespace BiRyeoDo.Tests
             // A different date almost always rolls a different set; at least the claim state is fresh.
             Assert.AreEqual(0, save.DailyClaimed.Count);
             Assert.IsFalse(Daily.AllClaimed(save));
-            Assert.AreEqual(3, second.Count);
+            Assert.AreEqual(Daily.Count, second.Count);
             Assert.IsNotNull(first);
         }
 
@@ -90,11 +91,11 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void ClearingAllThreePaysTheBonusAndStartsTheStreak()
+        public void ClearingAllSixPaysTheBonusAndStartsTheStreak()
         {
             var save = Player();
             Finish(save);
-            for (int i = 0; i < 3; i++) Daily.Claim(save, i);
+            for (int i = 0; i < Daily.Count; i++) Daily.Claim(save, i);
             Assert.IsTrue(Daily.AllClaimed(save));
             Assert.AreEqual(1, save.DailyStreak);
             Assert.AreEqual(2, Inventory.Count(save, "bear_gall"));
@@ -109,7 +110,7 @@ namespace BiRyeoDo.Tests
             for (int day = 0; day < 3; day++)
             {
                 Finish(save);
-                for (int i = 0; i < 3; i++) Daily.Claim(save, i);
+                for (int i = 0; i < Daily.Count; i++) Daily.Claim(save, i);
                 _now = _now.AddDays(1);
             }
             Assert.AreEqual(3, save.DailyStreak);
@@ -118,7 +119,7 @@ namespace BiRyeoDo.Tests
             Daily.Refresh(save);
             Assert.AreEqual(0, save.DailyStreak);
             Finish(save);
-            for (int i = 0; i < 3; i++) Daily.Claim(save, i);
+            for (int i = 0; i < Daily.Count; i++) Daily.Claim(save, i);
             Assert.AreEqual(1, save.DailyStreak);
             Assert.AreEqual(3, save.DailyBest);
         }
@@ -169,15 +170,15 @@ namespace BiRyeoDo.Tests
         {
             var save = Player();
             Finish(save);
-            for (int i = 0; i < 3; i++) Daily.Claim(save, i);
+            for (int i = 0; i < Daily.Count; i++) Daily.Claim(save, i);
             long doo = save.Doo;
             _now = _now.AddDays(-1);
-            Assert.AreEqual(3, Daily.Missions(save).Count);
+            Assert.AreEqual(Daily.Count, Daily.Missions(save).Count);
             Assert.IsTrue(Daily.AllClaimed(save));
             _now = _now.AddDays(1);
             Daily.Missions(save);
             Assert.IsTrue(Daily.AllClaimed(save));
-            for (int i = 0; i < 3; i++) Assert.AreEqual(0, Daily.Claim(save, i).Count);
+            for (int i = 0; i < Daily.Count; i++) Assert.AreEqual(0, Daily.Claim(save, i).Count);
             Assert.AreEqual(doo, save.Doo);
         }
 
@@ -190,7 +191,7 @@ namespace BiRyeoDo.Tests
             save.DailyLastClear = yesterday.Year * 10000 + yesterday.Month * 100 + yesterday.Day;
             save.DailyDate = 0;
             Finish(save);
-            for (int i = 0; i < 3; i++) Daily.Claim(save, i);
+            for (int i = 0; i < Daily.Count; i++) Daily.Claim(save, i);
             Assert.AreEqual(30, save.DailyStreak);
             Assert.AreEqual(2, Inventory.Count(save, "ilgeup_yeongdan"));
             Assert.AreEqual(60, Daily.NextMilestone(save));
@@ -205,8 +206,9 @@ namespace BiRyeoDo.Tests
             {
                 _now = new DateTime(2026, 12, 1).AddDays(d);
                 var ms = Daily.Missions(save);
-                Assert.AreEqual(3, ms.Count);
-                CollectionAssert.AreEqual(new[] { 0, 1, 2 }, ms.Select(m => m.Tier));
+                Assert.AreEqual(Daily.Count, ms.Count);
+                CollectionAssert.AreEqual(new[] { 0, 0, 1, 1, 2, 2 }, ms.Select(m => m.Tier));
+                Assert.AreEqual(Daily.Count, ms.Select(m => m.Id).Distinct().Count());
             }
         }
     }

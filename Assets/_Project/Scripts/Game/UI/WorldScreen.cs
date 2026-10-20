@@ -977,7 +977,7 @@ namespace BiRyeoDo.Game.UI
             var dailyList = Daily.Missions(save);
             int dailyDone = 0;
             for (int di = 0; di < dailyList.Count; di++) if (Daily.IsClaimed(save, di)) dailyDone++;
-            _dailyRowDetail.text = "오늘 " + dailyDone + "/3 완료 · 연속 수련 " + save.DailyStreak + "일";
+            _dailyRowDetail.text = "오늘 " + dailyDone + "/" + Daily.Count + " 완료 · 연속 수련 " + save.DailyStreak + "일";
             SetBadge(_dailyBadge, Daily.ClaimableCount(save));
             int starChests = StageStars.ClaimableCount(save);
             _starRowDetail.text = "별 " + StageStars.Total(save) + " / " + StageStars.MaxStars + " · 받을 수 있는 보상 " + starChests + "개";
