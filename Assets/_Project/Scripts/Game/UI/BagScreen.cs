@@ -112,19 +112,19 @@ namespace BiRyeoDo.Game.UI
             _detail.gameObject.SetActive(true);
 
             bool gear = item.IsGear;
-            int enh = gear ? Gear.Level(save, item.Id) : 0;
+            int enh = gear ? Gear.Stars(save, item.Id) : 0;
             var card = UiFactory.Panel("Card", _detail, new Vector2(0.05f, 0.08f), new Vector2(0.95f, 0.90f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
             UiFactory.Frame(card.transform, UiFactory.GradeColor(item.Grade), 3f);
             var big = UiFactory.Panel("Picture", card.transform, new Vector2(0.74f, 0.855f), new Vector2(0.95f, 0.985f), Color.white);
             UiFactory.Frame(big.transform, UiFactory.GradeColor(item.Grade), 2f);
             var bigGlyph = UiFactory.Label("Glyph", big.transform, Vector2.zero, Vector2.one, "", 60, UiFactory.PaperText);
             ItemArt.Apply(big, bigGlyph, item);
-            UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.90f), new Vector2(0.72f, 0.98f), UiFactory.GradedName(item) + (enh > 0 ? " +" + enh : ""), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
+            UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.90f), new Vector2(0.72f, 0.98f), UiFactory.GradedName(item) + (gear ? " · " + Gear.StarsText(save, item.Id) : ""), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
             string kind = KindName(item) + (gear && Gear.IsHeroOnly(item.Id) ? "  ·  " + Gear.HeroOnlyLabel : "") + (gear && Inventory.IsEquipped(save, item.Id) ? "  ·  착용 중" : "") + (gear && Inventory.WearingCompanions(save, item.Id).Count > 0 ? "  ·  동료 " + string.Join(",", Inventory.WearingCompanions(save, item.Id)) : "") + (item.Kind == ItemKind.Consumable || item.Kind == ItemKind.Material ? "  ·  보유 " + Inventory.Count(save, item.Id) + "개" : "");
             UiFactory.Label("Kind", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.72f, 0.90f), kind, 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
 
             var lines = new List<string>();
-            if (gear) lines.Add("장착 · 해제는 상태창의 부위 칸을 눌러 변경합니다.\n\n<color=#9ADB9F>" + StatusSheet.EffectText(item, enh) + "</color>" + (enh > 0 ? "   (기본 " + StatusSheet.EffectText(item, 0) + ")" : ""));
+            if (gear) lines.Add("강화 · 장착 · 해제는 상태창의 부위 칸에서 합니다. 장비를 바꿔도 부위 강화는 유지됩니다.\n\n<color=#9ADB9F>" + StatusSheet.EffectText(item, 0, enh) + "</color>" + (enh > 0 ? "   (돌파 전 " + StatusSheet.EffectText(item, 0) + ")" : ""));
             else
             {
                 var fx = new List<string>();
@@ -140,9 +140,11 @@ namespace BiRyeoDo.Game.UI
             if (gear)
             {
                 int spares = Gear.Spares(save, item.Id);
-                lines.Add("강화 +" + enh + " / +" + Gear.MaxLevel + "   같은 장비 여분 " + spares + "개" + (enh < Gear.MaxLevel ? "  (여분 1개당 +1, 능력 +" + Mathf.RoundToInt(Gear.PerLevel * 100f) + "%)" : "  (최대)"));
+                lines.Add("한계돌파 " + Gear.StarsText(save, item.Id) + " / 5성 · 강화 상한 +" + Gear.Cap(save, item.Id)
+                    + "\n기본 장비 효과 +" + Mathf.RoundToInt(Gear.StarBonus(enh) * 100f) + "% · 여분 " + spares + "개"
+                    + (enh < Gear.MaxStars ? "\n다음: " + (enh + 1) + "성 · 상한 +" + Gear.LevelCaps[enh + 1] + " · 기본 효과 +" + Mathf.RoundToInt(Gear.StarBonus(enh + 1) * 100f) + "% (여분 1개 사용)" : "\n최대 한계돌파입니다."));
                 var matInfo = Salvage.MaterialFor(item);
-                if (matInfo != null) lines.Add("분해: " + matInfo.Name + " " + Salvage.MinCount[(int)item.Grade] + "~" + Salvage.MaxCount(item.Grade) + "개 (" + Grades.NameOf(item.Grade) + " " + Salvage.SlotLabel(item.Kind) + " 재료)");
+                if (matInfo != null) lines.Add("분해: " + matInfo.Name + " " + Salvage.MinCount[(int)item.Grade] + "~" + Salvage.MaxCount(item.Grade) + "개 (" + Grades.NameOf(item.Grade) + " " + Salvage.SlotLabel(item.Kind) + " 재료) · 연마석 " + Salvage.PolishYield(item) + "개");
                 var set = Gear.SetOf(item.Id);
                 lines.Add(set != null ? Gear.SetDetail(set, save.EquippedGear, save) : "세트 없음");
             }
@@ -150,12 +152,12 @@ namespace BiRyeoDo.Game.UI
 
             if (gear)
             {
-                bool canEnh = Gear.CanEnhance(save, item.Id);
-                string enhLabel = enh >= Gear.MaxLevel ? "최대 강화" : canEnh ? "강화 +" + (enh + 1) + "\n(여분 1개 사용)" : "강화\n(여분 필요)";
-                var enhBtn = UiFactory.Button("Enhance", card.transform, new Vector2(0.05f, 0.14f), new Vector2(0.49f, 0.24f), enhLabel, canEnh ? UiFactory.Red : UiFactory.InkSoft, () => { DoEnhance(item); }, 24);
+                bool canEnh = Gear.CanBreakthrough(save, item.Id);
+                string enhLabel = enh >= Gear.MaxStars ? "최대 5성" : "한계돌파 " + (enh + 1) + "성\n(여분 1개 필요)";
+                var enhBtn = UiFactory.Button("Breakthrough", card.transform, new Vector2(0.05f, 0.14f), new Vector2(0.49f, 0.24f), enhLabel, canEnh ? UiFactory.Red : UiFactory.InkSoft, () => { DoBreakthrough(item); }, 24);
                 enhBtn.interactable = canEnh;
                 bool canDis = Salvage.CanDismantle(save, item.Id);
-                var disBtn = UiFactory.Button("Dismantle", card.transform, new Vector2(0.51f, 0.14f), new Vector2(0.95f, 0.24f), canDis && _confirmDismantle == item.Id ? "분해 확인\n(+" + enh + " 강화 사라짐)" : canDis ? "분해\n(재료 " + (item.Grade <= ItemGrade.Legendary ? Salvage.MinCount[(int)item.Grade] + "~" + Salvage.MaxCount(item.Grade) : "?") + "개)" : "분해 불가", canDis ? new Color(0.55f, 0.36f, 0.14f, 1f) : UiFactory.InkSoft, () => { DoDismantle(item); }, 24);
+                var disBtn = UiFactory.Button("Dismantle", card.transform, new Vector2(0.51f, 0.14f), new Vector2(0.95f, 0.24f), canDis && _confirmDismantle == item.Id ? "분해 확인\n(" + enh + "성 돌파 사라짐)" : canDis ? "분해\n(재료 " + (item.Grade <= ItemGrade.Legendary ? Salvage.MinCount[(int)item.Grade] + "~" + Salvage.MaxCount(item.Grade) : "?") + "개)" : "분해 불가", canDis ? new Color(0.55f, 0.36f, 0.14f, 1f) : UiFactory.InkSoft, () => { DoDismantle(item); }, 24);
                 disBtn.interactable = canDis;
             }
             else if (item.MasteryUses > 0)
@@ -345,11 +347,11 @@ namespace BiRyeoDo.Game.UI
             string error;
             if (Salvage.LosesEnhancement(save, item.Id) && _confirmDismantle != item.Id)
             {
-                // the only copy carries the enhancement: ask once more before it is gone
+                // The last copy carries the breakthrough stars; slot enhancement remains safe.
                 _confirmDismantle = item.Id;
                 Refresh();
                 ReopenDetail(item);
-                ShowNotice("분해 확인", UiFactory.GradedName(item) + " <b>+" + Gear.Level(save, item.Id) + "</b>은(는) 하나뿐인 강화 장비입니다.\n분해하면 강화 단계도 사라집니다.\n\n그래도 분해하시려면 「분해 확인」을 한 번 더 눌러 주세요.", UiFactory.Gold);
+                ShowNotice("분해 확인", UiFactory.GradedName(item) + " <b>" + Gear.StarsText(save, item.Id) + "</b>은(는) 하나뿐인 돌파 장비입니다.\n분해하면 이 장비의 돌파 단계가 사라집니다. 부위 강화는 유지됩니다.\n\n그래도 분해하시려면 「분해 확인」을 한 번 더 눌러 주세요.", UiFactory.Gold);
                 return;
             }
             _confirmDismantle = null;
@@ -357,12 +359,12 @@ namespace BiRyeoDo.Game.UI
             if (got != null)
             {
                 var mat = EarlyGameContent.FindItem(got.Id);
-                _flash = item.Name + " 분해: " + mat.Name + " x" + got.Count + " 획득";
+                _flash = item.Name + " 분해: " + mat.Name + " x" + got.Count + ", 연마석 x" + Salvage.PolishYield(item) + " 획득";
                 SoundManager.Sfx("win");
                 GameManager.Instance.SaveNow();
                 Refresh();
                 ReopenDetail(item);
-                ShowNotice("분해 완료", UiFactory.GradedName(item) + "을(를) 분해했습니다.\n\n<color=" + UiFactory.GradeHex(mat.Grade) + ">" + mat.Name + "</color> <b>" + got.Count + "개</b> 획득\n(보유 " + Inventory.Count(save, mat.Id) + "개)", UiFactory.Gold);
+                ShowNotice("분해 완료", UiFactory.GradedName(item) + "을(를) 분해했습니다.\n\n<color=" + UiFactory.GradeHex(mat.Grade) + ">" + mat.Name + "</color> <b>" + got.Count + "개</b> 획득\n(보유 " + Inventory.Count(save, mat.Id) + "개)\n연마석 " + Salvage.PolishYield(item) + "개 획득", UiFactory.Gold);
                 return;
             }
             _flash = error;
@@ -390,19 +392,19 @@ namespace BiRyeoDo.Game.UI
             ReopenDetail(material);
         }
 
-        private void DoEnhance(ItemData item)
+        private void DoBreakthrough(ItemData item)
         {
             var save = GameManager.Instance.Save;
             string error;
-            if (Gear.Enhance(save, item.Id, out error))
+            if (Gear.Breakthrough(save, item.Id, out error))
             {
-                int lv = Gear.Level(save, item.Id);
-                _flash = item.Name + " +" + lv + " 강화 성공!";
+                int lv = Gear.Stars(save, item.Id);
+                _flash = item.Name + " " + lv + "성 한계돌파!";
                 SoundManager.Sfx("levelup");
                 GameManager.Instance.SaveNow();
                 Refresh();
                 ReopenDetail(item);
-                ShowNotice("강화 성공", UiFactory.GradedName(item) + " <b>+" + lv + "</b>\n" + StatusSheet.EffectText(item, lv) + "\n\n여분 " + Gear.Spares(save, item.Id) + "개 남음", UiFactory.Gold);
+                ShowNotice("한계돌파 성공", UiFactory.GradedName(item) + " <b>" + lv + "성</b>\n강화 상한 +" + Gear.Cap(save, item.Id) + "\n기본 장비 효과 +" + Mathf.RoundToInt(Gear.StarBonus(lv) * 100f) + "%\n\n여분 " + Gear.Spares(save, item.Id) + "개 남음", UiFactory.Gold);
                 return;
             }
             _flash = error;
@@ -445,7 +447,7 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             _header.text = "행낭 · " + save.Doo.ToString("N0") + "두";
             _gear.text = "아이템을 누르면 상세 정보와 관리 버튼이 열립니다.";
-            _hint.text = !string.IsNullOrEmpty(_flash) ? _flash : "강화 · 분해는 상세창에서, 장착 · 해제는 상태창에서 합니다.";
+            _hint.text = !string.IsNullOrEmpty(_flash) ? _flash : "돌파·분해: 상세창 / 강화·장착: 상태창";
             _flash = null;
 
             var stacks = save.Items
@@ -475,11 +477,11 @@ namespace BiRyeoDo.Game.UI
                 var wearers = Inventory.WearingCompanions(save, item.Id);
                 if (Inventory.IsEquipped(save, item.Id)) wearers.Insert(0, "비류연");
                 ItemArt.Apply(row.Icon, row.IconGlyph, item);
-                int enh = item.IsGear ? Gear.Level(save, item.Id) : 0;
+                int enh = item.IsGear ? Gear.Stars(save, item.Id) : 0;
                 var set = item.IsGear ? Gear.SetOf(item.Id) : null;
-                row.Title.text = UiFactory.GradedName(item) + (enh > 0 ? " +" + enh : "") + (stack.Count > 1 ? " ×" + stack.Count : "") + (wearers.Count > 0 ? "\n착용: " + string.Join(", ", wearers) : "");
+                row.Title.text = UiFactory.GradedName(item) + (item.IsGear ? " · " + Gear.StarsText(save, item.Id) : "") + (stack.Count > 1 ? " ×" + stack.Count : "") + (wearers.Count > 0 ? "\n착용: " + string.Join(", ", wearers) : "");
                 row.Detail.text = item.IsGear
-                    ? StatusSheet.EffectText(item, enh).Replace("  ", "\n") + "\n\n" + (set != null ? set.Name + " 세트" : "세트 없음")
+                    ? StatusSheet.EffectText(item, 0, enh).Replace("  ", "\n") + "\n\n" + (set != null ? set.Name + " 세트" : "세트 없음")
                     : item.MasteryUses > 0 ? "숙련 +" + item.MasteryUses + "회"
                     : item.Kind == ItemKind.Consumable ? ConsumableSummary(item)
                     : item.Kind == ItemKind.Material ? "재료" : "중요 물품";

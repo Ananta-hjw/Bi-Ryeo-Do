@@ -36,7 +36,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
             UiFactory.Glyph("gacha", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
             _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.94f, 0.985f), "", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
-            _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "같은 장비는 여분으로 쌓입니다. 강화하거나 분해해 재료를 얻을 수 있습니다.", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "같은 장비는 여분으로 쌓입니다. 한계돌파하거나 분해해 재료를 얻을 수 있습니다.", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             // Odds
             var odds = UiFactory.Panel("Odds", root, new Vector2(0.04f, 0.735f), new Vector2(0.96f, 0.88f), UiFactory.Ink);
@@ -171,7 +171,7 @@ namespace BiRyeoDo.Game.UI
 
             var parts = new List<string>();
             for (int g = counts.Length - 1; g >= 0; g--) if (counts[g] > 0) parts.Add("<color=" + UiFactory.GradeHex((ItemGrade)g) + ">" + Grades.Names[g] + " " + counts[g] + "</color>");
-            _hint.text = string.Join("  ", parts) + (dupes > 0 ? "  ·  같은 장비 " + dupes + "개는 행낭에 여분으로 쌓였습니다 (강화 또는 분해)" : "") + (results.Count > shown.Count ? "  (높은 등급 " + shown.Count + "개만 표시)" : "");
+            _hint.text = string.Join("  ", parts) + (dupes > 0 ? "  ·  같은 장비 " + dupes + "개는 행낭에 여분으로 쌓였습니다 (한계돌파 또는 분해)" : "") + (results.Count > shown.Count ? "  (높은 등급 " + shown.Count + "개만 표시)" : "");
             _busy = false;
             _pending = null;
             Refresh();

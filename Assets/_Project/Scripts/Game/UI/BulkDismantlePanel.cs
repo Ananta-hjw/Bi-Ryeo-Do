@@ -60,7 +60,7 @@ namespace BiRyeoDo.Game.UI
                 int idx = i;
                 Toggle(card.transform, "S" + i, 0.04f + i * 0.186f, 0.04f + i * 0.186f + 0.176f, 0.695f, 0.76f, SlotNames[i], _slots[i], new Color(0.30f, 0.48f, 0.44f, 1f), () => { _slots[idx] = !_slots[idx]; Rebuild(); });
             }
-            Toggle(card.transform, "Singles", 0.04f, 0.96f, 0.625f, 0.685f, "하나뿐인 장비도 포함 (착용 중이거나 강화한 장비는 제외)", _singles, new Color(0.55f, 0.36f, 0.14f, 1f), () => { _singles = !_singles; Rebuild(); }, 24);
+            Toggle(card.transform, "Singles", 0.04f, 0.96f, 0.625f, 0.685f, "하나뿐인 장비도 포함 (착용 중이거나 한계돌파한 장비는 제외)", _singles, new Color(0.55f, 0.36f, 0.14f, 1f), () => { _singles = !_singles; Rebuild(); }, 24);
 
             var plan = Salvage.BulkPlan(save, _grades, _slots, _singles);
             int total = 0;

@@ -33,49 +33,52 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void EnhancingMeltsASpareCopyAndRaisesStats()
+        public void EnhancementSpendsPolishAndDooWithoutConsumingDuplicates()
         {
-            var save = new SaveData { Doo = 0 };
+            var save = new SaveData { Doo = 100000 };
             Inventory.Add(save, "iron_sword", 1);
-            string err;
-            Assert.IsFalse(Gear.Enhance(save, "iron_sword", out err), "a lone copy cannot be enhanced");
-            Assert.IsFalse(Gear.CanEnhance(save, "iron_sword"));
-            Inventory.Add(save, "iron_sword", 1);   // a duplicate from the 뽑기 stays as a spare
-            Assert.AreEqual(2, Inventory.Count(save, "iron_sword"));
-            Assert.IsTrue(Gear.Enhance(save, "iron_sword", out err));
+            Inventory.Add(save, Gear.StoneId, 30);
+            string error;
+            Assert.IsFalse(Gear.CanEnhance(save, "iron_sword"), "equip a slot first");
+            Inventory.Equip(save, "iron_sword", out error);
+            long before = save.Doo;
+            Assert.IsTrue(Gear.Enhance(save, "iron_sword", out error), error);
             Assert.AreEqual(1, Gear.Level(save, "iron_sword"));
-            Assert.AreEqual(1, Inventory.Count(save, "iron_sword"));   // the spare was used up
-            Assert.AreEqual(0, save.Doo);                              // no 두 involved
-            var plain = Inventory.ApplyGear(Base(), new[] { "iron_sword" });
-            var plus = Inventory.ApplyGear(Base(), new[] { "iron_sword" }, save.GearLevels);
-            Assert.AreEqual(104, plain.Attack);
-            Assert.AreEqual(104, plus.Attack);   // +4% x1.1 = 4.4% rounds to 104
-            Inventory.Add(save, "iron_sword", 9);
-            for (int i = 0; i < 9; i++) Assert.IsTrue(Gear.Enhance(save, "iron_sword", out err));
-            Assert.AreEqual(Gear.MaxLevel, Gear.Level(save, "iron_sword"));
-            Assert.AreEqual(108, Inventory.ApplyGear(Base(), new[] { "iron_sword" }, save.GearLevels).Attack);   // doubled
-            Assert.IsFalse(Gear.Enhance(save, "iron_sword", out err));   // max level
+            Assert.AreEqual(1, Inventory.Count(save, "iron_sword"));
+            Assert.AreEqual(29, Inventory.Count(save, Gear.StoneId));
+            Assert.AreEqual(before - Gear.DooCost(1), save.Doo);
+            for (int i = 1; i < 10; i++) Assert.IsTrue(Gear.Enhance(save, "iron_sword", out error), error);
+            Assert.AreEqual(10, Gear.Level(save, "iron_sword"));
+            Assert.IsFalse(Gear.Enhance(save, "iron_sword", out error), "unduplicated equipment caps at ten");
+            Assert.AreEqual(105, Inventory.ApplyGear(Base(), save.EquippedGear, Gear.LevelsFor(save, Inventory.Hero)).Attack);
         }
 
         [Test]
-        public void EnhanceNeedsAnOwnedSpareGearPiece()
+        public void EnhancementRequiresOwnedEquippedGearAndResources()
         {
             var save = new SaveData();
-            string err;
-            Assert.IsFalse(Gear.Enhance(save, "iron_sword", out err));   // not owned
+            string error;
+            Assert.IsFalse(Gear.Enhance(save, "iron_sword", out error));
             Inventory.Add(save, "bear_gall", 3);
-            Assert.IsFalse(Gear.Enhance(save, "bear_gall", out err));    // not gear
+            Assert.IsFalse(Gear.Enhance(save, "bear_gall", out error));
+            Inventory.Add(save, "iron_sword", 1);
+            Inventory.Equip(save, "iron_sword", out error);
+            Assert.IsFalse(Gear.Enhance(save, "iron_sword", out error));
         }
 
         [Test]
-        public void TheLevelIsForgottenWhenTheLastCopyIsGone()
+        public void SlotEnhancementSurvivesRemovalOfLastItemCopy()
         {
-            var save = new SaveData();
-            Inventory.Add(save, "iron_sword", 2);
-            string err;
-            Assert.IsTrue(Gear.Enhance(save, "iron_sword", out err));
+            var save = new SaveData { Doo = 100000 };
+            Inventory.Add(save, Gear.StoneId, 10);
+            Inventory.Add(save, "iron_sword", 1);
+            string error;
+            Inventory.Equip(save, "iron_sword", out error);
+            Assert.IsTrue(Gear.Enhance(save, "iron_sword", out error));
+            Inventory.Unequip(save, "iron_sword");
             Inventory.Remove(save, "iron_sword", 1);
-            Assert.AreEqual(0, Gear.Level(save, "iron_sword"));
+            Assert.AreEqual(1, Gear.SlotLevel(save, Inventory.Hero, 0));
+            Assert.AreEqual(0, Gear.Stars(save, "iron_sword"));
         }
 
         [Test]
@@ -210,6 +213,7 @@ namespace BiRyeoDo.Tests
         public void StatusSheetShowsEnhancedNumbers()
         {
             var save = new SaveData { Level = 10, Doo = 100000 };
+            Inventory.Add(save, Gear.StoneId, 20);
             Inventory.Add(save, "iron_sword", 1);
             string err;
             Inventory.Equip(save, "iron_sword", out err);

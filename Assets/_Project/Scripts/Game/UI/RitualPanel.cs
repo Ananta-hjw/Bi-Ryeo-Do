@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace BiRyeoDo.Game.UI
 {
-    /// <summary>전승의식 overlay: the five conditions, the 초월 reward (진비뢰도) and the button that performs the ritual once everything is met.</summary>
+    /// <summary>전승의식 overlay: the six conditions, the 초월 reward (진비뢰도) and the button that performs the ritual once everything is met.</summary>
     public sealed class RitualPanel : OverlayPanel
     {
         private static readonly string[] Scene =
@@ -31,7 +31,7 @@ namespace BiRyeoDo.Game.UI
 
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "전승의식", 44, UiFactory.Gold);
             UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.92f),
-                toast ?? "봉뢰함의 진비뢰도를 쓰려면 전승의식을 마쳐야 합니다. 아래 여섯 가지를 모두 갖추면 의식을 치를 수 있습니다.", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30));
+                toast ?? "봉뢰함의 진비뢰도를 쓰려면 전승의식을 마쳐야 합니다. 아래 여섯 가지를 모두 갖추면 의식을 치를 수 있습니다. 보상은 5성 진비뢰도입니다.", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30));
 
             var sword = EarlyGameContent.FindItem(Ritual.RewardId);
             var conditions = Ritual.Conditions(save);
@@ -47,7 +47,7 @@ namespace BiRyeoDo.Game.UI
             SetListHeight(content, conditions.Count);
 
             UiFactory.Body(UiFactory.Label("Reward", Root, new Vector2(0.05f, 0.215f), new Vector2(0.95f, 0.33f),
-                "보상  " + UiFactory.GradedName(sword) + "\n" + StatusSheet.EffectText(sword), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal));
+                "보상  " + UiFactory.GradedName(sword) + " · 5성\n" + StatusSheet.EffectText(sword, 0, Gear.MaxStars), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal));
 
             if (save.RitualDone)
             {

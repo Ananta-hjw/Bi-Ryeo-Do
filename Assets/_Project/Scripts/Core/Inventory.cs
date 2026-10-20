@@ -20,10 +20,11 @@ namespace BiRyeoDo.Core
             var item = EarlyGameContent.FindItem(id);
             if (item == null) return;
             Codex.SeeItem(save, id);
+            if (item.Grade == ItemGrade.Transcendent) Gear.GrantTranscendentStars(save, id);
             foreach (var s in save.Items)
             {
                 if (s.Id != id) continue;
-                if (!IsUnique(item)) s.Count += count;   // spare copies of pullable gear stack (see Gear.Enhance / Salvage)
+                if (!IsUnique(item)) s.Count += count;   // spare copies of pullable gear stack (see Gear.Breakthrough / Salvage)
                 return;
             }
             save.Items.Add(new ItemStack(id, IsUnique(item) ? 1 : count));
@@ -34,6 +35,7 @@ namespace BiRyeoDo.Core
 
         public static bool Remove(SaveData save, string id, int count)
         {
+            Gear.EnsureProgression(save);
             for (int i = 0; i < save.Items.Count; i++)
             {
                 var s = save.Items[i];
@@ -125,6 +127,7 @@ namespace BiRyeoDo.Core
             if (item == null || !item.IsGear) { error = "장비할 수 없는 물건입니다."; return false; }
             if (Count(save, id) == 0) { error = "가지고 있지 않습니다."; return false; }
             if (owner != Hero && !string.IsNullOrEmpty(owner) && Gear.IsHeroOnly(id)) { error = item.Name + "은(는) " + Gear.HeroOnlyLabel + " 장비입니다."; return false; }
+            Gear.SyncSlots(save, owner);
             var gear = GearOf(save, owner);
             if (gear.Contains(id)) return true;
             if (Free(save, id) <= 0)
@@ -155,19 +158,15 @@ namespace BiRyeoDo.Core
                 if (worn >= AccessorySlots) { error = "장신구는 " + AccessorySlots + "개까지 착용할 수 있습니다."; return false; }
             }
             gear.Add(id);
+            Gear.SyncSlots(save, owner);
             return true;
         }
 
         /// <summary>Returns the item in a kind-specific slot; accessories use indices 0 and 1.</summary>
         public static ItemData InSlot(SaveData save, string owner, ItemKind kind, int slot = 0)
         {
-            int index = 0;
-            foreach (var id in GearOf(save, owner))
-            {
-                var item = EarlyGameContent.FindItem(id);
-                if (item != null && item.Kind == kind && index++ == slot) return item;
-            }
-            return null;
+            if (slot < 0 || slot >= (kind == ItemKind.Accessory ? AccessorySlots : 1)) return null;
+            return Gear.ItemInSlot(save, owner, Gear.SlotIndex(kind, slot));
         }
 
         /// <summary>Replaces exactly the selected slot, restoring the original loadout on failure.</summary>
@@ -184,23 +183,27 @@ namespace BiRyeoDo.Core
             if (previous != null && previous.Id == id) { error = null; return true; }
             if (gear.Contains(id)) { error = "다른 장신구 칸에 이미 착용 중입니다."; return false; }
             var original = new List<string>(gear);
+            var assignments = new string[6];
+            for (int i = 0; i < 6; i++) assignments[i] = Gear.ItemInSlot(save, owner, i)?.Id;
             int position = previous != null ? gear.IndexOf(previous.Id) : gear.Count;
             if (previous != null) gear.Remove(previous.Id);
             if (!EquipFor(save, owner, id, out error))
             {
                 gear.Clear();
                 gear.AddRange(original);
+                for (int i = 0; i < 6; i++) Gear.AssignSlot(save, owner, i, assignments[i]);
                 return false;
             }
             // Keep the other accessory in its original slot when replacing the first one.
             gear.Remove(id);
             gear.Insert(Math.Min(position, gear.Count), id);
+            Gear.AssignSlot(save, owner, Gear.SlotIndex(kind, slot), id);
             return true;
         }
 
-        public static void Unequip(SaveData save, string id) { save.EquippedGear.Remove(id); }
+        public static void Unequip(SaveData save, string id) { UnequipFor(save, Hero, id); }
 
-        public static void UnequipFor(SaveData save, string owner, string id) { GearOf(save, owner).Remove(id); }
+        public static void UnequipFor(SaveData save, string owner, string id) { Gear.SyncSlots(save, owner); GearOf(save, owner).Remove(id); Gear.SyncSlots(save, owner); }
 
         public static CombatStats ApplyGear(CombatStats stats, IEnumerable<string> equipped, IList<GearLevel> levels = null)
         {
@@ -212,7 +215,9 @@ namespace BiRyeoDo.Core
                 var item = EarlyGameContent.FindItem(id);
                 if (item == null || !item.IsGear) continue;
                 worn.Add(id);
-                float m = Gear.Multiplier(Gear.LevelOf(levels, id));
+                int stars = 0;
+                if (levels != null) foreach (var entry in levels) if (entry.Id == id) { stars = entry.Stars; break; }
+                float m = Gear.Multiplier(Gear.LevelOf(levels, id), stars);
                 atk += item.AtkPct * m; def += item.DefPct * m; hp += item.HpPct * m; qi += item.QiPct * m; crit += item.CritAdd * m; critDmg += item.CritDmgAdd * m; speed += item.SpeedAdd * m;
             }
             foreach (var set in Gear.Sets)

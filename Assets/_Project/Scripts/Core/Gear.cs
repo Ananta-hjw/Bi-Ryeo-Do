@@ -9,6 +9,7 @@ namespace BiRyeoDo.Core
     {
         public string Id;
         public int Level;
+        public int Stars;
     }
 
     /// <summary>A stat bonus that applies once enough pieces of a set are worn.</summary>
@@ -26,84 +27,14 @@ namespace BiRyeoDo.Core
         public SetTier[] Tiers;
     }
 
-    /// <summary>
-    /// 장비 강화 and 세트 효과. Enhancing melts a spare copy of the same piece (from the 뽑기) and raises its stats by 10% of its base per level (max +10).
-    /// Wearing several pieces of one themed set adds a bonus (set bonuses are not scaled by enhancement).
-    /// </summary>
-    public static class Gear
+    /// <summary>Equipment slot enhancement, item breakthroughs and unscaled set bonuses.</summary>
+    public static partial class Gear
     {
-        public const int MaxLevel = 10;
-        public const float PerLevel = 0.10f;
-
         public static int LevelOf(IList<GearLevel> levels, string id)
         {
             if (levels == null) return 0;
             foreach (var l in levels) if (l.Id == id) return l.Level;
             return 0;
-        }
-
-        public static int Level(SaveData save, string id) { return LevelOf(save.GearLevels, id); }
-
-        /// <summary>
-        /// Who wears the enhanced copy of a piece: an enhancement is one physical copy, so when several people wear the piece only one of them gets it.
-        /// The protagonist when he wears it, else the first companion wearing it, else nobody (it lies in the bag).
-        /// </summary>
-        public static string HolderOf(SaveData save, string id)
-        {
-            if (save.EquippedGear.Contains(id)) return Inventory.Hero;
-            foreach (var e in save.CompanionGear) if (e.Items.Contains(id)) return e.Id;
-            return null;
-        }
-
-        /// <summary>The enhancement level <paramref name="owner"/> gets from a piece they wear (0 when another wearer holds the enhanced copy).</summary>
-        public static int LevelFor(SaveData save, string owner, string id)
-        {
-            if (string.IsNullOrEmpty(owner)) owner = Inventory.Hero;
-            return HolderOf(save, id) == owner ? Level(save, id) : 0;
-        }
-
-        /// <summary>The enhancement levels that apply to <paramref name="owner"/>'s gear (for <see cref="Inventory.ApplyGear"/>).</summary>
-        public static List<GearLevel> LevelsFor(SaveData save, string owner)
-        {
-            var list = new List<GearLevel>();
-            foreach (var id in Inventory.GearOf(save, owner))
-            {
-                int lv = LevelFor(save, owner, id);
-                if (lv > 0) list.Add(new GearLevel { Id = id, Level = lv });
-            }
-            return list;
-        }
-
-        public static float Multiplier(int level) { return 1f + PerLevel * Math.Max(0, Math.Min(MaxLevel, level)); }
-
-        /// <summary>How many copies of a piece of gear are spare (every copy but one, or but those worn when several people wear it). Spares are what enhancing and dismantling use up.</summary>
-        public static int Spares(SaveData save, string id) { return Math.Max(0, Inventory.Count(save, id) - Math.Max(1, Inventory.Worn(save, id))); }
-
-        public static bool CanEnhance(SaveData save, string id) { return Spares(save, id) > 0 && Level(save, id) < MaxLevel && IsGearId(id); }
-
-        private static bool IsGearId(string id) { var it = EarlyGameContent.FindItem(id); return it != null && it.IsGear; }
-
-        /// <summary>Takes a level off the books when the last copy of a piece is gone.</summary>
-        public static void ForgetLevel(SaveData save, string id)
-        {
-            for (int i = save.GearLevels.Count - 1; i >= 0; i--) if (save.GearLevels[i].Id == id) save.GearLevels.RemoveAt(i);
-        }
-
-        /// <summary>강화: melts one spare copy of the same piece into +1 (up to +10). Costs no 두.</summary>
-        public static bool Enhance(SaveData save, string id, out string error)
-        {
-            error = null;
-            var item = EarlyGameContent.FindItem(id);
-            if (item == null || !item.IsGear || Inventory.Count(save, id) <= 0) { error = "강화할 수 없는 물건입니다."; return false; }
-            int cur = Level(save, id);
-            if (cur >= MaxLevel) { error = "이미 최대 강화입니다."; return false; }
-            if (Spares(save, id) <= 0) { error = "강화하려면 같은 장비가 하나 더 있어야 합니다. 뽑기에서 같은 장비가 나오면 쓸 수 있습니다."; return false; }
-            Inventory.Remove(save, id, 1);
-            GearLevel entry = null;
-            foreach (var l in save.GearLevels) if (l.Id == id) entry = l;
-            if (entry == null) { entry = new GearLevel { Id = id }; save.GearLevels.Add(entry); }
-            entry.Level = cur + 1;
-            return true;
         }
 
         // ------------------------------------------------------------------ sets

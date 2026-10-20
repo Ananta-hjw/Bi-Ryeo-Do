@@ -74,7 +74,7 @@ namespace BiRyeoDo.Core
                 int lv = Gear.LevelFor(save, owner, id);
                 if (it != null) names.Add(it.Name + (lv > 0 ? " +" + lv : ""));
             }
-            return names.Count == 0 ? "착용한 장비가 없습니다 (행낭에서 동료에게 장착할 수 있습니다)" : string.Join("  ", names);
+            return names.Count == 0 ? "착용한 장비가 없습니다 (상태창에서 부위를 눌러 장착합니다)" : string.Join("  ", names);
         }
 
         public static string AllyRealm(SaveData save, CompanionData c)
@@ -91,9 +91,9 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>"공격 +10%  방어 +10%  속도 -6" for a piece of gear.</summary>
-        public static string EffectText(ItemData item, int enhance = 0)
+        public static string EffectText(ItemData item, int enhance = 0, int stars = 0)
         {
-            float m = Gear.Multiplier(enhance);
+            float m = Gear.Multiplier(enhance, stars);
             var parts = new List<string>();
             if (item.HpPct != 0f) parts.Add("체력 " + Pct(item.HpPct * m));
             if (item.QiPct != 0f) parts.Add("내공 " + Pct(item.QiPct * m));

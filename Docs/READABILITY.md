@@ -70,3 +70,7 @@ Unity가 없는 환경의 컴파일과 문자열 테스트는 실제 폰트 렌�
 기기에서 빈 부위 장착, 현재 장비 해제, 두 장신구 각각 교체, 동료 전환, 여분 없는 공유 장비, 비류연 전용 장비, 교체 후 능력치 갱신과 재실행 후 저장 유지를 확인한다.
 
 장비 슬롯 회귀 테스트 11개가 통과했다. 전체 Core 테스트는 360개 통과, 기존 초반 난이도 검사 2개(`FirstSixStagesAreAffordableWithoutRandomGearOrForcedReplays`, `EveryStageIsClearableByASimpleBotAtItsRecommendedLevel`)가 동일하게 실패했다. 전체 Game/Core Unity API 참조 컴파일이 통과했으며, Unity 실행 화면은 별도 확인이 필요하다.
+
+## 장비 성장 변경
+
+현재 강화·돌파·전승의식 규칙과 화면 동선은 [장비 성장 규칙](EQUIPMENT_PROGRESSION.md)을 따른다. 행낭 상세창에는 한계돌파·분해, 상태창 부위 선택창에는 부위 강화·장착·해제를 배치한다. 강화 수치가 현재 장비의 상한보다 높으면 저장 수치와 실제 적용 수치를 나눠 표시한다.
