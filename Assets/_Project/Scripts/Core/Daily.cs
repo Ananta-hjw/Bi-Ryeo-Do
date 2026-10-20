@@ -170,7 +170,8 @@ namespace BiRyeoDo.Core
             save.DailyClaimed.Add(index);
             long doo = RewardDoo(save, ms[index]);
             save.Doo += doo;
-            notes.Add(ms[index].Name + ": 두 +" + doo.ToString("N0"));
+            Inventory.Add(save, Gear.StoneId, Gear.DailyPolish);
+            notes.Add(ms[index].Name + ": 두 +" + doo.ToString("N0") + ", 연마석 x" + Gear.DailyPolish);
             if (save.DailyClaimed.Count == 3)
             {
                 long bonus = AllClearDoo(save);

@@ -174,7 +174,7 @@ namespace BiRyeoDo.Core
         /// <summary>Stats with gear, 검룡위 and 심법 but without the 경지 bonus (the realm itself is read from these).</summary>
         public static CombatStats HeroStatsBeforeRealm(SaveData save)
         {
-            return Apply(Promotion.ApplyRankBonus(Inventory.ApplyGear(Progression.HeroStatsFor(save.Level), save.EquippedGear, save.GearLevels), Promotion.EffectiveRank(save)), save.EquippedInner, save.InnerLevels);
+            return Apply(Promotion.ApplyRankBonus(Inventory.ApplyGear(Progression.HeroStatsFor(save.Level), save.EquippedGear, Gear.LevelsFor(save, Inventory.Hero)), Promotion.EffectiveRank(save)), save.EquippedInner, save.InnerLevels);
         }
 
         /// <summary>"체력 +10%  방어 +4%  내공 회복 +2"</summary>

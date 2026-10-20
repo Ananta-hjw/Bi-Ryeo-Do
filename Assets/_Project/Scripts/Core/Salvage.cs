@@ -86,8 +86,8 @@ namespace BiRyeoDo.Core
         public static int MaxCount(ItemGrade grade) { return MinCount[(int)grade] + CountOdds.Length - 1; }
 
         /// <summary>A copy can be dismantled when it is a spare, or when it is the only copy and is not worn. 초월 gear cannot.</summary>
-        /// <summary>True when dismantling now would take the last copy of an enhanced piece, so its enhancement would be lost (the UI asks first).</summary>
-        public static bool LosesEnhancement(SaveData save, string id) { return Gear.Spares(save, id) <= 0 && Gear.Level(save, id) > 0; }
+        /// <summary>True when dismantling now would take the last copy of a breakthrough piece, so its stars would be lost (the UI asks first).</summary>
+        public static bool LosesEnhancement(SaveData save, string id) { return Gear.Spares(save, id) <= 0 && Gear.Stars(save, id) > 0; }
 
         public static bool CanDismantle(SaveData save, string id)
         {
@@ -107,8 +107,11 @@ namespace BiRyeoDo.Core
             int n = RollCount(item.Grade, rng);
             Inventory.Remove(save, id, 1);
             Inventory.Add(save, mat.Id, n);
+            Inventory.Add(save, Gear.StoneId, PolishYield(item));
             return new ItemStack(mat.Id, n);
         }
+
+        public static int PolishYield(ItemData item) { return MaterialFor(item) != null ? 1 + (int)item.Grade : 0; }
 
         public static bool CanFuse(SaveData save, ItemData material) { return IsFusable(material) && Inventory.Count(save, material.Id) >= Need(material); }
 
@@ -153,7 +156,7 @@ namespace BiRyeoDo.Core
 
         /// <summary>
         /// Which copies a bulk dismantle would take for the ticked grades and slots: spare copies always; with <paramref name="includeSingles"/> also the only copy
-        /// of a piece that is not worn (never an enhanced one, and never a worn piece). Sorted by grade, then slot, then name.
+        /// of a piece that is not worn (never a breakthrough piece, and never a worn piece). Sorted by grade, then slot, then name.
         /// </summary>
         public static List<BulkEntry> BulkPlan(SaveData save, bool[] grades, bool[] slots, bool includeSingles)
         {
@@ -166,7 +169,7 @@ namespace BiRyeoDo.Core
                 if (g < 0 || k < 0 || !grades[g] || !slots[k]) continue;
                 int worn = Inventory.Worn(save, item.Id);
                 int take = stack.Count - Math.Max(1, worn);
-                if (includeSingles && stack.Count >= 1 && worn == 0 && Gear.Level(save, item.Id) == 0) take = stack.Count;
+                if (includeSingles && stack.Count >= 1 && worn == 0 && Gear.Stars(save, item.Id) == 0) take = stack.Count;
                 if (take > 0) list.Add(new BulkEntry { Item = item, Count = take });
             }
             list.Sort((a, b) =>

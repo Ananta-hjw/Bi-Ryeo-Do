@@ -41,7 +41,10 @@ namespace BiRyeoDo.Core
         public List<string> ClaimedAchievements = new List<string>();   // 업적 rewards already taken (additive field)
         public int GachaPulls, BattleWins;                         // counters for achievements (additive fields)
         public List<GearLevel> InnerLevels = new List<GearLevel>();  // 심법 강화 (심득석) levels (additive field)
-        public List<GearLevel> GearLevels = new List<GearLevel>();   // 장비 강화 levels (additive field)
+        public List<GearLevel> GearLevels = new List<GearLevel>();   // legacy item enhancements; migrated once
+        public bool GearProgressionMigrated;
+        public List<GearLevel> GearBreakthroughs = new List<GearLevel>();
+        public List<GearSlot> GearSlots = new List<GearSlot>();
         public List<string> SeenArts = new List<string>();         // arts whose "new" red dot was already looked at (additive field)
         public List<string> SeenInner = new List<string>();        // same for 심법 (additive field)
         public int RealmMax = -1;                                  // highest 무공 경지 step reached (-1 = not recorded yet, see Realm.PollRise)

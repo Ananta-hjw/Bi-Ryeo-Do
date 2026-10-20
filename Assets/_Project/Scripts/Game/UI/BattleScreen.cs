@@ -457,6 +457,8 @@ namespace BiRyeoDo.Game.UI
                     foreach (var id in stage.Encounters[i]) Codex.SeeEnemy(save, id);
                     Recommend.FightReward(save, stage, i, replay || !firstWin, out exp, out doo);   // a fight already won pays the replay rate
                     var drops = new List<ItemStack>();
+                    Inventory.Add(save, Gear.StoneId, Gear.BattlePolish);
+                    drops.Add(new ItemStack(Gear.StoneId, Gear.BattlePolish));
                     if (!stage.IsQuest && !stage.IsTower) for (int roll = 0; roll < StageStars.DropRolls(diff); roll++) drops.AddRange(RollDrops(stage.Encounters[i]));
                     CompanionGrowth.EnsureRecords(save);   // before the protagonist levels, so old saves' companions start at the old level
                     int levels = Progression.AddExp(save, exp);

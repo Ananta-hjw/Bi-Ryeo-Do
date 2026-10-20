@@ -17,7 +17,8 @@ public class RitualTests
         save.InnerLevels.Add(new GearLevel { Id = "supreme", Level = InnerArts.MaxLevel });
         Clear(save, 30, 1);
         Inventory.Add(save, Ritual.BladeId, 1);
-        save.GearLevels.Add(new GearLevel { Id = Ritual.BladeId, Level = Gear.MaxLevel });
+        Gear.EnsureProgression(save);
+        save.GearBreakthroughs.Add(new GearLevel { Id = Ritual.BladeId, Level = Gear.MaxStars });
         return save;
     }
 
@@ -51,13 +52,14 @@ public class RitualTests
         save.InnerLevels[0].Level = 4;
         Assert.IsFalse(Ritual.CanComplete(save), "무극대성 must be fully enhanced");
         save.InnerLevels[0].Level = InnerArts.MaxLevel;
-        save.GearLevels.First(l => l.Id == Ritual.BladeId).Level = Gear.MaxLevel - 1;
-        Assert.IsFalse(Ritual.CanComplete(save), "비뢰도 낙뢰 must be +10");
-        save.GearLevels.First(l => l.Id == Ritual.BladeId).Level = Gear.MaxLevel;
+        save.GearBreakthroughs.First(l => l.Id == Ritual.BladeId).Level = Gear.MaxStars - 1;
+        Assert.IsFalse(Ritual.CanComplete(save), "비뢰도 낙뢰 must have five breakthrough stars");
+        save.GearBreakthroughs.First(l => l.Id == Ritual.BladeId).Level = Gear.MaxStars;
         Inventory.Remove(save, Ritual.BladeId, 1);
         Assert.IsFalse(Ritual.CanComplete(save), "비뢰도 낙뢰 must be owned");
         Inventory.Add(save, Ritual.BladeId, 1);
-        save.GearLevels.Add(new GearLevel { Id = Ritual.BladeId, Level = Gear.MaxLevel });
+        Gear.EnsureProgression(save);
+        save.GearBreakthroughs.Add(new GearLevel { Id = Ritual.BladeId, Level = Gear.MaxStars });
 
         Assert.IsNotNull(Ritual.Complete(save));
         Assert.IsTrue(save.RitualDone);

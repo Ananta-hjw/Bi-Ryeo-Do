@@ -70,37 +70,34 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void AnEnhancementGoesToOneWearerOnly()
+        public void SlotEnhancementBelongsToItsOwnerWhenGearIsShared()
         {
             var save = Save(10);
+            save.Doo = 100000;
+            Inventory.Add(save, Gear.StoneId, 20);
             var w = AnyGear(ItemKind.Weapon);
-            Inventory.Add(save, w, 3);
+            Inventory.Add(save, w, 2);
             string error;
-            Assert.IsTrue(Gear.Enhance(save, w, out error), error);   // 3 copies -> 2, +1
-            Assert.IsTrue(Inventory.EquipFor(save, "hyo_ryong", w, out error), error);
-            Assert.AreEqual("hyo_ryong", Gear.HolderOf(save, w), "only a companion wears it, so the companion holds the enhanced copy");
+            Assert.IsTrue(Inventory.EquipFor(save, "hyo_ryong", w, out error));
+            Assert.IsTrue(Gear.EnhanceSlot(save, "hyo_ryong", 0, out error), error);
+            Assert.IsTrue(Inventory.Equip(save, w, out error));
             Assert.AreEqual(1, Gear.LevelFor(save, "hyo_ryong", w));
-            Assert.IsTrue(Inventory.Equip(save, w, out error), error);
-            Assert.AreEqual(Inventory.Hero, Gear.HolderOf(save, w), "the protagonist takes the enhanced copy when he wears it");
-            Assert.AreEqual(0, Gear.LevelFor(save, "hyo_ryong", w));
-            Assert.AreEqual(0, Gear.LevelsFor(save, "hyo_ryong").Count);
-            var c = EarlyGameContent.FindCompanion("hyo_ryong");
-            var withEnh = CompanionGrowth.Create(save, c).Stats.Attack;
-            Assert.AreEqual(c.CreateCombatant(CompanionGrowth.LevelOf(save, c.Id), Bonds.Level(save, c.Id), CompanionTraining.LevelOf(save, c.Id), Inventory.GearOf(save, c.Id), null).Stats.Attack, withEnh);
+            Assert.AreEqual(0, Gear.LevelFor(save, Inventory.Hero, w));
+            Assert.AreEqual(2, Inventory.Count(save, w));
         }
 
         [Test]
-        public void DismantlingTheLastEnhancedCopyIsFlagged()
+        public void DismantlingTheLastBreakthroughCopyIsFlagged()
         {
             var save = Save(10);
             var w = AnyGear(ItemKind.Weapon);
             Inventory.Add(save, w, 2);
             string error;
             Assert.IsFalse(Salvage.LosesEnhancement(save, w));
-            Assert.IsTrue(Gear.Enhance(save, w, out error), error);
+            Assert.IsTrue(Gear.Breakthrough(save, w, out error), error);
             Assert.IsTrue(Salvage.LosesEnhancement(save, w));
             Inventory.Add(save, w, 1);
-            Assert.IsFalse(Salvage.LosesEnhancement(save, w), "a spare goes first, the enhancement stays");
+            Assert.IsFalse(Salvage.LosesEnhancement(save, w), "a spare goes first, the breakthrough stays");
         }
 
         [Test]
