@@ -67,6 +67,8 @@ namespace BiRyeoDo.Core
         private static readonly EnemyMove[] BossMoves = { EnemyMove.Attack("연격", 0.7f, 3), EnemyMove.Attack("강타", 1.3f), EnemyMove.Wind("기를 모은다"), EnemyMove.Attack("필살 일격", 3.0f) };
 
         public const float NormalHpMul = 1.7f, BossHpMul = 3.4f;
+        public static float Floor5EscortPressure = 0.77f;
+        public static float Floor5BossHp = 1.15f;   // the floor-5 boss's HP, raised a little when its attack was eased (see Docs/BALANCE.md)
 
         // Attack multipliers per floor (index = floor, 0..TunedFloors), fitted with the balance bot so that a party whose level equals
         // the floor level wins most of the time on normal floors and about half the time on bosses.
@@ -83,17 +85,25 @@ namespace BiRyeoDo.Core
             var table = boss ? BossAtk : NormalAtk;
             // Correct only the measured boss-floor spikes, including their escorts. Do not ease ordinary floors.
             // Beyond 30 keep the final correction while Clone's 3%-per-floor growth continues.
-            float pressure = floor == 5 ? 0.8f : floor == 15 ? 0.9f : floor == 25 ? 0.95f
+            float pressure = floor == 5 ? 0.88f : floor == 15 ? 0.9f : floor == 25 ? 0.95f
                 : floor >= 30 && IsBossFloor(floor) ? 0.8f : 1f;
-            return table[Math.Max(0, Math.Min(floor, TunedFloors))] * pressure;
+            if (floor == 10 && boss) pressure *= 0.85f;
+            if (floor == 5) pressure = boss ? 0.88f * 0.8f : Floor5EscortPressure;   // the boss alone is eased to 80% of its former attack; its escort has its own factor
+            return table[Math.Max(0, Math.Min(floor, TunedFloors))] * pressure * (boss ? 1f + 0.4f * (FloorAtkTune(floor) - 1f) : FloorAtkTune(floor));   // bosses were already corrected on their spike floors
         }
+
+        /// <summary>The early floors' enemies were glass cannons (a blow of 140-210% of the protagonist's HP on floors 1-10): attack x0.75 on floor 1 rising to x1 on floor 16.</summary>
+        public static float FloorAtkTune(int floor) { return floor >= 16 ? 1f : 0.75f + 0.25f * (Math.Max(1, floor) - 1) / 15f; }
+
+        /// <summary>...and fell in 6-8 hits: ordinary enemies get HP x1.25 on floor 1 down to x1 on floor 13 (bosses keep theirs).</summary>
+        public static float FloorHpTune(int floor) { return floor >= 13 ? 1f : 1.25f - 0.25f * (Math.Max(1, floor) - 1) / 12f; }
 
         private static EnemyData Clone(EnemyData t, string id, int floor, int level, double creep)
         {
             return new EnemyData
             {
                 Id = id, Name = t.Name, ArtId = t.ArtKey, IsBoss = t.IsBoss, Level = level,
-                HpMul = (float)((t.IsBoss ? BossHpMul : NormalHpMul) * creep), AtkMul = (float)(AtkMulFor(floor, t.IsBoss) * creep),
+                HpMul = (float)((t.IsBoss ? BossHpMul * (floor == 5 ? Floor5BossHp : 1f) : NormalHpMul * FloorHpTune(floor)) * creep), AtkMul = (float)(AtkMulFor(floor, t.IsBoss) * creep),
                 DefMul = 1f, SpeedAdd = 0, Moves = t.IsBoss ? BossMoves : NormalMoves
             };
         }

@@ -297,7 +297,7 @@ namespace BiRyeoDo.Core
             // Stage 3: 호골채 (1권)
             new EnemyData { Id = "hogol_bandit", Name = "호골채 산적", Level = 6, HpMul = 0.829f, AtkMul = 0.619f,
                 Moves = new[] { EnemyMove.Attack("휘두르기", 1.0f), EnemyMove.Attack("베기", 1.1f) } },
-            new EnemyData { Id = "paeho_jung_gwang", Name = "패호 중광", Level = 8, IsBoss = true, HpMul = 1.036f, AtkMul = 0.609f,
+            new EnemyData { Id = "paeho_jung_gwang", Name = "패호 중광", Level = 8, IsBoss = true, HpMul = 1.3f, AtkMul = 0.609f,
                 Moves = new[] { EnemyMove.Attack("내려치기", 1.1f), EnemyMove.Attack("연타", 0.7f, 3), EnemyMove.Wind("기합을 모은다"), EnemyMove.Attack("일격", 2.8f) } },
             // Stage 4: 용골채 (1권)
             new EnemyData { Id = "yonggol_bandit", Name = "용골채 산적", Level = 9, HpMul = 1.013f, AtkMul = 0.678f,
@@ -333,7 +333,7 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("도", 1.1f), EnemyMove.Wind("도를 치켜든다"), EnemyMove.Attack("일도파쇄", 2.6f) } },
             new EnemyData { Id = "so_cheongun", Name = "청풍검 소천군", Level = 24, HpMul = 2.127f, AtkMul = 5.745f,
                 Moves = new[] { EnemyMove.Attack("청성검", 0.7f, 3), EnemyMove.Attack("청성검", 1.3f), EnemyMove.Wind("무형지기를 끌어올린다"), EnemyMove.Attack("검풍", 2.6f) } },
-            new EnemyData { Id = "wiji_cheon", Name = "선풍검룡 위지천", Level = 26, IsBoss = true, HpMul = 4.238f, AtkMul = 6.043f,
+            new EnemyData { Id = "wiji_cheon", Name = "선풍검룡 위지천", Level = 26, IsBoss = true, HpMul = 4.238f, AtkMul = 4.834f,
                 Moves = new[] { EnemyMove.Attack("절풍검기변", 0.7f, 3), EnemyMove.Attack("절풍검기변", 1.2f), EnemyMove.Wind("검강을 끌어올린다"), EnemyMove.Attack("천원삼절검격", 1.5f, 3) } },
             // Stage 10: 백향관 (4권)
             new EnemyData { Id = "sunyeo", Name = "독한녀 십이선녀", Level = 25, HpMul = 2.228f, AtkMul = 5.418f,
