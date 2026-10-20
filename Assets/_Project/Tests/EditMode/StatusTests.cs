@@ -52,6 +52,19 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void BleedUsesFractionalPercentInDamageAndHelp()
+        {
+            var e = Enemy("e", Stats(100000, 1, 100));
+            Assert.AreEqual(2500, Statuses.DotDamage(e, StatusKind.Bleed));
+            e.Rank = EnemyRank.Elite;
+            Assert.AreEqual(1500, Statuses.DotDamage(e, StatusKind.Bleed));
+            e.Rank = EnemyRank.Boss;
+            e.IsBoss = true;
+            Assert.AreEqual(875, Statuses.DotDamage(e, StatusKind.Bleed));
+            StringAssert.Contains("2.5%", Statuses.Describe(StatusKind.Bleed), "help must not round the percentage to an integer");
+        }
+
+        [Test]
         public void ChargedBlowsLeaveInnerWoundUnlessGuardedAndItStopsQi()
         {
             var p = new Combatant("p", "비류연", Team.Player, Stats(100000, 1, 100), null);
@@ -117,8 +130,8 @@ namespace BiRyeoDo.Tests
             Assert.Less(Statuses.SpeedFactor(e), 1f);
             var b = new InteractiveBattle(p, new[] { e }, new SeededRandom(1));
             b.Begin();
-            var order = b.PreviewOrder(6);
-            Assert.Greater(order.Count(u => u == p), order.Count(u => u == e));
+            Assert.AreSame(p, b.Current);
+            Assert.AreEqual(700, e.Gauge, "while chilled it gains 70 per tick, versus the player's 100");
         }
 
         [Test]
@@ -132,6 +145,39 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(2, p.Statuses[0].Turns);
             p.RemoveStatus(StatusKind.Burn);
             Assert.IsTrue(p.AddStatus(StatusKind.Poison, 3), "free again once it is gone");
+        }
+
+        [TestCase(false, false, 1)]
+        [TestCase(false, false, 2)]
+        [TestCase(false, true, 2)]
+        [TestCase(true, false, 2)]
+        public void PreviewOrderMatchesActualTurnsAfterChillExpires(bool chillPlayer, bool boss, int turns)
+        {
+            var p = new Combatant("p", "비류연", Team.Player, Stats(100000, 1, 100), null);
+            var e = Enemy("e", Stats(100000, 1, 95));
+            e.IsBoss = boss;
+            var chilled = chillPlayer ? p : e;
+            chilled.AddStatus(StatusKind.Chill, turns);
+            var b = new InteractiveBattle(p, new[] { e }, new SeededRandom(1));
+            b.Begin();
+            int remaining = chilled.Statuses[0].Turns;
+            int playerGauge = p.Gauge, enemyGauge = e.Gauge, turn = b.Turn;
+            var predicted = b.PreviewOrder(12).Select(u => u.Id).ToList();
+            CollectionAssert.AreEqual(predicted, b.PreviewOrder(12).Select(u => u.Id));
+            Assert.AreEqual(remaining, chilled.Statuses[0].Turns, "preview must not tick live statuses");
+            Assert.AreEqual(playerGauge, p.Gauge);
+            Assert.AreEqual(enemyGauge, e.Gauge);
+            Assert.AreEqual(turn, b.Turn);
+
+            var actual = new List<string>();
+            while (actual.Count < predicted.Count)
+            {
+                actual.Add(b.Current.Id);
+                var events = b.PlayerAct(PlayerCommand.Guard());
+                actual.AddRange(events.Where(x => x.ActorId == e.Id && x.Kind == EventKind.Attack).Select(x => x.ActorId));
+            }
+            Assert.IsFalse(chilled.Has(StatusKind.Chill), "comparison extends past expiry");
+            CollectionAssert.AreEqual(predicted, actual.Take(predicted.Count));
         }
 
         [Test]

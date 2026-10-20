@@ -22,7 +22,7 @@ namespace BiRyeoDo.Core
     /// </summary>
     public static class Statuses
     {
-        public const float PoisonPct = 0.05f, BurnPct = 0.08f, BleedPct = 0.04f;
+        public const float PoisonPct = 0.05f, BurnPct = 0.08f, BleedPct = 0.025f;
         public const float ChillSpeed = 0.7f, BossChillSpeed = 0.85f;   // action gauge speed while chilled
         public const float EliteDotFactor = 0.6f, BossDotFactor = 0.35f;
         public const float MoveChance = 0.4f;      // an enemy's status move that lands
@@ -73,7 +73,7 @@ namespace BiRyeoDo.Core
             return "";
         }
 
-        private static string Pct(float f) { return (int)Math.Round(f * 100f) + "%"; }
+        private static string Pct(float f) { return (f * 100f).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + "%"; }
 
         /// <summary>Share of max HP that 중독/화상/출혈 take from this unit (weaker on 정예 and 보스).</summary>
         public static float DotFactor(Combatant unit)

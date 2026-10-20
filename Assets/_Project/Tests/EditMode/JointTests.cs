@@ -96,5 +96,44 @@ namespace BiRyeoDo.Tests
             Assert.Greater(late.Power, early.Power);
             Assert.AreEqual(6.4f, late.Power, 0.001f);   // 8 x 0.8
         }
+
+        [Test]
+        public void JointTriggersBleedOnlyOnce()
+        {
+            Combatant hero, friend, foe;
+            var b = Setup(out hero, out friend, out foe);
+            hero.Spirit = InteractiveBattle.JointSpiritCost;
+            foe.AddStatus(StatusKind.Bleed, 3);
+            var events = b.PlayerAct(PlayerCommand.Joint(SkillSpec.BasicAttack(), friend, foe));
+            Assert.AreEqual(2, events.Count(e => e.Joint && e.Kind == EventKind.Attack));
+            var bleed = events.Where(e => e.Kind == EventKind.Status && e.Status == StatusKind.Bleed && e.Damage > 0).ToList();
+            Assert.AreEqual(1, bleed.Count);
+            Assert.AreEqual(Statuses.DotDamage(foe, StatusKind.Bleed), bleed[0].Damage);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void JointRetargetingSharesOneBleedTrigger(bool firstDiesFromBleed)
+        {
+            var hero = new Combatant("p", "비류연", Team.Player, Stats(100000, 100, 100), null);
+            var friend = new Combatant("f", "효룡", Team.Player, Stats(100000, 100, 60), null);
+            var first = new Combatant("e1", "적1", Team.Enemy, Stats(100000, 1, 1), null);
+            var second = new Combatant("e2", "적2", Team.Enemy, Stats(100000, 1, 1), null);
+            var b = new InteractiveBattle(new[] { hero, friend }, new[] { first, second }, new SeededRandom(1));
+            b.Begin();
+            second.Col = first.Col;
+            second.Row = first.Row;
+            first.Hp = firstDiesFromBleed ? 1000 : 1;
+            first.AddStatus(StatusKind.Bleed, 3);
+            second.AddStatus(StatusKind.Bleed, 3);
+            hero.Spirit = InteractiveBattle.JointSpiritCost;
+            var events = b.PlayerAct(PlayerCommand.Joint(SkillSpec.BasicAttack(), friend, first));
+            var attacks = events.Where(e => e.Joint && e.Kind == EventKind.Attack).ToList();
+            Assert.AreEqual(2, attacks.Count);
+            Assert.AreEqual(second.Id, attacks[1].TargetId);
+            var bleed = events.Where(e => e.Kind == EventKind.Status && e.Status == StatusKind.Bleed && e.Damage > 0).ToList();
+            Assert.AreEqual(1, bleed.Count);
+            Assert.AreEqual(firstDiesFromBleed ? first.Id : second.Id, bleed[0].TargetId);
+        }
     }
 }

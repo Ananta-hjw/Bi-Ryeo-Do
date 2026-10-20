@@ -383,7 +383,7 @@ namespace BiRyeoDo.Core
             if (skill.SpiritCost == 0) actor.Spirit = Math.Min(MaxSpirit, actor.Spirit + SpiritOnDealt + actor.SpiritDealtBonus);
         }
 
-        private BattleEvent DealHit(Combatant actor, Combatant t, SkillSpec skill, int h, int hits, bool stun, List<BattleEvent> events)
+        private BattleEvent DealHit(Combatant actor, Combatant t, SkillSpec skill, int h, int hits, bool stun, List<BattleEvent> events, bool triggerBleed = true)
         {
             bool crit = _rng.NextDouble() < actor.Stats.CritRate;
             int dmg = BattleEngine.CalcDamage(actor.Stats, t.Stats, skill, crit);
@@ -408,7 +408,7 @@ namespace BiRyeoDo.Core
             ev.TargetHpAfter = t.Hp;
             ev.TargetDefeated = !t.IsAlive;
             events.Add(ev);
-            if (h == 0 && t.IsAlive && t.Has(StatusKind.Bleed)) StatusHurt(t, StatusKind.Bleed, events);   // 출혈: once per attack that lands
+            if (triggerBleed && h == 0 && t.IsAlive && t.Has(StatusKind.Bleed)) StatusHurt(t, StatusKind.Bleed, events);   // once per attack command
             return ev;
         }
 
@@ -421,10 +421,12 @@ namespace BiRyeoDo.Core
             actor.Spirit -= JointSpiritCost;
             partner.Gauge -= GaugeThreshold;   // the partner spends their next action on this strike
 
-            var first = DealHit(actor, t, spec, 0, 1, false, events);
+            var first = DealHit(actor, t, spec, 0, 1, false, events, false);
             first.Joint = true;
+            bool bled = t.IsAlive && t.Has(StatusKind.Bleed);
+            if (bled) StatusHurt(t, StatusKind.Bleed, events);
             var next = t.IsAlive ? t : ResolveTarget(null, spec);
-            if (next != null) DealHit(partner, next, spec, 0, 1, spec.Effect == SkillEffect.Stun, events).Joint = true;
+            if (next != null) DealHit(partner, next, spec, 0, 1, spec.Effect == SkillEffect.Stun, events, !bled).Joint = true;
 
             switch (spec.Effect)
             {
@@ -511,7 +513,13 @@ namespace BiRyeoDo.Core
             return best;
         }
 
-        private static int GaugeGain(Combatant u) { return Math.Max(1, (int)Math.Round(u.Stats.Speed * Statuses.SpeedFactor(u))); }
+        private static int GaugeGain(Combatant u) { return GaugeGain(u, u.Has(StatusKind.Chill)); }
+
+        private static int GaugeGain(Combatant u, bool chilled)
+        {
+            float factor = chilled ? (u.IsBoss ? Statuses.BossChillSpeed : Statuses.ChillSpeed) : 1f;
+            return Math.Max(1, (int)Math.Round(u.Stats.Speed * factor));
+        }
 
         private Combatant MostWounded()
         {
@@ -759,8 +767,15 @@ namespace BiRyeoDo.Core
         {
             var order = new List<Combatant>();
             var gauges = new int[_units.Count];
-            for (int i = 0; i < _units.Count; i++) gauges[i] = _units[i].Gauge;
-            if (IsPlayerTurn) order.Add(Current);
+            var chillTurns = new int[_units.Count];
+            for (int i = 0; i < _units.Count; i++)
+            {
+                gauges[i] = _units[i].Gauge;
+                foreach (var status in _units[i].Statuses)
+                    if (status.Kind == StatusKind.Chill) chillTurns[i] = status.Turns;
+            }
+            // Current has already spent its gauge and ticked its statuses in RunUntilParty.
+            if (IsPlayerTurn && count > 0) order.Add(Current);
 
             int guard = 0;
             while (order.Count < count && !IsOver && guard++ < 3000)
@@ -774,10 +789,11 @@ namespace BiRyeoDo.Core
                 if (best < 0)
                 {
                     for (int i = 0; i < _units.Count; i++)
-                        if (_units[i].IsAlive) gauges[i] += GaugeGain(_units[i]);
+                        if (_units[i].IsAlive) gauges[i] += GaugeGain(_units[i], chillTurns[i] > 0);
                     continue;
                 }
                 gauges[best] -= GaugeThreshold;
+                if (chillTurns[best] > 0) chillTurns[best]--;
                 order.Add(_units[best]);
             }
             return order;
