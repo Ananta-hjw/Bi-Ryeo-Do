@@ -82,6 +82,7 @@ namespace BiRyeoDo.Game.UI
         // Visual-novel style story layer (full screen): tap anywhere to advance.
         private GameObject _storyRoot;
         private Text _storyTitle, _storyText, _storyProgress;
+        private Image _storyBackdrop;
         private RectTransform _namePlate;
         private bool _storySkip;
 
@@ -196,6 +197,14 @@ namespace BiRyeoDo.Game.UI
             tap.targetGraphic = tapImg;
             tap.transition = Selectable.Transition.None;
             tap.onClick.AddListener(() => _panelDone = true);
+
+            // An opaque layer showing the stage art, so the battle HUD underneath (stage label, speed / flee buttons, turn order, cards) cannot show through the story.
+            _storyBackdrop = UiFactory.Panel("StoryBackdrop", rect, Vector2.zero, Vector2.one, Backdrop);
+            _storyBackdrop.preserveAspect = false;
+            _storyBackdrop.raycastTarget = false;
+            _storyBackdrop.transform.SetAsFirstSibling();
+            UiFactory.Panel("StoryDim", _storyBackdrop.transform, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.35f)).raycastTarget = false;
+            UiFactory.Panel("ChapterBand", rect, new Vector2(0f, 0.915f), Vector2.one, new Color(0.02f, 0.03f, 0.05f, 0.85f)).raycastTarget = false;
 
             _storyTitle = UiFactory.Label("Chapter", rect, new Vector2(0.04f, 0.925f), new Vector2(0.72f, 0.985f), "", 34, UiFactory.Gold, TextAnchor.MiddleLeft);
             UiFactory.Panel("ChapterLine", rect, new Vector2(0.04f, 0.922f), new Vector2(0.72f, 0.925f), UiFactory.GoldDim);
@@ -2374,6 +2383,8 @@ namespace BiRyeoDo.Game.UI
             _panel.SetActive(false);
             _storySkip = false;
             string left = StoryLine.Protagonist, right = null;
+            _storyBackdrop.sprite = _backdropImage.sprite;
+            _storyBackdrop.color = _backdropImage.sprite != null ? Color.white : Backdrop;
             _storyRoot.SetActive(true);
             Canvas.ForceUpdateCanvases();
             for (int i = 0; i < lines.Length && !_fled && !_storySkip; i++)

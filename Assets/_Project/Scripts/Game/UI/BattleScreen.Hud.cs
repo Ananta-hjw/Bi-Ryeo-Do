@@ -44,6 +44,7 @@ namespace BiRyeoDo.Game.UI
                 pic.preserveAspect = true;
                 var glyph = UiFactory.Label("Fallback", chip.transform, new Vector2(.12f, .27f), new Vector2(.88f, .77f), "", 29, UiFactory.Gold);
                 var name = UiFactory.Label("Name", chip.transform, new Vector2(.05f, .02f), new Vector2(.95f, .29f), "", 20, UiFactory.PaperText);
+                chip.gameObject.SetActive(false);   // empty until the first RefreshTurnOrder, so no white placeholder squares show before a fight (and during the story)
                 _turnChips.Add(chip); _turnLabels.Add(name); _turnPortraits.Add(pic); _turnGlyphs.Add(glyph); _turnEdges.Add(edge);
             }
 
