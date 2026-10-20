@@ -33,7 +33,7 @@ namespace BiRyeoDo.Core
                 {
                     new FortuneChoice { Label = "폭포를 맞으며 수련한다", Result = "물살을 버텨내며 호흡이 한결 안정되었다. 경험 +", ExpLevels = 0.5 },
                     new FortuneChoice { Label = "무공 초식을 반복해 익힌다", Result = "장착한 무공을 밤새 반복했다. 숙련이 올랐다.", MasteryUses = 6 },
-                    new FortuneChoice { Label = "그냥 푹 잔다", Result = "개운하게 잤다. 일어나 보니 머리맡에 약간의 두가 놓여 있다.", Doo = 300 },
+                    new FortuneChoice { Label = "그냥 푹 잔다", Result = "개운하게 잤다. 일어나 보니 머리맡에 약간의 두가 놓여 있다.", Doo = 390 },
                 } },
             new FortuneEvent { Id = "f_peddler", Title = "수상한 행상", UnlockStage = 4,
                 Text = new[] { "길가에서 행상이 보따리를 펼친다. \"귀한 영약이오. 지금 아니면 못 구하오.\"", "믿을 만한 물건일까?" },
@@ -56,14 +56,14 @@ namespace BiRyeoDo.Core
                 {
                     new FortuneChoice { Label = "깊이 들어가 조사한다", Result = "한참 헤맸지만 선인의 흔적에서 깨달음을 얻었다. 경험 +", ExpLevels = 0.9 },
                     new FortuneChoice { Label = "입구 근처만 살핀다", Result = "버려진 짐 속에서 쓸 만한 약병을 찾았다.", ItemId = "okruju" },
-                    new FortuneChoice { Label = "위험하니 돌아선다", Result = "무사히 돌아왔다. 길에서 두 몇 푼을 주웠다.", Doo = 500 },
+                    new FortuneChoice { Label = "위험하니 돌아선다", Result = "무사히 돌아왔다. 길에서 두 몇 푼을 주웠다.", Doo = 650 },
                 } },
             new FortuneEvent { Id = "f_master_scroll", Title = "낡은 비급 조각", UnlockStage = 17,
                 Text = new[] { "헌책방 구석에서 낡은 비급 조각을 발견했다. 내용은 알아볼 수 없다.", "어떻게 할까?" },
                 Choices = new[]
                 {
                     new FortuneChoice { Label = "풀이를 사서 깊이 연구한다 (-3000두)", Result = "며칠 밤을 새워 연구했다. 모든 장착 무공이 크게 숙련되었다.", Doo = -3000, MasteryUses = 25 },
-                    new FortuneChoice { Label = "되팔아 돈으로 바꾼다", Result = "수집가가 후하게 값을 쳐주었다.", Doo = 2500 },
+                    new FortuneChoice { Label = "되팔아 돈으로 바꾼다", Result = "수집가가 후하게 값을 쳐주었다.", Doo = 3250 },
                 } },
             new FortuneEvent { Id = "f_reunion", Title = "오랜 동료와의 술자리", UnlockStage = 22,
                 Text = new[] { "싸움이 잠시 잦아든 밤, 일행이 한자리에 모였다.", "오늘만큼은 마음을 터놓을 수 있을 것 같다." },
@@ -76,7 +76,7 @@ namespace BiRyeoDo.Core
                 Text = new[] { "강가에서 노인이 낚싯대를 드리우고 있다. 말없이 곁자리를 내주었다.", "이 한가한 시간을 어떻게 보낼까?" },
                 Choices = new[]
                 {
-                    new FortuneChoice { Label = "낚시를 거들어 준다", Result = "잡은 물고기를 시장에 넘겨 노인이 몫을 나눠 주었다.", Doo = 400 },
+                    new FortuneChoice { Label = "낚시를 거들어 준다", Result = "잡은 물고기를 시장에 넘겨 노인이 몫을 나눠 주었다.", Doo = 520 },
                     new FortuneChoice { Label = "노인의 호흡을 따라 해 본다", Result = "느린 호흡 속에서 장착한 무공의 감이 한결 잡혔다.", MasteryUses = 8 },
                     new FortuneChoice { Label = "구운 생선을 먹으며 쉰다", Result = "배불리 먹고 한숨 자고 나니 몸이 가벼워졌다. 경험 +", ExpLevels = 0.4 },
                 } },
@@ -86,13 +86,13 @@ namespace BiRyeoDo.Core
                 {
                     new FortuneChoice { Label = "정보꾼에게 소문을 산다 (-600두)", Result = "값진 이야기였다. 큰 깨달음을 얻었다. 경험 +", Doo = -600, ExpLevels = 0.9 },
                     new FortuneChoice { Label = "일행과 술잔을 기울인다 (-100두)", Result = "시끌벅적한 술자리에서 서로가 한결 가까워졌다.", Doo = -100, BondPoints = 2 },
-                    new FortuneChoice { Label = "남의 대화에는 신경 쓰지 않는다", Result = "자리에 떨어진 두 몇 푼을 주웠다.", Doo = 350 },
+                    new FortuneChoice { Label = "남의 대화에는 신경 쓰지 않는다", Result = "자리에 떨어진 두 몇 푼을 주웠다.", Doo = 460 },
                 } },
             new FortuneEvent { Id = "f_blacksmith", Title = "늙은 대장장이", UnlockStage = 14,
                 Text = new[] { "산 아래 대장간에서 늙은 대장장이가 쇠를 두드리고 있다.", "무슨 일로 들렀는가?" },
                 Choices = new[]
                 {
-                    new FortuneChoice { Label = "일손을 거든다", Result = "풀무질을 도왔더니 품삯을 두둑이 받았다.", Doo = 1200 },
+                    new FortuneChoice { Label = "일손을 거든다", Result = "풀무질을 도왔더니 품삯을 두둑이 받았다.", Doo = 1560 },
                     new FortuneChoice { Label = "망치질을 지켜보며 운기한다", Result = "쇠를 두드리는 박자에 호흡을 맞추었다. 경험 +", ExpLevels = 0.6 },
                     new FortuneChoice { Label = "비상약을 맡겨 둔 것을 찾는다 (-900두)", Result = "대장장이가 몰래 달여 둔 귀한 약을 건네주었다.", Doo = -900, ItemId = "ginseng" },
                 } },

@@ -60,7 +60,7 @@ namespace BiRyeoDo.Core
             if (item == null || item.Kind != ItemKind.Material || item.SellValue <= 0) return 0;
             count = Math.Min(count, Count(save, id));
             if (count <= 0 || !Remove(save, id, count)) return 0;
-            long gold = item.SellValue * count;
+            long gold = Income.Boost(item.SellValue) * count;
             save.Doo += gold;
             return gold;
         }

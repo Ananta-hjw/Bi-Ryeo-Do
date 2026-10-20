@@ -73,7 +73,7 @@ namespace BiRyeoDo.Core
     {
         private static AchievementData A(string id, string name, string desc, AchMetric m, int target, long doo, string item = null)
         {
-            return new AchievementData { Id = id, Name = name, Description = desc, Metric = m, Target = target, RewardDoo = doo, RewardItemId = item };
+            return new AchievementData { Id = id, Name = name, Description = desc, Metric = m, Target = target, RewardDoo = Income.Boost(doo), RewardItemId = item };
         }
 
         public static readonly AchievementData[] All =

@@ -317,15 +317,15 @@ namespace BiRyeoDo.Core
 
         public static readonly StarChest[] Chests =
         {
-            new StarChest { Stars = 15, Doo = 3000, Insight = 1 },
-            new StarChest { Stars = 40, Doo = 6000, ItemId = "ginseng", Insight = 2 },
-            new StarChest { Stars = 80, Doo = 10000, ItemId = "ginseng", ItemCount = 2, Insight = 2 },
-            new StarChest { Stars = 130, Doo = 16000, ItemId = "ilgeup_yeongdan", Insight = 3 },
-            new StarChest { Stars = 200, Doo = 25000, ItemId = "ilgeup_yeongdan", Insight = 3 },
-            new StarChest { Stars = 300, Doo = 40000, ItemId = "ilgeup_yeongdan", ItemCount = 2, Insight = 4 },
-            new StarChest { Stars = 420, Doo = 60000, ItemId = "ilgeup_yeongdan", ItemCount = 3, Insight = 4 },
-            new StarChest { Stars = 560, Doo = 80000, ItemId = "ilgeup_yeongdan", ItemCount = 3, Insight = 5 },
-            new StarChest { Stars = 700, Doo = 120000, ItemId = "ilgeup_yeongdan", ItemCount = 5, Insight = 6 },
+            new StarChest { Stars = 15, Doo = 3900, Insight = 1 },
+            new StarChest { Stars = 40, Doo = 7800, ItemId = "ginseng", Insight = 2 },
+            new StarChest { Stars = 80, Doo = 13000, ItemId = "ginseng", ItemCount = 2, Insight = 2 },
+            new StarChest { Stars = 130, Doo = 20800, ItemId = "ilgeup_yeongdan", Insight = 3 },
+            new StarChest { Stars = 200, Doo = 32500, ItemId = "ilgeup_yeongdan", Insight = 3 },
+            new StarChest { Stars = 300, Doo = 52000, ItemId = "ilgeup_yeongdan", ItemCount = 2, Insight = 4 },
+            new StarChest { Stars = 420, Doo = 78000, ItemId = "ilgeup_yeongdan", ItemCount = 3, Insight = 4 },
+            new StarChest { Stars = 560, Doo = 104000, ItemId = "ilgeup_yeongdan", ItemCount = 3, Insight = 5 },
+            new StarChest { Stars = 700, Doo = 156000, ItemId = "ilgeup_yeongdan", ItemCount = 5, Insight = 6 },
         };
 
         public static int MaxStars

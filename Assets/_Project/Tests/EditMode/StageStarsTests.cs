@@ -132,7 +132,7 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(1, StageStars.ClaimableCount(save));
             var note = StageStars.ClaimAll(save);
             Assert.IsNotNull(note);
-            Assert.AreEqual(3000, save.Doo);
+            Assert.AreEqual(3900, save.Doo);
             Assert.IsNull(StageStars.ClaimAll(save));
             for (int s = 6; s <= 13; s++) StageStars.Record(save, s, 0, 0, 7);  // 39 stars (one short of the next chest)
             StageStars.Record(save, 14, 0, 0, 1);                                  // 40
@@ -174,7 +174,7 @@ namespace BiRyeoDo.Tests
             Assert.IsNotNull(StageStars.Claim(save, StageStars.Chests[0]));
             Assert.AreEqual(1, StageStars.ClaimableCount(save));
             Assert.IsNull(StageStars.Claim(save, StageStars.Chests[0]));
-            Assert.AreEqual(3000, save.Doo);
+            Assert.AreEqual(3900, save.Doo);
         }
 
         [Test]

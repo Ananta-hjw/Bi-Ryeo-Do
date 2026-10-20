@@ -149,9 +149,9 @@ namespace BiRyeoDo.Core
         public static bool IsClaimed(SaveData save, int index) { return save.DailyClaimed.Contains(index); }
 
         /// <summary>두 grows with progress: base x (1 + 0.15 per cleared stage).</summary>
-        public static long RewardDoo(SaveData save, DailyMission m) { return (long)Math.Round(BaseDoo[m.Tier] * (1.0 + 0.15 * save.ClearedStage)); }
+        public static long RewardDoo(SaveData save, DailyMission m) { return Income.Boost((long)Math.Round(BaseDoo[m.Tier] * (1.0 + 0.15 * save.ClearedStage))); }
 
-        public static long AllClearDoo(SaveData save) { return (long)Math.Round(AllClearBonus * (1.0 + 0.15 * save.ClearedStage)); }
+        public static long AllClearDoo(SaveData save) { return Income.Boost((long)Math.Round(AllClearBonus * (1.0 + 0.15 * save.ClearedStage))); }
 
         public static int ClaimableCount(SaveData save)
         {
@@ -200,7 +200,7 @@ namespace BiRyeoDo.Core
                 case 3: Inventory.Add(save, "okruju", 3); return "연속 3일 보상: 옥루주 x3";
                 case 7: Inventory.Add(save, "ginseng", 1); return "연속 7일 보상: 인형설삼";
                 case 14: Inventory.Add(save, "ilgeup_yeongdan", 1); Inventory.Add(save, InnerArts.StoneId, 2); return "연속 14일 보상: 일급영단, 심득석 x2";
-                case 30: Inventory.Add(save, "ilgeup_yeongdan", 2); save.Doo += 20000; Inventory.Add(save, InnerArts.StoneId, 4); return "연속 30일 보상: 일급영단 x2, 심득석 x4, 두 +20,000";
+                case 30: Inventory.Add(save, "ilgeup_yeongdan", 2); save.Doo += 26000; Inventory.Add(save, InnerArts.StoneId, 4); return "연속 30일 보상: 일급영단 x2, 심득석 x4, 두 +26,000";
             }
             return null;
         }

@@ -46,6 +46,7 @@ namespace BiRyeoDo.Core
                 exp = (long)Math.Round(exp * EarlyGameContent.ReplayExpFactor);
                 doo = (long)Math.Round(doo * EarlyGameContent.ReplayDooFactor);
             }
+            doo = Income.Boost(doo);
         }
 
         /// <summary>경험 and 두 for winning every fight of the stage in one go.</summary>

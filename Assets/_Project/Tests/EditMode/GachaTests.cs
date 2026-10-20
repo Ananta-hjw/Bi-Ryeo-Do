@@ -9,7 +9,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void GradeOddsAreExactlyTheRequestedOnes()
         {
-            CollectionAssert.AreEqual(new[] { 0.62, 0.20, 0.10, 0.05, 0.025, 0.005 }, Grades.Rates);
+            CollectionAssert.AreEqual(new[] { 0.61, 0.20, 0.10, 0.055, 0.028, 0.007 }, Grades.Rates);
             Assert.AreEqual(1.0, Grades.Rates.Sum(), 1e-9);
             CollectionAssert.AreEqual(new[] { "일반", "고급", "희귀", "영웅", "전설", "신화", "초월" }, Grades.Names);
         }
@@ -132,6 +132,15 @@ namespace BiRyeoDo.Tests
             Assert.IsTrue(Inventory.Equip(save, "leather_vest", out error));   // replaces the first armor
             Assert.IsFalse(Inventory.IsEquipped(save, "cloth_robe"));
             Assert.IsTrue(Inventory.IsEquipped(save, "leather_vest"));
+        }
+    
+        [Test]
+        public void IncomeBoostRaisesBy30PercentAndRoundsToTens()
+        {
+            Assert.AreEqual(2800, Income.Boost(2150));
+            Assert.AreEqual(2780, Income.Boost(2142));
+            Assert.AreEqual(140, Income.Boost(105));
+            Assert.AreEqual(0, Income.Boost(0));
         }
     }
 }

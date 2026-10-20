@@ -95,7 +95,7 @@ namespace BiRyeoDo.Core
             {
                 TargetRank = targetRank, Tier = tier, Skip = skip,
                 Title = RankName(targetRank) + " 승급 · " + TierName[tier] + (skip ? " (월반)" : ""),
-                DooReward = doo,
+                DooReward = Income.Boost(doo),
                 Fee = doo / 6,
                 ExpReward = (long)Math.Round(Progression.ExpToNext(Math.Max(Progression.PlayerLevelAt(lvl), save.Level)) * 0.6 * TierPay[tier]),
                 Opponents = new[] { MakeOpponent(targetRank, tier, 0, save.Level), MakeOpponent(targetRank, tier, 1, save.Level) }

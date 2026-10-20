@@ -66,9 +66,9 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(1, Achievements.ClaimableCount(save) >= 1 ? 1 : 0);
             var note = Achievements.Claim(save, "stage_5");
             Assert.IsNotNull(note);
-            Assert.AreEqual(800, save.Doo);
+            Assert.AreEqual(1040, save.Doo);
             Assert.IsNull(Achievements.Claim(save, "stage_5"));
-            Assert.AreEqual(800, save.Doo);
+            Assert.AreEqual(1040, save.Doo);
         }
 
         [Test]
