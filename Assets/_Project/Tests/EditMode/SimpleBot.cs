@@ -13,13 +13,15 @@ namespace BiRyeoDo.Tests
             var me = b.Current;
             var alive = b.Enemies.Where(e => e.IsAlive).ToList();
             var skills = me.Skills.Where(s => s.Id != "basic" && b.CanUse(s)).ToList();
-            var charging = alive.Where(e => e.Charging).ToList();
+            var charging = alive.Where(e => e.AwakeningStrike != null || e.Charging).ToList();
 
             if (charging.Count > 0)
             {
                 var stun = skills.FirstOrDefault(s => s.Effect == SkillEffect.Stun);
                 if (stun != null && b.EnemiesInRange(stun.Range).Contains(charging[0])) return PlayerCommand.UseSkill(stun, charging[0]);
-                bool targeted = charging.Any(e => e.ChargeTarget == me);
+                var front = b.Party.Where(m => m.IsAlive).OrderBy(m => b.Depth(m))
+                    .ThenBy(m => (float)m.Hp / m.Stats.MaxHp).First();
+                bool targeted = charging.Any(e => e.AwakeningStrike != null ? front == me : e.ChargeTarget == me);
                 if (targeted)
                 {
                     var evade = skills.FirstOrDefault(s => s.Effect == SkillEffect.Evade);

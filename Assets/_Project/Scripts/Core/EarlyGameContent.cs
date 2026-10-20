@@ -546,7 +546,7 @@ namespace BiRyeoDo.Core
             list.AddRange(GachaItems.All);
             list.AddRange(GachaItemsMore.All);
             list.AddRange(Salvage.Materials);
-            list.Add(Gear.Polish);
+            list.AddRange(Gear.Materials);
             return list.ToArray();
         }
 

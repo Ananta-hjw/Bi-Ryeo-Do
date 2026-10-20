@@ -438,6 +438,7 @@ namespace BiRyeoDo.Game.UI
                     string repLine = "";
                     var found = new List<string>();   // 심득석 / 수련서 discovered by this win
                     bool firstWin = true;
+                    var materialDrop = GearDrops.RollFight(save, stage, i, new SeededRandom(Environment.TickCount));
                     if (!stage.IsQuest && !stage.IsTower)
                     {
                         // Reputation, 수련서 and full 경험/두 come from the first win of each fight on each difficulty, so replaying one fight cannot farm them
@@ -470,8 +471,11 @@ namespace BiRyeoDo.Game.UI
                     foreach (var id in stage.Encounters[i]) Codex.SeeEnemy(save, id);
                     Recommend.FightReward(save, stage, i, replay || !firstWin, out exp, out doo);   // a fight already won pays the replay rate
                     var drops = new List<ItemStack>();
-                    Inventory.Add(save, Gear.StoneId, Gear.BattlePolish);
-                    drops.Add(new ItemStack(Gear.StoneId, Gear.BattlePolish));
+                    if (materialDrop != null)
+                    {
+                        Inventory.Add(save, materialDrop.Id, materialDrop.Count);
+                        drops.Add(materialDrop);
+                    }
                     if (!stage.IsQuest && !stage.IsTower) for (int roll = 0; roll < StageStars.DropRolls(diff); roll++) drops.AddRange(RollDrops(stage.Encounters[i]));
                     CompanionGrowth.EnsureRecords(save);   // before the protagonist levels, so old saves' companions start at the old level
                     int levels = Progression.AddExp(save, exp);
@@ -1264,7 +1268,7 @@ namespace BiRyeoDo.Game.UI
                 bool aimOk = Hittable(u), aimNo = Aiming && !dead && !aimOk;
                 c.Frame.color = aimOk ? UiFactory.Gold : aimNo ? new Color(0.75f, 0.15f, 0.15f, 1f) : new Color(0f, 0f, 0f, 0f);
                 c.TargetFrame.color = aimOk ? UiFactory.Gold : Color.clear;
-                c.IntentBack.color = u.Charging && !dead ? new Color(.45f, .13f, .10f, .95f) : HudInk;
+                c.IntentBack.color = (u.Charging || u.AwakeningStrike != null) && !dead ? new Color(.45f, .13f, .10f, .95f) : HudInk;
                 c.Badge.text = aimOk ? "선택 가능" : aimNo ? "사거리 밖" : dead ? "" : Statuses.Line(u);
                 c.Badge.color = aimOk ? UiFactory.Gold : aimNo ? new Color(1f, 0.45f, 0.45f, 1f) : StatusColor;
                 if (c.Art != null) SetAlpha(c.Art, dead ? 0.25f : aimNo ? 0.35f : 1f);
@@ -1272,7 +1276,12 @@ namespace BiRyeoDo.Game.UI
                 if (dead) { c.Intent.text = "쓰러졌다"; continue; }
                 if (u.Stunned) { c.Intent.text = "행동 불능"; c.Intent.color = GuardBlue; continue; }
                 var move = u.PeekMove();
-                if (u.Charging)
+                if (u.AwakeningStrike != null)
+                {
+                    c.Intent.text = BossPhases.AwakeningName + " " + (u.PhaseIndex == 1 ? "70%" : "100%");
+                    c.Intent.color = ThreatRed;
+                }
+                else if (u.Charging)
                 {
                     c.Intent.text = "강타" + (u.ChargeTarget != null ? " → " + ShortName(u.ChargeTarget.Name) : " 준비");
                     c.Intent.color = ThreatRed;
@@ -1289,7 +1298,7 @@ namespace BiRyeoDo.Game.UI
                 }
                 if (u.UsesResources && u.Spirit >= InteractiveBattle.MaxSpirit)
                 {
-                    c.Intent.text = "기세 가득 · 위험";
+                    c.Intent.text = u.AwakeningStrike != null ? BossPhases.AwakeningName + " · 폭발" : "기세 가득 · 위험";
                     c.Intent.color = ThreatRed;
                 }
             }
@@ -1314,7 +1323,7 @@ namespace BiRyeoDo.Game.UI
                 bool incoming = false;
                 if (_battle != null && u.IsAlive)
                     foreach (var enemy in _battle.Enemies)
-                        if (enemy.IsAlive && enemy.Charging && enemy.ChargeTarget == u) { incoming = true; break; }
+                        if (enemy.IsAlive && enemy.AwakeningStrike == null && enemy.Charging && enemy.ChargeTarget == u) { incoming = true; break; }
                 p.Status.text = incoming ? "강타 대상" + (afflicted.Length > 0 ? "\n" + afflicted : "")
                     : stance + (stance.Length > 0 && afflicted.Length > 0 ? " · " : "") + afflicted;
                 p.Name.color = u.IsAlive ? UiFactory.Gold : new Color(0.5f, 0.5f, 0.5f, 1f);
@@ -2102,6 +2111,11 @@ namespace BiRyeoDo.Game.UI
         {
             var attacker = CardOf(ev.ActorId);
             var victim = PanelOf(ev.TargetId);
+            if (ev.Awakening && ev.HitIndex == 0)
+            {
+                _log.text = NameOf(ev.ActorId) + "의 " + BossPhases.AwakeningName + "!";
+                yield return SkillCutIn(BossPhases.AwakeningName, false);
+            }
             bool basic = IsBasicAttack(ev) && _basicMotion != null;
             if (basic)
             {

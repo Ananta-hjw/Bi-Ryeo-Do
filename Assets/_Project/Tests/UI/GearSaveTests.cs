@@ -8,6 +8,29 @@ namespace BiRyeoDo.Tests.UI
     public class GearSaveTests
     {
         [Test]
+        public void PaidGradeUnlockAndMaterialStacksSurviveUnityJsonRoundTrip()
+        {
+            var save = new SaveData { Doo = 200000 };
+            Inventory.Add(save, "iron_sword", 1);
+            Inventory.Add(save, Gear.StoneId, 10);
+            string error;
+            Assert.IsTrue(Inventory.Equip(save, "iron_sword", out error), error);
+            Assert.IsTrue(Gear.EnhanceSlot(save, Inventory.Hero, 0, out error), error);
+            Inventory.Add(save, Ritual.RewardId, 1);
+            Assert.IsTrue(Inventory.Equip(save, Ritual.RewardId, out error), error);
+            Assert.IsTrue(Gear.UnlockSlotGrade(save, Inventory.Hero, 0, out error), error);
+            Inventory.Add(save, Gear.MaterialForLevel(100).Id, 12);
+            var restored = JsonUtility.FromJson<SaveData>(JsonUtility.ToJson(save));
+            Gear.EnsureProgression(restored);
+            Assert.IsTrue(restored.GearGradeUnlocksMigrated);
+            Assert.AreEqual(ItemGrade.Transcendent, Gear.UnlockedGrade(restored, Inventory.Hero, 0));
+            Assert.AreEqual(1, Gear.LevelFor(restored, Inventory.Hero, Ritual.RewardId));
+            Assert.AreEqual(0, Gear.GradeUnlockCost(restored, Inventory.Hero, 0, ItemGrade.Transcendent));
+            Assert.AreEqual(save.Doo, restored.Doo);
+            Assert.AreEqual(12, Inventory.Count(restored, Gear.MaterialForLevel(100).Id));
+        }
+
+        [Test]
         public void LegacyJsonWithoutNewFieldsMigratesWithoutResettingInventory()
         {
             var restored = JsonUtility.FromJson<SaveData>("{\"Version\":2,\"Items\":[{\"Id\":\"iron_sword\",\"Count\":1}],\"EquippedGear\":[\"iron_sword\"],\"GearLevels\":[{\"Id\":\"iron_sword\",\"Level\":10}]}");

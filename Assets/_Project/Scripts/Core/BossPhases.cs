@@ -2,24 +2,19 @@ using System.Collections.Generic;
 
 namespace BiRyeoDo.Core
 {
-    /// <summary>One stage of a boss fight: from <see cref="HpPct"/> of max HP down the boss fights with a new script and a harder hand.</summary>
+    /// <summary>One stage of a boss fight: from <see cref="HpPct"/> of max HP the boss gains stats and queues one awakening strike.</summary>
     public sealed class BossPhase
     {
         public float HpPct;          // starts once HP falls to this fraction of max
         public string[] Lines;       // StoryLine lines played at the switch ("화자|대사" or narration)
-        public EnemyMove[] Moves;    // the script from here on (null = keep the current one)
         public float AtkMul = 1f, DefMul = 1f;   // attack and defense from here on, as multiples of the boss's own
     }
 
-    /// <summary>
-    /// 보스 단계 전환: a story boss (<see cref="BossPhaseLines"/>) changes its fight twice, at <see cref="FirstPct"/> and <see cref="SecondPct"/> of its HP
-    /// (a boss that retreats changes before it leaves, <see cref="RetreatPhasePct"/>). Each switch plays a few lines (the boss keeps its turn: a boss that was next to act still acts right after the change) and reshapes the script from the boss's own moves (<see cref="Reshape"/>):
-    /// phase 1 plays the light moves in reverse order before the wind-up and hits harder (<see cref="FirstAtk"/>),
-    /// phase 2 opens with the wind-up at once, hits harder still and takes less (<see cref="SecondAtk"/>, <see cref="SecondDef"/>).
-    /// <see cref="InteractiveBattle"/> applies it (<see cref="EventKind.Phase"/>); a switch during a wind-up waits until that heavy blow is done.
-    /// </summary>
+    /// <summary>Boss phases keep the turn gauge and script position, inserting one awakening strike at the next normal action.</summary>
     public static class BossPhases
     {
+        public const string AwakeningName = "각성:강타";
+        public const float FirstAwakeningFactor = .70f, SecondAwakeningFactor = 1f;
         public const float FirstPct = 0.5f, SecondPct = 0.25f;
         public const float RetreatPhasePct = 0.4f;   // second switch of a boss that withdraws at 30%
         public const float FirstAtk = 1.1f, FirstDef = 1f;    // 50%: attack +10%
@@ -31,45 +26,49 @@ namespace BiRyeoDo.Core
             string[] first, second;
             if (enemy == null || !enemy.IsBoss || !BossPhaseLines.TryGet(enemy.Id, out first, out second)) return null;
             float secondPct = enemy.RetreatHpPct > 0f ? System.Math.Max(RetreatPhasePct, enemy.RetreatHpPct + 0.05f) : SecondPct;
-            EnemyMove[] fierce, desperate;
-            Reshape(enemy.Moves, out fierce, out desperate);
             return new List<BossPhase>
             {
-                new BossPhase { HpPct = FirstPct, Lines = first, Moves = fierce, AtkMul = FirstAtk, DefMul = FirstDef },
-                new BossPhase { HpPct = secondPct, Lines = second, Moves = desperate, AtkMul = SecondAtk, DefMul = SecondDef },
+                new BossPhase { HpPct = FirstPct, Lines = first, AtkMul = FirstAtk, DefMul = FirstDef },
+                new BossPhase { HpPct = secondPct, Lines = second, AtkMul = SecondAtk, DefMul = SecondDef },
             };
         }
 
-        /// <summary>
-        /// From a script [light moves…, wind-up, heavy] (one wind-up followed by its heavy blow):
-        /// phase 1 = [light moves reversed, wind-up, heavy], phase 2 = [wind-up, heavy, light moves]. A script without a wind-up is kept as it is.
-        /// </summary>
-        public static void Reshape(EnemyMove[] moves, out EnemyMove[] fierce, out EnemyMove[] desperate)
+        /// <summary>Copies the boss's original charged blow; the source script is never mutated.</summary>
+        public static EnemyMove CreateAwakening(IList<EnemyMove> moves, int phaseIndex)
         {
-            fierce = desperate = null;
-            if (moves == null) return;
-            int wind = -1;
-            for (int i = 0; i < moves.Length; i++) if (moves[i].Charge) { wind = i; break; }
-            if (wind < 0 || wind + 1 >= moves.Length) return;
-            var light = new List<EnemyMove>();
-            for (int i = 0; i < moves.Length; i++) if (i != wind && i != wind + 1) light.Add(moves[i]);
-            if (light.Count == 0) return;
-            var heavy = moves[wind + 1];
-            // phase 1: the light moves in reverse order, then the wind-up; phase 2: the wind-up at once, then the light moves
-            var f = new List<EnemyMove>(light); f.Reverse(); f.Add(moves[wind]); f.Add(heavy);
-            var d = new List<EnemyMove> { moves[wind], heavy }; d.AddRange(light);
-            fierce = f.ToArray();
-            desperate = d.ToArray();
+            EnemyMove heavy = null;
+            if (moves != null)
+            {
+                for (int i = 0; i < moves.Count; i++)
+                {
+                    if (!moves[i].Charge) continue;
+                    var next = moves[(i + 1) % moves.Count];
+                    if (!next.Charge) { heavy = next; break; }
+                }
+                // Custom bosses without a wind-up still use one of their own damaging moves.
+                if (heavy == null)
+                    foreach (var move in moves)
+                        if (!move.Charge && (heavy == null || move.Power * System.Math.Max(1, move.Hits) > heavy.Power * System.Math.Max(1, heavy.Hits))) heavy = move;
+            }
+            if (heavy == null) heavy = EnemyMove.Plain;
+            return new EnemyMove
+            {
+                Name = AwakeningName, Power = heavy.Power, Hits = heavy.Hits, Inflict = heavy.Inflict,
+                Awakening = true, DamageFactor = heavy.DamageFactor * (phaseIndex == 1 ? FirstAwakeningFactor : SecondAwakeningFactor)
+            };
         }
 
         /// <summary>Player-facing summary for the enemy tip ("" for an enemy without phases).</summary>
         public static string Describe(Combatant unit)
         {
             if (unit.Phases == null || unit.Phases.Count == 0) return "";
-            if (unit.PhaseIndex >= unit.Phases.Count) return "단계: 마지막 단계(공격력 +" + Pct(SecondAtk) + ", 방어력 +" + Pct(SecondDef) + ")";
+            string rule = "1단계는 기존 강타 위력의 70%, 2단계는 100%로 각성:강타를 사용합니다. 한 번에 두 단계를 넘으면 100% 공격 한 번만 사용합니다. 이후 원래 예정된 행동을 이어갑니다.";
+            string current = unit.AwakeningStrike != null ? "다음 행동: 각성:강타 (" + (unit.PhaseIndex == 1 ? "70%" : "100%") + ")\n" : "";
+            if (unit.PhaseIndex >= unit.Phases.Count)
+                return current + "단계: 마지막 단계(공격력 +" + Pct(SecondAtk) + ", 방어력 +" + Pct(SecondDef) + ")\n" + rule;
             var next = unit.Phases[unit.PhaseIndex];
-            return "단계 " + (unit.PhaseIndex + 1) + ": 체력 " + (int)System.Math.Round(next.HpPct * 100f) + "% 아래로 떨어지면 기세가 바뀝니다(공격력 +" + Pct(next.AtkMul)
-                + (next.DefMul > 1f ? ", 방어력 +" + Pct(next.DefMul) : "") + ").";
+            return current + "단계 " + (unit.PhaseIndex + 1) + ": 체력 " + (int)System.Math.Round(next.HpPct * 100f) + "% 아래로 떨어지면 기세가 바뀝니다(공격력 +" + Pct(next.AtkMul)
+                + (next.DefMul > 1f ? ", 방어력 +" + Pct(next.DefMul) : "") + ").\n" + rule;
         }
 
         private static string Pct(float mul) { return (int)System.Math.Round((mul - 1f) * 100f) + "%"; }

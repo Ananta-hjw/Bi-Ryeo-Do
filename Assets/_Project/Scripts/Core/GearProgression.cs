@@ -10,17 +10,74 @@ namespace BiRyeoDo.Core
         public int Index;
         public string ItemId;
         public int Level;
+        public int UnlockedGrade;
     }
 
     public static partial class Gear
     {
         public const int MaxLevel = 100, MaxStars = 5;
-        public const int BattlePolish = 2, DailyPolish = 5, StarterPolish = 30;
+        public const int DailyPolish = 5, StarterPolish = 30;
         public const string StoneId = "gear_polish";
         public static readonly int[] LevelCaps = { 10, 20, 30, 50, 70, 100 };
         private static readonly float[] StarBonuses = { 0f, .05f, .10f, .15f, .20f, .30f };
-        public static readonly ItemData Polish = new ItemData { Id = StoneId, Name = "연마석", Kind = ItemKind.Material, Grade = ItemGrade.Normal,
-            Description = "장착 부위를 확정 강화하는 공용 재료. 전투 승리·일일 임무·장비 분해로 얻는다. 장비를 바꿔도 부위 강화는 유지된다." };
+        public static readonly ItemData[] Materials =
+        {
+            Material(StoneId, "하급 영석", ItemGrade.Normal, "+1~+20"),
+            Material("gear_spirit_mid", "중급 영석", ItemGrade.Fine, "+21~+40"),
+            Material("gear_spirit_high", "고급 영석", ItemGrade.Rare, "+41~+60"),
+            Material("gear_iron_high", "상급 현철", ItemGrade.Epic, "+61~+80"),
+            Material("gear_iron_ancient", "만년 현철", ItemGrade.Legendary, "+81~+90"),
+            Material("gear_celestial_stone", "신물:천외비석", ItemGrade.Mythic, "+91~+100")
+        };
+        public static readonly ItemData Polish = Materials[0]; // Keep legacy inventory IDs and rewards valid.
+
+        private static ItemData Material(string id, string name, ItemGrade grade, string range)
+        {
+            return new ItemData { Id = id, Name = name, Kind = ItemKind.Material, Grade = grade,
+                Description = range + " 부위 확정 강화 재료. " + (grade == ItemGrade.Mythic ? "만년 현철 3개 합성 또는 후반 일일 임무로 얻는다. 전투에서는 나오지 않는다." : "전투 승리·일일 임무·같은 등급 장비 분해로 얻는다. 3개로 다음 등급 재료 1개를 확정 합성한다.") + " 팔 수 없다." };
+        }
+
+        public static ItemData MaterialForLevel(int nextLevel)
+        {
+            int n = Math.Max(1, Math.Min(MaxLevel, nextLevel));
+            return Materials[n <= 80 ? (n - 1) / 20 : n <= 90 ? 4 : 5];
+        }
+
+        // Daily mission tier by available story stage; combat uses GearDrops instead.
+        public static ItemData RewardMaterial(int stageNumber)
+        {
+            return Materials[Math.Max(0, Math.Min(5, (Math.Max(1, stageNumber) - 1) / 5))];
+        }
+
+        public const int MaterialFusionCost = 3;
+
+        public static ItemData NextMaterial(string id)
+        {
+            for (int i = 0; i < Materials.Length - 1; i++) if (Materials[i].Id == id) return Materials[i + 1];
+            return null;
+        }
+
+        public static bool CanFuseMaterial(SaveData save, string id)
+        {
+            return NextMaterial(id) != null && Inventory.Count(save, id) >= MaterialFusionCost;
+        }
+
+        public static ItemData FuseMaterial(SaveData save, string id, out string error)
+        {
+            error = null;
+            var result = NextMaterial(id);
+            if (result == null) { error = "다음 등급으로 합성할 수 없는 재료입니다."; return null; }
+            if (Inventory.Count(save, id) < MaterialFusionCost) { error = "합성하려면 같은 강화 재료 3개가 필요합니다."; return null; }
+            if (!Inventory.Remove(save, id, MaterialFusionCost)) { error = "합성 재료가 부족합니다."; return null; }
+            Inventory.Add(save, result.Id, 1);
+            return result;
+        }
+
+        public static bool IsEnhancementMaterial(string id)
+        {
+            foreach (var material in Materials) if (material.Id == id) return true;
+            return false;
+        }
 
         public static ItemKind KindForSlot(int index)
         {
@@ -67,7 +124,10 @@ namespace BiRyeoDo.Core
             if (save.GearBreakthroughs == null) save.GearBreakthroughs = new List<GearLevel>();
             if (save.GearLevels == null) save.GearLevels = new List<GearLevel>();
             if (Inventory.Count(save, Ritual.RewardId) > 0) GrantTranscendentStarsRaw(save, Ritual.RewardId);
-            if (save.GearProgressionMigrated) return;
+            if (save.GearProgressionMigrated) { MigrateGradeUnlocks(save); return; }
+            bool migrateGrades = !save.GearGradeUnlocksMigrated;
+            // SyncSlots re-enters this method; finish legacy slot assignments before grade migration.
+            save.GearGradeUnlocksMigrated = true;
             save.GearProgressionMigrated = true;
             SyncSlots(save, Inventory.Hero);
             foreach (var owner in new List<CompanionGearEntry>(save.CompanionGear)) SyncSlots(save, owner.Id);
@@ -85,10 +145,65 @@ namespace BiRyeoDo.Core
                 int converted = 0;
                 while (converted < MaxLevel && Multiplier(converted) + .00001f < 1f + old * .10f) converted++;
                 slot.Level = Math.Max(slot.Level, converted);
+                slot.UnlockedGrade = Math.Max(slot.UnlockedGrade, (int)item.Grade);
                 // More than five consumed copies cannot become stars; return those copies.
                 if (old > MaxStars) Inventory.Add(save, legacy.Id, old - MaxStars);
             }
             save.GearLevels.Clear();
+            if (migrateGrades) { save.GearGradeUnlocksMigrated = false; MigrateGradeUnlocks(save); }
+        }
+
+        private static void MigrateGradeUnlocks(SaveData save)
+        {
+            if (save.GearGradeUnlocksMigrated) return;
+            save.GearGradeUnlocksMigrated = true;
+            // Preserve bonuses already applied to equipped, enhanced gear in existing saves.
+            foreach (var slot in save.GearSlots)
+            {
+                var item = EarlyGameContent.FindItem(slot.ItemId);
+                if (slot.Level > 0 && item != null && item.IsGear && Inventory.GearOf(save, slot.Owner).Contains(item.Id))
+                    slot.UnlockedGrade = Math.Max(slot.UnlockedGrade, (int)item.Grade);
+            }
+        }
+
+        public static ItemGrade UnlockedGrade(SaveData save, string owner, int index)
+        {
+            EnsureProgression(save);
+            if (index < 0 || index >= 6) return ItemGrade.Epic;
+            return (ItemGrade)Math.Max((int)ItemGrade.Epic, Math.Min((int)ItemGrade.Transcendent, Entry(save, owner, index).UnlockedGrade));
+        }
+
+        public static bool IsGradeUnlocked(SaveData save, string owner, int index, ItemGrade grade)
+        {
+            return index >= 0 && index < 6 && grade <= UnlockedGrade(save, owner, index);
+        }
+
+        public static long GradeUnlockTotal(ItemGrade grade)
+        {
+            return grade >= ItemGrade.Transcendent ? 100000 : grade >= ItemGrade.Mythic ? 40000 : grade >= ItemGrade.Legendary ? 10000 : 0;
+        }
+
+        public static long GradeUnlockCost(SaveData save, string owner, int index, ItemGrade grade)
+        {
+            return Math.Max(0, GradeUnlockTotal(grade) - GradeUnlockTotal(UnlockedGrade(save, owner, index)));
+        }
+
+        public static bool UnlockSlotGrade(SaveData save, string owner, int index, out string error)
+        {
+            error = null;
+            var item = ItemInSlot(save, owner, index);
+            if (item == null) { error = "개방할 부위에 장비를 먼저 장착해 주세요."; return false; }
+            long cost = GradeUnlockCost(save, owner, index, item.Grade);
+            if (cost == 0) { error = "이미 개방한 등급입니다."; return false; }
+            if (save.Doo < cost) { error = "등급 개방에 필요한 두가 부족합니다."; return false; }
+            save.Doo -= cost;
+            Entry(save, owner, index).UnlockedGrade = (int)item.Grade;
+            return true;
+        }
+
+        public static int AppliedSlotLevel(SaveData save, string owner, int index, ItemData item)
+        {
+            return item != null && IsGradeUnlocked(save, owner, index, item.Grade) ? Math.Min(SlotLevel(save, owner, index), Cap(save, item.Id)) : 0;
         }
 
         /// <summary>Keeps accessory identities stable even if the other accessory is removed.</summary>
@@ -193,7 +308,7 @@ namespace BiRyeoDo.Core
         {
             SyncSlots(save, owner);
             int index = FindItemSlot(save, owner, id);
-            return index < 0 ? 0 : Math.Min(SlotLevel(save, owner, index), Cap(save, id));
+            return AppliedSlotLevel(save, owner, index, EarlyGameContent.FindItem(id));
         }
 
         public static List<GearLevel> LevelsFor(SaveData save, string owner)
@@ -230,7 +345,8 @@ namespace BiRyeoDo.Core
         {
             var item = ItemInSlot(save, owner, index);
             int current = SlotLevel(save, owner, index);
-            return item != null && current < Cap(save, item.Id) && Inventory.Count(save, StoneId) >= StoneCost(current + 1) && save.Doo >= DooCost(current + 1);
+            return item != null && IsGradeUnlocked(save, owner, index, item.Grade) && current < Cap(save, item.Id)
+                && Inventory.Count(save, MaterialForLevel(current + 1).Id) >= StoneCost(current + 1) && save.Doo >= DooCost(current + 1);
         }
 
         public static bool EnhanceSlot(SaveData save, string owner, int index, out string error)
@@ -239,11 +355,13 @@ namespace BiRyeoDo.Core
             int current = SlotLevel(save, owner, index);
             error = null;
             if (item == null) { error = "해당 부위에 장비를 먼저 장착합니다."; return false; }
+            if (!IsGradeUnlocked(save, owner, index, item.Grade)) { error = "이 부위의 " + Grades.NameOf(item.Grade) + " 등급을 먼저 개방해 주세요."; return false; }
             if (current >= Cap(save, item.Id)) { error = "현재 장비의 강화 상한입니다. 한계돌파하면 상한이 늘어납니다."; return false; }
+            var material = MaterialForLevel(current + 1);
             int stones = StoneCost(current + 1);
             long doo = DooCost(current + 1);
-            if (Inventory.Count(save, StoneId) < stones || save.Doo < doo) { error = "강화에 필요한 연마석 또는 두가 부족합니다."; return false; }
-            if (!Inventory.Remove(save, StoneId, stones)) { error = "연마석이 부족합니다."; return false; }
+            if (Inventory.Count(save, material.Id) < stones || save.Doo < doo) { error = "강화에 필요한 " + material.Name + " 또는 두가 부족합니다."; return false; }
+            if (!Inventory.Remove(save, material.Id, stones)) { error = material.Name + "이(가) 부족합니다."; return false; }
             save.Doo -= doo;
             Entry(save, owner, index).Level = current + 1;
             return true;

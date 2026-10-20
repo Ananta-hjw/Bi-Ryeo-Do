@@ -10,7 +10,7 @@ namespace BiRyeoDo.Tests
         private static SaveData Funded()
         {
             var save = new SaveData { Doo = 100000000 };
-            Inventory.Add(save, Gear.StoneId, 100000);
+            foreach (var material in Gear.Materials) Inventory.Add(save, material.Id, 100000);
             return save;
         }
 
@@ -19,6 +19,271 @@ namespace BiRyeoDo.Tests
             Inventory.Add(save, id, 1);
             string error;
             Assert.IsTrue(Inventory.EquipFor(save, owner, id, out error), error);
+        }
+
+        [TestCase(1, "하급 영석")]
+        [TestCase(20, "하급 영석")]
+        [TestCase(21, "중급 영석")]
+        [TestCase(40, "중급 영석")]
+        [TestCase(41, "고급 영석")]
+        [TestCase(60, "고급 영석")]
+        [TestCase(61, "상급 현철")]
+        [TestCase(80, "상급 현철")]
+        [TestCase(81, "만년 현철")]
+        [TestCase(90, "만년 현철")]
+        [TestCase(91, "신물:천외비석")]
+        [TestCase(100, "신물:천외비석")]
+        public void RequestedMaterialsAreUsedAtEveryBoundary(int level, string name)
+        {
+            Assert.AreEqual(name, Gear.MaterialForLevel(level).Name);
+            Assert.AreSame(Gear.MaterialForLevel(level), EarlyGameContent.FindItem(Gear.MaterialForLevel(level).Id));
+        }
+
+        private static string Weapon(ItemGrade grade)
+        {
+            return EarlyGameContent.Items.First(i => i.Kind == ItemKind.Weapon && i.Grade == grade).Id;
+        }
+
+        [TestCase(ItemGrade.Legendary, 10000)]
+        [TestCase(ItemGrade.Mythic, 40000)]
+        [TestCase(ItemGrade.Transcendent, 100000)]
+        public void DirectUnlockChargesAllUnpaidGradesAndDoesNotRepeat(ItemGrade grade, long cost)
+        {
+            var save = Funded();
+            Equip(save, "iron_sword");
+            string error;
+            Assert.IsTrue(Gear.EnhanceSlot(save, Inventory.Hero, 0, out error), error);
+            string id = Weapon(grade);
+            Equip(save, id);
+            Assert.AreEqual(0, Gear.LevelFor(save, Inventory.Hero, id));
+            Assert.AreEqual(1, Gear.SlotLevel(save, Inventory.Hero, 0));
+            Assert.AreEqual(cost, Gear.GradeUnlockCost(save, Inventory.Hero, 0, grade));
+            long before = save.Doo;
+            Assert.IsTrue(Gear.UnlockSlotGrade(save, Inventory.Hero, 0, out error), error);
+            Assert.AreEqual(before - cost, save.Doo);
+            Assert.AreEqual(1, Gear.LevelFor(save, Inventory.Hero, id));
+            Assert.IsTrue(Gear.IsGradeUnlocked(save, Inventory.Hero, 0, ItemGrade.Legendary));
+            Assert.IsFalse(Gear.UnlockSlotGrade(save, Inventory.Hero, 0, out error));
+            Assert.AreEqual(before - cost, save.Doo);
+        }
+
+        [Test]
+        public void SequentialUnlocksCostTenThirtyAndSixtyThousandAndSurviveReplacement()
+        {
+            var save = Funded();
+            string error;
+            var grades = new[] { ItemGrade.Legendary, ItemGrade.Mythic, ItemGrade.Transcendent };
+            var costs = new long[] { 10000, 30000, 60000 };
+            long before = save.Doo;
+            for (int i = 0; i < grades.Length; i++)
+            {
+                Equip(save, Weapon(grades[i]));
+                Assert.AreEqual(costs[i], Gear.GradeUnlockCost(save, Inventory.Hero, 0, grades[i]));
+                Assert.IsTrue(Gear.UnlockSlotGrade(save, Inventory.Hero, 0, out error), error);
+            }
+            Assert.AreEqual(before - 100000, save.Doo);
+            Equip(save, Weapon(ItemGrade.Legendary));
+            Assert.IsTrue(Gear.IsGradeUnlocked(save, Inventory.Hero, 0, ItemGrade.Legendary));
+            Inventory.Unequip(save, Weapon(ItemGrade.Legendary));
+            Assert.AreEqual(ItemGrade.Transcendent, Gear.UnlockedGrade(save, Inventory.Hero, 0));
+            Assert.AreEqual(ItemGrade.Epic, Gear.UnlockedGrade(save, "hyo_ryong", 0));
+            Assert.AreEqual(ItemGrade.Epic, Gear.UnlockedGrade(save, Inventory.Hero, 1));
+        }
+
+        [Test]
+        public void LockedGearKeepsItsStarBonusAndCannotSpendEnhancementResources()
+        {
+            var save = Funded();
+            string id = Weapon(ItemGrade.Legendary), error;
+            Equip(save, id);
+            Inventory.Add(save, id, 1);
+            Assert.IsTrue(Gear.Breakthrough(save, id, out error), error);
+            Assert.AreEqual(1, Gear.LevelsFor(save, Inventory.Hero).Single().Stars);
+            Assert.AreEqual(0, Gear.LevelsFor(save, Inventory.Hero).Single().Level);
+            long before = save.Doo;
+            int stones = Inventory.Count(save, Gear.StoneId);
+            Assert.IsFalse(Gear.CanEnhanceSlot(save, Inventory.Hero, 0));
+            Assert.IsFalse(Gear.EnhanceSlot(save, Inventory.Hero, 0, out error));
+            Assert.AreEqual(before, save.Doo);
+            Assert.AreEqual(stones, Inventory.Count(save, Gear.StoneId));
+        }
+
+        [Test]
+        public void InsufficientUnlockFundsLeaveGradeAndStoredLevelUntouched()
+        {
+            var save = Funded();
+            Equip(save, Ritual.RewardId);
+            save.Doo = 99999;
+            string error;
+            Assert.IsFalse(Gear.UnlockSlotGrade(save, Inventory.Hero, 0, out error));
+            Assert.AreEqual(99999, save.Doo);
+            Assert.AreEqual(ItemGrade.Epic, Gear.UnlockedGrade(save, Inventory.Hero, 0));
+            Assert.IsFalse(Gear.UnlockSlotGrade(save, Inventory.Hero, -1, out error));
+        }
+
+        [TestCase(20)]
+        [TestCase(40)]
+        [TestCase(60)]
+        [TestCase(80)]
+        [TestCase(90)]
+        public void CrossingMaterialBoundaryRequiresTheNewMaterialWithoutFallback(int level)
+        {
+            var save = Funded();
+            Equip(save, "iron_sword");
+            string error;
+            Inventory.Add(save, "iron_sword", 5);
+            for (int i = 0; i < 5; i++) Gear.Breakthrough(save, "iron_sword", out error);
+            for (int i = 0; i < level; i++) Assert.IsTrue(Gear.EnhanceSlot(save, Inventory.Hero, 0, out error), error);
+            var material = Gear.MaterialForLevel(level + 1);
+            Inventory.Remove(save, material.Id, Inventory.Count(save, material.Id));
+            long before = save.Doo;
+            Assert.IsFalse(Gear.EnhanceSlot(save, Inventory.Hero, 0, out error));
+            Assert.AreEqual(before, save.Doo);
+            Assert.AreEqual(level, Gear.SlotLevel(save, Inventory.Hero, 0));
+            Inventory.Add(save, material.Id, Gear.StoneCost(level + 1));
+            Assert.IsTrue(Gear.EnhanceSlot(save, Inventory.Hero, 0, out error), error);
+            Assert.AreEqual(0, Inventory.Count(save, material.Id));
+            Assert.AreEqual(before - Gear.DooCost(level + 1), save.Doo);
+        }
+
+        [Test]
+        public void ExistingEnhancedSlotsKeepTheirGradeBonusOnceWithoutSpendingDoo()
+        {
+            var save = new SaveData { GearProgressionMigrated = true, Doo = 321 };
+            string id = Weapon(ItemGrade.Legendary);
+            save.Items.Add(new ItemStack(id, 1));
+            save.EquippedGear.Add(id);
+            save.GearSlots.Add(new GearSlot { Owner = Inventory.Hero, Index = 0, ItemId = id, Level = 10 });
+            Gear.EnsureProgression(save);
+            Assert.AreEqual(10, Gear.LevelFor(save, Inventory.Hero, id));
+            Assert.AreEqual(ItemGrade.Legendary, Gear.UnlockedGrade(save, Inventory.Hero, 0));
+            Assert.AreEqual(321, save.Doo);
+            Equip(save, Weapon(ItemGrade.Mythic));
+            Assert.AreEqual(0, Gear.LevelFor(save, Inventory.Hero, Weapon(ItemGrade.Mythic)));
+            Assert.AreEqual(30000, Gear.GradeUnlockCost(save, Inventory.Hero, 0, ItemGrade.Mythic));
+        }
+
+        [Test]
+        public void LegacySecondAccessoryUnlockMigratesToTheCorrectSlot()
+        {
+            var save = new SaveData();
+            string id = EarlyGameContent.Items.First(i => i.Kind == ItemKind.Accessory && i.Grade == ItemGrade.Legendary).Id;
+            save.Items.Add(new ItemStack("mukryonghwan", 1));
+            save.Items.Add(new ItemStack(id, 1));
+            save.EquippedGear.Add("mukryonghwan");
+            save.EquippedGear.Add(id);
+            save.GearLevels.Add(new GearLevel { Id = id, Level = 1 });
+            Gear.EnsureProgression(save);
+            Assert.AreEqual(ItemGrade.Epic, Gear.UnlockedGrade(save, Inventory.Hero, 4));
+            Assert.AreEqual(ItemGrade.Legendary, Gear.UnlockedGrade(save, Inventory.Hero, 5));
+            Assert.AreEqual(4, Gear.LevelFor(save, Inventory.Hero, id));
+        }
+
+        [TestCase(1, 0)]
+        [TestCase(5, 0)]
+        [TestCase(6, 1)]
+        [TestCase(10, 1)]
+        [TestCase(11, 2)]
+        [TestCase(16, 3)]
+        [TestCase(21, 4)]
+        [TestCase(26, 5)]
+        [TestCase(30, 5)]
+        public void DailyRewardUsesTheAvailableStoryMaterialTier(int stage, int tier)
+        {
+            var save = new SaveData { ClearedStage = stage - 1 };
+            var mission = Daily.Missions(save)[0];
+            Daily.Record(save, mission.Event, mission.Target);
+            Daily.Claim(save, 0);
+            Assert.AreEqual(Gear.DailyPolish, Inventory.Count(save, Gear.Materials[tier].Id));
+            Daily.Claim(save, 0);
+            Assert.AreEqual(Gear.DailyPolish, Inventory.Count(save, Gear.Materials[tier].Id));
+        }
+
+        private sealed class MaterialRandom : IRandom
+        {
+            public double Value;
+            public double NextDouble() { return Value; }
+        }
+
+        [TestCase(ItemGrade.Normal, "하급 영석")]
+        [TestCase(ItemGrade.Fine, "중급 영석")]
+        [TestCase(ItemGrade.Rare, "고급 영석")]
+        [TestCase(ItemGrade.Epic, "상급 현철")]
+        [TestCase(ItemGrade.Legendary, "만년 현철")]
+        public void DismantlingGrantsTheMatchingMaterialWithFiveEqualProbabilityBuckets(ItemGrade grade, string name)
+        {
+            var save = new SaveData();
+            var rng = new MaterialRandom();
+            var seen = new int[5];
+            string id = Weapon(grade), error;
+            int total = 0;
+            for (int roll = 0; roll < 100; roll++)
+            {
+                rng.Value = roll / 100.0;
+                Inventory.Add(save, id, 1);
+                ItemStack enhancement;
+                var crafting = Salvage.Dismantle(save, id, rng, out enhancement, out error);
+                Assert.IsNotNull(crafting, error);
+                Assert.AreEqual(name, EarlyGameContent.FindItem(enhancement.Id).Name);
+                Assert.That(enhancement.Count, Is.InRange(1, 5));
+                seen[enhancement.Count - 1]++;
+                total += enhancement.Count;
+            }
+            CollectionAssert.AreEqual(new[] { 20, 20, 20, 20, 20 }, seen);
+            Assert.AreEqual(total, Inventory.Count(save, Salvage.EnhancementMaterialFor(EarlyGameContent.FindItem(id)).Id));
+            Assert.AreEqual(0, Inventory.Count(save, id));
+        }
+
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        [TestCase(4)]
+        public void ThreeMaterialsFuseIntoExactlyOneNextTierWithoutDoo(int tier)
+        {
+            var save = new SaveData { Doo = 42 };
+            var source = Gear.Materials[tier];
+            var target = Gear.Materials[tier + 1];
+            Inventory.Add(save, source.Id, 5);
+            string error;
+            Assert.IsTrue(Gear.CanFuseMaterial(save, source.Id));
+            Assert.AreSame(target, Gear.FuseMaterial(save, source.Id, out error), error);
+            Assert.AreEqual(2, Inventory.Count(save, source.Id));
+            Assert.AreEqual(1, Inventory.Count(save, target.Id));
+            Assert.AreEqual(42, save.Doo);
+            Assert.IsFalse(Gear.CanFuseMaterial(save, source.Id));
+            Assert.IsNull(Gear.FuseMaterial(save, source.Id, out error));
+            Assert.AreEqual(2, Inventory.Count(save, source.Id));
+            Assert.AreEqual(1, Inventory.Count(save, target.Id));
+        }
+
+        [Test]
+        public void InvalidAndFinalTierMaterialsCannotBeFusedOrConsumed()
+        {
+            var save = new SaveData();
+            string final = Gear.Materials.Last().Id, error;
+            Inventory.Add(save, final, 3);
+            Inventory.Add(save, "iron_sword", 3);
+            Assert.IsNull(Gear.FuseMaterial(save, final, out error));
+            Assert.IsNull(Gear.FuseMaterial(save, "iron_sword", out error));
+            Assert.IsNull(Gear.FuseMaterial(save, "not_an_item", out error));
+            Assert.AreEqual(3, Inventory.Count(save, final));
+            Assert.AreEqual(3, Inventory.Count(save, "iron_sword"));
+        }
+
+        [Test]
+        public void CelestialStoneCanBeCraftedFromThreeAncientIronButNeverGrantedByCombat()
+        {
+            var save = new SaveData();
+            Inventory.Add(save, Gear.Materials[4].Id, 3);
+            string error;
+            Assert.AreSame(Gear.Materials[5], Gear.FuseMaterial(save, Gear.Materials[4].Id, out error), error);
+            for (int stage = 1; stage <= 100; stage++)
+                Assert.AreNotEqual(Gear.Materials[5].Id, GearDrops.HighestMaterial(stage, 2).Id);
+            Assert.AreEqual("고급 영석", GearDrops.HighestMaterial(26, 0).Name);
+            Assert.AreEqual("만년 현철", GearDrops.HighestMaterial(30, 1).Name);
+            Assert.IsNull(Salvage.EnhancementMaterialFor(EarlyGameContent.FindItem(Weapon(ItemGrade.Mythic))));
+            Assert.IsNull(Salvage.EnhancementMaterialFor(EarlyGameContent.FindItem(Ritual.RewardId)));
         }
 
         [TestCase(0, 1f)]
@@ -107,7 +372,7 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(550, totalStones);
             Assert.AreEqual(787700, totalDoo);
             Assert.AreEqual(100000000 - totalDoo, save.Doo);
-            Assert.AreEqual(100000 - totalStones, Inventory.Count(save, Gear.StoneId));
+            Assert.AreEqual(600000 - totalStones, Gear.Materials.Sum(m => Inventory.Count(save, m.Id)));
             var actual = Inventory.ApplyGear(new CombatStats { MaxHp = 1000, MaxQi = 100, Attack = 1000, Defense = 100, Speed = 100 }, save.EquippedGear, Gear.LevelsFor(save, Inventory.Hero));
             Assert.AreEqual(1328, actual.Attack, "4% base weapon x 8.2 contributes 32.8%");
         }
@@ -220,8 +485,10 @@ namespace BiRyeoDo.Tests
             Gear.EnhanceSlot(save, Inventory.Hero, 0, out error);
             Inventory.Unequip(save, "iron_sword");
             int before = Inventory.Count(save, Gear.StoneId);
-            Assert.IsNotNull(Salvage.Dismantle(save, "iron_sword", new SeededRandom(4), out error), error);
-            Assert.AreEqual(before + 1, Inventory.Count(save, Gear.StoneId));
+            ItemStack enhancement;
+            Assert.IsNotNull(Salvage.Dismantle(save, "iron_sword", new SeededRandom(4), out enhancement, out error), error);
+            Assert.That(enhancement.Count, Is.InRange(1, 5));
+            Assert.AreEqual(before + enhancement.Count, Inventory.Count(save, Gear.StoneId));
             Assert.AreEqual(1, Gear.SlotLevel(save, Inventory.Hero, 0));
         }
 

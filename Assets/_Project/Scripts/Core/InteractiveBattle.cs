@@ -403,7 +403,7 @@ namespace BiRyeoDo.Core
                 ev.Retreated = true;
                 ev.Message = t.Name + "(이)가 물러난다!";
             }
-            if (!t.IsAlive) { t.Charging = false; t.ChargeTarget = null; }
+            if (!t.IsAlive) { t.Charging = false; t.ChargeTarget = null; t.AwakeningStrike = null; }
             else if (stun) ApplyStun(t, ev);
             ev.TargetHpAfter = t.Hp;
             ev.TargetDefeated = !t.IsAlive;
@@ -447,7 +447,12 @@ namespace BiRyeoDo.Core
 
         private void ApplyStun(Combatant target, BattleEvent ev)
         {
-            if (target.Charging)
+            if (target.AwakeningStrike != null)
+            {
+                target.AwakeningStrike = null;
+                ev.Interrupted = true;
+            }
+            else if (target.Charging)
             {
                 // Interrupt the wind-up: the heavy move that follows is skipped.
                 target.Charging = false;
@@ -490,7 +495,7 @@ namespace BiRyeoDo.Core
                 ev.Retreated = true;
                 ev.Message = unit.Name + "(이)가 물러난다!";
             }
-            if (!unit.IsAlive) { unit.Charging = false; unit.ChargeTarget = null; }
+            if (!unit.IsAlive) { unit.Charging = false; unit.ChargeTarget = null; unit.AwakeningStrike = null; }
             ev.TargetHpAfter = unit.Hp;
             ev.TargetDefeated = !unit.IsAlive;
             events.Add(ev);
@@ -601,12 +606,8 @@ namespace BiRyeoDo.Core
                 {
                     var phase = e.Phases[e.PhaseIndex++];
                     e.ScaleAttackDefense(phase.AtkMul, phase.DefMul);
-                    if (phase.Moves != null)
-                    {
-                        // a wind-up in progress still ends in its heavy blow; the new script starts after it
-                        if (e.Charging) e.PendingMoves = new List<EnemyMove>(phase.Moves);
-                        else { e.Moves = new List<EnemyMove>(phase.Moves); e.MoveIndex = 0; e.PendingMoves = null; }
-                    }
+                    // A second threshold replaces a pending first strike; it never queues an extra action.
+                    e.AwakeningStrike = BossPhases.CreateAwakening(e.Moves, e.PhaseIndex);
                     events.Add(new BattleEvent
                     {
                         Turn = Turn, ActorId = e.Id, TargetId = e.Id, SkillId = "phase", Kind = EventKind.Phase, HitIndex = e.PhaseIndex,
@@ -616,19 +617,9 @@ namespace BiRyeoDo.Core
             }
         }
 
-        /// <summary>A phase's script that waited for a wind-up (see <see cref="CheckPhases"/>) starts once nothing is being wound up.</summary>
-        private static void StartPendingScript(Combatant enemy)
-        {
-            if (enemy.Charging || enemy.PendingMoves == null) return;
-            enemy.Moves = enemy.PendingMoves;
-            enemy.MoveIndex = 0;
-            enemy.PendingMoves = null;
-        }
-
         private void EnemyAct(Combatant enemy, List<BattleEvent> events, bool wounded = false)
         {
             EnemyActions++;
-            StartPendingScript(enemy);
             if (enemy.Stunned)
             {
                 enemy.Stunned = false;
@@ -638,6 +629,7 @@ namespace BiRyeoDo.Core
 
             if (enemy.UsesResources && !wounded) enemy.Qi = Math.Min(enemy.Stats.MaxQi, enemy.Qi + EnemyQiRegen);
             var move = enemy.PeekMove();
+            bool awakening = move.Awakening;
 
             if (move.Charge)
             {
@@ -649,23 +641,26 @@ namespace BiRyeoDo.Core
                 return;
             }
 
-            var target = enemy.Charging && enemy.ChargeTarget != null && enemy.ChargeTarget.IsAlive ? enemy.ChargeTarget : FrontMember();
+            var target = !awakening && enemy.Charging && enemy.ChargeTarget != null && enemy.ChargeTarget.IsAlive ? enemy.ChargeTarget : FrontMember();
             if (target == null) return;
             // A 저격 move reaches every line and picks the back-most party member; everything else hits the front line.
-            if (move.Snipe && !enemy.Charging)
+            if (move.Snipe && !enemy.Charging && !awakening)
             {
                 var far = BackMember(Math.Max(enemy.Range, SnipeReach));
                 if (far != null) target = far;
             }
 
-            enemy.MoveIndex++;
-            bool heavy = enemy.Charging;
-            enemy.Charging = false;
-            enemy.ChargeTarget = null;
-            StartPendingScript(enemy);   // a phase that began during the wind-up takes over after this blow
+            bool heavy = awakening || enemy.Charging;
+            if (awakening) enemy.AwakeningStrike = null;
+            else
+            {
+                enemy.MoveIndex++;
+                enemy.Charging = false;
+                enemy.ChargeTarget = null;
+            }
 
             int hits = Math.Max(1, move.Hits);
-            float power = move.Power;
+            float power = move.Power * move.DamageFactor;
             bool burst = false, dry = false;
             if (enemy.UsesResources)
             {
@@ -686,7 +681,7 @@ namespace BiRyeoDo.Core
                 var ev = new BattleEvent
                 {
                     Turn = Turn, ActorId = enemy.Id, TargetId = target.Id, SkillId = move.Name, Kind = EventKind.Attack,
-                    HitIndex = h, HitCount = hits, Burst = burst && h == 0, Weakened = dry && h == 0
+                    HitIndex = h, HitCount = hits, Awakening = awakening, Burst = burst && h == 0, Weakened = dry && h == 0
                 };
                 if (target.Evading && (target.EvadeChance >= 1f || _rng.NextDouble() < target.EvadeChance))
                 {

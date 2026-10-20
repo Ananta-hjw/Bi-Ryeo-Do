@@ -148,7 +148,7 @@ namespace BiRyeoDo.Game.UI
                     + "\n기본 장비 효과 +" + Mathf.RoundToInt(Gear.StarBonus(enh) * 100f) + "% · 여분 " + spares + "개"
                     + (enh < Gear.MaxStars ? "\n다음: " + (enh + 1) + "성 · 상한 +" + Gear.LevelCaps[enh + 1] + " · 기본 효과 +" + Mathf.RoundToInt(Gear.StarBonus(enh + 1) * 100f) + "% (여분 1개 사용)" : "\n최대 한계돌파입니다."));
                 var matInfo = Salvage.MaterialFor(item);
-                if (matInfo != null) lines.Add("분해: " + matInfo.Name + " " + Salvage.MinCount[(int)item.Grade] + "~" + Salvage.MaxCount(item.Grade) + "개 (" + Grades.NameOf(item.Grade) + " " + Salvage.SlotLabel(item.Kind) + " 재료) · 연마석 " + Salvage.PolishYield(item) + "개");
+                if (matInfo != null) lines.Add("분해: " + matInfo.Name + " " + Salvage.MinCount[(int)item.Grade] + "~" + Salvage.MaxCount(item.Grade) + "개 (" + Grades.NameOf(item.Grade) + " " + Salvage.SlotLabel(item.Kind) + " 재료)\n" + Salvage.EnhancementMaterialFor(item).Name + " 1~5개 (각 20%)");
                 var set = Gear.SetOf(item.Id);
                 lines.Add(set != null ? Gear.SetDetail(set, save.EquippedGear, save) : "세트 없음");
             }
@@ -167,6 +167,14 @@ namespace BiRyeoDo.Game.UI
             else if (item.MasteryUses > 0)
             {
                 UiFactory.Button("Read", card.transform, new Vector2(0.05f, 0.13f), new Vector2(0.95f, 0.22f), "무공 고르기 (숙련 +" + item.MasteryUses + "회)", UiFactory.Red, () => { DoMain(item); }, 32);
+            }
+            else if (Gear.NextMaterial(item.Id) != null)
+            {
+                var next = Gear.NextMaterial(item.Id);
+                bool ready = Gear.CanFuseMaterial(save, item.Id);
+                var fuseBtn = UiFactory.Button("FuseMaterial", card.transform, new Vector2(0.05f, 0.13f), new Vector2(0.95f, 0.22f),
+                    "합성 " + Inventory.Count(save, item.Id) + " / 3 → " + next.Name + " 1개", ready ? UiFactory.Red : UiFactory.InkSoft, () => DoFuseMaterial(item), 28);
+                fuseBtn.interactable = ready;
             }
             else if (Salvage.IsFusable(item))
             {
@@ -229,6 +237,11 @@ namespace BiRyeoDo.Game.UI
             if (item.MasteryUses > 0)
             {
                 OpenScrollPicker(item);   // the art is chosen there; nothing else to refresh yet
+                return;
+            }
+            else if (Gear.NextMaterial(item.Id) != null)
+            {
+                DoFuseMaterial(item);
                 return;
             }
             else if (Salvage.IsFusable(item))
@@ -359,21 +372,34 @@ namespace BiRyeoDo.Game.UI
                 return;
             }
             _confirmDismantle = null;
-            var got = Salvage.Dismantle(save, item.Id, new SeededRandom(Environment.TickCount), out error);
+            ItemStack enhancement;
+            var got = Salvage.Dismantle(save, item.Id, new SeededRandom(Environment.TickCount), out enhancement, out error);
             if (got != null)
             {
                 var mat = EarlyGameContent.FindItem(got.Id);
-                _flash = item.Name + " 분해: " + mat.Name + " x" + got.Count + ", 연마석 x" + Salvage.PolishYield(item) + " 획득";
+                _flash = item.Name + " 분해: " + mat.Name + " x" + got.Count + ", " + EarlyGameContent.FindItem(enhancement.Id).Name + " x" + enhancement.Count + " 획득";
                 SoundManager.Sfx("win");
                 GameManager.Instance.SaveNow();
                 Refresh();
                 ReopenDetail(item);
-                ShowNotice("분해 완료", UiFactory.GradedName(item) + "을(를) 분해했습니다.\n\n<color=" + UiFactory.GradeHex(mat.Grade) + ">" + mat.Name + "</color> <b>" + got.Count + "개</b> 획득\n(보유 " + Inventory.Count(save, mat.Id) + "개)\n연마석 " + Salvage.PolishYield(item) + "개 획득", UiFactory.Gold);
+                ShowNotice("분해 완료", UiFactory.GradedName(item) + "을(를) 분해했습니다.\n\n<color=" + UiFactory.GradeHex(mat.Grade) + ">" + mat.Name + "</color> <b>" + got.Count + "개</b> 획득\n(보유 " + Inventory.Count(save, mat.Id) + "개)\n" + EarlyGameContent.FindItem(enhancement.Id).Name + " " + enhancement.Count + "개 획득", UiFactory.Gold);
                 return;
             }
             _flash = error;
             Refresh();
             ReopenDetail(item);
+        }
+
+        private void DoFuseMaterial(ItemData material)
+        {
+            var save = GameManager.Instance.Save;
+            string error;
+            var made = Gear.FuseMaterial(save, material.Id, out error);
+            _flash = made != null ? made.Name + " 1개를 합성했습니다." : error;
+            if (made != null) { SoundManager.Sfx("levelup"); GameManager.Instance.SaveNow(); }
+            Refresh();
+            ReopenDetail(material);
+            if (made != null) ShowNotice("재료 합성 완료", material.Name + " 3개를 사용해\n" + UiFactory.GradedName(made) + " 1개를 얻었습니다.", UiFactory.Gold);
         }
 
         private void DoFuse(ItemData material)
