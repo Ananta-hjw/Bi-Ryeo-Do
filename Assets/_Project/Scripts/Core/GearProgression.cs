@@ -16,7 +16,6 @@ namespace BiRyeoDo.Core
     public static partial class Gear
     {
         public const int MaxLevel = 100, MaxStars = 5;
-        public const int DailyPolish = 5, StarterPolish = 30;
         public const string StoneId = "gear_polish";
         public static readonly int[] LevelCaps = { 10, 20, 30, 50, 70, 100 };
         private static readonly float[] StarBonuses = { 0f, .05f, .10f, .15f, .20f, .30f };
@@ -34,19 +33,13 @@ namespace BiRyeoDo.Core
         private static ItemData Material(string id, string name, ItemGrade grade, string range)
         {
             return new ItemData { Id = id, Name = name, Kind = ItemKind.Material, Grade = grade,
-                Description = range + " 부위 확정 강화 재료. " + (grade == ItemGrade.Mythic ? "만년 현철 3개 합성 또는 후반 일일 임무로 얻는다. 전투에서는 나오지 않는다." : "전투 승리·일일 임무·같은 등급 장비 분해로 얻는다. 3개로 다음 등급 재료 1개를 확정 합성한다.") + " 팔 수 없다." };
+                Description = range + " 부위 확정 강화 재료. " + (grade == ItemGrade.Mythic ? "만년 현철 3개 합성으로 얻는다. 전투에서는 나오지 않는다." : "이야기 스테이지 전투 승리·같은 등급 장비 분해로 얻는다. 3개로 다음 등급 재료 1개를 확정 합성한다.") + " 팔 수 없다." };
         }
 
         public static ItemData MaterialForLevel(int nextLevel)
         {
             int n = Math.Max(1, Math.Min(MaxLevel, nextLevel));
             return Materials[n <= 80 ? (n - 1) / 20 : n <= 90 ? 4 : 5];
-        }
-
-        // Daily mission tier by available story stage; combat uses GearDrops instead.
-        public static ItemData RewardMaterial(int stageNumber)
-        {
-            return Materials[Math.Max(0, Math.Min(5, (Math.Max(1, stageNumber) - 1) / 5))];
         }
 
         public const int MaterialFusionCost = 3;

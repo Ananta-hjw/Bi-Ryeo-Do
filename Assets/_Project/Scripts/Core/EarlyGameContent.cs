@@ -639,7 +639,7 @@ namespace BiRyeoDo.Core
         /// <summary>What the protagonist starts with.</summary>
         public static readonly ItemStack[] StartKit =
         {
-            new ItemStack("mukryonghwan", 1), new ItemStack("laundry_bat", 1), new ItemStack("cloth_robe", 1), new ItemStack("train_pants", 1), new ItemStack("straw_sandals", 1), new ItemStack("bear_gall", 2), new ItemStack("okruju", 1), new ItemStack(Gear.StoneId, Gear.StarterPolish),
+            new ItemStack("mukryonghwan", 1), new ItemStack("laundry_bat", 1), new ItemStack("cloth_robe", 1), new ItemStack("train_pants", 1), new ItemStack("straw_sandals", 1), new ItemStack("bear_gall", 2), new ItemStack("okruju", 1), new ItemStack(Gear.StoneId, 5),
         };
 
         public static ItemData FindItem(string id)

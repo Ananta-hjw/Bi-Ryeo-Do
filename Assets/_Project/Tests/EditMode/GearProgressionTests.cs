@@ -188,15 +188,15 @@ namespace BiRyeoDo.Tests
         [TestCase(21, 4)]
         [TestCase(26, 5)]
         [TestCase(30, 5)]
-        public void DailyRewardUsesTheAvailableStoryMaterialTier(int stage, int tier)
+        public void DailyRewardsNeverGrantEnhancementMaterialsAtAnyProgression(int stage, int tier)
         {
             var save = new SaveData { ClearedStage = stage - 1 };
             var mission = Daily.Missions(save)[0];
             Daily.Record(save, mission.Event, mission.Target);
             Daily.Claim(save, 0);
-            Assert.AreEqual(Gear.DailyPolish, Inventory.Count(save, Gear.Materials[tier].Id));
+            Assert.IsTrue(Gear.Materials.All(m => Inventory.Count(save, m.Id) == 0));
             Daily.Claim(save, 0);
-            Assert.AreEqual(Gear.DailyPolish, Inventory.Count(save, Gear.Materials[tier].Id));
+            Assert.IsTrue(Gear.Materials.All(m => Inventory.Count(save, m.Id) == 0));
         }
 
         private sealed class MaterialRandom : IRandom
@@ -493,7 +493,7 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void DailyPolishCanOnlyBeClaimedOnceAndStarterIncludesPolish()
+        public void StarterGrantsFiveLowStonesOnlyOnceAndDailyGrantsNone()
         {
             var clock = Daily.Clock;
             try
@@ -501,18 +501,34 @@ namespace BiRyeoDo.Tests
                 Daily.Clock = () => new DateTime(2026, 10, 20);
                 var save = new SaveData();
                 Inventory.EnsureStartKit(save);
-                Assert.AreEqual(Gear.StarterPolish, Inventory.Count(save, Gear.StoneId));
+                Assert.AreEqual(5, Inventory.Count(save, Gear.StoneId));
                 Inventory.EnsureStartKit(save);
-                Assert.AreEqual(Gear.StarterPolish, Inventory.Count(save, Gear.StoneId));
+                Assert.AreEqual(5, Inventory.Count(save, Gear.StoneId));
                 var mission = Daily.Missions(save)[0];
                 Daily.Record(save, mission.Event, mission.Target);
                 Daily.Claim(save, 0);
-                Assert.AreEqual(Gear.StarterPolish + Gear.DailyPolish, Inventory.Count(save, Gear.StoneId));
+                Assert.AreEqual(5, Inventory.Count(save, Gear.StoneId));
+                Assert.IsTrue(Gear.Materials.Skip(1).All(m => Inventory.Count(save, m.Id) == 0));
                 Daily.Claim(save, 0);
-                Assert.AreEqual(Gear.StarterPolish + Gear.DailyPolish, Inventory.Count(save, Gear.StoneId));
+                Assert.AreEqual(5, Inventory.Count(save, Gear.StoneId));
+                Assert.IsTrue(Gear.Materials.Skip(1).All(m => Inventory.Count(save, m.Id) == 0));
                 Assert.AreEqual(0, EarlyGameContent.FindItem(Gear.StoneId).SellValue);
             }
             finally { Daily.Clock = clock; }
+        }
+
+        [Test]
+        public void StarterAndAllDailyClaimsPreserveExistingMaterialStacks()
+        {
+            var save = Funded();
+            Inventory.EnsureStartKit(save);
+            var missions = Daily.Missions(save);
+            for (int i = 0; i < missions.Count; i++)
+            {
+                Daily.Record(save, missions[i].Event, missions[i].Target);
+                Assert.IsNotEmpty(Daily.Claim(save, i));
+            }
+            foreach (var material in Gear.Materials) Assert.AreEqual(material.Id == Gear.StoneId ? 100005 : 100000, Inventory.Count(save, material.Id));
         }
 
         [Test]

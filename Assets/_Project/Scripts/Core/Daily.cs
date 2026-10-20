@@ -176,9 +176,7 @@ namespace BiRyeoDo.Core
             save.DailyClaimed.Add(index);
             long doo = RewardDoo(save, ms[index]);
             save.Doo += doo;
-            var material = Gear.RewardMaterial(save.HighestUnlockedStage);
-            Inventory.Add(save, material.Id, Gear.DailyPolish);
-            notes.Add(ms[index].Name + ": 두 +" + doo.ToString("N0") + ", " + material.Name + " x" + Gear.DailyPolish);
+            notes.Add(ms[index].Name + ": 두 +" + doo.ToString("N0"));
             if (save.DailyClaimed.Count == Count)
             {
                 long bonus = AllClearDoo(save);

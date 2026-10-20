@@ -121,17 +121,30 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(0, Inventory.Count(save, drop.Id));
         }
 
-        [Test]
-        public void TowerUsesItsOwnFirstClearHistoryAndTheAvailableNormalStoryPool()
+        [TestCase(true, false)]
+        [TestCase(false, true)]
+        [TestCase(true, true)]
+        public void SideModesGrantNoMaterialOnFirstClearOrReplay(bool tower, bool quest)
         {
             var stage = StoryStage();
-            stage.IsTower = true;
+            stage.IsTower = tower;
+            stage.IsQuest = quest;
             stage.TowerFloor = 5;
+            stage.QuestId = "q_hogol";
             var save = new SaveData { ClearedStage = 20 };
-            var drop = GearDrops.RollFight(save, stage, 1, new NoRolls());
-            Assert.AreEqual(Gear.Materials[2].Id, drop.Id);
+            Assert.IsNull(GearDrops.RollFight(save, stage, 0, new NoRolls()));
+            Assert.IsNull(GearDrops.RollFight(save, stage, 1, new NoRolls()));
             save.TowerBest = 5;
-            Assert.IsNull(GearDrops.RollFight(save, stage, 1, new TwoRolls(0, 0)));
+            save.DoneQuests.Add(stage.QuestId);
+            Assert.IsNull(GearDrops.RollFight(save, stage, 1, new NoRolls()));
+        }
+
+        [Test]
+        public void NonStageBattlesGrantNoMaterial()
+        {
+            var stage = StoryStage();
+            stage.Number = 0;
+            Assert.IsNull(GearDrops.RollFight(new SaveData(), stage, 1, new NoRolls()));
         }
     }
 }
