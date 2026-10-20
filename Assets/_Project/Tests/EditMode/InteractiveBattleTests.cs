@@ -31,6 +31,22 @@ namespace BiRyeoDo.Tests
             return b;
         }
 
+        [TestCase(false, 1)]
+        [TestCase(false, 2)]
+        [TestCase(true, 1)]
+        [TestCase(true, 2)]
+        public void AreaAttackEventsStayMarkedWithOneOrMultipleLivingTargets(bool area, int enemies)
+        {
+            var art = new SkillSpec { Id = "art", Name = "test", Power = .1f, Hits = 3, Range = 3, AllEnemies = area };
+            var player = Player(Stats(10000, 100, 0, 100), art);
+            var targets = Enumerable.Range(0, enemies).Select(i => Enemy("e" + i, Stats(10000, 1, 0, 1))).ToArray();
+            var battle = Start(player, targets);
+            var hits = battle.PlayerAct(PlayerCommand.UseSkill(art, targets[0]))
+                .Where(e => e.Kind == EventKind.Attack && e.ActorId == player.Id).ToList();
+            Assert.AreEqual(area ? enemies * 3 : 3, hits.Count);
+            Assert.IsTrue(hits.All(e => e.AllEnemies == area));
+        }
+
         [Test]
         public void StoryBossRetreatsAtThresholdInsteadOfDying()
         {

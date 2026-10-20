@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.Reflection;
+using System.Collections.Generic;
 using BiRyeoDo.Core;
 using BiRyeoDo.Game.UI;
 using NUnit.Framework;
@@ -89,16 +90,75 @@ namespace BiRyeoDo.Tests.UI
             finally { Object.DestroyImmediate(root); }
         }
 
-        [TestCase("basic", false, 1, true)]
-        [TestCase("공격", false, 1, true)]
-        [TestCase("basic", true, 1, false)]
-        [TestCase("basic", false, 2, false)]
-        [TestCase("samcheopyeong", false, 1, false)]
-        public void OnlySingleBasicAttacksUseApproach(string skill, bool joint, int hits, bool expected)
+        [Test]
+        public void WholeUnitMovesItsFigureGaugesAndStatusTogetherAndCancelRestoresVisibility()
         {
-            var method = typeof(BattleScreen).GetMethod("IsBasicAttack", BindingFlags.NonPublic | BindingFlags.Static);
-            var ev = new BattleEvent { Kind = EventKind.Attack, SkillId = skill, Joint = joint, HitCount = hits };
+            var root = new GameObject("Battle", typeof(RectTransform));
+            try
+            {
+                var field = root.GetComponent<RectTransform>();
+                field.sizeDelta = new Vector2(1080f, 1920f);
+                var motion = root.AddComponent<BasicAttackMotion>();
+                var unit = UiFactory.Rect("Unit", field, Vector2.zero, Vector2.zero);
+                unit.sizeDelta = new Vector2(180f, 300f);
+                var group = unit.gameObject.AddComponent<CanvasGroup>();
+                group.alpha = .7f;
+                var figure = UiFactory.Panel("Figure", unit, Vector2.zero, Vector2.one, Color.white);
+                foreach (var name in new[] { "Hp", "Qi", "Spirit", "Status" })
+                    UiFactory.Label(name, unit, Vector2.zero, Vector2.one, name, 24, Color.white);
+                var target = UiFactory.Panel("Target", field, Vector2.one, Vector2.one, Color.white);
+                var fx = UiFactory.Rect("Fx", field, Vector2.zero, Vector2.one);
+                var originalPosition = unit.position;
+                var approach = motion.Approach(figure, target, fx, 1, unit);
+                Assert.IsTrue(approach.MoveNext());
+                Assert.AreEqual(0f, group.alpha);
+                var clone = (RectTransform)fx.GetChild(0);
+                Assert.AreEqual(.7f, clone.GetComponent<CanvasGroup>().alpha);
+                Assert.IsFalse(clone.GetComponent<CanvasGroup>().blocksRaycasts);
+                foreach (var name in new[] { "Figure", "Hp", "Qi", "Spirit", "Status" }) Assert.IsNotNull(clone.Find(name));
+                var hp = clone.Find("Hp");
+                var hpPosition = hp.position;
+                clone.anchoredPosition += new Vector2(100f, 40f);
+                Assert.That(Vector3.Distance(hp.position, hpPosition), Is.GreaterThan(1f));
+                Assert.AreEqual(originalPosition, unit.position);
+                motion.Cancel();
+                Assert.AreEqual(.7f, group.alpha);
+                Assert.AreEqual(originalPosition, unit.position);
+                Assert.AreEqual(0, fx.childCount);
+                (approach as IDisposable)?.Dispose();
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
+        [TestCase("basic", false, 1, false, true)]
+        [TestCase("공격", false, 1, false, true)]
+        [TestCase("basic", true, 1, false, true)]
+        [TestCase("basic", false, 2, false, true)]
+        [TestCase("samcheopyeong", false, 1, false, true)]
+        [TestCase("ultimate", false, 3, false, true)]
+        [TestCase("area", false, 1, true, false)]
+        [TestCase("area", false, 3, true, false)]
+        public void EveryDirectAttackExceptAreaDamageUsesApproach(string skill, bool joint, int hits, bool area, bool expected)
+        {
+            var method = typeof(BattleScreen).GetMethod("IsApproachAttack", BindingFlags.NonPublic | BindingFlags.Static);
+            var ev = new BattleEvent { Kind = EventKind.Attack, SkillId = skill, Joint = joint, HitCount = hits, AllEnemies = area };
             Assert.AreEqual(expected, (bool)method.Invoke(null, new object[] { ev }));
+            ev.Kind = EventKind.Status;
+            Assert.IsFalse((bool)method.Invoke(null, new object[] { ev }));
+        }
+
+        [Test]
+        public void MultiHitMotionReturnsOnlyAfterTheLastActualHitIncludingStatusKills()
+        {
+            var method = typeof(BattleScreen).GetMethod("EndsAttackSequence", BindingFlags.NonPublic | BindingFlags.Static);
+            var first = new BattleEvent { Kind = EventKind.Attack, ActorId = "p", TargetId = "e", SkillId = "art", HitIndex = 0, HitCount = 3 };
+            var second = new BattleEvent { Kind = EventKind.Attack, ActorId = "p", TargetId = "e", SkillId = "art", HitIndex = 1, HitCount = 3 };
+            var bleed = new BattleEvent { Kind = EventKind.Status, TargetId = "e", TargetDefeated = true };
+            var reply = new BattleEvent { Kind = EventKind.Attack, ActorId = "other", TargetId = "p", HitIndex = 0 };
+            var events = new List<BattleEvent> { first, second, bleed, reply };
+            Assert.IsFalse((bool)method.Invoke(null, new object[] { events, 0 }));
+            Assert.IsTrue((bool)method.Invoke(null, new object[] { events, 1 }));
+            Assert.IsTrue((bool)method.Invoke(null, new object[] { events, 3 }));
         }
     }
 }

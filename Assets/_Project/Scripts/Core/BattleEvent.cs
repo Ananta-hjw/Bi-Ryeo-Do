@@ -25,6 +25,7 @@ namespace BiRyeoDo.Core
         public bool Guarded;         // damage was reduced by a guard
         public int HitIndex;         // 0-based within a multi-hit skill
         public int HitCount = 1;
+        public bool AllEnemies;    // keep area attacks stationary, even when only one target survives
         public int Heal;             // HP restored (meditate heals the actor, Heal events heal TargetId)
         public bool Stunned;         // the hit stunned the target
         public bool Interrupted;     // the hit cancelled a charging move

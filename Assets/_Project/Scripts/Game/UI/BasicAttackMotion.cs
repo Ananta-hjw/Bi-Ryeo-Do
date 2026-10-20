@@ -4,19 +4,21 @@ using UnityEngine.UI;
 
 namespace BiRyeoDo.Game.UI
 {
-    /// <summary>Moves only a temporary copy of the figure; the board, gauges and source transform stay fixed.</summary>
+    /// <summary>Moves a temporary figure or complete combat card; original board transforms stay fixed.</summary>
     public sealed class BasicAttackMotion : MonoBehaviour
     {
         private Graphic _source;
         private bool _sourceEnabled;
         private RectTransform _visual;
+        private CanvasGroup _sourceGroup;
+        private float _sourceAlpha;
         private Vector2 _origin;
         private Quaternion _rotation;
         private Vector3 _scale;
 
         public bool IsActive { get { return _visual != null; } }
 
-        public IEnumerator Approach(Graphic source, Graphic target, RectTransform layer, float speed)
+        public IEnumerator Approach(Graphic source, Graphic target, RectTransform layer, float speed, RectTransform group = null)
         {
             Cancel();
             if (source == null || target == null || layer == null || !source.enabled || !source.gameObject.activeInHierarchy) yield break;
@@ -28,26 +30,41 @@ namespace BiRyeoDo.Game.UI
             float direction = targetFeet.x >= sourceFeet.x ? 1f : -1f;
             float gap = Mathf.Min((WidthIn(layer, from) + WidthIn(layer, to)) * .5f + 12f,
                 Mathf.Abs(targetFeet.x - sourceFeet.x) * .85f);
-            _origin = layer.InverseTransformPoint(from.position);
+            var moving = group != null ? group : from;
+            _origin = layer.InverseTransformPoint(moving.position);
             var destination = targetFeet - new Vector2(direction * gap, 0f) + (_origin - sourceFeet);
 
-            var copy = Instantiate(source.gameObject, layer, false);
-            copy.name = "AttackingFigure";
+            var copy = Instantiate(moving.gameObject, layer, false);
+            copy.name = group != null ? "AttackingUnit" : "AttackingFigure";
+            var copyGroup = copy.GetComponent<CanvasGroup>();
+            if (copyGroup == null) copyGroup = copy.AddComponent<CanvasGroup>();
+            copyGroup.interactable = false;
+            copyGroup.blocksRaycasts = false;
             foreach (var graphic in copy.GetComponentsInChildren<Graphic>()) graphic.raycastTarget = false;
             _visual = (RectTransform)copy.transform;
             _visual.anchorMin = _visual.anchorMax = layer.pivot;
-            _visual.pivot = from.pivot;
-            _visual.sizeDelta = from.rect.size;
+            _visual.pivot = moving.pivot;
+            _visual.sizeDelta = moving.rect.size;
             _visual.anchoredPosition = _origin;
-            _rotation = Quaternion.Inverse(layer.rotation) * from.rotation;
+            _rotation = Quaternion.Inverse(layer.rotation) * moving.rotation;
             _visual.localRotation = _rotation;
             var parentScale = layer.lossyScale;
-            var sourceScale = from.lossyScale;
+            var sourceScale = moving.lossyScale;
             _scale = new Vector3(sourceScale.x / NonZero(parentScale.x), sourceScale.y / NonZero(parentScale.y), 1f);
             _visual.localScale = _scale;
-            _source = source;
-            _sourceEnabled = source.enabled;
-            source.enabled = false;
+            if (group != null)
+            {
+                _sourceGroup = group.GetComponent<CanvasGroup>();
+                if (_sourceGroup == null) _sourceGroup = group.gameObject.AddComponent<CanvasGroup>();
+                _sourceAlpha = _sourceGroup.alpha;
+                _sourceGroup.alpha = 0f;
+            }
+            else
+            {
+                _source = source;
+                _sourceEnabled = source.enabled;
+                source.enabled = false;
+            }
 
             yield return MoveTo(destination, .17f, 18f, -6f * direction, 1f, speed);
             if (!IsActive) yield break;
@@ -92,6 +109,11 @@ namespace BiRyeoDo.Game.UI
         public void Cancel()
         {
             if (_source != null) _source.enabled = _sourceEnabled;
+            if (_sourceGroup != null)
+            {
+                _sourceGroup.alpha = _sourceAlpha;
+            }
+            _sourceGroup = null;
             if (_visual != null)
             {
                 var copy = _visual.gameObject;
