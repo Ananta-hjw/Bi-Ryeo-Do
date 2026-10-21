@@ -100,6 +100,13 @@ namespace BiRyeoDo.Core
 
         public CombatStats BuildStats()
         {
+            var before = BuildStatsBeforeRealm();
+            return Realm.HasRealm(this) ? Realm.ApplyBonus(before, Realm.StepOf(Realm.Power(before))) : before;
+        }
+
+        /// <summary>Difficulty and enemy modifiers applied, before the realm multiplier.</summary>
+        public CombatStats BuildStatsBeforeRealm()
+        {
             var b = Progression.StatsFor(Level);
             int attack = Math.Max(1, (int)Math.Round(b.Attack * AtkMul)), defense = Math.Max(1, (int)Math.Round(b.Defense * DefMul));
             // Shown attack and defense are re-balanced against each other (their product stays the same) so that an enemy reads like a party member:
@@ -125,7 +132,7 @@ namespace BiRyeoDo.Core
 
         public Combatant CreateCombatant(string uniqueId)
         {
-            var c = new Combatant(uniqueId, Name, Team.Enemy, BuildStats(), null);
+            var c = new Combatant(uniqueId, Name, Team.Enemy, BuildStatsBeforeRealm(), null, Realm.HasRealm(this));
             c.IsBoss = IsBoss;
             c.Rank = Rank;
             c.RetreatHpPct = RetreatHpPct;
@@ -175,7 +182,7 @@ namespace BiRyeoDo.Core
                 skills.Add(spec);
             }
             CompanionTraining.ApplyToSkills(Id, skills, trainLevel);
-            return new Combatant(Id, Name, Team.Player, stats, skills);
+            return new Combatant(Id, Name, Team.Player, stats, skills, true);
         }
     }
 

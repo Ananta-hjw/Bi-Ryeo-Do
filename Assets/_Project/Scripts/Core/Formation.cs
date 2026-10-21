@@ -242,7 +242,7 @@ namespace BiRyeoDo.Core
                 foreach (var s in skills) if ((s.SpiritCost > 0) == ultimate) have++;
                 if (have < (ultimate ? Progression.MaxEquippedUltimates : Progression.MaxEquippedArts)) skills.Add(Mastery.Apply(save, art));
             }
-            var hero = new Combatant(HeroId, "비류연", Team.Player, InnerArts.HeroStats(save), skills);
+            var hero = new Combatant(HeroId, "비류연", Team.Player, InnerArts.HeroStatsBeforeRealm(save), skills, true);
             InnerArts.ApplyPerks(hero, save.EquippedInner, save.InnerLevels);
             return hero;
         }

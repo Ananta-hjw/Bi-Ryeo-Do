@@ -13,6 +13,8 @@ namespace BiRyeoDo.Core
         public readonly string Name;
         public readonly Team Team;
         public CombatStats Stats { get { return _stats; } }
+        public readonly double RealmPowerBeforeBonus;
+        public readonly int RealmStep;
         private CombatStats _stats;
         private CombatStats? _baseStats;   // the stats before a boss phase changed them
         public readonly List<SkillSpec> Skills = new List<SkillSpec>();
@@ -49,15 +51,18 @@ namespace BiRyeoDo.Core
 
         public bool IsAlive { get { return Hp > 0; } }
 
-        public Combatant(string id, string name, Team team, CombatStats stats, IEnumerable<SkillSpec> skills)
+        public Combatant(string id, string name, Team team, CombatStats stats, IEnumerable<SkillSpec> skills, bool applyRealmBonus = false)
         {
             Id = id;
             Name = name;
             Team = team;
-            _stats = stats;
-            Hp = stats.MaxHp;
-            Qi = stats.MaxQi;
-            StartSpirit = stats.StartSpirit;
+            // Factories opt in with unboosted stats; snapshots/clones keep the supplied values unchanged.
+            RealmPowerBeforeBonus = Realm.Power(stats);
+            RealmStep = Realm.StepOf(RealmPowerBeforeBonus);
+            _stats = applyRealmBonus ? Realm.ApplyBonus(stats, RealmStep) : stats;
+            Hp = _stats.MaxHp;
+            Qi = _stats.MaxQi;
+            StartSpirit = _stats.StartSpirit;
             Skills.Add(SkillSpec.BasicAttack());
             if (skills != null) Skills.AddRange(skills);
         }

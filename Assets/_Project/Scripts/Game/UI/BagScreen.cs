@@ -26,6 +26,7 @@ namespace BiRyeoDo.Game.UI
         private readonly List<Row> _rows = new List<Row>();
         private Text _header, _hint, _empty;
         private string _flash;
+        private BulkDismantlePanel _bulkDismantle;
         private RectTransform _help;   // the ? window: what the bag's buttons do
         private RectTransform _content;
         private int _filter = 1;                       // 0 all, 1 gear, 2 consumables, 3 materials & keys
@@ -49,11 +50,16 @@ namespace BiRyeoDo.Game.UI
 
             UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
             UiFactory.Glyph("bag", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
-            _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.84f, 0.985f), "", 40, UiFactory.Gold);
+            _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(.67f, 0.985f), "", 40, UiFactory.Gold);
+            UiFactory.Button("BulkDismantleButton", root, new Vector2(.69f, .933f), new Vector2(.84f, .98f), "일괄 분해", UiFactory.Red, () =>
+            {
+                CloseDetail();
+                _bulkDismantle.Show();
+            }, 28);
             UiFactory.HelpButton(root, () => UiFactory.ShowInfo(_help));   // right next to the 두 figure, inside the header band
             _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(.025f, .005f), new Vector2(.635f, .075f), "", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
-            _help = UiFactory.InfoWindow(root, "행낭 안내", "아이템을 누르면 상세 정보와 관리 버튼이 열립니다.\n· 돌파·분해: 아이템 상세창에서 합니다.\n· 강화·장착: 상태창에서 합니다.");
+            _help = UiFactory.InfoWindow(root, "행낭 안내", "아이템을 누르면 상세 정보와 관리 버튼이 열립니다.\n· 돌파·분해: 아이템 상세창에서 합니다.\n· 일괄 분해: 상단 버튼에서 등급과 부위를 선택합니다.\n· 강화·장착: 협객 → 장비에서 합니다.");
 
             // Filter tabs
             for (int t = 0; t < FilterNames.Length; t++)
@@ -98,6 +104,7 @@ namespace BiRyeoDo.Game.UI
             _detail = UiFactory.Rect("ItemDetail", root, new Vector2(.66f, .02f), new Vector2(.985f, .905f));
             _detail.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.78f);   // dims and blocks the list underneath
             _detail.gameObject.SetActive(false);
+            _bulkDismantle = new BulkDismantlePanel(root, (title, body) => ShowNotice(title, body, UiFactory.Gold), Refresh);
             Refresh();
         }
 
@@ -228,6 +235,8 @@ namespace BiRyeoDo.Game.UI
             if (!_built) return;
             if (_detail != null) CloseDetail();
             if (_help != null) _help.gameObject.SetActive(false);
+            if (_bulkDismantle != null) _bulkDismantle.Hide();
+            if (_notice != null) _notice.gameObject.SetActive(false);
         }
 
         private void OnEnable()

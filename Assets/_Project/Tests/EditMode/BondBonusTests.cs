@@ -10,14 +10,17 @@ namespace BiRyeoDo.Tests
         public void BondRaisesCompanionStats()
         {
             var c = EarlyGameContent.Companions[0];
-            var none = c.CreateCombatant(30).Stats;
+            var noneUnit = c.CreateCombatant(30);
+            var friendlyUnit = c.CreateCombatant(30, 1);
+            var none = noneUnit.Stats;
             var trust = c.CreateCombatant(30, 2).Stats;
             var full = c.CreateCombatant(30, 3).Stats;
             Assert.Greater(trust.MaxHp, none.MaxHp);
             Assert.Greater(full.Attack, trust.Attack);
             Assert.AreEqual(none.CritRate, full.CritRate - Bonds.CritBonus(3), 0.0001f);
             Assert.AreEqual(none.CritRate, c.CreateCombatant(30, 1).Stats.CritRate, 0.0001f);   // 친분 has no crit bonus yet
-            Assert.AreEqual((int)System.Math.Round(none.MaxHp * 1.05), c.CreateCombatant(30, 1).Stats.MaxHp, 1);
+            double realmRatio = (1f + Realm.Bonus(friendlyUnit.RealmStep)) / (1f + Realm.Bonus(noneUnit.RealmStep));
+            Assert.AreEqual((int)System.Math.Round(none.MaxHp * Bonds.StatMultiplier(1) * realmRatio), friendlyUnit.Stats.MaxHp, 2);
         }
 
         [Test]

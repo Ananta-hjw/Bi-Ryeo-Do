@@ -79,14 +79,14 @@ namespace BiRyeoDo.Core
 
         public static string AllyRealm(SaveData save, CompanionData c)
         {
-            double power = Realm.Power(CompanionGrowth.Create(save, c).Stats);
+            double power = CompanionGrowth.Create(save, c).RealmPowerBeforeBonus;
             return Realm.Label(Realm.StepOf(power)) + " (종합 " + Math.Round(power).ToString("N0") + ")";
         }
 
-        /// <summary>"삼급 (종합 57)": where a companion's composite stat power sits on the 무공 경지 ladder (the same stats the fight uses, no realm bonus).</summary>
+        /// <summary>"삼급 (종합 57)": where a companion's composite stat power sits on the 무공 경지 ladder (combat modifiers included, before the realm bonus).</summary>
         public static string AllyRealm(CompanionData c, int level, int bondLevel = 0, int trainLevel = 0)
         {
-            double power = Realm.Power(c.CreateCombatant(level, bondLevel, trainLevel).Stats);
+            double power = c.CreateCombatant(level, bondLevel, trainLevel).RealmPowerBeforeBonus;
             return Realm.Label(Realm.StepOf(power)) + " (종합 " + Math.Round(power).ToString("N0") + ")";
         }
 

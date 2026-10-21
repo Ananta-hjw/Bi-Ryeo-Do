@@ -99,7 +99,7 @@ namespace BiRyeoDo.Core
                 {
                     var e = st.EnemyFor(id);
                     if (e == null || !Realm.HasRealm(e)) continue;
-                    best = Math.Max(best, Realm.Power(e.CreateCombatant("rec").Stats));
+                    best = Math.Max(best, Realm.Power(e.BuildStatsBeforeRealm()));
                 }
             return best;
         }
@@ -119,7 +119,7 @@ namespace BiRyeoDo.Core
         public static double ForPromotion(PromotionOffer offer)
         {
             double best = 0.0;
-            foreach (var e in offer.Opponents) best = Math.Max(best, Realm.Power(e.CreateCombatant("rec").Stats));
+            foreach (var e in offer.Opponents) best = Math.Max(best, Realm.Power(e.BuildStatsBeforeRealm()));
             return VersusDuelist * best;
         }
 

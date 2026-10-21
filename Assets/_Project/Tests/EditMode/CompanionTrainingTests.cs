@@ -21,10 +21,13 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(-1, CompanionTraining.CostFor(11));
             Assert.AreEqual(1.4f, CompanionTraining.StatMultiplier(10), 0.0001f);
             var c = EarlyGameContent.FindCompanion("hyo_ryong");
-            var plain = c.CreateCombatant(30).Stats;
-            var trained = c.CreateCombatant(30, 0, 10).Stats;
+            var plainUnit = c.CreateCombatant(30);
+            var trainedUnit = c.CreateCombatant(30, 0, 10);
+            var plain = plainUnit.Stats;
+            var trained = trainedUnit.Stats;
             Assert.Greater(trained.MaxHp, plain.MaxHp);
-            Assert.AreEqual((int)System.Math.Round(plain.Attack * 1.4), trained.Attack, 2);
+            double realmRatio = (1f + Realm.Bonus(trainedUnit.RealmStep)) / (1f + Realm.Bonus(plainUnit.RealmStep));
+            Assert.AreEqual((int)System.Math.Round(plain.Attack * 1.4 * realmRatio), trained.Attack, 2);
         }
 
         [Test]

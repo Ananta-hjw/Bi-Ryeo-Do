@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace BiRyeoDo.Core
 {
     /// <summary>Enhancement material rewards: independent tier/count rolls, with a first-boss guarantee.</summary>
@@ -40,14 +42,21 @@ namespace BiRyeoDo.Core
             return Gear.Materials[tiers[tiers.Length - 1]];
         }
 
-        /// <summary>Returns null for zero drops. A first boss victory replaces both rolls with the highest tier x3.</summary>
-        public static ItemStack Roll(int stage, int difficulty, bool firstBossClear, IRandom rng)
+        /// <summary>A first boss gives the highest tier x7 in addition to the normal roll. Matching tiers are merged.</summary>
+        public static List<ItemStack> Roll(int stage, int difficulty, bool firstBossClear, IRandom rng)
         {
-            if (firstBossClear) return new ItemStack(HighestMaterial(stage, difficulty).Id, 3);
+            var drops = new List<ItemStack>();
+            if (firstBossClear) drops.Add(new ItemStack(HighestMaterial(stage, difficulty).Id, 7));
             int pool = Pool(stage, difficulty);
             int tier = Tiers[pool][Pick(TierOdds[pool], rng)];
-            int count = Pick(CountOdds, rng);
-            return count == 0 ? null : new ItemStack(Gear.Materials[tier].Id, count);
+            int count = Pick(CountOdds, rng) * 2;
+            if (count > 0)
+            {
+                string id = Gear.Materials[tier].Id;
+                if (drops.Count > 0 && drops[0].Id == id) drops[0].Count += count;
+                else drops.Add(new ItemStack(id, count));
+            }
+            return drops;
         }
 
         public static bool IsBossFight(StageData stage, int fight)
@@ -62,10 +71,10 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>Call before recording the victory. Story first clears are tracked separately per difficulty and fight.</summary>
-        public static ItemStack RollFight(SaveData save, StageData stage, int fight, IRandom rng)
+        public static List<ItemStack> RollFight(SaveData save, StageData stage, int fight, IRandom rng)
         {
             if (stage == null || stage.IsTower || stage.IsQuest || stage.Number <= 0
-                || stage.Encounters == null || fight < 0 || fight >= stage.Encounters.Length) return null;
+                || stage.Encounters == null || fight < 0 || fight >= stage.Encounters.Length) return new List<ItemStack>();
             bool first = !Recommend.IsReplay(save, stage) && !Recommend.WonBefore(save, stage, fight);
             return Roll(stage.Number, stage.Difficulty, first && IsBossFight(stage, fight), rng);
         }

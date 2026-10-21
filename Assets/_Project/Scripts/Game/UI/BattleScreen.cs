@@ -451,7 +451,7 @@ namespace BiRyeoDo.Game.UI
                     var found = new List<string>();   // 심득석 / 수련서 discovered by this win
                     bool firstWin = true;
                     int rewardMask = -1, rewardNewStars = 0;
-                    var materialDrop = GearDrops.RollFight(save, stage, i, new SeededRandom(Environment.TickCount));
+                    var materialDrops = GearDrops.RollFight(save, stage, i, new SeededRandom(Environment.TickCount));
                     if (!stage.IsQuest && !stage.IsTower)
                     {
                         // Reputation, 수련서 and full 경험/두 come from the first win of each fight on each difficulty, so replaying one fight cannot farm them
@@ -485,12 +485,14 @@ namespace BiRyeoDo.Game.UI
                     foreach (var id in stage.Encounters[i]) Codex.SeeEnemy(save, id);
                     Recommend.FightReward(save, stage, i, replay || !firstWin, out exp, out doo);   // a fight already won pays the replay rate
                     var drops = new List<ItemStack>();
-                    if (materialDrop != null)
+                    var materialNames = new List<string>();
+                    foreach (var materialDrop in materialDrops)
                     {
                         Inventory.Add(save, materialDrop.Id, materialDrop.Count);
                         drops.Add(materialDrop);
+                        materialNames.Add(MaterialName(materialDrop.Id) + " " + materialDrop.Count + "개");
                     }
-                    if (!stage.IsQuest && !stage.IsTower) materialLines.Add("전투 " + (i + 1) + ": " + (materialDrop != null ? MaterialName(materialDrop.Id) + " " + materialDrop.Count + "개" : "없음"));
+                    if (!stage.IsQuest && !stage.IsTower) materialLines.Add("전투 " + (i + 1) + ": " + (materialNames.Count > 0 ? string.Join(" · ", materialNames) : "없음"));
                     if (!stage.IsQuest && !stage.IsTower) for (int roll = 0; roll < StageStars.DropRolls(diff); roll++) drops.AddRange(RollDrops(stage.Encounters[i]));
                     CompanionGrowth.EnsureRecords(save);   // before the protagonist levels, so old saves' companions start at the old level
                     // Capture presentation snapshots before experience changes anyone's level.
@@ -1128,7 +1130,7 @@ namespace BiRyeoDo.Game.UI
                     card.QiText.gameObject.SetActive(false); card.SpiritText.gameObject.SetActive(false);
                 }
                 // 무공 경지 under the name, from the stats this fight actually uses (harder difficulties raise it)
-                string realm = Realm.HasRealm(data) ? Realm.Steps[Realm.StepOf(Realm.Power(units[i].Stats))].Name : "";
+                string realm = Realm.HasRealm(data) ? Realm.Label(units[i].RealmStep) : "";
                 card.Realm = UiFactory.Label("Realm", card.Root, new Vector2(0.03f, 0.73f), new Vector2(0.97f, 0.845f), realm, 18, new Color(0.85f, 0.75f, 0.45f, 1f));
                 card.Badge = UiFactory.Label("Badge", card.Root, new Vector2(0.04f, 0.60f), new Vector2(0.96f, 0.73f), "", 20, UiFactory.PaperText);
                 card.IntentBack = UiFactory.Panel("IntentBack", card.Root, new Vector2(.01f, 0f), new Vector2(.99f, .145f), HudInk);
@@ -1712,7 +1714,7 @@ namespace BiRyeoDo.Game.UI
         {
             if (card == null || card.Data == null) return;
             var s = card.Unit.Stats;
-            double power = Realm.Power(s);
+            double power = card.Unit.RealmPowerBeforeBonus;
             var lines = new List<string>();
             lines.Add("Lv." + card.Data.DisplayLevel + "  ·  " + EnemyData.RankName(card.Data.Rank) + (card.Data.Rank == EnemyRank.Normal ? "" : "\n내공과 기세를 씁니다. 기세가 가득 차면 다음 공격이 강해지고, 내공이 모자라면 큰 기술의 힘이 빠집니다."));
             if (Realm.HasRealm(card.Data)) lines.Add("무공 경지  " + Realm.Label(Realm.StepOf(power)) + "\n종합 수치 " + System.Math.Round(power).ToString("N0"));
@@ -1746,7 +1748,7 @@ namespace BiRyeoDo.Game.UI
             bool hero = unit.Id == "player";
             var companion = hero ? null : EarlyGameContent.FindCompanion(unit.Id);
             int level = hero ? GameManager.Instance.Save.Level : CompanionGrowth.LevelOf(GameManager.Instance.Save, unit.Id);
-            lines.Add("Lv." + level + "  ·  무공 경지 " + Realm.Label(Realm.StepOf(Realm.Power(s))) + "  (종합 " + System.Math.Round(Realm.Power(s)).ToString("N0") + ")");
+            lines.Add("Lv." + level + "  ·  무공 경지 " + Realm.Label(unit.RealmStep) + "  (종합 " + System.Math.Round(unit.RealmPowerBeforeBonus).ToString("N0") + ")");
             lines.Add("체력 " + unit.Hp.ToString("N0") + " / " + s.MaxHp.ToString("N0") + "\n내공 " + unit.Qi.ToString("N0") + " / " + s.MaxQi.ToString("N0") + "\n기세 " + unit.Spirit + " / " + InteractiveBattle.MaxSpirit);
             lines.Add("공격력 " + s.Attack.ToString("N0") + "   방어력 " + s.Defense.ToString("N0") + "   속도 " + s.Speed.ToString("N0"));
             if (companion != null && !string.IsNullOrEmpty(companion.JointName))

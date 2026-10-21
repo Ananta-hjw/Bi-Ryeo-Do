@@ -96,6 +96,34 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsFalse(detail.gameObject.activeSelf);
         }
 
+        [TestCase(1440f)]
+        [TestCase(1920f)]
+        [TestCase(2400f)]
+        public void BulkDismantleIsReachableFromBagAndOnlyPreviewsUntilConfirmed(float width)
+        {
+            Root.sizeDelta = new Vector2(width, 984f);
+            Inventory.Add(_save, "iron_sword", 3);
+            var bag = _canvas.AddComponent<BagScreen>(); bag.Build(Root);
+            _canvas.transform.Find("Filter2").GetComponent<Button>().onClick.Invoke();
+            var launch = _canvas.transform.Find("BulkDismantleButton").GetComponent<Button>();
+            Assert.IsTrue(launch.interactable);
+            launch.onClick.Invoke();
+            var modal = _canvas.transform.Find("BulkDismantle");
+            Assert.IsTrue(modal.gameObject.activeSelf);
+            Assert.IsTrue(modal.GetComponent<Image>().raycastTarget);
+            Canvas.ForceUpdateCanvases();
+            var list = Bounds((RectTransform)modal.Find("Card/ListViewport"));
+            var options = Bounds((RectTransform)modal.Find("Card/Singles"));
+            Assert.Less(options.xMax, list.xMin);
+            StringAssert.StartsWith("☐", modal.Find("Card/Singles").GetComponentInChildren<Text>().text);
+            StringAssert.StartsWith("☑", modal.Find("Card/G0").GetComponentInChildren<Text>().text);
+            StringAssert.StartsWith("☐", modal.Find("Card/G2").GetComponentInChildren<Text>().text);
+            Assert.IsTrue(modal.Find("Card/ListViewport/ListContent").GetComponentsInChildren<Text>().Any(t => t.text.Contains(EarlyGameContent.FindItem("iron_sword").Name)));
+            Assert.AreEqual(3, Inventory.Count(_save, "iron_sword"), "Opening the preview must not dismantle anything");
+            _canvas.SetActive(false);
+            Assert.IsFalse(modal.gameObject.activeSelf, "Leaving the bag must dismiss the bulk preview");
+        }
+
         [Test]
         public void ArtDetailsStayBesideTheListAndInnerArtsDoNotLeaveTheInspectorVisible()
         {

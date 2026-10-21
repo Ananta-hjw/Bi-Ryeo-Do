@@ -87,7 +87,7 @@ namespace BiRyeoDo.Core
                 int level = LevelOf(save, c.Id);
                 var p = Find(save, c.Id);
                 if (p == null) continue;
-                int step = Realm.StepOf(Realm.Power(Create(save, c).Stats));
+                int step = Create(save, c).RealmStep;
                 var rise = new CompanionRise { Companion = c, RealmFrom = step, RealmTo = step };
                 if (p.RealmMax < 0) p.RealmMax = step;
                 else if (step > p.RealmMax) { rise.RealmFrom = p.RealmMax; p.RealmMax = step; }

@@ -41,35 +41,35 @@ namespace BiRyeoDo.Game.UI
 
         private void Rebuild()
         {
-            for (int i = _root.childCount - 1; i >= 0; i--) UnityEngine.Object.Destroy(_root.GetChild(i).gameObject);
+            LandscapeMenu.Clear(_root);
             var save = GameManager.Instance.Save;
             var card = UiFactory.Panel("Card", _root, new Vector2(0.03f, 0.03f), new Vector2(0.97f, 0.97f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
             UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
             UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.93f), new Vector2(0.95f, 0.99f), "일괄 분해", 42, UiFactory.Gold);
 
-            UiFactory.Label("GradeLabel", card.transform, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.93f), "등급 (신화·초월은 분해할 수 없습니다)", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("GradeLabel", card.transform, new Vector2(.035f, .83f), new Vector2(.395f, .91f), "등급 · 신화·초월 제외", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
             for (int i = 0; i < Salvage.BulkGrades.Length; i++)
             {
                 int idx = i;
                 var grade = Salvage.BulkGrades[i];
-                Toggle(card.transform, "G" + i, 0.04f + i * 0.186f, 0.04f + i * 0.186f + 0.176f, 0.815f, 0.88f, Grades.NameOf(grade), _grades[i], UiFactory.GradeColor(grade), () => { _grades[idx] = !_grades[idx]; Rebuild(); });
+                Toggle(card.transform, "G" + i, .035f + i % 3 * .121f, .147f + i % 3 * .121f, .72f - i / 3 * .105f, .81f - i / 3 * .105f, Grades.NameOf(grade), _grades[i], UiFactory.GradeColor(grade), () => { _grades[idx] = !_grades[idx]; Rebuild(); });
             }
-            UiFactory.Label("SlotLabel", card.transform, new Vector2(0.05f, 0.765f), new Vector2(0.95f, 0.81f), "부위", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("SlotLabel", card.transform, new Vector2(.035f, .54f), new Vector2(.395f, .60f), "부위", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
             for (int i = 0; i < SlotNames.Length; i++)
             {
                 int idx = i;
-                Toggle(card.transform, "S" + i, 0.04f + i * 0.186f, 0.04f + i * 0.186f + 0.176f, 0.695f, 0.76f, SlotNames[i], _slots[i], new Color(0.30f, 0.48f, 0.44f, 1f), () => { _slots[idx] = !_slots[idx]; Rebuild(); });
+                Toggle(card.transform, "S" + i, .035f + i % 3 * .121f, .147f + i % 3 * .121f, .44f - i / 3 * .105f, .53f - i / 3 * .105f, SlotNames[i], _slots[i], new Color(0.30f, 0.48f, 0.44f, 1f), () => { _slots[idx] = !_slots[idx]; Rebuild(); });
             }
-            Toggle(card.transform, "Singles", 0.04f, 0.96f, 0.625f, 0.685f, "하나뿐인 장비도 포함 (착용 중이거나 한계돌파한 장비는 제외)", _singles, new Color(0.55f, 0.36f, 0.14f, 1f), () => { _singles = !_singles; Rebuild(); }, 24);
+            Toggle(card.transform, "Singles", .035f, .389f, .14f, .31f, "하나뿐인 장비도 포함\n(착용 중·돌파 장비 제외)", _singles, new Color(0.55f, 0.36f, 0.14f, 1f), () => { _singles = !_singles; Rebuild(); }, 24);
 
             var plan = Salvage.BulkPlan(save, _grades, _slots, _singles);
             int total = 0;
             foreach (var e in plan) total += e.Count;
-            UiFactory.Label("Summary", card.transform, new Vector2(0.05f, 0.565f), new Vector2(0.95f, 0.62f),
+            UiFactory.Label("Summary", card.transform, new Vector2(.43f, .84f), new Vector2(.965f, .91f),
                 plan.Count == 0 ? "분해될 장비가 없습니다" : "분해될 장비  " + plan.Count + "종 · 총 " + total + "개", 28, plan.Count == 0 ? UiFactory.Dim : UiFactory.PaperText, TextAnchor.MiddleLeft);
 
             // The list of exactly what would go, one line per piece
-            var viewport = UiFactory.Rect("ListViewport", card.transform, new Vector2(0.03f, 0.215f), new Vector2(0.97f, 0.56f));
+            var viewport = UiFactory.Rect("ListViewport", card.transform, new Vector2(.43f, .37f), new Vector2(.97f, .83f));
             viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.35f);
             viewport.gameObject.AddComponent<RectMask2D>();
             var content = UiFactory.Rect("ListContent", viewport, new Vector2(0f, 1f), new Vector2(1f, 1f));
@@ -103,12 +103,12 @@ namespace BiRyeoDo.Game.UI
             var yield = Salvage.BulkYield(plan);
             var lines = new List<string>();
             foreach (var kv in yield) lines.Add(kv.Key.Name + " " + kv.Value[0] + "~" + kv.Value[1] + "개");
-            UiFactory.Body(UiFactory.Label("Yield", card.transform, new Vector2(0.05f, 0.105f), new Vector2(0.95f, 0.21f),
-                lines.Count == 0 ? "" : "예상 재료  " + string.Join(" · ", lines), 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal));
+            UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Yield", card.transform, new Vector2(.43f, .15f), new Vector2(.97f, .35f),
+                lines.Count == 0 ? "" : "예상 재료\n" + string.Join("\n", lines), 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 28));
 
-            var go = UiFactory.Button("Go", card.transform, new Vector2(0.05f, 0.02f), new Vector2(0.62f, 0.10f), plan.Count == 0 ? "분해할 장비 없음" : "선택한 " + total + "개 분해", plan.Count == 0 ? UiFactory.InkSoft : UiFactory.Red, () => UiFactory.Confirm(_root, "일괄 분해할까요?", "선택한 장비 " + total + "개를 분해합니다.\n분해한 장비는 되돌릴 수 없습니다.", total + "개 분해", () => Perform(plan)), 32);
+            var go = UiFactory.Button("Go", card.transform, new Vector2(.43f, .025f), new Vector2(.76f, .12f), plan.Count == 0 ? "분해할 장비 없음" : "선택한 " + total + "개 분해", plan.Count == 0 ? UiFactory.InkSoft : UiFactory.Red, () => UiFactory.Confirm(_root, "일괄 분해할까요?", "선택한 장비 " + total + "개를 분해합니다.\n분해한 장비는 되돌릴 수 없습니다.", total + "개 분해", () => Perform(plan)), 32);
             go.interactable = plan.Count > 0;
-            UiFactory.Button("Close", card.transform, new Vector2(0.66f, 0.02f), new Vector2(0.95f, 0.10f), "닫기", UiFactory.InkSoft, () => { Hide(); _changed(); }, 32);
+            UiFactory.Button("Close", card.transform, new Vector2(.79f, .025f), new Vector2(.97f, .12f), "닫기", UiFactory.InkSoft, () => { Hide(); _changed(); }, 32);
         }
 
         private static void Toggle(Transform parent, string name, float x0, float x1, float y0, float y1, string label, bool on, Color accent, UnityEngine.Events.UnityAction onClick, int size = 28)

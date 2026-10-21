@@ -13,9 +13,9 @@ namespace BiRyeoDo.Core
     }
 
     /// <summary>
-    /// 무공 경지: the protagonist's composite stat power (geometric mean of 체력·공격력·방어력·속도, gear and 심법 included)
-    /// placed on a ladder of steps. Step i starts at <see cref="BasePower"/> x Ratio^i; the ratio is fixed so that
-    /// 대공자 비 on 어려움 (stage 30, the strongest enemy so far) lands on the first step of 초절정. Pure stat flavour: nothing in battle reads it.
+    /// Shared martial realm: composite power before the realm bonus (geometric mean of HP, attack, defense and speed)
+    /// determines one step. Step i starts at <see cref="BasePower"/> x Ratio^i; the ratio uses the historical
+    /// 어려움 대공자 비 anchor. Heroes, companions and martial enemies receive the same per-step stat bonus once.
     /// </summary>
     public static class Realm
     {
@@ -81,7 +81,7 @@ namespace BiRyeoDo.Core
 
         public const float BonusPerStep = 0.05f;
 
-        /// <summary>Each step above 삼급 raises every stat of the protagonist by 5% (step 4 = +20%).</summary>
+        /// <summary>Each step above 삼급 raises HP, Qi, attack, defense and speed by 5% (step 4 = +20%).</summary>
         public static float Bonus(int step) { return BonusPerStep * Math.Max(0, step); }
 
         public static CombatStats ApplyBonus(CombatStats stats, int step)
@@ -149,7 +149,7 @@ namespace BiRyeoDo.Core
         public static string ForEnemy(EnemyData enemy)
         {
             if (!HasRealm(enemy)) return "";
-            return Steps[StepOf(Power(enemy.CreateCombatant(enemy.Id).Stats))].Name;
+            return Label(StepOf(Power(enemy.BuildStatsBeforeRealm())));
         }
 
         public static string Describe(SaveData save)
