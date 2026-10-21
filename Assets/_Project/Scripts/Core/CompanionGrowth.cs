@@ -74,6 +74,35 @@ namespace BiRyeoDo.Core
             return lines;
         }
 
+        /// <summary>
+        /// Call now and then: one entry per joined companion whose 무공 경지 rose above the best announced so far or who learned an art
+        /// since the last call. The first call for a companion (newly joined, or an older save) only records the current state.
+        /// </summary>
+        public static List<CompanionRise> PollRises(SaveData save)
+        {
+            var rises = new List<CompanionRise>();
+            foreach (var c in EarlyGameContent.Companions)
+            {
+                if (c.JoinStage > save.HighestUnlockedStage) continue;
+                int level = LevelOf(save, c.Id);
+                var p = Find(save, c.Id);
+                if (p == null) continue;
+                int step = Realm.StepOf(Realm.Power(Create(save, c).Stats));
+                var rise = new CompanionRise { Companion = c, RealmFrom = step, RealmTo = step };
+                if (p.RealmMax < 0) p.RealmMax = step;
+                else if (step > p.RealmMax) { rise.RealmFrom = p.RealmMax; p.RealmMax = step; }
+                if (p.ArtsLevel < 0) p.ArtsLevel = level;
+                else if (level > p.ArtsLevel)
+                {
+                    foreach (var a in EarlyGameContent.Arts)
+                        if (a.OwnerId == c.Id && a.OwnerLevel > p.ArtsLevel && a.OwnerLevel <= level) rise.NewArts.Add(a);
+                    p.ArtsLevel = level;
+                }
+                if (rise.RealmTo > rise.RealmFrom || rise.NewArts.Count > 0) rises.Add(rise);
+            }
+            return rises;
+        }
+
         /// <summary>Share of a fight's exp that companions who sat the fight out still gain.</summary>
         public const double BenchExpShare = 0.5;
 
@@ -101,5 +130,14 @@ namespace BiRyeoDo.Core
         {
             return c.CreateCombatant(LevelOf(save, c.Id), Bonds.Level(save, c.Id), CompanionTraining.LevelOf(save, c.Id), Inventory.GearOf(save, c.Id), Gear.LevelsFor(save, c.Id));
         }
+    }
+
+    /// <summary>What <see cref="CompanionGrowth.PollRises"/> found for one companion.</summary>
+    public sealed class CompanionRise
+    {
+        public CompanionData Companion;
+        public int RealmFrom, RealmTo;   // equal when the realm did not rise
+        public List<ArtData> NewArts = new List<ArtData>();
+        public bool RealmRose { get { return RealmTo > RealmFrom; } }
     }
 }

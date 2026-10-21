@@ -77,6 +77,8 @@ namespace BiRyeoDo.Core
         public string Id;
         public int Level = 1;
         public long Exp;
+        public int RealmMax = -1;    // highest 무공 경지 step announced (-1 = not recorded yet, see CompanionGrowth.PollRises)
+        public int ArtsLevel = -1;   // level up to which newly learned arts were announced (-1 = not recorded yet)
     }
 
     [Serializable]

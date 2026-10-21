@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using BiRyeoDo.Core;
 using BiRyeoDo.Game.Systems;
 using UnityEngine;
@@ -237,7 +238,33 @@ namespace BiRyeoDo.Game.UI
                 _realmModal.transform.SetAsLastSibling();
                 _realmModal.SetActive(true);
                 SoundManager.Sfx("levelup");
+                return;
             }
+
+            // A companion's 경지 rose or it learned a new art (from its own level, gear, 인연 or 수련): one card for everyone at once.
+            if (busy) return;
+            var rises = CompanionGrowth.PollRises(save);
+            if (rises.Count == 0) return;
+            GameManager.Instance.SaveNow();
+            bool anyRealm = false, anyArt = false;
+            var blocks = new List<string>();
+            foreach (var r in rises)
+            {
+                anyRealm |= r.RealmRose;
+                anyArt |= r.NewArts.Count > 0;
+                var lines = new List<string> { "<size=38><color=#E8C860>" + r.Companion.Name + "</color></size>" };
+                if (r.RealmRose)
+                    lines.Add("무공 경지  <color=#9AA3B2>" + Realm.Label(r.RealmFrom) + "</color>  ▶  <color=#E8C860>" + Realm.Label(r.RealmTo) + "</color>");
+                foreach (var a in r.NewArts)
+                    lines.Add("<color=#9ADB9F>새 무공 「" + a.Name + "」 습득!</color>\n<size=26>" + a.Description + "</size>");
+                blocks.Add(string.Join("\n", lines));
+            }
+            _realmTitle.text = anyRealm && anyArt ? "동료 성장" : anyRealm ? "동료 경지 돌파" : "동료 새 무공";
+            _realmBody.text = string.Join("\n\n", blocks)
+                + (anyArt ? "\n\n<color=#9AA3B2>새 무공은 다음 전투부터 쓸 수 있습니다.</color>" : "");
+            _realmModal.transform.SetAsLastSibling();
+            _realmModal.SetActive(true);
+            SoundManager.Sfx("levelup");
         }
 
         private void BuildRealmModal(RectTransform parent)

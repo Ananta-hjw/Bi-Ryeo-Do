@@ -206,5 +206,22 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(0, CompanionGrowth.ShareWithBench(early, new[] { "player" }, exp).Count);
             Assert.AreEqual(0, early.CompanionLevels.Count);
         }
+
+        [Test]
+        public void PollRisesAnnouncesNewArtsAndRealmOnceAndStaysQuietOnFirstCall()
+        {
+            var save = Save(10);
+            Assert.AreEqual(0, CompanionGrowth.PollRises(save).Count);   // first call only records
+            int level = CompanionGrowth.LevelOf(save, "yun_junho");
+            long exp = 0;
+            for (int l = level; l < 15; l++) exp += Progression.ExpToNext(l);
+            CompanionGrowth.AddExp(save, "yun_junho", exp);
+            var rises = CompanionGrowth.PollRises(save);
+            var yun = rises.Single(r => r.Companion.Id == "yun_junho");
+            Assert.IsTrue(yun.NewArts.Any(a => a.Id == "yj_cleanse"));
+            Assert.IsTrue(yun.RealmRose);
+            Assert.IsFalse(rises.Any(r => r.Companion.Id != "yun_junho"));
+            Assert.AreEqual(0, CompanionGrowth.PollRises(save).Count);   // nothing twice
+        }
     }
 }
