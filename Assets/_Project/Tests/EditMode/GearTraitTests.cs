@@ -190,9 +190,24 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(item.SpeedAdd * current, effects.SpeedAdd, .00001f);
             Assert.AreEqual(item.CritAdd * ((1.5f + (Gear.Multiplier(level) - 1f) * .10f) / 1.3f), effects.CritAdd, .00001f);
             Assert.AreEqual(item.CritDmgAdd * current, effects.CritDmgAdd, .00001f);
-            Assert.AreEqual(0f, effects.DefPct);
-            Assert.AreEqual(0f, effects.QiPct);
+            Assert.AreEqual(.70f * (Gear.Multiplier(level) + 1f) / 2f, effects.DefPct, .00001f);
+            Assert.AreEqual(.50f * (Gear.Multiplier(level) + 1f) / 2f, effects.QiPct, .00001f);
             Assert.AreEqual(0, effects.StartSpirit);
+        }
+
+        [Test]
+        public void JinBiroedoBaseQiAndDefenseMatchFiveStarTargetsAndScaleWithEnhancement()
+        {
+            var item = EarlyGameContent.FindItem(Ritual.RewardId);
+            var fresh = Gear.EffectsFor(item);
+            var enhanced = Gear.EffectsFor(item, 100);
+            Assert.AreEqual(.50f, fresh.QiPct, .00001f);
+            Assert.AreEqual(.70f, fresh.DefPct, .00001f);
+            Assert.AreEqual(2.225f, enhanced.QiPct, .00001f);
+            Assert.AreEqual(3.115f, enhanced.DefPct, .00001f);
+            StringAssert.Contains("내공 +222.5%", StatusSheet.EffectText(item, 100));
+            StringAssert.Contains("방어 +311.5%", StatusSheet.EffectText(item, 100));
+            Assert.IsEmpty(Gear.BreakthroughTraits(item), "these are base effects, not fixed breakthrough traits");
         }
 
         [TestCase(0, 0, .08f)]

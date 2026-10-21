@@ -111,10 +111,11 @@ namespace BiRyeoDo.Tests
             var baseStats = new CombatStats { MaxHp = 1000, MaxQi = 100, Attack = 100, Defense = 50, Speed = 100, CritRate = 0.01f, CritDamage = 1.5f };
             var s = Inventory.ApplyGear(baseStats, new[] { "jin_biroedo", "mukryonghwan" });
             Assert.AreEqual(295, s.Attack);   // current five-star +184.615% and accessory +10%
-            Assert.AreEqual(55, s.Defense);   // +10%
+            Assert.AreEqual(90, s.Defense);   // Jin +70% and accessory +10%
             Assert.AreEqual(125, s.Speed);    // +30.769 -6, rounded after summing
             Assert.AreEqual(.01f + .30f * 1.5f / 1.3f, s.CritRate, 0.0001f);
             Assert.AreEqual(1462, s.MaxHp);   // current five-star +46.154%
+            Assert.AreEqual(150, s.MaxQi);
             Assert.AreEqual(1.5f + .50f * 2f / 1.3f, s.CritDamage, 0.0001f);
         }
 
