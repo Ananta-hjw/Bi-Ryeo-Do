@@ -394,7 +394,7 @@ namespace BiRyeoDo.Core
             var ev = new BattleEvent
             {
                 Turn = Turn, ActorId = actor.Id, TargetId = t.Id, SkillId = skill.Id, Kind = EventKind.Attack,
-                Damage = dmg, IsCrit = crit, HitIndex = h, HitCount = hits, Harmony = _harmonyBoost, AllEnemies = skill.AllEnemies
+                Damage = dmg, IsCrit = crit, HitIndex = h, HitCount = hits, Harmony = _harmonyBoost, AllEnemies = skill.AllEnemies, Ranged = skill.Ranged
             };
             if (t.IsAlive && t.RetreatHpPct > 0f && t.Hp <= t.Stats.MaxHp * t.RetreatHpPct)
             {
@@ -681,7 +681,7 @@ namespace BiRyeoDo.Core
                 var ev = new BattleEvent
                 {
                     Turn = Turn, ActorId = enemy.Id, TargetId = target.Id, SkillId = move.Name, Kind = EventKind.Attack,
-                    HitIndex = h, HitCount = hits, Awakening = awakening, Burst = burst && h == 0, Weakened = dry && h == 0
+                    HitIndex = h, HitCount = hits, Ranged = move.Ranged, Awakening = awakening, Burst = burst && h == 0, Weakened = dry && h == 0
                 };
                 if (target.Evading && (target.EvadeChance >= 1f || _rng.NextDouble() < target.EvadeChance))
                 {

@@ -53,7 +53,7 @@ namespace BiRyeoDo.Core
             if (heavy == null) heavy = EnemyMove.Plain;
             return new EnemyMove
             {
-                Name = AwakeningName, Power = heavy.Power, Hits = heavy.Hits, Inflict = heavy.Inflict,
+                Name = AwakeningName, Power = heavy.Power, Hits = heavy.Hits, Inflict = heavy.Inflict, Ranged = heavy.Ranged,
                 Awakening = true, DamageFactor = heavy.DamageFactor * (phaseIndex == 1 ? FirstAwakeningFactor : SecondAwakeningFactor)
             };
         }

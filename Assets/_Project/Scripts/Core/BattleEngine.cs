@@ -58,7 +58,7 @@ namespace BiRyeoDo.Core
             Combatant target = PickTarget(actor);
             SkillSpec skill = PickSkill(actor);
 
-            var ev = new BattleEvent { Turn = _turn, ActorId = actor.Id, TargetId = target.Id, SkillId = skill.Id };
+            var ev = new BattleEvent { Turn = _turn, ActorId = actor.Id, TargetId = target.Id, SkillId = skill.Id, Ranged = skill.Ranged, AllEnemies = skill.AllEnemies };
 
             actor.Qi -= skill.QiCost;
             if (skill.Cooldown > 0) actor.Cooldowns[skill.Id] = skill.Cooldown;

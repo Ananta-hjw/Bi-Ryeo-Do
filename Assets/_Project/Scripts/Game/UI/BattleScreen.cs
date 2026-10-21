@@ -2119,7 +2119,7 @@ namespace BiRyeoDo.Game.UI
                 yield return _basicMotion.Approach(PartyFigure(striker), EnemyFigure(card), _fx, Pace, striker != null ? striker.Root : null);
                 if (_fled) { CancelBasicMotion(); yield break; }
             }
-            else if (!approach && striker != null && ev.HitIndex == 0) StartCoroutine(Lunge(striker.Root, new Vector2(130f, 0f)));
+            else if (!approach && !ev.Ranged && striker != null && ev.HitIndex == 0) StartCoroutine(Lunge(striker.Root, new Vector2(130f, 0f)));
             SlashFx(card.Center, ev.HitIndex, ev.IsCrit, striker != null && striker.Unit.Skills.Find(x => x.Id == ev.SkillId) is SkillSpec sp && sp.SpiritCost >= 100);
             if (ev.IsCrit)
             {
@@ -2161,7 +2161,7 @@ namespace BiRyeoDo.Game.UI
                 yield return _basicMotion.Approach(EnemyFigure(attacker), PartyFigure(victim), _fx, Pace, attacker != null ? attacker.Root : null);
                 if (_fled) { CancelBasicMotion(); yield break; }
             }
-            else if (!approach && attacker != null && ev.HitIndex == 0) StartCoroutine(Lunge(attacker.Root, new Vector2(-130f, 0f)));
+            else if (!approach && !ev.Ranged && attacker != null && ev.HitIndex == 0) StartCoroutine(Lunge(attacker.Root, new Vector2(-130f, 0f)));
             if (attacker != null && ev.HitIndex == 0 && ev.Burst) { Float(attacker.Center + new Vector2(0f, 0.06f), "기세 폭발!", UiFactory.Red, 70); SoundManager.Haptic(40); }
             if (attacker != null && ev.HitIndex == 0 && ev.Weakened) Float(attacker.Center + new Vector2(0f, 0.06f), "내공 부족", GuardBlue, 56);
             if (victim != null && !ev.Dodged) SlashFx(victim.Center, ev.HitIndex, ev.IsCrit, false, true);
@@ -2202,7 +2202,7 @@ namespace BiRyeoDo.Game.UI
 
         private static bool IsApproachAttack(BattleEvent ev)
         {
-            return ev.Kind == EventKind.Attack && !ev.AllEnemies;
+            return ev.Kind == EventKind.Attack && !ev.AllEnemies && !ev.Ranged;
         }
 
         private static bool EndsAttackSequence(List<BattleEvent> events, int index)

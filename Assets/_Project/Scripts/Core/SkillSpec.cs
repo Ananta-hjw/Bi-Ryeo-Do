@@ -21,6 +21,7 @@ namespace BiRyeoDo.Core
         public int QiCost;         // 내공
         public int SpiritCost;     // 기세: 비기 consume the whole gauge (100)
         public int Cooldown;       // own turns before reuse; 0 = every turn
+        public bool Ranged;       // animation only: strike from the current position, independent of reach
         public bool AllEnemies;    // hits every living enemy instead of the chosen one (front row only while a front-row enemy stands, see Formation)
         public int Range = 1;      // how many enemy lines the art reaches (1 = the front line only, 2+ = any line) (attacks and area arts; self/party effects ignore it)
         public SkillEffect Effect;
