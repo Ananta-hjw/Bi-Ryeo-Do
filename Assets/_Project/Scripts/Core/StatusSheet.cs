@@ -93,15 +93,16 @@ namespace BiRyeoDo.Core
         /// <summary>"공격 +10%  방어 +10%  속도 -6" for a piece of gear.</summary>
         public static string EffectText(ItemData item, int enhance = 0, int stars = 0)
         {
-            float m = Gear.EffectMultiplier(item, enhance, stars);
+            var effects = Gear.EffectsFor(item, enhance, stars);
             var parts = new List<string>();
-            if (item.HpPct != 0f) parts.Add("체력 " + Pct(item.HpPct * m));
-            if (item.QiPct != 0f) parts.Add("내공 " + Pct(item.QiPct * m));
-            if (item.AtkPct != 0f) parts.Add("공격 " + Pct(item.AtkPct * m));
-            if (item.DefPct != 0f) parts.Add("방어 " + Pct(item.DefPct * m));
-            if (item.SpeedAdd != 0) { int sp = (int)Math.Round(item.SpeedAdd * m); parts.Add("속도 " + (sp > 0 ? "+" : "") + sp); }
-            if (item.CritAdd != 0f) parts.Add("치명타 " + Pct(item.CritAdd * m));
-            if (item.CritDmgAdd != 0f) parts.Add("치명타 피해 " + Pct(item.CritDmgAdd * m));
+            if (effects.HpPct != 0f) parts.Add("체력 " + Pct(effects.HpPct));
+            if (effects.QiPct != 0f) parts.Add("내공 " + Pct(effects.QiPct));
+            if (effects.AtkPct != 0f) parts.Add("공격 " + Pct(effects.AtkPct));
+            if (effects.DefPct != 0f) parts.Add("방어 " + Pct(effects.DefPct));
+            if (effects.SpeedAdd != 0) { int sp = (int)Math.Round(effects.SpeedAdd); parts.Add("속도 " + (sp > 0 ? "+" : "") + sp); }
+            if (effects.CritAdd != 0f) parts.Add("치명타 " + Pct(effects.CritAdd));
+            if (effects.CritDmgAdd != 0f) parts.Add("치명타 피해 " + Pct(effects.CritDmgAdd));
+            if (effects.StartSpirit != 0) parts.Add("시작 기세 +" + effects.StartSpirit);
             return parts.Count == 0 ? "특별한 효과 없음" : string.Join("  ", parts);
         }
 

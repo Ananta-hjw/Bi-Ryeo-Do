@@ -313,7 +313,7 @@ namespace BiRyeoDo.Tests
             Equip(save, "iron_sword");
             Inventory.Add(save, "iron_sword", 6);
             var caps = new[] { 10, 20, 30, 50, 70, 100 };
-            var bonuses = new[] { 0f, .05f, .10f, .15f, .20f, .30f };
+            var bonuses = new[] { 0f, .10f, .20f, .40f, .65f, 1.00f };
             string error;
             for (int star = 0; star <= 5; star++)
             {
@@ -325,7 +325,7 @@ namespace BiRyeoDo.Tests
             }
             Assert.IsFalse(Gear.Breakthrough(save, "iron_sword", out error));
             Assert.AreEqual(2, Inventory.Count(save, "iron_sword"));
-            Assert.AreEqual(8.2f, Gear.Multiplier(100, 5), .0001f);
+            Assert.AreEqual(8.9f, Gear.Multiplier(100, 5), .0001f);
         }
 
         [Test]
@@ -374,7 +374,7 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(100000000 - totalDoo, save.Doo);
             Assert.AreEqual(600000 - totalStones, Gear.Materials.Sum(m => Inventory.Count(save, m.Id)));
             var actual = Inventory.ApplyGear(new CombatStats { MaxHp = 1000, MaxQi = 100, Attack = 1000, Defense = 100, Speed = 100 }, save.EquippedGear, Gear.LevelsFor(save, Inventory.Hero));
-            Assert.AreEqual(1328, actual.Attack, "4% base weapon x 8.2 contributes 32.8%");
+            Assert.AreEqual(1356, actual.Attack, "4% base weapon x 8.9 contributes 35.6%");
         }
 
         [Test]

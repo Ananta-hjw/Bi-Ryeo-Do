@@ -18,7 +18,7 @@ namespace BiRyeoDo.Core
         public const int MaxLevel = 100, MaxStars = 5;
         public const string StoneId = "gear_polish";
         public static readonly int[] LevelCaps = { 10, 20, 30, 50, 70, 100 };
-        private static readonly float[] StarBonuses = { 0f, .05f, .10f, .15f, .20f, .30f };
+        private static readonly float[] StarBonuses = { 0f, .10f, .20f, .40f, .65f, 1.00f };
         public static readonly ItemData[] Materials =
         {
             Material(StoneId, "하급 영석", ItemGrade.Normal, "+1~+20"),
@@ -271,6 +271,7 @@ namespace BiRyeoDo.Core
 
         public static int Cap(SaveData save, string id) { return LevelCaps[Stars(save, id)]; }
         public static float StarBonus(int stars) { return StarBonuses[Math.Max(0, Math.Min(MaxStars, stars))]; }
+        public static float StarBonusFor(ItemData item, int stars) { return StarBonus(item != null && item.Grade == ItemGrade.Transcendent ? MaxStars : stars); }
         public static string StarsText(SaveData save, string id) { int n = Stars(save, id); return n == 0 ? "미돌파" : n + "성"; }
 
         public static float Multiplier(int level, int stars = 0)
@@ -285,8 +286,8 @@ namespace BiRyeoDo.Core
         public static float EffectMultiplier(ItemData item, int level, int stars)
         {
             if (item.Grade != ItemGrade.Transcendent) return Multiplier(level, stars);
-            // Normalize five-star reference values so the innate bonus is not applied twice.
-            return Multiplier(level, MaxStars) / Multiplier(0, MaxStars);
+            // Definitions use the old +30% five-star reference. Keep that denominator fixed so the current breakthrough bonus cannot reduce existing enhancement effects.
+            return Multiplier(level, MaxStars) / 1.3f;
         }
 
         public static string HolderOf(SaveData save, string id)

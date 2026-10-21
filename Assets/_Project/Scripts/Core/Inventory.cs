@@ -209,6 +209,7 @@ namespace BiRyeoDo.Core
         {
             float atk = 0f, def = 0f, hp = 0f, qi = 0f, crit = 0f, critDmg = 0f;
             float speed = 0f;
+            int startSpirit = 0;
             var worn = new List<string>();
             foreach (var id in equipped)
             {
@@ -217,8 +218,10 @@ namespace BiRyeoDo.Core
                 worn.Add(id);
                 int stars = 0;
                 if (levels != null) foreach (var entry in levels) if (entry.Id == id) { stars = entry.Stars; break; }
-                float m = Gear.EffectMultiplier(item, Gear.LevelOf(levels, id), stars);
-                atk += item.AtkPct * m; def += item.DefPct * m; hp += item.HpPct * m; qi += item.QiPct * m; crit += item.CritAdd * m; critDmg += item.CritDmgAdd * m; speed += item.SpeedAdd * m;
+                var effects = Gear.EffectsFor(item, Gear.LevelOf(levels, id), stars);
+                atk += effects.AtkPct; def += effects.DefPct; hp += effects.HpPct; qi += effects.QiPct;
+                crit += effects.CritAdd; critDmg += effects.CritDmgAdd; speed += effects.SpeedAdd;
+                startSpirit += effects.StartSpirit;
             }
             foreach (var set in Gear.Sets)
             {
@@ -234,6 +237,7 @@ namespace BiRyeoDo.Core
             stats.Speed = Math.Max(1, stats.Speed + (int)Math.Round(speed));
             stats.CritRate = Math.Max(0f, Math.Min(1f, stats.CritRate + crit));
             stats.CritDamage += critDmg;
+            stats.StartSpirit += startSpirit;
             return stats;
         }
 

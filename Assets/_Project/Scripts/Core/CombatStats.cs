@@ -7,6 +7,7 @@ namespace BiRyeoDo.Core
     public struct CombatStats
     {
         public int MaxHp;
+        public int StartSpirit; // innate starting spirit from equipped breakthrough traits
         public int MaxQi;       // 내공: resource spent by martial arts
         public int Attack;
         public int Defense;

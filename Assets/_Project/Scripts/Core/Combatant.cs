@@ -57,6 +57,7 @@ namespace BiRyeoDo.Core
             _stats = stats;
             Hp = stats.MaxHp;
             Qi = stats.MaxQi;
+            StartSpirit = stats.StartSpirit;
             Skills.Add(SkillSpec.BasicAttack());
             if (skills != null) Skills.AddRange(skills);
         }
