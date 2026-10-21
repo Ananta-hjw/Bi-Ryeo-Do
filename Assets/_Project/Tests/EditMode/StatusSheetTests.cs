@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Text.RegularExpressions;
 using BiRyeoDo.Core;
 using NUnit.Framework;
 
@@ -40,6 +41,45 @@ namespace BiRyeoDo.Tests
             StringAssert.Contains("속도 -6", text);
             StringAssert.Contains("치명타 +5%", text);
             Assert.AreEqual("특별한 효과 없음", StatusSheet.EffectText(new ItemData()));
+        }
+
+        [TestCase(0, 0)]
+        [TestCase(1, 1)]
+        [TestCase(3, 2)]
+        [TestCase(5, 3)]
+        public void GearColorsOnlyUnlockedBreakthroughOptionsAndPreservesTheShownValues(int stars, int coloredCount)
+        {
+            var item = EarlyGameContent.FindItem("biroe_blade");
+            string plain = StatusSheet.EffectText(item, 100, stars);
+            string colored = StatusSheet.EffectText(item, 100, stars, "#8ECFFF");
+            Assert.AreEqual(coloredCount, Regex.Matches(colored, "<color=").Count);
+            Assert.AreEqual(plain, Regex.Replace(colored, "</?color[^>]*>", ""));
+            StringAssert.DoesNotContain("<color=#8ECFFF>공격", colored);
+            StringAssert.DoesNotContain("<color=#8ECFFF>체력", colored);
+            StringAssert.DoesNotContain("<color=#8ECFFF>치명타 +", colored);
+            if (stars >= 1) StringAssert.Contains("<color=#8ECFFF>치명타 피해 +32%</color>", colored);
+            if (stars >= 3) StringAssert.Contains("<color=#8ECFFF>내공 +36%</color>", colored);
+            if (stars >= 5) StringAssert.Contains("<color=#8ECFFF>방어 +69%</color>", colored);
+        }
+
+        [TestCase("iron_sword")]
+        [TestCase("jin_biroedo")]
+        public void BaseEffectsWithoutBreakthroughTraitsAreNeverRecolored(string id)
+        {
+            var item = EarlyGameContent.FindItem(id);
+            Assert.AreEqual(StatusSheet.EffectText(item, 100, 5), StatusSheet.EffectText(item, 100, 5, "#8ECFFF"));
+        }
+
+        [Test]
+        public void BreakthroughDetailsDistinguishUnlockedAndLockedOptionsIncludingFlatSpirit()
+        {
+            var item = EarlyGameContent.FindItem("roegeum");
+            string text = Gear.TraitsText(item, 3, "#8ECFFF", "#9CA6A0");
+            StringAssert.Contains("<color=#8ECFFF>1성 [적용] 치명타 피해 +32%p</color>", text);
+            StringAssert.Contains("<color=#8ECFFF>3성 [적용] 방어 +36%</color>", text);
+            StringAssert.Contains("<color=#9CA6A0>5성 [잠김] 시작 기세 +55</color>", text);
+            StringAssert.Contains("<color=#8ECFFF>시작 기세 +55</color>", StatusSheet.EffectText(item, 100, 5, "#8ECFFF"));
+            Assert.AreEqual(Gear.TraitsText(item, 3), Regex.Replace(text, "</?color[^>]*>", ""));
         }
 
         [Test]

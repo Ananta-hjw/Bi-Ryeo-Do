@@ -53,7 +53,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Body(UiFactory.Label("Reward", Root, new Vector2(0.05f, 0.282f), new Vector2(0.95f, 0.333f),
                 "보상  " + UiFactory.GradedName(sword) + " · 5성", 32, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal));
             UiFactory.ScrollBody(UiFactory.Label("RewardEffects", Root, new Vector2(.06f, .21f), new Vector2(.94f, .282f),
-                StatusSheet.EffectText(sword, 0, Gear.MaxStars), 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 30);
+                UiFactory.GearEffectText(sword, 0, Gear.MaxStars), 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 30);
 
             if (save.RitualDone)
             {

@@ -486,6 +486,13 @@ namespace BiRyeoDo.Game.UI
                     if (!stage.IsQuest && !stage.IsTower) materialLines.Add("전투 " + (i + 1) + ": " + (materialDrop != null ? MaterialName(materialDrop.Id) + " " + materialDrop.Count + "개" : "없음"));
                     if (!stage.IsQuest && !stage.IsTower) for (int roll = 0; roll < StageStars.DropRolls(diff); roll++) drops.AddRange(RollDrops(stage.Encounters[i]));
                     CompanionGrowth.EnsureRecords(save);   // before the protagonist levels, so old saves' companions start at the old level
+                    // Capture presentation snapshots before experience changes anyone's level.
+                    var levelsBefore = new Dictionary<string, int> { { Inventory.Hero, save.Level } };
+                    var statsBefore = new Dictionary<string, CombatStats>();
+                    foreach (var member in _party) statsBefore[member.Id] = member.Stats;
+                    foreach (var companion in EarlyGameContent.Companions)
+                        if (companion.JoinStage <= save.HighestUnlockedStage)
+                            levelsBefore[companion.Id] = CompanionGrowth.LevelOf(save, companion.Id);
                     int levels = Progression.AddExp(save, exp);
                     // Everyone who fought gains the same exp and levels on their own; whoever levels up is fully restored
                     var leveled = new List<string>();
@@ -516,10 +523,7 @@ namespace BiRyeoDo.Game.UI
                     SoundManager.Sfx(leveled.Count > 0 ? "levelup" : "win");
                     yield return ShowFightRewards(stage, i, rewardMask, rewardNewStars, exp, doo, drops, repLine, levels);
                     if (levelLines.Count > 0)
-                    {
-                        var hs = _party[0].Stats;
-                        yield return ShowResult("레벨 업!", string.Join("\n", levelLines) + "\n\n비류연  체력 " + hs.MaxHp.ToString("N0") + "   내공 " + hs.MaxQi.ToString("N0") + "\n공격력 " + hs.Attack.ToString("N0") + "   방어력 " + hs.Defense.ToString("N0") + "   속도 " + hs.Speed.ToString("N0"), false);
-                    }
+                        yield return ShowLevelUp(stage, levelsBefore, statsBefore);
                     if (found.Count > 0)
                     {
                         GameManager.Instance.SaveNow();
@@ -533,7 +537,7 @@ namespace BiRyeoDo.Game.UI
                     // Between fights the player decides when to go on (the next fight may be the boss).
                     if (i < stage.Encounters.Length - 1)
                     {
-                        yield return ShowHub(stage, i);
+                        yield return ShowHub(stage, i, rewardMask, rewardNewStars);
                         if (_leave)
                         {
                             StageProgress.Store(save, stage.Number, i + 1, _party, diff);
@@ -587,8 +591,7 @@ namespace BiRyeoDo.Game.UI
                     var reward = Inventory.GrantStageReward(save, stage.Number);
                     int chests = StageStars.ClaimableCount(save);
                     GameManager.Instance.SaveNow();
-                    yield return ShowResult(tag + "스테이지 돌파!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + MaterialSummary(materialLines) + (bondNote.Length > 0 ? "\n" + bondNote : "") + (reward.Count > 0 ? "\n\n첫 돌파 보상\n" + DescribeStacks(reward) : "")
-                        + "\n\n" + StageStarSummary(save, stage.Number, diff) + (newStars > 0 ? "\n이번에 새로 얻은 별 +" + newStars : "") + (chests > 0 ? "\n별 보상을 받을 수 있습니다! (강호 탭)" : ""), false);
+                    yield return ShowStageRewards(stage, gainedExp, gainedDoo, newStars, reward, materialLines, bondNote, chests);
                     if (joiners.Count > 0)
                     {
                         var joinNames = new List<string>();
@@ -798,16 +801,6 @@ namespace BiRyeoDo.Game.UI
             if (missed.Count > 0) line += "  (" + string.Join(", ", missed) + ")";
             if (gained > 0) line += "  새 별 +" + gained;
             return line;
-        }
-
-        /// <summary>Best stars of every fight of the stage on this difficulty, one per line.</summary>
-        private static string StageStarSummary(SaveData save, int stageNumber, int difficulty)
-        {
-            var lines = new List<string>();
-            int n = StageStars.FightCount(stageNumber);
-            for (int f = 0; f < n; f++)
-                lines.Add((f == n - 1 ? "결전 " : "전투 " + (f + 1) + " ") + StarGlyphs(StageStars.MaskOf(save, stageNumber, f, difficulty)));
-            return "별 " + StageStars.StarsOfStage(save, stageNumber, difficulty) + "/" + StageStars.MaxStarsOfStage(stageNumber) + "\n" + string.Join("   ", lines);
         }
 
         private IEnumerator Fight(string[] enemyIds, TrialRule trial, StageData stage)
@@ -2521,52 +2514,6 @@ namespace BiRyeoDo.Game.UI
             _storyRoot.SetActive(false);
             _storySkip = false;
             StartCoroutine(GuardTaps());   // taps that were meant for the story must not fall through to the screen underneath
-        }
-
-        /// <summary>Pause between the fights of a stage: shows the party's state and waits for the player to challenge the next fight or step back.</summary>
-        private IEnumerator ShowHub(StageData stage, int doneIndex)
-        {
-            SetCommandsVisible(false);
-            SetPanelMode(false);
-            int next = doneIndex + 1;
-            bool boss = next == stage.Encounters.Length - 1;
-            var sb = new System.Text.StringBuilder();
-            sb.Append("전투 ").Append(doneIndex + 1).Append("/").Append(stage.Encounters.Length).Append(" 승리!");
-            if (_lastStarLine.Length > 0) sb.Append("  ").Append(_lastStarLine);
-            sb.Append("\n");
-            foreach (var m in _party) sb.Append(m.Name).Append("  체력 ").Append(m.Hp).Append("/").Append(m.Stats.MaxHp).Append("  내공 ").Append(m.Qi).Append("\n");
-            sb.Append("\n다음은 ").Append(boss ? "결전입니다." : "전투 " + (next + 1) + "입니다.");
-            var trial = stage.TrialFor(next);
-            if (trial != null) sb.Append("\n[").Append(trial.Title).Append("] ").Append(trial.Brief);
-            sb.Append("\n준비가 되면 도전해 주세요. 물러나도 여기서부터 이어서 할 수 있습니다.");
-
-            _panelTitle.text = stage.Name;
-            _panelText.text = sb.ToString();
-            var nextLabel = _panelNext.GetComponentInChildren<Text>();
-            var backLabel = _panelBack.GetComponentInChildren<Text>();
-            string nextOld = nextLabel.text, backOld = backLabel.text;
-            nextLabel.text = boss ? "결전에 도전" : "다음 전투 도전";
-            backLabel.text = "물러나기 (저장)";
-            _panelNext.SetActive(true);
-            _panelBack.SetActive(true);
-            _panelRetry.SetActive(false);
-            // Next and Back share the row: shrink Next to the left half while the hub is up.
-            var nextRt = (RectTransform)_panelNext.transform;
-            var oldMin = nextRt.anchorMin; var oldMax = nextRt.anchorMax;
-            nextRt.anchorMin = new Vector2(0.06f, 0.05f); nextRt.anchorMax = new Vector2(0.62f, 0.20f);
-            var backRt = (RectTransform)_panelBack.transform;
-            var backMin = backRt.anchorMin; var backMax = backRt.anchorMax;
-            backRt.anchorMin = new Vector2(0.66f, 0.05f); backRt.anchorMax = new Vector2(0.94f, 0.20f);
-            _panel.SetActive(true);
-            _panelDone = false;
-            _leave = false;
-            while (!_panelDone) yield return null;
-            _panel.SetActive(false);
-            StartCoroutine(GuardTaps());
-            nextRt.anchorMin = oldMin; nextRt.anchorMax = oldMax;
-            backRt.anchorMin = backMin; backRt.anchorMax = backMax;
-            nextLabel.text = nextOld; backLabel.text = backOld;
-            _panelBack.SetActive(false);
         }
 
         private IEnumerator ShowResult(string title, string text, bool defeat, bool allowRetry = true)

@@ -192,7 +192,7 @@ namespace BiRyeoDo.Game.UI
             Text(card, 0.27f, has ? 0.83f : 0.97f, has ? 0.58f : 0f, 1f, name, 32, has ? UiFactory.PaperText : UiFactory.InkSoft);
             if (has)
             {
-                Text(card, 0.04f, 0.83f, 0.04f, 0.58f, StatusSheet.EffectText(item, Gear.LevelFor(save, Inventory.Hero, item.Id), Gear.Stars(save, item.Id)), 24, UiFactory.PaperText, TextAnchor.UpperLeft);
+                Text(card, 0.04f, 0.83f, 0.04f, 0.58f, UiFactory.GearEffectText(item, Gear.LevelFor(save, Inventory.Hero, item.Id), Gear.Stars(save, item.Id)), 24, UiFactory.PaperText, TextAnchor.UpperLeft);
                 var pic = UiFactory.Panel("Picture", card, new Vector2(0.85f, 0.08f), new Vector2(0.98f, 0.92f), Color.white);
                 var glyph = UiFactory.Label("Glyph", pic.transform, Vector2.zero, Vector2.one, "", 40, UiFactory.PaperText);
                 ItemArt.Apply(pic, glyph, item);
@@ -210,64 +210,98 @@ namespace BiRyeoDo.Game.UI
             var current = Inventory.InSlot(save, owner, kind, slot);
             var owners = new List<string> { Inventory.Hero };
             owners.AddRange(EarlyGameContent.Companions.Where(c => c.JoinStage <= save.HighestUnlockedStage).Select(c => c.Id));
+            // Portrait cards identify people; the single text-tab row below selects equipment slots.
             for (int i = 0; i < owners.Count; i++)
             {
                 string id = owners[i];
                 string name = id == Inventory.Hero ? "비류연" : EarlyGameContent.FindCompanion(id).Name;
-                float left = .04f + (i % 3) * .31f;
-                float top = .99f - (i / 3) * .05f;
-                UiFactory.Button("Owner" + i, _picker, new Vector2(left, top - .045f), new Vector2(left + .30f, top), name,
-                    id == owner ? UiFactory.Red : UiFactory.InkSoft, () => { _equipmentMessage = null; OpenEquipmentPicker(id, slotIndex); }, 30);
+                float left = .04f + i * .155f;
+                bool selected = id == owner;
+                var button = UiFactory.Button("Owner" + i, _picker, new Vector2(left, .922f), new Vector2(left + .145f, .992f), name,
+                    selected ? new Color(.15f, .28f, .25f, 1f) : UiFactory.Ink, () => { _equipmentMessage = null; OpenEquipmentPicker(id, slotIndex); }, 25);
+                UiFactory.Frame(button.transform, selected ? UiFactory.Gold : UiFactory.GoldDim, selected ? 3f : 1f);
+                var nameLabel = button.GetComponentInChildren<Text>();
+                nameLabel.rectTransform.anchorMin = new Vector2(.02f, .02f);
+                nameLabel.rectTransform.anchorMax = new Vector2(.98f, .31f);
+                nameLabel.rectTransform.offsetMin = nameLabel.rectTransform.offsetMax = Vector2.zero;
+                nameLabel.color = selected ? UiFactory.Gold : UiFactory.PaperText;
+                var picture = UiFactory.Panel("Portrait", button.transform, new Vector2(.22f, .33f), new Vector2(.78f, .97f), Color.white);
+                picture.sprite = ArtLibrary.Portrait(name);
+                picture.preserveAspect = true;
+                if (picture.sprite == null)
+                {
+                    picture.color = Color.clear;
+                    UiFactory.Label("Glyph", picture.transform, Vector2.zero, Vector2.one, name.Substring(0, 1), 34, UiFactory.Gold);
+                }
             }
             for (int i = 0; i < SlotNames.Length; i++)
             {
                 int selected = i;
-                float left = .04f + (i % 3) * .31f;
-                float top = .88f - (i / 3) * .055f;
-                UiFactory.Button("Slot" + i, _picker, new Vector2(left, top - .05f), new Vector2(left + .30f, top), SlotNames[i],
-                    i == slotIndex ? UiFactory.Red : UiFactory.InkSoft, () => { _equipmentMessage = null; OpenEquipmentPicker(owner, selected); }, 30);
+                float left = .04f + i * .155f;
+                var tab = UiFactory.Button("Slot" + i, _picker, new Vector2(left, .866f), new Vector2(left + .145f, .912f), SlotNames[i],
+                    i == slotIndex ? UiFactory.Red : UiFactory.InkSoft, () => { _equipmentMessage = null; OpenEquipmentPicker(owner, selected); }, 27);
+                if (i == slotIndex)
+                    UiFactory.Panel("Selected", tab.transform, new Vector2(.04f, .02f), new Vector2(.96f, .07f), UiFactory.Gold);
             }
-            string currentName = current != null ? UiFactory.GradedName(current) + " · " + Gear.StarsText(save, current.Id) : "비어 있음";
-            UiFactory.ScrollBody(UiFactory.Label("Current", _picker, new Vector2(.05f, .70f), new Vector2(.72f, .77f), "현재 " + SlotNames[slotIndex] + "\n" + currentName, 32, UiFactory.PaperText, TextAnchor.MiddleLeft), 32);
-            var remove = UiFactory.Button("Unequip", _picker, new Vector2(.74f, .705f), new Vector2(.95f, .765f), "해제", UiFactory.InkSoft, () =>
-            {
-                if (current == null) return;
-                Inventory.UnequipFor(save, owner, current.Id);
-                GameManager.Instance.SaveNow();
-                _equipmentMessage = current.Name + "을(를) 해제했습니다.";
-                OpenEquipmentPicker(owner, slotIndex);
-            }, 32);
-            remove.interactable = current != null;
-            string summary = current != null ? StatusSheet.EffectText(current, Gear.LevelFor(save, owner, current.Id), Gear.Stars(save, current.Id)) : "아래에서 이 부위에 장착할 장비를 선택합니다.";
-            UiFactory.ScrollBody(UiFactory.Label("CurrentEffect", _picker, new Vector2(.05f, .64f), new Vector2(.95f, .70f), summary, 30, UiFactory.Dim), 30);
-            UiFactory.ScrollBody(UiFactory.Label("Message", _picker, new Vector2(.05f, .50f), new Vector2(.95f, .55f), _equipmentMessage ?? "장비를 누르면 상세정보를 볼 수 있습니다. 다른 인물의 장비는 먼저 해제해 주세요.", 30, UiFactory.Gold), 30);
-            var activeSets = Gear.SetLines(Inventory.GearOf(save, owner));
-            UiFactory.ScrollBody(UiFactory.Label("CurrentSets", _picker, new Vector2(.05f, .55f), new Vector2(.95f, .64f),
-                "현재 세트 효과\n" + (activeSets.Count > 0 ? string.Join("\n", activeSets) : "적용 중인 세트 효과가 없습니다."), 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 28);
+
             int stored = Gear.SlotLevel(save, owner, slotIndex);
+            int applied = Gear.AppliedSlotLevel(save, owner, slotIndex, current);
             int cap = current != null ? Gear.Cap(save, current.Id) : 10;
             int next = stored + 1;
             bool unlocked = current != null && Gear.IsGradeUnlocked(save, owner, slotIndex, current.Grade);
             long unlockCost = current != null ? Gear.GradeUnlockCost(save, owner, slotIndex, current.Grade) : 0;
             var material = Gear.MaterialForLevel(next);
-            string upgradeInfo = SlotNames[slotIndex] + " 강화 +" + stored + " · 적용 +" + Gear.AppliedSlotLevel(save, owner, slotIndex, current)
-                + " / 상한 +" + cap + "\n" + material.Name + " " + Inventory.Count(save, material.Id) + "개 · " + save.Doo.ToString("N0") + "두"
-                + "\n" + Grades.NameOf(Gear.UnlockedGrade(save, owner, slotIndex)) + "까지 개방 · 교체해도 강화 유지"
-                + (current != null && !unlocked ? "\n미개방: 기본·돌파 효과만 적용됩니다." : "");
-            UiFactory.ScrollBody(UiFactory.Label("UpgradeInfo", _picker, new Vector2(.05f, .10f), new Vector2(.54f, .25f), upgradeInfo, 30, UiFactory.PaperText), 30);
-            string upgradeLabel = current == null ? "장비를 선택해 주세요." : !unlocked ? Grades.NameOf(current.Grade) + " 등급 개방\n" + unlockCost.ToString("N0") + "두\n하위 등급도 함께 개방"
-                : stored >= Gear.MaxLevel ? "최대 +100" : stored >= cap ? "한계돌파 필요"
-                : "부위 강화 +" + next + "\n" + material.Name + " " + Gear.StoneCost(next) + "개\n" + Gear.DooCost(next).ToString("N0") + "두 · 확정 성공";
-            var upgrade = UiFactory.Button("EnhanceSlot", _picker, new Vector2(.56f, .11f), new Vector2(.95f, .24f), upgradeLabel, UiFactory.Red, () =>
+            var equipped = UiFactory.Panel("CurrentEquipment", _picker, new Vector2(.04f, .711f), new Vector2(.96f, .856f), UiFactory.Ink);
+            UiFactory.Frame(equipped.transform, UiFactory.GoldDim, 2f);
+            string currentName = current != null ? UiFactory.GradedName(current) + " · " + Gear.StarsText(save, current.Id) : "현재 " + SlotNames[slotIndex] + " · 비어 있음";
+            UiFactory.Body(UiFactory.Label("Current", equipped.transform, new Vector2(.18f, .74f), new Vector2(.71f, .98f), currentName, 30, UiFactory.PaperText, TextAnchor.MiddleLeft));
+            UiFactory.Body(UiFactory.Label("CurrentGrowth", equipped.transform, new Vector2(.18f, .53f), new Vector2(.71f, .74f),
+                "강화 +" + stored + " · 적용 +" + applied + " · 상한 +" + cap, 26, UiFactory.Gold, TextAnchor.MiddleLeft));
+            if (current != null)
+            {
+                var picture = UiFactory.Panel("Picture", equipped.transform, new Vector2(.02f, .55f), new Vector2(.15f, .96f), Color.white);
+                var glyph = UiFactory.Label("Glyph", picture.transform, Vector2.zero, Vector2.one, "", 40, UiFactory.Gold);
+                ItemArt.Apply(picture, glyph, current);
+            }
+            string summary = current != null ? UiFactory.GearEffectText(current, applied, Gear.Stars(save, current.Id)) : "아래 목록에서 장비를 선택해 주세요.";
+            UiFactory.ScrollBody(UiFactory.Label("CurrentEffect", equipped.transform, new Vector2(.04f, .04f), new Vector2(.71f, .52f), summary, 27, UiFactory.PaperText, TextAnchor.UpperLeft), 27);
+            string upgradeLabel = current == null ? "강화" : !unlocked ? "등급 개방\n" + unlockCost.ToString("N0") + "두"
+                : stored >= Gear.MaxLevel ? "최대 +100" : stored >= cap ? "한계돌파 필요" : "강화 +" + next;
+            var upgrade = UiFactory.Button("EnhanceSlot", equipped.transform, new Vector2(.74f, .55f), new Vector2(.97f, .95f), upgradeLabel, UiFactory.Red, () =>
             {
                 string error;
                 bool success = !unlocked ? Gear.UnlockSlotGrade(save, owner, slotIndex, out error) : Gear.EnhanceSlot(save, owner, slotIndex, out error);
                 _equipmentMessage = success ? (!unlocked ? Grades.NameOf(current.Grade) + " 등급을 개방했습니다." : SlotNames[slotIndex] + " 강화 +" + Gear.SlotLevel(save, owner, slotIndex) + " 성공!") : error;
                 if (success) { SoundManager.Sfx("levelup"); GameManager.Instance.SaveNow(); }
                 OpenEquipmentPicker(owner, slotIndex);
-            }, 30);
+            }, 28);
             upgrade.interactable = current != null && (!unlocked ? save.Doo >= unlockCost : Gear.CanEnhanceSlot(save, owner, slotIndex));
-            var content = CodexPanel.Scroller(_picker, .265f, .495f);
+            var remove = UiFactory.Button("Unequip", equipped.transform, new Vector2(.74f, .05f), new Vector2(.97f, .45f), "해제", UiFactory.InkSoft, () =>
+            {
+                if (current == null) return;
+                Inventory.UnequipFor(save, owner, current.Id);
+                GameManager.Instance.SaveNow();
+                _equipmentMessage = current.Name + "을(를) 해제했습니다.";
+                OpenEquipmentPicker(owner, slotIndex);
+            }, 28);
+            remove.interactable = current != null;
+
+            var resources = UiFactory.Panel("Resources", _picker, new Vector2(.04f, .651f), new Vector2(.96f, .701f), UiFactory.InkSoft);
+            bool hasNext = stored < Gear.MaxLevel;
+            UiFactory.Body(UiFactory.Label("Material", resources.transform, new Vector2(.025f, .04f), new Vector2(.43f, .96f),
+                material.Name + " " + Inventory.Count(save, material.Id).ToString("N0") + "개"
+                    + (hasNext ? "\n강화 시 " + Gear.StoneCost(next) + "개 사용" : "\n최대 강화"), 25, UiFactory.PaperText, TextAnchor.MiddleLeft));
+            UiFactory.Body(UiFactory.Label("Doo", resources.transform, new Vector2(.45f, .04f), new Vector2(.74f, .96f),
+                save.Doo.ToString("N0") + "두" + (hasNext ? "\n강화 시 " + Gear.DooCost(next).ToString("N0") + "두" : ""), 25, UiFactory.Gold, TextAnchor.MiddleLeft));
+            UiFactory.Body(UiFactory.Label("UnlockedGrade", resources.transform, new Vector2(.76f, .04f), new Vector2(.98f, .96f),
+                Grades.NameOf(Gear.UnlockedGrade(save, owner, slotIndex)) + "까지 개방"
+                    + (current != null && !unlocked ? "\n" + Grades.NameOf(current.Grade) + " 미개방" : ""), 24, UiFactory.PaperText, TextAnchor.MiddleLeft));
+            var activeSets = Gear.SetLines(Inventory.GearOf(save, owner));
+            UiFactory.ScrollBody(UiFactory.Label("CurrentSets", _picker, new Vector2(.05f, .584f), new Vector2(.95f, .641f),
+                "현재 세트 효과\n" + (activeSets.Count > 0 ? string.Join("\n", activeSets) : "적용 중인 세트 효과가 없습니다."), 26, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 26);
+            UiFactory.ScrollBody(UiFactory.Label("Message", _picker, new Vector2(.05f, .55f), new Vector2(.95f, .580f),
+                _equipmentMessage ?? "장비 목록 · 장비를 누르면 상세정보가 열립니다.", 26, UiFactory.Gold, TextAnchor.MiddleLeft), 26);
+            var content = CodexPanel.Scroller(_picker, .095f, .547f);
             var candidates = save.Items.Select(stack => EarlyGameContent.FindItem(stack.Id))
                 .Where(item => item != null && item.IsGear && item.Kind == kind && Inventory.Count(save, item.Id) > 0
                     && (owner == Inventory.Hero || !Gear.IsHeroOnly(item.Id)))
@@ -286,11 +320,10 @@ namespace BiRyeoDo.Game.UI
                 inspect.targetGraphic = row.GetComponent<Image>();
                 inspect.transition = Selectable.Transition.None;
                 inspect.onClick.AddListener(() => OpenEquipmentDetail(owner, slotIndex, item));
-                UiFactory.Body(UiFactory.Label("Name", row, new Vector2(.04f, .76f), new Vector2(.96f, .98f), UiFactory.GradedName(item) + " · " + Gear.StarsText(save, item.Id) + " · " + state, 32, worn ? UiFactory.Gold : UiFactory.PaperText, TextAnchor.MiddleLeft));
-                UiFactory.Body(UiFactory.Label("Effect", row, new Vector2(.04f, .25f), new Vector2(.72f, .76f), StatusSheet.EffectText(item, Gear.AppliedSlotLevel(save, owner, slotIndex, item), Gear.Stars(save, item.Id)), 28, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal));
-                UiFactory.Body(UiFactory.Label("SetName", row, new Vector2(.04f, .03f), new Vector2(.72f, .23f), set != null ? set.Name + " 세트" : "세트 없음", 27, UiFactory.Gold, TextAnchor.MiddleLeft, FontStyle.Normal));
-                UiFactory.Body(UiFactory.Label("DetailHint", row, new Vector2(.75f, .03f), new Vector2(.96f, .23f), "상세 보기", 24, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal));
-                var equip = UiFactory.Button("Equip", row, new Vector2(.75f, .28f), new Vector2(.96f, .72f), worn ? "착용 중" : "장착", available ? UiFactory.Red : UiFactory.InkSoft, () =>
+                UiFactory.Body(UiFactory.Label("Name", row, new Vector2(.04f, .78f), new Vector2(.96f, .98f), UiFactory.GradedName(item) + " · " + Gear.StarsText(save, item.Id), 30, worn ? UiFactory.Gold : UiFactory.PaperText, TextAnchor.MiddleLeft));
+                UiFactory.Body(UiFactory.Label("Effect", row, new Vector2(.04f, .33f), new Vector2(.96f, .77f), UiFactory.GearEffectText(item, Gear.AppliedSlotLevel(save, owner, slotIndex, item), Gear.Stars(save, item.Id)), 28, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal));
+                UiFactory.Body(UiFactory.Label("SetName", row, new Vector2(.04f, .02f), new Vector2(.70f, .28f), (set != null ? set.Name + " 세트" : "세트 없음") + (available ? "" : " · " + state), 25, UiFactory.Gold, TextAnchor.MiddleLeft, FontStyle.Normal));
+                var equip = UiFactory.Button("Equip", row, new Vector2(.73f, .035f), new Vector2(.96f, .285f), worn ? "착용 중" : otherSlot ? "다른 칸" : available ? "장착" : "사용 중", available ? UiFactory.Red : UiFactory.InkSoft, () =>
                 {
                     string error;
                     bool success = Inventory.EquipInSlot(save, owner, kind, slot, item.Id, out error);
@@ -301,7 +334,7 @@ namespace BiRyeoDo.Game.UI
                 equip.interactable = available;
             }
             if (candidates.Count == 0) UiFactory.Label("Empty", content.parent, new Vector2(.05f, .35f), new Vector2(.95f, .65f), "이 부위에 장착할 수 있는 장비가 없습니다.", 32, UiFactory.Dim);
-            UiFactory.Button("Back", _picker, new Vector2(.25f, .01f), new Vector2(.75f, .085f), "상태창으로", UiFactory.InkSoft, () => { _equipmentMessage = null; Open(); OnChange(); }, 34);
+            UiFactory.Button("Back", _picker, new Vector2(.25f, .012f), new Vector2(.75f, .080f), "상태창으로", UiFactory.InkSoft, () => { _equipmentMessage = null; Open(); OnChange(); }, 34);
         }
 
         private void OpenEquipmentDetail(string owner, int slotIndex, ItemData item)
@@ -330,14 +363,14 @@ namespace BiRyeoDo.Game.UI
             var set = Gear.SetOf(item.Id);
             var lines = new List<string>
             {
-                "장착 시 능력치\n" + StatusSheet.EffectText(item, level, stars),
+                "장착 시 능력치\n" + UiFactory.GearEffectText(item, level, stars),
                 set != null ? "세트: " + set.Name : "세트 없음",
                 "적용 강화 +" + level + " · 부위 강화 +" + Gear.SlotLevel(save, owner, slotIndex)
                     + "\n강화 상한 +" + Gear.Cap(save, item.Id) + " · 기본 효과 보너스 +" + Mathf.RoundToInt(Gear.StarBonusFor(item, stars) * 100f) + "%"
             };
             string flavor = StatusSheet.Flavor(item);
             if (flavor.Length > 0) lines.Add(flavor);
-            string traits = Gear.TraitsText(item, stars);
+            string traits = UiFactory.GearTraitsText(item, stars);
             if (traits.Length > 0) lines.Add("돌파 추가 능력치 (강화·기본 효과 보너스 미적용)\n" + traits);
             if (!Gear.IsGradeUnlocked(save, owner, slotIndex, item.Grade))
                 lines.Add("등급 미개방: 기본·돌파 효과만 적용됩니다.\n개방 비용 " + Gear.GradeUnlockCost(save, owner, slotIndex, item.Grade).ToString("N0") + "두");

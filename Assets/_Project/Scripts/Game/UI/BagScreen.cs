@@ -128,7 +128,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Kind", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.72f, 0.90f), kind, 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
 
             var lines = new List<string>();
-            if (gear) lines.Add("강화 · 장착 · 해제는 상태창의 부위 칸에서 합니다. 장비를 바꿔도 부위 강화는 유지됩니다.\n\n<color=#9ADB9F>" + StatusSheet.EffectText(item, 0, enh) + "</color>" + (enh > 0 && item.Grade != ItemGrade.Transcendent ? "   (돌파 전 " + StatusSheet.EffectText(item, 0) + ")" : ""));
+            if (gear) lines.Add("강화 · 장착 · 해제는 상태창의 부위 칸에서 합니다. 장비를 바꿔도 부위 강화는 유지됩니다.\n\n<color=#9ADB9F>" + UiFactory.GearEffectText(item, 0, enh) + "</color>" + (enh > 0 && item.Grade != ItemGrade.Transcendent ? "   (돌파 전 " + UiFactory.GearEffectText(item, 0) + ")" : ""));
             else
             {
                 var fx = new List<string>();
@@ -147,7 +147,7 @@ namespace BiRyeoDo.Game.UI
                 lines.Add("한계돌파 " + Gear.StarsText(save, item.Id) + " / 5성 · 강화 상한 +" + Gear.Cap(save, item.Id)
                     + "\n기본 장비 효과 +" + Mathf.RoundToInt(Gear.StarBonusFor(item, enh) * 100f) + "% · 여분 " + spares + "개"
                     + (enh < Gear.MaxStars ? "\n다음: " + (enh + 1) + "성 · 상한 +" + Gear.LevelCaps[enh + 1] + " · 기본 효과 +" + Mathf.RoundToInt(Gear.StarBonusFor(item, enh + 1) * 100f) + "% (여분 1개 사용)" : "\n최대 한계돌파입니다."));
-                string traits = Gear.TraitsText(item, enh);
+                string traits = UiFactory.GearTraitsText(item, enh);
                 if (traits.Length > 0) lines.Add("돌파 추가 능력치 (강화·기본 효과 보너스 미적용)\n" + traits);
                 var matInfo = Salvage.MaterialFor(item);
                 if (matInfo != null) lines.Add("분해: " + matInfo.Name + " " + Salvage.MinCount[(int)item.Grade] + "~" + Salvage.MaxCount(item.Grade) + "개 (" + Grades.NameOf(item.Grade) + " " + Salvage.SlotLabel(item.Kind) + " 재료)\n" + Salvage.EnhancementMaterialFor(item).Name + " 1~5개 (각 20%)");
@@ -416,7 +416,7 @@ namespace BiRyeoDo.Game.UI
                 GameManager.Instance.SaveNow();
                 Refresh();
                 ReopenDetail(material);
-                ShowNotice("합성 성공", UiFactory.GradedName(made) + "\n" + StatusSheet.EffectText(made) + "\n\n재료 " + Salvage.Need(material) + "개를 사용했습니다.", UiFactory.Gold);
+                ShowNotice("합성 성공", UiFactory.GradedName(made) + "\n" + UiFactory.GearEffectText(made) + "\n\n재료 " + Salvage.Need(material) + "개를 사용했습니다.", UiFactory.Gold);
                 return;
             }
             _flash = error;
@@ -436,7 +436,7 @@ namespace BiRyeoDo.Game.UI
                 GameManager.Instance.SaveNow();
                 Refresh();
                 ReopenDetail(item);
-                ShowNotice("한계돌파 성공", UiFactory.GradedName(item) + " <b>" + lv + "성</b>\n강화 상한 +" + Gear.Cap(save, item.Id) + "\n기본 장비 효과 +" + Mathf.RoundToInt(Gear.StarBonusFor(item, lv) * 100f) + "%\n\n" + Gear.TraitsText(item, lv) + "\n\n여분 " + Gear.Spares(save, item.Id) + "개 남음", UiFactory.Gold);
+                ShowNotice("한계돌파 성공", UiFactory.GradedName(item) + " <b>" + lv + "성</b>\n강화 상한 +" + Gear.Cap(save, item.Id) + "\n기본 장비 효과 +" + Mathf.RoundToInt(Gear.StarBonusFor(item, lv) * 100f) + "%\n\n" + UiFactory.GearTraitsText(item, lv) + "\n\n여분 " + Gear.Spares(save, item.Id) + "개 남음", UiFactory.Gold);
                 return;
             }
             _flash = error;
@@ -513,7 +513,7 @@ namespace BiRyeoDo.Game.UI
                 var set = item.IsGear ? Gear.SetOf(item.Id) : null;
                 row.Title.text = UiFactory.GradedName(item) + (item.IsGear ? " · " + Gear.StarsText(save, item.Id) : "") + (stack.Count > 1 ? " ×" + stack.Count : "") + (wearers.Count > 0 ? "\n착용: " + string.Join(", ", wearers) : "");
                 row.Detail.text = item.IsGear
-                    ? StatusSheet.EffectText(item, 0, enh).Replace("  ", "\n") + "\n\n" + (set != null ? set.Name + " 세트" : "세트 없음")
+                    ? UiFactory.GearEffectText(item, 0, enh).Replace("  ", "\n") + "\n\n" + (set != null ? set.Name + " 세트" : "세트 없음")
                     : item.MasteryUses > 0 ? "숙련 +" + item.MasteryUses + "회"
                     : item.Kind == ItemKind.Consumable ? ConsumableSummary(item)
                     : item.Kind == ItemKind.Material ? "재료" : "중요 물품";

@@ -91,18 +91,33 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>"공격 +10%  방어 +10%  속도 -6" for a piece of gear.</summary>
-        public static string EffectText(ItemData item, int enhance = 0, int stars = 0)
+        public static string EffectText(ItemData item, int enhance = 0, int stars = 0, string breakthroughColor = null)
         {
             var effects = Gear.EffectsFor(item, enhance, stars);
+            var unlocked = new HashSet<GearTraitKind>();
+            if (!string.IsNullOrEmpty(breakthroughColor))
+            {
+                int effectiveStars = item != null && item.Grade == ItemGrade.Transcendent ? Gear.MaxStars : stars;
+                foreach (var trait in Gear.BreakthroughTraits(item))
+                    if (effectiveStars >= trait.Stars) unlocked.Add(trait.Kind);
+            }
             var parts = new List<string>();
-            if (effects.HpPct != 0f) parts.Add("체력 " + Pct(effects.HpPct));
-            if (effects.QiPct != 0f) parts.Add("내공 " + Pct(effects.QiPct));
-            if (effects.AtkPct != 0f) parts.Add("공격 " + Pct(effects.AtkPct));
-            if (effects.DefPct != 0f) parts.Add("방어 " + Pct(effects.DefPct));
-            if (effects.SpeedAdd != 0) { int sp = (int)Math.Round(effects.SpeedAdd); parts.Add("속도 " + (sp > 0 ? "+" : "") + sp); }
-            if (effects.CritAdd != 0f) parts.Add("치명타 " + Pct(effects.CritAdd));
-            if (effects.CritDmgAdd != 0f) parts.Add("치명타 피해 " + Pct(effects.CritDmgAdd));
-            if (effects.StartSpirit != 0) parts.Add("시작 기세 +" + effects.StartSpirit);
+            void Add(GearTraitKind kind, string text)
+            {
+                parts.Add(unlocked.Contains(kind) ? "<color=" + breakthroughColor + ">" + text + "</color>" : text);
+            }
+            if (effects.HpPct != 0f) Add(GearTraitKind.Hp, "체력 " + Pct(effects.HpPct));
+            if (effects.QiPct != 0f) Add(GearTraitKind.Qi, "내공 " + Pct(effects.QiPct));
+            if (effects.AtkPct != 0f) Add(GearTraitKind.Attack, "공격 " + Pct(effects.AtkPct));
+            if (effects.DefPct != 0f) Add(GearTraitKind.Defense, "방어 " + Pct(effects.DefPct));
+            if (effects.SpeedAdd != 0)
+            {
+                int sp = (int)Math.Round(effects.SpeedAdd);
+                Add(GearTraitKind.Speed, "속도 " + (sp > 0 ? "+" : "") + sp);
+            }
+            if (effects.CritAdd != 0f) Add(GearTraitKind.Crit, "치명타 " + Pct(effects.CritAdd));
+            if (effects.CritDmgAdd != 0f) Add(GearTraitKind.CritDamage, "치명타 피해 " + Pct(effects.CritDmgAdd));
+            if (effects.StartSpirit != 0) Add(GearTraitKind.StartSpirit, "시작 기세 +" + effects.StartSpirit);
             return parts.Count == 0 ? "특별한 효과 없음" : string.Join("  ", parts);
         }
 

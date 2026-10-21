@@ -174,12 +174,17 @@ namespace BiRyeoDo.Core
                 + (flat ? "" : trait.Kind == GearTraitKind.Crit || trait.Kind == GearTraitKind.CritDamage ? "%p" : "%");
         }
 
-        public static string TraitsText(ItemData item, int stars)
+        public static string TraitsText(ItemData item, int stars, string unlockedColor = null, string lockedColor = null)
         {
             if (item != null && item.Grade == ItemGrade.Transcendent) stars = MaxStars;
             var lines = new List<string>();
             foreach (var trait in BreakthroughTraits(item))
-                lines.Add(trait.Stars + "성 " + (stars >= trait.Stars ? "[적용] " : "[잠김] ") + TraitText(trait));
+            {
+                bool active = stars >= trait.Stars;
+                string line = trait.Stars + "성 " + (active ? "[적용] " : "[잠김] ") + TraitText(trait);
+                string color = active ? unlockedColor : lockedColor;
+                lines.Add(string.IsNullOrEmpty(color) ? line : "<color=" + color + ">" + line + "</color>");
+            }
             return string.Join("\n", lines);
         }
     }

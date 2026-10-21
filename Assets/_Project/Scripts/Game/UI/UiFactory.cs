@@ -18,6 +18,20 @@ namespace BiRyeoDo.Game.UI
         public static readonly Color Dim = new Color(.73f, .78f, .73f, 1f);
         public static readonly Color Jade = new Color(.39f, .62f, .55f, 1f);
 
+        public const string BreakthroughHex = "#8ECFFF";
+        private const string LockedTraitHex = "#9CA6A0";
+
+        /// <summary>Highlights only unlocked, fixed breakthrough effects; base effects keep the label colour.</summary>
+        public static string GearEffectText(BiRyeoDo.Core.ItemData item, int enhance = 0, int stars = 0)
+        {
+            return BiRyeoDo.Core.StatusSheet.EffectText(item, enhance, stars, BreakthroughHex);
+        }
+
+        public static string GearTraitsText(BiRyeoDo.Core.ItemData item, int stars)
+        {
+            return BiRyeoDo.Core.Gear.TraitsText(item, stars, BreakthroughHex, LockedTraitHex);
+        }
+
         /// <summary>Colour of an item grade: 일반 grey, 고급 green, 희귀 blue, 영웅 purple, 전설 orange, 신화 red.</summary>
         public static Color GradeColor(BiRyeoDo.Core.ItemGrade grade)
         {

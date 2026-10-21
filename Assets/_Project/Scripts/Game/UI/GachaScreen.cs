@@ -163,7 +163,7 @@ namespace BiRyeoDo.Game.UI
                 card.Frame.color = UiFactory.GradeColor(item.Grade);
                 ItemArt.Apply(card.Icon, card.IconGlyph, item);
                 card.Name.text = UiFactory.GradedName(item);
-                card.Effect.text = item.IsGear ? StatusSheet.EffectText(item) : item.Description;
+                card.Effect.text = item.IsGear ? UiFactory.GearEffectText(item) : item.Description;
                 card.Tag.text = r.Duplicate ? "여분 +1" : item.IsGear ? "NEW" : "";
                 card.Root.SetActive(true);
                 if (item.Grade > best) best = item.Grade;
