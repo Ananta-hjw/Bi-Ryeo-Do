@@ -31,7 +31,7 @@ namespace BiRyeoDo.Game.UI
             public Image Frame, Art, IntentBack;
             public WuxiaGlyph TargetFrame;
             public int ShownHp, ShownPhase;
-            public Text Name, Glyph, Intent, HpText, QiText, SpiritText, Badge, Realm;
+            public Text Name, Glyph, Intent, HpText, QiText, SpiritText, Badge, Realm, ActionBadge;
             public UiFactory.Bar Hp, Qi, Spirit;
             public Vector2 Center;
             public EnemyData Data;
@@ -43,7 +43,7 @@ namespace BiRyeoDo.Game.UI
             public RectTransform Root;
             public Image Frame, Art;
             public WuxiaGlyph ActiveFrame;
-            public Text Name, Status, HpText, QiText, SpiritText;
+            public Text Name, Status, HpText, QiText, SpiritText, ActionBadge;
             public Text FigureGlyph;
             public UiFactory.Bar Hp, Qi, Spirit;
             public Vector2 Center;
@@ -1019,6 +1019,7 @@ namespace BiRyeoDo.Game.UI
                 p.QiText = GaugeText("QiText", p.Root, 0.110f, 0.200f);
                 p.SpiritText = GaugeText("SpiritText", p.Root, 0.015f, 0.105f);
                 p.QiText.gameObject.SetActive(false); p.SpiritText.gameObject.SetActive(false);
+                p.ActionBadge = BuildActionBadge(p.Root);
                 var panelUnit = unit;
                 var catchImg = p.Root.gameObject.AddComponent<Image>();
                 catchImg.color = new Color(0f, 0f, 0f, 0f);   // catches the press
@@ -1129,6 +1130,8 @@ namespace BiRyeoDo.Game.UI
                 card.Badge = UiFactory.Label("Badge", card.Root, new Vector2(0.04f, 0.60f), new Vector2(0.96f, 0.73f), "", 20, UiFactory.PaperText);
                 card.IntentBack = UiFactory.Panel("IntentBack", card.Root, new Vector2(.01f, 0f), new Vector2(.99f, .145f), HudInk);
                 card.Intent = UiFactory.Label("Intent", card.Root, new Vector2(0.02f, 0.0f), new Vector2(0.98f, 0.145f), "", 21, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+
+                card.ActionBadge = BuildActionBadge(card.Root);
 
                 // Tap to attack (only while an attack is being aimed)
                 var tap = card.Root.gameObject.AddComponent<Button>();
@@ -1287,9 +1290,14 @@ namespace BiRyeoDo.Game.UI
                 c.QiText.text = u.Qi + " / " + u.Stats.MaxQi;
                 c.Spirit.SetPct(u.Spirit / (float)InteractiveBattle.MaxSpirit);
                 c.SpiritText.text = u.Spirit + " / " + InteractiveBattle.MaxSpirit;
+                bool acting = VisibleActor == u && !dead;
+                c.ActionBadge.transform.parent.gameObject.SetActive(acting);
+                c.ActionBadge.text = "적 행동 중";
+                c.ActionBadge.color = ThreatRed;
+                c.Name.text = (acting ? "▶ " : "") + (c.Data.Rank == EnemyRank.Elite ? "◆ " : "") + u.Name;
                 bool aimOk = Hittable(u), aimNo = Aiming && !dead && !aimOk;
                 c.Frame.color = aimOk ? UiFactory.Gold : aimNo ? new Color(0.75f, 0.15f, 0.15f, 1f) : new Color(0f, 0f, 0f, 0f);
-                c.TargetFrame.color = aimOk ? UiFactory.Gold : Color.clear;
+                c.TargetFrame.color = acting ? ThreatRed : aimOk ? UiFactory.Gold : Color.clear;
                 c.IntentBack.color = (u.Charging || u.AwakeningStrike != null) && !dead ? new Color(.45f, .13f, .10f, .95f) : HudInk;
                 c.Badge.text = aimOk ? "선택 가능" : aimNo ? "사거리 밖" : dead ? "" : Statuses.Line(u);
                 c.Badge.color = aimOk ? UiFactory.Gold : aimNo ? new Color(1f, 0.45f, 0.45f, 1f) : StatusColor;
@@ -1349,11 +1357,14 @@ namespace BiRyeoDo.Game.UI
                 p.Status.text = incoming ? "강타 대상" + (afflicted.Length > 0 ? "\n" + afflicted : "")
                     : stance + (stance.Length > 0 && afflicted.Length > 0 ? " · " : "") + afflicted;
                 p.Name.color = u.IsAlive ? UiFactory.Gold : new Color(0.5f, 0.5f, 0.5f, 1f);
-                bool current = _battle != null && _battle.Current == u && _battle.IsPlayerTurn;
+                bool current = VisibleActor == u && p.ShownHp > 0;
+                p.ActionBadge.transform.parent.gameObject.SetActive(current);
+                p.ActionBadge.text = _animating ? "행동 중" : "내 차례";
+                p.Name.text = (current ? "▶ " : "") + u.Name;
                 p.Frame.color = current ? UiFactory.Gold : new Color(0f, 0f, 0f, 0f);
                 p.ActiveFrame.color = current ? UiFactory.Gold : Color.clear;
                 p.Status.color = incoming ? ThreatRed : afflicted.Length > 0 ? StatusColor : UiFactory.PaperText;
-                if (AimingAlly && u.IsAlive)
+                if (AimingAlly && u.IsAlive && !current)
                 {
                     p.Frame.color = UiFactory.Jade;
                     p.ActiveFrame.color = UiFactory.Jade;
@@ -1366,7 +1377,10 @@ namespace BiRyeoDo.Game.UI
 
         private void RefreshTurnOrder()
         {
-            var order = _battle.PreviewOrder(_turnChips.Count);
+            if (_battle == null) return;
+            var actor = VisibleActor;
+            var order = _animating ? (actor != null ? new List<Combatant> { actor } : new List<Combatant>())
+                : _battle.PreviewOrder(_turnChips.Count);
             for (int i = 0; i < _turnChips.Count; i++)
             {
                 bool has = i < order.Count;
@@ -1776,6 +1790,7 @@ namespace BiRyeoDo.Game.UI
         private void SetCommandsVisible(bool visible)
         {
             if (_commandHeader != null) _commandHeader.SetActive(visible);
+            if (!visible && _turnNotice != null) _turnNotice.text = "";
             foreach (var c in _commands) if (c != null) c.Root.SetActive(visible);
         }
 
@@ -1907,11 +1922,19 @@ namespace BiRyeoDo.Game.UI
         private IEnumerator PlayEvents(List<BattleEvent> events)
         {
             _animating = true;
+            _hudActor = null; _actorAction = null;
             RefreshActorHud();
+            RefreshTurnOrder();
             try { yield return PlayEventsInner(events); }
-            finally { CancelBasicMotion(); _animating = false; }
+            finally
+            {
+                CancelBasicMotion();
+                _animating = false;
+                _hudActor = null; _actorAction = null;
+            }
             RefreshParty();
             RefreshCards();
+            RefreshTurnOrder();
         }
 
         private void ShowHpAfter(string unitId, int hp)
@@ -1932,6 +1955,7 @@ namespace BiRyeoDo.Game.UI
                 bool byParty = actorPanel != null;
                 if (actorPanel != null && ev.Kind != EventKind.Status) { actorPanel.ShownQi = ev.ActorQiAfter; actorPanel.ShownSpirit = ev.ActorSpiritAfter; }   // status events carry no gauges
                 string actorName = NameOf(ev.ActorId);
+                PresentAction(ev);
 
                 switch (ev.Kind)
                 {

@@ -15,7 +15,8 @@ namespace BiRyeoDo.Game.UI
         private readonly List<Image> _turnEdges = new List<Image>();
         private readonly List<Image> _phaseMarks = new List<Image>();
         private Text _focusName, _focusDetail, _focusHealth, _focusTag;
-        private Text _actorName, _actorResources, _commandHint;
+        private Text _actorName, _actorResources, _commandHint, _turnNotice;
+        private string _actorAction;
         private Image _actorPortrait, _focusAccent;
         private Text _actorGlyph;
         private GameObject _commandHeader;
@@ -59,10 +60,13 @@ namespace BiRyeoDo.Game.UI
             for (int i = 0; i < 2; i++)
                 _phaseMarks.Add(UiFactory.Panel("PhaseMark" + i, _focusHp.Root, new Vector2(.5f, 0f), new Vector2(.502f, 1f), UiFactory.Gold));
 
-            var log = UiFactory.Panel("BattleLog", root, new Vector2(.025f, .332f), new Vector2(.975f, .372f), HudInk);
+            var log = UiFactory.Panel("BattleLog", root, new Vector2(.025f, .332f), new Vector2(.975f, .378f), HudInk);
             UiFactory.Panel("LogAccent", log.transform, Vector2.zero, new Vector2(.004f, 1f), UiFactory.Gold);
-            UiFactory.Label("LogTitle", log.transform, new Vector2(.025f, .05f), new Vector2(.12f, .95f), "전황", 21, UiFactory.Gold);
-            _log = UiFactory.Label("Log", log.transform, new Vector2(.15f, .05f), new Vector2(.975f, .95f), "무공을 고른 뒤 대상을 선택해 주세요.", 25, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("LogTitle", log.transform, new Vector2(.025f, .03f), new Vector2(.12f, .47f), "전황", 21, UiFactory.Gold);
+            _log = UiFactory.Label("Log", log.transform, new Vector2(.15f, .03f), new Vector2(.975f, .47f), "무공을 고른 뒤 대상을 선택해 주세요.", 25, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+
+            UiFactory.Label("CurrentTurnTitle", log.transform, new Vector2(.025f, .52f), new Vector2(.12f, .98f), "차례", 22, UiFactory.Gold);
+            _turnNotice = UiFactory.Label("CurrentTurn", log.transform, new Vector2(.15f, .51f), new Vector2(.975f, .99f), "", 30, UiFactory.Gold, TextAnchor.MiddleLeft);
 
             var deck = UiFactory.Panel("CommandDeck", root, Vector2.zero, new Vector2(1f, .321f), HudInk);
             UiFactory.Panel("DeckRule", deck.transform, new Vector2(0f, .994f), Vector2.one, UiFactory.GoldDim);
@@ -163,14 +167,63 @@ namespace BiRyeoDo.Game.UI
             return ArtLibrary.Portrait(unit.Name) ?? ArtLibrary.Enemy(key) ?? BattleFigure(key);
         }
 
+        // The simulation has already advanced to the next input turn during event playback.
+        // Use the event actor for every visual cue until playback finishes.
+        private Combatant VisibleActor
+        {
+            get
+            {
+                if (_battle == null) return null;
+                if (_animating) return _hudActor;
+                return !_battle.IsOver && _battle.IsPlayerTurn ? _battle.Current : null;
+            }
+        }
+
+        private static Text BuildActionBadge(RectTransform root)
+        {
+            var badge = UiFactory.Panel("ActionBadge", root, new Vector2(.10f, .385f), new Vector2(.90f, .525f), HudInk);
+            UiFactory.Frame(badge.transform, UiFactory.Gold, 2f);
+            var label = UiFactory.Label("Action", badge.transform, new Vector2(.03f, .02f), new Vector2(.97f, .98f), "", 24, UiFactory.Gold);
+            badge.gameObject.SetActive(false);
+            return label;
+        }
+
+        private void PresentAction(BattleEvent ev)
+        {
+            // Status ticks and reactive phase changes are consequences, not a new action turn.
+            if (ev.Kind == EventKind.Status || ev.Kind == EventKind.Phase) return;
+            var ally = PanelOf(ev.ActorId);
+            var enemy = CardOf(ev.ActorId);
+            _hudActor = ally != null ? ally.Unit : enemy != null ? enemy.Unit : null;
+            _actorAction = ev.Kind == EventKind.Attack ? "공격 중" : ev.Kind == EventKind.Guard ? "방어 중"
+                : ev.Kind == EventKind.Meditate ? "운기조식 중" : ev.Kind == EventKind.Charge ? "기 모으는 중"
+                : ev.Kind == EventKind.Heal ? "회복 중" : ev.Kind == EventKind.Item ? "아이템 사용 중"
+                : ev.Kind == EventKind.Evade ? "회피 태세" : ev.Kind == EventKind.StunSkip ? "행동 불능" : "행동 중";
+            RefreshParty();
+            RefreshCards();
+            RefreshTurnOrder();
+        }
+
         private void RefreshActorHud()
         {
             if (_actorName == null || _battle == null) return;
-            var me = _hudActor ?? _battle.Current;
-            if (me == null) return;
+            var me = VisibleActor;
+            if (me == null)
+            {
+                _actorName.text = ""; _actorResources.text = ""; _commandHint.text = "";
+                _actorPortrait.gameObject.SetActive(false); _actorGlyph.text = "";
+                if (_turnNotice != null) _turnNotice.text = "";
+                return;
+            }
             var panel = PanelOf(me.Id);
             int qi = panel != null ? panel.ShownQi : me.Qi, spirit = panel != null ? panel.ShownSpirit : me.Spirit;
-            _actorName.text = me.Name + (_animating ? " · 초식 전개" : " · 행동 선택");
+            string action = _animating ? _actorAction ?? "행동 중" : "내 차례 · 행동 선택";
+            _actorName.text = me.Name + " · " + action;
+            if (_turnNotice != null)
+            {
+                _turnNotice.text = (_animating ? (me.Team == Team.Player ? "아군 · " : "적 · ") : "내 차례 · ") + me.Name + (_animating ? " · " + action : "");
+                _turnNotice.color = me.Team == Team.Player ? UiFactory.Gold : ThreatRed;
+            }
             _actorResources.text = "내공 " + qi + " / " + me.Stats.MaxQi + "    기세 " + spirit + " / " + InteractiveBattle.MaxSpirit;
             _commandHint.text = _animating ? "전황을 확인해 주세요." : Aiming ? "금색으로 표시된 적을 선택해 주세요." : AimingAlly ? "회복할 아군을 선택해 주세요."
                 : _itemMode ? "사용할 아이템을 선택해 주세요." : _jointMode ? "함께 공격할 동료를 선택해 주세요." : "무공 선택 → 대상 지정 · 길게 눌러 설명";

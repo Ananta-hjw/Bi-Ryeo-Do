@@ -130,6 +130,41 @@ namespace BiRyeoDo.Tests.UI
             finally { Object.DestroyImmediate(root); }
         }
 
+        [Test]
+        public void TurnIndicatorUsesPlaybackActorUntilEventsFinishThenUsesNextInputMember()
+        {
+            var root = new GameObject("Battle", typeof(RectTransform));
+            try
+            {
+                var screen = root.AddComponent<BattleScreen>();
+                var first = new Combatant("first", "First", Team.Player,
+                    new CombatStats { MaxHp = 1000, MaxQi = 100, Attack = 1, Defense = 1, Speed = 100 }, null);
+                var next = new Combatant("next", "Next", Team.Player,
+                    new CombatStats { MaxHp = 1000, MaxQi = 100, Attack = 1, Defense = 1, Speed = 95 }, null);
+                var enemy = new Combatant("enemy", "Enemy", Team.Enemy,
+                    new CombatStats { MaxHp = 10000, Attack = 1, Defense = 1, Speed = 1 }, null);
+                var battle = new InteractiveBattle(new List<Combatant> { first, next }, new List<Combatant> { enemy }, new SeededRandom(1));
+                battle.Begin();
+                Assert.AreSame(first, battle.Current);
+                battle.PlayerAct(PlayerCommand.Guard());
+                Assert.AreSame(next, battle.Current, "the engine already moved to the next input member");
+                const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
+                typeof(BattleScreen).GetField("_battle", flags).SetValue(screen, battle);
+                typeof(BattleScreen).GetField("_animating", flags).SetValue(screen, true);
+                var actor = typeof(BattleScreen).GetField("_hudActor", flags);
+                var visible = typeof(BattleScreen).GetProperty("VisibleActor", flags);
+                actor.SetValue(screen, first);
+                Assert.AreSame(first, visible.GetValue(screen));
+                actor.SetValue(screen, enemy);
+                Assert.AreSame(enemy, visible.GetValue(screen), "enemy playback must not highlight the next ally");
+                actor.SetValue(screen, null);
+                Assert.IsNull(visible.GetValue(screen), "do not leak the next actor before playback starts");
+                typeof(BattleScreen).GetField("_animating", flags).SetValue(screen, false);
+                Assert.AreSame(next, visible.GetValue(screen));
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
         [TestCase("basic", false, 1, false, true)]
         [TestCase("공격", false, 1, false, true)]
         [TestCase("basic", true, 1, false, true)]

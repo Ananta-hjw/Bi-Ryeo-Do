@@ -66,28 +66,26 @@ namespace BiRyeoDo.Game.UI
                 source.enabled = false;
             }
 
-            yield return MoveTo(destination, .17f, 18f, -6f * direction, 1f, speed);
+            yield return MoveTo(destination, .17f, 18f, 1f, speed);
             if (!IsActive) yield break;
             // A small wind-up, then a forward snap. The caller applies damage at this final pose.
-            yield return MoveTo(destination - new Vector2(direction * 10f, 0f), .045f, 0f, 5f * direction, .98f, speed);
+            yield return MoveTo(destination - new Vector2(direction * 10f, 0f), .045f, 0f, .98f, speed);
             if (!IsActive) yield break;
-            yield return MoveTo(destination + new Vector2(direction * 16f, 0f), .06f, 0f, -12f * direction, 1.04f, speed);
+            yield return MoveTo(destination + new Vector2(direction * 16f, 0f), .06f, 0f, 1.04f, speed);
         }
 
         public IEnumerator Return(float speed)
         {
             if (!IsActive) yield break;
-            try { yield return MoveTo(_origin, .18f, 8f, 0f, 1f, speed); }
+            try { yield return MoveTo(_origin, .18f, 8f, 1f, speed); }
             finally { Cancel(); }
         }
 
-        private IEnumerator MoveTo(Vector2 destination, float seconds, float arc, float tilt, float scale, float speed)
+        private IEnumerator MoveTo(Vector2 destination, float seconds, float arc, float scale, float speed)
         {
             if (!IsActive) yield break;
             Vector2 start = _visual.anchoredPosition;
-            Quaternion rotation = _visual.localRotation;
             Vector3 size = _visual.localScale;
-            Quaternion finishRotation = _rotation * Quaternion.Euler(0f, 0f, tilt);
             Vector3 finishScale = _scale * scale;
             float duration = seconds / Mathf.Clamp(speed, 0.5f, 3f);
             for (float elapsed = 0f; elapsed < duration; elapsed += Time.deltaTime)
@@ -96,13 +94,13 @@ namespace BiRyeoDo.Game.UI
                 float t = elapsed / duration;
                 float eased = Mathf.SmoothStep(0f, 1f, t);
                 _visual.anchoredPosition = Vector2.Lerp(start, destination, eased) + Vector2.up * (Mathf.Sin(t * Mathf.PI) * arc);
-                _visual.localRotation = Quaternion.Lerp(rotation, finishRotation, eased);
+                _visual.localRotation = _rotation;
                 _visual.localScale = Vector3.Lerp(size, finishScale, eased);
                 yield return null;
             }
             if (!IsActive) yield break;
             _visual.anchoredPosition = destination;
-            _visual.localRotation = finishRotation;
+            _visual.localRotation = _rotation;
             _visual.localScale = finishScale;
         }
 
