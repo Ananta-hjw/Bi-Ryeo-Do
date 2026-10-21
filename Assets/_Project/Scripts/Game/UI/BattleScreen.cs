@@ -1284,8 +1284,8 @@ namespace BiRyeoDo.Game.UI
                 c.Spirit.SetPct(u.Spirit / (float)InteractiveBattle.MaxSpirit);
                 c.SpiritText.text = u.Spirit + " / " + InteractiveBattle.MaxSpirit;
                 bool acting = VisibleActor == u && !dead;
-                c.ActionBadge.transform.parent.gameObject.SetActive(acting);
-                c.ActionBadge.text = "적 행동 중";
+                c.ActionBadge.transform.parent.gameObject.SetActive(false);   // no "행동 중" badge: the ▶ name and red frame mark the acting enemy
+                c.ActionBadge.text = "";
                 c.ActionBadge.color = ThreatRed;
                 c.Name.text = (acting ? "▶ " : "") + (c.Data.Rank == EnemyRank.Elite ? "◆ " : "") + u.Name;
                 bool aimOk = Hittable(u), aimNo = Aiming && !dead && !aimOk;
@@ -1351,8 +1351,8 @@ namespace BiRyeoDo.Game.UI
                     : stance + (stance.Length > 0 && afflicted.Length > 0 ? " · " : "") + afflicted;
                 p.Name.color = u.IsAlive ? UiFactory.Gold : new Color(0.5f, 0.5f, 0.5f, 1f);
                 bool current = VisibleActor == u && p.ShownHp > 0;
-                p.ActionBadge.transform.parent.gameObject.SetActive(current);
-                p.ActionBadge.text = _animating ? "행동 중" : "내 차례";
+                p.ActionBadge.transform.parent.gameObject.SetActive(current && !_animating);   // only "내 차례"; no "행동 중" while the move plays
+                p.ActionBadge.text = "내 차례";
                 p.Name.text = (current ? "▶ " : "") + u.Name;
                 p.Frame.color = current ? UiFactory.Gold : new Color(0f, 0f, 0f, 0f);
                 p.ActiveFrame.color = current ? UiFactory.Gold : Color.clear;

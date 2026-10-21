@@ -198,7 +198,7 @@ namespace BiRyeoDo.Game.UI
             _actorAction = ev.Kind == EventKind.Attack ? "공격 중" : ev.Kind == EventKind.Guard ? "방어 중"
                 : ev.Kind == EventKind.Meditate ? "운기조식 중" : ev.Kind == EventKind.Charge ? "기 모으는 중"
                 : ev.Kind == EventKind.Heal ? "회복 중" : ev.Kind == EventKind.Item ? "아이템 사용 중"
-                : ev.Kind == EventKind.Evade ? "회피 태세" : ev.Kind == EventKind.StunSkip ? "행동 불능" : "행동 중";
+                : ev.Kind == EventKind.Evade ? "회피 태세" : ev.Kind == EventKind.StunSkip ? "행동 불능" : "";
             RefreshParty();
             RefreshCards();
             RefreshTurnOrder();
@@ -217,11 +217,11 @@ namespace BiRyeoDo.Game.UI
             }
             var panel = PanelOf(me.Id);
             int qi = panel != null ? panel.ShownQi : me.Qi, spirit = panel != null ? panel.ShownSpirit : me.Spirit;
-            string action = _animating ? _actorAction ?? "행동 중" : "내 차례 · 행동 선택";
-            _actorName.text = me.Name + " · " + action;
+            string action = _animating ? _actorAction ?? "" : "내 차례 · 행동 선택";
+            _actorName.text = me.Name + (action.Length > 0 ? " · " + action : "");
             if (_turnNotice != null)
             {
-                _turnNotice.text = (_animating ? (me.Team == Team.Player ? "아군 · " : "적 · ") : "내 차례 · ") + me.Name + (_animating ? " · " + action : "");
+                _turnNotice.text = (_animating ? (me.Team == Team.Player ? "아군 · " : "적 · ") : "내 차례 · ") + me.Name + (_animating && action.Length > 0 ? " · " + action : "");
                 _turnNotice.color = me.Team == Team.Player ? UiFactory.Gold : ThreatRed;
             }
             _actorResources.text = "내공 " + qi + " / " + me.Stats.MaxQi + "    기세 " + spirit + " / " + InteractiveBattle.MaxSpirit;
