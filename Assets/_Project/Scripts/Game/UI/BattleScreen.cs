@@ -106,11 +106,15 @@ namespace BiRyeoDo.Game.UI
         private float Pace { get { return _speed * PaceScale; } }
         private Action _onClose;
         private bool _built;
+        private RectTransform _root;
+        private bool _fleeAsking;   // the 포기 warning is open
+        private bool _promotionRun;  // a 승급 비무 is running (its 포기 warning mentions the fee)
 
         public void Build(RectTransform root)
         {
             if (_built) return;
             _built = true;
+            _root = root;
             _basicMotion = root.gameObject.AddComponent<BasicAttackMotion>();
 
             UiFactory.Panel("Backdrop", root, Vector2.zero, Vector2.one, Backdrop).raycastTarget = true;   // swallows taps so nothing underneath (the 강호 tab) is pressed during the battle
@@ -375,6 +379,7 @@ namespace BiRyeoDo.Game.UI
 
         private IEnumerator RunStage(StageData stage)
         {
+            _promotionRun = false;
             var save = GameManager.Instance.Save;
             _fled = false;
             int diff = stage.IsTower || stage.IsQuest ? 0 : stage.Difficulty;
@@ -680,6 +685,7 @@ namespace BiRyeoDo.Game.UI
 
         private IEnumerator RunPromotion(PromotionOffer offer)
         {
+            _promotionRun = true;
             var save = GameManager.Instance.Save;
             var arena = new StageData { Number = 0, Name = "승급 비무" };   // Number 0 = no companions
             _fled = false;
@@ -1880,6 +1886,17 @@ namespace BiRyeoDo.Game.UI
         }
 
         private void OnFleePressed()
+        {
+            if (_fled || _fleeAsking) return;
+            _fleeAsking = true;
+            string body = _promotionRun ? "지금 비무를 그만두고 돌아갑니다.\n낸 입장료는 돌려받지 못합니다."
+                : "지금 전투를 그만두고 돌아갑니다.\n이번 전투의 보상은 받지 못합니다. 이미 이긴 전투에서 얻은 경험과 두는 남습니다.";
+            var window = UiFactory.Confirm(_root, "전투를 포기할까요?", body, "포기", () => { _fleeAsking = false; Flee(); });
+            // 「취소」 destroys the window without a callback: clear the flag when it goes away
+            window.gameObject.AddComponent<OnDestroyHook>().Done = () => _fleeAsking = false;
+        }
+
+        private void Flee()
         {
             _fled = true;
             CancelBasicMotion();

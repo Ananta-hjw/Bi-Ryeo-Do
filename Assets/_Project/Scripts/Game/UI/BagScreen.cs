@@ -165,7 +165,7 @@ namespace BiRyeoDo.Game.UI
                 var enhBtn = UiFactory.Button("Breakthrough", card.transform, new Vector2(0.05f, 0.14f), new Vector2(0.49f, 0.24f), enhLabel, canEnh ? UiFactory.Red : UiFactory.InkSoft, () => { DoBreakthrough(item); }, 24);
                 enhBtn.interactable = canEnh;
                 bool canDis = Salvage.CanDismantle(save, item.Id);
-                var disBtn = UiFactory.Button("Dismantle", card.transform, new Vector2(0.51f, 0.14f), new Vector2(0.95f, 0.24f), canDis && _confirmDismantle == item.Id ? "분해 확인\n(" + enh + "성 돌파 사라짐)" : canDis ? "분해\n(재료 " + (item.Grade <= ItemGrade.Legendary ? Salvage.MinCount[(int)item.Grade] + "~" + Salvage.MaxCount(item.Grade) : "?") + "개)" : "분해 불가", canDis ? new Color(0.55f, 0.36f, 0.14f, 1f) : UiFactory.InkSoft, () => { DoDismantle(item); }, 24);
+                var disBtn = UiFactory.Button("Dismantle", card.transform, new Vector2(0.51f, 0.14f), new Vector2(0.95f, 0.24f), canDis ? "분해\n(재료 " + (item.Grade <= ItemGrade.Legendary ? Salvage.MinCount[(int)item.Grade] + "~" + Salvage.MaxCount(item.Grade) : "?") + "개)" : "분해 불가", canDis ? new Color(0.55f, 0.36f, 0.14f, 1f) : UiFactory.InkSoft, () => { DoDismantle(item); }, 24);
                 disBtn.interactable = canDis;
             }
             else if (item.MasteryUses > 0)
@@ -371,16 +371,17 @@ namespace BiRyeoDo.Game.UI
         private void DoDismantle(ItemData item)
         {
             var save = GameManager.Instance.Save;
+            // Dismantling cannot be undone: always ask once. The last copy of a breakthrough piece also loses its stars (slot enhancement stays).
+            string warning = Salvage.LosesEnhancement(save, item.Id)
+                ? "<b>" + Gear.StarsText(save, item.Id) + "</b> 돌파 장비의 마지막 한 개입니다.\n분해하면 이 장비의 돌파 단계가 사라집니다. 부위 강화는 유지됩니다.\n\n"
+                : "";
+            UiFactory.Confirm(transform, "분해할까요?", UiFactory.GradedName(item) + " 1개를 분해합니다.\n" + warning + "분해한 장비는 되돌릴 수 없습니다.", "분해", () => Dismantle(item));
+        }
+
+        private void Dismantle(ItemData item)
+        {
+            var save = GameManager.Instance.Save;
             string error;
-            if (Salvage.LosesEnhancement(save, item.Id) && _confirmDismantle != item.Id)
-            {
-                // The last copy carries the breakthrough stars; slot enhancement remains safe.
-                _confirmDismantle = item.Id;
-                Refresh();
-                ReopenDetail(item);
-                ShowNotice("분해 확인", UiFactory.GradedName(item) + " <b>" + Gear.StarsText(save, item.Id) + "</b>은(는) 하나뿐인 돌파 장비입니다.\n분해하면 이 장비의 돌파 단계가 사라집니다. 부위 강화는 유지됩니다.\n\n그래도 분해하시려면 「분해 확인」을 한 번 더 눌러 주세요.", UiFactory.Gold);
-                return;
-            }
             _confirmDismantle = null;
             ItemStack enhancement;
             var got = Salvage.Dismantle(save, item.Id, new SeededRandom(Environment.TickCount), out enhancement, out error);

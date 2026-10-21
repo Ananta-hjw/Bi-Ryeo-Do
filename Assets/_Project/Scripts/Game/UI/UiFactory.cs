@@ -282,6 +282,27 @@ namespace BiRyeoDo.Game.UI
             return window;
         }
 
+        /// <summary>A yes/no warning on top of <paramref name="parent"/>: 「취소」 just closes it, the confirm button closes it and runs <paramref name="onConfirm"/>. Used before anything that cannot be undone (분해, 전투 포기).</summary>
+        public static RectTransform Confirm(Transform parent, string title, string body, string confirmLabel, System.Action onConfirm)
+        {
+            var window = Rect("ConfirmWindow", parent, Vector2.zero, Vector2.one);
+            var dim = window.gameObject.AddComponent<Image>();
+            dim.color = new Color(0f, 0f, 0f, 0.78f);   // blocks taps on what is underneath
+            var card = Panel("Card", window, new Vector2(.20f, .22f), new Vector2(.80f, .78f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            Frame(card.transform, Red, 3f);
+            card.raycastTarget = true;
+            Label("Title", card.transform, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.96f), title, 40, Red);
+            Body(ScrollBody(Label("Body", card.transform, new Vector2(.07f, .27f), new Vector2(.93f, .78f), body, 30, PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 32), 1.3f);
+            Button("Cancel", card.transform, new Vector2(0.06f, 0.05f), new Vector2(0.47f, 0.22f), "취소", InkSoft, () => Object.Destroy(window.gameObject), 32);
+            Button("Confirm", card.transform, new Vector2(0.53f, 0.05f), new Vector2(0.94f, 0.22f), confirmLabel, Red, () =>
+            {
+                Object.Destroy(window.gameObject);
+                if (onConfirm != null) onConfirm();
+            }, 32);
+            window.SetAsLastSibling();
+            return window;
+        }
+
         public static void ShowInfo(RectTransform window)
         {
             if (window == null) return;

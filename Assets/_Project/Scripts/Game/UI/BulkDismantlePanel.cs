@@ -106,7 +106,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Body(UiFactory.Label("Yield", card.transform, new Vector2(0.05f, 0.105f), new Vector2(0.95f, 0.21f),
                 lines.Count == 0 ? "" : "예상 재료  " + string.Join(" · ", lines), 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal));
 
-            var go = UiFactory.Button("Go", card.transform, new Vector2(0.05f, 0.02f), new Vector2(0.62f, 0.10f), plan.Count == 0 ? "분해할 장비 없음" : "선택한 " + total + "개 분해", plan.Count == 0 ? UiFactory.InkSoft : UiFactory.Red, () => Perform(plan), 32);
+            var go = UiFactory.Button("Go", card.transform, new Vector2(0.05f, 0.02f), new Vector2(0.62f, 0.10f), plan.Count == 0 ? "분해할 장비 없음" : "선택한 " + total + "개 분해", plan.Count == 0 ? UiFactory.InkSoft : UiFactory.Red, () => UiFactory.Confirm(_root, "일괄 분해할까요?", "선택한 장비 " + total + "개를 분해합니다.\n분해한 장비는 되돌릴 수 없습니다.", total + "개 분해", () => Perform(plan)), 32);
             go.interactable = plan.Count > 0;
             UiFactory.Button("Close", card.transform, new Vector2(0.66f, 0.02f), new Vector2(0.95f, 0.10f), "닫기", UiFactory.InkSoft, () => { Hide(); _changed(); }, 32);
         }
