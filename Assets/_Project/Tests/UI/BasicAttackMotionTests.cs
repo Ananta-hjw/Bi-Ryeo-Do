@@ -173,12 +173,22 @@ namespace BiRyeoDo.Tests.UI
         [TestCase("ultimate", false, 3, false, true)]
         [TestCase("area", false, 1, true, false)]
         [TestCase("area", false, 3, true, false)]
-        public void EveryDirectAttackExceptAreaDamageUsesApproach(string skill, bool joint, int hits, bool area, bool expected)
+        public void EveryMeleeDirectAttackExceptAreaDamageUsesApproach(string skill, bool joint, int hits, bool area, bool expected)
         {
             var method = typeof(BattleScreen).GetMethod("IsApproachAttack", BindingFlags.NonPublic | BindingFlags.Static);
             var ev = new BattleEvent { Kind = EventKind.Attack, SkillId = skill, Joint = joint, HitCount = hits, AllEnemies = area };
             Assert.AreEqual(expected, (bool)method.Invoke(null, new object[] { ev }));
             ev.Kind = EventKind.Status;
+            Assert.IsFalse((bool)method.Invoke(null, new object[] { ev }));
+        }
+
+        [TestCase(false, 1)]
+        [TestCase(false, 3)]
+        [TestCase(true, 3)]
+        public void ProjectileAttacksNeverApproachEvenForSingleTargetsAndMultipleHits(bool area, int hits)
+        {
+            var method = typeof(BattleScreen).GetMethod("IsApproachAttack", BindingFlags.NonPublic | BindingFlags.Static);
+            var ev = new BattleEvent { Kind = EventKind.Attack, Ranged = true, AllEnemies = area, HitCount = hits };
             Assert.IsFalse((bool)method.Invoke(null, new object[] { ev }));
         }
 

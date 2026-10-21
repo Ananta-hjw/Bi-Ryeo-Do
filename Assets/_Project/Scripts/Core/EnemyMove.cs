@@ -9,8 +9,11 @@ namespace BiRyeoDo.Core
         public bool Charge;
         public bool Awakening;    // one phase-transition strike, outside the normal script
         public float DamageFactor = 1f;   // scales damage without changing the original move's resource cost
+        public bool Ranged;       // presentation only; does not change targeting or damage
         public bool Snipe;   // 저격: aims at the farthest party member within reach instead of the nearest
         public StatusKind Inflict;   // 상태 이상 the move may leave when it lands (from its name, see Statuses.ForMove)
+
+        public EnemyMove FromDistance() { Ranged = true; return this; }
 
         public EnemyMove Sniping() { Snipe = true; return this; }
 

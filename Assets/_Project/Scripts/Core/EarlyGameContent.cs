@@ -9,6 +9,7 @@ namespace BiRyeoDo.Core
         public string Id, Name, Description;
         public float Power = 1f;
         public int Hits = 1, QiCost, SpiritCost, Cooldown, UnlockStage, UnlockDiff;   // learnable once the stage is reached (UnlockDiff 0) or cleared on that difficulty
+        public bool Ranged;       // presentation only: projectile attacks stay at their starting position
         public bool AllEnemies;
         public int Range;       // enemy lines reached (1 = the front line only, 2+ = any line); 0 = by kind (see EffectiveRange)
         public SkillEffect Effect;
@@ -41,7 +42,7 @@ namespace BiRyeoDo.Core
             return new SkillSpec
             {
                 Id = Id, Name = Name, Description = Description, Power = Power, Hits = Hits, QiCost = QiCost,
-                SpiritCost = SpiritCost, Cooldown = Cooldown, AllEnemies = AllEnemies, Range = EffectiveRange, Effect = Effect, HealPct = HealPct,
+                SpiritCost = SpiritCost, Cooldown = Cooldown, Ranged = Ranged, AllEnemies = AllEnemies, Range = EffectiveRange, Effect = Effect, HealPct = HealPct,
                 Inflict = Inflict, InflictChance = InflictChance
             };
         }
@@ -233,11 +234,11 @@ namespace BiRyeoDo.Core
 
         public static readonly ArtData[] Arts =
         {
-            new ArtData { Id = StarterArtId, Range = 4, Name = "비도 던지기", Description = "비뢰도의 기초. 비도를 날려 적을 맞힌다.", Power = 1.3f, Cooldown = 0 },
+            new ArtData { Id = StarterArtId, Ranged = true, Range = 4, Name = "비도 던지기", Description = "비뢰도의 기초. 비도를 날려 적을 맞힌다.", Power = 1.3f, Cooldown = 0 },
             new ArtData { Id = "samboku_chobok", Name = "삼복구타권법 초복", Description = "사부가 창안한 권법. 초복은 근육을 노린다.", Power = 2.2f, QiCost = 14, Cooldown = 1, LearnCost = 0, UnlockStage = 1 },
             new ArtData { Id = "bunroesu", Name = "분뢰수", Description = "손을 강철처럼 만들어 내려친다.", Inflict = StatusKind.InnerWound, InflictChance = 0.4f, Power = 3.0f, QiCost = 22, Cooldown = 2, LearnCost = 220, UnlockStage = 2 },
             new ArtData { Id = "samcheopyeong", Name = "삼첩영", Description = "봉황무의 잔상 셋. 다음 차례까지 모든 공격을 피한다.", QiCost = 20, Cooldown = 3, Effect = SkillEffect.Evade, LearnCost = 400, UnlockStage = 3 },
-            new ArtData { Id = "bi_roe_do", Range = 4, Name = "비뢰도", Description = "비도 세 자루를 연달아 날린다.", Inflict = StatusKind.Bleed, InflictChance = 0.4f, Power = 1.7f, Hits = 3, QiCost = 32, Cooldown = 3, LearnCost = 900, UnlockStage = 3 },
+            new ArtData { Id = "bi_roe_do", Ranged = true, Range = 4, Name = "비뢰도", Description = "비도 세 자루를 연달아 날린다.", Inflict = StatusKind.Bleed, InflictChance = 0.4f, Power = 1.7f, Hits = 3, QiCost = 32, Cooldown = 3, LearnCost = 900, UnlockStage = 3 },
             new ArtData { Id = "yeobanjang", Name = "여반장", Description = "손바닥을 뒤집는 회전력으로 일격에 제압하는 일장법.", Power = 5.2f, QiCost = 38, Cooldown = 3, LearnCost = 2200, UnlockStage = 5 },
             new ArtData { Id = "roegwang_ryuhagok", Name = "뢰광류하곡", Description = "여섯 자루를 동시에 운용해 적 전체를 벤다.", Inflict = StatusKind.Bleed, InflictChance = 0.25f, Power = 2.6f, AllEnemies = true, QiCost = 46, Cooldown = 4, LearnCost = 4500, UnlockStage = 6 },
             new ArtData { Id = "seonpung_roejeol", Name = "선풍뇌절", Description = "비기. 기세를 모두 쏟아 은빛 섬광으로 적을 쓰러뜨린다.", Power = 9.5f, SpiritCost = 100, LearnCost = 1500, UnlockStage = 4 },
@@ -249,7 +250,7 @@ namespace BiRyeoDo.Core
             // Learned in volumes 10-12 (names from the original text)
             new ArtData { Id = "saengsa_seomroe", Name = "생사결 섬뢰창", Description = "비뢰도 오의 검기. 뇌전의 창이 거대한 영물의 비늘을 꿰뚫는다.", Power = 8.8f, QiCost = 60, Cooldown = 4, LearnCost = 16000, UnlockStage = 27 },
             new ArtData { Id = "eunseompung", Name = "은검풍인의 장 은섬풍", Description = "검기가 은빛 바람이 되어 사방의 적을 찢는다. 적 전체를 친다.", Power = 4.2f, AllEnemies = true, QiCost = 66, Cooldown = 4, LearnCost = 24000, UnlockStage = 5, UnlockDiff = 1 },
-            new ArtData { Id = "goengroe", Name = "굉천광뢰의 장 굉뢰", Description = "작은 은빛 물방울이 도와 무기를 박살내는 비뢰도의 오의.", Power = 10.5f, QiCost = 74, Cooldown = 4, LearnCost = 30000, UnlockStage = 12, UnlockDiff = 1 },
+            new ArtData { Id = "goengroe", Ranged = true, Name = "굉천광뢰의 장 굉뢰", Description = "작은 은빛 물방울이 도와 무기를 박살내는 비뢰도의 오의.", Power = 10.5f, QiCost = 74, Cooldown = 4, LearnCost = 30000, UnlockStage = 12, UnlockDiff = 1 },
             new ArtData { Id = "seomroe", Range = 4, Name = "섬뢰", Description = "비기. 빛을 뒤쫓는 쾌. 눈 깜짝할 새 미간을 꿰뚫는다.", Power = 17.0f, SpiritCost = 100, LearnCost = 22000, UnlockStage = 18, UnlockDiff = 1 },
             // Learned in volumes 13-16
             new ArtData { Id = "jikji_jilju", Name = "직지질주", Description = "봉황무의 오의. 절벽을 평지처럼 달리며 적을 세 번 벤다.", Power = 3.6f, Hits = 3, QiCost = 70, Cooldown = 4, LearnCost = 34000, UnlockStage = 24, UnlockDiff = 1 },
@@ -316,9 +317,9 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("맹호비격검", 1.0f, 2), EnemyMove.Attack("맹호비격검", 1.3f), EnemyMove.Wind("검기를 모은다"), EnemyMove.Attack("맹호삼십육검", 3.0f) } },
             // Stage 7: 검혼관 기관 노방 (2권)
             new EnemyData { Id = "trap_arrow", Name = "기관 화살대", Level = 19, HpMul = 1.403f, AtkMul = 3.188f, SpeedAdd = 6,
-                Moves = new[] { EnemyMove.Attack("화살 연사", 0.6f, 3).Sniping(), EnemyMove.Attack("화살", 1.0f).Sniping() } },
+                Moves = new[] { EnemyMove.Attack("화살 연사", 0.6f, 3).FromDistance().Sniping(), EnemyMove.Attack("화살", 1.0f).FromDistance().Sniping() } },
             new EnemyData { Id = "trap_needle", Name = "기관 비침대", Level = 19, HpMul = 1.403f, AtkMul = 3.188f, SpeedAdd = 4,
-                Moves = new[] { EnemyMove.Attack("비침", 0.8f, 2).Sniping(), EnemyMove.Wind("비침을 장전한다"), EnemyMove.Attack("비침 난사", 0.9f, 4) } },
+                Moves = new[] { EnemyMove.Attack("비침", 0.8f, 2).FromDistance().Sniping(), EnemyMove.Wind("비침을 장전한다"), EnemyMove.Attack("비침 난사", 0.9f, 4).FromDistance() } },
             new EnemyData { Id = "trap_log", Name = "기관 통나무", Level = 20, HpMul = 2.104f, AtkMul = 3.552f, SpeedAdd = -8,
                 Moves = new[] { EnemyMove.Wind("통나무가 흔들린다"), EnemyMove.Attack("통나무 휘두르기", 2.4f) } },
             new EnemyData { Id = "ho_cheongang", Name = "호아장 대사형 호천강", Level = 21, IsBoss = true, HpMul = 3.157f, AtkMul = 3.552f,
@@ -337,7 +338,7 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("절풍검기변", 0.7f, 3), EnemyMove.Attack("절풍검기변", 1.2f), EnemyMove.Wind("검강을 끌어올린다"), EnemyMove.Attack("천원삼절검격", 1.5f, 3) } },
             // Stage 10: 백향관 (4권)
             new EnemyData { Id = "sunyeo", Name = "독한녀 십이선녀", Level = 25, HpMul = 2.228f, AtkMul = 5.418f,
-                Moves = new[] { EnemyMove.Attack("독침", 0.7f, 3).Sniping(), EnemyMove.Attack("난향장", 1.2f), EnemyMove.Wind("독향을 퍼뜨린다"), EnemyMove.Attack("절독난무", 2.6f) } },
+                Moves = new[] { EnemyMove.Attack("독침", 0.7f, 3).FromDistance().Sniping(), EnemyMove.Attack("난향장", 1.2f), EnemyMove.Wind("독향을 퍼뜨린다"), EnemyMove.Attack("절독난무", 2.6f) } },
             new EnemyData { Id = "na_yerin", Name = "빙백봉 나예린", Level = 27, IsBoss = true, HpMul = 4.456f, AtkMul = 5.633f,
                 Moves = new[] { EnemyMove.Attack("백뢰낙화", 0.7f, 3), EnemyMove.Attack("섬뢰관일", 1.3f), EnemyMove.Wind("백광검뢰를 모은다"), EnemyMove.Attack("참천무뢰", 3.0f) } },
             // Stage 11: 승급시험 (4권)
@@ -381,7 +382,7 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("허공격상", 0.7f, 3), EnemyMove.Attack("파랑분쇄격", 1.3f), EnemyMove.Wind("창을 머리 위로 든다"), EnemyMove.Attack("무영인", 3.2f) } },
             // Stage 16: 저잣거리 습격 (8권)
             new EnemyData { Id = "baegin_jagaek", Name = "백인회 변장 자객", Level = 36, HpMul = 1.733f, AtkMul = 2.792f, SpeedAdd = 6,
-                Moves = new[] { EnemyMove.Attack("암기", 0.6f, 3).Sniping(), EnemyMove.Attack("암습", 1.3f).Sniping() } },
+                Moves = new[] { EnemyMove.Attack("암기", 0.6f, 3).FromDistance().Sniping(), EnemyMove.Attack("암습", 1.3f).Sniping() } },
             new EnemyData { Id = "ssanggwi", Name = "이인일체 쌍귀 형제", Level = 37, HpMul = 2.477f, AtkMul = 2.851f,
                 Moves = new[] { EnemyMove.Attack("쌍도", 1.0f), EnemyMove.Wind("배 속에서 손이 튀어나온다"), EnemyMove.Attack("이인일체 비수", 2.8f) } },
             new EnemyData { Id = "baek_tanjeo", Name = "백인회주 관살 백탄저", Level = 37, IsBoss = true, HpMul = 3.715f, AtkMul = 2.851f,
@@ -409,7 +410,7 @@ namespace BiRyeoDo.Core
             new EnemyData { Id = "cave_viper", Name = "동굴 독충", Level = 45, HpMul = 2.346f, AtkMul = 3.127f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("독니", 0.8f, 2), EnemyMove.Attack("휘감기", 1.2f) } },
             new EnemyData { Id = "mukrin_hyeolmang", Name = "묵린혈망", Level = 47, IsBoss = true, HpMul = 5.942f, AtkMul = 3.233f,
-                Moves = new[] { EnemyMove.Attack("꼬리치기", 0.7f, 3), EnemyMove.Attack("독액", 1.3f).Sniping(), EnemyMove.Wind("바위를 녹이는 침을 모은다"), EnemyMove.Attack("묵린 강타", 3.3f) } },
+                Moves = new[] { EnemyMove.Attack("꼬리치기", 0.7f, 3), EnemyMove.Attack("독액", 1.3f).FromDistance().Sniping(), EnemyMove.Wind("바위를 녹이는 침을 모은다"), EnemyMove.Attack("묵린 강타", 3.3f) } },
             // Stage 21: 흑랑채 청혼 (11권)
             new EnemyData { Id = "heukrang_bandit", Name = "흑랑채 산적", Level = 47, HpMul = 2.331f, AtkMul = 3.218f,
                 Moves = new[] { EnemyMove.Attack("흑랑조", 0.8f, 2), EnemyMove.Attack("도끼질", 1.2f) } },
@@ -421,7 +422,7 @@ namespace BiRyeoDo.Core
             new EnemyData { Id = "hyeolma_dae", Name = "십이혈마대 대원", Level = 49, HpMul = 2.420f, AtkMul = 2.568f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("혈검", 0.8f, 2), EnemyMove.Attack("암습", 1.3f).Sniping() } },
             new EnemyData { Id = "hyeol_gung", Name = "9대 조장 혈궁", Level = 50, HpMul = 3.226f, AtkMul = 2.914f, SpeedAdd = 4,
-                Moves = new[] { EnemyMove.Attack("혈마전", 0.7f, 3).Sniping(), EnemyMove.Wind("혈마궁을 당긴다"), EnemyMove.Attack("혈야구성", 2.8f) } },
+                Moves = new[] { EnemyMove.Attack("혈마전", 0.7f, 3).FromDistance().Sniping(), EnemyMove.Wind("혈마궁을 당긴다"), EnemyMove.Attack("혈야구성", 2.8f).FromDistance() } },
             new EnemyData { Id = "hyeol_swae", Name = "10대 조장 혈쇄", Level = 51, IsBoss = true, HpMul = 5.109f, AtkMul = 2.914f,
                 Moves = new[] { EnemyMove.Attack("철쇄", 0.8f, 2), EnemyMove.Attack("비차륜", 1.3f), EnemyMove.Wind("철쇄봉혼진을 펼친다"), EnemyMove.Attack("혈겁쇄법 노룡분쇄", 3.3f) } },
             // Stage 23: 비사진 (12권)
@@ -470,12 +471,12 @@ namespace BiRyeoDo.Core
             new EnemyData { Id = "suda_bokmyeon", Name = "수다쟁이 복면인", Level = 64, HpMul = 4.476f, AtkMul = 2.282f, SpeedAdd = 6,
                 Moves = new[] { EnemyMove.Attack("가벼운 검", 0.7f, 3), EnemyMove.Wind("호들갑을 떨며 몸을 낮춘다"), EnemyMove.Attack("도우미의 일격", 2.8f) } },
             new EnemyData { Id = "mu_jeong", Name = "잔무일점혈 무정", Level = 65, IsBoss = true, HpMul = 7.161f, AtkMul = 2.335f, SpeedAdd = 6,
-                Moves = new[] { EnemyMove.Attack("그림자 비수", 0.7f, 3).Sniping(), EnemyMove.Attack("무언독 암기", 1.3f).Sniping(), EnemyMove.Wind("그림자 속으로 스며든다"), EnemyMove.Attack("일점혈", 3.5f) } },
+                Moves = new[] { EnemyMove.Attack("그림자 비수", 0.7f, 3).FromDistance().Sniping(), EnemyMove.Attack("무언독 암기", 1.3f).FromDistance().Sniping(), EnemyMove.Wind("그림자 속으로 스며든다"), EnemyMove.Attack("일점혈", 3.5f) } },
             // Stage 30: 화룡멸겁대진 (16권)
             new EnemyData { Id = "ma_chilgeol_jeoji", Name = "마천칠걸 저지조", Level = 65, HpMul = 3.459f, AtkMul = 2.145f, SpeedAdd = 2,
                 Moves = new[] { EnemyMove.Attack("연환 공격", 0.7f, 3), EnemyMove.Attack("협공", 1.3f) } },
             new EnemyData { Id = "hwaryong_hwayeom", Name = "화룡의 불꽃", Level = 66, HpMul = 4.257f, AtkMul = 2.145f,
-                Moves = new[] { EnemyMove.Attack("불의 성벽", 0.8f, 2), EnemyMove.Wind("불길이 솟구친다"), EnemyMove.Attack("화룡의 숨결", 2.9f) } },
+                Moves = new[] { EnemyMove.Attack("불의 성벽", 0.8f, 2).FromDistance(), EnemyMove.Wind("불길이 솟구친다"), EnemyMove.Attack("화룡의 숨결", 2.9f).FromDistance() } },
             new EnemyData { Id = "bi_daegongja", Name = "대공자 비", Level = 67, IsBoss = true, RetreatHpPct = 0.3f, HpMul = 7.492f, AtkMul = 2.593f, DefMul = 1.15f, SpeedAdd = 14,
                 Moves = new[] { EnemyMove.Attack("영뢰 잔흔", 0.7f, 3), EnemyMove.Attack("검기 난무", 1.3f), EnemyMove.Wind("영뢰를 모은다"), EnemyMove.Attack("영뢰 천잔", 3.6f) } },
             // Stage 29 trials: 검후의 십초지적, 수화관 (16권)
@@ -494,7 +495,7 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("허상 일검", 0.7f, 3), EnemyMove.Attack("나뭇가지 일검", 1.3f), EnemyMove.Wind("심정청도의 검기를 모은다"), EnemyMove.Attack("비탄의 일검", 2.8f) } },
             // Stage 28 trial: 목요관 야간 질주 (15권)
             new EnemyData { Id = "jongri_chu_night", Name = "칠련창 종리추", Level = 59, HpMul = 2.779f, AtkMul = 2.951f,
-                Moves = new[] { EnemyMove.Attack("칠성창", 0.7f, 3), EnemyMove.Attack("일곱 창 투척", 1.2f) } },
+                Moves = new[] { EnemyMove.Attack("칠성창", 0.7f, 3), EnemyMove.Attack("일곱 창 투척", 1.2f).FromDistance() } },
             new EnemyData { Id = "do_chuun_night", Name = "사갈검편 도추운", Level = 59, HpMul = 2.617f, AtkMul = 2.951f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("검편 채찍", 0.7f, 3), EnemyMove.Attack("사갈편", 1.2f) } },
             // Balance clones: the same enemy tuned separately for a later stage (artwork is shared via ArtId)
