@@ -30,7 +30,7 @@ namespace BiRyeoDo.Game.UI
 
         internal static void Clear(RectTransform rt)
         {
-            for (int i = rt.childCount - 1; i >= 0; i--) { rt.GetChild(i).gameObject.SetActive(false); UnityEngine.Object.Destroy(rt.GetChild(i).gameObject); }
+            LandscapeMenu.Clear(rt);
             UiFactory.Frame(rt, UiFactory.GoldDim, 3f);
         }
 

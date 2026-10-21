@@ -38,11 +38,11 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Glyph("gacha", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
             _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.84f, 0.985f), "", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
             UiFactory.HelpButton(root, () => UiFactory.ShowInfo(_help));   // at the right end of the header band, next to the 두 figure
-            _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(.34f, .02f), new Vector2(.98f, .12f), "", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
             _help = UiFactory.InfoWindow(root, "뽑기 안내", "같은 장비는 여분으로 쌓입니다.\n한계돌파하거나 분해해 재료를 얻을 수 있습니다.\n뽑은 결과는 행낭에 들어갑니다.");
 
             // Odds
-            var odds = UiFactory.Panel("Odds", root, new Vector2(0.04f, 0.735f), new Vector2(0.96f, 0.88f), UiFactory.Ink);
+            var odds = UiFactory.Panel("Odds", root, new Vector2(.025f, .35f), new Vector2(.315f, .90f), UiFactory.Ink);
             UiFactory.Frame(odds.transform, UiFactory.GoldDim, 2f);
             for (int g = 0; g < Grades.Rates.Length; g++)   // 초월 cannot be pulled, so it has no chip
             {
@@ -56,9 +56,10 @@ namespace BiRyeoDo.Game.UI
             }
 
             // Full-width result rows keep long names and effects readable.
-            _emptyNote = UiFactory.Label("Empty", root, new Vector2(0.06f, 0.26f), new Vector2(0.94f, 0.68f), "아직 뽑지 않았습니다.\n아래 버튼으로 뽑아 보세요.", 32, UiFactory.Dim, TextAnchor.LowerCenter, FontStyle.Normal);
+            _emptyNote = UiFactory.Label("Empty", root, new Vector2(.35f, .28f), new Vector2(.96f, .80f), "아직 뽑지 않았습니다.\n아래 버튼으로 뽑아 보세요.", 32, UiFactory.Dim, TextAnchor.LowerCenter, FontStyle.Normal);
             UiFactory.Glyph("gacha", _emptyNote.transform, new Vector2(.3f, .35f), new Vector2(.7f, .94f), new Color(.83f, .72f, .48f, .35f));
-            var resultsContent = CodexPanel.Scroller(root, .21f, .72f);
+            var resultsContent = CodexPanel.Scroller(root, .14f, .90f);
+            LandscapeMenu.Place((RectTransform)resultsContent.parent, .33f, .14f, .985f, .90f);
             for (int i = 0; i < Gacha.TenPullCount; i++)
             {
                 var c = new Card();
@@ -83,8 +84,9 @@ namespace BiRyeoDo.Game.UI
             for (int i = 0; i < 3; i++)
             {
                 int count = _sizes[i];
-                float x0 = 0.04f + i * 0.32f;
-                var btn = UiFactory.Button("Pull" + count, root, new Vector2(x0, 0.04f), new Vector2(x0 + 0.30f, 0.19f), "", UiFactory.Red, () => StartPull(count), 28);
+                float x0 = .025f;
+                float top = .32f - i * .10f;
+                var btn = UiFactory.Button("Pull" + count, root, new Vector2(x0, top - .09f), new Vector2(.315f, top), "", UiFactory.Red, () => StartPull(count), 28);
                 _buttons[i] = btn;
                 _buttonImages[i] = btn.GetComponent<Image>();
                 _buttonLabels[i] = btn.GetComponentInChildren<Text>();
@@ -107,6 +109,7 @@ namespace BiRyeoDo.Game.UI
         {
             if (!_built) return;
             StopAllCoroutines();
+            if (_help != null) _help.gameObject.SetActive(false);
             _busy = false;
         }
 

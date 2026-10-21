@@ -14,7 +14,7 @@ namespace BiRyeoDo.Game.UI
         {
             public StageData Stage;
             public Text Title, Detail, ButtonLabel;
-            public Image ButtonImage, Band;
+            public Image ButtonImage;
             public Button Button;
         }
 
@@ -119,7 +119,7 @@ namespace BiRyeoDo.Game.UI
 
             // ---- Stage list (opened by 스테이지 출전): difficulty picker and every stage.
             const float gap = 16f, cardH = 150f;
-            _stageOverlay = UiFactory.Rect("StageOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
+            _stageOverlay = UiFactory.Rect("StageOverlay", root, Vector2.zero, Vector2.one);
             _stageOverlay.gameObject.AddComponent<Image>().color = UiFactory.Parchment;
             _starsTitle = UiFactory.Label("Title", _stageOverlay, new Vector2(0.05f, 0.925f), new Vector2(0.95f, 0.995f), "스테이지", 42, UiFactory.Gold);
             var viewport = UiFactory.Rect("Viewport", _stageOverlay, new Vector2(0f, 0.085f), new Vector2(1f, 0.92f));
@@ -163,45 +163,45 @@ namespace BiRyeoDo.Game.UI
                 row.ButtonImage = row.Button.GetComponent<Image>();
                 row.ButtonLabel = row.Button.GetComponentInChildren<Text>();
                 _rows.Add(row);
-                ReadingList.Register(rt, Mathf.Max(240f, cardH), gap);
+                ReadingList.Register(rt, Mathf.Max(180f, cardH), gap);
                 y += cardH + gap;
             }
             content.sizeDelta = new Vector2(0f, y + gap);
             UiFactory.Button("Close", _stageOverlay, new Vector2(0.3f, 0.012f), new Vector2(0.7f, 0.072f), "닫기", UiFactory.InkSoft, () => { _stageOverlay.gameObject.SetActive(false); Refresh(); }, 34);
             _stageOverlay.gameObject.SetActive(false);
 
-            _promoOverlay = UiFactory.Rect("PromotionOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
+            _promoOverlay = UiFactory.Rect("PromotionOverlay", root, Vector2.zero, Vector2.one);
             var overlayBg = _promoOverlay.gameObject.AddComponent<Image>();
             overlayBg.color = UiFactory.Parchment;
             _promoOverlay.gameObject.SetActive(false);
 
-            _partyOverlay = UiFactory.Rect("PartyOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
+            _partyOverlay = UiFactory.Rect("PartyOverlay", root, Vector2.zero, Vector2.one);
             var partyBg = _partyOverlay.gameObject.AddComponent<Image>();
             partyBg.color = UiFactory.Parchment;
             _partyOverlay.gameObject.SetActive(false);
 
-            _prepOverlay = UiFactory.Rect("PrepOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
+            _prepOverlay = UiFactory.Rect("PrepOverlay", root, Vector2.zero, Vector2.one);
             _prepOverlay.gameObject.AddComponent<Image>().color = UiFactory.Parchment;
             _prepOverlay.gameObject.SetActive(false);
 
-            _questOverlay = UiFactory.Rect("QuestOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
+            _questOverlay = UiFactory.Rect("QuestOverlay", root, Vector2.zero, Vector2.one);
             _questOverlay.gameObject.AddComponent<Image>().color = UiFactory.Parchment;
             _questOverlay.gameObject.SetActive(false);
 
-            _fortuneOverlay = UiFactory.Rect("FortuneOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
+            _fortuneOverlay = UiFactory.Rect("FortuneOverlay", root, Vector2.zero, Vector2.one);
             _fortuneOverlay.gameObject.AddComponent<Image>().color = UiFactory.Parchment;
             _fortuneOverlay.gameObject.SetActive(false);
 
-            _settingsOverlay = UiFactory.Rect("SettingsOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
+            _settingsOverlay = UiFactory.Rect("SettingsOverlay", root, Vector2.zero, Vector2.one);
             _settingsOverlay.gameObject.AddComponent<Image>().color = UiFactory.Parchment;
             _settingsOverlay.gameObject.SetActive(false);
 
-            _towerOverlay = UiFactory.Rect("TowerOverlay", root, Vector2.zero, new Vector2(1f, 0.92f));
+            _towerOverlay = UiFactory.Rect("TowerOverlay", root, Vector2.zero, Vector2.one);
             _towerOverlay.gameObject.AddComponent<Image>().color = UiFactory.Parchment;
             _towerOverlay.gameObject.SetActive(false);
 
-            _daily = new DailyPanel(UiFactory.Rect("DailyOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
-            _stars = new StarPanel(UiFactory.Rect("StarOverlay", root, Vector2.zero, new Vector2(1f, 0.92f)), Refresh);
+            _daily = new DailyPanel(UiFactory.Rect("DailyOverlay", root, Vector2.zero, Vector2.one), Refresh);
+            _stars = new StarPanel(UiFactory.Rect("StarOverlay", root, Vector2.zero, Vector2.one), Refresh);
             Refresh();
         }
 
@@ -465,6 +465,7 @@ namespace BiRyeoDo.Game.UI
             _settingsOverlay.gameObject.SetActive(true);
             UiFactory.Label("Title", _settingsOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "설정", 44, UiFactory.Gold);
 
+            _settingsRow = 0;
             float y = 0.88f;
             VolumeRow("배경음", st.BgmVolume, ref y, d => { st.BgmVolume = GameSettings.StepVolume(st.BgmVolume, d); SoundManager.RefreshVolumes(); });
             VolumeRow("효과음", st.SfxVolume, ref y, d => { st.SfxVolume = GameSettings.StepVolume(st.SfxVolume, d); });
@@ -501,7 +502,7 @@ namespace BiRyeoDo.Game.UI
 
         private void VolumeRow(string label, float value, ref float y, Action<int> change)
         {
-            var band = UiFactory.Panel("Row", _settingsOverlay, new Vector2(0.05f, y - 0.09f), new Vector2(0.95f, y), UiFactory.Ink);
+            var band = SettingsBand();
             UiFactory.Frame(band.transform, UiFactory.GoldDim, 2f);
             UiFactory.Label("Name", band.transform, new Vector2(0.04f, 0.1f), new Vector2(0.40f, 0.9f), label, 34, UiFactory.Gold, TextAnchor.MiddleLeft);
             UiFactory.Button("Minus", band.transform, new Vector2(0.44f, 0.15f), new Vector2(0.58f, 0.85f), "-", UiFactory.InkSoft, () => { change(-1); BuildSettings(); }, 40);
@@ -510,9 +511,18 @@ namespace BiRyeoDo.Game.UI
             y -= 0.105f;
         }
 
+        private int _settingsRow;
+
+        private Image SettingsBand()
+        {
+            int index = _settingsRow++;
+            float left = .04f + index % 2 * .47f, top = .88f - index / 2 * .20f;
+            return UiFactory.Panel("Setting" + index, _settingsOverlay, new Vector2(left, top - .17f), new Vector2(left + .45f, top), UiFactory.Ink);
+        }
+
         private void ToggleRow(string label, string value, ref float y, Action toggle)
         {
-            var band = UiFactory.Panel("Row", _settingsOverlay, new Vector2(0.05f, y - 0.09f), new Vector2(0.95f, y), UiFactory.Ink);
+            var band = SettingsBand();
             UiFactory.Frame(band.transform, UiFactory.GoldDim, 2f);
             UiFactory.Label("Name", band.transform, new Vector2(0.04f, 0.1f), new Vector2(0.50f, 0.9f), label, 34, UiFactory.Gold, TextAnchor.MiddleLeft);
             UiFactory.Button("Toggle", band.transform, new Vector2(0.60f, 0.15f), new Vector2(0.94f, 0.85f), value, UiFactory.Red, () => { toggle(); BuildSettings(); }, 34);
@@ -705,7 +715,7 @@ namespace BiRyeoDo.Game.UI
 
         private static void ClearChildren(RectTransform rt)
         {
-            for (int i = rt.childCount - 1; i >= 0; i--) Destroy(rt.GetChild(i).gameObject);
+            LandscapeMenu.Clear(rt);
             UiFactory.Frame(rt, UiFactory.GoldDim, 3f);   // panel border, re-added after every rebuild
         }
 
@@ -731,7 +741,8 @@ namespace BiRyeoDo.Game.UI
             if (available.Count == 0)
                 UiFactory.Label("None", _partyOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "아직 함께할 동료가 없습니다.", 40, UiFactory.PaperText);
 
-            var roster = CodexPanel.Scroller(_partyOverlay, .34f, .835f);
+            var roster = CodexPanel.Scroller(_partyOverlay, .115f, .835f);
+            LandscapeMenu.Place((RectTransform)roster.parent, .02f, .115f, .49f, .835f);
             int memberIndex = 0;
             foreach (var c in available)
             {
@@ -743,7 +754,8 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Button("Toggle", band, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), on ? "출전" : "대기", on ? UiFactory.Red : UiFactory.InkSoft, () => ToggleCompanion(companion), 32);
             }
 
-            BuildFormationBlock(_partyOverlay, active, OpenPartyOverlay, 0.13f, 0.29f);
+            var formation = UiFactory.Rect("Formation", _partyOverlay, new Vector2(.52f, .115f), new Vector2(.98f, .835f));
+            BuildFormationBlock(formation, active, OpenPartyOverlay, .18f, .72f);
             UiFactory.Button("Close", _partyOverlay, new Vector2(0.25f, 0.01f), new Vector2(0.75f, 0.09f), "닫기", UiFactory.InkSoft, () => { _partyOverlay.gameObject.SetActive(false); Refresh(); }, 36);
         }
 
@@ -761,14 +773,14 @@ namespace BiRyeoDo.Game.UI
             foreach (var c in active) { ids.Add(c.Id); names[c.Id] = c.Name; }
             var map = Formation.Resolve(save, ids, st);   // auto lines are planned against this stage (the next one to clear on the party screen)
             if (_placeSelected != null && !map.ContainsKey(_placeSelected)) _placeSelected = null;
-            UiFactory.Label("FormTitle", parent, new Vector2(0.05f, gy1 + 0.035f), new Vector2(0.60f, gy1 + 0.085f), "진형 · 인물 선택 후 칸 선택", 30, UiFactory.Gold, TextAnchor.MiddleLeft);
-            UiFactory.Button("FormAuto", parent, new Vector2(0.64f, gy1 + 0.035f), new Vector2(0.95f, gy1 + 0.085f), save.PlacementCustom ? "자동 배치" : "자동 배치 중", save.PlacementCustom ? UiFactory.InkSoft : UiFactory.Gold, () => { Formation.Reset(save); _placeSelected = null; GameManager.Instance.SaveNow(); redraw(); }, 24);
-            UiFactory.Label("FormHint", parent, new Vector2(0.05f, gy0 - 0.045f), new Vector2(0.95f, gy0 - 0.005f), "배치는 전투 전에만 바꿀 수 있습니다. 오른쪽이 앞줄입니다.", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+            UiFactory.Label("FormTitle", parent, new Vector2(0.05f, gy1 + .065f), new Vector2(0.60f, gy1 + .145f), "진형 · 인물 선택 후 칸 선택", 26, UiFactory.Gold, TextAnchor.MiddleLeft);
+            UiFactory.Button("FormAuto", parent, new Vector2(0.64f, gy1 + .065f), new Vector2(0.95f, gy1 + .145f), save.PlacementCustom ? "자동 배치" : "자동 배치 중", save.PlacementCustom ? UiFactory.InkSoft : UiFactory.Gold, () => { Formation.Reset(save); _placeSelected = null; GameManager.Instance.SaveNow(); redraw(); }, 24);
+            UiFactory.Label("FormHint", parent, new Vector2(0.05f, gy0 - .10f), new Vector2(0.95f, gy0 - .015f), "배치는 전투 전에만 바꿀 수 있습니다. 오른쪽이 앞줄입니다.", 26, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
             float gx0 = 0.05f, gx1 = 0.95f;
             float cw = (gx1 - gx0) / Board.PartyCols, ch = (gy1 - gy0) / Board.Rows;
             string[] lineNames = { "뒤 줄", "중 줄", "앞 줄" };
             for (int col = 0; col < Board.PartyCols; col++)
-                UiFactory.Label("Line" + col, parent, new Vector2(gx0 + col * cw, gy1), new Vector2(gx0 + (col + 1) * cw, gy1 + 0.03f), lineNames[col], 30, col == Board.PartyCols - 1 ? UiFactory.Gold : UiFactory.PaperText);
+                UiFactory.Label("Line" + col, parent, new Vector2(gx0 + col * cw, gy1 + .005f), new Vector2(gx0 + (col + 1) * cw, gy1 + .05f), lineNames[col], 26, col == Board.PartyCols - 1 ? UiFactory.Gold : UiFactory.PaperText);
             for (int col = 0; col < Board.PartyCols; col++)
                 for (int row = 0; row < Board.Rows; row++)
                 {
@@ -858,7 +870,11 @@ namespace BiRyeoDo.Game.UI
             foreach (var l in lines) enemyText.Append(l).Append('\n');
             UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Enemies", _prepOverlay, new Vector2(0.05f, 0.44f), new Vector2(0.95f, 0.645f), enemyText.ToString().TrimEnd('\n'), 30, UiFactory.Gold, TextAnchor.UpperLeft, FontStyle.Normal), 32), 1.15f);
 
-            BuildFormationBlock(_prepOverlay, new List<CompanionData>(active), () => OpenPrep(st, go), 0.15f, 0.36f, st);
+            LandscapeMenu.Place((RectTransform)_prepOverlay.Find("AdviceViewport"), .025f, .62f, .48f, .87f);
+            LandscapeMenu.Place((RectTransform)_prepOverlay.Find("RewardViewport"), .025f, .45f, .48f, .61f);
+            LandscapeMenu.Place((RectTransform)_prepOverlay.Find("EnemiesViewport"), .025f, .13f, .48f, .44f);
+            var formation = UiFactory.Rect("Formation", _prepOverlay, new Vector2(.52f, .13f), new Vector2(.98f, .87f));
+            BuildFormationBlock(formation, new List<CompanionData>(active), () => OpenPrep(st, go), .18f, .72f, st);
             UiFactory.Button("Go", _prepOverlay, new Vector2(0.52f, 0.02f), new Vector2(0.95f, 0.095f), "출전", UiFactory.Red, () => { _prepOverlay.gameObject.SetActive(false); go(); }, 38);
             UiFactory.Button("Cancel", _prepOverlay, new Vector2(0.05f, 0.02f), new Vector2(0.48f, 0.095f), "취소", UiFactory.InkSoft, () => { _prepOverlay.gameObject.SetActive(false); _placeSelected = null; }, 34);
         }
@@ -897,6 +913,39 @@ namespace BiRyeoDo.Game.UI
             GameManager.Instance.SaveNow();
             _promoOverlay.gameObject.SetActive(false);
             _onPromote(offer);
+        }
+
+        public enum Menu { Featured, Stages, Quests, Fortunes, Party, Tower, Promotion, Daily, Stars, Settings }
+
+        public StageData FeaturedStage { get { return _featStage; } }
+
+        public bool HasOpenOverlay
+        {
+            get
+            {
+                foreach (var overlay in new[] { _promoOverlay, _partyOverlay, _prepOverlay, _questOverlay, _fortuneOverlay, _settingsOverlay, _towerOverlay, _stageOverlay })
+                    if (overlay != null && overlay.gameObject.activeSelf) return true;
+                return (_stars != null && _stars.IsOpen) || (_daily != null && _daily.IsOpen);
+            }
+        }
+
+        /// <summary>Entry points shared by the landscape home and the original world menus.</summary>
+        public void OpenMenu(Menu menu)
+        {
+            Refresh();
+            switch (menu)
+            {
+                case Menu.Featured: OnFeaturedPressed(); break;
+                case Menu.Stages: OpenStageOverlay(); break;
+                case Menu.Quests: OpenQuestOverlay(); break;
+                case Menu.Fortunes: OpenFortuneOverlay(); break;
+                case Menu.Party: OpenPartyOverlay(); break;
+                case Menu.Tower: OpenTowerOverlay(); break;
+                case Menu.Promotion: OpenPromotionOverlay(); break;
+                case Menu.Daily: _daily.Open(); break;
+                case Menu.Stars: _stars.Open(); break;
+                case Menu.Settings: OpenSettingsOverlay(); break;
+            }
         }
 
         private void OnEnable() { if (_built) Refresh(); }

@@ -35,7 +35,8 @@ namespace BiRyeoDo.Game.UI
 
             var sword = EarlyGameContent.FindItem(Ritual.RewardId);
             var conditions = Ritual.Conditions(save);
-            var content = CodexPanel.Scroller(Root, 0.45f, 0.79f);
+            var content = CodexPanel.Scroller(Root, .12f, .79f);
+            LandscapeMenu.Place((RectTransform)content.parent, .02f, .12f, .65f, .79f);
             for (int i = 0; i < conditions.Count; i++)
             {
                 var c = conditions[i];
@@ -46,23 +47,23 @@ namespace BiRyeoDo.Game.UI
             }
             SetListHeight(content, conditions.Count);
 
-            var rewardIcon = UiFactory.Panel("RewardIcon", Root, new Vector2(.40f, .34f), new Vector2(.60f, .435f), Color.white);
+            var rewardIcon = UiFactory.Panel("RewardIcon", Root, new Vector2(.73f, .61f), new Vector2(.93f, .79f), Color.white);
             UiFactory.Frame(rewardIcon.transform, UiFactory.GradeColor(sword.Grade), 2f);
             var rewardGlyph = UiFactory.Label("Glyph", rewardIcon.transform, Vector2.zero, Vector2.one, "", 54, UiFactory.PaperText);
             ItemArt.Apply(rewardIcon, rewardGlyph, sword);
-            UiFactory.Body(UiFactory.Label("Reward", Root, new Vector2(0.05f, 0.282f), new Vector2(0.95f, 0.333f),
+            UiFactory.Body(UiFactory.Label("Reward", Root, new Vector2(.68f, .48f), new Vector2(.97f, .60f),
                 "보상  " + UiFactory.GradedName(sword) + " · 5성", 32, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal));
-            UiFactory.ScrollBody(UiFactory.Label("RewardEffects", Root, new Vector2(.06f, .21f), new Vector2(.94f, .282f),
+            UiFactory.ScrollBody(UiFactory.Label("RewardEffects", Root, new Vector2(.67f, .24f), new Vector2(.98f, .47f),
                 UiFactory.GearEffectText(sword, 0, Gear.MaxStars), 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 30);
 
             if (save.RitualDone)
             {
-                UiFactory.Button("Done", Root, new Vector2(0.2f, 0.115f), new Vector2(0.8f, 0.20f), "전승의식 완료", UiFactory.InkSoft, null, 34).interactable = false;
+                UiFactory.Button("Done", Root, new Vector2(.68f, .12f), new Vector2(.97f, .22f), "전승의식 완료", UiFactory.InkSoft, null, 34).interactable = false;
             }
             else
             {
                 bool can = Ritual.CanComplete(save);
-                var btn = UiFactory.Button("Start", Root, new Vector2(0.2f, 0.115f), new Vector2(0.8f, 0.20f), can ? "전승의식 시작" : "조건 " + Ritual.DoneCount(save) + "/" + conditions.Count, can ? UiFactory.Gold : UiFactory.InkSoft, Perform, 34);
+                var btn = UiFactory.Button("Start", Root, new Vector2(.68f, .12f), new Vector2(.97f, .22f), can ? "전승의식 시작" : "조건 " + Ritual.DoneCount(save) + "/" + conditions.Count, can ? UiFactory.Gold : UiFactory.InkSoft, Perform, 34);
                 btn.interactable = can;
             }
             AddClose();

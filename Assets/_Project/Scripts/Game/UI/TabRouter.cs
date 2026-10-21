@@ -2,10 +2,11 @@ using UnityEngine;
 
 namespace BiRyeoDo.Game.UI
 {
-    /// <summary>Bottom tab bar: 강호 (battles) / 무공 (arts, 심법, 동료 수련) / 행낭 (items and gear) / 뽑기 (gacha) / 기록 (상태창, 도감, 업적, 추억, 세력). Shows one panel at a time.</summary>
+    /// <summary>Shows one route at a time. Gacha remains reachable from the landscape lobby.</summary>
     public class TabRouter : MonoBehaviour
     {
-        public enum Tab { World, MartialArts, Bag, Gacha, Record }
+        // Append new routes so existing inspector values keep their original meaning.
+        public enum Tab { World, MartialArts, Bag, Gacha, Record, Companions }
 
         [Tooltip("Panels indexed by the Tab enum order.")]
         public GameObject[] panels;

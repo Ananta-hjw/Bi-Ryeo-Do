@@ -21,6 +21,8 @@ namespace BiRyeoDo.Game.UI
         /// <summary>True when the panel is a page of a tab (no 닫기 button) instead of a pop-up.</summary>
         public bool Embedded;
 
+        public bool IsOpen { get { return Root != null && Root.gameObject.activeSelf; } }
+
         public void Hide() { Root.gameObject.SetActive(false); }
 
         /// <summary>Wipes the previous drawing and shows the panel (call at the start of Open).</summary>

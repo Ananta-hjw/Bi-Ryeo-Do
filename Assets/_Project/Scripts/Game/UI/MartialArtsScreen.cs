@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace BiRyeoDo.Game.UI
 {
-    /// <summary>무공 탭 (무공 / 심법 / 동료 수련 pages). Learn arts with 두 once their stage is unlocked, then equip up to <see cref="Progression.MaxEquippedArts"/> for battle.</summary>
+    /// <summary>무공 tab with arts and inner arts; companion training opens the shared workspace. Learn arts with 두 once their stage is unlocked, then equip up to <see cref="Progression.MaxEquippedArts"/> for battle.</summary>
     public class MartialArtsScreen : MonoBehaviour
     {
         private sealed class Row
@@ -22,17 +22,16 @@ namespace BiRyeoDo.Game.UI
         private readonly List<Row> _rows = new List<Row>();
         private Text _header, _hint;
         private bool _built;
-        private int _page;   // 0 무공, 1 심법, 2 동료 수련
-        private static readonly string[] PageNames = { "무공", "심법", "동료 수련" };
+        private int _page;   // 0 arts, 1 inner arts
+        private static readonly string[] PageNames = { "무공", "심법" };
         private readonly Image[] _pageTabs = new Image[PageNames.Length];
         private readonly GameObject[] _pageDots = new GameObject[PageNames.Length];
         private readonly Text[] _pageDotTexts = new Text[PageNames.Length];
         private readonly HashSet<string> _newArtIds = new HashSet<string>();   // arts flagged new when this page was opened (tagged in the list)
         private RectTransform _artsRoot;
         private InnerArtPanel _inner;
-        private CompanionPanel _training;
 
-        public void Build(RectTransform tab)
+        public void Build(RectTransform tab, System.Action openCompanions = null)
         {
             if (_built) return;
             _built = true;
@@ -52,10 +51,10 @@ namespace BiRyeoDo.Game.UI
                     _pageDots[p].SetActive(false);
                 }
             }
-            var root = UiFactory.Rect("ArtsPage", tab, Vector2.zero, new Vector2(1f, 0.905f));
+            UiFactory.Button("CompanionTraining", tab, new Vector2(.68f, .918f), new Vector2(.96f, .992f), "협객 · 인물별 수련", UiFactory.InkSoft, () => openCompanions?.Invoke(), 30);
+            var root = UiFactory.Rect("ArtsPage", tab, Vector2.zero, new Vector2(.645f, .905f));
             _artsRoot = root;
             _inner = new InnerArtPanel(UiFactory.Rect("InnerArtPage", tab, Vector2.zero, new Vector2(1f, 0.905f)), Refresh) { Embedded = true };
-            _training = new CompanionPanel(UiFactory.Rect("TrainingPage", tab, Vector2.zero, new Vector2(1f, 0.905f)), Refresh) { Embedded = true };
 
             UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
             UiFactory.Glyph("arts", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
@@ -78,7 +77,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.ScrollIndicator(scroll, viewport);
 
             var arts = EarlyGameContent.Arts.Where(a => a.OwnerId == null).ToArray();
-            const float rowH = 240f, gap = 16f;
+            const float rowH = 180f, gap = 16f;
             content.sizeDelta = new Vector2(0f, arts.Length * (rowH + gap) + gap);
             for (int i = 0; i < arts.Length; i++)
             {
@@ -117,7 +116,10 @@ namespace BiRyeoDo.Game.UI
                 row.MasteryLabel = row.MasteryButton.GetComponentInChildren<Text>();
                 _rows.Add(row);
             }
-            _detail = UiFactory.Rect("ArtDetail", tab, Vector2.zero, Vector2.one);
+            var placeholder = UiFactory.Panel("InspectorPlaceholder", root.parent, new Vector2(.66f, .02f), new Vector2(.985f, .905f), UiFactory.Ink);
+            UiFactory.Frame(placeholder.transform, UiFactory.GoldDim, 2f);
+            UiFactory.ScrollBody(UiFactory.Label("Hint", placeholder.transform, new Vector2(.06f, .30f), new Vector2(.94f, .70f), "무공을 선택하면 효과·숙련 단계·변초를 확인할 수 있습니다.", 30, UiFactory.Dim), 30);
+            _detail = UiFactory.Rect("ArtDetail", tab, new Vector2(.66f, .02f), new Vector2(.985f, .905f));
             _detail.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.78f);   // dims and blocks the list underneath
             _detail.gameObject.SetActive(false);
             _masteryHelp = UiFactory.InfoWindow(tab, "무공 숙련", Mastery.HelpText());
@@ -125,7 +127,7 @@ namespace BiRyeoDo.Game.UI
         }
 
         // Row parts keep one size: learning, equipping or a 변초 changes only the words, never the row or its buttons.
-        private const float ButtonH = 180f, IconH = 170f;
+        private const float ButtonH = 128f, IconH = 120f;
 
         private static void FixHeight(RectTransform rt, float height)
         {
@@ -148,7 +150,7 @@ namespace BiRyeoDo.Game.UI
         {
             var save = GameManager.Instance.Save;
             _detailId = art.Id;
-            for (int i = _detail.childCount - 1; i >= 0; i--) Destroy(_detail.GetChild(i).gameObject);
+            LandscapeMenu.Clear(_detail);
             _detail.gameObject.SetActive(true);
 
             bool learned = save.LearnedArts.Contains(art.Id);
@@ -159,7 +161,7 @@ namespace BiRyeoDo.Game.UI
             var variant = Mastery.VariantOf(save, art.Id);
             var spec = learned ? Mastery.Apply(save, art) : art.ToSpec();
 
-            var card = UiFactory.Panel("Card", _detail, new Vector2(0.05f, 0.05f), new Vector2(0.95f, 0.93f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, new Color(0.05f, 0.07f, 0.11f, 0.99f));
             UiFactory.Frame(card.transform, ultimate ? UiFactory.Gold : UiFactory.GoldDim, 3f);
             var big = UiFactory.Panel("Picture", card.transform, new Vector2(0.74f, 0.87f), new Vector2(0.95f, 0.985f), IconColor(art));
             var picture = ArtLibrary.Art(art.Id);
@@ -220,10 +222,16 @@ namespace BiRyeoDo.Game.UI
             if (canVariant)
                 UiFactory.Button("Variant", card.transform, new Vector2(0.05f, 0.10f), new Vector2(0.95f, 0.18f), "변초 바꾸기 (지금: " + (variant == ArtVariant.None ? "없음" : Mastery.VariantName(variant)) + ")", UiFactory.Gold, () => { OnMastery(art); OpenDetail(art); }, 30);
             UiFactory.Button("Close", card.transform, new Vector2(0.30f, 0.015f), new Vector2(0.70f, 0.09f), "닫기", UiFactory.InkSoft, CloseDetail, 34);
+            LandscapeMenu.Inspector(card.rectTransform);
         }
 
         private void OnEnable() { if (_built) ShowPage(_page); }
-        private void OnDisable() { if (_built) CloseDetail(); }
+        private void OnDisable()
+        {
+            if (!_built) return;
+            CloseDetail();
+            if (_masteryHelp != null) _masteryHelp.gameObject.SetActive(false);
+        }
 
         private void RefreshDots()
         {
@@ -258,11 +266,10 @@ namespace BiRyeoDo.Game.UI
             }
             RefreshDots();
             _artsRoot.gameObject.SetActive(page == 0);
+            _detail.transform.parent.Find("InspectorPlaceholder").gameObject.SetActive(page == 0);
             _inner.Hide();
-            _training.Hide();
             if (page == 0) Refresh();
             else if (page == 1) _inner.Open();
-            else _training.Open();
             for (int i = 0; i < _pageTabs.Length; i++) _pageTabs[i].color = i == page ? new Color(0.56f, 0.44f, 0.22f, 1f) : UiFactory.InkSoft;
         }
 

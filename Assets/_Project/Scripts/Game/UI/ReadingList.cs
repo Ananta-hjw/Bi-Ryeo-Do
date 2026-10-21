@@ -28,7 +28,10 @@ namespace BiRyeoDo.Game.UI
             foreach (var label in _labels) if (label != null) label.UnregisterDirtyVerticesCallback(Invalidate);
         }
 
-        private void LateUpdate()
+        private void LateUpdate() { Reflow(); }
+
+        /// <summary>Measures new rows immediately before a caller restores its saved scroll position.</summary>
+        public void Reflow()
         {
             var content = (RectTransform)transform;
             if (content.rect.width < 1f) return;

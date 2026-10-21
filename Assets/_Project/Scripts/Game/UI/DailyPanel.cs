@@ -27,7 +27,7 @@ namespace BiRyeoDo.Game.UI
 
             // Six missions do not fit one screen: they scroll between the streak line and the bonus text.
             const float bandHeight = 210f, bandGap = 14f;
-            var viewport = UiFactory.Rect("MissionViewport", Root, new Vector2(0.05f, 0.34f), new Vector2(0.95f, 0.85f));
+            var viewport = UiFactory.Rect("MissionViewport", Root, new Vector2(.03f, .12f), new Vector2(.65f, .85f));
             viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
             viewport.gameObject.AddComponent<RectMask2D>();
             var content = UiFactory.Rect("MissionContent", viewport, new Vector2(0f, 1f), new Vector2(1f, 1f));
@@ -66,9 +66,9 @@ namespace BiRyeoDo.Game.UI
             }
 
             string bonus = Daily.AllClaimed(save) ? "오늘의 여섯 임무를 모두 끝냈습니다!" : "여섯 임무를 모두 받으면 보너스: 두 " + Daily.AllClearDoo(save).ToString("N0") + " + 웅담 2개, 연속 수련 +1일";
-            UiFactory.ScrollBody(UiFactory.Label("Bonus", Root, new Vector2(0.05f, 0.26f), new Vector2(0.95f, 0.33f), bonus, 30, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
-            UiFactory.ScrollBody(UiFactory.Label("Milestones", Root, new Vector2(0.05f, 0.17f), new Vector2(0.95f, 0.26f), "연속 보상: 3일 옥루주 3 · 7일 인형설삼 · 14일 일급영단+심득석 2 · 30일마다 일급영단 2+심득석 4 + 두 31,200", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
-            UiFactory.ScrollBody(UiFactory.Label("Toast", Root, new Vector2(0.05f, 0.09f), new Vector2(0.95f, 0.17f), toast ?? "임무는 내일 0시에 새로 바뀝니다 (기기 시간 기준)", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            UiFactory.ScrollBody(UiFactory.Label("Bonus", Root, new Vector2(.68f, .58f), new Vector2(.97f, .83f), bonus, 30, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            UiFactory.ScrollBody(UiFactory.Label("Milestones", Root, new Vector2(.68f, .30f), new Vector2(.97f, .56f), "연속 보상: 3일 옥루주 3 · 7일 인형설삼 · 14일 일급영단+심득석 2 · 30일마다 일급영단 2+심득석 4 + 두 31,200", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            UiFactory.ScrollBody(UiFactory.Label("Toast", Root, new Vector2(.68f, .12f), new Vector2(.97f, .28f), toast ?? "임무는 내일 0시에 새로 바뀝니다 (기기 시간 기준)", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
             AddClose();
         }
 

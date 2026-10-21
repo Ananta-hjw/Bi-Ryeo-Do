@@ -22,8 +22,8 @@ All lore lives in `Story/` (see `Story/README.md`). The user provides the origin
 
 ## Environment
 
-- Unity 2022.3 LTS (`ProjectSettings/ProjectVersion.txt` pins 2022.3.62f1; if the installed editor differs, Unity will offer to upgrade). Target: Android, portrait, IL2CPP, ARM64.
-- The Unity Editor is NOT available in the Claude cloud container, so `Game/` and `Editor/` code cannot be compiled or run here. Only `Core/` is verifiable (see below). Say so when changes touch Unity-side code.
+- Unity 2022.3 LTS (`ProjectSettings/ProjectVersion.txt` pins 2022.3.62f1; if the installed editor differs, Unity will offer to upgrade). Target: Android, landscape (both directions), IL2CPP, ARM64.
+- The Unity Editor is NOT available in the cloud container. Core tests can run with .NET; Game/UI sources can be type-checked against available Unity API assemblies. This does not execute Unity UI tests, render screens or validate Android touch input. State those limits when changes touch Unity-side code.
 - First time in the editor: open the folder as a Unity project, then run menu **BiRyeoDo ▸ Setup Project** (`Scripts/Editor/ProjectSetup.cs`). It applies Android player settings and creates/registers `Scenes/Boot.unity` (GameManager + a UI object with `TabRouter` + `MainScreen`). Content needs no assets: it is plain data in `Core/EarlyGameContent.cs`. **BiRyeoDo ▸ Build Android APK** (also used by CI) runs the setup first.
 - Unity creates `.meta` files on first import; commit them together with their assets. `Library/`, `Temp/`, `Builds/` are gitignored.
 

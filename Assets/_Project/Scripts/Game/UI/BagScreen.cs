@@ -24,7 +24,7 @@ namespace BiRyeoDo.Game.UI
         }
 
         private readonly List<Row> _rows = new List<Row>();
-        private Text _header, _gear, _hint, _empty;
+        private Text _header, _hint, _empty;
         private string _flash;
         private RectTransform _help;   // the ? window: what the bag's buttons do
         private RectTransform _content;
@@ -51,8 +51,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Glyph("bag", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
             _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.84f, 0.985f), "", 40, UiFactory.Gold);
             UiFactory.HelpButton(root, () => UiFactory.ShowInfo(_help));   // right next to the 두 figure, inside the header band
-            _gear = UiFactory.ScrollBody(UiFactory.Label("Gear", root, new Vector2(0.05f, 0.875f), new Vector2(0.95f, 0.922f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter), 30);
-            _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, 0.840f), new Vector2(0.95f, 0.875f), "", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(.025f, .005f), new Vector2(.635f, .075f), "", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             _help = UiFactory.InfoWindow(root, "행낭 안내", "아이템을 누르면 상세 정보와 관리 버튼이 열립니다.\n· 돌파·분해: 아이템 상세창에서 합니다.\n· 강화·장착: 상태창에서 합니다.");
 
@@ -60,24 +59,24 @@ namespace BiRyeoDo.Game.UI
             for (int t = 0; t < FilterNames.Length; t++)
             {
                 int tab = t;
-                float x0 = 0.04f + t * 0.24f;
-                var btn = UiFactory.Button("Filter" + t, root, new Vector2(x0, 0.755f), new Vector2(x0 + 0.225f, 0.835f), FilterNames[t], UiFactory.InkSoft, () => { _filter = tab; Refresh(); _scroll.verticalNormalizedPosition = 1f; }, 28);
+                float x0 = .025f + t * .155f;
+                var btn = UiFactory.Button("Filter" + t, root, new Vector2(x0, .83f), new Vector2(x0 + .145f, .905f), FilterNames[t], UiFactory.InkSoft, () => { _filter = tab; CloseDetail(); Refresh(); _scroll.verticalNormalizedPosition = 1f; }, 28);
                 _filterTabs[t] = btn.GetComponent<Image>();
             }
 
             // Second row, only on the 장비 tab: weapon / 상의 / 하의 / 신발 / accessory
-            _gearTabRow = UiFactory.Rect("GearTabs", root, new Vector2(0f, 0.57f), new Vector2(1f, 0.74f)).gameObject;
+            _gearTabRow = UiFactory.Rect("GearTabs", root, new Vector2(.025f, .735f), new Vector2(.635f, .815f)).gameObject;
             for (int t = 0; t < GearFilterNames.Length; t++)
             {
                 int tab = t;
-                float x0 = 0.04f + (t % 3) * 0.32f;
-                float top = .95f - (t / 3) * .49f;
-                var btn = UiFactory.Button("GearFilter" + t, _gearTabRow.transform, new Vector2(x0, top - .44f), new Vector2(x0 + .30f, top), GearFilterNames[t], UiFactory.InkSoft, () => { _gearFilter = tab; Refresh(); _scroll.verticalNormalizedPosition = 1f; }, 30);
+                float x0 = t * .202f;
+                float top = .98f;
+                var btn = UiFactory.Button("GearFilter" + t, _gearTabRow.transform, new Vector2(x0, .02f), new Vector2(x0 + .192f, top), GearFilterNames[t], UiFactory.InkSoft, () => { _gearFilter = tab; CloseDetail(); Refresh(); _scroll.verticalNormalizedPosition = 1f; }, 30);
                 _gearTabs[t] = btn.GetComponent<Image>();
             }
 
             // The bag scrolls: it can hold more stacks than fit on one screen.
-            var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, 0.772f));
+            var viewport = UiFactory.Rect("Viewport", root, new Vector2(.01f, .085f), new Vector2(.645f, .725f));
             _viewport = viewport;
             viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
             viewport.gameObject.AddComponent<RectMask2D>();
@@ -93,7 +92,10 @@ namespace BiRyeoDo.Game.UI
             UiFactory.ScrollIndicator(scroll, viewport);
             _empty = UiFactory.Label("Empty", viewport, new Vector2(.06f, .4f), new Vector2(.94f, .7f), "이 분류에 보유한 아이템이 없습니다.", 32, UiFactory.Dim);
 
-            _detail = UiFactory.Rect("ItemDetail", root, Vector2.zero, Vector2.one);
+            var placeholder = UiFactory.Panel("InspectorPlaceholder", root, new Vector2(.66f, .02f), new Vector2(.985f, .905f), UiFactory.Ink);
+            UiFactory.Frame(placeholder.transform, UiFactory.GoldDim, 2f);
+            UiFactory.ScrollBody(UiFactory.Label("Hint", placeholder.transform, new Vector2(.06f, .30f), new Vector2(.94f, .72f), "물품을 선택해 주세요.\n\n상세 효과·한계돌파·분해·합성은 이곳에서 확인합니다.\n장착과 강화는 협객의 장비 탭에서 합니다.", 30, UiFactory.Dim), 30);
+            _detail = UiFactory.Rect("ItemDetail", root, new Vector2(.66f, .02f), new Vector2(.985f, .905f));
             _detail.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.78f);   // dims and blocks the list underneath
             _detail.gameObject.SetActive(false);
             Refresh();
@@ -112,12 +114,12 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             if (itemId != _detailId) _confirmDismantle = null;
             _detailId = itemId;
-            for (int i = _detail.childCount - 1; i >= 0; i--) Destroy(_detail.GetChild(i).gameObject);
+            LandscapeMenu.Clear(_detail);
             _detail.gameObject.SetActive(true);
 
             bool gear = item.IsGear;
             int enh = gear ? Gear.Stars(save, item.Id) : 0;
-            var card = UiFactory.Panel("Card", _detail, new Vector2(0.05f, 0.08f), new Vector2(0.95f, 0.90f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, new Color(0.05f, 0.07f, 0.11f, 0.99f));
             UiFactory.Frame(card.transform, UiFactory.GradeColor(item.Grade), 3f);
             var big = UiFactory.Panel("Picture", card.transform, new Vector2(0.74f, 0.855f), new Vector2(0.95f, 0.985f), Color.white);
             UiFactory.Frame(big.transform, UiFactory.GradeColor(item.Grade), 2f);
@@ -128,7 +130,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Kind", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.72f, 0.90f), kind, 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
 
             var lines = new List<string>();
-            if (gear) lines.Add("강화 · 장착 · 해제는 상태창의 부위 칸에서 합니다. 장비를 바꿔도 부위 강화는 유지됩니다.\n\n<color=#9ADB9F>" + UiFactory.GearEffectText(item, 0, enh) + "</color>" + (enh > 0 && item.Grade != ItemGrade.Transcendent ? "   (돌파 전 " + UiFactory.GearEffectText(item, 0) + ")" : ""));
+            if (gear) lines.Add("강화 · 장착 · 해제는 협객 → 장비의 부위 칸에서 합니다.\n\n<color=#9ADB9F>" + UiFactory.GearEffectText(item, 0, enh) + "</color>" + (enh > 0 && item.Grade != ItemGrade.Transcendent ? "   (돌파 전 " + UiFactory.GearEffectText(item, 0) + ")" : ""));
             else
             {
                 var fx = new List<string>();
@@ -197,6 +199,7 @@ namespace BiRyeoDo.Game.UI
                 blocked.interactable = false;
             }
             UiFactory.Button("Close", card.transform, new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.10f), "닫기", UiFactory.InkSoft, CloseDetail, 34);
+            LandscapeMenu.Inspector(card.rectTransform);
         }
 
         private void CloseDetail()
@@ -220,7 +223,12 @@ namespace BiRyeoDo.Game.UI
             }
         }
 
-        private void OnDisable() { if (_built && _detail != null) CloseDetail(); }
+        private void OnDisable()
+        {
+            if (!_built) return;
+            if (_detail != null) CloseDetail();
+            if (_help != null) _help.gameObject.SetActive(false);
+        }
 
         private void OnEnable()
         {
@@ -267,9 +275,9 @@ namespace BiRyeoDo.Game.UI
         {
             var save = GameManager.Instance.Save;
             _detailId = scroll.Id;
-            for (int i = _detail.childCount - 1; i >= 0; i--) Destroy(_detail.GetChild(i).gameObject);
+            LandscapeMenu.Clear(_detail);
             _detail.gameObject.SetActive(true);
-            var card = UiFactory.Panel("Card", _detail, new Vector2(0.05f, 0.08f), new Vector2(0.95f, 0.90f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, new Color(0.05f, 0.07f, 0.11f, 0.99f));
             UiFactory.Frame(card.transform, UiFactory.GradeColor(scroll.Grade), 3f);
             UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.91f), new Vector2(0.95f, 0.99f), UiFactory.GradedName(scroll), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
             UiFactory.ScrollBody(UiFactory.Label("Hint", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.91f), "숙련을 +" + scroll.MasteryUses + "회 올릴 무공을 하나 고르세요. (보유 " + Inventory.Count(save, scroll.Id) + "개)", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 30);
@@ -478,7 +486,6 @@ namespace BiRyeoDo.Game.UI
             if (!_built) return;
             var save = GameManager.Instance.Save;
             _header.text = "행낭 · " + save.Doo.ToString("N0") + "두";
-            _gear.text = "";
             _hint.text = !string.IsNullOrEmpty(_flash) ? _flash : "";
             _flash = null;
 
@@ -490,7 +497,7 @@ namespace BiRyeoDo.Game.UI
                 .Where(s => PassesFilter(EarlyGameContent.FindItem(s.Id)))
                 .ToList();
             _gearTabRow.SetActive(_filter == 1);
-            _viewport.anchorMax = new Vector2(1f, _filter == 1 ? .56f : .745f);
+            _viewport.anchorMax = new Vector2(.645f, _filter == 1 ? .725f : .82f);
             for (int t = 0; t < _gearTabs.Length; t++) _gearTabs[t].color = t == _gearFilter ? new Color(0.30f, 0.48f, 0.44f, 1f) : new Color(0.12f, 0.15f, 0.20f, 0.92f);
             for (int t = 0; t < _filterTabs.Length; t++) _filterTabs[t].color = t == _filter ? new Color(0.56f, 0.44f, 0.22f, 1f) : UiFactory.InkSoft;
 
@@ -546,7 +553,7 @@ namespace BiRyeoDo.Game.UI
             var iconRect = UiFactory.Rect("Icon", rt, new Vector2(.5f, 1f), new Vector2(.5f, 1f));
             iconRect.pivot = new Vector2(.5f, 1f);
             iconRect.anchoredPosition = new Vector2(0f, -16f);
-            iconRect.sizeDelta = new Vector2(128f, 128f);
+            iconRect.sizeDelta = new Vector2(88f, 88f);
             row.Icon = iconRect.gameObject.AddComponent<Image>();
             row.IconGlyph = UiFactory.Label("Glyph", iconRect, Vector2.zero, Vector2.one, "", 44, UiFactory.PaperText);
             row.Title = UiFactory.Body(UiFactory.Label("Name", rt, Vector2.zero, Vector2.one, "", 28, UiFactory.PaperText, TextAnchor.UpperLeft));
@@ -572,9 +579,9 @@ namespace BiRyeoDo.Game.UI
                     var row = _rows[i];
                     float nameHeight = UiFactory.MeasureHeight(row.Title, row.Title.text, cardWidth - 24f) + 8f;
                     float detailHeight = UiFactory.MeasureHeight(row.Detail, row.Detail.text, cardWidth - 24f) + 8f;
-                    SetTextRegion(row.Title.rectTransform, 160f, nameHeight);
-                    SetTextRegion(row.Detail.rectTransform, 172f + nameHeight, detailHeight);
-                    height = Mathf.Max(height, 188f + nameHeight + detailHeight);
+                    SetTextRegion(row.Title.rectTransform, 112f, nameHeight);
+                    SetTextRegion(row.Detail.rectTransform, 124f + nameHeight, detailHeight);
+                    height = Mathf.Max(height, 140f + nameHeight + detailHeight);
                 }
                 for (int i = start; i < Mathf.Min(start + Columns, _visibleCount); i++)
                 {

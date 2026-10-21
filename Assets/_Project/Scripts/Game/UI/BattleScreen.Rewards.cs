@@ -71,6 +71,8 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Panel("Dim", _fightRewards, Vector2.zero, Vector2.one, new Color(.015f, .025f, .035f, .97f)).raycastTarget = true;
             var card = UiFactory.Panel("RewardCard", _fightRewards, new Vector2(.04f, .07f), new Vector2(.96f, .94f), UiFactory.Ink);
             UiFactory.Frame(card.transform, UiFactory.GoldDim, 3f);
+            UiFactory.Panel("SummaryBacking", card.transform, new Vector2(.025f, .155f), new Vector2(.415f, .835f), HudInk);
+            UiFactory.Panel("ColumnRule", card.transform, new Vector2(.421f, .17f), new Vector2(.422f, .835f), UiFactory.GoldDim);
             RewardText("Title", card.transform, new Vector2(.06f, .91f), new Vector2(.94f, .98f), title, 48, UiFactory.Gold, TextAnchor.MiddleCenter);
             RewardText("Subtitle", card.transform, new Vector2(.06f, .85f), new Vector2(.94f, .91f), subtitle, 28, UiFactory.PaperText, TextAnchor.MiddleCenter);
             return card.rectTransform;
@@ -85,6 +87,7 @@ namespace BiRyeoDo.Game.UI
         private IEnumerator WaitForRewardChoice()
         {
             _rewardsDone = false;
+            LayoutRewardCard((RectTransform)_fightRewards.Find("RewardCard"));
             _fightRewards.SetAsLastSibling();
             try { while (!_rewardsDone && !_fled) yield return null; }
             finally { HideFightRewards(); }

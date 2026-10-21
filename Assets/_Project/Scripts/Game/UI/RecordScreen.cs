@@ -15,7 +15,7 @@ namespace BiRyeoDo.Game.UI
             public Text Detail, Badge;
         }
 
-        private StatusPanel _status;
+        private Action _openStatus;
         private CodexPanel _codex;
         private MemoryPanel _memories;
         private StoryLogPanel _storyLog;
@@ -24,54 +24,49 @@ namespace BiRyeoDo.Game.UI
         private RitualPanel _ritual;
         private bool _built;
 
-        public void Build(RectTransform root, Action<string, string[], Action> onStory)
+        public void Build(RectTransform root, Action<string, string[], Action> onStory, Action openStatus = null)
         {
             if (_built) return;
             _built = true;
+            _openStatus = openStatus;
 
             UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
             UiFactory.Glyph("record", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
             UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.94f, 0.985f), "기록", 42, UiFactory.Gold);
 
-            _statusE = Tile(root, .04f, .96f, .71f, .90f, "상태창", "party", () => _status.Open());
-            _codexE = Tile(root, .04f, .49f, .48f, .695f, "도감", "record", () => _codex.OpenCodex());
-            _achE = Tile(root, .51f, .96f, .48f, .695f, "업적", "star", () => _codex.OpenAchievements());
-            _storyE = Tile(root, .04f, .96f, .34f, .465f, "이야기 줄거리", "quest", () => _storyLog.Open());
-            _memoryE = Tile(root, .04f, .49f, .175f, .325f, "나예린 추억", "fortune", () => _memories.Open());
-            _factionE = Tile(root, .51f, .96f, .175f, .325f, "세력과 객잔", "tower", () => _factions.Open());
-            _ritualE = Tile(root, .04f, .96f, .025f, .16f, "전승의식", "arts", () => _ritual.Open());
-
-            var panelH = new Vector2(1f, 1f);
-            _status = new StatusPanel(UiFactory.Rect("StatusOverlay", root, Vector2.zero, panelH), Refresh);
-            _codex = new CodexPanel(UiFactory.Rect("CodexOverlay", root, Vector2.zero, panelH), UiFactory.Rect("AchievementOverlay", root, Vector2.zero, panelH), Refresh);
-            _storyLog = new StoryLogPanel(UiFactory.Rect("StoryLogOverlay", root, Vector2.zero, panelH), Refresh, onStory);
-            _memories = new MemoryPanel(UiFactory.Rect("MemoryOverlay", root, Vector2.zero, panelH), Refresh, onStory);
-            _factions = new FactionPanel(UiFactory.Rect("FactionOverlay", root, Vector2.zero, panelH), Refresh);
-            _ritual = new RitualPanel(UiFactory.Rect("RitualOverlay", root, Vector2.zero, panelH), Refresh, onStory);
+            var workspace = UiFactory.Rect("Workspace", root, new Vector2(.27f, .025f), new Vector2(.98f, .905f));
+            UiFactory.Panel("Background", workspace, Vector2.zero, Vector2.one, UiFactory.Ink);
+            UiFactory.Frame(workspace, UiFactory.GoldDim, 2f);
+            UiFactory.ScrollBody(UiFactory.Label("Hint", workspace, new Vector2(.08f, .30f), new Vector2(.92f, .70f), "왼쪽에서 기록을 선택해 주세요.\n상태와 장비 관리는 협객 화면에서 이어집니다.", 32, UiFactory.Dim), 32);
+            _statusE = Tile(root, 0, "협객 · 상태와 장비", "party", () => _openStatus?.Invoke());
+            _codexE = Tile(root, 1, "도감", "record", () => { CloseOverlays(); _codex.OpenCodex(); });
+            _achE = Tile(root, 2, "업적", "star", () => { CloseOverlays(); _codex.OpenAchievements(); });
+            _storyE = Tile(root, 3, "이야기 줄거리", "quest", () => { CloseOverlays(); _storyLog.Open(); });
+            _memoryE = Tile(root, 4, "나예린 추억", "fortune", () => { CloseOverlays(); _memories.Open(); });
+            _factionE = Tile(root, 5, "세력과 객잔", "tower", () => { CloseOverlays(); _factions.Open(); });
+            _ritualE = Tile(root, 6, "전승의식", "arts", () => { CloseOverlays(); _ritual.Open(); });
+            _codex = new CodexPanel(UiFactory.Rect("CodexOverlay", workspace, Vector2.zero, Vector2.one), UiFactory.Rect("AchievementOverlay", workspace, Vector2.zero, Vector2.one), Refresh);
+            _storyLog = new StoryLogPanel(UiFactory.Rect("StoryLogOverlay", workspace, Vector2.zero, Vector2.one), Refresh, onStory);
+            _memories = new MemoryPanel(UiFactory.Rect("MemoryOverlay", workspace, Vector2.zero, Vector2.one), Refresh, onStory);
+            _factions = new FactionPanel(UiFactory.Rect("FactionOverlay", workspace, Vector2.zero, Vector2.one), Refresh);
+            _ritual = new RitualPanel(UiFactory.Rect("RitualOverlay", workspace, Vector2.zero, Vector2.one), Refresh, onStory);
             Refresh();
         }
 
-        private static Entry Tile(RectTransform root, float x0, float x1, float y0, float y1, string title, string icon, UnityEngine.Events.UnityAction onClick)
+        private static Entry Tile(RectTransform root, int index, string title, string icon, UnityEngine.Events.UnityAction onClick)
         {
-            var rt = UiFactory.Rect("Tile", root, new Vector2(x0, y0), new Vector2(x1, y1));
-            var img = rt.gameObject.AddComponent<Image>();
-            img.sprite = UiFactory.Gradient;
-            img.color = UiFactory.Ink;
-            var btn = rt.gameObject.AddComponent<Button>();
-            btn.targetGraphic = img;
-            btn.onClick.AddListener(onClick);
+            float top = .905f - index * .124f;
+            var rt = UiFactory.Panel("Menu_" + icon, root, new Vector2(.02f, top - .112f), new Vector2(.25f, top), UiFactory.Ink).rectTransform;
+            var button = rt.gameObject.AddComponent<Button>();
+            button.targetGraphic = rt.GetComponent<Image>();
+            button.onClick.AddListener(onClick);
             UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
-            bool wide = x1 - x0 > .6f;
-            UiFactory.Glyph(icon, rt, wide ? new Vector2(.025f, .17f) : new Vector2(.06f, .65f),
-                wide ? new Vector2(.22f, .83f) : new Vector2(.28f, .95f), UiFactory.Gold);
-            UiFactory.Heading(UiFactory.Label("Title", rt, wide ? new Vector2(.26f, .57f) : new Vector2(.33f, .64f),
-                new Vector2(.94f, .94f), title, wide ? 38 : 30, UiFactory.PaperText, TextAnchor.MiddleLeft));
+            UiFactory.Glyph(icon, rt, new Vector2(.035f, .60f), new Vector2(.14f, .95f), UiFactory.Gold);
+            UiFactory.Label("Title", rt, new Vector2(.17f, .55f), new Vector2(.96f, .97f), title, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
             var e = new Entry();
-            e.Detail = UiFactory.Body(UiFactory.Label("Detail", rt, wide ? new Vector2(.26f, .08f) : new Vector2(.08f, .07f),
-                wide ? new Vector2(.94f, .56f) : new Vector2(.92f, .61f), "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 1.15f);
-            UiFactory.Label("Arrow", rt, new Vector2(.90f, .15f), new Vector2(.98f, .50f), "›", 36, UiFactory.Gold);
-            var dot = UiFactory.Panel("Dot", rt, new Vector2(.84f, .78f), new Vector2(.97f, .96f), UiFactory.Red);
-            e.Badge = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 30, UiFactory.PaperText);
+            e.Detail = UiFactory.ScrollBody(UiFactory.Label("Detail", rt, new Vector2(.025f, .04f), new Vector2(.97f, .52f), "", 23, UiFactory.Dim, TextAnchor.UpperLeft, FontStyle.Normal), 23);
+            var dot = UiFactory.Panel("Dot", rt, new Vector2(.84f, .72f), new Vector2(.98f, .98f), UiFactory.Red);
+            e.Badge = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 22, UiFactory.PaperText);
             return e;
         }
 
@@ -86,11 +81,11 @@ namespace BiRyeoDo.Game.UI
         private void OnDisable() { if (_built) CloseOverlays(); }
 
         /// <summary>Opens the 상태창 pop-up (used by the Lv chip of the 강호 tab).</summary>
-        public void OpenStatus() { if (_built) _status.Open(); }
+        public void OpenStatus() { if (_built) _openStatus?.Invoke(); }
 
         public void CloseOverlays()
         {
-            _status.Hide();
+            _storyLog.Hide();
             _codex.HideAll();
             _memories.Hide();
             _factions.Hide();
@@ -102,7 +97,7 @@ namespace BiRyeoDo.Game.UI
             if (!_built) return;
             var save = GameManager.Instance.Save;
             var hero = StatusSheet.Hero(save);
-            _statusE.Detail.text = "능력치와 장비를 확인합니다 · 경지 " + Realm.Steps[Realm.StepOf(save)].Name + " · " + hero[0].Label + " " + hero[0].Value + " · " + hero[2].Label + " " + hero[2].Value;
+            _statusE.Detail.text = "경지 " + Realm.Steps[Realm.StepOf(save)].Name + " · " + hero[0].Label + " " + hero[0].Value;
             SetBadge(_statusE, 0);
             _codexE.Detail.text = "적 " + save.SeenEnemies.Count + "/" + Codex.EnemyTotal + " · 물품 " + save.SeenItems.Count + "/" + Codex.ItemTotal;
             SetBadge(_codexE, 0);

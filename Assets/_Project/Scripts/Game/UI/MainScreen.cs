@@ -7,15 +7,19 @@ using UnityEngine.UI;
 namespace BiRyeoDo.Game.UI
 {
     /// <summary>
-    /// Root of the UI: builds the Canvas (1080x1920 portrait, safe-area aware), a five-tab bottom bar (강호 / 무공 / 행낭 / 뽑기 / 기록)
-    /// and the full-screen battle overlay that stages open into.
+    /// Landscape UI root with a live safe area, management workspaces and battle/story overlays.
     /// </summary>
     [RequireComponent(typeof(TabRouter))]
     public class MainScreen : MonoBehaviour
     {
-        private static readonly string[] TabNames = { "강호", "무공", "행낭", "뽑기", "기록" };
-        private static readonly string[] TabIconKeys = { "tab_world", "tab_arts", "tab_bag", "tab_gacha", "tab_record" };
-        private const float TabBarHeight = 190f;
+        private static readonly string[] TabNames = { "강호", "무공", "행낭", "뽑기", "기록", "협객" };
+        private static readonly TabRouter.Tab[] NavigationTabs =
+        {
+            TabRouter.Tab.World, TabRouter.Tab.Companions, TabRouter.Tab.MartialArts,
+            TabRouter.Tab.Bag, TabRouter.Tab.Record
+        };
+        private static readonly string[] TabIconKeys = { "tab_world", "party", "tab_arts", "tab_bag", "tab_record" };
+        private const float TabBarHeight = 96f;
 
         private TabRouter _router;
         private Image[] _tabButtons;
@@ -28,6 +32,9 @@ namespace BiRyeoDo.Game.UI
         private GameObject _battleOverlay, _realmModal;
         private Text _realmTitle, _realmBody;
         private WorldScreen _world;
+        private GameObject _worldModal;
+        private LandscapeHome _home;
+        private CompanionScreen _companions;
         private RecordScreen _record;
         private BattleScreen _battle;
 
@@ -35,6 +42,11 @@ namespace BiRyeoDo.Game.UI
         {
             _router = GetComponent<TabRouter>();
             EnsureEventSystem();
+            Screen.autorotateToPortrait = false;
+            Screen.autorotateToPortraitUpsideDown = false;
+            Screen.autorotateToLandscapeLeft = true;
+            Screen.autorotateToLandscapeRight = true;
+            Screen.orientation = ScreenOrientation.AutoRotation;
 
             var canvasGo = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             canvasGo.transform.SetParent(transform, false);
@@ -42,14 +54,12 @@ namespace BiRyeoDo.Game.UI
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1080f, 1920f);
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            scaler.matchWidthOrHeight = 0f;
+            scaler.matchWidthOrHeight = 1f;
 
             var safe = UiFactory.Rect("SafeArea", canvasGo.transform, Vector2.zero, Vector2.one);
-            var sa = Screen.safeArea;
-            safe.anchorMin = new Vector2(sa.xMin / Screen.width, sa.yMin / Screen.height);
-            safe.anchorMax = new Vector2(sa.xMax / Screen.width, sa.yMax / Screen.height);
+            safe.gameObject.AddComponent<SafeAreaLayout>();
 
             UiFactory.Panel("Backdrop", safe, Vector2.zero, Vector2.one, UiFactory.Parchment);
             var wash = UiFactory.Panel("MountainWash", safe, Vector2.zero, Vector2.one, new Color(.36f, .47f, .43f, .12f));
@@ -63,59 +73,72 @@ namespace BiRyeoDo.Game.UI
             {
                 var panel = UiFactory.Rect("Panel_" + TabNames[i], content, Vector2.zero, Vector2.one);
                 panels[i] = panel.gameObject;
+                if (i != (int)TabRouter.Tab.World)
+                    panel.gameObject.AddComponent<Image>().color = UiFactory.Parchment;
             }
             _router.panels = panels;
 
-            _world = panels[(int)TabRouter.Tab.World].AddComponent<WorldScreen>();
-            panels[(int)TabRouter.Tab.MartialArts].AddComponent<MartialArtsScreen>().Build((RectTransform)panels[(int)TabRouter.Tab.MartialArts].transform);
+            var worldRoot = (RectTransform)panels[(int)TabRouter.Tab.World].transform;
+            var homeRoot = UiFactory.Rect("LandscapeHome", worldRoot, Vector2.zero, Vector2.one);
+            _home = homeRoot.gameObject.AddComponent<LandscapeHome>();
+            var modal = UiFactory.Panel("WorldMenus", worldRoot, Vector2.zero, Vector2.one, UiFactory.Parchment);
+            _worldModal = modal.gameObject;
+            modal.raycastTarget = true;
+            var worldMenuRoot = UiFactory.Rect("WorldMenusContent", modal.transform, Vector2.zero, Vector2.one);
+            _world = worldMenuRoot.gameObject.AddComponent<WorldScreen>();
 
-            panels[(int)TabRouter.Tab.Bag].AddComponent<BagScreen>().Build((RectTransform)panels[(int)TabRouter.Tab.Bag].transform);
-            panels[(int)TabRouter.Tab.Gacha].AddComponent<GachaScreen>().Build((RectTransform)panels[(int)TabRouter.Tab.Gacha].transform);
-
-            _record = panels[(int)TabRouter.Tab.Record].AddComponent<RecordScreen>();
+            var artsRoot = UiFactory.Rect("ArtsLandscape", panels[(int)TabRouter.Tab.MartialArts].transform, Vector2.zero, Vector2.one);
+            artsRoot.gameObject.AddComponent<MartialArtsScreen>().Build(artsRoot, () => Select((int)TabRouter.Tab.Companions));
+            var bagRoot = UiFactory.Rect("BagLandscape", panels[(int)TabRouter.Tab.Bag].transform, Vector2.zero, Vector2.one);
+            bagRoot.gameObject.AddComponent<BagScreen>().Build(bagRoot);
+            var gachaRoot = UiFactory.Rect("GachaLandscape", panels[(int)TabRouter.Tab.Gacha].transform, Vector2.zero, Vector2.one);
+            gachaRoot.gameObject.AddComponent<GachaScreen>().Build(gachaRoot);
+            var recordRoot = UiFactory.Rect("RecordLandscape", panels[(int)TabRouter.Tab.Record].transform, Vector2.zero, Vector2.one);
+            _record = recordRoot.gameObject.AddComponent<RecordScreen>();
+            var companionRoot = (RectTransform)panels[(int)TabRouter.Tab.Companions].transform;
+            _companions = companionRoot.gameObject.AddComponent<CompanionScreen>();
+            _companions.Build(companionRoot, () => Select((int)TabRouter.Tab.MartialArts), () =>
+            {
+                Select((int)TabRouter.Tab.World);
+                OpenWorldMenu(WorldScreen.Menu.Party);
+            });
 
             BuildTabBar(safe);
 
-            // Battle overlay sits above the tab bar and is only active during a stage.
-            var overlay = UiFactory.Rect("BattleOverlay", safe, Vector2.zero, Vector2.one);
-            _battle = overlay.gameObject.AddComponent<BattleScreen>();
-            _battle.Build(overlay);
+            // The battle host blocks navigation throughout combat and story playback.
+            var overlay = UiFactory.Panel("BattleOverlay", safe, Vector2.zero, Vector2.one, UiFactory.Parchment).rectTransform;
+            overlay.GetComponent<Image>().raycastTarget = true;
+            var battleRoot = UiFactory.Rect("BattleLandscape", overlay, Vector2.zero, Vector2.one);
+            _battle = battleRoot.gameObject.AddComponent<BattleScreen>();
+            _battle.Build(battleRoot);
             overlay.gameObject.SetActive(false);
             _battleOverlay = overlay.gameObject;
 
-            _world.Build((RectTransform)panels[(int)TabRouter.Tab.World].transform, stage =>
+            _world.Build(worldMenuRoot, stage =>
             {
                 _world.CloseOverlays();
-                overlay.gameObject.SetActive(true);
-                _battle.Open(stage, () =>
-                {
-                    overlay.gameObject.SetActive(false);
-                    _world.AfterBattle();
-                });
+                _worldModal.SetActive(false);
+                _battleOverlay.SetActive(true);
+                _battle.Open(stage, ReturnFromBattle);
             }, offer =>
             {
                 _world.CloseOverlays();
-                overlay.gameObject.SetActive(true);
-                _battle.OpenPromotion(offer, () =>
-                {
-                    overlay.gameObject.SetActive(false);
-                    _world.AfterBattle();
-                });
-            }, () =>
-            {
-                Select((int)TabRouter.Tab.Record);
-                _record.OpenStatus();
-            });
+                _worldModal.SetActive(false);
+                _battleOverlay.SetActive(true);
+                _battle.OpenPromotion(offer, ReturnFromBattle);
+            }, () => Select((int)TabRouter.Tab.Companions));
 
-            _record.Build((RectTransform)panels[(int)TabRouter.Tab.Record].transform, (title, lines, done) =>
+            _record.Build(recordRoot, (title, lines, done) =>
             {
-                overlay.gameObject.SetActive(true);
+                _battleOverlay.SetActive(true);
                 _battle.OpenStory(title, lines, () =>
                 {
-                    overlay.gameObject.SetActive(false);
+                    _battleOverlay.SetActive(false);
                     done();
                 });
-            });
+            }, () => Select((int)TabRouter.Tab.Companions));
+            _home.Build(homeRoot, _world, OpenWorldMenu, tab => Select((int)tab));
+            _worldModal.SetActive(false);
 
             // Help card sits above everything (tutorial hints and the help list)
             var helpHost = UiFactory.Rect("HelpHost", safe, Vector2.zero, Vector2.one);
@@ -128,42 +151,58 @@ namespace BiRyeoDo.Game.UI
             StartCoroutine(HelpPanel.Instance.ShowOnce("intro"));
         }
 
+        private void OpenWorldMenu(WorldScreen.Menu menu)
+        {
+            // OnEnable refreshes the legacy view, so activate it before opening its overlay.
+            _worldModal.SetActive(true);
+            _world.OpenMenu(menu);
+        }
+
+        private void ReturnFromBattle()
+        {
+            _battleOverlay.SetActive(false);
+            _world.AfterBattle();
+            _worldModal.SetActive(_world.HasOpenOverlay);
+            _home.Refresh();
+        }
+
         private void BuildTabBar(RectTransform parent)
         {
             var bar = UiFactory.Rect("TabBar", parent, Vector2.zero, new Vector2(1f, 0f));
             bar.offsetMin = Vector2.zero;
             bar.offsetMax = new Vector2(0f, TabBarHeight);
             UiFactory.Panel("TabBarBg", bar, Vector2.zero, Vector2.one, UiFactory.Ink);
-            UiFactory.Panel("TabBarTopLine", bar, new Vector2(0f, 0.98f), Vector2.one, UiFactory.GoldDim);
+            UiFactory.Panel("TabBarTopLine", bar, new Vector2(0f, .98f), Vector2.one, UiFactory.GoldDim);
 
-            _tabButtons = new Image[TabNames.Length];
-            _tabIcons = new Graphic[TabNames.Length];
-            _tabLabels = new Text[TabNames.Length];
-            _tabMarks = new GameObject[TabNames.Length];
-            float w = 1f / TabNames.Length;
-            for (int i = 0; i < TabNames.Length; i++)
+            _tabButtons = new Image[NavigationTabs.Length];
+            _tabIcons = new Graphic[NavigationTabs.Length];
+            _tabLabels = new Text[NavigationTabs.Length];
+            _tabMarks = new GameObject[NavigationTabs.Length];
+            float w = 1f / NavigationTabs.Length;
+            for (int i = 0; i < NavigationTabs.Length; i++)
             {
-                int index = i;
-                var btn = UiFactory.Button("Tab_" + TabNames[i], bar, new Vector2(i*w+.006f, .04f), new Vector2((i+1)*w-.006f, .96f),
-                    TabNames[i], Color.clear, () => Select(index), 36);
+                int route = (int)NavigationTabs[i];
+                var btn = UiFactory.Button("Tab_" + TabNames[route], bar, new Vector2(i*w+.006f, .06f), new Vector2((i+1)*w-.006f, .94f),
+                    TabNames[route], Color.clear, () => Select(route), 32);
                 _tabButtons[i] = btn.GetComponent<Image>();
                 var label = btn.GetComponentInChildren<Text>();
-                label.rectTransform.anchorMin = new Vector2(.02f, .04f);
-                label.rectTransform.anchorMax = new Vector2(.98f, .39f);
+                label.rectTransform.anchorMin = new Vector2(.39f, .08f);
+                label.rectTransform.anchorMax = new Vector2(.94f, .92f);
+                label.rectTransform.offsetMin = label.rectTransform.offsetMax = Vector2.zero;
                 _tabLabels[i] = label;
                 var icon = ArtLibrary.Icon(TabIconKeys[i]);
                 if (icon != null)
                 {
-                    var pic = UiFactory.Panel("TabIcon", btn.transform, new Vector2(.25f, .43f), new Vector2(.75f, .89f), UiFactory.Dim);
+                    var pic = UiFactory.Panel("TabIcon", btn.transform, new Vector2(.16f, .16f), new Vector2(.36f, .84f), UiFactory.Dim);
                     pic.sprite = icon;
                     pic.preserveAspect = true;
                     _tabIcons[i] = pic;
                 }
-                else _tabIcons[i] = UiFactory.Glyph(TabIconKeys[i], btn.transform, new Vector2(.25f, .43f), new Vector2(.75f, .89f), UiFactory.Dim);
+                else _tabIcons[i] = UiFactory.Glyph(TabIconKeys[i], btn.transform, new Vector2(.16f, .16f), new Vector2(.36f, .84f), UiFactory.Dim);
                 _tabMarks[i] = UiFactory.Panel("SelectedRule", btn.transform, new Vector2(.22f, .965f), new Vector2(.78f, .985f), UiFactory.Gold).gameObject;
-                if (i == (int)TabRouter.Tab.MartialArts)
+                if (NavigationTabs[i] == TabRouter.Tab.MartialArts)
                 {
-                    var dot = UiFactory.Panel("NewDot", btn.transform, new Vector2(.65f, .68f), new Vector2(.96f, .94f), UiFactory.Red);
+                    var dot = UiFactory.Panel("NewDot", btn.transform, new Vector2(.82f, .60f), new Vector2(.96f, .95f), UiFactory.Red);
                     _artsDotText = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 22, UiFactory.PaperText);
                     _artsDot = dot.gameObject;
                     _artsDot.SetActive(false);
@@ -173,6 +212,8 @@ namespace BiRyeoDo.Game.UI
 
         private void Update()
         {
+            if (_worldModal != null && _worldModal.activeSelf && !_world.HasOpenOverlay)
+                _worldModal.SetActive(false);
             _dotTimer -= Time.unscaledDeltaTime;
             if (_dotTimer > 0f || _artsDot == null || GameManager.Instance == null) return;
             _dotTimer = 0.4f;
@@ -215,12 +256,13 @@ namespace BiRyeoDo.Game.UI
 
         private void Select(int index)
         {
+            if (index < 0 || index >= TabNames.Length) index = (int)TabRouter.Tab.World;
             _router.Show(index);
             if (index == (int)TabRouter.Tab.Gacha && HelpPanel.Instance != null && !Tutorial.IsDone(GameManager.Instance.Save, "gacha"))
                 HelpPanel.Instance.Show("gacha", true);
             for (int i = 0; i < _tabButtons.Length; i++)
             {
-                bool selected = i == index;
+                bool selected = (int)NavigationTabs[i] == index;
                 _tabButtons[i].color = selected ? UiFactory.InkSoft : Color.clear;
                 _tabLabels[i].color = selected ? UiFactory.Gold : UiFactory.Dim;
                 _tabIcons[i].color = selected ? UiFactory.Gold : UiFactory.Dim;

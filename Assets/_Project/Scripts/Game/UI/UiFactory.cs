@@ -259,7 +259,7 @@ namespace BiRyeoDo.Game.UI
             return Button("Help", parent, new Vector2(0.855f, 0.935f), new Vector2(0.935f, 0.975f), "?", InkSoft, onClick, 34);
         }
 
-        /// <summary>A small explanation window over a tab (hidden at first): tap anywhere or 「닫기」 to close. Show it with <see cref="ShowInfo"/>.</summary>
+        /// <summary>A small explanation window over a tab (hidden at first): tap the backdrop or 「닫기」 to close; the body scrolls. Show it with <see cref="ShowInfo"/>.</summary>
         public static RectTransform InfoWindow(Transform parent, string title, string body)
         {
             var window = Rect("InfoWindow", parent, Vector2.zero, Vector2.one);
@@ -269,10 +269,14 @@ namespace BiRyeoDo.Game.UI
             tap.targetGraphic = dim;
             tap.transition = Selectable.Transition.None;
             tap.onClick.AddListener(() => window.gameObject.SetActive(false));
-            var card = Panel("Card", window, new Vector2(0.06f, 0.28f), new Vector2(0.94f, 0.72f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            var card = Panel("Card", window, new Vector2(.15f, .10f), new Vector2(.85f, .90f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
             Frame(card.transform, GoldDim, 3f);
             Label("Title", card.transform, new Vector2(0.05f, 0.86f), new Vector2(0.95f, 0.98f), title, 40, Gold);
-            Body(Label("Body", card.transform, new Vector2(0.06f, 0.20f), new Vector2(0.94f, 0.86f), body, 30, PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 1.35f);
+            card.raycastTarget = true;
+            var cardTap = card.gameObject.AddComponent<Button>();
+            cardTap.targetGraphic = card;
+            cardTap.transition = Selectable.Transition.None;
+            Body(ScrollBody(Label("Body", card.transform, new Vector2(.06f, .20f), new Vector2(.94f, .83f), body, 32, PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 32), 1.35f);
             Button("Close", card.transform, new Vector2(0.30f, 0.04f), new Vector2(0.70f, 0.17f), "닫기", InkSoft, () => window.gameObject.SetActive(false), 34);
             window.gameObject.SetActive(false);
             return window;
