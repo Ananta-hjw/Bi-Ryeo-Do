@@ -28,7 +28,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.ScrollBody(UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.845f), new Vector2(0.95f, 0.92f),
                 toast ?? ("원작의 장면을 다시 봅니다. 처음 볼 때 두와 (합류 후) 인연 +" + Memories.BondPerMemory + "." + (next != null ? "  추억 " + next.Count + "개를 보면 특별 보상." : "")), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
-            var content = CodexPanel.Scroller(Root, 0.09f, 0.84f);
+            var content = CodexPanel.Scroller(Root, .16f, 0.84f);
             for (int i = 0; i < Memories.All.Length; i++)
             {
                 var m = Memories.All[i];

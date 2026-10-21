@@ -52,15 +52,15 @@ namespace BiRyeoDo.Game.UI
             {
                 int idx = i;
                 var grade = Salvage.BulkGrades[i];
-                Toggle(card.transform, "G" + i, .035f + i % 3 * .121f, .147f + i % 3 * .121f, .72f - i / 3 * .105f, .81f - i / 3 * .105f, Grades.NameOf(grade), _grades[i], UiFactory.GradeColor(grade), () => { _grades[idx] = !_grades[idx]; Rebuild(); });
+                Toggle(card.transform, "G" + i, .035f + i % 3 * .121f, .147f + i % 3 * .121f, .69f - i / 3 * .125f, .81f - i / 3 * .125f, Grades.NameOf(grade), _grades[i], UiFactory.GradeColor(grade), () => { _grades[idx] = !_grades[idx]; Rebuild(); });
             }
-            UiFactory.Label("SlotLabel", card.transform, new Vector2(.035f, .54f), new Vector2(.395f, .60f), "부위", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("SlotLabel", card.transform, new Vector2(.035f, .50f), new Vector2(.395f, .56f), "부위", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
             for (int i = 0; i < SlotNames.Length; i++)
             {
                 int idx = i;
-                Toggle(card.transform, "S" + i, .035f + i % 3 * .121f, .147f + i % 3 * .121f, .44f - i / 3 * .105f, .53f - i / 3 * .105f, SlotNames[i], _slots[i], new Color(0.30f, 0.48f, 0.44f, 1f), () => { _slots[idx] = !_slots[idx]; Rebuild(); });
+                Toggle(card.transform, "S" + i, .035f + i % 3 * .121f, .147f + i % 3 * .121f, .37f - i / 3 * .135f, .49f - i / 3 * .135f, SlotNames[i], _slots[i], new Color(0.30f, 0.48f, 0.44f, 1f), () => { _slots[idx] = !_slots[idx]; Rebuild(); });
             }
-            Toggle(card.transform, "Singles", .035f, .389f, .14f, .31f, "하나뿐인 장비도 포함\n(착용 중·돌파 장비 제외)", _singles, new Color(0.55f, 0.36f, 0.14f, 1f), () => { _singles = !_singles; Rebuild(); }, 24);
+            Toggle(card.transform, "Singles", .035f, .389f, .035f, .22f, "하나뿐인 장비도 포함\n(착용 중·돌파 장비 제외)", _singles, new Color(0.55f, 0.36f, 0.14f, 1f), () => { _singles = !_singles; Rebuild(); }, 24);
 
             var plan = Salvage.BulkPlan(save, _grades, _slots, _singles);
             int total = 0;
@@ -103,12 +103,12 @@ namespace BiRyeoDo.Game.UI
             var yield = Salvage.BulkYield(plan);
             var lines = new List<string>();
             foreach (var kv in yield) lines.Add(kv.Key.Name + " " + kv.Value[0] + "~" + kv.Value[1] + "개");
-            UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Yield", card.transform, new Vector2(.43f, .15f), new Vector2(.97f, .35f),
+            UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Yield", card.transform, new Vector2(.43f, .18f), new Vector2(.97f, .35f),
                 lines.Count == 0 ? "" : "예상 재료\n" + string.Join("\n", lines), 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 28));
 
-            var go = UiFactory.Button("Go", card.transform, new Vector2(.43f, .025f), new Vector2(.76f, .12f), plan.Count == 0 ? "분해할 장비 없음" : "선택한 " + total + "개 분해", plan.Count == 0 ? UiFactory.InkSoft : UiFactory.Red, () => UiFactory.Confirm(_root, "일괄 분해할까요?", "선택한 장비 " + total + "개를 분해합니다.\n분해한 장비는 되돌릴 수 없습니다.", total + "개 분해", () => Perform(plan)), 32);
+            var go = UiFactory.Button("Go", card.transform, new Vector2(.43f, .025f), new Vector2(.76f, .155f), plan.Count == 0 ? "분해할 장비 없음" : "선택한 " + total + "개 분해", plan.Count == 0 ? UiFactory.InkSoft : UiFactory.Red, () => UiFactory.Confirm(_root, "일괄 분해할까요?", "선택한 장비 " + total + "개를 분해합니다.\n분해한 장비는 되돌릴 수 없습니다.", total + "개 분해", () => Perform(plan)), 32);
             go.interactable = plan.Count > 0;
-            UiFactory.Button("Close", card.transform, new Vector2(.79f, .025f), new Vector2(.97f, .12f), "닫기", UiFactory.InkSoft, () => { Hide(); _changed(); }, 32);
+            UiFactory.Button("Close", card.transform, new Vector2(.79f, .025f), new Vector2(.97f, .155f), "닫기", UiFactory.InkSoft, () => { Hide(); _changed(); }, 32);
         }
 
         private static void Toggle(Transform parent, string name, float x0, float x1, float y0, float y1, string label, bool on, Color accent, UnityEngine.Events.UnityAction onClick, int size = 28)

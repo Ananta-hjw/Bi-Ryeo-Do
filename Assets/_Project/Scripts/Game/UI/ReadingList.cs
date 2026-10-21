@@ -28,6 +28,18 @@ namespace BiRyeoDo.Game.UI
             foreach (var label in _labels) if (label != null) label.UnregisterDirtyVerticesCallback(Invalidate);
         }
 
+        private static float HeightShare(RectTransform label, RectTransform row)
+        {
+            float share = 1f;
+            for (var rect = label; rect != row; rect = rect.parent as RectTransform)
+            {
+                if (rect == null) return 0f;
+                share *= rect.anchorMax.y - rect.anchorMin.y;
+                if (share <= 0f) return 0f;
+            }
+            return share;
+        }
+
         private void LateUpdate() { Reflow(); }
 
         /// <summary>Measures new rows immediately before a caller restores its saved scroll position.</summary>
@@ -54,13 +66,17 @@ namespace BiRyeoDo.Game.UI
                 {
                     // Large fallback glyphs are decoration, not paragraphs.
                     if (string.IsNullOrEmpty(label.text) || label.fontSize >= 64 || label.rectTransform.rect.width < 35f) continue;
+                    // A fixed-height icon/tag/button cannot gain text space by growing the row.
+                    // Use anchor spans through the hierarchy, rather than its current height / row height.
+                    float share = HeightShare(label.rectTransform, row.Rect);
+                    if (share < .025f) continue;
                     if (_labels.Add(label)) label.RegisterDirtyVerticesCallback(Invalidate);
                     if (label.resizeTextForBestFit) label.resizeTextForBestFit = false;
                     if (label.fontStyle == FontStyle.Normal && label.lineSpacing < 1.15f) label.lineSpacing = 1.15f;
-                    float share = label.rectTransform.rect.height / oldHeight;
-                    if (share < .025f) continue;
                     float needed = UiFactory.MeasureHeight(label, label.text, label.rectTransform.rect.width);
-                    height = Mathf.Max(height, (needed + 12f) / share);
+                    // Preserve fixed padding: label height = row height * share + fixed contribution.
+                    float fixedHeight = label.rectTransform.rect.height - oldHeight * share;
+                    height = Mathf.Max(height, (needed + 12f - fixedHeight) / share);
                 }
                 var position = new Vector2(row.Rect.anchoredPosition.x, -offset);
                 if ((row.Rect.anchoredPosition - position).sqrMagnitude > .25f) row.Rect.anchoredPosition = position;

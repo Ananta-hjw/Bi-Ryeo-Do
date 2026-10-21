@@ -31,7 +31,7 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             Begin();
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.935f), new Vector2(0.95f, 0.995f), "상태창", 44, UiFactory.Gold);
-            _content = CodexPanel.Scroller(Root, 0.075f, 0.93f);
+            _content = CodexPanel.Scroller(Root, .16f, 0.93f);
             _y = Gap;
 
             // Header: portrait + name, level, rank, exp
@@ -127,7 +127,7 @@ namespace BiRyeoDo.Game.UI
             }
 
             _content.sizeDelta = new Vector2(0f, _y + Gap);
-            UiFactory.Button("Close", Root, new Vector2(0.25f, 0.005f), new Vector2(0.75f, 0.075f), "닫기", UiFactory.InkSoft, () => { Root.gameObject.SetActive(false); OnChange(); }, 34);
+            UiFactory.Button("Close", Root, new Vector2(0.25f, .015f), new Vector2(0.75f, .14f), "닫기", UiFactory.InkSoft, () => { Root.gameObject.SetActive(false); OnChange(); }, 34);
         }
 
         // ------------------------------------------------------------------ layout helpers (pixel rows inside the scroll content)
@@ -301,7 +301,7 @@ namespace BiRyeoDo.Game.UI
                 "현재 세트 효과\n" + (activeSets.Count > 0 ? string.Join("\n", activeSets) : "적용 중인 세트 효과가 없습니다."), 26, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 26);
             UiFactory.ScrollBody(UiFactory.Label("Message", _picker, new Vector2(.05f, .55f), new Vector2(.95f, .580f),
                 _equipmentMessage ?? "장비 목록 · 장비를 누르면 상세정보가 열립니다.", 26, UiFactory.Gold, TextAnchor.MiddleLeft), 26);
-            var content = CodexPanel.Scroller(_picker, .095f, .547f);
+            var content = CodexPanel.Scroller(_picker, .16f, .547f);
             var candidates = save.Items.Select(stack => EarlyGameContent.FindItem(stack.Id))
                 .Where(item => item != null && item.IsGear && item.Kind == kind && Inventory.Count(save, item.Id) > 0
                     && (owner == Inventory.Hero || !Gear.IsHeroOnly(item.Id)))
@@ -334,7 +334,7 @@ namespace BiRyeoDo.Game.UI
                 equip.interactable = available;
             }
             if (candidates.Count == 0) UiFactory.Label("Empty", content.parent, new Vector2(.05f, .35f), new Vector2(.95f, .65f), "이 부위에 장착할 수 있는 장비가 없습니다.", 32, UiFactory.Dim);
-            UiFactory.Button("Back", _picker, new Vector2(.25f, .012f), new Vector2(.75f, .080f), "상태창으로", UiFactory.InkSoft, () => { _equipmentMessage = null; Open(); OnChange(); }, 34);
+            UiFactory.Button("Back", _picker, new Vector2(.25f, .015f), new Vector2(.75f, .14f), "상태창으로", UiFactory.InkSoft, () => { _equipmentMessage = null; Open(); OnChange(); }, 34);
         }
 
         private void OpenEquipmentDetail(string owner, int slotIndex, ItemData item)
@@ -376,10 +376,10 @@ namespace BiRyeoDo.Game.UI
                 lines.Add("등급 미개방: 기본·돌파 효과만 적용됩니다.\n개방 비용 " + Gear.GradeUnlockCost(save, owner, slotIndex, item.Grade).ToString("N0") + "두");
             if (otherSlot) lines.Add("이 인물의 다른 장신구 칸에 착용 중입니다. 먼저 해제해 주세요.");
             else if (!worn && !available) lines.Add("다른 인물이 착용 중입니다. 먼저 해제해 주세요.");
-            UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(.06f, .24f), new Vector2(.94f, .79f),
+            UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(.06f, .36f), new Vector2(.94f, .79f),
                 string.Join("\n\n", lines), 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 32);
 
-            var action = UiFactory.Button("EquipOrRemove", card.transform, new Vector2(.06f, .13f), new Vector2(.94f, .22f),
+            var action = UiFactory.Button("EquipOrRemove", card.transform, new Vector2(.06f, .20f), new Vector2(.94f, .34f),
                 worn ? "해제" : available ? "장착" : "착용 중인 장비를 먼저 해제해 주세요.", available ? UiFactory.Red : UiFactory.InkSoft, () =>
                 {
                     string error = null;
@@ -395,7 +395,7 @@ namespace BiRyeoDo.Game.UI
                     OpenEquipmentPicker(owner, slotIndex);
                 }, 30);
             action.interactable = worn || available;
-            UiFactory.Button("CloseDetail", card.transform, new Vector2(.25f, .02f), new Vector2(.75f, .11f), "목록으로", UiFactory.InkSoft, () =>
+            UiFactory.Button("CloseDetail", card.transform, new Vector2(.25f, .025f), new Vector2(.75f, .17f), "목록으로", UiFactory.InkSoft, () =>
             {
                 detail.gameObject.SetActive(false);
                 UnityEngine.Object.Destroy(detail.gameObject);

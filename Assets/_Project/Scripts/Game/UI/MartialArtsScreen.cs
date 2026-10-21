@@ -41,7 +41,7 @@ namespace BiRyeoDo.Game.UI
             {
                 int page = p;
                 float x0 = 0.04f + p * 0.32f;
-                var btn = UiFactory.Button("Page" + p, tab, new Vector2(x0, 0.918f), new Vector2(x0 + 0.30f, 0.992f), PageNames[p], UiFactory.InkSoft, () => ShowPage(page), 30);
+                var btn = UiFactory.Button("Page" + p, tab, new Vector2(x0, .895f), new Vector2(x0 + 0.30f, .995f), PageNames[p], UiFactory.InkSoft, () => ShowPage(page), 30);
                 _pageTabs[p] = btn.GetComponent<Image>();
                 if (p < 2)
                 {
@@ -51,19 +51,19 @@ namespace BiRyeoDo.Game.UI
                     _pageDots[p].SetActive(false);
                 }
             }
-            UiFactory.Button("CompanionTraining", tab, new Vector2(.68f, .918f), new Vector2(.96f, .992f), "협객 · 인물별 수련", UiFactory.InkSoft, () => openCompanions?.Invoke(), 30);
-            var root = UiFactory.Rect("ArtsPage", tab, Vector2.zero, new Vector2(.645f, .905f));
+            UiFactory.Button("CompanionTraining", tab, new Vector2(.68f, .895f), new Vector2(.96f, .995f), "협객 · 인물 관리", UiFactory.InkSoft, () => openCompanions?.Invoke(), 30);
+            var root = UiFactory.Rect("ArtsPage", tab, Vector2.zero, new Vector2(.645f, .88f));
             _artsRoot = root;
-            _inner = new InnerArtPanel(UiFactory.Rect("InnerArtPage", tab, Vector2.zero, new Vector2(1f, 0.905f)), Refresh) { Embedded = true };
+            _inner = new InnerArtPanel(UiFactory.Rect("InnerArtPage", tab, Vector2.zero, new Vector2(1f, .88f)), Refresh) { Embedded = true };
 
-            UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
+            UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, .87f), new Vector2(0.96f, .99f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
             UiFactory.Glyph("arts", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
-            _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.84f, 0.985f), "", 42, UiFactory.Gold);
+            _header = UiFactory.Label("Header", root, new Vector2(0.16f, .88f), new Vector2(0.84f, 0.985f), "", 42, UiFactory.Gold);
             UiFactory.HelpButton(root, () => UiFactory.ShowInfo(_masteryHelp));   // right next to the 두 figure, inside the header band
-            _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.925f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, .79f), new Vector2(0.95f, .865f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             // The list scrolls: the protagonist has far more arts than fit on one screen.
-            var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, 0.88f));
+            var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, .78f));
             viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
             viewport.gameObject.AddComponent<RectMask2D>();
             var content = UiFactory.Rect("Content", viewport, new Vector2(0f, 1f), new Vector2(1f, 1f));
@@ -116,10 +116,10 @@ namespace BiRyeoDo.Game.UI
                 row.MasteryLabel = row.MasteryButton.GetComponentInChildren<Text>();
                 _rows.Add(row);
             }
-            var placeholder = UiFactory.Panel("InspectorPlaceholder", root.parent, new Vector2(.66f, .02f), new Vector2(.985f, .905f), UiFactory.Ink);
+            var placeholder = UiFactory.Panel("InspectorPlaceholder", root.parent, new Vector2(.66f, .02f), new Vector2(.985f, .88f), UiFactory.Ink);
             UiFactory.Frame(placeholder.transform, UiFactory.GoldDim, 2f);
             UiFactory.ScrollBody(UiFactory.Label("Hint", placeholder.transform, new Vector2(.06f, .30f), new Vector2(.94f, .70f), "무공을 선택하면 효과·숙련 단계·변초를 확인할 수 있습니다.", 30, UiFactory.Dim), 30);
-            _detail = UiFactory.Rect("ArtDetail", tab, new Vector2(.66f, .02f), new Vector2(.985f, .905f));
+            _detail = UiFactory.Rect("ArtDetail", tab, new Vector2(.66f, .02f), new Vector2(.985f, .88f));
             _detail.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.78f);   // dims and blocks the list underneath
             _detail.gameObject.SetActive(false);
             _masteryHelp = UiFactory.InfoWindow(tab, "무공 숙련", Mastery.HelpText());

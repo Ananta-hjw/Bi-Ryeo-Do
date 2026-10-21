@@ -20,7 +20,7 @@ namespace BiRyeoDo.Game.UI
             TabRouter.Tab.Bag, TabRouter.Tab.Record
         };
         private static readonly string[] TabIconKeys = { "tab_world", "party", "tab_arts", "tab_bag", "tab_record" };
-        private const float TabBarHeight = 96f;
+        private const float TabBarHeight = 120f;
 
         private TabRouter _router;
         private Image[] _tabButtons;

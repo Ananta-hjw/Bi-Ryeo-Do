@@ -44,18 +44,18 @@ namespace BiRyeoDo.Game.UI
                         break;
                     case "KindIcon": child.gameObject.SetActive(false); break;
                     case "BodyViewport":
-                        Place(rect, .025f, .29f, .975f, .70f);
+                        Place(rect, .025f, .36f, .975f, .70f);
                         child.GetComponentInChildren<Text>().fontSize = 28;
                         break;
                     case "Breakthrough":
-                    case "Main": Place(rect, .04f, .15f, .49f, .27f); break;
+                    case "Main": Place(rect, .04f, .20f, .49f, .34f); break;
                     case "Dismantle":
-                    case "Variant": Place(rect, .51f, .15f, .96f, .27f); break;
+                    case "Variant": Place(rect, .51f, .20f, .96f, .34f); break;
                     case "Read":
                     case "Fuse":
                     case "FuseMaterial":
-                    case "Sell": Place(rect, .04f, .15f, .96f, .27f); break;
-                    case "Close": Place(rect, .25f, .025f, .75f, .12f); break;
+                    case "Sell": Place(rect, .04f, .20f, .96f, .34f); break;
+                    case "Close": Place(rect, .25f, .025f, .75f, .17f); break;
                 }
             }
         }

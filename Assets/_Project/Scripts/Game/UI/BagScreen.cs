@@ -48,10 +48,10 @@ namespace BiRyeoDo.Game.UI
             if (_built) return;
             _built = true;
 
-            UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
+            UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, .87f), new Vector2(0.96f, .99f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
             UiFactory.Glyph("bag", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
-            _header = UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(.67f, 0.985f), "", 40, UiFactory.Gold);
-            UiFactory.Button("BulkDismantleButton", root, new Vector2(.69f, .933f), new Vector2(.84f, .98f), "일괄 분해", UiFactory.Red, () =>
+            _header = UiFactory.Label("Header", root, new Vector2(0.16f, .88f), new Vector2(.67f, .99f), "", 40, UiFactory.Gold);
+            UiFactory.Button("BulkDismantleButton", root, new Vector2(.69f, .88f), new Vector2(.84f, .99f), "일괄 분해", UiFactory.Red, () =>
             {
                 CloseDetail();
                 _bulkDismantle.Show();
@@ -66,12 +66,12 @@ namespace BiRyeoDo.Game.UI
             {
                 int tab = t;
                 float x0 = .025f + t * .155f;
-                var btn = UiFactory.Button("Filter" + t, root, new Vector2(x0, .83f), new Vector2(x0 + .145f, .905f), FilterNames[t], UiFactory.InkSoft, () => { _filter = tab; CloseDetail(); Refresh(); _scroll.verticalNormalizedPosition = 1f; }, 28);
+                var btn = UiFactory.Button("Filter" + t, root, new Vector2(x0, .75f), new Vector2(x0 + .145f, .855f), FilterNames[t], UiFactory.InkSoft, () => { _filter = tab; CloseDetail(); Refresh(); _scroll.verticalNormalizedPosition = 1f; }, 28);
                 _filterTabs[t] = btn.GetComponent<Image>();
             }
 
             // Second row, only on the 장비 tab: weapon / 상의 / 하의 / 신발 / accessory
-            _gearTabRow = UiFactory.Rect("GearTabs", root, new Vector2(.025f, .735f), new Vector2(.635f, .815f)).gameObject;
+            _gearTabRow = UiFactory.Rect("GearTabs", root, new Vector2(.025f, .63f), new Vector2(.635f, .74f)).gameObject;
             for (int t = 0; t < GearFilterNames.Length; t++)
             {
                 int tab = t;
@@ -82,7 +82,7 @@ namespace BiRyeoDo.Game.UI
             }
 
             // The bag scrolls: it can hold more stacks than fit on one screen.
-            var viewport = UiFactory.Rect("Viewport", root, new Vector2(.01f, .085f), new Vector2(.645f, .725f));
+            var viewport = UiFactory.Rect("Viewport", root, new Vector2(.01f, .085f), new Vector2(.645f, .62f));
             _viewport = viewport;
             viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
             viewport.gameObject.AddComponent<RectMask2D>();
@@ -98,10 +98,10 @@ namespace BiRyeoDo.Game.UI
             UiFactory.ScrollIndicator(scroll, viewport);
             _empty = UiFactory.Label("Empty", viewport, new Vector2(.06f, .4f), new Vector2(.94f, .7f), "이 분류에 보유한 아이템이 없습니다.", 32, UiFactory.Dim);
 
-            var placeholder = UiFactory.Panel("InspectorPlaceholder", root, new Vector2(.66f, .02f), new Vector2(.985f, .905f), UiFactory.Ink);
+            var placeholder = UiFactory.Panel("InspectorPlaceholder", root, new Vector2(.66f, .02f), new Vector2(.985f, .855f), UiFactory.Ink);
             UiFactory.Frame(placeholder.transform, UiFactory.GoldDim, 2f);
             UiFactory.ScrollBody(UiFactory.Label("Hint", placeholder.transform, new Vector2(.06f, .30f), new Vector2(.94f, .72f), "물품을 선택해 주세요.\n\n상세 효과·한계돌파·분해·합성은 이곳에서 확인합니다.\n장착과 강화는 협객의 장비 탭에서 합니다.", 30, UiFactory.Dim), 30);
-            _detail = UiFactory.Rect("ItemDetail", root, new Vector2(.66f, .02f), new Vector2(.985f, .905f));
+            _detail = UiFactory.Rect("ItemDetail", root, new Vector2(.66f, .02f), new Vector2(.985f, .855f));
             _detail.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.78f);   // dims and blocks the list underneath
             _detail.gameObject.SetActive(false);
             _bulkDismantle = new BulkDismantlePanel(root, (title, body) => ShowNotice(title, body, UiFactory.Gold), Refresh);
@@ -507,7 +507,7 @@ namespace BiRyeoDo.Game.UI
                 .Where(s => PassesFilter(EarlyGameContent.FindItem(s.Id)))
                 .ToList();
             _gearTabRow.SetActive(_filter == 1);
-            _viewport.anchorMax = new Vector2(.645f, _filter == 1 ? .725f : .82f);
+            _viewport.anchorMax = new Vector2(.645f, _filter == 1 ? .62f : .735f);
             for (int t = 0; t < _gearTabs.Length; t++) _gearTabs[t].color = t == _gearFilter ? new Color(0.30f, 0.48f, 0.44f, 1f) : new Color(0.12f, 0.15f, 0.20f, 0.92f);
             for (int t = 0; t < _filterTabs.Length; t++) _filterTabs[t].color = t == _filter ? new Color(0.56f, 0.44f, 0.22f, 1f) : UiFactory.InkSoft;
 

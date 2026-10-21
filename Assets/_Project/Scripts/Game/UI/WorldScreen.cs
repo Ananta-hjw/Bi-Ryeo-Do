@@ -122,7 +122,7 @@ namespace BiRyeoDo.Game.UI
             _stageOverlay = UiFactory.Rect("StageOverlay", root, Vector2.zero, Vector2.one);
             _stageOverlay.gameObject.AddComponent<Image>().color = UiFactory.Parchment;
             _starsTitle = UiFactory.Label("Title", _stageOverlay, new Vector2(0.05f, 0.925f), new Vector2(0.95f, 0.995f), "스테이지", 42, UiFactory.Gold);
-            var viewport = UiFactory.Rect("Viewport", _stageOverlay, new Vector2(0f, 0.085f), new Vector2(1f, 0.92f));
+            var viewport = UiFactory.Rect("Viewport", _stageOverlay, new Vector2(0f, .16f), new Vector2(1f, 0.92f));
             viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
             viewport.gameObject.AddComponent<RectMask2D>();
             var content = UiFactory.Rect("Content", viewport, new Vector2(0f, 1f), new Vector2(1f, 1f));
@@ -167,7 +167,7 @@ namespace BiRyeoDo.Game.UI
                 y += cardH + gap;
             }
             content.sizeDelta = new Vector2(0f, y + gap);
-            UiFactory.Button("Close", _stageOverlay, new Vector2(0.3f, 0.012f), new Vector2(0.7f, 0.072f), "닫기", UiFactory.InkSoft, () => { _stageOverlay.gameObject.SetActive(false); Refresh(); }, 34);
+            UiFactory.Button("Close", _stageOverlay, new Vector2(0.3f, .015f), new Vector2(0.7f, .14f), "닫기", UiFactory.InkSoft, () => { _stageOverlay.gameObject.SetActive(false); Refresh(); }, 34);
             _stageOverlay.gameObject.SetActive(false);
 
             _promoOverlay = UiFactory.Rect("PromotionOverlay", root, Vector2.zero, Vector2.one);
@@ -415,7 +415,7 @@ namespace BiRyeoDo.Game.UI
             if (targets.Count == 0)
                 UiFactory.Label("Max", _promoOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "이미 최고 경지의 검룡입니다.", 40, UiFactory.PaperText);
 
-            var offers = CodexPanel.Scroller(_promoOverlay, .10f, .835f);
+            var offers = CodexPanel.Scroller(_promoOverlay, .16f, .835f);
             int offerIndex = 0;
             foreach (int target in targets)
             {
@@ -444,7 +444,7 @@ namespace BiRyeoDo.Game.UI
                 }
             }
 
-            UiFactory.Button("Close", _promoOverlay, new Vector2(0.25f, 0.01f), new Vector2(0.75f, 0.09f), "닫기", UiFactory.InkSoft, () => _promoOverlay.gameObject.SetActive(false), 36);
+            UiFactory.Button("Close", _promoOverlay, new Vector2(0.25f, .015f), new Vector2(0.75f, .14f), "닫기", UiFactory.InkSoft, () => _promoOverlay.gameObject.SetActive(false), 36);
         }
 
 
@@ -472,23 +472,23 @@ namespace BiRyeoDo.Game.UI
             ToggleRow("진동", st.Vibration ? "켜짐" : "꺼짐", ref y, () => { st.Vibration = !st.Vibration; if (st.Vibration) SoundManager.Haptic(60); });
             ToggleRow("전투 시작 속도", "x" + st.BattleSpeed, ref y, () => { st.BattleSpeed = st.NextSpeed(); });
 
-            var help = UiFactory.Button("Help", _settingsOverlay, new Vector2(0.08f, y - 0.09f), new Vector2(0.92f, y), "도움말", UiFactory.Red, OpenHelpList, 34);
+            var help = UiFactory.Button("Help", _settingsOverlay, new Vector2(0.08f, y - .11f), new Vector2(0.92f, y), "도움말", UiFactory.Red, OpenHelpList, 34);
             help.interactable = true;
             y -= 0.14f;
-            var reset = UiFactory.Button("Reset", _settingsOverlay, new Vector2(0.08f, y - 0.09f), new Vector2(0.92f, y),
+            var reset = UiFactory.Button("Reset", _settingsOverlay, new Vector2(0.08f, y - .11f), new Vector2(0.92f, y),
                 _confirmReset ? "정말 초기화할까요? 한 번 더 누르면 모든 진행이 사라집니다" : "저장 데이터 초기화", _confirmReset ? UiFactory.Red : UiFactory.InkSoft, OnResetPressed, 28);
             reset.interactable = true;
 
-            UiFactory.Label("Info", _settingsOverlay, new Vector2(0.06f, 0.12f), new Vector2(0.94f, 0.22f),
+            UiFactory.Label("Info", _settingsOverlay, new Vector2(0.06f, .15f), new Vector2(0.94f, .20f),
                 "효과음과 배경음의 크기, 전투 속도와 진동을 설정할 수 있습니다.", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
-            UiFactory.Button("Close", _settingsOverlay, new Vector2(0.25f, 0.01f), new Vector2(0.75f, 0.09f), "닫기", UiFactory.InkSoft, () => { GameManager.Instance.SaveNow(); _settingsOverlay.gameObject.SetActive(false); Refresh(); }, 36);
+            UiFactory.Button("Close", _settingsOverlay, new Vector2(0.25f, .015f), new Vector2(0.75f, .14f), "닫기", UiFactory.InkSoft, () => { GameManager.Instance.SaveNow(); _settingsOverlay.gameObject.SetActive(false); Refresh(); }, 36);
         }
 
         private void OpenHelpList()
         {
             ClearChildren(_settingsOverlay);
             UiFactory.Label("Title", _settingsOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "도움말", 44, UiFactory.Gold);
-            var content = CodexPanel.Scroller(_settingsOverlay, .10f, .91f);
+            var content = CodexPanel.Scroller(_settingsOverlay, .16f, .91f);
             int index = 0;
             foreach (var topic in Tutorial.All)
             {
@@ -554,7 +554,7 @@ namespace BiRyeoDo.Game.UI
             foreach (var c in EarlyGameContent.SelectCompanionsFor(Math.Max(1, save.HighestUnlockedStage), save)) partyNow.Add(c.Name);
             UiFactory.Label("Party", _questOverlay, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.85f),
                 partyNow.Count > 0 ? "함께 싸울 동료: " + string.Join(", ", partyNow) : "함께 싸울 동료가 없습니다 (비류연 혼자 나갑니다)", 30, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal);
-            var questList = CodexPanel.Scroller(_questOverlay, 0.10f, 0.80f);
+            var questList = CodexPanel.Scroller(_questOverlay, .16f, 0.80f);
             int shown = 0;
             foreach (var q in Quests.All)
             {
@@ -572,7 +572,7 @@ namespace BiRyeoDo.Game.UI
             if (shown == 0)
                 UiFactory.Label("None", _questOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "아직 받을 수 있는 의뢰가 없습니다. 스테이지를 돌파하면 의뢰가 생깁니다.", 34, UiFactory.PaperText);
 
-            UiFactory.Button("Close", _questOverlay, new Vector2(0.25f, 0.01f), new Vector2(0.75f, 0.09f), "닫기", UiFactory.InkSoft, () => { _questOverlay.gameObject.SetActive(false); Refresh(); }, 36);
+            UiFactory.Button("Close", _questOverlay, new Vector2(0.25f, .015f), new Vector2(0.75f, .14f), "닫기", UiFactory.InkSoft, () => { _questOverlay.gameObject.SetActive(false); Refresh(); }, 36);
         }
 
         // ------------------------------------------------------------------ 무한 비무대
@@ -620,7 +620,7 @@ namespace BiRyeoDo.Game.UI
                     UiFactory.Button("Prev", _towerOverlay, new Vector2(0.25f, 0.15f), new Vector2(0.75f, 0.23f), save.TowerBest + "층 다시 도전", UiFactory.InkSoft, () => StartTower(save.TowerBest), 30);
                 }
             }
-            UiFactory.Button("Close", _towerOverlay, new Vector2(0.25f, 0.01f), new Vector2(0.75f, 0.09f), "닫기", UiFactory.InkSoft, () => { _towerOverlay.gameObject.SetActive(false); Refresh(); }, 36);
+            UiFactory.Button("Close", _towerOverlay, new Vector2(0.25f, .015f), new Vector2(0.75f, .14f), "닫기", UiFactory.InkSoft, () => { _towerOverlay.gameObject.SetActive(false); Refresh(); }, 36);
             if (!Tutorial.IsDone(save, "tower") && HelpPanel.Instance != null && Tower.Unlocked(save)) HelpPanel.Instance.Show("tower", true);
         }
 
@@ -671,7 +671,7 @@ namespace BiRyeoDo.Game.UI
             {
                 UiFactory.Label("None", _fortuneOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "지금은 마주칠 인연이 없습니다. 스테이지를 돌파하면 새로운 기연이 찾아옵니다.", 34, UiFactory.PaperText);
             }
-            var fortuneList = CodexPanel.Scroller(_fortuneOverlay, 0.10f, 0.90f);
+            var fortuneList = CodexPanel.Scroller(_fortuneOverlay, .16f, 0.90f);
             for (int i = 0; i < open.Count; i++)
             {
                 var e = open[i];
@@ -680,7 +680,7 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Button("Go", band, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), "마주치기", UiFactory.Red, () => ShowFortune(e), 30);
             }
             fortuneList.sizeDelta = new Vector2(0f, CodexPanel.RowGap + open.Count * (CodexPanel.RowH + CodexPanel.RowGap));
-            UiFactory.Button("Close", _fortuneOverlay, new Vector2(0.25f, 0.01f), new Vector2(0.75f, 0.09f), "닫기", UiFactory.InkSoft, () => { _fortuneOverlay.gameObject.SetActive(false); Refresh(); }, 36);
+            UiFactory.Button("Close", _fortuneOverlay, new Vector2(0.25f, .015f), new Vector2(0.75f, .14f), "닫기", UiFactory.InkSoft, () => { _fortuneOverlay.gameObject.SetActive(false); Refresh(); }, 36);
         }
 
         private void ShowFortune(FortuneEvent ev)
@@ -694,7 +694,7 @@ namespace BiRyeoDo.Game.UI
             {
                 var choice = ch;
                 bool ok = Fortunes.CanChoose(save, choice);
-                var btn = UiFactory.Button("Choice", _fortuneOverlay, new Vector2(0.08f, y - 0.09f), new Vector2(0.92f, y), choice.Label + (ok ? "" : " (두 부족)"), ok ? UiFactory.Red : UiFactory.InkSoft, () => ResolveFortune(ev, choice), 30);
+                var btn = UiFactory.Button("Choice", _fortuneOverlay, new Vector2(0.08f, y - .11f), new Vector2(0.92f, y), choice.Label + (ok ? "" : " (두 부족)"), ok ? UiFactory.Red : UiFactory.InkSoft, () => ResolveFortune(ev, choice), 30);
                 btn.interactable = ok;
                 y -= 0.11f;
             }
@@ -738,11 +738,11 @@ namespace BiRyeoDo.Game.UI
             UiFactory.ScrollBody(UiFactory.Label("Rules", _partyOverlay, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.92f),
                 "비류연과 함께 싸울 동료는 최대 " + EarlyGameContent.MaxCompanions + "명입니다. 눌러서 출전과 대기를 바꿉니다.", 28, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 32);
 
+            var rosterPanel = UiFactory.Rect("Roster", _partyOverlay, new Vector2(.02f, .16f), new Vector2(.49f, .835f));
+            var roster = CodexPanel.Scroller(rosterPanel, 0f, 1f);
             if (available.Count == 0)
-                UiFactory.Label("None", _partyOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "아직 함께할 동료가 없습니다.", 40, UiFactory.PaperText);
-
-            var roster = CodexPanel.Scroller(_partyOverlay, .115f, .835f);
-            LandscapeMenu.Place((RectTransform)roster.parent, .02f, .115f, .49f, .835f);
+                UiFactory.Label("None", rosterPanel, new Vector2(.08f, .30f), new Vector2(.92f, .70f),
+                    "아직 함께할 동료가 없습니다.", 32, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
             int memberIndex = 0;
             foreach (var c in available)
             {
@@ -754,9 +754,9 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Button("Toggle", band, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), on ? "출전" : "대기", on ? UiFactory.Red : UiFactory.InkSoft, () => ToggleCompanion(companion), 32);
             }
 
-            var formation = UiFactory.Rect("Formation", _partyOverlay, new Vector2(.52f, .115f), new Vector2(.98f, .835f));
+            var formation = UiFactory.Rect("Formation", _partyOverlay, new Vector2(.52f, .16f), new Vector2(.98f, .835f));
             BuildFormationBlock(formation, active, OpenPartyOverlay, .18f, .72f);
-            UiFactory.Button("Close", _partyOverlay, new Vector2(0.25f, 0.01f), new Vector2(0.75f, 0.09f), "닫기", UiFactory.InkSoft, () => { _partyOverlay.gameObject.SetActive(false); Refresh(); }, 36);
+            UiFactory.Button("Close", _partyOverlay, new Vector2(0.25f, .015f), new Vector2(0.75f, .14f), "닫기", UiFactory.InkSoft, () => { _partyOverlay.gameObject.SetActive(false); Refresh(); }, 36);
         }
 
         private string _placeSelected;   // the member picked in the placement grid (tap a tile next to move or swap)
@@ -773,8 +773,8 @@ namespace BiRyeoDo.Game.UI
             foreach (var c in active) { ids.Add(c.Id); names[c.Id] = c.Name; }
             var map = Formation.Resolve(save, ids, st);   // auto lines are planned against this stage (the next one to clear on the party screen)
             if (_placeSelected != null && !map.ContainsKey(_placeSelected)) _placeSelected = null;
-            UiFactory.Label("FormTitle", parent, new Vector2(0.05f, gy1 + .065f), new Vector2(0.60f, gy1 + .145f), "진형 · 인물 선택 후 칸 선택", 26, UiFactory.Gold, TextAnchor.MiddleLeft);
-            UiFactory.Button("FormAuto", parent, new Vector2(0.64f, gy1 + .065f), new Vector2(0.95f, gy1 + .145f), save.PlacementCustom ? "자동 배치" : "자동 배치 중", save.PlacementCustom ? UiFactory.InkSoft : UiFactory.Gold, () => { Formation.Reset(save); _placeSelected = null; GameManager.Instance.SaveNow(); redraw(); }, 24);
+            UiFactory.Label("FormTitle", parent, new Vector2(0.05f, gy1 + .07f), new Vector2(0.60f, gy1 + .22f), "진형 · 인물 선택 후 칸 선택", 26, UiFactory.Gold, TextAnchor.MiddleLeft);
+            UiFactory.Button("FormAuto", parent, new Vector2(0.64f, gy1 + .07f), new Vector2(0.95f, gy1 + .22f), save.PlacementCustom ? "자동 배치" : "자동 배치 중", save.PlacementCustom ? UiFactory.InkSoft : UiFactory.Gold, () => { Formation.Reset(save); _placeSelected = null; GameManager.Instance.SaveNow(); redraw(); }, 24);
             UiFactory.Label("FormHint", parent, new Vector2(0.05f, gy0 - .10f), new Vector2(0.95f, gy0 - .015f), "배치는 전투 전에만 바꿀 수 있습니다. 오른쪽이 앞줄입니다.", 26, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
             float gx0 = 0.05f, gx1 = 0.95f;
             float cw = (gx1 - gx0) / Board.PartyCols, ch = (gy1 - gy0) / Board.Rows;
@@ -875,8 +875,8 @@ namespace BiRyeoDo.Game.UI
             LandscapeMenu.Place((RectTransform)_prepOverlay.Find("EnemiesViewport"), .025f, .13f, .48f, .44f);
             var formation = UiFactory.Rect("Formation", _prepOverlay, new Vector2(.52f, .13f), new Vector2(.98f, .87f));
             BuildFormationBlock(formation, new List<CompanionData>(active), () => OpenPrep(st, go), .18f, .72f, st);
-            UiFactory.Button("Go", _prepOverlay, new Vector2(0.52f, 0.02f), new Vector2(0.95f, 0.095f), "출전", UiFactory.Red, () => { _prepOverlay.gameObject.SetActive(false); go(); }, 38);
-            UiFactory.Button("Cancel", _prepOverlay, new Vector2(0.05f, 0.02f), new Vector2(0.48f, 0.095f), "취소", UiFactory.InkSoft, () => { _prepOverlay.gameObject.SetActive(false); _placeSelected = null; }, 34);
+            UiFactory.Button("Go", _prepOverlay, new Vector2(0.52f, .015f), new Vector2(0.95f, .12f), "출전", UiFactory.Red, () => { _prepOverlay.gameObject.SetActive(false); go(); }, 38);
+            UiFactory.Button("Cancel", _prepOverlay, new Vector2(0.05f, .015f), new Vector2(0.48f, .12f), "취소", UiFactory.InkSoft, () => { _prepOverlay.gameObject.SetActive(false); _placeSelected = null; }, 34);
         }
 
         private void ToggleCompanion(CompanionData c)

@@ -330,13 +330,13 @@ namespace BiRyeoDo.Game.UI
             for (int i = 0; i < 5; i++)
             {
                 int index = i;
-                var btn = UiFactory.Button("Fight" + i, card.transform, new Vector2(.05f + (i % 2) * .46f, .66f - (i / 2) * .20f), new Vector2(.49f + (i % 2) * .46f, .83f - (i / 2) * .20f), "", UiFactory.InkSoft, () => { _pickIndex = index; _pickDone = true; }, 28);
+                var btn = UiFactory.Button("Fight" + i, card.transform, new Vector2(.05f + (i % 2) * .46f, .70f - (i / 2) * .20f), new Vector2(.49f + (i % 2) * .46f, .88f - (i / 2) * .20f), "", UiFactory.InkSoft, () => { _pickIndex = index; _pickDone = true; }, 28);
                 _pickButtons.Add(btn);
                 _pickLabels.Add(btn.GetComponentInChildren<Text>());
             }
-            var toggle = UiFactory.Button("Single", card.transform, new Vector2(0.05f, 0.10f), new Vector2(0.95f, 0.19f), "", UiFactory.InkSoft, () => { _pickSingle = !_pickSingle; UpdatePickToggle(); }, 28);
+            var toggle = UiFactory.Button("Single", card.transform, new Vector2(0.05f, .15f), new Vector2(0.95f, .28f), "", UiFactory.InkSoft, () => { _pickSingle = !_pickSingle; UpdatePickToggle(); }, 28);
             _pickToggleLabel = toggle.GetComponentInChildren<Text>();
-            UiFactory.Button("Cancel", card.transform, new Vector2(0.30f, 0.01f), new Vector2(0.70f, 0.09f), "강호로", UiFactory.InkSoft, () => { _pickIndex = -1; _pickDone = true; }, 30);
+            UiFactory.Button("Cancel", card.transform, new Vector2(0.30f, .015f), new Vector2(0.70f, .135f), "강호로", UiFactory.InkSoft, () => { _pickIndex = -1; _pickDone = true; }, 30);
             _pickRoot.SetActive(false);
         }
 
@@ -1599,9 +1599,9 @@ namespace BiRyeoDo.Game.UI
             _tipIcon = UiFactory.Panel("Icon", card.transform, new Vector2(0.76f, 0.76f), new Vector2(0.95f, 0.98f), Color.white);
             _tipIcon.preserveAspect = true;
             _tipTitle = UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.86f), new Vector2(0.72f, 0.98f), "", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
-            _tipBody = UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.16f), new Vector2(0.94f, 0.74f), "", 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 36);
+            _tipBody = UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(0.06f, .18f), new Vector2(0.94f, 0.74f), "", 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 36);
             _tipBody.lineSpacing = 1.25f;
-            UiFactory.Button("Close", card.transform, new Vector2(.30f, .02f), new Vector2(.70f, .12f), "닫기", UiFactory.InkSoft, () => { _tipRoot.SetActive(false); StartCoroutine(GuardTaps(.3f)); }, 34);
+            UiFactory.Button("Close", card.transform, new Vector2(.30f, .02f), new Vector2(.70f, .16f), "닫기", UiFactory.InkSoft, () => { _tipRoot.SetActive(false); StartCoroutine(GuardTaps(.3f)); }, 34);
             _tipRoot.SetActive(false);
         }
 

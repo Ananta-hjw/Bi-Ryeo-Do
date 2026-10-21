@@ -25,7 +25,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.ScrollBody(UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.845f), new Vector2(0.95f, 0.92f),
                 "지금까지의 이야기를 인물과 사정 중심으로 다시 읽습니다. 돌파한 스테이지와 다음 스테이지가 열려 있습니다.", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
-            var content = CodexPanel.Scroller(Root, 0.09f, 0.84f);
+            var content = CodexPanel.Scroller(Root, .16f, 0.84f);
             for (int i = 0; i < readable.Count; i++)
             {
                 var stage = EarlyGameContent.Stages[readable[i] - 1];

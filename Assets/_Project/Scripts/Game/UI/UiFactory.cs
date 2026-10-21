@@ -256,7 +256,7 @@ namespace BiRyeoDo.Game.UI
         /// <summary>The small 「?」 button at the right end of a tab's header band (next to the 두 figure).</summary>
         public static Button HelpButton(Transform parent, UnityAction onClick)
         {
-            return Button("Help", parent, new Vector2(0.855f, 0.935f), new Vector2(0.935f, 0.975f), "?", InkSoft, onClick, 34);
+            return Button("Help", parent, new Vector2(.855f, .88f), new Vector2(.95f, .99f), "?", InkSoft, onClick, 34);
         }
 
         /// <summary>A small explanation window over a tab (hidden at first): tap the backdrop or 「닫기」 to close; the body scrolls. Show it with <see cref="ShowInfo"/>.</summary>
@@ -292,9 +292,9 @@ namespace BiRyeoDo.Game.UI
             Frame(card.transform, Red, 3f);
             card.raycastTarget = true;
             Label("Title", card.transform, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.96f), title, 40, Red);
-            Body(ScrollBody(Label("Body", card.transform, new Vector2(.07f, .27f), new Vector2(.93f, .78f), body, 30, PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 32), 1.3f);
-            Button("Cancel", card.transform, new Vector2(0.06f, 0.05f), new Vector2(0.47f, 0.22f), "취소", InkSoft, () => Object.Destroy(window.gameObject), 32);
-            Button("Confirm", card.transform, new Vector2(0.53f, 0.05f), new Vector2(0.94f, 0.22f), confirmLabel, Red, () =>
+            Body(ScrollBody(Label("Body", card.transform, new Vector2(.07f, .30f), new Vector2(.93f, .78f), body, 30, PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 32), 1.3f);
+            Button("Cancel", card.transform, new Vector2(0.06f, .04f), new Vector2(0.47f, .26f), "취소", InkSoft, () => Object.Destroy(window.gameObject), 32);
+            Button("Confirm", card.transform, new Vector2(0.53f, .04f), new Vector2(0.94f, .26f), confirmLabel, Red, () =>
             {
                 Object.Destroy(window.gameObject);
                 if (onConfirm != null) onConfirm();

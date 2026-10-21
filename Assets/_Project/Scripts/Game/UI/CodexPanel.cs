@@ -86,11 +86,11 @@ namespace BiRyeoDo.Game.UI
             {
                 int tab = t;
                 float x0 = 0.05f + t * 0.31f;
-                var btn = UiFactory.Button("Tab" + t, _codexRoot, new Vector2(x0, 0.855f), new Vector2(x0 + 0.29f, 0.91f), TabNames[t], t == _tab ? UiFactory.Red : UiFactory.InkSoft, () => { _tab = tab; OpenCodex(); }, 30);
+                var btn = UiFactory.Button("Tab" + t, _codexRoot, new Vector2(x0, .79f), new Vector2(x0 + 0.29f, 0.91f), TabNames[t], t == _tab ? UiFactory.Red : UiFactory.InkSoft, () => { _tab = tab; OpenCodex(); }, 30);
             }
 
             string summary;
-            var content = Scroller(_codexRoot, 0.09f, 0.795f);
+            var content = Scroller(_codexRoot, .16f, .69f);
             int n = 0;
             if (_tab == 0)
             {
@@ -136,8 +136,8 @@ namespace BiRyeoDo.Game.UI
                 }
             }
             content.sizeDelta = new Vector2(0f, RowGap + n * (RowH + RowGap));
-            UiFactory.Label("Summary", _codexRoot, new Vector2(0.05f, 0.795f), new Vector2(0.95f, 0.85f), summary, 30, UiFactory.Gold);
-            UiFactory.Button("Close", _codexRoot, new Vector2(0.25f, 0.01f), new Vector2(0.75f, 0.09f), "닫기", UiFactory.InkSoft, () => { _codexRoot.gameObject.SetActive(false); _onChange(); }, 36);
+            UiFactory.Label("Summary", _codexRoot, new Vector2(0.05f, .70f), new Vector2(0.95f, .78f), summary, 30, UiFactory.Gold);
+            UiFactory.Button("Close", _codexRoot, new Vector2(0.25f, .015f), new Vector2(0.75f, .14f), "닫기", UiFactory.InkSoft, () => { _codexRoot.gameObject.SetActive(false); _onChange(); }, 36);
         }
 
         // ------------------------------------------------------------------ 업적
@@ -151,13 +151,13 @@ namespace BiRyeoDo.Game.UI
             int ready = Achievements.ClaimableCount(save);
             UiFactory.Label("Title", _achRoot, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "업적  " + Achievements.ClaimedCount(save) + " / " + Achievements.All.Length, 44, UiFactory.Gold);
             UiFactory.Label("Toast", _achRoot, new Vector2(0.05f, 0.865f), new Vector2(0.62f, 0.92f), toast ?? (ready > 0 ? "받을 수 있는 보상 " + ready + "건" : "조건을 채우면 보상을 받습니다"), 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-            var all = UiFactory.Button("ClaimAll", _achRoot, new Vector2(0.64f, 0.865f), new Vector2(0.95f, 0.92f), "모두 수령", ready > 0 ? UiFactory.Red : UiFactory.InkSoft, () => ClaimAll(), 28);
+            var all = UiFactory.Button("ClaimAll", _achRoot, new Vector2(0.64f, .80f), new Vector2(0.95f, .92f), "모두 수령", ready > 0 ? UiFactory.Red : UiFactory.InkSoft, () => ClaimAll(), 28);
             all.interactable = ready > 0;
 
             var list = new List<AchievementData>(Achievements.All);
             // Ready first, then in progress, then taken.
             list.Sort((a, b) => Rank(save, a).CompareTo(Rank(save, b)));
-            var content = Scroller(_achRoot, 0.09f, 0.855f);
+            var content = Scroller(_achRoot, .16f, .78f);
             for (int i = 0; i < list.Count; i++)
             {
                 var a = list[i];
@@ -172,7 +172,7 @@ namespace BiRyeoDo.Game.UI
                 btn.interactable = can;
             }
             content.sizeDelta = new Vector2(0f, RowGap + list.Count * (RowH + RowGap));
-            UiFactory.Button("Close", _achRoot, new Vector2(0.25f, 0.01f), new Vector2(0.75f, 0.09f), "닫기", UiFactory.InkSoft, () => { _achRoot.gameObject.SetActive(false); _onChange(); }, 36);
+            UiFactory.Button("Close", _achRoot, new Vector2(0.25f, .015f), new Vector2(0.75f, .14f), "닫기", UiFactory.InkSoft, () => { _achRoot.gameObject.SetActive(false); _onChange(); }, 36);
         }
 
         private static Color Dark(Color c) { return new Color(c.r * 0.6f, c.g * 0.6f, c.b * 0.6f, 1f); }
