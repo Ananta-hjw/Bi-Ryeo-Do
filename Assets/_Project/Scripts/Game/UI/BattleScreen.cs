@@ -119,7 +119,7 @@ namespace BiRyeoDo.Game.UI
 
             UiFactory.Panel("Backdrop", root, Vector2.zero, Vector2.one, Backdrop).raycastTarget = true;   // swallows taps so nothing underneath (the 강호 tab) is pressed during the battle
             _backdropImage = UiFactory.Panel("StageArt", root, Vector2.zero, Vector2.one, new Color(1f, 1f, 1f, 0f));
-            _backdropImage.preserveAspect = false;
+            BackgroundCover.Apply(_backdropImage);
             UiFactory.Panel("Dim", root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.22f)); // keeps text readable over artwork
             BuildBoard(root);
 
@@ -209,7 +209,7 @@ namespace BiRyeoDo.Game.UI
 
             // An opaque layer showing the stage art, so the battle HUD underneath (stage label, speed / flee buttons, turn order, cards) cannot show through the story.
             _storyBackdrop = UiFactory.Panel("StoryBackdrop", rect, Vector2.zero, Vector2.one, Backdrop);
-            _storyBackdrop.preserveAspect = false;
+            BackgroundCover.Apply(_storyBackdrop);
             _storyBackdrop.raycastTarget = false;
             _storyBackdrop.transform.SetAsFirstSibling();
             UiFactory.Panel("StoryDim", _storyBackdrop.transform, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.35f)).raycastTarget = false;
@@ -385,7 +385,7 @@ namespace BiRyeoDo.Game.UI
             int diff = stage.IsTower || stage.IsQuest ? 0 : stage.Difficulty;
             string tag = StageStars.TagFor(diff);
             _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + tag + stage.Name;
-            var bg = ArtLibrary.Background(stage.Number) ?? ArtLibrary.Background(1);
+            var bg = SceneryArt.Battle(stage);
             _backdropImage.sprite = bg;
             _backdropImage.color = bg != null ? Color.white : new Color(1f, 1f, 1f, 0f);
             ClearCards();
@@ -662,8 +662,8 @@ namespace BiRyeoDo.Game.UI
         private IEnumerator RunStoryOnly(string title, string[] lines)
         {
             _fled = false;
-            _backdropImage.sprite = null;
-            _backdropImage.color = new Color(1f, 1f, 1f, 0f);
+            _backdropImage.sprite = SceneryArt.Menu("record");
+            _backdropImage.color = Color.white;
             ClearCards();
             ClearPanels();
             SetCommandsVisible(false);
@@ -694,8 +694,8 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             var arena = new StageData { Number = 0, Name = "승급 비무" };   // Number 0 = no companions
             _fled = false;
-            _backdropImage.sprite = null;
-            _backdropImage.color = new Color(1f, 1f, 1f, 0f);
+            _backdropImage.sprite = ArtLibrary.Environment("battle_academy");
+            _backdropImage.color = Color.white;
             ClearCards();
             ClearPanels();
             SetCommandsVisible(false);
@@ -1574,6 +1574,7 @@ namespace BiRyeoDo.Game.UI
             c.Root.SetActive(true);
             c.Icon.gameObject.SetActive(icon != null);
             c.Icon.sprite = icon;
+            IconCutout.Apply(c.Icon);
             c.Icon.color = enabled ? Color.white : new Color(1f, 1f, 1f, .35f);
             c.Fallback.gameObject.SetActive(icon == null);
             c.Fallback.Key = slot == 7 && (Aiming || AimingAlly || _itemMode || _jointMode) ? "close"
@@ -1634,6 +1635,7 @@ namespace BiRyeoDo.Game.UI
             _tipTitle.text = title;
             _tipBody.text = body;
             _tipIcon.sprite = icon;
+            IconCutout.Apply(_tipIcon);
             _tipIcon.gameObject.SetActive(icon != null);
             // With a picture the title and the first lines make room for it on the right.
             _tipTitle.rectTransform.anchorMax = new Vector2(icon != null ? 0.74f : 0.95f, _tipTitle.rectTransform.anchorMax.y);

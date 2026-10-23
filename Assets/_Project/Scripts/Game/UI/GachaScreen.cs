@@ -62,19 +62,19 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Label("Count", chip.transform, new Vector2(0.04f, 0f), new Vector2(0.96f, 0.5f), Gacha.Pool(grade).Count + "종", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
             }
 
-            // Result cards share a measured row, keeping three columns aligned as effects wrap.
+            // Result cards share a measured row, keeping five columns aligned as effects wrap.
             _emptyNote = UiFactory.Label("Empty", root, new Vector2(.35f, .28f), new Vector2(.96f, .80f), "아직 뽑지 않았습니다.\n왼쪽 버튼으로 뽑아 보세요.\n등급·확률을 누르면 획득 가능한 목록이 열립니다.", 32, UiFactory.Dim, TextAnchor.LowerCenter, FontStyle.Normal);
             UiFactory.Glyph("gacha", _emptyNote.transform, new Vector2(.3f, .35f), new Vector2(.7f, .94f), new Color(.83f, .72f, .48f, .35f));
             var resultsContent = CodexPanel.Scroller(root, .14f, .855f);
             LandscapeMenu.Place((RectTransform)resultsContent.parent, .33f, .14f, .985f, .855f);
             _resultsScroll = resultsContent.parent.GetComponent<ScrollRect>();
-            const float rowHeight = 400f, gap = 16f;
+            const float rowHeight = 320f, gap = 16f;
             RectTransform row = null;
             for (int i = 0; i < Gacha.FiftyPullCount; i++)
             {
-                if (i % 3 == 0)
+                if (i % 5 == 0)
                 {
-                    int rowIndex = i / 3;
+                    int rowIndex = i / 5;
                     row = UiFactory.Rect("Row" + rowIndex, resultsContent, new Vector2(.02f, 1f), new Vector2(.98f, 1f));
                     row.pivot = new Vector2(.5f, 1f);
                     row.sizeDelta = new Vector2(0f, rowHeight);
@@ -83,16 +83,21 @@ namespace BiRyeoDo.Game.UI
                     _resultRows.Add(row);
                     row.gameObject.SetActive(false);
                 }
-                float left = i % 3 * .339f;
-                var rt = UiFactory.Rect("Card" + i, row, new Vector2(left, 0f), new Vector2(left + .322f, 1f));
+                float left = i % 5 * .202f;
+                var rt = UiFactory.Rect("Card" + i, row, new Vector2(left, 0f), new Vector2(left + .192f, 1f));
                 var c = new Card { Root = rt.gameObject };
                 c.Frame = UiFactory.Panel("Frame", rt, Vector2.zero, Vector2.one, UiFactory.GoldDim);
                 c.Bg = UiFactory.Panel("Bg", rt, new Vector2(.015f, .015f), new Vector2(.985f, .985f), new Color(.06f, .08f, .12f, .96f));
-                c.Icon = UiFactory.TopIcon(rt, 180f, 40f);
+                c.Icon = UiFactory.TopIcon(rt, 104f, 34f);
                 c.IconGlyph = UiFactory.Label("Glyph", c.Icon.transform, Vector2.zero, Vector2.one, "", 34, UiFactory.PaperText);
-                c.Name = UiFactory.Body(UiFactory.Label("Name", rt, new Vector2(.04f, .28f), new Vector2(.96f, .44f), "", 26, UiFactory.PaperText));
-                c.Effect = UiFactory.Body(UiFactory.Label("Effect", rt, new Vector2(.04f, .02f), new Vector2(.96f, .26f), "", 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal));
-                c.Tag = UiFactory.Label("Tag", rt, new Vector2(.60f, .915f), new Vector2(.96f, .995f), "", 22, UiFactory.Gold, TextAnchor.MiddleRight);
+                c.Name = UiFactory.Body(UiFactory.Label("Name", rt, new Vector2(.04f, .30f), new Vector2(.96f, .53f), "", 22, UiFactory.PaperText));
+                c.Effect = UiFactory.Body(UiFactory.Label("Effect", rt, new Vector2(.04f, .02f), new Vector2(.96f, .26f), "", 22, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal));
+                c.Tag = UiFactory.Label("Tag", rt, new Vector2(.04f, .915f), new Vector2(.96f, .995f), "", 18, UiFactory.Gold, TextAnchor.MiddleRight);
+                c.Tag.rectTransform.anchorMin = new Vector2(.04f, 1f);
+                c.Tag.rectTransform.anchorMax = new Vector2(.96f, 1f);
+                c.Tag.rectTransform.pivot = new Vector2(.5f, 1f);
+                c.Tag.rectTransform.sizeDelta = new Vector2(0f, 28f);
+                c.Tag.rectTransform.anchoredPosition = new Vector2(0f, -2f);
                 c.Root.SetActive(false);
                 _cards.Add(c);
             }
@@ -129,13 +134,13 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Odds", card.transform, new Vector2(.04f, .79f), new Vector2(.96f, .86f),
                 "등급 확률 " + (rate * 100d).ToString("0.#") + "% · 같은 등급 안에서는 모든 아이템이 동일한 확률입니다.", 26, UiFactory.PaperText);
             var content = CodexPanel.Scroller(card.rectTransform, .16f, .78f);
-            const float rowHeight = 360f, gap = 16f;
+            const float rowHeight = 320f, gap = 16f;
             RectTransform row = null;
             for (int i = 0; i < pool.Count; i++)
             {
-                if (i % 3 == 0)
+                if (i % 5 == 0)
                 {
-                    int rowIndex = i / 3;
+                    int rowIndex = i / 5;
                     row = UiFactory.Rect("Row" + rowIndex, content, new Vector2(.025f, 1f), new Vector2(.975f, 1f));
                     row.pivot = new Vector2(.5f, 1f);
                     row.sizeDelta = new Vector2(0f, rowHeight);
@@ -143,17 +148,17 @@ namespace BiRyeoDo.Game.UI
                     ReadingList.Register(row, rowHeight, gap);
                 }
                 var item = pool[i];
-                float left = i % 3 * .339f;
-                var cell = UiFactory.Rect("Item" + i, row, new Vector2(left, 0f), new Vector2(left + .322f, 1f));
+                float left = i % 5 * .202f;
+                var cell = UiFactory.Rect("Item" + i, row, new Vector2(left, 0f), new Vector2(left + .192f, 1f));
                 var background = cell.gameObject.AddComponent<Image>();
                 background.color = UiFactory.InkSoft;
                 background.raycastTarget = true;
                 UiFactory.Frame(cell, UiFactory.GradeColor(grade), 2f);
-                var icon = UiFactory.TopIcon(cell, 128f, 16f);
+                var icon = UiFactory.TopIcon(cell, 104f, 16f);
                 ItemArt.Apply(icon, UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, "", 40, UiFactory.Gold), item);
-                UiFactory.Body(UiFactory.Label("Name", cell, new Vector2(.05f, .38f), new Vector2(.95f, .59f), item.Name, 28, UiFactory.PaperText, TextAnchor.MiddleCenter));
-                UiFactory.Body(UiFactory.Label("Effect", cell, new Vector2(.05f, .12f), new Vector2(.95f, .36f), item.IsGear ? UiFactory.GearEffectText(item) : item.Description, 24, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal));
-                UiFactory.Label("Set", cell, new Vector2(.05f, .015f), new Vector2(.95f, .11f), item.IsGear ? "세트: " + (Gear.SetOf(item.Id)?.Name ?? "없음") : "소모품", 23, UiFactory.Gold, TextAnchor.MiddleLeft);
+                UiFactory.Body(UiFactory.Label("Name", cell, new Vector2(.05f, .38f), new Vector2(.95f, .59f), item.Name, 22, UiFactory.PaperText, TextAnchor.MiddleCenter));
+                UiFactory.Body(UiFactory.Label("Effect", cell, new Vector2(.05f, .12f), new Vector2(.95f, .36f), item.IsGear ? UiFactory.GearEffectText(item) : item.Description, 22, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal));
+                UiFactory.Label("Set", cell, new Vector2(.05f, .015f), new Vector2(.95f, .11f), item.IsGear ? "세트: " + (Gear.SetOf(item.Id)?.Name ?? "없음") : "소모품", 20, UiFactory.Gold, TextAnchor.MiddleLeft);
             }
             UiFactory.Button("Close", card.transform, new Vector2(.30f, .015f), new Vector2(.70f, .14f), "닫기", UiFactory.InkSoft, ClosePool, 32);
             Canvas.ForceUpdateCanvases();
@@ -242,7 +247,7 @@ namespace BiRyeoDo.Game.UI
                 card.Name.text = UiFactory.GradedName(item);
                 card.Effect.text = item.IsGear ? UiFactory.GearEffectText(item) : item.Description;
                 card.Tag.text = r.Duplicate ? "여분 +1" : item.IsGear ? "NEW" : "";
-                _resultRows[i / 3].gameObject.SetActive(true);
+                _resultRows[i / 5].gameObject.SetActive(true);
                 card.Root.SetActive(true);
                 if (animate)
                 {

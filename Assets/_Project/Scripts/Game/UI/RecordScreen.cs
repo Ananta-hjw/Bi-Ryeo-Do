@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace BiRyeoDo.Game.UI
 {
-    /// <summary>기록 tab: the non-combat records and menus — 상태창, 도감, 업적, 나예린 추억, 세력과 객잔. Each tile opens a pop-up panel inside this tab.</summary>
+    /// <summary>기록 tab: the non-combat records and menus — 도감, 업적, 이야기, 나예린 추억, 세력과 객잔. Each tile opens a pop-up panel inside this tab.</summary>
     public class RecordScreen : MonoBehaviour
     {
         private sealed class Entry
@@ -20,7 +20,7 @@ namespace BiRyeoDo.Game.UI
         private MemoryPanel _memories;
         private StoryLogPanel _storyLog;
         private FactionPanel _factions;
-        private Entry _statusE, _codexE, _achE, _storyE, _memoryE, _factionE, _ritualE;
+        private Entry _codexE, _achE, _storyE, _memoryE, _factionE, _ritualE;
         private RitualPanel _ritual;
         private ReadingList _menuLayout;
         private bool _built;
@@ -39,13 +39,12 @@ namespace BiRyeoDo.Game.UI
             UiFactory.ScrollBody(UiFactory.Label("Hint", workspace, new Vector2(.08f, .30f), new Vector2(.92f, .70f), "왼쪽에서 기록을 선택해 주세요.\n상태는 협객, 장비 관리는 장비 탭에서 이어집니다.", 32, UiFactory.Dim), 32);
             var menu = UiFactory.Rect("MenuViewport", root, new Vector2(.02f, .025f), new Vector2(.25f, .855f));
             var content = CodexPanel.Scroller(menu, 0f, 1f);
-            _statusE = Tile(content, 0, "협객 · 상태", "party", () => _openStatus?.Invoke());
-            _codexE = Tile(content, 1, "도감", "record", () => { CloseOverlays(); _codex.OpenCodex(); });
-            _achE = Tile(content, 2, "업적", "star", () => { CloseOverlays(); _codex.OpenAchievements(); });
-            _storyE = Tile(content, 3, "이야기 줄거리", "quest", () => { CloseOverlays(); _storyLog.Open(); });
-            _memoryE = Tile(content, 4, "나예린 추억", "fortune", () => { CloseOverlays(); _memories.Open(); });
-            _factionE = Tile(content, 5, "세력과 객잔", "tower", () => { CloseOverlays(); _factions.Open(); });
-            _ritualE = Tile(content, 6, "전승의식", "arts", () => { CloseOverlays(); _ritual.Open(); });
+            _codexE = Tile(content, 0, "도감", "codex", () => { CloseOverlays(); _codex.OpenCodex(); });
+            _achE = Tile(content, 1, "업적", "achievement", () => { CloseOverlays(); _codex.OpenAchievements(); });
+            _storyE = Tile(content, 2, "이야기 줄거리", "story", () => { CloseOverlays(); _storyLog.Open(); });
+            _memoryE = Tile(content, 3, "나예린 추억", "memories", () => { CloseOverlays(); _memories.Open(); });
+            _factionE = Tile(content, 4, "세력과 객잔", "faction", () => { CloseOverlays(); _factions.Open(); });
+            _ritualE = Tile(content, 5, "전승의식", "ritual", () => { CloseOverlays(); _ritual.Open(); });
             _menuLayout = content.GetComponent<ReadingList>();
             _codex = new CodexPanel(UiFactory.Rect("CodexOverlay", workspace, Vector2.zero, Vector2.one), UiFactory.Rect("AchievementOverlay", workspace, Vector2.zero, Vector2.one), Refresh);
             _storyLog = new StoryLogPanel(UiFactory.Rect("StoryLogOverlay", workspace, Vector2.zero, Vector2.one), Refresh, onStory);
@@ -107,22 +106,19 @@ namespace BiRyeoDo.Game.UI
         {
             if (!_built) return;
             var save = GameManager.Instance.Save;
-            var hero = StatusSheet.Hero(save);
-            _statusE.Detail.text = "경지 " + Realm.Steps[Realm.StepOf(save)].Name + " · " + hero[0].Label + " " + hero[0].Value;
-            SetBadge(_statusE, 0);
             _codexE.Detail.text = "적 " + save.SeenEnemies.Count + "/" + Codex.EnemyTotal + " · 물품 " + save.SeenItems.Count + "/" + Codex.ItemTotal;
-            SetBadge(_codexE, 0);
+            SetBadge(_codexE, RecordUpdates.Unread(save, RecordUpdates.CodexPage));
             _achE.Detail.text = "달성 " + Achievements.ClaimedCount(save) + "/" + Achievements.All.Length;
             SetBadge(_achE, Achievements.ClaimableCount(save));
             _storyE.Detail.text = "등장인물과 사건의 사정을 다시 읽습니다 · " + StoryBriefings.Readable(save).Count + "편";
-            SetBadge(_storyE, 0);
+            SetBadge(_storyE, RecordUpdates.Unread(save, RecordUpdates.StoryPage));
             int unseen = Memories.UnseenCount(save);
             _memoryE.Detail.text = "본 추억 " + Memories.SeenCount(save) + " / " + Memories.All.Length + (unseen > 0 ? " · 새 추억 " + unseen + "개" : "");
             SetBadge(_memoryE, unseen);
             var notes = new List<string>();
             foreach (var fa in Factions.All) if (Factions.Tier(save, fa.Id) > 0) notes.Add(fa.Name + " " + Factions.TierNames[Factions.Tier(save, fa.Id)]);
             _factionE.Detail.text = notes.Count > 0 ? "평판: " + string.Join(" · ", notes) : "전투를 이기면 세력 평판이 쌓이고 객잔 선반이 열립니다";
-            SetBadge(_factionE, 0);
+            SetBadge(_factionE, RecordUpdates.Unread(save, RecordUpdates.FactionPage));
             int ritualDone = Ritual.DoneCount(save), ritualTotal = Ritual.Conditions(save).Count;
             _ritualE.Detail.text = save.RitualDone ? "완료 — 진비뢰도를 얻었습니다" : "초월 등급 진비뢰도의 시련 · 조건 " + ritualDone + "/" + ritualTotal;
             SetBadge(_ritualE, Ritual.CanComplete(save) ? 1 : 0);

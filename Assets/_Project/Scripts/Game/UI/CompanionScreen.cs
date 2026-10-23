@@ -12,30 +12,32 @@ namespace BiRyeoDo.Game.UI
     public sealed class CompanionScreen : MonoBehaviour
     {
         private static readonly string[] Pages = { "상태", "무공", "인연" };
-        private RectTransform _page, _identity, _people, _tabs, _message;
+        private RectTransform _page, _identity, _picker, _tabs, _message;
         private string _owner = Inventory.Hero, _toast;
         private int _tab;
-        private Action _openArts, _openParty;
-        private Action<string> _openEquipment;
+        private Action _openArts;
         private bool _built, _resetScroll = true;
         private SaveData Save { get { return GameManager.Instance.Save; } }
         private CompanionData Companion { get { return EarlyGameContent.FindCompanion(_owner); } }
         private string OwnerName { get { return _owner == Inventory.Hero ? "비류연" : Companion.Name; } }
 
-        public void Build(RectTransform root, Action openArts, Action openParty, Action<string> openEquipment = null)
+        public void Build(RectTransform root, Action openArts)
         {
-            _openArts = openArts; _openParty = openParty; _openEquipment = openEquipment;
-            UiFactory.Panel("Background", root, Vector2.zero, Vector2.one, UiFactory.Parchment);
-            _people = UiFactory.TopLane("People", root, .02f, .98f);
-            _identity = UiFactory.Rect("Identity", root, new Vector2(.02f, .04f), new Vector2(.255f, .835f));
-            _tabs = UiFactory.Rect("Pages", root, new Vector2(.275f, .735f), new Vector2(.98f, .835f));
-            _page = UiFactory.Rect("Page", root, new Vector2(.275f, .085f), new Vector2(.98f, .72f));
+            _openArts = openArts;
+            UiFactory.Panel("Background", root, Vector2.zero, Vector2.one, new Color(.035f, .065f, .067f, .42f));
+            _identity = UiFactory.Rect("Identity", root, new Vector2(.02f, .04f), new Vector2(.255f, .965f));
+            _tabs = UiFactory.Rect("Pages", root, new Vector2(.275f, .865f), new Vector2(.98f, .965f));
+            _page = UiFactory.Rect("Page", root, new Vector2(.275f, .085f), new Vector2(.98f, .85f));
             _message = UiFactory.Rect("Message", root, new Vector2(.28f, .015f), new Vector2(.975f, .075f));
+            _picker = UiFactory.Rect("CharacterPicker", root, Vector2.zero, Vector2.one);
+            _picker.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, .85f);
+            _picker.gameObject.SetActive(false);
             _built = true;
             Refresh();
         }
 
         private void OnEnable() { if (_built) Refresh(); }
+        private void OnDisable() { if (_picker != null) _picker.gameObject.SetActive(false); }
         private static void Clear(RectTransform root)
         {
             for (int i = root.childCount - 1; i >= 0; i--)
@@ -74,8 +76,9 @@ namespace BiRyeoDo.Game.UI
             }
             var oldList = _page.Find("List/Viewport");
             float position = !_resetScroll && oldList != null ? oldList.GetComponent<ScrollRect>().verticalNormalizedPosition : 1f;
-            Clear(_people); Clear(_identity); Clear(_tabs); Clear(_page); Clear(_message);
-            BuildPeople(); BuildIdentity();
+            _picker.gameObject.SetActive(false);
+            Clear(_identity); Clear(_tabs); Clear(_page); Clear(_message);
+            BuildIdentity();
             for (int i = 0; i < Pages.Length; i++)
             {
                 int page = i;
@@ -103,36 +106,12 @@ namespace BiRyeoDo.Game.UI
             Reading(_message, "Feedback", 0f, 0f, 1f, 1f, _toast ?? (_tab == 1 ? "현재 전투에서 사용하는 무공만 표시합니다." : "인물을 바꿔도 선택한 탭을 유지합니다."), 26).color = UiFactory.Gold;
         }
 
-        private void BuildPeople()
+        private void OpenCharacterPicker()
         {
-            var owners = new List<string> { Inventory.Hero };
-            owners.AddRange(EarlyGameContent.Companions.Where(c => c.JoinStage <= Save.HighestUnlockedStage).Select(c => c.Id));
-            var viewport = UiFactory.Rect("Viewport", _people, Vector2.zero, Vector2.one);
-            viewport.gameObject.AddComponent<Image>().color = Color.clear;
-            viewport.gameObject.AddComponent<RectMask2D>();
-            var content = UiFactory.Rect("Content", viewport, Vector2.zero, new Vector2(0f, 1f));
-            content.pivot = new Vector2(0f, .5f);
-            content.sizeDelta = new Vector2(owners.Count * 228f, 0f);
-            var scroll = viewport.gameObject.AddComponent<ScrollRect>();
-            scroll.viewport = viewport; scroll.content = content; scroll.vertical = false;
-            scroll.movementType = ScrollRect.MovementType.Clamped;
-            for (int i = 0; i < owners.Count; i++)
+            CharacterPicker.Open(_picker, Save, _owner, owner =>
             {
-                string owner = owners[i];
-                string name = owner == Inventory.Hero ? "비류연" : EarlyGameContent.FindCompanion(owner).Name;
-                var button = Button(content, "Person_" + owner, 0f, .03f, 0f, .97f, "", () => { _owner = owner; _resetScroll = true; _toast = null; Refresh(); });
-                var rect = button.GetComponent<RectTransform>();
-                rect.pivot = new Vector2(0f, .5f); rect.anchoredPosition = new Vector2(i * 228f, 0f); rect.sizeDelta = new Vector2(212f, 0f);
-                button.GetComponent<Image>().color = owner == _owner ? new Color(.13f, .27f, .24f) : UiFactory.Ink;
-                UiFactory.Frame(button.transform, owner == _owner ? UiFactory.Gold : UiFactory.GoldDim, 2f);
-                Portrait(button.transform, name, .03f, .05f, .40f, .95f);
-                Text(button.transform, "Name", .45f, .18f, .97f, .85f, name, 28, owner == _owner ? UiFactory.Gold : UiFactory.PaperText);
-            }
-            // Keep the selected person visible when the roster exceeds the screen width.
-            int selected = owners.IndexOf(_owner);
-            Canvas.ForceUpdateCanvases();
-            float overflow = Mathf.Max(0f, content.rect.width - viewport.rect.width);
-            content.anchoredPosition = new Vector2(-Mathf.Min(Mathf.Max(0f, selected * 228f - viewport.rect.width + 228f), overflow), 0f);
+                _owner = owner; _resetScroll = true; _toast = null; Refresh();
+            });
         }
 
         private static void Portrait(Transform parent, string name, float x, float y, float right, float top)
@@ -153,8 +132,7 @@ namespace BiRyeoDo.Game.UI
             var fielded = EarlyGameContent.SelectCompanionsFor(Math.Max(1, Save.HighestUnlockedStage), Save);
             string deployment = hero ? "주인공" : fielded.Any(c => c.Id == _owner) ? "출전 편성" : "대기 중";
             Reading(_identity, "Summary", .06f, .15f, .94f, .27f, "Lv." + level + " · " + (hero ? Promotion.RankName(Promotion.EffectiveRank(Save)) : Companion.Role) + " · " + deployment + "\n" + realm, 26);
-            Button(_identity, "Formation", .04f, .015f, .49f, .145f, "파티 편성", _openParty);
-            Button(_identity, "Equipment", .51f, .015f, .96f, .145f, "장비", () => _openEquipment?.Invoke(_owner), _openEquipment != null);
+            Button(_identity, "ChangeCharacter", .04f, .015f, .96f, .145f, "인물 변경", OpenCharacterPicker);
         }
 
         private void BuildStatus()

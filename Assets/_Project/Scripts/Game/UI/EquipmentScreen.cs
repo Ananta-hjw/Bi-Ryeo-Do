@@ -12,7 +12,7 @@ namespace BiRyeoDo.Game.UI
     public sealed class EquipmentScreen : MonoBehaviour
     {
         private static readonly string[] SlotNames = { "무기", "상의", "하의", "신발", "장신구 1", "장신구 2" };
-        private RectTransform _people, _workspace, _modal;
+        private RectTransform _picker, _workspace, _modal;
         private string _owner = Inventory.Hero, _selectedId, _feedback;
         private int _slot;
         private bool _built, _resetScroll = true;
@@ -20,17 +20,18 @@ namespace BiRyeoDo.Game.UI
         private bool Hero { get { return _owner == Inventory.Hero; } }
         private CompanionData Companion { get { return EarlyGameContent.FindCompanion(_owner); } }
         private string OwnerName { get { return Hero ? "비류연" : Companion.Name; } }
-        private int Group { get { return _slot == 0 ? 0 : _slot <= 3 ? 1 : 2; } }
 
         public void Build(RectTransform root)
         {
             if (_built) return;
-            UiFactory.Panel("Background", root, Vector2.zero, Vector2.one, UiFactory.Parchment);
-            _people = UiFactory.TopLane("People", root, .02f, .98f);
-            _workspace = UiFactory.Rect("Workspace", root, new Vector2(.02f, .03f), new Vector2(.98f, .85f));
+            UiFactory.Panel("Background", root, Vector2.zero, Vector2.one, new Color(.035f, .065f, .067f, .42f));
+            _workspace = UiFactory.Rect("Workspace", root, new Vector2(.02f, .03f), new Vector2(.98f, .97f));
             _modal = UiFactory.Rect("EquipmentInfo", root, Vector2.zero, Vector2.one);
             _modal.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, .85f);
             _modal.gameObject.SetActive(false);
+            _picker = UiFactory.Rect("CharacterPicker", root, Vector2.zero, Vector2.one);
+            _picker.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, .85f);
+            _picker.gameObject.SetActive(false);
             _built = true;
             Refresh();
         }
@@ -42,7 +43,11 @@ namespace BiRyeoDo.Game.UI
         }
 
         private void OnEnable() { if (_built) Refresh(); }
-        private void OnDisable() { if (_modal != null) _modal.gameObject.SetActive(false); }
+        private void OnDisable()
+        {
+            if (_modal != null) _modal.gameObject.SetActive(false);
+            if (_picker != null) _picker.gameObject.SetActive(false);
+        }
 
         private static Text Label(Transform parent, string name, float left, float bottom, float right, float top, string value, int size = 26, Color? color = null)
         {
@@ -64,9 +69,10 @@ namespace BiRyeoDo.Game.UI
             if (!Hero && (Companion == null || Companion.JoinStage > Save.HighestUnlockedStage)) _owner = Inventory.Hero;
             var oldScroll = _workspace.Find("Inventory/Viewport");
             float position = !_resetScroll && oldScroll != null ? oldScroll.GetComponent<ScrollRect>().verticalNormalizedPosition : 1f;
-            LandscapeMenu.Clear(_people); LandscapeMenu.Clear(_workspace);
+            LandscapeMenu.Clear(_workspace);
+            _picker.gameObject.SetActive(false);
             _modal.gameObject.SetActive(false);
-            BuildPeople(); BuildInventory(); BuildFigure();
+            BuildInventory(); BuildFigure();
             Canvas.ForceUpdateCanvases();
             var scroll = _workspace.Find("Inventory/Viewport").GetComponent<ScrollRect>();
             scroll.content.GetComponent<ReadingList>()?.Reflow();
@@ -75,30 +81,9 @@ namespace BiRyeoDo.Game.UI
             _resetScroll = false;
         }
 
-        private void BuildPeople()
+        private void OpenCharacterPicker()
         {
-            var owners = new List<string> { Inventory.Hero };
-            owners.AddRange(EarlyGameContent.Companions.Where(c => c.JoinStage <= Save.HighestUnlockedStage).Select(c => c.Id));
-            var viewport = UiFactory.Rect("Viewport", _people, Vector2.zero, Vector2.one);
-            viewport.gameObject.AddComponent<Image>().color = Color.clear;
-            viewport.gameObject.AddComponent<RectMask2D>();
-            var content = UiFactory.Rect("Content", viewport, Vector2.zero, new Vector2(0f, 1f));
-            content.pivot = new Vector2(0f, .5f); content.sizeDelta = new Vector2(owners.Count * 220f, 0f);
-            var scroll = viewport.gameObject.AddComponent<ScrollRect>();
-            scroll.viewport = viewport; scroll.content = content; scroll.vertical = false;
-            scroll.movementType = ScrollRect.MovementType.Clamped;
-            for (int i = 0; i < owners.Count; i++)
-            {
-                string owner = owners[i];
-                var button = Action(content, "Owner_" + owner, 0f, .03f, 0f, .97f,
-                    owner == Inventory.Hero ? "비류연" : EarlyGameContent.FindCompanion(owner).Name, () => SelectOwner(owner));
-                var rect = (RectTransform)button.transform;
-                rect.pivot = new Vector2(0f, .5f); rect.anchoredPosition = new Vector2(i * 220f, 0f); rect.sizeDelta = new Vector2(204f, 0f);
-                button.GetComponent<Image>().color = owner == _owner ? UiFactory.Jade : UiFactory.InkSoft;
-            }
-            Canvas.ForceUpdateCanvases();
-            float overflow = Mathf.Max(0f, content.rect.width - viewport.rect.width);
-            content.anchoredPosition = new Vector2(-Mathf.Min(Mathf.Max(0f, owners.IndexOf(_owner) * 220f - viewport.rect.width + 220f), overflow), 0f);
+            CharacterPicker.Open(_picker, Save, _owner, SelectOwner);
         }
 
         private void BuildFigure()
@@ -106,7 +91,10 @@ namespace BiRyeoDo.Game.UI
             var left = UiFactory.Panel("Character", _workspace, Vector2.zero, new Vector2(.385f, 1f), UiFactory.Ink).rectTransform;
             UiFactory.Frame(left, UiFactory.GoldDim, 2f);
             int level = Hero ? Save.Level : CompanionGrowth.LevelOf(Save, _owner);
-            Label(left, "Name", .03f, .90f, .59f, .99f, OwnerName + " · Lv." + level, 30, UiFactory.Gold);
+            var change = UiFactory.Button("ChangeCharacter", left, new Vector2(.025f, .90f), new Vector2(.59f, .99f), "", Color.clear, OpenCharacterPicker, 28);
+            Label(change.transform, "Name", .02f, .02f, .85f, .98f, OwnerName + " · Lv." + level, 28, UiFactory.Gold);
+            UiFactory.Label("Arrow", change.transform, new Vector2(.87f, .05f), new Vector2(.99f, .95f), "▾", 28, UiFactory.Gold);
+            UiFactory.Panel("Underline", change.transform, new Vector2(.02f, 0f), new Vector2(.98f, .02f), UiFactory.GoldDim);
             Label(left, "Doo", .03f, .84f, .59f, .90f, Save.Doo.ToString("N0") + "두", 24);
             Action(left, "Sets", .61f, .85f, .97f, .985f, "세트 효과", OpenSets);
             var figure = UiFactory.Panel("BattleFigure", left, new Vector2(.235f, .14f), new Vector2(.765f, .84f), Color.white);
@@ -124,11 +112,12 @@ namespace BiRyeoDo.Game.UI
                     _slot = selected; _selectedId = Gear.ItemInSlot(Save, _owner, selected)?.Id;
                     _feedback = null; _resetScroll = true; Refresh();
                 });
-                button.GetComponent<Image>().color = _slot == slot ? UiFactory.InkSoft : UiFactory.Ink;
-                UiFactory.Frame(button.transform, _slot == slot ? UiFactory.Gold : item == null ? UiFactory.GoldDim : UiFactory.GradeColor(item.Grade), 2f);
+                button.GetComponent<Image>().color = _slot == slot ? UiFactory.Jade : UiFactory.Ink;
+                UiFactory.Frame(button.transform, _slot == slot ? UiFactory.Gold : item == null ? UiFactory.GoldDim : UiFactory.GradeColor(item.Grade), _slot == slot ? 4f : 2f);
+                if (_slot == slot) SelectionMarker(button.transform, "선택 부위");
                 if (item != null)
                 {
-                    var icon = UiFactory.Panel("Icon", button.transform, new Vector2(.10f, .32f), new Vector2(.90f, .96f), Color.white);
+                    var icon = UiFactory.Panel("Icon", button.transform, new Vector2(.10f, .32f), new Vector2(.90f, .79f), Color.white);
                     ItemArt.Apply(icon, UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, "", 36, UiFactory.Gold), item);
                 }
                 else Label(button.transform, "Empty", .05f, .38f, .95f, .86f, "미착용", 22, UiFactory.Dim);
@@ -141,76 +130,75 @@ namespace BiRyeoDo.Game.UI
                 + "\n공격 " + stats.Attack.ToString("N0") + " · 방어 " + stats.Defense.ToString("N0") + " · 속도 " + stats.Speed, 24), 24);
         }
 
-        private bool InGroup(ItemData item)
-        {
-            return Group == 0 ? item.Kind == ItemKind.Weapon : Group == 1
-                ? item.Kind == ItemKind.Armor || item.Kind == ItemKind.Pants || item.Kind == ItemKind.Boots : item.Kind == ItemKind.Accessory;
-        }
-
         private void BuildInventory()
         {
             var right = UiFactory.Rect("Inventory", _workspace, new Vector2(.405f, 0f), Vector2.one);
-            string[] groups = { "무기", "방어구", "장신구" };
+            var groups = SlotNames;
             for (int i = 0; i < groups.Length; i++)
             {
                 int group = i;
-                var button = Action(right, "Group" + i, i * .338f, .88f, i * .338f + .324f, 1f, groups[i], () =>
+                var button = Action(right, "Group" + i, i / 6f, .88f, (i + 1) / 6f - .008f, 1f, groups[i], () =>
                 {
-                    if (Group != group) _slot = group == 0 ? 0 : group == 1 ? 1 : 4;
+                    _slot = group;
                     _selectedId = null; _feedback = null; _resetScroll = true; Refresh();
                 });
-                button.GetComponent<Image>().color = i == Group ? UiFactory.Red : UiFactory.InkSoft;
+                button.GetComponent<Image>().color = i == _slot ? UiFactory.Red : UiFactory.InkSoft;
             }
             var worn = Inventory.GearOf(Save, _owner);
             var items = Save.Items.Select(stack => EarlyGameContent.FindItem(stack.Id))
-                .Where(item => item != null && item.IsGear && InGroup(item) && Inventory.Count(Save, item.Id) > 0 && (Hero || !Gear.IsHeroOnly(item.Id)))
+                .Where(item => item != null && item.IsGear && item.Kind == Gear.KindForSlot(_slot) && Inventory.Count(Save, item.Id) > 0 && (Hero || !Gear.IsHeroOnly(item.Id)))
                 .Distinct().OrderByDescending(item => worn.Contains(item.Id)).ThenByDescending(item => item.Grade).ThenBy(item => item.Name).ToList();
             var current = Gear.ItemInSlot(Save, _owner, _slot);
             if (!items.Any(item => item.Id == _selectedId)) _selectedId = current?.Id ?? items.FirstOrDefault(item => item.Kind == Gear.KindForSlot(_slot))?.Id;
             var selected = items.FirstOrDefault(item => item.Id == _selectedId);
-            if (selected != null && selected.Kind != ItemKind.Accessory)
-                _slot = selected.Kind == ItemKind.Weapon ? 0 : selected.Kind == ItemKind.Armor ? 1 : selected.Kind == ItemKind.Pants ? 2 : 3;
-            Label(right, "Hint", .02f, .80f, .98f, .87f, _feedback ?? SelectionHint(selected, items.Count), 22, UiFactory.Gold);
-            var content = CodexPanel.Scroller(right, .31f, .79f);
+            Label(right, "Hint", .02f, .80f, .98f, .87f, SlotNames[_slot] + " · 보유 " + items.Count + "종 · " + (_feedback ?? SelectionHint(selected, items.Count)), 22, UiFactory.Gold);
+            var content = CodexPanel.Scroller(right, .35f, .79f);
             RectTransform row = null;
             for (int i = 0; i < items.Count; i++)
             {
-                if (i % 3 == 0)
+                if (i % 7 == 0)
                 {
-                    int index = i / 3;
+                    int index = i / 7;
                     row = UiFactory.Rect("Row" + index, content, new Vector2(.01f, 1f), new Vector2(.99f, 1f));
-                    row.pivot = new Vector2(.5f, 1f); row.sizeDelta = new Vector2(0f, 380f);
-                    row.anchoredPosition = new Vector2(0f, -14f - index * 394f);
-                    ReadingList.Register(row, 380f, 14f);
+                    row.pivot = new Vector2(.5f, 1f); row.sizeDelta = new Vector2(0f, 240f);
+                    row.anchoredPosition = new Vector2(0f, -14f - index * 254f);
+                    ReadingList.Register(row, 240f, 14f);
                 }
                 var item = items[i];
-                float x = i % 3 * .339f;
-                var card = UiFactory.Panel("Item_" + item.Id, row, new Vector2(x, 0f), new Vector2(x + .322f, 1f), UiFactory.Ink).rectTransform;
+                float x = i % 7 / 7f;
+                var card = UiFactory.Panel("Item_" + item.Id, row, new Vector2(x, 0f), new Vector2(x + 1f / 7f - .008f, 1f), item.Id == _selectedId ? UiFactory.InkSoft : UiFactory.Ink).rectTransform;
                 card.GetComponent<Image>().raycastTarget = true;
                 var tap = card.gameObject.AddComponent<Button>(); tap.targetGraphic = card.GetComponent<Image>(); tap.transition = Selectable.Transition.None;
                 tap.onClick.AddListener(() =>
                 {
-                    if (item.Kind != ItemKind.Accessory) _slot = item.Kind == ItemKind.Weapon ? 0 : item.Kind == ItemKind.Armor ? 1 : item.Kind == ItemKind.Pants ? 2 : 3;
                     _selectedId = item.Id; _feedback = null; Refresh();
                 });
-                UiFactory.Frame(card, item.Id == _selectedId ? UiFactory.Gold : UiFactory.GradeColor(item.Grade), item.Id == _selectedId ? 3f : 2f);
-                var icon = UiFactory.TopIcon(card, 160f, 40f);
+                UiFactory.Frame(card, item.Id == _selectedId ? UiFactory.Gold : UiFactory.GradeColor(item.Grade), item.Id == _selectedId ? 4f : 2f);
+                var icon = UiFactory.TopIcon(card, 88f, 34f);
                 ItemArt.Apply(icon, UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, "", 36, UiFactory.Gold), item);
-                Label(card, "Name", .04f, .30f, .96f, .47f, item.Name, 26, UiFactory.GradeColor(item.Grade));
-                int slot = item.Kind == ItemKind.Accessory ? _slot : item.Kind == ItemKind.Weapon ? 0 : item.Kind == ItemKind.Armor ? 1 : item.Kind == ItemKind.Pants ? 2 : 3;
-                Label(card, "Effect", .04f, .12f, .96f, .29f, UiFactory.GearEffectText(item, Gear.AppliedSlotLevel(Save, _owner, slot, item), Gear.Stars(Save, item.Id)), 22);
-                Label(card, "Set", .04f, .01f, .96f, .11f, Gear.SetOf(item.Id)?.Name ?? "세트 없음", 22, UiFactory.Gold);
-                Label(card, "State", .03f, .915f, .98f, .995f, worn.Contains(item.Id) ? "착용 중" : Gear.StarsText(Save, item.Id), 22, UiFactory.Jade);
+                Label(card, "Name", .06f, .14f, .94f, .45f, item.Name, 22, UiFactory.GradeColor(item.Grade));
+                Label(card, "State", .04f, .01f, .96f, .13f, worn.Contains(item.Id) ? "착용 중" : Gear.StarsText(Save, item.Id), 18, UiFactory.Jade);
+                if (item.Id == _selectedId) SelectionMarker(card, "선택 장비");
             }
             if (items.Count == 0) Label(right, "Empty", .05f, .40f, .95f, .68f, "보유한 장비가 없습니다.", 30, UiFactory.Dim);
             BuildActions(right, selected);
         }
 
+        private static void SelectionMarker(Transform parent, string caption)
+        {
+            var band = UiFactory.Panel("Selected", parent, new Vector2(.02f, 1f), new Vector2(.98f, 1f), UiFactory.Gold);
+            band.rectTransform.pivot = new Vector2(.5f, 1f);
+            band.rectTransform.sizeDelta = new Vector2(0f, 28f);
+            band.rectTransform.anchoredPosition = new Vector2(0f, -2f);
+            UiFactory.Label("Caption", band.transform, Vector2.zero, Vector2.one, caption, 18, UiFactory.Ink, TextAnchor.MiddleCenter);
+            band.raycastTarget = false;
+        }
+
         private string SelectionHint(ItemData item, int count)
         {
-            if (item == null) return "보유 " + count + "종 · 왼쪽에서 장착할 부위를 선택해 주세요.";
+            if (item == null) return "해당 부위의 장비를 획득하면 여기에 표시됩니다.";
             bool worn = Gear.ItemInSlot(Save, _owner, _slot)?.Id == item.Id;
-            if (!worn) return SlotNames[_slot] + "에 장착할 장비를 선택해 주세요. · 보유 " + count + "종";
+            if (!worn) return "선택한 장비는 아래 버튼으로 장착할 수 있습니다.";
             if (!Gear.IsGradeUnlocked(Save, _owner, _slot, item.Grade)) return "등급 개방 비용 " + Gear.GradeUnlockCost(Save, _owner, _slot, item.Grade).ToString("N0") + "두";
             int next = Gear.SlotLevel(Save, _owner, _slot) + 1;
             if (next > Gear.MaxLevel) return "최대 강화에 도달했습니다.";
@@ -221,29 +209,32 @@ namespace BiRyeoDo.Game.UI
 
         private void BuildActions(RectTransform parent, ItemData item)
         {
-            var panel = UiFactory.Panel("Selection", parent, Vector2.zero, new Vector2(1f, .29f), UiFactory.Ink).rectTransform;
+            var panel = UiFactory.Panel("Selection", parent, Vector2.zero, new Vector2(1f, .33f), UiFactory.Ink).rectTransform;
             bool worn = item != null && Gear.ItemInSlot(Save, _owner, _slot)?.Id == item.Id;
             bool otherSlot = item != null && !worn && Inventory.GearOf(Save, _owner).Contains(item.Id);
             bool available = item != null && !worn && !otherSlot && Inventory.Free(Save, item.Id) > 0;
-            Label(panel, "Name", .025f, .72f, .975f, .98f, item == null ? "장비를 선택해 주세요" : UiFactory.GradedName(item) + " · " + Gear.StarsText(Save, item.Id), 28, UiFactory.Gold);
-            Label(panel, "State", .025f, .46f, .975f, .70f, item == null ? "선택한 장비의 조작 버튼이 여기에 표시됩니다."
+            Label(panel, "Name", .025f, .75f, .975f, .98f, item == null ? "장비를 선택해 주세요" : UiFactory.GradedName(item) + " · " + Gear.StarsText(Save, item.Id), 28, UiFactory.Gold);
+            Label(panel, "State", .025f, .54f, .975f, .74f, item == null ? "선택한 장비의 조작 버튼이 여기에 표시됩니다."
                 : SlotNames[_slot] + " · " + (worn ? "착용 중" : otherSlot ? "다른 장신구 칸에 착용 중" : available ? "장착 가능" : "다른 인물이 착용 중")
                   + " · 적용 +" + Gear.AppliedSlotLevel(Save, _owner, _slot, item) + " / 상한 +" + Gear.Cap(Save, item.Id), 24);
-            Action(panel, "Equip", .015f, .025f, .245f, .445f, "장착", () =>
+            UiFactory.ScrollBody(Label(panel, "Effects", .025f, .35f, .975f, .53f,
+                item == null ? "" : UiFactory.GearEffectText(item, Gear.AppliedSlotLevel(Save, _owner, _slot, item), Gear.Stars(Save, item.Id))
+                    + " · 세트: " + (Gear.SetOf(item.Id)?.Name ?? "없음"), 22), 22);
+            Action(panel, "Equip", .015f, .025f, .245f, .33f, "장착", () =>
             {
                 string error;
                 Complete(Inventory.EquipInSlot(Save, _owner, Gear.KindForSlot(_slot), _slot == 5 ? 1 : 0, item.Id, out error), error, "장비를 장착했습니다.");
             }, available);
-            Action(panel, "Remove", .26f, .025f, .49f, .445f, "해제", () =>
+            Action(panel, "Remove", .26f, .025f, .49f, .33f, "해제", () =>
             {
                 Inventory.UnequipFor(Save, _owner, item.Id); Complete(true, null, "장비를 해제했습니다.");
             }, worn);
-            Action(panel, "Details", .505f, .025f, .735f, .445f, "상세", () => OpenDetails(item), item != null);
+            Action(panel, "Details", .505f, .025f, .735f, .33f, "상세", () => OpenDetails(item), item != null);
             bool unlocked = item != null && Gear.IsGradeUnlocked(Save, _owner, _slot, item.Grade);
             long cost = item == null ? 0 : Gear.GradeUnlockCost(Save, _owner, _slot, item.Grade);
             int level = Gear.SlotLevel(Save, _owner, _slot);
             string enhance = !worn ? "강화" : !unlocked ? "개방" : level >= Gear.MaxLevel ? "최대 강화" : level >= Gear.Cap(Save, item.Id) ? "돌파 필요" : "강화 +" + (level + 1);
-            Action(panel, "Enhance", .75f, .025f, .98f, .445f, enhance, () =>
+            Action(panel, "Enhance", .75f, .025f, .98f, .33f, enhance, () =>
             {
                 string error;
                 bool success = unlocked ? Gear.EnhanceSlot(Save, _owner, _slot, out error) : Gear.UnlockSlotGrade(Save, _owner, _slot, out error);

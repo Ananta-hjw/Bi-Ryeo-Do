@@ -3039,6 +3039,70 @@
       "cell": 62,
       "columns": 8,
       "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "companion",
+      "sheet": "menus",
+      "cell": 0,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Icon",
+      "id": "faction",
+      "sheet": "menus",
+      "cell": 1,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Icon",
+      "id": "codex",
+      "sheet": "menus",
+      "cell": 2,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Icon",
+      "id": "achievement",
+      "sheet": "menus",
+      "cell": 3,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Icon",
+      "id": "story",
+      "sheet": "menus",
+      "cell": 4,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Icon",
+      "id": "memories",
+      "sheet": "menus",
+      "cell": 5,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Icon",
+      "id": "ritual",
+      "sheet": "menus",
+      "cell": 6,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Icon",
+      "id": "missions",
+      "sheet": "menus",
+      "cell": 7,
+      "columns": 4,
+      "rows": 2
     }
   ]
 }

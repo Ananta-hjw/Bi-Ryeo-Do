@@ -28,7 +28,8 @@ namespace BiRyeoDo.Game.UI
         {
             _world = world; _openMenu = openMenu; _select = select;
             _scenery = UiFactory.Panel("Scenery", root, Vector2.zero, Vector2.one, Color.white);
-            UiFactory.Panel("Wash", root, Vector2.zero, Vector2.one, new Color(.02f, .07f, .075f, .76f));
+            BackgroundCover.Apply(_scenery);
+            UiFactory.Panel("Wash", root, Vector2.zero, Vector2.one, new Color(.02f, .07f, .075f, .40f));
             UiFactory.Glyph("halo", root, new Vector2(-.08f, .10f), new Vector2(.45f, .95f), new Color(.75f, .66f, .43f, .14f));
             var header = UiFactory.Panel("Header", root, new Vector2(0f, .89f), Vector2.one, UiFactory.Ink);
             _identity = HomeText("Identity", header.transform, .03f, .01f, .30f, .98f, "", 30, UiFactory.Gold);
@@ -54,6 +55,7 @@ namespace BiRyeoDo.Game.UI
             HomeText("MenuTitle", root, .45f, .80f, .79f, .885f, "강호를 걷는 길", 40, UiFactory.Gold);
             var featured = UiFactory.Panel("Journey", root, new Vector2(.45f, .61f), new Vector2(.975f, .775f), UiFactory.InkSoft);
             _journeyArt = UiFactory.Panel("Art", featured.transform, Vector2.zero, Vector2.one, new Color(.55f, .65f, .60f, .16f));
+            BackgroundCover.Apply(_journeyArt);
             UiFactory.Frame(featured.transform, UiFactory.Gold, 2f);
             HomeText("Kicker", featured.transform, .035f, .76f, .72f, .98f, "다음 여정", 26, UiFactory.Gold);
             _featuredTitle = HomeText("Stage", featured.transform, .035f, .43f, .74f, .77f, "", 36, UiFactory.PaperText);
@@ -65,7 +67,7 @@ namespace BiRyeoDo.Game.UI
             }, 32);
             _featuredAction = go.GetComponentInChildren<Text>();
 
-            HomeCard(root, .45f, .70f, .39f, .59f, "협객", "상태 · 무공 · 인연", "party", () => _select(TabRouter.Tab.Companions));
+            HomeCard(root, .45f, .70f, .39f, .59f, "협객", "상태 · 무공 · 인연", "companion", () => _select(TabRouter.Tab.Companions));
             _arts = HomeCard(root, .725f, .975f, .39f, .59f, "무공", "무공 · 심법 관리", "arts", () => _select(TabRouter.Tab.MartialArts));
             HomeCard(root, .45f, .70f, .17f, .37f, "행낭", "돌파 · 분해 · 합성", "bag", () => _select(TabRouter.Tab.Bag));
             HomeCard(root, .725f, .975f, .17f, .37f, "기록", "도감 · 추억 · 세력", "record", () => _select(TabRouter.Tab.Record));
@@ -110,7 +112,7 @@ namespace BiRyeoDo.Game.UI
             FlyoutItem(_challengeFlyout, "Tower", "무한 비무대", "tower", .43f, .75f, WorldScreen.Menu.Tower);
             FlyoutItem(_challengeFlyout, "Promotion", "승급 시험", "promotion", .055f, .375f, WorldScreen.Menu.Promotion);
 
-            var missions = SideButton(root, "MissionsMenu", "임무/보상", "quest", .64f, () => ToggleFlyout(true));
+            var missions = SideButton(root, "MissionsMenu", "임무/보상", "missions", .64f, () => ToggleFlyout(true));
             _missionsButton = missions.GetComponent<Image>();
             _missionsBadge = Badge(missions.transform);
             LandscapeMenu.Place((RectTransform)_missionsBadge.transform.parent, .64f, .71f, .99f, .99f);
@@ -226,7 +228,7 @@ namespace BiRyeoDo.Game.UI
             _portrait.color = _portrait.sprite != null ? Color.white : Color.clear;
             _portraitGlyph.text = _portrait.sprite == null ? scene.Speaker.Substring(0, 1) : "";
             _realm.text = scene.Speaker == StoryLine.Protagonist ? Realm.Label(Realm.StepOf(Realm.Power(InnerArts.HeroStatsBeforeRealm(save)))) : "";
-            _scenery.sprite = ArtLibrary.Background(Math.Max(1, Math.Min(save.ClearedStage, EarlyGameContent.Stages.Length))) ?? ArtLibrary.Background(1);
+            _scenery.sprite = SceneryArt.Menu("world");
         }
     }
 }

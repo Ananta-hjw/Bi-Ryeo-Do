@@ -19,7 +19,8 @@ namespace BiRyeoDo.Game.UI
             TabRouter.Tab.World, TabRouter.Tab.Companions, TabRouter.Tab.Equipment, TabRouter.Tab.MartialArts,
             TabRouter.Tab.Gacha, TabRouter.Tab.Bag, TabRouter.Tab.Record
         };
-        private static readonly string[] TabIconKeys = { "tab_world", "party", "equipment", "tab_arts", "gacha", "tab_bag", "tab_record" };
+        private static readonly string[] TabIconKeys = { "tab_world", "companion", "equipment", "tab_arts", "gacha", "tab_bag", "tab_record" };
+        private static readonly string[] TabSceneryKeys = { "world", "arts", "bag", "gacha", "record", "companions", "equipment" };
         private const float TabBarHeight = 120f;
 
         private TabRouter _router;
@@ -27,6 +28,8 @@ namespace BiRyeoDo.Game.UI
         private Graphic[] _tabIcons;
         private Text[] _tabLabels;
         private GameObject[] _tabMarks;
+        private GameObject _recordDot;
+        private Text _recordDotText;
         private GameObject _artsDot;
         private Text _artsDotText;
         private float _dotTimer;
@@ -62,8 +65,6 @@ namespace BiRyeoDo.Game.UI
 
             // Paint behind the entire display; only interactive UI is inset around cutouts.
             UiFactory.Panel("Backdrop", canvasGo.transform, Vector2.zero, Vector2.one, UiFactory.Parchment);
-            var wash = UiFactory.Panel("MountainWash", canvasGo.transform, Vector2.zero, Vector2.one, new Color(.36f, .47f, .43f, .12f));
-            wash.sprite = ArtLibrary.Background(1);
 
             var safe = UiFactory.Rect("SafeArea", canvasGo.transform, Vector2.zero, Vector2.one);
             safe.gameObject.AddComponent<SafeAreaLayout>();
@@ -76,6 +77,10 @@ namespace BiRyeoDo.Game.UI
             {
                 var panel = UiFactory.Rect("Panel_" + TabNames[i], content, Vector2.zero, Vector2.one);
                 panels[i] = panel.gameObject;
+                var scenery = UiFactory.Panel("TabScenery", panel, Vector2.zero, Vector2.one, Color.white);
+                scenery.sprite = SceneryArt.Menu(TabSceneryKeys[i]);
+                BackgroundCover.Apply(scenery);
+                UiFactory.Panel("SceneryDim", panel, Vector2.zero, Vector2.one, new Color(.01f, .025f, .025f, .50f));
                 if (i != (int)TabRouter.Tab.World)
                     panel.gameObject.AddComponent<Image>().color = UiFactory.Parchment;
             }
@@ -103,15 +108,7 @@ namespace BiRyeoDo.Game.UI
             _equipment.Build(equipmentRoot);
             var companionRoot = (RectTransform)panels[(int)TabRouter.Tab.Companions].transform;
             _companions = companionRoot.gameObject.AddComponent<CompanionScreen>();
-            _companions.Build(companionRoot, () => Select((int)TabRouter.Tab.MartialArts), () =>
-            {
-                Select((int)TabRouter.Tab.World);
-                OpenWorldMenu(WorldScreen.Menu.Party);
-            }, owner =>
-            {
-                _equipment.SelectOwner(owner);
-                Select((int)TabRouter.Tab.Equipment);
-            });
+            _companions.Build(companionRoot, () => Select((int)TabRouter.Tab.MartialArts));
 
             BuildTabBar(safe);
 
@@ -206,6 +203,7 @@ namespace BiRyeoDo.Game.UI
                     var pic = UiFactory.Panel("TabIcon", btn.transform, new Vector2(.22f, .5f), new Vector2(.22f, .5f), UiFactory.Dim);
                     pic.rectTransform.sizeDelta = new Vector2(76f, 76f);
                     pic.sprite = icon;
+                    IconCutout.Apply(pic);
                     pic.preserveAspect = true;
                     _tabIcons[i] = pic;
                 }
@@ -217,14 +215,29 @@ namespace BiRyeoDo.Game.UI
                     _tabIcons[i] = glyph;
                 }
                 _tabMarks[i] = UiFactory.Panel("SelectedRule", btn.transform, new Vector2(.22f, .965f), new Vector2(.78f, .985f), UiFactory.Gold).gameObject;
-                if (NavigationTabs[i] == TabRouter.Tab.MartialArts)
+                if (NavigationTabs[i] == TabRouter.Tab.MartialArts || NavigationTabs[i] == TabRouter.Tab.Record)
                 {
                     var dot = UiFactory.Panel("NewDot", btn.transform, new Vector2(.82f, .60f), new Vector2(.96f, .95f), UiFactory.Red);
-                    _artsDotText = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 22, UiFactory.PaperText);
-                    _artsDot = dot.gameObject;
-                    _artsDot.SetActive(false);
+                    var count = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 22, UiFactory.PaperText);
+                    if (NavigationTabs[i] == TabRouter.Tab.MartialArts) { _artsDotText = count; _artsDot = dot.gameObject; }
+                    else { _recordDotText = count; _recordDot = dot.gameObject; }
+                    dot.gameObject.SetActive(false);
                 }
             }
+        }
+
+        private void RefreshNotices(SaveData save)
+        {
+            int n = Discovery.Count(save);
+            _artsDot.SetActive(n > 0);
+            _artsDotText.text = n.ToString();
+            int records = RecordUpdates.Count(save);
+            if (_recordDot != null)
+            {
+                _recordDot.SetActive(records > 0);
+                _recordDotText.text = records > 99 ? "99+" : records.ToString();
+            }
+
         }
 
         private void Update()
@@ -235,9 +248,7 @@ namespace BiRyeoDo.Game.UI
             if (_dotTimer > 0f || _artsDot == null || GameManager.Instance == null) return;
             _dotTimer = 0.4f;
             var save = GameManager.Instance.Save;
-            int n = Discovery.Count(save);
-            _artsDot.SetActive(n > 0);
-            _artsDotText.text = n.ToString();
+            RefreshNotices(save);
 
             // 무공 경지 rose: tell the player once the battle overlay and any help card are out of the way.
             bool busy = (_battleOverlay != null && _battleOverlay.activeSelf) || (HelpPanel.Instance != null && HelpPanel.Instance.IsOpen) || (_realmModal != null && _realmModal.activeSelf);

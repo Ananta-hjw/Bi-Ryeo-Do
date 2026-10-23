@@ -61,6 +61,42 @@ namespace BiRyeoDo.Tests.UI
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
+        public void NameDropdownChangesTheViewedPersonWhilePreservingTheAccessorySlot(float width)
+        {
+            _canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(width, 960f);
+            Assert.IsNull(Root.Find("People"));
+            var companion = EarlyGameContent.Companions.First();
+            var gear = _save.EquippedGear.ToArray();
+            var inventory = _save.Items.Select(stack => stack.Id + ":" + stack.Count).ToArray();
+            Click("Workspace/Character/WearSlot5");
+            var header = (RectTransform)Root.Find("Workspace/Character/ChangeCharacter");
+            Assert.Greater(header.rect.height, 64f);
+            Assert.IsNotNull(header.Find("Arrow"));
+            Assert.Less(Bounds(header).xMax, Bounds((RectTransform)Root.Find("Workspace/Character/Sets")).xMin);
+            Click("Workspace/Character/ChangeCharacter");
+            var picker = Root.Find("CharacterPicker");
+            var options = picker.GetComponentsInChildren<Button>().Where(button => button.name.StartsWith("Person_")).ToArray();
+            CollectionAssert.AreEquivalent(new[] { "Person_" + Inventory.Hero }.Concat(EarlyGameContent.Companions.Where(c => c.JoinStage <= _save.HighestUnlockedStage).Select(c => "Person_" + c.Id)), options.Select(button => button.name));
+            Click("CharacterPicker/Card/Close");
+            StringAssert.StartsWith("비류연", Root.Find("Workspace/Character/ChangeCharacter/Name").GetComponent<Text>().text);
+            Click("Workspace/Character/ChangeCharacter");
+            picker.GetComponentsInChildren<Button>().Single(button => button.name == "Person_" + companion.Id).onClick.Invoke();
+            Canvas.ForceUpdateCanvases();
+            Assert.IsFalse(picker.gameObject.activeSelf);
+            StringAssert.StartsWith(companion.Name, Root.Find("Workspace/Character/ChangeCharacter/Name").GetComponent<Text>().text);
+            Assert.IsNotNull(Root.Find("Workspace/Character/WearSlot5/Selected"));
+            Assert.IsTrue(Content.GetComponentsInChildren<Button>().All(button => EarlyGameContent.FindItem(button.name.Substring("Item_".Length)).Kind == ItemKind.Accessory));
+            Assert.IsFalse(Content.GetComponentsInChildren<Button>().Any(button => Gear.IsHeroOnly(button.name.Substring("Item_".Length))));
+            CollectionAssert.AreEqual(gear, _save.EquippedGear);
+            CollectionAssert.AreEqual(inventory, _save.Items.Select(stack => stack.Id + ":" + stack.Count).ToArray());
+            Click("Workspace/Character/ChangeCharacter");
+            _canvas.SetActive(false);
+            Assert.IsFalse(picker.gameObject.activeSelf);
+        }
+
+        [TestCase(1440f)]
+        [TestCase(1920f)]
+        [TestCase(2400f)]
         public void FigureSlotsInventoryAndActionsStaySeparateAndPreviewDoesNotMutateTheSave(float width)
         {
             _canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(width, 960f);
@@ -77,15 +113,15 @@ namespace BiRyeoDo.Tests.UI
             Assert.Greater(viewport.yMin, actions.yMax);
             for (int i = 0; i < 6; i++) Assert.Greater(Bounds((RectTransform)Root.Find("Workspace/Character/WearSlot" + i)).height, 100f);
             foreach (var name in new[] { "Equip", "Remove", "Details", "Enhance" })
-                Assert.Greater(Bounds((RectTransform)Root.Find("Workspace/Inventory/Selection/" + name)).height, 94f);
+                Assert.Greater(Bounds((RectTransform)Root.Find("Workspace/Inventory/Selection/" + name)).height, 64f);
             var row = Content.Find("Row0");
-            Assert.AreEqual(3, row.GetComponentsInChildren<Button>().Length);
+            Assert.AreEqual(7, row.GetComponentsInChildren<Button>().Length);
             var cards = row.GetComponentsInChildren<Button>().Select(button => (RectTransform)button.transform).ToArray();
             foreach (var card in cards)
             {
                 var icon = Bounds((RectTransform)card.Find("Icon"));
-                Assert.That(icon.width, Is.EqualTo(160f).Within(.1f));
-                Assert.That(icon.height, Is.EqualTo(160f).Within(.1f));
+                Assert.That(icon.width, Is.EqualTo(88f).Within(.1f));
+                Assert.That(icon.height, Is.EqualTo(88f).Within(.1f));
                 Assert.Less(Bounds((RectTransform)card.Find("Name")).yMax, icon.yMin);
             }
             Assert.Less(Bounds(cards[0]).xMax, Bounds(cards[1]).xMin); Assert.Less(Bounds(cards[1]).xMax, Bounds(cards[2]).xMin);
@@ -125,12 +161,48 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsFalse(Root.Find("EquipmentInfo").gameObject.activeSelf);
         }
 
+        [TestCase(1440f)]
+        [TestCase(1920f)]
+        [TestCase(2400f)]
+        public void EverySlotFiltersItsKindAndShowsExactlyOneSelectionOnEachSide(float width)
+        {
+            _canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(width, 960f);
+            foreach (var item in EarlyGameContent.Items.Where(item => item.IsGear)) Inventory.Add(_save, item.Id, 1);
+            var originalGear = _save.EquippedGear.ToArray();
+            for (int slot = 0; slot < 6; slot++)
+            {
+                Click("Workspace/Character/WearSlot" + slot);
+                var cards = Content.GetComponentsInChildren<Button>();
+                Assert.IsNotEmpty(cards);
+                CollectionAssert.AreEquivalent(EarlyGameContent.Items.Where(item => item.IsGear && item.Kind == Gear.KindForSlot(slot)).Select(item => "Item_" + item.Id), cards.Select(card => card.name));
+                Assert.AreEqual(1, Root.Find("Workspace/Character").GetComponentsInChildren<Text>().Count(text => text.text == "선택 부위"));
+                Assert.IsNotNull(Root.Find("Workspace/Character/WearSlot" + slot + "/Selected"));
+                for (int rowIndex = 0; rowIndex < Content.childCount; rowIndex++)
+                    Assert.AreEqual(System.Math.Min(7, cards.Length - rowIndex * 7), Content.GetChild(rowIndex).GetComponentsInChildren<Button>().Length);
+                var target = cards.Last();
+                string targetName = target.name;
+                target.onClick.Invoke(); Canvas.ForceUpdateCanvases();
+                var selected = Content.GetComponentsInChildren<Button>().Single(card => card.transform.Find("Selected") != null);
+                Assert.AreEqual(targetName, selected.name);
+                Assert.IsNotNull(Root.Find("Workspace/Character/WearSlot" + slot + "/Selected"));
+                var effects = Root.Find("Workspace/Inventory/Selection").GetComponentsInChildren<Text>().Single(text => text.name == "Effects");
+                StringAssert.Contains("세트:", effects.text);
+                var icon = Bounds((RectTransform)selected.transform.Find("Icon"));
+                var cell = Bounds((RectTransform)selected.transform);
+                Assert.GreaterOrEqual(icon.xMin, cell.xMin);
+                Assert.LessOrEqual(icon.xMax, cell.xMax);
+                Assert.Less(Bounds((RectTransform)selected.transform.Find("Name")).yMax, icon.yMin);
+                Assert.Less(Bounds((RectTransform)selected.transform.Find("Icon")).yMax, Bounds((RectTransform)selected.transform.Find("Selected")).yMin);
+            }
+            CollectionAssert.AreEqual(originalGear, _save.EquippedGear);
+        }
+
         [Test]
         public void ArmorSelectionTargetsItsActualSlotAndAccessoryChoiceKeepsTheChosenSlot()
         {
             var boots = EarlyGameContent.Items.First(item => item.Kind == ItemKind.Boots && item.IsGear && !Gear.IsHeroOnly(item.Id));
             Inventory.Add(_save, boots.Id, 1);
-            Click("Workspace/Inventory/Group1");
+            Click("Workspace/Inventory/Group3");
             Content.GetComponentsInChildren<Button>().First(button => button.name == "Item_" + boots.Id).onClick.Invoke();
             StringAssert.StartsWith("신발", Root.Find("Workspace/Inventory/Selection/State").GetComponent<Text>().text);
             Click("Workspace/Character/WearSlot5");

@@ -5,7 +5,7 @@ namespace BiRyeoDo.Game.Systems
 {
     /// <summary>
     /// Painted UI icons come from ReadableIconLibrary; other artwork and legacy fallbacks are dropped into <c>Assets/_Project/Resources/Art</c>. Files are matched by name, so nothing has to be wired up:
-    /// <c>Backgrounds/stage_01.png</c>, <c>Characters/tiger.png</c> (enemy id), <c>Characters/player.png</c>, <c>Items/laundry_bat.png</c> (item id). Player, companions, enemies and story-only NPCs all live in <c>Characters</c>, found by id.
+    /// <c>Backgrounds/battle_forest.png</c>, <c>Characters/tiger.png</c> (enemy id), <c>Characters/player.png</c>, <c>Items/laundry_bat.png</c> (item id). Player, companions, enemies and story-only NPCs all live in <c>Characters</c>, found by id.
     /// Any missing file returns null and the UI falls back to its flat-colour placeholder.
     /// Sprites are cached at runtime. Readable sheets preserve their original dimensions and disable mipmaps.
     /// </summary>
@@ -13,16 +13,20 @@ namespace BiRyeoDo.Game.Systems
     {
         private static readonly Dictionary<string, Sprite> Cache = new Dictionary<string, Sprite>();
 
-        public static Sprite Background(int stageNumber) { return Load("Backgrounds/stage_" + stageNumber.ToString("00")); }
+        public static Sprite Background(int stageNumber) { return Environment(SceneryArt.StageKey(stageNumber)); }
+        public static Sprite Environment(string key) { return Load("Backgrounds/" + key); }
+        private static readonly HashSet<Sprite> CutoutIcons = new HashSet<Sprite>();
+        private static Sprite Cutout(Sprite sprite) { if (sprite != null) CutoutIcons.Add(sprite); return sprite; }
+        public static bool IsCutoutIcon(Sprite sprite) { return sprite != null && CutoutIcons.Contains(sprite); }
         public static Sprite Enemy(string enemyId) { return Load("Characters/" + enemyId); }
         /// <summary>Painted menu/command icon first; legacy fallback: <c>Icons/&lt;key&gt;.png</c> (daily, quest, fortune, star, tower, stage, promotion, party).</summary>
-        public static Sprite Icon(string key) { return ReadableIconLibrary.Find("Icon", key) ?? Load("Icons/" + key); }
+        public static Sprite Icon(string key) { return Cutout(ReadableIconLibrary.Find("Icon", key) ?? Load("Icons/" + key)); }
         /// <summary>Individually mapped item picture first; legacy fallback: <c>Items/&lt;item id&gt;.png</c>, else the kind's default <c>Items/_weapon|_armor|_pants|_boots|_accessory|_consumable|_material|_key.png</c>.</summary>
         public static Sprite Item(BiRyeoDo.Core.ItemData item)
         {
             if (item == null) return null;
-            return ReadableIconLibrary.Find("Item", item.Id) ?? Load("Items/" + item.Id)
-                ?? ReadableIconLibrary.Find("DefaultItem", item.Kind.ToString()) ?? Load("Items/_" + item.Kind.ToString().ToLowerInvariant());
+            return Cutout(ReadableIconLibrary.Find("Item", item.Id) ?? Load("Items/" + item.Id)
+                ?? ReadableIconLibrary.Find("DefaultItem", item.Kind.ToString()) ?? Load("Items/_" + item.Kind.ToString().ToLowerInvariant()));
         }
         /// <summary>Individually mapped martial-art picture first; legacy fallback: <c>Arts/&lt;art id&gt;.png</c> (also the skill id in battle); null when missing.</summary>
         public static Sprite Art(string artId) { return string.IsNullOrEmpty(artId) ? null : ReadableIconLibrary.Find("Art", artId) ?? Load("Arts/" + artId); }

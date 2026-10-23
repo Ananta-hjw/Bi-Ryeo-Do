@@ -21,7 +21,7 @@ The loader insets each region by three pixels to exclude grid seams. Sheet dimen
 
 Lists, inspectors, gacha and battle commands all use `ArtLibrary`. Inner-method cards use `ArtLibrary.InnerArt`. `WuxiaGlyph` renders painted symbols for mapped keys while preserving vector frames, stance markers and decorative halos. Changing its key invalidates both geometry and texture binding.
 
-`ReadableIconTests` covers content coverage, distinct item regions, valid sprite bounds, shared lookup results, fallback items and dynamic glyph texture changes. Run these tests in Unity EditMode. Cloud validation checks all 377 mappings, image bounds and metadata, and compiles UI/test sources; it does not execute Unity rendering or touch input.
+`ReadableIconTests` covers content coverage, distinct item regions, valid sprite bounds, shared lookup results, fallback items and dynamic glyph texture changes. Run these tests in Unity EditMode. Cloud validation checks all 385 mappings, image bounds and metadata, and compiles UI/test sources; it does not execute Unity rendering or touch input.
 
 The PNG sheets were created with image generation and their ID mappings were inspected and corrected against the existing content. To add an item, assign a distinct, visually verified region and add the catalog entry; keep the legacy fallback for future content without painted art.
 
@@ -37,33 +37,28 @@ Reviewed all 281 item entries, including all 229 equipment entries, against the 
 
 The three non-Biroe mythic weapons use separate effects: 성락검 has platinum/gold stars and a comet trail, 참천도 has a vermilion/gold cutting crescent, 혼천검 has jade/turquoise flowing vortices. These are visual treatments, without new gameplay effects or item statistics. The Biroe armor and accessories retain their original purple lightning artwork; the later explicit weapon-icon exchange is described below.
 
-`ITEM_ICON_AUDIT.csv` records every item's name, kind and resolved pixel rectangle (after the loader's three-pixel inset, with Y measured from the top). `corrected` marks mappings changed since the previous release (74 after the subsequent icon and aura updates); `verified` marks the remaining items. PNG artwork was inspected visually; automated checks verify all 377 catalog bounds, complete item coverage and zero overlapping item regions. These geometry checks complement, rather than replace, visual item identification.
+`ITEM_ICON_AUDIT.csv` records every item's name, kind and resolved pixel rectangle (after the loader's three-pixel inset, with Y measured from the top). `corrected` marks mappings changed since the previous release (74 after the subsequent icon and aura updates); `verified` marks the remaining items. PNG artwork was inspected visually; automated checks verify all 385 catalog bounds, complete item coverage and zero overlapping item regions. These geometry checks complement, rather than replace, visual item identification.
 
-Gacha grade previews now show three item cards per measured scrolling row, including a 128-pixel icon, name, effects and set. The grade and probability remain in the header. The close button stays outside the scrolling area. Existing three-column pull results and gacha probabilities are unchanged.
+Gacha grade previews now show five item cards per measured scrolling row, including a 104-pixel icon, name, effects and set. The grade and probability remain in the header. The close button stays outside the scrolling area. Pull results also use five columns, while gacha probabilities are unchanged.
 
 Regression coverage adds known-cell assertions for shifted armor, nine-column accessories, normal weapons, the mythic orb and the replacement atlas. The grade-preview test covers all grades at 1440/1920/2400-pixel widths, row counts, card separation, icon/name separation and no inventory/currency changes. Unity UI tests require the Editor; cloud validation compiles their source only.
 
-## Jin Biroedo and grade backgrounds
+## Jin Biroedo and transparent icon canvases
 
 The previous `jin_biroedo` region (`items_0`, cell 9) is now used by `biroe_blade`, as requested.
 `jin_biroedo` uses its own transparent PNG, with the original paired-dagger composition based on the user's reference photograph; only the hanging chain was removed, without switching to crossed daggers.
 Only the icon changed; the two weapons' effects and existing save IDs did not change.
 
-`ItemIconPalette` shares one cached `GradeIcon` UI material per colored grade. Normal uses the default material without additional grade color.
-Fine/rare/epic/legendary/mythic/transcendent use muted green/blue/purple/orange/red/gold backgrounds.
-The shader replaces only low-luminance cool-colored canvas pixels; neutral dark steel and bright magical effects retain their source colors.
-Transparent artwork is alpha-composited onto the same grade background, preserving its soft glow.
-`ItemArt.Apply` applies the treatment in equipment, bag, gacha, rewards, item details and discovered codex entries.
-Changing a reused icon back to normal or a placeholder resets the material. The shader supports UI stencil masks and RectMask2D clipping.
-No atlas copies, GPU readbacks or per-item material allocations are used.
+`IconCutout` now shares one transparent-canvas UI material across all item grades and menu/command icons. The old grade-coloured backplates were removed at the user's request. The shader keys the dark teal/blue painted canvas into alpha while preserving neutral metal and bright effects; source alpha, UI stencil masks and RectMask2D clipping remain supported. Colour matching uses gamma-space values in both Unity colour spaces.
+`ItemArt.Apply`, navigation images, semantic glyphs and battle commands/tooltips use the material. Martial-art and inner-method pictures, portraits and scenery keep the standard material; reused images reset when their content changes. Grade names and card frames still identify rarity. This is a rendering treatment: original painted atlas pixels stay intact and there are no GPU readbacks or per-item texture copies. Shader compilation and visual edge quality require Unity/device verification.
 
 The item definition update exchanges all base effects and breakthrough trait packages of 적염도 and 폭풍도:
 적염도 is legendary (attack +22%, critical chance +3%, speed +3), 폭풍도 is epic (HP +3%, attack +16%).
 적염도 keeps its flame-set membership; 폭풍도 keeps its prior absence of a set. Grade-dependent costs and gacha membership follow the exchanged grades.
 
 Validation: 41 targeted effect/trait tests passed. Full Core: 657 tests, 642 passed and the same 15 pre-existing balance failures.
-UI C# and test sources compile successfully. Shader GPU compilation, actual background colors and mask rendering still require a Unity Editor/device check;
-the cloud environment cannot execute those rendering tests. PNG alpha and all 377 catalog bounds/281 unique item regions were checked separately.
+UI C# and test sources compile successfully. Shader GPU compilation, alpha-key edge quality and mask rendering still require a Unity Editor/device check;
+the cloud environment cannot execute those rendering tests. PNG alpha and all 385 catalog bounds/281 unique item regions were checked separately.
 
 ## Aura colors and distinct equipment effects
 
@@ -74,3 +69,29 @@ All 229 equipment definitions now have unique base-effect combinations and disti
 The tuning guard weights HP/Qi/attack/defense percentage points and speed at 1, critical chance percentage points at 2, and critical-damage percentage points at 0.25. Each redistributed item retains its previous weighted total; this guards against blanket increases but does not establish equal combat performance for every build.
 
 The 63 differentiation checks pass, including distinct numeric/displayed profiles and preserved weighted totals. The full suite retains the same 15 pre-existing failure names and messages. UI/test C# compilation succeeds; Unity rendering, shader execution and device appearance still require Editor/device verification.
+
+## Compact equipment workspace
+
+Equipment inventory uses seven cards per measured scrolling row with 88-pixel icons, names and worn/star states. Effects and set names for the selected item appear in the action panel below; full details remain accessible there. Six part selectors and the six worn slots both filter the list to the selected kind, with separate accessory destinations. Selecting a candidate never changes the chosen destination slot. Gold labels distinguish the selected part on the left from the selected item on the right, independently of rarity colors.
+
+UI regression sources cover five-column single/ten/fifty pull results and grade previews, seven-column equipment rows, all six slot filters, selection markers, accessory destination retention and unchanged inventories during preview at 1440/1920/2400 widths. These sources compile in the cloud; executing their layout and input assertions requires Unity Editor.
+
+## Record notices and separate menu symbols
+
+`menus.png` adds eight distinct 4×2 regions: a single swordsman for companions, a lantern-lit inn for factions, an open encyclopedia, an achievement medal, a brush/scroll for stories, paired pendants for memories, a dagger altar for the ritual, and sealed bamboo slips/reward purse for missions. Party formation retains its group symbol, and the tower retains its tower symbol. Record menu entries no longer reuse those unrelated destination icons; the redundant companion/status entry is removed.
+
+The bottom record tab now aggregates unread codex discoveries, newly accessible story recaps, new faction tiers, claimable achievements, unseen memories and the available ritual. `SaveData.ReadRecordUpdates` persists page acknowledgements. Opening the relevant codex/story/faction page acknowledges its current updates, while rewards and memory scenes remain pending until claimed/completed. Opening only the record tab does not clear notices. Fortune choice buttons retain their height and now have a 3% screen-height gap.
+
+Validation: three new Core notice tests pass. Full Core: 660 tests, 645 pass, with the same 15 pre-existing failures. UI and regression sources compile; badge rendering, icon readability and touch spacing still need Unity Editor/device verification.
+
+## Scene backgrounds
+
+See `SCENERY_ART.md` for the ten new environment assets and the seven battle themes. The former `stage_01.png` and its repeated mountain wash have been removed. Scene images use centered UV cover cropping rather than nonuniform stretching; UI panels retain dark reading surfaces.
+
+## Stage and character browsing
+
+The stage selector uses two stage cards per measured row, preserving the shared difficulty picker, individual stage actions and progression locks. Inner-method lists use three cards per row with 96-pixel icons and measured text height. The companion screen no longer reserves an upper character strip or profile shortcuts to party/equipment; its larger workspace has a single profile-bottom character-change action. That action opens a scrollable three-column portrait picker containing the protagonist and joined companions. Selecting a person closes the picker, keeps the current status/arts/bonds page, and does not equip gear or change party deployment. Switching away closes the picker. Equipment uses the same joined-character picker from its underlined name/level header with a dropdown arrow. The upper character strip is removed and the freed height expands the equipment workspace. Changing the viewed person preserves the selected equipment destination (including accessory slot 2), refreshes hero-only filtering, and does not equip anything.
+
+UI regression sources cover two-column stage availability, three-column inner methods, the character picker's available roster, cancel/selection behavior and page retention at several landscape widths. C# compilation passes; UI execution and touch checks require Unity Editor.
+
+The shared `CharacterPicker` component keeps roster filtering, selected-person marking, portrait layout and dismissal identical in companion/equipment workspaces. Equipment picker regressions cover available characters, cancel, slot retention, hero-only filtering and no inventory/equipment changes at 1440/1920/2400 widths. Cloud validation compiles these sources; Unity Editor is required to execute UI checks.

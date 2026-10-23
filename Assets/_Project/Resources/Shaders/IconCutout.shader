@@ -1,10 +1,9 @@
-Shader "BiRyeoDo/UI/GradeIcon"
+Shader "BiRyeoDo/UI/IconCutout"
 {
     Properties
     {
         [PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
         _Color ("Tint", Color) = (1,1,1,1)
-        _Background ("Grade Background", Color) = (0.075,0.160,0.115,1)
         _StencilComp ("Stencil Comparison", Float) = 8
         _Stencil ("Stencil ID", Float) = 0
         _StencilOp ("Stencil Operation", Float) = 0
@@ -32,7 +31,7 @@ Shader "BiRyeoDo/UI/GradeIcon"
         ColorMask [_ColorMask]
         Pass
         {
-            Name "GradeIcon"
+            Name "IconCutout"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -59,7 +58,6 @@ Shader "BiRyeoDo/UI/GradeIcon"
             sampler2D _MainTex;
             fixed4 _Color;
             fixed4 _TextureSampleAdd;
-            fixed4 _Background;
             float4 _ClipRect;
             v2f vert(appdata v)
             {
@@ -77,12 +75,16 @@ Shader "BiRyeoDo/UI/GradeIcon"
                 fixed4 source = tex2D(_MainTex, i.texcoord) + _TextureSampleAdd;
                 // Select only the original low-luminance blue/teal canvas. Neutral dark steel,
                 // warm materials and bright colored effects retain their source colors.
-                float distanceToCanvas = distance(source.rgb, float3(.018, .075, .100));
-                float coolCanvas = smoothstep(.004, .024, max(source.g, source.b) - source.r);
-                float canvasMask = (1.0 - smoothstep(.035, .100, distanceToCanvas)) * coolCanvas;
-                fixed3 art = lerp(source.rgb, _Background.rgb, canvasMask);
-                // Transparent art gets a grade backplate; soft glow alpha is preserved in composition.
-                fixed4 color = fixed4(lerp(_Background.rgb, art, source.a), 1.0) * i.color;
+                #ifdef UNITY_COLORSPACE_GAMMA
+                float3 keyColor = source.rgb;
+                #else
+                float3 keyColor = LinearToGammaSpace(source.rgb);
+                #endif
+                float distanceToCanvas = distance(keyColor, float3(.018, .075, .100));
+                float coolCanvas = smoothstep(.002, .012, max(keyColor.g, keyColor.b) - keyColor.r);
+                float canvasMask = (1.0 - smoothstep(.110, .170, distanceToCanvas)) * coolCanvas;
+                // Keep source alpha and luminous effects; never composite a solid backplate.
+                fixed4 color = fixed4(source.rgb, source.a * (1.0 - canvasMask)) * i.color;
                 #ifdef UNITY_UI_CLIP_RECT
                 color.a *= UnityGet2DClipping(i.worldPosition.xy, _ClipRect);
                 #endif

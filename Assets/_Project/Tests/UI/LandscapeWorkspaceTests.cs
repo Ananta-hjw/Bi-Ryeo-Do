@@ -34,7 +34,7 @@ namespace BiRyeoDo.Tests.UI
             _canvas.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
             _canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(1920f, 960f);
             _screen = _canvas.AddComponent<CompanionScreen>();
-            _screen.Build(_canvas.GetComponent<RectTransform>(), () => { }, () => { });
+            _screen.Build(_canvas.GetComponent<RectTransform>(), () => { });
         }
 
         [TearDown]
@@ -53,6 +53,15 @@ namespace BiRyeoDo.Tests.UI
             Canvas.ForceUpdateCanvases();
         }
 
+        private void ChoosePerson(string owner)
+        {
+            Click("Identity/ChangeCharacter");
+            var picker = _canvas.transform.Find("CharacterPicker");
+            var button = picker.GetComponentsInChildren<Button>().Single(candidate => candidate.name == "Person_" + owner);
+            button.onClick.Invoke(); Canvas.ForceUpdateCanvases();
+            Assert.IsFalse(picker.gameObject.activeSelf);
+        }
+
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
@@ -63,7 +72,7 @@ namespace BiRyeoDo.Tests.UI
             var companion = EarlyGameContent.Companions.First();
             foreach (var owner in new[] { Inventory.Hero, companion.Id })
             {
-                Click("People/Viewport/Content/Person_" + owner);
+                ChoosePerson(owner);
                 double power = owner == Inventory.Hero
                     ? Realm.Power(InnerArts.HeroStatsBeforeRealm(_save))
                     : CompanionGrowth.Create(_save, companion).RealmPowerBeforeBonus;
@@ -90,17 +99,33 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsNotNull(_canvas.transform.Find("Page/Realm/Progress/Fill"));
         }
 
-        [Test]
-        public void EquipmentShortcutOpensTheDedicatedRouteForTheSelectedCompanion()
+        [TestCase(1440f)]
+        [TestCase(1920f)]
+        [TestCase(2400f)]
+        public void ProfilePickerReplacesTheStripAndShortcutsAndPreservesTheCurrentPage(float width)
         {
-            string selected = null;
-            typeof(CompanionScreen).GetField("_openEquipment", BindingFlags.Instance | BindingFlags.NonPublic)
-                .SetValue(_screen, (System.Action<string>)(owner => selected = owner));
+            _canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(width, 960f);
+            Assert.IsNull(_canvas.transform.Find("People"));
+            Assert.IsNull(_canvas.transform.Find("Identity/Formation"));
+            Assert.IsNull(_canvas.transform.Find("Identity/Equipment"));
+            var change = (RectTransform)_canvas.transform.Find("Identity/ChangeCharacter");
+            Assert.Greater(change.rect.height, 90f);
+            Click("Pages/Page2");
+            Click("Identity/ChangeCharacter");
+            var picker = _canvas.transform.Find("CharacterPicker");
+            var names = picker.GetComponentsInChildren<Button>().Where(button => button.name.StartsWith("Person_")).Select(button => button.name).ToArray();
+            CollectionAssert.AreEquivalent(new[] { "Person_" + Inventory.Hero }.Concat(EarlyGameContent.Companions.Where(c => c.JoinStage <= _save.HighestUnlockedStage).Select(c => "Person_" + c.Id)), names);
+            Click("CharacterPicker/Card/Close");
+            Assert.IsFalse(picker.gameObject.activeSelf);
+            var inventory = _save.Items.Select(stack => stack.Id + ":" + stack.Count).ToArray();
             var companion = EarlyGameContent.Companions.First();
-            Click("People/Viewport/Content/Person_" + companion.Id);
-            Click("Identity/Equipment");
-            Assert.AreEqual(companion.Id, selected);
-            Assert.IsNull(_canvas.transform.Find("EquipmentManager"));
+            ChoosePerson(companion.Id);
+            Assert.AreEqual(companion.Name, _canvas.transform.Find("Identity/Name").GetComponent<Text>().text);
+            Assert.IsNotNull(_canvas.transform.Find("Page/List/Viewport/Content/Row0/Train"));
+            CollectionAssert.AreEqual(inventory, _save.Items.Select(stack => stack.Id + ":" + stack.Count).ToArray());
+            Click("Identity/ChangeCharacter");
+            _canvas.SetActive(false);
+            Assert.IsFalse(picker.gameObject.activeSelf);
         }
 
         [TestCase(1440f)]
@@ -113,7 +138,7 @@ namespace BiRyeoDo.Tests.UI
             Click("Pages/Page1");
             foreach (var owner in new[] { Inventory.Hero, EarlyGameContent.Companions.First().Id })
             {
-                Click("People/Viewport/Content/Person_" + owner);
+                ChoosePerson(owner);
                 var unit = owner == Inventory.Hero ? Formation.BuildHero(_save) : CompanionGrowth.Create(_save, EarlyGameContent.FindCompanion(owner));
                 var expected = EarlyGameContent.Arts.Where(art => (owner == Inventory.Hero ? art.OwnerId == null : art.OwnerId == owner)
                     && unit.Skills.Any(skill => skill.Id == art.Id)).ToList();
@@ -139,7 +164,7 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsNull(_canvas.transform.Find("Page/HeroGrowthViewport"));
             Assert.IsNotNull(_canvas.transform.Find("Page/ArtsMenu"));
             var companion = EarlyGameContent.Companions.First();
-            Click("People/Viewport/Content/Person_" + companion.Id);
+            ChoosePerson(companion.Id);
             Click("Pages/Page2");
             const string trainingPath = "Page/List/Viewport/Content/Row0/Train";
             Assert.IsTrue(_canvas.transform.Find(trainingPath).GetComponent<Button>().interactable);
@@ -156,10 +181,11 @@ namespace BiRyeoDo.Tests.UI
         public void UnjoinedPersonDisappearsAndSelectionFallsBackSafely()
         {
             var companion = EarlyGameContent.Companions.OrderByDescending(c => c.JoinStage).First();
-            Click("People/Viewport/Content/Person_" + companion.Id);
+            ChoosePerson(companion.Id);
             _save.ClearedStage = 0;
             _screen.Refresh();
-            Assert.IsNull(_canvas.transform.Find("People/Viewport/Content/Person_" + companion.Id));
+            Click("Identity/ChangeCharacter");
+            Assert.IsFalse(_canvas.transform.Find("CharacterPicker").GetComponentsInChildren<Button>().Any(button => button.name == "Person_" + companion.Id));
             Assert.AreEqual("비류연", _canvas.transform.Find("Identity/Name").GetComponent<Text>().text);
         }
 

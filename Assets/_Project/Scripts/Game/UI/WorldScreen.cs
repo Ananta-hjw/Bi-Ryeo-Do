@@ -61,7 +61,7 @@ namespace BiRyeoDo.Game.UI
 
             // Portrait-led portrait layout: identity, character, utility rail, journey and activity cards.
             _lobbyBg = UiFactory.Panel("Scenery", root, Vector2.zero, Vector2.one, UiFactory.Parchment);
-            _lobbyBg.preserveAspect = false;
+            BackgroundCover.Apply(_lobbyBg);
             UiFactory.Panel("InkWash", root, Vector2.zero, Vector2.one, new Color(.02f, .07f, .075f, .62f));
             UiFactory.Panel("FloorShade", root, Vector2.zero, new Vector2(1f, .44f), new Color(.025f, .06f, .065f, .84f));
             UiFactory.Glyph("halo", root, new Vector2(-.08f, .43f), new Vector2(.78f, .91f), new Color(.75f, .66f, .43f, .16f));
@@ -94,6 +94,7 @@ namespace BiRyeoDo.Game.UI
 
             var journey = UiFactory.Panel("Journey", root, new Vector2(.035f, .213f), new Vector2(.965f, .340f), UiFactory.InkSoft);
             _featArt = UiFactory.Panel("Landscape", journey.transform, Vector2.zero, Vector2.one, new Color(.36f, .43f, .36f, .25f));
+            BackgroundCover.Apply(_featArt);
             _featArt.sprite = ArtLibrary.Background(1);
             UiFactory.Frame(journey.transform, UiFactory.Gold, 3f);
             UiFactory.Label("JourneyKicker", journey.transform, new Vector2(.035f, .76f), new Vector2(.7f, .96f), "다 음  여 정", 30, UiFactory.Gold, TextAnchor.MiddleLeft);
@@ -118,7 +119,7 @@ namespace BiRyeoDo.Game.UI
             BuildStatusBar(root);
 
             // ---- Stage list (opened by 스테이지 출전): difficulty picker and every stage.
-            const float gap = 16f, cardH = 150f;
+            const float gap = 16f, cardH = 210f;
             _stageOverlay = UiFactory.Rect("StageOverlay", root, Vector2.zero, Vector2.one);
             _stageOverlay.gameObject.AddComponent<Image>().color = UiFactory.Parchment;
             _starsTitle = UiFactory.Label("Title", _stageOverlay, new Vector2(0.05f, 0.925f), new Vector2(0.95f, 0.995f), "스테이지", 42, UiFactory.Gold);
@@ -148,23 +149,30 @@ namespace BiRyeoDo.Game.UI
             ReadingList.Register(diffRow, 100f, gap);
             y += 84f + gap;
 
+            RectTransform stageRow = null;
             for (int i = 0; i < stages.Length; i++)
             {
                 var st = stages[i];
-                var rt = Place(content, 0.04f, 0.96f, y, cardH, UiFactory.Ink);
+                if (i % 2 == 0)
+                {
+                    stageRow = Place(content, .025f, .975f, y, cardH, Color.clear);
+                    stageRow.name = "StageRow" + i / 2;
+                    ReadingList.Register(stageRow, cardH, gap);
+                    y += cardH + gap;
+                }
+                float x = i % 2 * .51f;
+                var rt = UiFactory.Panel("Stage" + st.Number, stageRow, new Vector2(x, 0f), new Vector2(x + .49f, 1f), UiFactory.Ink).rectTransform;
                 UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
                 var row = new Row { Stage = st };
                 var badge = UiFactory.Panel("Badge", rt, new Vector2(0.025f, 0.14f), new Vector2(0.135f, 0.86f), new Color(0.20f, 0.17f, 0.10f, 1f));
                 UiFactory.Frame(badge.transform, UiFactory.Gold, 2f);
-                UiFactory.Label("Num", badge.transform, Vector2.zero, Vector2.one, st.Number.ToString(), 46, UiFactory.Gold);
-                row.Title = UiFactory.Label("Title", rt, new Vector2(0.16f, 0.50f), new Vector2(0.64f, 0.96f), "", 36, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.16f, 0.04f), new Vector2(0.64f, 0.50f), "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Num", badge.transform, Vector2.zero, Vector2.one, st.Number.ToString(), 40, UiFactory.Gold);
+                row.Title = UiFactory.Label("Title", rt, new Vector2(0.16f, 0.50f), new Vector2(0.64f, 0.96f), "", 30, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.16f, 0.04f), new Vector2(0.64f, 0.50f), "", 26, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 row.Button = UiFactory.Button("Go" + i, rt, new Vector2(0.66f, 0.15f), new Vector2(0.97f, 0.85f), "", UiFactory.Red, () => OnStagePressed(st, onStart, true), 34);
                 row.ButtonImage = row.Button.GetComponent<Image>();
                 row.ButtonLabel = row.Button.GetComponentInChildren<Text>();
                 _rows.Add(row);
-                ReadingList.Register(rt, Mathf.Max(180f, cardH), gap);
-                y += cardH + gap;
             }
             content.sizeDelta = new Vector2(0f, y + gap);
             UiFactory.Button("Close", _stageOverlay, new Vector2(0.3f, .015f), new Vector2(0.7f, .14f), "닫기", UiFactory.InkSoft, () => { _stageOverlay.gameObject.SetActive(false); Refresh(); }, 34);
@@ -261,6 +269,7 @@ namespace BiRyeoDo.Game.UI
             {
                 var pic = UiFactory.Panel("IconArt", rt, iconMin, iconMax, Color.white);
                 pic.sprite = art;
+                IconCutout.Apply(pic);
                 pic.preserveAspect = true;
             }
             else UiFactory.Glyph(iconKey, rt, iconMin, iconMax, UiFactory.Gold);
@@ -581,6 +590,8 @@ namespace BiRyeoDo.Game.UI
         {
             Refresh();
             _stageOverlay.gameObject.SetActive(true);
+            Canvas.ForceUpdateCanvases();
+            _stageOverlay.Find("Viewport/Content").GetComponent<ReadingList>()?.Reflow(true);
             _stageOverlay.SetAsLastSibling();
         }
 
@@ -689,14 +700,14 @@ namespace BiRyeoDo.Game.UI
             ClearChildren(_fortuneOverlay);
             UiFactory.Label("Title", _fortuneOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), ev.Title, 44, UiFactory.Gold);
             UiFactory.ScrollBody(UiFactory.Label("Text", _fortuneOverlay, new Vector2(0.07f, 0.52f), new Vector2(0.93f, 0.90f), string.Join("\n\n", ev.Text), 34, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 32);
-            float y = 0.46f;
+            float y = 0.48f;
             foreach (var ch in ev.Choices)
             {
                 var choice = ch;
                 bool ok = Fortunes.CanChoose(save, choice);
                 var btn = UiFactory.Button("Choice", _fortuneOverlay, new Vector2(0.08f, y - .11f), new Vector2(0.92f, y), choice.Label + (ok ? "" : " (두 부족)"), ok ? UiFactory.Red : UiFactory.InkSoft, () => ResolveFortune(ev, choice), 30);
                 btn.interactable = ok;
-                y -= 0.11f;
+                y -= 0.14f;
             }
         }
 

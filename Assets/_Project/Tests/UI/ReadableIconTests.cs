@@ -79,32 +79,46 @@ namespace BiRyeoDo.Tests.UI
         }
 
         [Test]
-        public void GradeBackgroundMaterialsAreSharedSubtleAndResetWhenAnIconBecomesNormal()
+        public void ItemsAndMenuIconsUseOneTransparentMaterialWhileArtsAndPortraitsRemainUnchanged()
         {
-            var first = new GameObject("First", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-            var second = new GameObject("Second", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            var go = new GameObject("CutoutIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             try
             {
-                var a = first.GetComponent<Image>(); var b = second.GetComponent<Image>();
-                var colors = new HashSet<Color>();
-                foreach (ItemGrade grade in new[] { ItemGrade.Fine, ItemGrade.Rare, ItemGrade.Epic, ItemGrade.Legendary, ItemGrade.Mythic, ItemGrade.Transcendent })
+                var image = go.GetComponent<Image>();
+                foreach (var item in EarlyGameContent.Items)
                 {
-                    ItemIconPalette.Apply(a, grade); ItemIconPalette.Apply(b, grade);
-                    Assert.AreSame(a.material, b.material);
-                    Assert.AreEqual("BiRyeoDo/UI/GradeIcon", a.material.shader.name);
-                    Assert.IsTrue(a.material.HasProperty("_Stencil"));
-                    var background = ItemIconPalette.Background(grade);
-                    Assert.AreEqual(background, a.material.GetColor("_Background"));
-                    Assert.LessOrEqual(Mathf.Max(background.r, Mathf.Max(background.g, background.b)), .25f);
-                    Assert.IsTrue(colors.Add(background));
+                    image.sprite = ArtLibrary.Item(item);
+                    IconCutout.Apply(image);
+                    Assert.AreSame(IconCutout.Material, image.material, item.Id);
+                    Assert.IsFalse(image.material.HasProperty("_Background"));
+                    Assert.IsTrue(image.material.HasProperty("_Stencil"));
                 }
-                Assert.Greater(ItemIconPalette.Background(ItemGrade.Fine).g, ItemIconPalette.Background(ItemGrade.Fine).r);
-                Assert.Greater(ItemIconPalette.Background(ItemGrade.Rare).b, ItemIconPalette.Background(ItemGrade.Rare).r);
-                ItemIconPalette.Apply(a, ItemGrade.Normal);
-                Assert.AreEqual(Graphic.defaultGraphicMaterial, a.material);
-                Assert.AreEqual(Color.clear, ItemIconPalette.Background(ItemGrade.Normal));
+                image.sprite = ArtLibrary.Icon("companion"); IconCutout.Apply(image);
+                Assert.AreSame(IconCutout.Material, image.material);
+                foreach (var art in EarlyGameContent.Arts)
+                {
+                    image.sprite = ArtLibrary.Art(art.Id); IconCutout.Apply(image);
+                    Assert.AreEqual(Graphic.defaultGraphicMaterial, image.material, art.Id);
+                }
+                image.sprite = ArtLibrary.InnerArt(InnerArts.All[0].Id); IconCutout.Apply(image);
+                Assert.AreEqual(Graphic.defaultGraphicMaterial, image.material);
+                image.sprite = null; IconCutout.Apply(image);
+                Assert.AreEqual(Graphic.defaultGraphicMaterial, image.material);
             }
-            finally { Object.DestroyImmediate(first); Object.DestroyImmediate(second); }
+            finally { Object.DestroyImmediate(go); }
+        }
+
+        [Test]
+        public void DifferentMenuFunctionsUseDifferentPaintedRegions()
+        {
+            var regions = new HashSet<string>();
+            foreach (var key in new[] { "companion", "party", "faction", "tower", "codex", "record", "achievement", "star",
+                "story", "quest", "memories", "fortune", "ritual", "arts", "missions", "gacha" })
+            {
+                var sprite = ArtLibrary.Icon(key);
+                CheckBounds(sprite, key);
+                Assert.IsTrue(regions.Add(sprite.texture.name + ":" + sprite.rect), key);
+            }
         }
 
         [Test]
@@ -112,7 +126,8 @@ namespace BiRyeoDo.Tests.UI
         {
             foreach (var key in new[] { "cmd_attack", "cmd_guard", "cmd_meditate", "cmd_item", "cmd_joint", "ultimate_slot",
                 "tab_world", "party", "equipment", "tab_arts", "tab_bag", "tab_record", "gacha", "quest", "daily",
-                "fortune", "tower", "promotion", "star", "record", "settings", "coin" })
+                "fortune", "tower", "promotion", "star", "record", "settings", "coin",
+                "companion", "faction", "codex", "achievement", "story", "memories", "ritual", "missions" })
                 CheckBounds(ArtLibrary.Icon(key), key);
             Assert.IsNull(ReadableIconLibrary.Find("Item", "unknown_icon_id"));
             var item = new ItemData { Id = "unknown_icon_id", Name = "Test weapon", Kind = ItemKind.Weapon };

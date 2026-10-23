@@ -35,31 +35,31 @@ namespace BiRyeoDo.Game.UI
             {
                 var a = InnerArts.All[i];
                 bool unlocked = InnerArts.IsUnlocked(save, a), learned = InnerArts.IsLearned(save, a.Id), equipped = InnerArts.IsEquipped(save, a.Id);
-                if (i % 2 == 0)
+                if (i % 3 == 0)
                 {
-                    int rowIndex = i / 2;
+                    int rowIndex = i / 3;
                     row = UiFactory.Rect("Row" + rowIndex, content, new Vector2(.02f, 1f), new Vector2(.98f, 1f));
                     row.pivot = new Vector2(.5f, 1f);
                     row.sizeDelta = new Vector2(0f, rowHeight);
                     row.anchoredPosition = new Vector2(0f, -gap - rowIndex * (rowHeight + gap));
                     ReadingList.Register(row, rowHeight, gap);
                 }
-                float left = i % 2 == 0 ? 0f : .51f;
-                var band = UiFactory.Panel("Card" + i, row, new Vector2(left, 0f), new Vector2(left + .49f, 1f), UiFactory.Ink).rectTransform;
+                float left = i % 3 * .338f;
+                var band = UiFactory.Panel("Card" + i, row, new Vector2(left, 0f), new Vector2(left + .324f, 1f), UiFactory.Ink).rectTransform;
                 band.GetComponent<Image>().raycastTarget = true;
                 UiFactory.Frame(band, equipped ? UiFactory.Gold : UiFactory.GoldDim, 2f);
                 var icon = UiFactory.Rect("Icon", band, new Vector2(0f, 1f), new Vector2(0f, 1f));
                 icon.pivot = new Vector2(0f, 1f);
                 icon.anchoredPosition = new Vector2(16f, -16f);
-                icon.sizeDelta = new Vector2(112f, 112f);
+                icon.sizeDelta = new Vector2(96f, 96f);
                 var picture = UiFactory.Panel("Picture", icon, Vector2.zero, Vector2.one, unlocked ? Color.white : new Color(.45f, .45f, .48f));
                 picture.sprite = ArtLibrary.InnerArt(a.Id);
                 picture.preserveAspect = true;
                 if (picture.sprite == null)
                     UiFactory.Glyph("fortune", icon, Vector2.zero, Vector2.one, unlocked ? UiFactory.Gold : UiFactory.Dim);
-                UiFactory.Label("Name", band, new Vector2(.25f, .74f), new Vector2(.96f, .97f), (unlocked ? a.Name : "???") + (InnerArts.Level(save, a.Id) > 0 ? "  +" + InnerArts.Level(save, a.Id) : "") + (equipped ? "  [장착]" : "") + (NewIds.Contains(a.Id) && !learned ? "  <color=#FF6A5A>[새 심법]</color>" : ""), 32, unlocked ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
+                UiFactory.Label("Name", band, new Vector2(.30f, .74f), new Vector2(.96f, .97f), (unlocked ? a.Name : "???") + (InnerArts.Level(save, a.Id) > 0 ? "  +" + InnerArts.Level(save, a.Id) : "") + (equipped ? "  [장착]" : "") + (NewIds.Contains(a.Id) && !learned ? "  <color=#FF6A5A>[새 심법]</color>" : ""), 28, unlocked ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
                 UiFactory.Label("Effect", band, new Vector2(.04f, .46f), new Vector2(.96f, .69f), unlocked ? InnerArts.EffectText(a, InnerArts.Level(save, a.Id)) : InnerArts.UnlockText(a) + "하면 열립니다", 30, new Color(0.45f, 0.85f, 0.5f, 1f), TextAnchor.MiddleLeft, FontStyle.Normal);
-                UiFactory.Label("Desc", band, new Vector2(.04f, .30f), new Vector2(.96f, .45f), unlocked ? a.Description : "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Desc", band, new Vector2(.04f, .30f), new Vector2(.96f, .45f), unlocked ? a.Description : "", 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var id = a.Id;
                 string label; Color color; bool enabled;
                 if (learned) { label = equipped ? "해제" : "장착"; color = equipped ? UiFactory.InkSoft : UiFactory.Red; enabled = true; }
@@ -75,7 +75,7 @@ namespace BiRyeoDo.Game.UI
                     up.interactable = can;
                 }
             }
-            content.sizeDelta = new Vector2(0f, gap + ((InnerArts.All.Length + 1) / 2) * (rowHeight + gap));
+            content.sizeDelta = new Vector2(0f, gap + ((InnerArts.All.Length + 2) / 3) * (rowHeight + gap));
             Canvas.ForceUpdateCanvases();
             var layout = content.GetComponent<ReadingList>();
             if (layout != null) layout.Reflow();

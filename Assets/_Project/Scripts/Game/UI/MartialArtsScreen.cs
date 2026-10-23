@@ -181,6 +181,7 @@ namespace BiRyeoDo.Game.UI
             {
                 var ki = UiFactory.Panel("KindIcon", card.transform, new Vector2(0.05f, 0.855f), new Vector2(0.115f, 0.915f), Color.white);
                 ki.sprite = kindIcon;
+                IconCutout.Apply(ki);
                 ki.preserveAspect = true;
                 kindX = 0.125f;
             }

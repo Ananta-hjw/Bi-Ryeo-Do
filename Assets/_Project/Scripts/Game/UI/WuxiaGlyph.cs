@@ -29,6 +29,11 @@ namespace BiRyeoDo.Game.UI
         private string _iconKey;
         private Sprite _icon;
 
+        public override Material defaultMaterial
+        {
+            get { ResolveIcon(); return _icon != null ? IconCutout.Material ?? base.defaultMaterial : base.defaultMaterial; }
+        }
+
         public override Texture mainTexture
         {
             get { ResolveIcon(); return _icon != null ? _icon.texture : base.mainTexture; }

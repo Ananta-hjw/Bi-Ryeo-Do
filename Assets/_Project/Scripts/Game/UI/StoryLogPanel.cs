@@ -19,6 +19,7 @@ namespace BiRyeoDo.Game.UI
         public void Open()
         {
             var save = GameManager.Instance.Save;
+            if (RecordUpdates.Acknowledge(save, RecordUpdates.StoryPage) && Application.isPlaying) GameManager.Instance.SaveNow();
             Begin();
             var readable = StoryBriefings.Readable(save);
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "이야기 줄거리", 40, UiFactory.Gold);

@@ -78,6 +78,7 @@ namespace BiRyeoDo.Game.UI
         {
             var save = GameManager.Instance.Save;
             Codex.Sync(save);
+            if (RecordUpdates.Acknowledge(save, RecordUpdates.CodexPage) && Application.isPlaying) GameManager.Instance.SaveNow();
             Clear(_codexRoot);
             _codexRoot.gameObject.SetActive(true);
             if (!Tutorial.IsDone(save, "codex") && HelpPanel.Instance != null) HelpPanel.Instance.Show("codex", true);

@@ -20,6 +20,7 @@ namespace BiRyeoDo.Game.UI
         public void Open(string toast = null)
         {
             var save = GameManager.Instance.Save;
+            if (RecordUpdates.Acknowledge(save, RecordUpdates.FactionPage) && Application.isPlaying) GameManager.Instance.SaveNow();
             Begin();
             if (!Tutorial.IsDone(save, "faction") && HelpPanel.Instance != null) HelpPanel.Instance.Show("faction", true);
 
