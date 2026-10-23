@@ -43,8 +43,12 @@ namespace BiRyeoDo.Game.UI
         private void LateUpdate() { Reflow(); }
 
         /// <summary>Measures new rows immediately before a caller restores its saved scroll position.</summary>
-        public void Reflow()
+        public void Reflow() { Reflow(false); }
+
+        /// <summary>Force a measurement when new cells become visible inside an existing row.</summary>
+        public void Reflow(bool force)
         {
+            _dirty |= force;
             var content = (RectTransform)transform;
             if (content.rect.width < 1f) return;
             // Reused bag/result rows can become visible before their text callbacks were registered.

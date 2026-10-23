@@ -24,11 +24,11 @@ namespace BiRyeoDo.Game.UI
             if (!Tutorial.IsDone(save, "inner") && HelpPanel.Instance != null) HelpPanel.Instance.Show("inner", true);
 
             int slots = InnerArts.SlotCount(save);
-            UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "심법 · 장착 " + save.EquippedInner.Count + "/" + slots, 44, UiFactory.Gold);
+            UiFactory.TabHeader(Root, "arts", "심법 · 장착 " + save.EquippedInner.Count + "/" + slots, .97f);
             string slotNote = slots >= 4 ? "모든 칸이 열렸습니다" : "다음 칸: " + (save.ClearedStage < 10 ? "스테이지 10 돌파" : save.ClearedStage < 20 ? "스테이지 20 돌파" : "어려움 스테이지 " + InnerArts.FourthSlotStage + " 돌파");
-            UiFactory.ScrollBody(UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.855f), new Vector2(0.95f, 0.92f), toast ?? ("두 " + save.Doo.ToString("N0") + "  ·  심득석 " + InnerArts.Stones(save) + "  ·  " + slotNote), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            UiFactory.ScrollBody(UiFactory.Label("Hint", Root, new Vector2(0.05f, .755f), new Vector2(0.95f, .84f), toast ?? ("두 " + save.Doo.ToString("N0") + "  ·  심득석 " + InnerArts.Stones(save) + "  ·  " + slotNote), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
-            var content = CodexPanel.Scroller(Root, Embedded ? .02f : .10f, .85f);
+            var content = CodexPanel.Scroller(Root, Embedded ? .02f : .10f, .745f);
             const float rowHeight = 360f, gap = 16f;
             RectTransform row = null;
             for (int i = 0; i < InnerArts.All.Length; i++)

@@ -90,87 +90,57 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsNotNull(_canvas.transform.Find("Page/Realm/Progress/Fill"));
         }
 
-        [TestCase(1920f)]
-        [TestCase(1440f)]
-        [TestCase(2400f)]
-        public void PersonSwitchRetainsEquipmentSlotAndDoesNotChangeAnyLoadout(float width)
-        {
-            _canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(width, 960f);
-            var companion = EarlyGameContent.Companions.First();
-            var original = _save.EquippedGear.ToArray();
-            Click("Pages/Page1");
-            Click("Page/Slot5");
-            Click("People/Viewport/Content/Person_" + companion.Id);
-            Assert.AreEqual("현재 착용 · 장신구 2", _canvas.transform.Find("Page/Equipped/Heading").GetComponent<Text>().text);
-            Assert.AreEqual("비어 있음", _canvas.transform.Find("Page/Equipped/NameViewport/Name").GetComponent<Text>().text);
-            _canvas.SetActive(false); _canvas.SetActive(true);
-            Assert.IsNotNull(_canvas.transform.Find("Page/Slot5"));
-            Assert.AreEqual("현재 착용 · 장신구 2", _canvas.transform.Find("Page/Equipped/Heading").GetComponent<Text>().text);
-            CollectionAssert.AreEqual(original, _save.EquippedGear);
-        }
-
-        [TestCase(1440f)]
-        [TestCase(1920f)]
-        [TestCase(2400f)]
-        public void EquipmentShowsCurrentItemOnceAndOpensDetailsOnlyOnDemand(float width)
-        {
-            _canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(width, 960f);
-            var current = Gear.ItemInSlot(_save, Inventory.Hero, 0);
-            Assert.IsNotNull(current);
-            var replacement = EarlyGameContent.Items.First(item => item.IsGear && item.Kind == current.Kind && item.Id != current.Id);
-            Inventory.Add(_save, replacement.Id, 1);
-            var original = _save.EquippedGear.ToArray();
-            Click("Pages/Page1");
-            var modal = _canvas.transform.Find("EquipmentDetail");
-            Assert.IsFalse(modal.gameObject.activeSelf);
-            Assert.IsNull(_canvas.transform.Find("Page/Detail"));
-            var list = _canvas.transform.Find("Page/List/Viewport/Content");
-            Assert.IsFalse(list.GetComponentsInChildren<Text>().Any(t => t.text.Contains(current.Name)));
-            Assert.IsTrue(list.GetComponentsInChildren<Text>().Any(t => t.text.Contains(replacement.Name)));
-            var sets = _canvas.transform.Find("Page/Sets/EffectsViewport/Effects").GetComponent<Text>();
-            foreach (var line in Gear.SetLines(Inventory.GearOf(_save, Inventory.Hero))) StringAssert.Contains(line, sets.text);
-            var equipped = _canvas.transform.Find("Page/Equipped").GetComponent<RectTransform>();
-            var listRect = _canvas.transform.Find("Page/List").GetComponent<RectTransform>();
-            Assert.Less(equipped.anchorMax.x, listRect.anchorMin.x);
-            Assert.Greater(listRect.anchorMax.x - listRect.anchorMin.x, .55f);
-            Assert.Greater(_canvas.transform.Find("Page/Sets").GetComponent<RectTransform>().anchorMin.y, equipped.anchorMax.y);
-            list.GetComponentsInChildren<Button>().First().onClick.Invoke();
-            Assert.IsTrue(modal.gameObject.activeSelf);
-            Assert.IsTrue(modal.GetComponent<Image>().raycastTarget);
-            Click("EquipmentDetail/Card/Close");
-            Assert.IsFalse(modal.gameObject.activeSelf);
-            Click("Page/Equipped/Details");
-            Assert.IsTrue(modal.gameObject.activeSelf);
-            Assert.IsFalse(modal.Find("Card/Equip").GetComponent<Button>().interactable);
-            Click("EquipmentDetail/Card/Close");
-            CollectionAssert.AreEqual(original, _save.EquippedGear, "Previewing must not equip or remove anything");
-            list.GetComponentsInChildren<Button>().First().onClick.Invoke();
-            _canvas.SetActive(false);
-            Assert.IsFalse(modal.gameObject.activeSelf);
-        }
-
         [Test]
-        public void CompanionCannotPreviewHeroOnlyEquipment()
+        public void EquipmentShortcutOpensTheDedicatedRouteForTheSelectedCompanion()
         {
-            Inventory.Add(_save, Ritual.RewardId, 1);
+            string selected = null;
+            typeof(CompanionScreen).GetField("_openEquipment", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(_screen, (System.Action<string>)(owner => selected = owner));
+            var companion = EarlyGameContent.Companions.First();
+            Click("People/Viewport/Content/Person_" + companion.Id);
+            Click("Identity/Equipment");
+            Assert.AreEqual(companion.Id, selected);
+            Assert.IsNull(_canvas.transform.Find("EquipmentManager"));
+        }
+
+        [TestCase(1440f)]
+        [TestCase(2400f)]
+        public void ArtSummaryContainsOnlySkillsUsedInBattleForTheSelectedPerson(float width)
+        {
+            _canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(width, 960f);
+            var unused = EarlyGameContent.Arts.First(art => art.OwnerId == null && !_save.EquippedArts.Contains(art.Id));
+            _save.LearnedArts.Add(unused.Id);
             Click("Pages/Page1");
-            _screen.Refresh();
-            Assert.IsTrue(_canvas.transform.Find("Page/List/Viewport/Content").GetComponentsInChildren<Text>().Any(t => t.text.Contains(EarlyGameContent.FindItem(Ritual.RewardId).Name)));
-            Click("People/Viewport/Content/Person_" + EarlyGameContent.Companions.First().Id);
-            Assert.IsFalse(_canvas.transform.Find("Page/List/Viewport/Content").GetComponentsInChildren<Text>().Any(t => t.text.Contains(EarlyGameContent.FindItem(Ritual.RewardId).Name)));
+            foreach (var owner in new[] { Inventory.Hero, EarlyGameContent.Companions.First().Id })
+            {
+                Click("People/Viewport/Content/Person_" + owner);
+                var unit = owner == Inventory.Hero ? Formation.BuildHero(_save) : CompanionGrowth.Create(_save, EarlyGameContent.FindCompanion(owner));
+                var expected = EarlyGameContent.Arts.Where(art => (owner == Inventory.Hero ? art.OwnerId == null : art.OwnerId == owner)
+                    && unit.Skills.Any(skill => skill.Id == art.Id)).ToList();
+                var content = _canvas.transform.Find("Page/List/Viewport/Content");
+                var names = Enumerable.Range(0, content.childCount).Select(i => content.GetChild(i).Find("Name").GetComponent<Text>().text).ToArray();
+                CollectionAssert.AreEquivalent(expected.Select(art => art.Name).ToArray(), names);
+                Assert.IsFalse(names.Contains(unused.Name));
+                for (int i = 0; i < expected.Count; i++)
+                {
+                    var row = content.GetChild(i);
+                    Assert.IsNotNull(row.Find("Resources")); Assert.IsNotNull(row.Find("Effect"));
+                    Assert.IsNull(row.Find("Action")); Assert.IsNull(row.Find("Variant"));
+                }
+            }
         }
 
         [Test]
         public void CharacterTabsOmitTrainingAndCompanionTrainingLivesUnderBonds()
         {
             var tabs = _canvas.transform.Find("Pages").GetComponentsInChildren<Button>();
-            CollectionAssert.AreEqual(new[] { "상태", "장비", "무공", "인연" }, tabs.Select(t => t.GetComponentInChildren<Text>().text).ToArray());
-            Click("Pages/Page2");
+            CollectionAssert.AreEqual(new[] { "상태", "무공", "인연" }, tabs.Select(t => t.GetComponentInChildren<Text>().text).ToArray());
+            Click("Pages/Page1");
             Assert.IsNull(_canvas.transform.Find("Page/HeroGrowthViewport"));
             Assert.IsNotNull(_canvas.transform.Find("Page/ArtsMenu"));
             var companion = EarlyGameContent.Companions.First();
             Click("People/Viewport/Content/Person_" + companion.Id);
-            Click("Pages/Page3");
+            Click("Pages/Page2");
             const string trainingPath = "Page/List/Viewport/Content/Row0/Train";
             Assert.IsTrue(_canvas.transform.Find(trainingPath).GetComponent<Button>().interactable);
             _save.Doo = 0; _screen.Refresh();

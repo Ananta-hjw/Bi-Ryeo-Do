@@ -81,6 +81,88 @@ namespace BiRyeoDo.Tests.UI
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
+        public void TabHeadersShareHeightAndKeepIconsAndControlsAligned(float width)
+        {
+            Root.sizeDelta = new Vector2(width, 960f);
+            foreach (var kind in new[] { "bag", "gacha", "record", "arts" })
+            {
+                var root = UiFactory.Rect("Screen_" + kind, Root, Vector2.zero, Vector2.one);
+                if (kind == "bag") root.gameObject.AddComponent<BagScreen>().Build(root);
+                else if (kind == "gacha") root.gameObject.AddComponent<GachaScreen>().Build(root);
+                else if (kind == "record") root.gameObject.AddComponent<RecordScreen>().Build(root, null);
+                else root.gameObject.AddComponent<MartialArtsScreen>().Build(root);
+                var page = kind == "arts" ? root.Find("ArtsPage") : root;
+                Canvas.ForceUpdateCanvases();
+                var band = Bounds((RectTransform)page.Find("HeaderBand"));
+                var icon = Bounds((RectTransform)page.Find("HeaderBand/Glyph_" + kind));
+                var title = Bounds((RectTransform)page.Find("HeaderBand/Header"));
+                Assert.That(band.height, Is.EqualTo(115f).Within(.1f));
+                Assert.That(icon.width, Is.EqualTo(80f).Within(.1f));
+                Assert.That(icon.height, Is.EqualTo(80f).Within(.1f));
+                Assert.That(icon.center.y, Is.EqualTo(band.center.y).Within(.1f));
+                Assert.Less(icon.xMax, title.xMin);
+                Assert.Greater(icon.yMin, band.yMin);
+                Assert.Less(icon.yMax, band.yMax);
+                if (kind == "record")
+                    Assert.Less(Bounds((RectTransform)root.Find("Workspace")).yMax, band.yMin);
+                else
+                {
+                    var help = Bounds((RectTransform)page.Find("Help"));
+                    Assert.That(help.center.y, Is.EqualTo(band.center.y).Within(.1f));
+                    Assert.Less(title.xMax, help.xMin);
+                    Assert.Less(Bounds((RectTransform)page.Find("Viewport")).yMax, band.yMin);
+                }
+                if (kind == "bag")
+                    Assert.That(Bounds((RectTransform)root.Find("BulkDismantleButton")).center.y,
+                        Is.EqualTo(band.center.y).Within(.1f));
+                if (kind == "arts")
+                {
+                    root.Find("Page1").GetComponent<Button>().onClick.Invoke();
+                    Canvas.ForceUpdateCanvases();
+                    Assert.That(Bounds((RectTransform)root.Find("InnerArtPage/HeaderBand")).height,
+                        Is.EqualTo(band.height).Within(.1f));
+                }
+            }
+        }
+
+        [TestCase(1440f)]
+        [TestCase(2400f)]
+        public void AllHelpButtonsAreCompactCirclesAndArtsOnlyShowsItsTwoPages(float width)
+        {
+            Root.sizeDelta = new Vector2(width, 960f);
+            foreach (var name in new[] { "BagHelp", "GachaHelp", "ArtsHelp" })
+            {
+                var root = UiFactory.Rect(name, Root, Vector2.zero, Vector2.one);
+                if (name == "BagHelp") root.gameObject.AddComponent<BagScreen>().Build(root);
+                else if (name == "GachaHelp") root.gameObject.AddComponent<GachaScreen>().Build(root);
+                else root.gameObject.AddComponent<MartialArtsScreen>().Build(root);
+                Canvas.ForceUpdateCanvases();
+                var help = root.Find(name == "ArtsHelp" ? "ArtsPage/Help" : "Help");
+                var rect = (RectTransform)help;
+                Assert.That(rect.rect.width, Is.EqualTo(76f).Within(.1f));
+                Assert.That(rect.rect.height, Is.EqualTo(76f).Within(.1f));
+                var image = help.GetComponent<Image>();
+                Assert.IsNotNull(image.sprite);
+                Assert.IsTrue(image.preserveAspect);
+                Assert.Greater(image.alphaHitTestMinimumThreshold, 0f);
+                Assert.IsNull(help.Find("Frame"), "A circular button must not retain the square frame");
+                help.GetComponent<Button>().onClick.Invoke();
+                Assert.IsTrue(root.Find("InfoWindow").gameObject.activeSelf);
+                root.Find("InfoWindow/Card/Close").GetComponent<Button>().onClick.Invoke();
+                Assert.IsFalse(root.Find("InfoWindow").gameObject.activeSelf);
+                if (name == "ArtsHelp")
+                {
+                    Assert.IsNull(root.Find("CompanionTraining"));
+                    Assert.AreEqual("무공", root.Find("Page0").GetComponentInChildren<Text>().text);
+                    Assert.AreEqual("심법", root.Find("Page1").GetComponentInChildren<Text>().text);
+                    Separate(name + "/Page0", name + "/Page1");
+                }
+            }
+        }
+
+        [TestCase(1440f)]
+        [TestCase(1920f)]
+        [TestCase(2400f)]
         public void SmallMenuActionsHaveLargerVisibleHeightsAndDoNotCoverTheirLists(float width)
         {
             Root.sizeDelta = new Vector2(width, 960f);
@@ -99,7 +181,9 @@ namespace BiRyeoDo.Tests.UI
 
             var bagRoot = UiFactory.Rect("Bag", Root, Vector2.zero, Vector2.one);
             bagRoot.gameObject.AddComponent<BagScreen>().Build(bagRoot);
-            ComfortableButton("Bag/BulkDismantleButton"); ComfortableButton("Bag/Help");
+            Canvas.ForceUpdateCanvases();
+            Assert.That(Bounds((RectTransform)bagRoot.Find("BulkDismantleButton")).height, Is.InRange(64f, 90f));
+            Assert.That(Bounds((RectTransform)bagRoot.Find("Help")).height, Is.EqualTo(76f).Within(.1f));
             Assert.Less(Bounds((RectTransform)bagRoot.Find("ItemDetail")).yMax,
                 Bounds((RectTransform)bagRoot.Find("BulkDismantleButton")).yMin);
             for (int i = 0; i < 4; i++) ComfortableButton("Bag/Filter" + i);
@@ -109,7 +193,7 @@ namespace BiRyeoDo.Tests.UI
 
             var recordRoot = UiFactory.Rect("Record", Root, Vector2.zero, Vector2.one);
             recordRoot.gameObject.AddComponent<RecordScreen>().Build(recordRoot, (title, lines, done) => { });
-            recordRoot.Find("Menu_tower").GetComponent<Button>().onClick.Invoke();
+            recordRoot.Find("MenuViewport/Viewport/Content/Menu_tower").GetComponent<Button>().onClick.Invoke();
             string faction = "Record/Workspace/FactionOverlay/";
             ComfortableButton(faction + "Tab0"); ComfortableButton(faction + "Tab1"); ComfortableButton(faction + "Close");
             var factionRoot = recordRoot.Find("Workspace/FactionOverlay");
@@ -123,16 +207,17 @@ namespace BiRyeoDo.Tests.UI
             var peopleRoot = UiFactory.Rect("PeopleTest", Root, Vector2.zero, Vector2.one);
             peopleRoot.gameObject.AddComponent<CompanionScreen>().Build(peopleRoot, () => { }, () => { });
             ComfortableButton("PeopleTest/Identity/Formation");
-            for (int i = 0; i < 4; i++) ComfortableButton("PeopleTest/Pages/Page" + i);
-            peopleRoot.Find("Pages/Page1").GetComponent<Button>().onClick.Invoke();
-            for (int i = 0; i < 6; i++) ComfortableButton("PeopleTest/Page/Slot" + i);
-            foreach (var name in new[] { "Enhance", "Remove", "Details" }) ComfortableButton("PeopleTest/Page/Equipped/" + name);
+            for (int i = 0; i < 3; i++) ComfortableButton("PeopleTest/Pages/Page" + i);
+            var equipmentRoot = UiFactory.Rect("EquipmentTest", Root, Vector2.zero, Vector2.one);
+            equipmentRoot.gameObject.AddComponent<EquipmentScreen>().Build(equipmentRoot);
+            for (int i = 0; i < 6; i++) ComfortableButton("EquipmentTest/Workspace/Character/WearSlot" + i);
+            foreach (var name in new[] { "Equip", "Remove", "Details", "Enhance" }) ComfortableButton("EquipmentTest/Workspace/Inventory/Selection/" + name);
         }
 
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
-        public void LobbyQuickMenusHaveSeparateTitlesBadgesAndLargeTargetsWithoutChangingRoutes(float width)
+        public void LobbySideGroupsOpenToTheRightPreserveRoutesAndDismissCleanly(float width)
         {
             Root.sizeDelta = new Vector2(width, 960f);
             var routeRoot = UiFactory.Rect("WorldRoutes", Root, Vector2.zero, Vector2.one);
@@ -141,46 +226,91 @@ namespace BiRyeoDo.Tests.UI
             routeRoot.gameObject.SetActive(false);
             var homeRoot = UiFactory.Rect("Home", Root, Vector2.zero, Vector2.one);
             var home = homeRoot.gameObject.AddComponent<LandscapeHome>();
-            WorldScreen.Menu? openedMenu = null;
-            TabRouter.Tab? selectedTab = null;
-            home.Build(homeRoot, world, menu => openedMenu = menu, tab => selectedTab = tab);
+            WorldScreen.Menu? opened = null;
+            TabRouter.Tab? tab = null;
+            home.Build(homeRoot, world, menu => opened = menu, selected => tab = selected);
             Canvas.ForceUpdateCanvases();
-            ComfortableButton("Home/StageList");
-            ComfortableButton("Home/Header/Settings");
-            ComfortableButton("Home/Header/Status");
-            string[] names = { "의뢰", "무한 비무대", "파티 편성", "뽑기", "일일 임무", "별 보상", "기연", "승급 시험" };
-            WorldScreen.Menu?[] routes = { WorldScreen.Menu.Quests, WorldScreen.Menu.Tower, WorldScreen.Menu.Party, null,
-                WorldScreen.Menu.Daily, WorldScreen.Menu.Stars, WorldScreen.Menu.Fortunes, WorldScreen.Menu.Promotion };
-            for (int i = 0; i < names.Length; i++)
+            ComfortableButton("Home/StageList"); ComfortableButton("Home/Header/Settings");
+            foreach (var name in new[] { "MissionsMenu", "ChallengeMenu", "PartyMenu" }) ComfortableButton("Home/" + name);
+            var layer = homeRoot.Find("FlyoutLayer");
+            Assert.IsFalse(layer.gameObject.activeSelf);
+            Assert.IsNull(homeRoot.Find("Quick_뽑기"));
+            string[] missionNames = { "Quest", "Daily", "Stars", "Fortunes" };
+            WorldScreen.Menu[] missionRoutes = { WorldScreen.Menu.Quests, WorldScreen.Menu.Daily, WorldScreen.Menu.Stars, WorldScreen.Menu.Fortunes };
+            for (int i = 0; i < missionNames.Length; i++)
             {
-                var menu = homeRoot.Find("Quick_" + names[i]);
-                Assert.IsNotNull(menu);
-                var bounds = Bounds((RectTransform)menu);
-                Assert.Greater(bounds.height, 120f);
-                Assert.Greater(bounds.width, 170f);
-                Assert.AreEqual(names[i], menu.Find("Title").GetComponent<Text>().text);
-                var title = (RectTransform)menu.Find("Title");
-                var badge = (RectTransform)menu.Find("Badge");
-                var description = (RectTransform)menu.Find("Description");
-                Assert.Less(description.anchorMax.y, title.anchorMin.y);
-                Assert.Less(title.anchorMax.y, badge.anchorMin.y);
-                if (i % 4 != 3)
-                    Assert.Less(bounds.xMax, Bounds((RectTransform)homeRoot.Find("Quick_" + names[i + 1])).xMin);
-                if (i < 4)
-                    Assert.Greater(bounds.yMin, Bounds((RectTransform)homeRoot.Find("Quick_" + names[i + 4])).yMax);
-                openedMenu = null; selectedTab = null;
-                menu.GetComponent<Button>().onClick.Invoke();
-                if (routes[i].HasValue) Assert.AreEqual(routes[i], openedMenu);
-                else Assert.AreEqual(TabRouter.Tab.Gacha, selectedTab);
+                homeRoot.Find("MissionsMenu").GetComponent<Button>().onClick.Invoke();
+                Assert.IsTrue(layer.gameObject.activeSelf);
+                Assert.IsTrue(layer.Find("Missions").gameObject.activeSelf);
+                Assert.IsFalse(layer.Find("Challenges").gameObject.activeSelf);
+                ComfortableButton("Home/FlyoutLayer/Missions/" + missionNames[i]);
+                Assert.Less(Bounds((RectTransform)homeRoot.Find("MissionsMenu")).xMax, Bounds((RectTransform)layer.Find("Missions")).xMin);
+                layer.Find("Missions/" + missionNames[i]).GetComponent<Button>().onClick.Invoke();
+                Assert.AreEqual(missionRoutes[i], opened);
+                Assert.IsFalse(layer.gameObject.activeSelf);
             }
-            var gear = Bounds((RectTransform)homeRoot.Find("Home_행낭"));
-            Assert.Greater(gear.yMin, Bounds((RectTransform)homeRoot.Find("Quick_의뢰")).yMax);
-            var questBadge = homeRoot.Find("Quick_의뢰/Badge");
-            int quests = Quests.Open(_save).Count;
-            Assert.AreEqual(quests > 0, questBadge.gameObject.activeSelf);
-            if (quests > 0) Assert.AreEqual(quests > 99 ? "99+" : quests.ToString(), questBadge.Find("Count").GetComponent<Text>().text);
+            homeRoot.Find("MissionsMenu").GetComponent<Button>().onClick.Invoke();
+            homeRoot.Find("ChallengeMenu").GetComponent<Button>().onClick.Invoke();
+            Assert.IsFalse(layer.Find("Missions").gameObject.activeSelf);
+            Assert.IsTrue(layer.Find("Challenges").gameObject.activeSelf);
+            homeRoot.Find("ChallengeMenu").GetComponent<Button>().onClick.Invoke();
+            Assert.IsFalse(layer.gameObject.activeSelf, "Tapping the open group again closes it");
+            foreach (var name in new[] { "Tower", "Promotion" })
+            {
+                homeRoot.Find("ChallengeMenu").GetComponent<Button>().onClick.Invoke();
+                ComfortableButton("Home/FlyoutLayer/Challenges/" + name);
+                layer.Find("Challenges/" + name).GetComponent<Button>().onClick.Invoke();
+                Assert.AreEqual(name == "Tower" ? WorldScreen.Menu.Tower : WorldScreen.Menu.Promotion, opened);
+                Assert.IsFalse(layer.gameObject.activeSelf);
+            }
+            homeRoot.Find("MissionsMenu").GetComponent<Button>().onClick.Invoke();
+            layer.Find("Dismiss").GetComponent<Button>().onClick.Invoke();
+            Assert.IsFalse(layer.gameObject.activeSelf);
+            homeRoot.Find("PartyMenu").GetComponent<Button>().onClick.Invoke();
+            Assert.AreEqual(WorldScreen.Menu.Party, opened);
+            string[] cards = { "협객", "무공", "행낭", "기록" };
+            TabRouter.Tab[] routes = { TabRouter.Tab.Companions, TabRouter.Tab.MartialArts, TabRouter.Tab.Bag, TabRouter.Tab.Record };
+            for (int i = 0; i < cards.Length; i++)
+            {
+                var card = homeRoot.Find("Home_" + cards[i]);
+                Assert.GreaterOrEqual(Bounds((RectTransform)card).height, 190f);
+                card.GetComponent<Button>().onClick.Invoke();
+                Assert.AreEqual(routes[i], tab);
+            }
+            int total = Quests.Open(_save).Count + Daily.ClaimableCount(_save) + StageStars.ClaimableCount(_save) + Fortunes.Open(_save).Count;
+            var badge = homeRoot.Find("MissionsMenu/Badge");
+            Assert.AreEqual(total > 0, badge.gameObject.activeSelf);
+            if (total > 0) Assert.AreEqual(total > 99 ? "99+" : total.ToString(), badge.Find("Count").GetComponent<Text>().text);
+            homeRoot.Find("MissionsMenu").GetComponent<Button>().onClick.Invoke();
             home.Refresh();
-            Assert.AreEqual("의뢰", homeRoot.Find("Quick_의뢰/Title").GetComponent<Text>().text);
+            Assert.IsTrue(layer.gameObject.activeSelf, "Refreshing counts must not close the open group");
+            homeRoot.gameObject.SetActive(false);
+            Assert.IsFalse(layer.gameObject.activeSelf, "Changing tabs dismisses the submenu");
+        }
+
+        [TestCase(1440f)]
+        [TestCase(1920f)]
+        [TestCase(2400f)]
+        public void BottomNavigationIncludesEquipmentAndGachaWithoutChangingExistingRouteIds(float width)
+        {
+            Root.sizeDelta = new Vector2(width, 960f);
+            var main = _canvas.AddComponent<MainScreen>();
+            Invoke(main, "BuildTabBar", Root);
+            string[] names = { "강호", "협객", "장비", "무공", "뽑기", "행낭", "기록" };
+            var buttons = _canvas.transform.Find("TabBar").GetComponentsInChildren<Button>();
+            CollectionAssert.AreEqual(names.Select(name => "Tab_" + name).ToArray(), buttons.Select(button => button.name).ToArray());
+            var navigation = (TabRouter.Tab[])typeof(MainScreen).GetField("NavigationTabs", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            CollectionAssert.AreEquivalent(System.Enum.GetValues(typeof(TabRouter.Tab)), navigation);
+            foreach (var name in names) ComfortableButton("TabBar/Tab_" + name);
+            var icons = (Graphic[])typeof(MainScreen).GetField("_tabIcons", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(main);
+            var labels = (Text[])typeof(MainScreen).GetField("_tabLabels", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(main);
+            for (int i = 0; i < icons.Length; i++)
+            {
+                var icon = Bounds(icons[i].rectTransform);
+                Assert.That(icon.width, Is.EqualTo(64f).Within(.1f));
+                Assert.That(icon.height, Is.EqualTo(64f).Within(.1f));
+                Assert.Less(icon.xMax, Bounds(labels[i].rectTransform).xMin);
+            }
         }
 
         [TestCase(1440f)]
@@ -320,19 +450,57 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsTrue(_canvas.transform.Find("InnerArtPage").gameObject.activeSelf);
         }
 
+        [TestCase(1440f)]
+        [TestCase(1920f)]
+        [TestCase(2400f)]
+        public void RecordMenuScrollsAsOneListWithLargerReadableEntries(float width)
+        {
+            Root.sizeDelta = new Vector2(width, 960f);
+            _canvas.AddComponent<RecordScreen>().Build(Root, null);
+            Canvas.ForceUpdateCanvases();
+            var viewport = (RectTransform)Root.Find("MenuViewport/Viewport");
+            var scroll = viewport.GetComponent<ScrollRect>();
+            var content = scroll.content;
+            content.GetComponent<ReadingList>().Reflow(true);
+            Canvas.ForceUpdateCanvases();
+            Assert.IsTrue(scroll.vertical);
+            Assert.IsFalse(scroll.horizontal);
+            Assert.Greater(content.rect.height, viewport.rect.height);
+            Assert.AreEqual(7, content.GetComponentsInChildren<Button>().Length);
+            Assert.AreEqual(1, Root.Find("MenuViewport").GetComponentsInChildren<ScrollRect>().Length,
+                "Descriptions must scroll with the list instead of consuming drags separately");
+            Separate("MenuViewport", "Workspace");
+            float previousBottom = float.PositiveInfinity;
+            foreach (RectTransform row in content)
+            {
+                var bounds = Bounds(row);
+                Assert.GreaterOrEqual(bounds.height, 180f);
+                Assert.Less(bounds.yMax, previousBottom);
+                previousBottom = bounds.yMin;
+                Assert.IsFalse(row.Find("Detail").GetComponent<Text>().resizeTextForBestFit);
+                Assert.IsTrue(row.GetComponent<Button>().targetGraphic.raycastTarget);
+            }
+            scroll.verticalNormalizedPosition = 0f;
+            Canvas.ForceUpdateCanvases();
+            var last = Bounds((RectTransform)content.Find("Menu_arts"));
+            var visible = Bounds(viewport);
+            Assert.GreaterOrEqual(last.yMin, visible.yMin - 1f);
+            Assert.LessOrEqual(last.yMax, visible.yMax + 1f);
+        }
+
         [Test]
         public void RecordSwitchClosesThePreviousPageAndStatusUsesTheSharedCharacterRoute()
         {
             bool openedCharacters = false;
             var record = _canvas.AddComponent<RecordScreen>();
             record.Build(Root, (title, lines, done) => { }, () => openedCharacters = true);
-            _canvas.transform.Find("Menu_quest").GetComponent<Button>().onClick.Invoke();
+            _canvas.transform.Find("MenuViewport/Viewport/Content/Menu_quest").GetComponent<Button>().onClick.Invoke();
             Assert.IsTrue(_canvas.transform.Find("Workspace/StoryLogOverlay").gameObject.activeSelf);
-            _canvas.transform.Find("Menu_record").GetComponent<Button>().onClick.Invoke();
+            _canvas.transform.Find("MenuViewport/Viewport/Content/Menu_record").GetComponent<Button>().onClick.Invoke();
             Assert.IsFalse(_canvas.transform.Find("Workspace/StoryLogOverlay").gameObject.activeSelf);
             Assert.IsTrue(_canvas.transform.Find("Workspace/CodexOverlay").gameObject.activeSelf);
-            Separate("Menu_record", "Workspace");
-            _canvas.transform.Find("Menu_party").GetComponent<Button>().onClick.Invoke();
+            Separate("MenuViewport", "Workspace");
+            _canvas.transform.Find("MenuViewport/Viewport/Content/Menu_party").GetComponent<Button>().onClick.Invoke();
             Assert.IsTrue(openedCharacters);
         }
 
@@ -397,6 +565,87 @@ namespace BiRyeoDo.Tests.UI
                         Assert.Greater(tile.rect.height, 100f); Assert.Greater(tile.rect.width, 150f);
                     }
             }
+        }
+
+        [TestCase(1440f)]
+        [TestCase(1920f)]
+        [TestCase(2400f)]
+        public void GachaResultsShowThreePerRowForSingleTenAndFiftyWithoutChangingTheSave(float width)
+        {
+            Root.sizeDelta = new Vector2(width, 960f);
+            var screen = _canvas.AddComponent<GachaScreen>(); screen.Build(Root);
+            long doo = _save.Doo;
+            int pulls = _save.GachaPulls;
+            var content = _canvas.transform.Find("Viewport/Content");
+            foreach (int count in new[] { 1, 10, 50, 1 })
+            {
+                var results = Enumerable.Range(0, count).Select(i => new PullResult
+                {
+                    Item = Gacha.Pool((ItemGrade)(i % Grades.Rates.Length))[0], Duplicate = i % 2 == 0
+                }).ToList();
+                var reveal = (System.Collections.IEnumerator)Invoke(screen, "ShowResults", results, false);
+                while (reveal.MoveNext()) { }
+                Canvas.ForceUpdateCanvases();
+                var layout = content.GetComponent<ReadingList>(); layout.Reflow(true);
+                Assert.AreEqual(count, content.GetComponentsInChildren<RectTransform>().Count(rt => rt.name.StartsWith("Card")));
+                Assert.AreEqual((count + 2) / 3, Enumerable.Range(0, content.childCount).Count(i => content.GetChild(i).gameObject.activeSelf));
+                for (int i = 0; i < count; i++)
+                {
+                    var card = (RectTransform)content.Find("Row" + i / 3 + "/Card" + i);
+                    Assert.IsTrue(card.gameObject.activeInHierarchy);
+                    if (i % 3 != 0)
+                    {
+                        var previous = (RectTransform)content.Find("Row" + i / 3 + "/Card" + (i - 1));
+                        Assert.Less(Bounds(previous).xMax, Bounds(card).xMin);
+                        Assert.That(Bounds(previous).yMax, Is.EqualTo(Bounds(card).yMax).Within(.1f));
+                    }
+                    if (i >= 3)
+                    {
+                        var above = (RectTransform)content.Find("Row" + (i / 3 - 1) + "/Card" + (i - 3));
+                        Assert.Less(Bounds(card).yMax, Bounds(above).yMin);
+                    }
+                }
+                float height = ((RectTransform)content).sizeDelta.y;
+                for (int repeat = 0; repeat < 10; repeat++)
+                {
+                    Canvas.ForceUpdateCanvases(); layout.Reflow(true);
+                    Assert.That(((RectTransform)content).sizeDelta.y, Is.EqualTo(height).Within(.5f));
+                }
+            }
+            Assert.AreEqual(doo, _save.Doo); Assert.AreEqual(pulls, _save.GachaPulls);
+        }
+
+        [Test]
+        public void GradeButtonsShowOnlyTheActualPoolAndPreviewDoesNotSpendOrGrantAnything()
+        {
+            var screen = _canvas.AddComponent<GachaScreen>(); screen.Build(Root);
+            long doo = _save.Doo;
+            int pulls = _save.GachaPulls;
+            var inventory = _save.Items.Select(stack => stack.Id + ":" + stack.Count).ToArray();
+            var modal = _canvas.transform.Find("GachaPool");
+            Assert.IsFalse(modal.gameObject.activeSelf);
+            for (int grade = 0; grade < Grades.Rates.Length; grade++)
+            {
+                _canvas.transform.Find("Odds/Chip" + grade).GetComponent<Button>().onClick.Invoke();
+                Assert.IsTrue(modal.gameObject.activeSelf);
+                var pool = Gacha.Pool((ItemGrade)grade);
+                var content = modal.Find("Card/Viewport/Content");
+                var names = Enumerable.Range(0, content.childCount).Select(i => content.GetChild(i).Find("Name").GetComponent<Text>().text).ToArray();
+                CollectionAssert.AreEquivalent(pool.Select(item => UiFactory.GradedName(item)).ToArray(), names);
+                StringAssert.Contains(pool.Count + "종", modal.Find("Card/Title").GetComponent<Text>().text);
+                ComfortableButton("GachaPool/Card/Close");
+                Assert.Greater(Bounds((RectTransform)modal.Find("Card/Viewport")).yMin, Bounds((RectTransform)modal.Find("Card/Close")).yMax);
+                modal.Find("Card/Close").GetComponent<Button>().onClick.Invoke();
+                Assert.IsFalse(modal.gameObject.activeSelf);
+            }
+            Assert.AreEqual(doo, _save.Doo); Assert.AreEqual(pulls, _save.GachaPulls);
+            CollectionAssert.AreEqual(inventory, _save.Items.Select(stack => stack.Id + ":" + stack.Count).ToArray());
+            _canvas.transform.Find("Odds/Chip0").GetComponent<Button>().onClick.Invoke();
+            modal.Find("Dismiss").GetComponent<Button>().onClick.Invoke();
+            Assert.IsFalse(modal.gameObject.activeSelf);
+            _canvas.transform.Find("Odds/Chip0").GetComponent<Button>().onClick.Invoke();
+            _canvas.SetActive(false);
+            Assert.IsFalse(modal.gameObject.activeSelf);
         }
 
         [TestCase(1440f)]

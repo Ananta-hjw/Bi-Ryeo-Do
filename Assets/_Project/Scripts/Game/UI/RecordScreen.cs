@@ -22,6 +22,7 @@ namespace BiRyeoDo.Game.UI
         private FactionPanel _factions;
         private Entry _statusE, _codexE, _achE, _storyE, _memoryE, _factionE, _ritualE;
         private RitualPanel _ritual;
+        private ReadingList _menuLayout;
         private bool _built;
 
         public void Build(RectTransform root, Action<string, string[], Action> onStory, Action openStatus = null)
@@ -30,21 +31,22 @@ namespace BiRyeoDo.Game.UI
             _built = true;
             _openStatus = openStatus;
 
-            UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, 0.925f), new Vector2(0.96f, 0.985f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
-            UiFactory.Glyph("record", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
-            UiFactory.Label("Header", root, new Vector2(0.16f, 0.925f), new Vector2(0.94f, 0.985f), "기록", 42, UiFactory.Gold);
+            UiFactory.TabHeader(root, "record", "기록", .97f);
 
-            var workspace = UiFactory.Rect("Workspace", root, new Vector2(.27f, .025f), new Vector2(.98f, .905f));
+            var workspace = UiFactory.Rect("Workspace", root, new Vector2(.27f, .025f), new Vector2(.98f, .855f));
             UiFactory.Panel("Background", workspace, Vector2.zero, Vector2.one, UiFactory.Ink);
             UiFactory.Frame(workspace, UiFactory.GoldDim, 2f);
-            UiFactory.ScrollBody(UiFactory.Label("Hint", workspace, new Vector2(.08f, .30f), new Vector2(.92f, .70f), "왼쪽에서 기록을 선택해 주세요.\n상태와 장비 관리는 협객 화면에서 이어집니다.", 32, UiFactory.Dim), 32);
-            _statusE = Tile(root, 0, "협객 · 상태와 장비", "party", () => _openStatus?.Invoke());
-            _codexE = Tile(root, 1, "도감", "record", () => { CloseOverlays(); _codex.OpenCodex(); });
-            _achE = Tile(root, 2, "업적", "star", () => { CloseOverlays(); _codex.OpenAchievements(); });
-            _storyE = Tile(root, 3, "이야기 줄거리", "quest", () => { CloseOverlays(); _storyLog.Open(); });
-            _memoryE = Tile(root, 4, "나예린 추억", "fortune", () => { CloseOverlays(); _memories.Open(); });
-            _factionE = Tile(root, 5, "세력과 객잔", "tower", () => { CloseOverlays(); _factions.Open(); });
-            _ritualE = Tile(root, 6, "전승의식", "arts", () => { CloseOverlays(); _ritual.Open(); });
+            UiFactory.ScrollBody(UiFactory.Label("Hint", workspace, new Vector2(.08f, .30f), new Vector2(.92f, .70f), "왼쪽에서 기록을 선택해 주세요.\n상태는 협객, 장비 관리는 장비 탭에서 이어집니다.", 32, UiFactory.Dim), 32);
+            var menu = UiFactory.Rect("MenuViewport", root, new Vector2(.02f, .025f), new Vector2(.25f, .855f));
+            var content = CodexPanel.Scroller(menu, 0f, 1f);
+            _statusE = Tile(content, 0, "협객 · 상태", "party", () => _openStatus?.Invoke());
+            _codexE = Tile(content, 1, "도감", "record", () => { CloseOverlays(); _codex.OpenCodex(); });
+            _achE = Tile(content, 2, "업적", "star", () => { CloseOverlays(); _codex.OpenAchievements(); });
+            _storyE = Tile(content, 3, "이야기 줄거리", "quest", () => { CloseOverlays(); _storyLog.Open(); });
+            _memoryE = Tile(content, 4, "나예린 추억", "fortune", () => { CloseOverlays(); _memories.Open(); });
+            _factionE = Tile(content, 5, "세력과 객잔", "tower", () => { CloseOverlays(); _factions.Open(); });
+            _ritualE = Tile(content, 6, "전승의식", "arts", () => { CloseOverlays(); _ritual.Open(); });
+            _menuLayout = content.GetComponent<ReadingList>();
             _codex = new CodexPanel(UiFactory.Rect("CodexOverlay", workspace, Vector2.zero, Vector2.one), UiFactory.Rect("AchievementOverlay", workspace, Vector2.zero, Vector2.one), Refresh);
             _storyLog = new StoryLogPanel(UiFactory.Rect("StoryLogOverlay", workspace, Vector2.zero, Vector2.one), Refresh, onStory);
             _memories = new MemoryPanel(UiFactory.Rect("MemoryOverlay", workspace, Vector2.zero, Vector2.one), Refresh, onStory);
@@ -55,16 +57,25 @@ namespace BiRyeoDo.Game.UI
 
         private static Entry Tile(RectTransform root, int index, string title, string icon, UnityEngine.Events.UnityAction onClick)
         {
-            float top = .905f - index * .124f;
-            var rt = UiFactory.Panel("Menu_" + icon, root, new Vector2(.02f, top - .112f), new Vector2(.25f, top), UiFactory.Ink).rectTransform;
+            const float height = 180f, gap = 16f;
+            var rt = UiFactory.Panel("Menu_" + icon, root, new Vector2(.02f, 1f), new Vector2(.96f, 1f), UiFactory.Ink).rectTransform;
+            rt.pivot = new Vector2(.5f, 1f);
+            rt.sizeDelta = new Vector2(0f, height);
+            rt.anchoredPosition = new Vector2(0f, -gap - index * (height + gap));
+            ReadingList.Register(rt, height, gap);
             var button = rt.gameObject.AddComponent<Button>();
             button.targetGraphic = rt.GetComponent<Image>();
+            button.targetGraphic.raycastTarget = true;
             button.onClick.AddListener(onClick);
             UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
-            UiFactory.Glyph(icon, rt, new Vector2(.035f, .60f), new Vector2(.14f, .95f), UiFactory.Gold);
-            UiFactory.Label("Title", rt, new Vector2(.17f, .55f), new Vector2(.96f, .97f), title, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
+            var glyph = UiFactory.Glyph(icon, rt, new Vector2(.04f, .76f), new Vector2(.04f, .76f), UiFactory.Gold);
+            glyph.rectTransform.pivot = new Vector2(0f, .5f);
+            glyph.rectTransform.sizeDelta = new Vector2(48f, 48f);
+            UiFactory.Label("Title", rt, new Vector2(.23f, .57f), new Vector2(.96f, .94f), title, 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
             var e = new Entry();
-            e.Detail = UiFactory.ScrollBody(UiFactory.Label("Detail", rt, new Vector2(.025f, .04f), new Vector2(.97f, .52f), "", 23, UiFactory.Dim, TextAnchor.UpperLeft, FontStyle.Normal), 23);
+            e.Detail = UiFactory.Label("Detail", rt, new Vector2(.06f, .08f), new Vector2(.94f, .53f), "", 26, UiFactory.Dim, TextAnchor.UpperLeft, FontStyle.Normal);
+            e.Detail.resizeTextForBestFit = false;
+            e.Detail.lineSpacing = 1.2f;
             var dot = UiFactory.Panel("Dot", rt, new Vector2(.84f, .72f), new Vector2(.98f, .98f), UiFactory.Red);
             e.Badge = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 22, UiFactory.PaperText);
             return e;
@@ -115,6 +126,7 @@ namespace BiRyeoDo.Game.UI
             int ritualDone = Ritual.DoneCount(save), ritualTotal = Ritual.Conditions(save).Count;
             _ritualE.Detail.text = save.RitualDone ? "완료 — 진비뢰도를 얻었습니다" : "초월 등급 진비뢰도의 시련 · 조건 " + ritualDone + "/" + ritualTotal;
             SetBadge(_ritualE, Ritual.CanComplete(save) ? 1 : 0);
+            _menuLayout.Reflow(true);
         }
     }
 }

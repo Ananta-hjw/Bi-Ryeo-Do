@@ -48,18 +48,17 @@ namespace BiRyeoDo.Game.UI
             if (_built) return;
             _built = true;
 
-            UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, .87f), new Vector2(0.96f, .99f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
-            UiFactory.Glyph("bag", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
-            _header = UiFactory.Label("Header", root, new Vector2(0.16f, .88f), new Vector2(.67f, .99f), "", 40, UiFactory.Gold);
-            UiFactory.Button("BulkDismantleButton", root, new Vector2(.69f, .88f), new Vector2(.84f, .99f), "일괄 분해", UiFactory.Red, () =>
+            _header = UiFactory.TabHeader(root, "bag", "", .67f);
+            var bulkButton = UiFactory.Button("BulkDismantleButton", root, new Vector2(.71f, .90f), new Vector2(.84f, .975f), "일괄 분해", UiFactory.Red, () =>
             {
                 CloseDetail();
                 _bulkDismantle.Show();
             }, 28);
+            UiFactory.CenterInHeader((RectTransform)bulkButton.transform, 72f);
             UiFactory.HelpButton(root, () => UiFactory.ShowInfo(_help));   // right next to the 두 figure, inside the header band
             _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(.025f, .005f), new Vector2(.635f, .075f), "", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
-            _help = UiFactory.InfoWindow(root, "행낭 안내", "아이템을 누르면 상세 정보와 관리 버튼이 열립니다.\n· 돌파·분해: 아이템 상세창에서 합니다.\n· 일괄 분해: 상단 버튼에서 등급과 부위를 선택합니다.\n· 강화·장착: 협객 → 장비에서 합니다.");
+            _help = UiFactory.InfoWindow(root, "행낭 안내", "아이템을 누르면 상세 정보와 관리 버튼이 열립니다.\n· 돌파·분해: 아이템 상세창에서 합니다.\n· 일괄 분해: 상단 버튼에서 등급과 부위를 선택합니다.\n· 강화·장착: 장비 탭에서 합니다.");
 
             // Filter tabs
             for (int t = 0; t < FilterNames.Length; t++)
@@ -137,7 +136,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Kind", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.72f, 0.90f), kind, 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
 
             var lines = new List<string>();
-            if (gear) lines.Add("강화 · 장착 · 해제는 협객 → 장비의 부위 칸에서 합니다.\n\n<color=#9ADB9F>" + UiFactory.GearEffectText(item, 0, enh) + "</color>" + (enh > 0 && item.Grade != ItemGrade.Transcendent ? "   (돌파 전 " + UiFactory.GearEffectText(item, 0) + ")" : ""));
+            if (gear) lines.Add("강화 · 장착 · 해제는 장비 탭의 부위 칸에서 합니다.\n\n<color=#9ADB9F>" + UiFactory.GearEffectText(item, 0, enh) + "</color>" + (enh > 0 && item.Grade != ItemGrade.Transcendent ? "   (돌파 전 " + UiFactory.GearEffectText(item, 0) + ")" : ""));
             else
             {
                 var fx = new List<string>();

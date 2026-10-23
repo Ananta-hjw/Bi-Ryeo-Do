@@ -31,7 +31,7 @@ namespace BiRyeoDo.Game.UI
         private RectTransform _artsRoot;
         private InnerArtPanel _inner;
 
-        public void Build(RectTransform tab, System.Action openCompanions = null)
+        public void Build(RectTransform tab)
         {
             if (_built) return;
             _built = true;
@@ -40,30 +40,27 @@ namespace BiRyeoDo.Game.UI
             for (int p = 0; p < PageNames.Length; p++)
             {
                 int page = p;
-                float x0 = 0.04f + p * 0.32f;
-                var btn = UiFactory.Button("Page" + p, tab, new Vector2(x0, .895f), new Vector2(x0 + 0.30f, .995f), PageNames[p], UiFactory.InkSoft, () => ShowPage(page), 30);
+                float x0 = 0.04f + p * .47f;
+                var btn = UiFactory.Button("Page" + p, tab, new Vector2(x0, .895f), new Vector2(x0 + .45f, .995f), PageNames[p], UiFactory.InkSoft, () => ShowPage(page), 30);
                 _pageTabs[p] = btn.GetComponent<Image>();
                 if (p < 2)
                 {
-                    var dot = UiFactory.Panel("NewDot", btn.transform, new Vector2(0.80f, 0.55f), new Vector2(1.04f, 1.12f), UiFactory.Red);
+                    var dot = UiFactory.Panel("NewDot", btn.transform, new Vector2(0.80f, 0.55f), new Vector2(.98f, .98f), UiFactory.Red);
                     _pageDotTexts[p] = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 30, UiFactory.PaperText);
                     _pageDots[p] = dot.gameObject;
                     _pageDots[p].SetActive(false);
                 }
             }
-            UiFactory.Button("CompanionTraining", tab, new Vector2(.68f, .895f), new Vector2(.96f, .995f), "협객 · 인물 관리", UiFactory.InkSoft, () => openCompanions?.Invoke(), 30);
             var root = UiFactory.Rect("ArtsPage", tab, Vector2.zero, new Vector2(.645f, .88f));
             _artsRoot = root;
             _inner = new InnerArtPanel(UiFactory.Rect("InnerArtPage", tab, Vector2.zero, new Vector2(1f, .88f)), Refresh) { Embedded = true };
 
-            UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, .87f), new Vector2(0.96f, .99f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
-            UiFactory.Glyph("arts", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
-            _header = UiFactory.Label("Header", root, new Vector2(0.16f, .88f), new Vector2(0.84f, 0.985f), "", 42, UiFactory.Gold);
+            _header = UiFactory.TabHeader(root, "arts");
             UiFactory.HelpButton(root, () => UiFactory.ShowInfo(_masteryHelp));   // right next to the 두 figure, inside the header band
-            _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, .79f), new Vector2(0.95f, .865f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, .755f), new Vector2(0.95f, .84f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             // The list scrolls: the protagonist has far more arts than fit on one screen.
-            var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, .78f));
+            var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, .745f));
             viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
             viewport.gameObject.AddComponent<RectMask2D>();
             var content = UiFactory.Rect("Content", viewport, new Vector2(0f, 1f), new Vector2(1f, 1f));

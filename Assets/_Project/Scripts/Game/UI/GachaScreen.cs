@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using BiRyeoDo.Core;
 using BiRyeoDo.Game.Systems;
 using UnityEngine;
@@ -26,6 +27,10 @@ namespace BiRyeoDo.Game.UI
         private readonly Text[] _buttonLabels = new Text[3];
         private Text _emptyNote;
         private readonly List<Card> _cards = new List<Card>();
+        private readonly List<RectTransform> _resultRows = new List<RectTransform>();
+        private ReadingList _resultsLayout;
+        private ScrollRect _resultsScroll;
+        private RectTransform _poolRoot;
         private bool _built, _busy;
         private int _pullCounter;
 
@@ -34,9 +39,7 @@ namespace BiRyeoDo.Game.UI
             if (_built) return;
             _built = true;
 
-            UiFactory.Frame(UiFactory.Panel("HeaderBand", root, new Vector2(0.04f, .87f), new Vector2(0.96f, .99f), UiFactory.Ink).transform, UiFactory.GoldDim, 2f);
-            UiFactory.Glyph("gacha", root, new Vector2(.065f, .936f), new Vector2(.13f, .977f), UiFactory.Gold);
-            _header = UiFactory.Label("Header", root, new Vector2(0.16f, .88f), new Vector2(0.84f, 0.985f), "", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
+            _header = UiFactory.TabHeader(root, "gacha");
             UiFactory.HelpButton(root, () => UiFactory.ShowInfo(_help));   // at the right end of the header band, next to the 두 figure
             _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(.34f, .02f), new Vector2(.98f, .12f), "", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
             _help = UiFactory.InfoWindow(root, "뽑기 안내", "같은 장비는 여분으로 쌓입니다.\n한계돌파하거나 분해해 재료를 얻을 수 있습니다.\n뽑은 결과는 행낭에 들어갑니다.");
@@ -47,38 +50,53 @@ namespace BiRyeoDo.Game.UI
             for (int g = 0; g < Grades.Rates.Length; g++)   // 초월 cannot be pulled, so it has no chip
             {
                 var grade = (ItemGrade)g;
-                int col = g % 3, row = g / 3;
-                float x0 = 0.02f + col * 0.325f, y1 = row == 0 ? 0.94f : 0.48f;
+                int col = g % 3, gradeRow = g / 3;
+                float x0 = 0.02f + col * 0.325f, y1 = gradeRow == 0 ? 0.94f : 0.48f;
                 var chip = UiFactory.Panel("Chip" + g, odds.transform, new Vector2(x0, y1 - 0.42f), new Vector2(x0 + 0.31f, y1), new Color(0.04f, 0.05f, 0.08f, 0.9f));
+                chip.raycastTarget = true;
+                var openPool = chip.gameObject.AddComponent<Button>();
+                openPool.targetGraphic = chip;
+                openPool.onClick.AddListener(() => OpenPool(grade));
                 UiFactory.Frame(chip.transform, UiFactory.GradeColor(grade), 2f);
                 UiFactory.Label("Name", chip.transform, new Vector2(0.04f, 0.5f), new Vector2(0.96f, 1f), Grades.Names[g] + "  " + ((float)Grades.Rates[g] * 100f).ToString("0.#") + "%", 28, UiFactory.GradeColor(grade));
                 UiFactory.Label("Count", chip.transform, new Vector2(0.04f, 0f), new Vector2(0.96f, 0.5f), Gacha.Pool(grade).Count + "종", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
             }
 
-            // Full-width result rows keep long names and effects readable.
-            _emptyNote = UiFactory.Label("Empty", root, new Vector2(.35f, .28f), new Vector2(.96f, .80f), "아직 뽑지 않았습니다.\n아래 버튼으로 뽑아 보세요.", 32, UiFactory.Dim, TextAnchor.LowerCenter, FontStyle.Normal);
+            // Result cards share a measured row, keeping three columns aligned as effects wrap.
+            _emptyNote = UiFactory.Label("Empty", root, new Vector2(.35f, .28f), new Vector2(.96f, .80f), "아직 뽑지 않았습니다.\n왼쪽 버튼으로 뽑아 보세요.\n등급·확률을 누르면 획득 가능한 목록이 열립니다.", 32, UiFactory.Dim, TextAnchor.LowerCenter, FontStyle.Normal);
             UiFactory.Glyph("gacha", _emptyNote.transform, new Vector2(.3f, .35f), new Vector2(.7f, .94f), new Color(.83f, .72f, .48f, .35f));
-            var resultsContent = CodexPanel.Scroller(root, .14f, .90f);
+            var resultsContent = CodexPanel.Scroller(root, .14f, .855f);
             LandscapeMenu.Place((RectTransform)resultsContent.parent, .33f, .14f, .985f, .855f);
-            for (int i = 0; i < Gacha.TenPullCount; i++)
+            _resultsScroll = resultsContent.parent.GetComponent<ScrollRect>();
+            const float rowHeight = 360f, gap = 16f;
+            RectTransform row = null;
+            for (int i = 0; i < Gacha.FiftyPullCount; i++)
             {
-                var c = new Card();
-                var rt = UiFactory.Rect("Card" + i, resultsContent, new Vector2(.04f, 1f), new Vector2(.96f, 1f));
-                rt.pivot = new Vector2(.5f, 1f);
-                rt.sizeDelta = new Vector2(0f, 230f);
-                ReadingList.Register(rt, 230f, 16f);
-                rt.gameObject.AddComponent<Image>().color = UiFactory.Ink;
-                c.Root = rt.gameObject;
+                if (i % 3 == 0)
+                {
+                    int rowIndex = i / 3;
+                    row = UiFactory.Rect("Row" + rowIndex, resultsContent, new Vector2(.02f, 1f), new Vector2(.98f, 1f));
+                    row.pivot = new Vector2(.5f, 1f);
+                    row.sizeDelta = new Vector2(0f, rowHeight);
+                    row.anchoredPosition = new Vector2(0f, -gap - rowIndex * (rowHeight + gap));
+                    ReadingList.Register(row, rowHeight, gap);
+                    _resultRows.Add(row);
+                    row.gameObject.SetActive(false);
+                }
+                float left = i % 3 * .339f;
+                var rt = UiFactory.Rect("Card" + i, row, new Vector2(left, 0f), new Vector2(left + .322f, 1f));
+                var c = new Card { Root = rt.gameObject };
                 c.Frame = UiFactory.Panel("Frame", rt, Vector2.zero, Vector2.one, UiFactory.GoldDim);
-                c.Bg = UiFactory.Panel("Bg", rt, new Vector2(0.015f, 0.04f), new Vector2(0.985f, 0.96f), new Color(0.06f, 0.08f, 0.12f, 0.96f));
-                c.Icon = UiFactory.Panel("Icon", rt, new Vector2(0.03f, 0.10f), new Vector2(0.20f, 0.90f), Color.white);
+                c.Bg = UiFactory.Panel("Bg", rt, new Vector2(.015f, .015f), new Vector2(.985f, .985f), new Color(.06f, .08f, .12f, .96f));
+                c.Icon = UiFactory.Panel("Icon", rt, new Vector2(.24f, .56f), new Vector2(.76f, .97f), Color.white);
                 c.IconGlyph = UiFactory.Label("Glyph", c.Icon.transform, Vector2.zero, Vector2.one, "", 34, UiFactory.PaperText);
-                c.Name = UiFactory.Label("Name", rt, new Vector2(0.22f, 0.50f), new Vector2(0.78f, 0.96f), "", 30, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                c.Effect = UiFactory.Label("Effect", rt, new Vector2(0.22f, 0.04f), new Vector2(0.97f, 0.50f), "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
-                c.Tag = UiFactory.Label("Tag", rt, new Vector2(0.76f, 0.52f), new Vector2(0.97f, 0.96f), "", 30, UiFactory.Gold, TextAnchor.MiddleRight);
+                c.Name = UiFactory.Body(UiFactory.Label("Name", rt, new Vector2(.04f, .365f), new Vector2(.96f, .55f), "", 26, UiFactory.PaperText));
+                c.Effect = UiFactory.Body(UiFactory.Label("Effect", rt, new Vector2(.04f, .04f), new Vector2(.96f, .35f), "", 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal));
+                c.Tag = UiFactory.Label("Tag", rt, new Vector2(.73f, .86f), new Vector2(.98f, .98f), "", 22, UiFactory.Gold, TextAnchor.MiddleRight);
                 c.Root.SetActive(false);
                 _cards.Add(c);
             }
+            _resultsLayout = resultsContent.GetComponent<ReadingList>();
 
             // Buttons: 1 / 10 / 50 pulls
             for (int i = 0; i < 3; i++)
@@ -91,8 +109,43 @@ namespace BiRyeoDo.Game.UI
                 _buttonImages[i] = btn.GetComponent<Image>();
                 _buttonLabels[i] = btn.GetComponentInChildren<Text>();
             }
+            _poolRoot = UiFactory.Rect("GachaPool", root, Vector2.zero, Vector2.one);
+            _poolRoot.gameObject.SetActive(false);
             Refresh();
         }
+
+        private void OpenPool(ItemGrade grade)
+        {
+            LandscapeMenu.Clear(_poolRoot);
+            _poolRoot.gameObject.SetActive(true);
+            _poolRoot.SetAsLastSibling();
+            UiFactory.Button("Dismiss", _poolRoot, Vector2.zero, Vector2.one, "", new Color(0f, 0f, 0f, .8f), ClosePool, 28);
+            var card = UiFactory.Panel("Card", _poolRoot, new Vector2(.10f, .05f), new Vector2(.90f, .95f), UiFactory.Ink);
+            card.raycastTarget = true;
+            UiFactory.Frame(card.transform, UiFactory.GradeColor(grade), 3f);
+            var pool = Gacha.Pool(grade).OrderBy(item => item.Kind).ThenBy(item => item.Name).ToList();
+            UiFactory.Label("Title", card.transform, new Vector2(.04f, .87f), new Vector2(.96f, .98f), Grades.NameOf(grade) + " · 획득 가능한 아이템 " + pool.Count + "종", 36, UiFactory.GradeColor(grade));
+            double rate = (int)grade < Grades.Rates.Length ? Grades.Rates[(int)grade] : 0d;
+            UiFactory.Label("Odds", card.transform, new Vector2(.04f, .79f), new Vector2(.96f, .86f),
+                "등급 확률 " + (rate * 100d).ToString("0.#") + "% · 같은 등급 안에서는 모든 아이템이 동일한 확률입니다.", 26, UiFactory.PaperText);
+            var content = CodexPanel.Scroller(card.rectTransform, .16f, .78f);
+            for (int i = 0; i < pool.Count; i++)
+            {
+                var item = pool[i];
+                var row = CodexPanel.Band(content, i);
+                var icon = UiFactory.Panel("Icon", row, new Vector2(.025f, .12f), new Vector2(.16f, .88f), Color.white);
+                ItemArt.Apply(icon, UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, "", 40, UiFactory.Gold), item);
+                UiFactory.Label("Name", row, new Vector2(.19f, .57f), new Vector2(.96f, .95f), UiFactory.GradedName(item), 30, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                UiFactory.Body(UiFactory.Label("Effect", row, new Vector2(.19f, .18f), new Vector2(.96f, .55f), item.IsGear ? UiFactory.GearEffectText(item) : item.Description, 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal));
+                UiFactory.Label("Set", row, new Vector2(.19f, .02f), new Vector2(.96f, .17f), item.IsGear ? "세트: " + (Gear.SetOf(item.Id)?.Name ?? "없음") : "소모품", 24, UiFactory.Gold, TextAnchor.MiddleLeft);
+            }
+            UiFactory.Button("Close", card.transform, new Vector2(.30f, .015f), new Vector2(.70f, .14f), "닫기", UiFactory.InkSoft, ClosePool, 32);
+            Canvas.ForceUpdateCanvases();
+            var layout = content.GetComponent<ReadingList>();
+            if (layout != null) layout.Reflow();
+        }
+
+        private void ClosePool() { if (_poolRoot != null) _poolRoot.gameObject.SetActive(false); }
 
         private List<PullResult> _pending;   // results being revealed; finished instantly if the tab was left mid-animation
 
@@ -110,6 +163,7 @@ namespace BiRyeoDo.Game.UI
             if (!_built) return;
             StopAllCoroutines();
             if (_help != null) _help.gameObject.SetActive(false);
+            ClosePool();
             _busy = false;
         }
 
@@ -147,17 +201,21 @@ namespace BiRyeoDo.Game.UI
             _busy = true;
             _emptyNote.gameObject.SetActive(false);
             foreach (var c in _cards) c.Root.SetActive(false);
+            foreach (var row in _resultRows) row.gameObject.SetActive(false);
+            _resultsScroll.StopMovement();
+            _resultsLayout.Reflow(true);
+            Canvas.ForceUpdateCanvases();
+            _resultsScroll.verticalNormalizedPosition = 1f;
             Refresh();
 
-            // Bulk pulls show the 10 best results; the summary line counts everything.
+            // All results, including fifty-pulls, remain available in the scrolling grid.
             var counts = new int[Grades.Names.Length];
-                        int dupes = 0;
+            int dupes = 0;
             foreach (var r in results) { counts[(int)r.Item.Grade]++; if (r.Duplicate) dupes++; }
             var shown = new List<PullResult>(results);
             shown.Sort((a, b) => ((int)b.Item.Grade).CompareTo((int)a.Item.Grade));
             if (shown.Count > _cards.Count) shown.RemoveRange(_cards.Count, shown.Count - _cards.Count);
 
-            ItemGrade best = ItemGrade.Normal;
             for (int i = 0; i < shown.Count; i++)
             {
                 var r = shown[i];
@@ -168,13 +226,24 @@ namespace BiRyeoDo.Game.UI
                 card.Name.text = UiFactory.GradedName(item);
                 card.Effect.text = item.IsGear ? UiFactory.GearEffectText(item) : item.Description;
                 card.Tag.text = r.Duplicate ? "여분 +1" : item.IsGear ? "NEW" : "";
+                _resultRows[i / 3].gameObject.SetActive(true);
                 card.Root.SetActive(true);
-                if (item.Grade > best) best = item.Grade;
+                if (animate)
+                {
+                    Canvas.ForceUpdateCanvases();
+                    _resultsLayout.Reflow(true);
+                }
                 if (animate) SoundManager.Sfx(item.Grade >= ItemGrade.Legendary ? "gacha_mythic" : item.Grade >= ItemGrade.Epic ? "gacha_rare" : "gacha_pull");
                 if (animate && item.Grade >= ItemGrade.Epic) SoundManager.Haptic(item.Grade >= ItemGrade.Legendary ? 150 : 60);
-                if (animate) yield return new WaitForSeconds(shown.Count > 1 ? 0.14f : 0.05f);
+                if (animate) yield return new WaitForSeconds(shown.Count > 10 ? .04f : shown.Count > 1 ? .14f : .05f);
             }
 
+            if (!animate)
+            {
+                Canvas.ForceUpdateCanvases();
+                _resultsLayout.Reflow(true);
+                _resultsScroll.verticalNormalizedPosition = 1f;
+            }
             var parts = new List<string>();
             for (int g = counts.Length - 1; g >= 0; g--) if (counts[g] > 0) parts.Add("<color=" + UiFactory.GradeHex((ItemGrade)g) + ">" + Grades.Names[g] + " " + counts[g] + "</color>");
             _hint.text = string.Join("  ", parts) + (dupes > 0 ? "  ·  같은 장비 " + dupes + "개는 행낭에 여분으로 쌓였습니다 (한계돌파 또는 분해)" : "") + (results.Count > shown.Count ? "  (높은 등급 " + shown.Count + "개만 표시)" : "");

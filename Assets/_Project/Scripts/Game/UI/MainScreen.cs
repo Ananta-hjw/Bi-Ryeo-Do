@@ -13,13 +13,13 @@ namespace BiRyeoDo.Game.UI
     [RequireComponent(typeof(TabRouter))]
     public class MainScreen : MonoBehaviour
     {
-        private static readonly string[] TabNames = { "강호", "무공", "행낭", "뽑기", "기록", "협객" };
+        private static readonly string[] TabNames = { "강호", "무공", "행낭", "뽑기", "기록", "협객", "장비" };
         private static readonly TabRouter.Tab[] NavigationTabs =
         {
-            TabRouter.Tab.World, TabRouter.Tab.Companions, TabRouter.Tab.MartialArts,
-            TabRouter.Tab.Bag, TabRouter.Tab.Record
+            TabRouter.Tab.World, TabRouter.Tab.Companions, TabRouter.Tab.Equipment, TabRouter.Tab.MartialArts,
+            TabRouter.Tab.Gacha, TabRouter.Tab.Bag, TabRouter.Tab.Record
         };
-        private static readonly string[] TabIconKeys = { "tab_world", "party", "tab_arts", "tab_bag", "tab_record" };
+        private static readonly string[] TabIconKeys = { "tab_world", "party", "equipment", "tab_arts", "gacha", "tab_bag", "tab_record" };
         private const float TabBarHeight = 120f;
 
         private TabRouter _router;
@@ -36,6 +36,7 @@ namespace BiRyeoDo.Game.UI
         private GameObject _worldModal;
         private LandscapeHome _home;
         private CompanionScreen _companions;
+        private EquipmentScreen _equipment;
         private RecordScreen _record;
         private BattleScreen _battle;
 
@@ -59,12 +60,13 @@ namespace BiRyeoDo.Game.UI
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
             scaler.matchWidthOrHeight = 1f;
 
+            // Paint behind the entire display; only interactive UI is inset around cutouts.
+            UiFactory.Panel("Backdrop", canvasGo.transform, Vector2.zero, Vector2.one, UiFactory.Parchment);
+            var wash = UiFactory.Panel("MountainWash", canvasGo.transform, Vector2.zero, Vector2.one, new Color(.36f, .47f, .43f, .12f));
+            wash.sprite = ArtLibrary.Background(1);
+
             var safe = UiFactory.Rect("SafeArea", canvasGo.transform, Vector2.zero, Vector2.one);
             safe.gameObject.AddComponent<SafeAreaLayout>();
-
-            UiFactory.Panel("Backdrop", safe, Vector2.zero, Vector2.one, UiFactory.Parchment);
-            var wash = UiFactory.Panel("MountainWash", safe, Vector2.zero, Vector2.one, new Color(.36f, .47f, .43f, .12f));
-            wash.sprite = ArtLibrary.Background(1);
 
             var content = UiFactory.Rect("Content", safe, Vector2.zero, Vector2.one);
             content.offsetMin = new Vector2(0f, TabBarHeight);
@@ -89,19 +91,26 @@ namespace BiRyeoDo.Game.UI
             _world = worldMenuRoot.gameObject.AddComponent<WorldScreen>();
 
             var artsRoot = UiFactory.Rect("ArtsLandscape", panels[(int)TabRouter.Tab.MartialArts].transform, Vector2.zero, Vector2.one);
-            artsRoot.gameObject.AddComponent<MartialArtsScreen>().Build(artsRoot, () => Select((int)TabRouter.Tab.Companions));
+            artsRoot.gameObject.AddComponent<MartialArtsScreen>().Build(artsRoot);
             var bagRoot = UiFactory.Rect("BagLandscape", panels[(int)TabRouter.Tab.Bag].transform, Vector2.zero, Vector2.one);
             bagRoot.gameObject.AddComponent<BagScreen>().Build(bagRoot);
             var gachaRoot = UiFactory.Rect("GachaLandscape", panels[(int)TabRouter.Tab.Gacha].transform, Vector2.zero, Vector2.one);
             gachaRoot.gameObject.AddComponent<GachaScreen>().Build(gachaRoot);
             var recordRoot = UiFactory.Rect("RecordLandscape", panels[(int)TabRouter.Tab.Record].transform, Vector2.zero, Vector2.one);
             _record = recordRoot.gameObject.AddComponent<RecordScreen>();
+            var equipmentRoot = (RectTransform)panels[(int)TabRouter.Tab.Equipment].transform;
+            _equipment = equipmentRoot.gameObject.AddComponent<EquipmentScreen>();
+            _equipment.Build(equipmentRoot);
             var companionRoot = (RectTransform)panels[(int)TabRouter.Tab.Companions].transform;
             _companions = companionRoot.gameObject.AddComponent<CompanionScreen>();
             _companions.Build(companionRoot, () => Select((int)TabRouter.Tab.MartialArts), () =>
             {
                 Select((int)TabRouter.Tab.World);
                 OpenWorldMenu(WorldScreen.Menu.Party);
+            }, owner =>
+            {
+                _equipment.SelectOwner(owner);
+                Select((int)TabRouter.Tab.Equipment);
             });
 
             BuildTabBar(safe);
@@ -187,19 +196,26 @@ namespace BiRyeoDo.Game.UI
                     TabNames[route], Color.clear, () => Select(route), 32);
                 _tabButtons[i] = btn.GetComponent<Image>();
                 var label = btn.GetComponentInChildren<Text>();
-                label.rectTransform.anchorMin = new Vector2(.39f, .08f);
-                label.rectTransform.anchorMax = new Vector2(.94f, .92f);
+                label.rectTransform.anchorMin = new Vector2(.43f, .08f);
+                label.rectTransform.anchorMax = new Vector2(.96f, .92f);
                 label.rectTransform.offsetMin = label.rectTransform.offsetMax = Vector2.zero;
                 _tabLabels[i] = label;
                 var icon = ArtLibrary.Icon(TabIconKeys[i]);
                 if (icon != null)
                 {
-                    var pic = UiFactory.Panel("TabIcon", btn.transform, new Vector2(.16f, .16f), new Vector2(.36f, .84f), UiFactory.Dim);
+                    var pic = UiFactory.Panel("TabIcon", btn.transform, new Vector2(.22f, .5f), new Vector2(.22f, .5f), UiFactory.Dim);
+                    pic.rectTransform.sizeDelta = new Vector2(64f, 64f);
                     pic.sprite = icon;
                     pic.preserveAspect = true;
                     _tabIcons[i] = pic;
                 }
-                else _tabIcons[i] = UiFactory.Glyph(TabIconKeys[i], btn.transform, new Vector2(.16f, .16f), new Vector2(.36f, .84f), UiFactory.Dim);
+                else
+                {
+                    var glyph = UiFactory.Glyph(TabIconKeys[i], btn.transform, new Vector2(.22f, .5f), new Vector2(.22f, .5f), UiFactory.Dim);
+                    glyph.rectTransform.sizeDelta = new Vector2(64f, 64f);
+                    glyph.Stroke = 3f;
+                    _tabIcons[i] = glyph;
+                }
                 _tabMarks[i] = UiFactory.Panel("SelectedRule", btn.transform, new Vector2(.22f, .965f), new Vector2(.78f, .985f), UiFactory.Gold).gameObject;
                 if (NavigationTabs[i] == TabRouter.Tab.MartialArts)
                 {

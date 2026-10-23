@@ -69,6 +69,11 @@ namespace BiRyeoDo.Game.UI
                     Path(mesh,.27f,.15f,.3f,.4f,.5f,.48f,.7f,.4f,.73f,.15f);
                     Path(mesh,.06f,.2f,.08f,.37f,.2f,.42f); Path(mesh,.8f,.42f,.92f,.37f,.94f,.2f);
                     break;
+                case "equipment":
+                    Path(mesh,.2f,.85f,.38f,.94f,.43f,.80f,.57f,.80f,.62f,.94f,.8f,.85f,
+                        .93f,.64f,.77f,.52f,.7f,.66f,.7f,.12f,.3f,.12f,.3f,.66f,.23f,.52f,.07f,.64f,.2f,.85f);
+                    Line(mesh,.32f,.38f,.68f,.38f); Line(mesh,.5f,.77f,.5f,.15f);
+                    break;
                 case "bag":
                     Path(mesh,.3f,.8f,.7f,.8f,.63f,.66f,.82f,.33f,.75f,.14f,.25f,.14f,.18f,.33f,.37f,.66f,.3f,.8f);
                     Line(mesh,.3f,.64f,.7f,.64f); Ring(mesh,.5f,.37f,.1f);

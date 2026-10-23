@@ -253,10 +253,90 @@ namespace BiRyeoDo.Game.UI
             return ReadingPages.Split(value, text => MeasureHeight(layout, text, width), height);
         }
 
-        /// <summary>The small 「?」 button at the right end of a tab's header band (next to the 두 figure).</summary>
+        public const float TabHeaderHeight = 115f;
+        private const float TabHeaderMargin = 10f;
+
+        /// <summary>A fixed-height top lane, including inside the shorter martial-arts page.</summary>
+        public static RectTransform TopLane(string name, Transform parent, float left = .04f, float right = .96f)
+        {
+            var rect = Rect(name, parent, new Vector2(left, 1f), new Vector2(right, 1f));
+            rect.offsetMin = new Vector2(0f, -TabHeaderMargin - TabHeaderHeight);
+            rect.offsetMax = new Vector2(0f, -TabHeaderMargin);
+            return rect;
+        }
+
+        public static Text TabHeader(Transform parent, string icon, string title = "", float titleRight = .84f)
+        {
+            var band = TopLane("HeaderBand", parent);
+            var background = band.gameObject.AddComponent<Image>();
+            background.color = Ink; background.raycastTarget = false;
+            Frame(band, GoldDim, 2f);
+            var glyph = Glyph(icon, band, new Vector2(0f, .5f), new Vector2(0f, .5f), Gold);
+            glyph.rectTransform.pivot = new Vector2(0f, .5f);
+            glyph.rectTransform.sizeDelta = new Vector2(80f, 80f);
+            glyph.rectTransform.anchoredPosition = new Vector2(24f, 0f);
+            glyph.Stroke = 3f;
+            var text = Label("Header", band, new Vector2(0f, .10f), new Vector2(titleRight, .90f), title, 40, Gold, TextAnchor.MiddleLeft);
+            text.rectTransform.offsetMin = new Vector2(128f, 0f);
+            return text;
+        }
+
+        public static void CenterInHeader(RectTransform rect, float height)
+        {
+            var min = rect.offsetMin; var max = rect.offsetMax;
+            rect.anchorMin = new Vector2(rect.anchorMin.x, 1f);
+            rect.anchorMax = new Vector2(rect.anchorMax.x, 1f);
+            float center = -TabHeaderMargin - TabHeaderHeight / 2f;
+            rect.offsetMin = new Vector2(min.x, center - height / 2f);
+            rect.offsetMax = new Vector2(max.x, center + height / 2f);
+        }
+
+        private static Sprite _helpCircle;
+
+        private static Sprite HelpCircle
+        {
+            get
+            {
+                if (_helpCircle == null)
+                {
+                    const int size = 128;
+                    var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
+                    {
+                        wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear
+                    };
+                    for (int y = 0; y < size; y++)
+                        for (int x = 0; x < size; x++)
+                        {
+                            float distance = Vector2.Distance(new Vector2(x, y), new Vector2(63.5f, 63.5f));
+                            var color = distance > 60f ? GoldDim : InkSoft;
+                            color.a *= Mathf.Clamp01(63.5f - distance);
+                            texture.SetPixel(x, y, color);
+                        }
+                    // Keep pixels readable for the circular alpha hit test.
+                    texture.Apply();
+                    _helpCircle = Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(.5f, .5f), 100f);
+                }
+                return _helpCircle;
+            }
+        }
+
+        /// <summary>Compact circular help control with the same diameter on every screen.</summary>
         public static Button HelpButton(Transform parent, UnityAction onClick)
         {
-            return Button("Help", parent, new Vector2(.855f, .88f), new Vector2(.95f, .99f), "?", InkSoft, onClick, 34);
+            var rect = Rect("Help", parent, new Vector2(.905f, .935f), new Vector2(.905f, .935f));
+            rect.sizeDelta = new Vector2(76f, 76f);
+            CenterInHeader(rect, 76f);
+            var image = rect.gameObject.AddComponent<Image>();
+            image.sprite = HelpCircle;
+            image.color = Color.white;
+            image.preserveAspect = true;
+            image.alphaHitTestMinimumThreshold = .1f;
+            var button = rect.gameObject.AddComponent<Button>();
+            button.targetGraphic = image;
+            if (onClick != null) button.onClick.AddListener(onClick);
+            button.onClick.AddListener(() => Systems.SoundManager.Sfx("ui_click"));
+            Label("Label", rect, new Vector2(.05f, .05f), new Vector2(.95f, .95f), "?", 32, Gold);
+            return button;
         }
 
         /// <summary>A small explanation window over a tab (hidden at first): tap the backdrop or 「닫기」 to close; the body scrolls. Show it with <see cref="ShowInfo"/>.</summary>

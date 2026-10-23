@@ -2,11 +2,11 @@ using UnityEngine;
 
 namespace BiRyeoDo.Game.UI
 {
-    /// <summary>Shows one route at a time. Gacha remains reachable from the landscape lobby.</summary>
+    /// <summary>Shows one route at a time. All seven routes are available from the bottom navigation.</summary>
     public class TabRouter : MonoBehaviour
     {
         // Append new routes so existing inspector values keep their original meaning.
-        public enum Tab { World, MartialArts, Bag, Gacha, Record, Companions }
+        public enum Tab { World, MartialArts, Bag, Gacha, Record, Companions, Equipment }
 
         [Tooltip("Panels indexed by the Tab enum order.")]
         public GameObject[] panels;
