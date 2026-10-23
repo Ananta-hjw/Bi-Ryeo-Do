@@ -179,9 +179,9 @@ namespace BiRyeoDo.Game.UI
                 {
                     int index = i / 3;
                     row = UiFactory.Rect("Row" + index, content, new Vector2(.01f, 1f), new Vector2(.99f, 1f));
-                    row.pivot = new Vector2(.5f, 1f); row.sizeDelta = new Vector2(0f, 320f);
-                    row.anchoredPosition = new Vector2(0f, -14f - index * 334f);
-                    ReadingList.Register(row, 320f, 14f);
+                    row.pivot = new Vector2(.5f, 1f); row.sizeDelta = new Vector2(0f, 380f);
+                    row.anchoredPosition = new Vector2(0f, -14f - index * 394f);
+                    ReadingList.Register(row, 380f, 14f);
                 }
                 var item = items[i];
                 float x = i % 3 * .339f;
@@ -194,13 +194,13 @@ namespace BiRyeoDo.Game.UI
                     _selectedId = item.Id; _feedback = null; Refresh();
                 });
                 UiFactory.Frame(card, item.Id == _selectedId ? UiFactory.Gold : UiFactory.GradeColor(item.Grade), item.Id == _selectedId ? 3f : 2f);
-                var icon = UiFactory.Panel("Icon", card, new Vector2(.30f, .59f), new Vector2(.70f, .97f), Color.white);
+                var icon = UiFactory.TopIcon(card, 160f, 40f);
                 ItemArt.Apply(icon, UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, "", 36, UiFactory.Gold), item);
-                Label(card, "Name", .04f, .36f, .96f, .57f, item.Name, 26, UiFactory.GradeColor(item.Grade));
+                Label(card, "Name", .04f, .30f, .96f, .47f, item.Name, 26, UiFactory.GradeColor(item.Grade));
                 int slot = item.Kind == ItemKind.Accessory ? _slot : item.Kind == ItemKind.Weapon ? 0 : item.Kind == ItemKind.Armor ? 1 : item.Kind == ItemKind.Pants ? 2 : 3;
-                Label(card, "Effect", .04f, .15f, .96f, .35f, UiFactory.GearEffectText(item, Gear.AppliedSlotLevel(Save, _owner, slot, item), Gear.Stars(Save, item.Id)), 22);
-                Label(card, "Set", .04f, .015f, .96f, .135f, Gear.SetOf(item.Id)?.Name ?? "세트 없음", 22, UiFactory.Gold);
-                Label(card, "State", .03f, .83f, .98f, .98f, worn.Contains(item.Id) ? "착용 중" : Gear.StarsText(Save, item.Id), 22, UiFactory.Jade);
+                Label(card, "Effect", .04f, .12f, .96f, .29f, UiFactory.GearEffectText(item, Gear.AppliedSlotLevel(Save, _owner, slot, item), Gear.Stars(Save, item.Id)), 22);
+                Label(card, "Set", .04f, .01f, .96f, .11f, Gear.SetOf(item.Id)?.Name ?? "세트 없음", 22, UiFactory.Gold);
+                Label(card, "State", .03f, .915f, .98f, .995f, worn.Contains(item.Id) ? "착용 중" : Gear.StarsText(Save, item.Id), 22, UiFactory.Jade);
             }
             if (items.Count == 0) Label(right, "Empty", .05f, .40f, .95f, .68f, "보유한 장비가 없습니다.", 30, UiFactory.Dim);
             BuildActions(right, selected);

@@ -1,15 +1,62 @@
+using BiRyeoDo.Game.Systems;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Serialization;
 
 namespace BiRyeoDo.Game.UI
 {
-    /// <summary>Small, resolution-independent line ornaments. No texture allocations or external icon dependency.</summary>
+    /// <summary>Painted semantic menu icons with vector fallbacks for frames, floor markers and ornaments.</summary>
     public sealed class WuxiaGlyph : MaskableGraphic
     {
-        public string Key = "stage";
+        [SerializeField, FormerlySerializedAs("Key")]
+        private string _key = "stage";
+        public string Key
+        {
+            get { return _key; }
+            set
+            {
+                value = value ?? "";
+                if (_key == value) return;
+                _key = value;
+                _iconKey = null; _icon = null;
+                SetAllDirty();
+            }
+        }
         public float Stroke = 2f;
         private Rect _bounds;
         private float _size;
+
+        private string _iconKey;
+        private Sprite _icon;
+
+        public override Texture mainTexture
+        {
+            get { ResolveIcon(); return _icon != null ? _icon.texture : base.mainTexture; }
+        }
+
+        private void ResolveIcon()
+        {
+            if (_iconKey == Key) return;
+            _iconKey = Key;
+            _icon = ArtLibrary.Icon(Key);
+        }
+
+        private void DrawIcon(VertexHelper mesh)
+        {
+            var source = _icon.rect;
+            float scale = Mathf.Min(_bounds.width / source.width, _bounds.height / source.height);
+            var half = source.size * scale * .5f;
+            var center = _bounds.center;
+            float left = source.xMin / _icon.texture.width, right = source.xMax / _icon.texture.width;
+            float bottom = source.yMin / _icon.texture.height, top = source.yMax / _icon.texture.height;
+            // Keep the original painted colours; the existing alpha still controls visibility.
+            var tint = new Color(1f, 1f, 1f, color.a);
+            mesh.AddVert(center - half, tint, new Vector2(left, bottom));
+            mesh.AddVert(center + new Vector2(-half.x, half.y), tint, new Vector2(left, top));
+            mesh.AddVert(center + half, tint, new Vector2(right, top));
+            mesh.AddVert(center + new Vector2(half.x, -half.y), tint, new Vector2(right, bottom));
+            mesh.AddTriangle(0, 1, 2); mesh.AddTriangle(2, 3, 0);
+        }
 
         protected override void OnPopulateMesh(VertexHelper mesh)
         {
@@ -17,6 +64,8 @@ namespace BiRyeoDo.Game.UI
             _bounds = rectTransform.rect;
             _size = Mathf.Min(_bounds.width, _bounds.height);
             if (_size <= 0f) return;
+            ResolveIcon();
+            if (_icon != null) { DrawIcon(mesh); return; }
             if (Key == "frame") { Frame(mesh); return; }
             if (Key == "stance")
             {
@@ -32,6 +81,12 @@ namespace BiRyeoDo.Game.UI
             string key = Key.Replace("tab_", "");
             switch (key)
             {
+                case "icon_rim":
+                    Ring(mesh, .5f, .5f, .48f, 64);
+                    break;
+                case "close":
+                    Line(mesh, .28f, .28f, .72f, .72f); Line(mesh, .28f, .72f, .72f, .28f);
+                    break;
                 case "guard":
                     Path(mesh,.5f,.92f,.83f,.78f,.77f,.35f,.5f,.09f,.23f,.35f,.17f,.78f,.5f,.92f);
                     Line(mesh,.5f,.76f,.5f,.27f); Line(mesh,.34f,.57f,.66f,.57f);

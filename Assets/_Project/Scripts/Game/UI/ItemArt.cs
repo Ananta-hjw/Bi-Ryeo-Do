@@ -35,11 +35,13 @@ namespace BiRyeoDo.Game.UI
                 icon.sprite = sprite;
                 icon.color = Color.white;
                 icon.preserveAspect = true;
+                ItemIconPalette.Apply(icon, item.Grade);
                 if (glyph != null) glyph.text = "";
             }
             else
             {
                 icon.sprite = null;
+                icon.material = null;
                 icon.color = KindColor(item);
                 if (glyph != null) glyph.text = item.Name.Substring(0, 1);
             }

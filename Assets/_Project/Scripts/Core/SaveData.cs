@@ -10,6 +10,9 @@ namespace BiRyeoDo.Core
         public const int CurrentVersion = 2;
 
         public int Version = CurrentVersion;
+        public int StoryContentRevision = StoryContentMigration.CurrentRevision;
+        public int RetiredStoryStars;
+        public List<string> CompletedStoryBattles = new List<string>();   // legacy standalone-story completion; main stages now track every fight
         public int Level = 1;           // 경지/수련 단계 within the current life
         public long Exp;
         public long Doo;                // 두: main currency

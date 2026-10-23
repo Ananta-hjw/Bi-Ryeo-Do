@@ -23,7 +23,7 @@ namespace BiRyeoDo.Core
         // Explicit identities for upper-grade gear; other gear follows its slot and existing effects.
         private static readonly Dictionary<string, GearTraitKind[]> TraitPlans = new Dictionary<string, GearTraitKind[]>
         {
-            { "storm_blade", new[] { GearTraitKind.CritDamage, GearTraitKind.Qi, GearTraitKind.Defense } },
+            { "crimson_saber", new[] { GearTraitKind.CritDamage, GearTraitKind.Qi, GearTraitKind.Defense } },
             { "dragonfang_sword", new[] { GearTraitKind.Qi, GearTraitKind.Speed, GearTraitKind.CritDamage } },
             { "dragonscale_armor", new[] { GearTraitKind.Qi, GearTraitKind.Speed, GearTraitKind.Attack } },
             { "phoenix_robe", new[] { GearTraitKind.Qi, GearTraitKind.Attack, GearTraitKind.CritDamage } },

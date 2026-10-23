@@ -1,0 +1,3044 @@
+{
+  "entries": [
+    {
+      "category": "Art",
+      "id": "bido_throw",
+      "sheet": "skills",
+      "cell": 0,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "samboku_chobok",
+      "sheet": "skills",
+      "cell": 1,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "bunroesu",
+      "sheet": "skills",
+      "cell": 2,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "samcheopyeong",
+      "sheet": "skills",
+      "cell": 3,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "bi_roe_do",
+      "sheet": "skills",
+      "cell": 4,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "yeobanjang",
+      "sheet": "skills",
+      "cell": 5,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "roegwang_ryuhagok",
+      "sheet": "skills",
+      "cell": 6,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "seonpung_roejeol",
+      "sheet": "skills",
+      "cell": 7,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "cheongeun_roe",
+      "sheet": "skills",
+      "cell": 8,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "cheonji_ibun",
+      "sheet": "skills",
+      "cell": 9,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "bongik_bisang",
+      "sheet": "skills",
+      "cell": 10,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "simroe",
+      "sheet": "skills",
+      "cell": 11,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "saengsa_seomroe",
+      "sheet": "skills",
+      "cell": 12,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "eunseompung",
+      "sheet": "skills",
+      "cell": 13,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "goengroe",
+      "sheet": "skills",
+      "cell": 14,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "seomroe",
+      "sheet": "skills",
+      "cell": 15,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "jikji_jilju",
+      "sheet": "skills",
+      "cell": 16,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "pungsin",
+      "sheet": "skills",
+      "cell": 17,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "xr_twin",
+      "sheet": "skills",
+      "cell": 18,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "xr_barrier",
+      "sheet": "skills",
+      "cell": 19,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "jh_slash",
+      "sheet": "skills",
+      "cell": 20,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "jh_stun",
+      "sheet": "skills",
+      "cell": 21,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "yj_slash",
+      "sheet": "skills",
+      "cell": 22,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "yj_heal",
+      "sheet": "skills",
+      "cell": 23,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "yj_cleanse",
+      "sheet": "skills",
+      "cell": 24,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "isj_gon",
+      "sheet": "skills",
+      "cell": 25,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "isj_seonggwang",
+      "sheet": "skills",
+      "cell": 26,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "isj_iljeom",
+      "sheet": "skills",
+      "cell": 27,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "ny_baekhon",
+      "sheet": "skills",
+      "cell": 28,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "ny_hansang",
+      "sheet": "skills",
+      "cell": 29,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "ny_simahn",
+      "sheet": "skills",
+      "cell": 30,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "breath",
+      "sheet": "skills",
+      "cell": 31,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "vigor",
+      "sheet": "skills",
+      "cell": 32,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "tiger",
+      "sheet": "skills",
+      "cell": 33,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "swift",
+      "sheet": "skills",
+      "cell": 34,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "life",
+      "sheet": "skills",
+      "cell": 35,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "spirit",
+      "sheet": "skills",
+      "cell": 36,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "calm",
+      "sheet": "skills",
+      "cell": 37,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "fury",
+      "sheet": "skills",
+      "cell": 38,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "wall",
+      "sheet": "skills",
+      "cell": 39,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "blood",
+      "sheet": "skills",
+      "cell": 40,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "ironbone",
+      "sheet": "skills",
+      "cell": 41,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "stream",
+      "sheet": "skills",
+      "cell": 42,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "thunder",
+      "sheet": "skills",
+      "cell": 43,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "unity",
+      "sheet": "skills",
+      "cell": 44,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "breaker",
+      "sheet": "skills",
+      "cell": 45,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "immortal",
+      "sheet": "skills",
+      "cell": 46,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "flash",
+      "sheet": "skills",
+      "cell": 47,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "harmony",
+      "sheet": "skills",
+      "cell": 48,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "bloodking",
+      "sheet": "skills",
+      "cell": 49,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Inner",
+      "id": "supreme",
+      "sheet": "skills",
+      "cell": 50,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "cmd_attack",
+      "sheet": "skills",
+      "cell": 51,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "cmd_guard",
+      "sheet": "skills",
+      "cell": 52,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "cmd_meditate",
+      "sheet": "skills",
+      "cell": 53,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "cmd_item",
+      "sheet": "skills",
+      "cell": 54,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "cmd_joint",
+      "sheet": "skills",
+      "cell": 55,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "ultimate_slot",
+      "sheet": "skills",
+      "cell": 56,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "tab_world",
+      "sheet": "skills",
+      "cell": 57,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "party",
+      "sheet": "skills",
+      "cell": 58,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "equipment",
+      "sheet": "skills",
+      "cell": 59,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "tab_arts",
+      "sheet": "skills",
+      "cell": 60,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "tab_bag",
+      "sheet": "skills",
+      "cell": 61,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "tab_record",
+      "sheet": "skills",
+      "cell": 62,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "gacha",
+      "sheet": "skills",
+      "cell": 63,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "bear_gall",
+      "sheet": "details",
+      "cell": 2,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "okruju",
+      "sheet": "items_0",
+      "cell": 1,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "ginseng",
+      "sheet": "items_0",
+      "cell": 2,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "insight_stone",
+      "sheet": "items_0",
+      "cell": 3,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "art_scroll_5",
+      "sheet": "items_0",
+      "cell": 4,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "art_scroll_10",
+      "sheet": "items_0",
+      "cell": 5,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "art_scroll_20",
+      "sheet": "items_0",
+      "cell": 6,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "leather",
+      "sheet": "items_0",
+      "cell": 7,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "laundry_bat",
+      "sheet": "items_0",
+      "cell": 8,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "jin_biroedo",
+      "sheet": "jin_biroedo",
+      "cell": 0,
+      "columns": 1,
+      "rows": 1
+    },
+    {
+      "category": "Item",
+      "id": "mukryonghwan",
+      "sheet": "items_0",
+      "cell": 10,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "roegeum",
+      "sheet": "details",
+      "cell": 5,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "claw_necklace",
+      "sheet": "items_0",
+      "cell": 12,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "ilgeup_yeongdan",
+      "sheet": "items_0",
+      "cell": 13,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "seungryong_pae",
+      "sheet": "items_0",
+      "cell": 14,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mukrin_talisman",
+      "sheet": "elemental_equipment",
+      "cell": 8,
+      "columns": 4,
+      "rows": 3
+    },
+    {
+      "category": "Item",
+      "id": "meal_academy",
+      "sheet": "items_0",
+      "cell": 16,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "biaoguk_ration",
+      "sheet": "items_0",
+      "cell": 17,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "taegeuk_pill",
+      "sheet": "items_0",
+      "cell": 18,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "plum_elixir",
+      "sheet": "items_0",
+      "cell": 19,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "antidote",
+      "sheet": "items_0",
+      "cell": 20,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "greenwood_liquor",
+      "sheet": "items_0",
+      "cell": 21,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "cheonyul_pae",
+      "sheet": "items_0",
+      "cell": 22,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "iron_sword",
+      "sheet": "items_0",
+      "cell": 23,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "oak_club",
+      "sheet": "items_0",
+      "cell": 24,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "hunter_knife",
+      "sheet": "items_0",
+      "cell": 25,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "cheonggang_sword",
+      "sheet": "items_0",
+      "cell": 26,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "twin_daggers",
+      "sheet": "items_0",
+      "cell": 27,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "dumok_spear",
+      "sheet": "items_0",
+      "cell": 28,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "blackiron_blade",
+      "sheet": "elemental_equipment",
+      "cell": 4,
+      "columns": 4,
+      "rows": 3
+    },
+    {
+      "category": "Item",
+      "id": "windcut_sword",
+      "sheet": "items_0",
+      "cell": 30,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "thunder_dagger",
+      "sheet": "items_0",
+      "cell": 31,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "frost_sword",
+      "sheet": "items_0",
+      "cell": 32,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "crimson_saber",
+      "sheet": "items_0",
+      "cell": 33,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "crescent_glaive",
+      "sheet": "items_0",
+      "cell": 34,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "storm_blade",
+      "sheet": "items_0",
+      "cell": 35,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "dragonfang_sword",
+      "sheet": "items_0",
+      "cell": 36,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "starfall_sword",
+      "sheet": "equipment_repair",
+      "cell": 0,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "heaven_cutter",
+      "sheet": "equipment_repair",
+      "cell": 1,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "cloth_robe",
+      "sheet": "equipment_repair",
+      "cell": 3,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "leather_vest",
+      "sheet": "items_0",
+      "cell": 41,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "padded_coat",
+      "sheet": "items_0",
+      "cell": 42,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "chain_shirt",
+      "sheet": "items_0",
+      "cell": 43,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "scholar_robe",
+      "sheet": "items_0",
+      "cell": 44,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "tigerhide_coat",
+      "sheet": "items_0",
+      "cell": 45,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mountain_armor",
+      "sheet": "items_0",
+      "cell": 46,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "silk_battle_robe",
+      "sheet": "items_0",
+      "cell": 47,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "snakescale_vest",
+      "sheet": "items_0",
+      "cell": 48,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "jade_scale_armor",
+      "sheet": "items_0",
+      "cell": 49,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "crimson_longcoat",
+      "sheet": "items_0",
+      "cell": 50,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "blackturtle_cloak",
+      "sheet": "items_0",
+      "cell": 51,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "dragonscale_armor",
+      "sheet": "items_0",
+      "cell": 52,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "phoenix_robe",
+      "sheet": "items_0",
+      "cell": 53,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "heavensilk_robe",
+      "sheet": "items_0",
+      "cell": 54,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "vajra_armor",
+      "sheet": "items_0",
+      "cell": 55,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "jade_ring",
+      "sheet": "items_0",
+      "cell": 63,
+      "columns": 9,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "wooden_charm",
+      "sheet": "items_0",
+      "cell": 64,
+      "columns": 9,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "copper_bell",
+      "sheet": "items_0",
+      "cell": 65,
+      "columns": 9,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "straw_sandals",
+      "sheet": "equipment_repair",
+      "cell": 4,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "silver_hairpin",
+      "sheet": "items_0",
+      "cell": 67,
+      "columns": 9,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "jade_pendant",
+      "sheet": "items_0",
+      "cell": 68,
+      "columns": 9,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "iron_bracer",
+      "sheet": "items_0",
+      "cell": 69,
+      "columns": 9,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "wind_boots",
+      "sheet": "items_0",
+      "cell": 70,
+      "columns": 9,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "cinnabar_amulet",
+      "sheet": "items_0",
+      "cell": 71,
+      "columns": 9,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "thunder_beads",
+      "sheet": "elemental_equipment",
+      "cell": 0,
+      "columns": 4,
+      "rows": 3
+    },
+    {
+      "category": "Item",
+      "id": "moonlight_pendant",
+      "sheet": "items_1",
+      "cell": 1,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "bronze_gauntlet",
+      "sheet": "items_1",
+      "cell": 2,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "sapphire_ring",
+      "sheet": "items_1",
+      "cell": 3,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "bloodjade_bracelet",
+      "sheet": "items_1",
+      "cell": 4,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "starlight_necklace",
+      "sheet": "items_1",
+      "cell": 5,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "ninetail_charm",
+      "sheet": "items_1",
+      "cell": 6,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "dragon_pearl",
+      "sheet": "items_1",
+      "cell": 7,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "thunder_crown",
+      "sheet": "items_1",
+      "cell": 8,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "snowlotus_charm",
+      "sheet": "items_1",
+      "cell": 9,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "phoenix_feather",
+      "sheet": "items_1",
+      "cell": 10,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "heavenly_demon_core",
+      "sheet": "elemental_equipment",
+      "cell": 10,
+      "columns": 4,
+      "rows": 3
+    },
+    {
+      "category": "Item",
+      "id": "taegeuk_jade",
+      "sheet": "items_1",
+      "cell": 12,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "emperor_seal",
+      "sheet": "items_1",
+      "cell": 13,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "herbal_tea",
+      "sheet": "items_1",
+      "cell": 14,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "rice_cake",
+      "sheet": "items_1",
+      "cell": 15,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "snow_ginseng",
+      "sheet": "items_1",
+      "cell": 16,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "thunder_wine",
+      "sheet": "details",
+      "cell": 1,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "train_pants",
+      "sheet": "items_1",
+      "cell": 18,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "ironwall_greaves",
+      "sheet": "items_1",
+      "cell": 19,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "ironwall_boots",
+      "sheet": "items_1",
+      "cell": 20,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gale_pants",
+      "sheet": "items_1",
+      "cell": 21,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gale_feather",
+      "sheet": "items_1",
+      "cell": 22,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "frost_pants",
+      "sheet": "items_1",
+      "cell": 23,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "frost_boots",
+      "sheet": "items_1",
+      "cell": 24,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "flame_pants",
+      "sheet": "items_1",
+      "cell": 25,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "flame_boots",
+      "sheet": "items_1",
+      "cell": 26,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "thunder_robe",
+      "sheet": "elemental_equipment",
+      "cell": 1,
+      "columns": 4,
+      "rows": 3
+    },
+    {
+      "category": "Item",
+      "id": "thunder_pants",
+      "sheet": "elemental_equipment",
+      "cell": 2,
+      "columns": 4,
+      "rows": 3
+    },
+    {
+      "category": "Item",
+      "id": "thunder_boots",
+      "sheet": "elemental_equipment",
+      "cell": 3,
+      "columns": 4,
+      "rows": 3
+    },
+    {
+      "category": "Item",
+      "id": "dragon_greaves",
+      "sheet": "items_1",
+      "cell": 30,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "dragon_boots",
+      "sheet": "items_1",
+      "cell": 31,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "emperor_robe",
+      "sheet": "items_1",
+      "cell": 32,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "emperor_pants",
+      "sheet": "items_1",
+      "cell": 33,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "emperor_boots",
+      "sheet": "items_1",
+      "cell": 34,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "biroe_blade",
+      "sheet": "items_0",
+      "cell": 9,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "biroe_robe",
+      "sheet": "items_1",
+      "cell": 36,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "biroe_pants",
+      "sheet": "items_1",
+      "cell": 37,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "biroe_boots",
+      "sheet": "items_1",
+      "cell": 38,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_nor01",
+      "sheet": "items_1",
+      "cell": 40,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_nor02",
+      "sheet": "items_1",
+      "cell": 41,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_nor03",
+      "sheet": "items_1",
+      "cell": 42,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_nor04",
+      "sheet": "items_1",
+      "cell": 43,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_nor05",
+      "sheet": "items_1",
+      "cell": 44,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_nor06",
+      "sheet": "items_1",
+      "cell": 45,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_nor07",
+      "sheet": "items_1",
+      "cell": 46,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_nor08",
+      "sheet": "items_1",
+      "cell": 47,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_nor09",
+      "sheet": "items_1",
+      "cell": 48,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_nor10",
+      "sheet": "items_1",
+      "cell": 49,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_nor01",
+      "sheet": "items_1",
+      "cell": 50,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_nor02",
+      "sheet": "items_1",
+      "cell": 51,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_nor03",
+      "sheet": "items_1",
+      "cell": 52,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_nor04",
+      "sheet": "items_1",
+      "cell": 53,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_nor05",
+      "sheet": "items_1",
+      "cell": 54,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_nor06",
+      "sheet": "items_1",
+      "cell": 55,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_nor07",
+      "sheet": "items_1",
+      "cell": 56,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_nor08",
+      "sheet": "items_1",
+      "cell": 57,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_nor09",
+      "sheet": "items_1",
+      "cell": 58,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_nor10",
+      "sheet": "items_1",
+      "cell": 59,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_nor01",
+      "sheet": "items_1",
+      "cell": 60,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_nor02",
+      "sheet": "items_1",
+      "cell": 61,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_nor03",
+      "sheet": "items_1",
+      "cell": 62,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_nor04",
+      "sheet": "equipment_repair",
+      "cell": 7,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_nor05",
+      "sheet": "equipment_repair",
+      "cell": 5,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_nor06",
+      "sheet": "items_2",
+      "cell": 0,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_nor07",
+      "sheet": "items_2",
+      "cell": 1,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_nor08",
+      "sheet": "items_2",
+      "cell": 2,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_nor09",
+      "sheet": "items_2",
+      "cell": 3,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_nor01",
+      "sheet": "items_2",
+      "cell": 4,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_nor02",
+      "sheet": "items_2",
+      "cell": 5,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_nor03",
+      "sheet": "items_2",
+      "cell": 6,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_nor04",
+      "sheet": "items_2",
+      "cell": 7,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_nor05",
+      "sheet": "items_2",
+      "cell": 8,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_nor06",
+      "sheet": "items_2",
+      "cell": 9,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_nor07",
+      "sheet": "items_2",
+      "cell": 10,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_nor08",
+      "sheet": "items_2",
+      "cell": 11,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_nor09",
+      "sheet": "items_2",
+      "cell": 12,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_nor10",
+      "sheet": "items_2",
+      "cell": 13,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_nor01",
+      "sheet": "items_2",
+      "cell": 14,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_nor02",
+      "sheet": "items_2",
+      "cell": 15,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_nor03",
+      "sheet": "items_2",
+      "cell": 16,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_nor04",
+      "sheet": "items_2",
+      "cell": 17,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_nor05",
+      "sheet": "items_2",
+      "cell": 18,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_nor06",
+      "sheet": "items_2",
+      "cell": 19,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_nor07",
+      "sheet": "items_2",
+      "cell": 20,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_nor08",
+      "sheet": "items_2",
+      "cell": 21,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_nor09",
+      "sheet": "items_2",
+      "cell": 22,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_nor10",
+      "sheet": "items_2",
+      "cell": 23,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_fin01",
+      "sheet": "items_2",
+      "cell": 24,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_fin02",
+      "sheet": "items_2",
+      "cell": 25,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_fin03",
+      "sheet": "items_2",
+      "cell": 26,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_fin04",
+      "sheet": "items_2",
+      "cell": 27,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_fin05",
+      "sheet": "items_2",
+      "cell": 28,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_fin06",
+      "sheet": "items_2",
+      "cell": 29,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_fin07",
+      "sheet": "items_2",
+      "cell": 30,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_fin08",
+      "sheet": "equipment_repair",
+      "cell": 6,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_fin01",
+      "sheet": "items_2",
+      "cell": 32,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_fin02",
+      "sheet": "items_2",
+      "cell": 33,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_fin03",
+      "sheet": "items_2",
+      "cell": 34,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_fin04",
+      "sheet": "items_2",
+      "cell": 35,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_fin05",
+      "sheet": "items_2",
+      "cell": 36,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_fin06",
+      "sheet": "items_2",
+      "cell": 37,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_fin07",
+      "sheet": "items_2",
+      "cell": 38,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_fin08",
+      "sheet": "items_2",
+      "cell": 39,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_fin01",
+      "sheet": "items_2",
+      "cell": 40,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_fin02",
+      "sheet": "items_2",
+      "cell": 41,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_fin03",
+      "sheet": "items_2",
+      "cell": 42,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_fin04",
+      "sheet": "items_2",
+      "cell": 43,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_fin05",
+      "sheet": "items_2",
+      "cell": 44,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_fin06",
+      "sheet": "items_2",
+      "cell": 45,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_fin07",
+      "sheet": "items_2",
+      "cell": 46,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_fin08",
+      "sheet": "items_2",
+      "cell": 47,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_fin01",
+      "sheet": "items_2",
+      "cell": 48,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_fin02",
+      "sheet": "items_2",
+      "cell": 49,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_fin03",
+      "sheet": "items_2",
+      "cell": 50,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_fin04",
+      "sheet": "items_2",
+      "cell": 51,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_fin05",
+      "sheet": "items_2",
+      "cell": 52,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_fin06",
+      "sheet": "items_2",
+      "cell": 53,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_fin07",
+      "sheet": "items_2",
+      "cell": 54,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_fin01",
+      "sheet": "items_2",
+      "cell": 55,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_fin02",
+      "sheet": "items_2",
+      "cell": 56,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_fin03",
+      "sheet": "items_2",
+      "cell": 57,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_fin04",
+      "sheet": "items_2",
+      "cell": 58,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_fin05",
+      "sheet": "items_2",
+      "cell": 59,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_fin06",
+      "sheet": "items_2",
+      "cell": 60,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_fin07",
+      "sheet": "items_2",
+      "cell": 61,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_fin08",
+      "sheet": "items_2",
+      "cell": 62,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_rar01",
+      "sheet": "items_2",
+      "cell": 63,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_rar02",
+      "sheet": "details",
+      "cell": 0,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_rar03",
+      "sheet": "items_3",
+      "cell": 1,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_rar04",
+      "sheet": "items_3",
+      "cell": 2,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_rar05",
+      "sheet": "items_3",
+      "cell": 3,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_rar06",
+      "sheet": "items_3",
+      "cell": 4,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_rar07",
+      "sheet": "items_3",
+      "cell": 5,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_rar01",
+      "sheet": "items_3",
+      "cell": 6,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_rar02",
+      "sheet": "items_3",
+      "cell": 7,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_rar03",
+      "sheet": "items_3",
+      "cell": 8,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_rar04",
+      "sheet": "items_3",
+      "cell": 9,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_rar05",
+      "sheet": "items_3",
+      "cell": 10,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_rar06",
+      "sheet": "items_3",
+      "cell": 11,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_rar01",
+      "sheet": "items_3",
+      "cell": 12,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_rar02",
+      "sheet": "items_3",
+      "cell": 13,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_rar03",
+      "sheet": "items_3",
+      "cell": 14,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_rar04",
+      "sheet": "items_3",
+      "cell": 15,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_rar01",
+      "sheet": "items_3",
+      "cell": 16,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_rar02",
+      "sheet": "items_3",
+      "cell": 17,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_rar03",
+      "sheet": "items_3",
+      "cell": 18,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_rar04",
+      "sheet": "items_3",
+      "cell": 19,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_rar05",
+      "sheet": "items_3",
+      "cell": 20,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_rar06",
+      "sheet": "items_3",
+      "cell": 21,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_rar07",
+      "sheet": "items_3",
+      "cell": 22,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_rar01",
+      "sheet": "items_3",
+      "cell": 23,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_rar02",
+      "sheet": "items_3",
+      "cell": 24,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_rar03",
+      "sheet": "items_3",
+      "cell": 25,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_rar04",
+      "sheet": "items_3",
+      "cell": 26,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_rar05",
+      "sheet": "items_3",
+      "cell": 27,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_rar06",
+      "sheet": "items_3",
+      "cell": 28,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_epi01",
+      "sheet": "items_3",
+      "cell": 29,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_epi02",
+      "sheet": "elemental_equipment",
+      "cell": 5,
+      "columns": 4,
+      "rows": 3
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_epi03",
+      "sheet": "items_3",
+      "cell": 31,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_epi04",
+      "sheet": "items_3",
+      "cell": 32,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_epi01",
+      "sheet": "elemental_equipment",
+      "cell": 6,
+      "columns": 4,
+      "rows": 3
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_epi02",
+      "sheet": "items_3",
+      "cell": 34,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_epi03",
+      "sheet": "items_3",
+      "cell": 35,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_epi04",
+      "sheet": "items_3",
+      "cell": 36,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_epi01",
+      "sheet": "items_3",
+      "cell": 37,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_epi02",
+      "sheet": "items_3",
+      "cell": 38,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_epi01",
+      "sheet": "elemental_equipment",
+      "cell": 7,
+      "columns": 4,
+      "rows": 3
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_epi01",
+      "sheet": "items_3",
+      "cell": 40,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_epi02",
+      "sheet": "items_3",
+      "cell": 41,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_epi03",
+      "sheet": "items_3",
+      "cell": 42,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_epi04",
+      "sheet": "items_3",
+      "cell": 43,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_leg01",
+      "sheet": "items_3",
+      "cell": 44,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_leg02",
+      "sheet": "items_3",
+      "cell": 45,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_leg03",
+      "sheet": "items_3",
+      "cell": 46,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_leg01",
+      "sheet": "items_3",
+      "cell": 47,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_leg02",
+      "sheet": "items_3",
+      "cell": 54,
+      "columns": 9,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_arm_leg03",
+      "sheet": "items_3",
+      "cell": 55,
+      "columns": 9,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_leg01",
+      "sheet": "items_3",
+      "cell": 56,
+      "columns": 9,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_pan_leg02",
+      "sheet": "items_3",
+      "cell": 57,
+      "columns": 9,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_boo_leg01",
+      "sheet": "items_3",
+      "cell": 58,
+      "columns": 9,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_leg01",
+      "sheet": "items_3",
+      "cell": 59,
+      "columns": 9,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_leg02",
+      "sheet": "items_3",
+      "cell": 60,
+      "columns": 9,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gen_wea_myt01",
+      "sheet": "equipment_repair",
+      "cell": 2,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_myt01",
+      "sheet": "elemental_equipment",
+      "cell": 9,
+      "columns": 4,
+      "rows": 3
+    },
+    {
+      "category": "Item",
+      "id": "gen_acc_myt02",
+      "sheet": "special",
+      "cell": 1,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "mat_weapon_0",
+      "sheet": "items_3",
+      "cell": 58,
+      "x": 0.0,
+      "y": 0.875,
+      "width": 0.16666666666666666,
+      "height": 0.125,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_armor_0",
+      "sheet": "items_3",
+      "cell": 59,
+      "x": 0.16666666666666666,
+      "y": 0.875,
+      "width": 0.16666666666666666,
+      "height": 0.125,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_pants_0",
+      "sheet": "items_3",
+      "cell": 60,
+      "x": 0.3333333333333333,
+      "y": 0.875,
+      "width": 0.16666666666666666,
+      "height": 0.125,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_boots_0",
+      "sheet": "items_3",
+      "cell": 61,
+      "x": 0.5,
+      "y": 0.875,
+      "width": 0.16666666666666666,
+      "height": 0.125,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_accessory_0",
+      "sheet": "items_3",
+      "cell": 62,
+      "x": 0.6666666666666666,
+      "y": 0.875,
+      "width": 0.16666666666666666,
+      "height": 0.125,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_weapon_1",
+      "sheet": "items_3",
+      "cell": 63,
+      "x": 0.8333333333333334,
+      "y": 0.875,
+      "width": 0.16666666666666666,
+      "height": 0.125,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_armor_1",
+      "sheet": "items_4",
+      "cell": 0,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_pants_1",
+      "sheet": "items_4",
+      "cell": 1,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_boots_1",
+      "sheet": "items_4",
+      "cell": 2,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_accessory_1",
+      "sheet": "items_4",
+      "cell": 3,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_weapon_2",
+      "sheet": "items_4",
+      "cell": 4,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_armor_2",
+      "sheet": "items_4",
+      "cell": 5,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_pants_2",
+      "sheet": "items_4",
+      "cell": 6,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_boots_2",
+      "sheet": "items_4",
+      "cell": 7,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_accessory_2",
+      "sheet": "items_4",
+      "cell": 8,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_weapon_3",
+      "sheet": "items_4",
+      "cell": 9,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_armor_3",
+      "sheet": "items_4",
+      "cell": 10,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_pants_3",
+      "sheet": "items_4",
+      "cell": 11,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_boots_3",
+      "sheet": "items_4",
+      "cell": 12,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_accessory_3",
+      "sheet": "items_4",
+      "cell": 13,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_weapon_4",
+      "sheet": "items_4",
+      "cell": 14,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_armor_4",
+      "sheet": "items_4",
+      "cell": 15,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_pants_4",
+      "sheet": "items_4",
+      "cell": 16,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_boots_4",
+      "sheet": "items_4",
+      "cell": 17,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "mat_accessory_4",
+      "sheet": "items_4",
+      "cell": 18,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Item",
+      "id": "gear_polish",
+      "sheet": "special",
+      "cell": 2,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "gear_spirit_mid",
+      "sheet": "special",
+      "cell": 3,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "gear_spirit_high",
+      "sheet": "special",
+      "cell": 4,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "gear_iron_high",
+      "sheet": "special",
+      "cell": 5,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "gear_iron_ancient",
+      "sheet": "special",
+      "cell": 6,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
+      "id": "gear_celestial_stone",
+      "sheet": "special",
+      "cell": 7,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "DefaultItem",
+      "id": "Weapon",
+      "sheet": "items_4",
+      "cell": 24,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "DefaultItem",
+      "id": "Armor",
+      "sheet": "items_4",
+      "cell": 25,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "DefaultItem",
+      "id": "Pants",
+      "sheet": "items_4",
+      "cell": 26,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "DefaultItem",
+      "id": "Boots",
+      "sheet": "items_4",
+      "cell": 27,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "DefaultItem",
+      "id": "Accessory",
+      "sheet": "items_4",
+      "cell": 28,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "DefaultItem",
+      "id": "Consumable",
+      "sheet": "items_4",
+      "cell": 29,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "DefaultItem",
+      "id": "Material",
+      "sheet": "items_4",
+      "cell": 30,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "DefaultItem",
+      "id": "Key",
+      "sheet": "items_4",
+      "cell": 31,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "daily",
+      "sheet": "items_4",
+      "cell": 32,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "quest",
+      "sheet": "items_4",
+      "cell": 33,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "fortune",
+      "sheet": "items_4",
+      "cell": 34,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "star",
+      "sheet": "items_4",
+      "cell": 35,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "tower",
+      "sheet": "items_4",
+      "cell": 36,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "stage",
+      "sheet": "items_4",
+      "cell": 37,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "promotion",
+      "sheet": "items_4",
+      "cell": 38,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "record",
+      "sheet": "items_4",
+      "cell": 46,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "arts",
+      "sheet": "items_4",
+      "cell": 47,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "guard",
+      "sheet": "items_4",
+      "cell": 48,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "lightning",
+      "sheet": "items_4",
+      "cell": 49,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "world",
+      "sheet": "items_4",
+      "cell": 50,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "bag",
+      "sheet": "items_4",
+      "cell": 51,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "coin",
+      "sheet": "items_4",
+      "cell": 52,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "settings",
+      "sheet": "items_4",
+      "cell": 53,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "heal",
+      "sheet": "items_4",
+      "cell": 54,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "bleed",
+      "sheet": "items_4",
+      "cell": 55,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "burn",
+      "sheet": "items_4",
+      "cell": 56,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "chill",
+      "sheet": "items_4",
+      "cell": 57,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "stun",
+      "sheet": "items_4",
+      "cell": 58,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "poison",
+      "sheet": "items_4",
+      "cell": 59,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "innerwound",
+      "sheet": "items_4",
+      "cell": 60,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "speed",
+      "sheet": "items_4",
+      "cell": 61,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Icon",
+      "id": "attack",
+      "sheet": "items_4",
+      "cell": 62,
+      "columns": 8,
+      "rows": 8
+    }
+  ]
+}

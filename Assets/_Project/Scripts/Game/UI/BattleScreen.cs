@@ -55,9 +55,9 @@ namespace BiRyeoDo.Game.UI
             public Button Button;
             public Image Image;
             public Text Label, Detail;
-            public WuxiaGlyph Fallback;
+            public WuxiaGlyph Fallback, Rim;
             public GameObject Root;
-            public Image Icon;   // martial art picture on the left of the button (hidden when there is none)
+            public Image Icon;   // large centered martial-art picture (hidden when there is none)
         }
 
         private RectTransform _cardsRoot, _partyRoot, _fx;
@@ -439,6 +439,9 @@ namespace BiRyeoDo.Game.UI
                 {
                     _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + tag + stage.Name + "  (" + (i + 1) + "/" + stage.Encounters.Length + ")";
                     _lastFightNumber = i + 1;
+                    var episodes = StoryEpisodes.BeforeFight(stage, i, save, singleFight);
+                    if (episodes != null)
+                        foreach (var scene in episodes) yield return ShowStory(scene.Title, scene.Lines);
                     yield return Banner(i == stage.Encounters.Length - 1 ? "결전!" : "전투 " + (i + 1), 0.7f);
                     yield return Fight(stage.Encounters[i], stage.TrialFor(i), stage);
 
@@ -947,7 +950,7 @@ namespace BiRyeoDo.Game.UI
         // ------------------------------------------------------------------ the board (6 x 3 tiles, our side left, the enemies right)
 
         private const float FieldLeft = .015f, FieldRight = .985f;
-        private const float FieldTop = .778f, FieldBottom = .38f, HeaderBottom = .781f, HeaderTop = .803f;
+        private const float FieldTop = .778f, FieldBottom = .335f, HeaderBottom = .781f, HeaderTop = .803f;
         private static readonly Color PartyTile = new Color(0.18f, 0.42f, 0.37f, 0.07f), EnemyTile = new Color(0.52f, 0.20f, 0.15f, 0.07f);
 
         /// <summary>The screen rectangle (fractions of the battle root) of a board tile.</summary>
@@ -963,7 +966,7 @@ namespace BiRyeoDo.Game.UI
         /// <summary>The floor: our half tinted blue, the enemy half red; tiles light up green where the acting member may walk.</summary>
         private void BuildBoard(RectTransform root)
         {
-            UiFactory.Panel("FieldWash", root, new Vector2(FieldLeft, FieldBottom), new Vector2(FieldRight, HeaderTop), new Color(.02f, .045f, .05f, .16f));
+            UiFactory.Panel("FieldWash", root, new Vector2(FieldLeft, FieldBottom), new Vector2(FieldRight, HeaderTop), Color.clear);
             UiFactory.Glyph("halo", root, new Vector2(.12f, .28f), new Vector2(.60f, .70f), new Color(.83f, .72f, .48f, .065f));
             // Column header: 앞 (facing the other side) / 중 / 뒤, so it is clear where the front and back lines are.
             string[] names = { "뒤", "중", "앞", "앞", "중", "뒤" };
@@ -1415,7 +1418,7 @@ namespace BiRyeoDo.Game.UI
             return name.Length > 3 ? name.Substring(0, 3) : name;
         }
 
-        private static List<ItemData> UsableItems()
+        private List<ItemData> UsableItems()
         {
             var list = new List<ItemData>();
             foreach (var s in GameManager.Instance.Save.Items)
@@ -1496,8 +1499,8 @@ namespace BiRyeoDo.Game.UI
                 else if (!reach) sub = "닿지 않음";
                 SetCommand(slot, s.Name, sub, ok, ArtLibrary.Art(s.Id));
             }
-            SetCommand(5, "방어", "피해 60% 감소", true, ArtLibrary.Icon("cmd_guard"));
-            SetCommand(6, "운기", "내공 +" + InteractiveBattle.MeditateQi + "\n체력 소량 회복", true, ArtLibrary.Icon("cmd_meditate"));
+            SetCommand(5, "방어", "피해 -60%", true, ArtLibrary.Icon("cmd_guard"));
+            SetCommand(6, "운기", "내공 +" + InteractiveBattle.MeditateQi, true, ArtLibrary.Icon("cmd_meditate"));
             SetCommand(7, "아이템", UsableItems().Count > 0 ? "" : "없음", UsableItems().Count > 0, ArtLibrary.Icon("cmd_item"));
 
             RefreshJointPartners();
@@ -1573,17 +1576,23 @@ namespace BiRyeoDo.Game.UI
             c.Icon.sprite = icon;
             c.Icon.color = enabled ? Color.white : new Color(1f, 1f, 1f, .35f);
             c.Fallback.gameObject.SetActive(icon == null);
-            c.Fallback.Key = _itemMode ? "bag" : _jointMode ? "party" : CommandGlyph(slot);
+            c.Fallback.Key = slot == 7 && (Aiming || AimingAlly || _itemMode || _jointMode) ? "close"
+                : _itemMode ? "bag" : _jointMode ? "party" : CommandGlyph(slot);
             c.Fallback.SetVerticesDirty();
-            c.Fallback.color = enabled ? UiFactory.Gold : UiFactory.Dim;
-            c.Label.text = name;
+            c.Fallback.color = enabled ? UiFactory.Gold : new Color(.65f, .68f, .70f, .4f);
+            c.Rim.color = !enabled ? new Color(.5f, .52f, .54f, .45f) : slot == 9 ? UiFactory.Gold : new Color(.82f, .78f, .65f, .9f);
+            string caption = name;
+            if (!_itemMode && !_jointMode && (slot >= 1 && slot <= 4 || slot == 9) && caption.Length > 10)
+            {
+                int space = caption.LastIndexOf(' ');
+                if (space >= 0 && caption.Length - space > 2) caption = caption.Substring(space + 1);
+            }
+            c.Label.text = caption;
             c.Detail.text = sub;
             c.Label.color = enabled ? UiFactory.PaperText : UiFactory.Dim;
             c.Detail.color = enabled ? (slot == 9 ? UiFactory.Gold : UiFactory.Dim) : new Color(.72f, .54f, .47f, 1f);
             c.Button.interactable = enabled;
-            c.Image.color = !enabled ? Disabled : _itemMode || _jointMode ? UiFactory.InkSoft
-                : slot == 0 ? new Color(.48f, .18f, .13f, 1f) : slot == 5 ? new Color(.15f, .27f, .32f, 1f)
-                : slot == 6 ? new Color(.13f, .28f, .23f, 1f) : slot == 9 ? new Color(.37f, .28f, .12f, 1f) : UiFactory.InkSoft;
+            c.Image.color = Color.clear;
         }
 
         // ------------------------------------------------------------------ long-press tips

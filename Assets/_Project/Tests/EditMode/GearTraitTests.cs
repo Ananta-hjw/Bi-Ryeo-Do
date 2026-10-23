@@ -93,7 +93,7 @@ namespace BiRyeoDo.Tests
         [TestCase(5, .196f, .224f, .42f)]
         public void MilestonesUnlockCumulativelyOnlyAtTheirRequestedStar(int stars, float critDamage, float qi, float defense)
         {
-            var effects = Gear.EffectsFor(EarlyGameContent.FindItem("storm_blade"), 0, stars);
+            var effects = Gear.EffectsFor(EarlyGameContent.FindItem("crimson_saber"), 0, stars);
             Assert.AreEqual(critDamage, effects.CritDmgAdd, .00001f);
             Assert.AreEqual(qi, effects.QiPct, .00001f);
             Assert.AreEqual(defense, effects.DefPct, .00001f);
@@ -246,11 +246,11 @@ namespace BiRyeoDo.Tests
         public void SharedStarsApplyTraitsToEachWearerWithoutLeakingToReplacementGear()
         {
             var save = new SaveData();
-            Inventory.Add(save, "storm_blade", 5);
+            Inventory.Add(save, "crimson_saber", 5);
             string error;
-            Assert.IsTrue(Inventory.Equip(save, "storm_blade", out error), error);
-            Assert.IsTrue(Inventory.EquipFor(save, "hyo_ryong", "storm_blade", out error), error);
-            for (int i = 0; i < 3; i++) Assert.IsTrue(Gear.Breakthrough(save, "storm_blade", out error), error);
+            Assert.IsTrue(Inventory.Equip(save, "crimson_saber", out error), error);
+            Assert.IsTrue(Inventory.EquipFor(save, "hyo_ryong", "crimson_saber", out error), error);
+            for (int i = 0; i < 3; i++) Assert.IsTrue(Gear.Breakthrough(save, "crimson_saber", out error), error);
             var stats = new CombatStats { MaxHp = 1000, MaxQi = 100, Attack = 100, Defense = 100, Speed = 100, CritDamage = 1.5f };
             var hero = Inventory.ApplyGear(stats, Inventory.GearOf(save, Inventory.Hero), Gear.LevelsFor(save, Inventory.Hero));
             var companion = Inventory.ApplyGear(stats, Inventory.GearOf(save, "hyo_ryong"), Gear.LevelsFor(save, "hyo_ryong"));

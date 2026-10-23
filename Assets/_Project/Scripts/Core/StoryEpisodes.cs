@@ -1,0 +1,242 @@
+using System.Collections.Generic;
+
+namespace BiRyeoDo.Core
+{
+    /// <summary>Story transitions placed next to the encounter they introduce, following the reanalysed volumes 1-5.</summary>
+    public static class StoryEpisodes
+    {
+        private static readonly Dictionary<int, StoryScene[]> Before = new Dictionary<int, StoryScene[]>
+        {
+            { 103, new[]
+                {
+                    new StoryScene { Title = "폭포에서 얻은 서찰", Lines = new[] {
+                            "숲에서 사냥하던 시절이 지나, 열아홉 살 늦봄의 폭포. 수중 수련 중 비류연이 던진 바위가 물을 마시던 행인을 덮쳤다.",
+                            "죽은 사람은 천무학관이 합숙 교관으로 초빙한 철담비환 진조운이었다. 비류연은 유품에서 서찰과 인피면구, 황금 열 냥을 찾았다.",
+                            "비류연|(가르침을 받기만 하라는 법은 없지. 이번에는 내가 가르치는 쪽이 되어 볼까.)",
+                            "그는 두 달 동안 변장과 준비를 마친 뒤 진조운을 대신해 천무아미수련원으로 향했다.",
+                        } },
+                    new StoryScene { Title = "노사부와 열여섯 제자", Lines = new[] {
+                            "주작단 열여섯 명이 수련원에 모였다. 비류연은 인피면구를 썼다는 사실부터 공개해 오히려 의심을 흩뜨렸다.",
+                            "비류연|이름 대신 사부님이라고 불러라. 여기서는 내 가르침을 따른다.",
+                            "남궁상|주작단 단주 남궁상입니다. 잘 부탁드립니다.",
+                            "첫날부터 개당 쉰 근인 묵환을 손발에 채웠다. 장작과 빨래, 식사 준비는 비류연 자신이 사부 밑에서 겪어 온 수련이었다.",
+                        } },
+                    new StoryScene { Title = "뜻밖의 백호", Lines = new[] {
+                            "합숙 중 비류연은 남궁상의 짝사랑을 눈치채고 그와 진령이 숲에서 마주치도록 자리를 꾸몄다.",
+                            "남궁상|진 소저, 할 말이 있소.",
+                            "진령|이런 곳으로 부르시다니, 무슨 일이신가요?",
+                            "그러나 수풀에서 먼저 튀어나온 것은 백호였다. 남궁상이 진령을 감쌌다.",
+                        } },
+                } },
+            { 501, new[]
+                {
+                    new StoryScene { Title = "염도와 내기", Lines = new[] {
+                            "윤하루에 나타난 붉은 머리 도객 때문에 표행이 멈췄다. 염도는 비류연이 던진 표국 깃발을 받아 들었다.",
+                            "장우강이 사죄했지만, 비류연의 전음이 염도의 귀에 닿은 말을 욕설로 바꾸었다. 격분한 염도에게 장우강이 중상을 입었다.",
+                            "비류연|소문난 고수라시니 내기를 해 보죠. 지는 쪽이 이기는 쪽의 말을 따르는 겁니다.",
+                            "객잔 밖 공터에서 비류연이 염도와 마주 섰다. 이번에는 말로만 겨룰 수 없는 상대였다.",
+                        } },
+                } },
+            { 900, new[]
+                {
+                    new StoryScene { Title = "동호회 거리의 대치", Lines = new[] {
+                            "검혼회의 청풍검 소천군이 효룡을 붙들었다. 구파 쪽 모임으로 데려가려는 그를 도백회의 일도파쇄 구창이 가로막았다.",
+                            "소천군|검혼회가 먼저 이야기하고 있소. 도백회는 끼어들지 마시오.",
+                            "구창|구파 사람만 데려가겠다는 심보부터 고치지 그러나.",
+                            "두 사람의 무형지기가 맞부딪쳤다. 비류연 일행을 향한 합동 공격이 아니라 서로를 견제하는 대치였다.",
+                            "철곤을 든 임성진이 둘 사이를 갈랐다. 싸움은 거기서 멎었다.",
+                        } },
+                    new StoryScene { Title = "애소저회", Lines = new[] {
+                            "임성진은 일행을 애소저회로 이끌었다. 부장 비연태와 천무쌍귀영 당철기·천소해가 어울리는 미인 정보 동호회였다.",
+                            "임성진|여기는 검혼회나 도백회처럼 출신을 따지지는 않는다. 정보가 모이는 곳이지.",
+                            "비류연|정보가 돈이 된다면 가입해야죠.",
+                            "효룡·장홍·윤준호도 따라 가입했다. 뒤이어 독고령의 추격을 피해 달아나는 소동까지 벌어졌다.",
+                        } },
+                    new StoryScene { Title = "남은 기세를 되짚다", Lines = new[] {
+                            "소동 뒤 비류연은 거리에서 보았던 도세를 머릿속에 다시 그렸다. 구창과 실제로 승부를 낸 것은 아니었다.",
+                            "비류연|(저 도가 이쪽으로 들어온다면, 먼저 열리는 곳은 어디일까.)",
+                            "동호회 거리에서 본 공방을 되짚는 수련이 시작된다.",
+                        } },
+                } },
+            { 901, new[]
+                {
+                    new StoryScene { Title = "검혼회의 검세", Lines = new[] {
+                            "다음으로 떠올린 것은 소천군의 검세였다. 실제 대치는 임성진의 중재로 끝났지만, 읽어 둘 만한 움직임이었다.",
+                            "비류연|(도와 다르게 이쪽은 틈을 좁혀 오는군. 정면을 비워 주면 되겠네.)",
+                        } },
+                } },
+            { 902, new[]
+                {
+                    new StoryScene { Title = "엇갈린 두 기세", Lines = new[] {
+                            "구창과 소천군이 서로 맞서던 순간을 함께 되짚었다. 둘이 같은 편으로 나섰다는 뜻은 아니었다.",
+                            "비류연|(둘 다 자기 길만 막히는 걸 싫어하네. 겹치는 틈을 찾으면 빠져나갈 수 있겠어.)",
+                            "머릿속의 수련을 마친 뒤, 학관의 일상으로 돌아간다.",
+                        } },
+                } },
+            { 903, new[]
+                {
+                    new StoryScene { Title = "구정회의 긴급회의", Lines = new[] {
+                            "구정회 부회주 백무영이 구정팔검을 불러 모았다. 비류연과 모용휘, 삼성제의 우승 방어가 의제였다.",
+                            "백무영|구파의 체면이 연거푸 상했다. 두 신입을 가볍게 보아서는 안 된다.",
+                            "삼절검 청흔은 말없이 들었다. 회의가 끝난 뒤 백무영이 그를 따로 붙잡았다.",
+                            "백무영|네 번째 검이 필요할지도 모르겠군.",
+                            "비류연은 그 회의가 열린 줄도 몰랐다.",
+                        } },
+                    new StoryScene { Title = "비봉침 서른두 개", Lines = new[] {
+                            "필수 암기 수업에서 천수탈혼 당평은 단련으로 얻는 절대영역 초감각과 선천적인 용안을 구별해 설명했다.",
+                            "당평|영혼의 속도로 감각을 단련하는 것이 천관이다. 거기, 졸고 있는 놈은 듣고 있느냐!",
+                            "비봉침 서른두 개가 비류연에게 날아들었다. 그는 모두 받아 내고 개수를 대답했다.",
+                            "비류연|예순네 개 아닙니까?",
+                            "비봉침은 하나같이 반으로 갈라져 있었다. 당평의 설명은 비류연의 태평한 대답 앞에서 끊겼다.",
+                        } },
+                    new StoryScene { Title = "운향정의 소녀", Lines = new[] {
+                            "학관을 둘러보던 비류연은 오검룡 이상만 드나드는 운향정에서 걸음을 멈췄다. 밤하늘 같은 눈을 한 소녀가 있었다.",
+                            "그 눈에 이끌린 비류연은 다가가 허락도 없이 입맞춤했다. 소녀의 검기가 곧바로 그의 앞섶을 갈랐다.",
+                            "소녀는 용안으로도 그의 움직임을 읽지 못했다. 비류연은 그녀의 이름조차 아직 몰랐다.",
+                            "잠시 뒤 소녀의 수신 호위대장 위지천이 달려왔다.",
+                            "위지천|감히 우리 소저께 무례를 범하다니! 선풍검룡 위지천이 상대해 주마!",
+                        } },
+                } },
+            { 1002, new[] {
+                new StoryScene { Title = "검후처의 다섯 종소리", Lines = new[] {
+                    "검후처에서 비상종이 다섯 번 울렸다. 나예린은 무기도 챙기지 못한 채 사부에게 달려갔다.",
+                    "301호로 돌아온 그녀는 복면 쓴 침입자와 마주쳤다. 허공섭물로 봉루를 불러 들이자 검기가 방을 가득 채웠다.",
+                    "나예린|누구죠, 당신은!",
+                    "검후처의 경보와 방 안의 침입자는 같은 사건처럼 보였다. 그러나 그날 밤 들어온 그림자는 하나가 아니었다.",
+                } }
+            } },
+            { 1303, new[] {
+                new StoryScene { Title = "세 부문의 결말", Lines = new[] {
+                    "은하성시 우주홍황과 무극검이 충돌했다. 모용휘와 청흔이 함께 쓰러지며 검성전도 무승부였다.",
+                    "염도는 모용휘의 양손에서 서로 다른 기운이 나오는 것을 보고 사부의 유언을 떠올렸다.",
+                    "세 부문 동시 무승부는 사십팔 년 만이었다. 무승부자는 종합 우승에 나설 수 없어, 남은 삼성대전의 결과가 결정적이었다.",
+                } },
+                new StoryScene { Title = "설욕을 건 위지천", Lines = new[] {
+                    "백일연무를 마친 위지천이 결승에 올랐다. 운향정에서의 패배를 씻겠다는 검강에 심사 노사들은 중지를 논했다.",
+                    "염도는 속행을 주장했다. 비류연이 묵금 앞에 앉았다.",
+                    "위지천|이번에는 운향정 때와 다를 것이다!",
+                } }
+            } },
+            { 203, new[] {
+                new StoryScene { Title = "총표두와 부총표두", Lines = new[] {
+                    "강장한이 쓰러지자 총표두 등여운과 부총표두 등여호가 창을 들었다. 두 형제의 연쇄 창격이 표국 안을 가로막았다.",
+                    "노사부와 주작단 열다섯은 물러서지 않았다. 부상당한 당철영의 보상을 받아야 했다.",
+                } }
+            } },
+            { 204, new[] {
+                new StoryScene { Title = "국주의 난화검", Lines = new[] {
+                    "두 형제마저 제압되자 십팔검 장우양이 직접 나섰다. 중양표국의 마지막 체면이 걸린 승부였다.",
+                    "장우양|노사부님, 더는 소란을 키우지 맙시다.",
+                    "비류연|그 말은 내 제자를 때리기 전에 했어야지.",
+                } }
+            } },
+            { 1201, new[] {
+                new StoryScene { Title = "묵금이 울리는 다른 방법", Lines = new[] {
+                    "단평의 뒤를 잡은 비류연이 묵금으로 뒤통수를 쳤다. 음공으로 얻은 승리가 아니었다.",
+                    "홍란|음문의 명예가 땅에 떨어졌구나!",
+                    "문일기가 홍란을 달래는 동안 다음 상대인 무영각 조연일이 올라왔다. 가까운 비무대에서는 묵금이 타격 무기가 되었다.",
+                } }
+            } },
+            { 1202, new[] {
+                new StoryScene { Title = "용아조 진패", Lines = new[] {
+                    "연승을 시작한 비류연 앞에 용아조 진패가 섰다. 손끝으로 파고드는 상대에게 묵금을 고쳐 쥐었다.",
+                } }
+            } },
+            { 1203, new[] {
+                new StoryScene { Title = "소림의 일연", Lines = new[] {
+                    "다음 상대는 소림의 일연이었다. 비류연의 연주는 들리지 않고, 묵금에 맞는 소리만 비무장에 울렸다.",
+                } }
+            } },
+            { 1204, new[] {
+                new StoryScene { Title = "파풍창 언가영", Lines = new[] {
+                    "진주언가의 언가영이 창을 들고 나왔다. 관중은 이제 묵금을 든 신입의 승부를 기다리기 시작했다.",
+                } }
+            } },
+            { 1205, new[] {
+                new StoryScene { Title = "송풍루에서 들은 말", Lines = new[] {
+                    "효룡이 듣는 앞에서 전옥기가 비류연과 그의 사문을 헐뜯었다. 이제 그 전옥기와 비무대에서 마주할 차례였다.",
+                    "효룡|송풍루에서 만났던 자입니다. 실력을 보지도 않고 사문부터 깎아내리더군요.",
+                    "운수대통 격타금이라는 별명이 퍼지는 동안에도 비류연의 음공은 베일에 싸여 있었다.",
+                } }
+            } },
+            { 704, new[] {
+                new StoryScene { Title = "수석 합격과 입관 첫날", Lines = new[] {
+                    "네 응시생을 제압한 비류연은 특별전형 수석이 되었다. 동시에 학관의 요주의 인물로 분류되었다.",
+                    "일반 입관시험 승천무제의 수석은 칠절신검 모용휘였다. 두 수석은 아직 서로를 만나지 못했다.",
+                    "입관식에서 빠져나와 지붕에서 졸던 비류연은 효룡과 친구가 되었다. 두 사람은 장홍과 함께 기숙사 검혼관으로 향했다.",
+                    "장홍|기관이 있는 길입니다. 발밑을 조심하시지요.",
+                    "기관 노방에서 호천강의 복수까지 겹치려 하고 있었다.",
+                } }
+            } },
+            { 1101, new[] {
+                new StoryScene { Title = "정식 승급 상대", Lines = new[] {
+                    "곤륜쌍검을 은하섬광으로 물리친 모용휘는 정식 승급시험에 나섰다. 첫 상대는 형산파 오문형이었다.",
+                } }
+            } },
+            { 1102, new[] {
+                new StoryScene { Title = "두 번째 비무", Lines = new[] {
+                    "오문형 다음으로 천웅보 장대평이 비무대에 올랐다. 모용휘에게는 오검룡과 검성전 참가 자격이 걸려 있었다.",
+                } }
+            } },
+            { 1103, new[] {
+                new StoryScene { Title = "육검룡을 향해", Lines = new[] {
+                    "모용휘는 정식 상대 둘을 꺾고 오검룡이 되었다. 이제 비류연이 비무대에 설 차례였다.",
+                    "단대풍과 강현추가 지명되었지만, 먼저 검을 든 것은 단대풍이었다.",
+                    "비류연|시작하죠. 기다리는 것도 지루하겠네.",
+                } }
+            } },
+            { 1301, new[] {
+                new StoryScene { Title = "독랄수의 패배와 검후전", Lines = new[] {
+                    "당문천이 숨겨 쓴 쇄근독은 비류연에게 통하지 않았다. 삼복구타권법 앞에 독랄수가 무너지고 비류연은 결승에 올랐다.",
+                    "다른 비무장에서는 나예린과 관설지가 검후전 결승을 시작했다. 사문 허락이 없는 한상옥령신검은 쓰지 않았다.",
+                    "이 공방은 현재 편성 파티로 재현합니다. 원작의 삼백여 초 대결을 적 12행동을 견디는 목표로 압축했습니다.",
+                } }
+            } },
+            { 1302, new[] {
+                new StoryScene { Title = "검후전의 무승부, 검성전의 시작", Lines = new[] {
+                    "나예린과 관설지의 승부는 끝내 나지 않았다. 관설지를 본 염도가 소운이라 외쳤다. 그녀의 어머니는 혁소운이었다.",
+                    "도성전의 하윤명과 유엽성도 무승부였다. 이제 검성전에서 모용휘와 청흔이 맞섰다.",
+                    "청흔의 네 번째 검, 무극검이 모습을 드러냈다. 모용휘는 은하류 개벽검으로 맞섰다.",
+                    "현재 편성 파티로 적 12행동을 견디면 마지막 충돌 장면으로 이어집니다.",
+                } }
+            } },
+        };
+
+        /// <summary>Stage body in playback order, without combat or rewards, for completed-story replay.</summary>
+        public static string[] Replay(StageData stage)
+        {
+            if (stage == null || stage.IsTower || stage.IsQuest) return null;
+            var lines = new List<string>();
+            Append(lines, stage.Prologue);
+            if (stage.Intro != null) lines.AddRange(stage.Intro);
+            if (stage.Encounters != null)
+                for (int i = 0; i < stage.Encounters.Length; i++)
+                {
+                    StoryScene[] scenes;
+                    if (Before.TryGetValue(stage.Number * 100 + i, out scenes)) Append(lines, scenes);
+                }
+            if (stage.Outro != null) lines.AddRange(stage.Outro);
+            return lines.ToArray();
+        }
+
+        private static void Append(List<string> lines, StoryScene[] scenes)
+        {
+            if (scenes == null) return;
+            foreach (var scene in scenes)
+            {
+                if (scene == null || scene.Lines == null) continue;
+                lines.Add("— " + scene.Title + " —");
+                lines.AddRange(scene.Lines);
+            }
+        }
+
+        /// <summary>Continue story on an unfinished full run, including a saved resume; isolated fights and repeat clears skip it.</summary>
+        public static StoryScene[] BeforeFight(StageData stage, int encounter, SaveData save, bool singleFight = false)
+        {
+            if (stage == null || save == null || stage.IsQuest || stage.IsTower || singleFight
+                || save.ClearedStage >= stage.Number || stage.Encounters == null || encounter < 0 || encounter >= stage.Encounters.Length) return null;
+            StoryScene[] scenes;
+            return Before.TryGetValue(stage.Number * 100 + encounter, out scenes) ? scenes : null;
+        }
+    }
+}

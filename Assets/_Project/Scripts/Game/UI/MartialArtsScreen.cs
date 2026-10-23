@@ -74,7 +74,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.ScrollIndicator(scroll, viewport);
 
             var arts = EarlyGameContent.Arts.Where(a => a.OwnerId == null).ToArray();
-            const float rowH = 180f, gap = 16f;
+            const float rowH = 200f, gap = 16f;
             content.sizeDelta = new Vector2(0f, arts.Length * (rowH + gap) + gap);
             for (int i = 0; i < arts.Length; i++)
             {
@@ -94,15 +94,19 @@ namespace BiRyeoDo.Game.UI
                 tap.onClick.AddListener(() => OpenDetail(art));
                 UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
                 row.Icon = UiFactory.Panel("Icon", rt, new Vector2(0.025f, 0.5f), new Vector2(0.135f, 0.5f), IconColor(art));
-                FixHeight(row.Icon.rectTransform, IconH);
+                row.Icon.rectTransform.anchorMax = row.Icon.rectTransform.anchorMin;
+                row.Icon.rectTransform.pivot = new Vector2(0f, .5f);
+                row.Icon.rectTransform.sizeDelta = new Vector2(IconH, IconH);
                 UiFactory.Frame(row.Icon.transform, UiFactory.Gold, 2f);
                 row.IconGlyph = UiFactory.Label("Glyph", row.Icon.transform, Vector2.zero, Vector2.one, art.Name.Substring(0, 1), 50, UiFactory.PaperText);
                 // 장착 중 / 새 무공 sit on the icon instead of the title, so the title never gains a second line
                 var tagBack = UiFactory.Panel("TagBack", row.Icon.transform, new Vector2(0f, 0f), new Vector2(1f, 0.26f), new Color(0f, 0f, 0f, 0.72f));
                 tagBack.raycastTarget = false;
                 row.Tag = UiFactory.Label("Tag", tagBack.transform, Vector2.zero, Vector2.one, "", 22, UiFactory.Gold);
-                row.Title = UiFactory.Label("Title", rt, new Vector2(0.15f, 0.50f), new Vector2(0.51f, 0.97f), "", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.15f, 0.03f), new Vector2(0.51f, 0.50f), "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                row.Title = UiFactory.Label("Title", rt, new Vector2(0f, 0.50f), new Vector2(0.51f, 0.97f), "", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0f, 0.03f), new Vector2(0.51f, 0.50f), "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                row.Title.rectTransform.offsetMin = new Vector2(176f, 0f);
+                row.Detail.rectTransform.offsetMin = new Vector2(176f, 0f);
                 row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(0.52f, 0.5f), new Vector2(0.73f, 0.5f), "", UiFactory.Red, () => OnPressed(art), 28);
                 FixHeight(row.Button.GetComponent<RectTransform>(), ButtonH);
                 row.ButtonImage = row.Button.GetComponent<Image>();
@@ -124,7 +128,7 @@ namespace BiRyeoDo.Game.UI
         }
 
         // Row parts keep one size: learning, equipping or a 변초 changes only the words, never the row or its buttons.
-        private const float ButtonH = 128f, IconH = 120f;
+        private const float ButtonH = 128f, IconH = 144f;
 
         private static void FixHeight(RectTransform rt, float height)
         {
@@ -160,14 +164,14 @@ namespace BiRyeoDo.Game.UI
 
             var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, new Color(0.05f, 0.07f, 0.11f, 0.99f));
             UiFactory.Frame(card.transform, ultimate ? UiFactory.Gold : UiFactory.GoldDim, 3f);
-            var big = UiFactory.Panel("Picture", card.transform, new Vector2(0.74f, 0.87f), new Vector2(0.95f, 0.985f), IconColor(art));
+            var big = UiFactory.Panel("Picture", card.transform, new Vector2(0.66f, 0.84f), new Vector2(0.96f, 0.985f), IconColor(art));
             var picture = ArtLibrary.Art(art.Id);
             big.sprite = picture;
             big.preserveAspect = true;
             if (picture != null) big.color = Color.white;
             UiFactory.Frame(big.transform, UiFactory.Gold, 2f);
             if (picture == null) UiFactory.Label("Glyph", big.transform, Vector2.zero, Vector2.one, art.Name.Substring(0, 1), 60, UiFactory.PaperText);
-            UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.91f), new Vector2(0.72f, 0.985f), art.Name + (variant != ArtVariant.None && learned ? "(" + Mastery.VariantName(variant) + ")" : ""), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
+            UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.91f), new Vector2(0.63f, 0.985f), art.Name + (variant != ArtVariant.None && learned ? "(" + Mastery.VariantName(variant) + ")" : ""), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
             string kind = (ultimate ? "비기 (기세 " + art.SpiritCost + ")" : art.AllEnemies ? "전체 무공" : art.Effect == SkillEffect.None ? "일반 무공" : "보조 무공")
                 + (equipped ? "  ·  장착 중" : learned ? "  ·  배움" : "");
             // Command icon of the kind of use: 비기 → 필살기 slot, evade/guard → 방어, heal → 운기, otherwise → 공격.
@@ -180,7 +184,7 @@ namespace BiRyeoDo.Game.UI
                 ki.preserveAspect = true;
                 kindX = 0.125f;
             }
-            UiFactory.Label("Kind", card.transform, new Vector2(kindX, 0.86f), new Vector2(0.72f, 0.91f), kind, 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("Kind", card.transform, new Vector2(kindX, 0.86f), new Vector2(0.63f, 0.91f), kind, 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
 
             var lines = new List<string>();
             lines.Add(art.Description);

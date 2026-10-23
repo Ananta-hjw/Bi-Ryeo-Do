@@ -222,19 +222,21 @@ namespace BiRyeoDo.Game.UI
             {
                 var art = arts[i]; var spec = unit.Skills.First(skill => skill.Id == art.Id);
                 var row = Row(list, i, 300f);
-                var icon = UiFactory.Panel("Icon", row, new Vector2(.025f, .70f), new Vector2(.11f, .97f), Color.white);
+                var icon = UiFactory.Panel("Icon", row, new Vector2(.025f, .80f), new Vector2(.025f, .80f), Color.white);
+                icon.rectTransform.pivot = new Vector2(0f, .5f);
+                icon.rectTransform.sizeDelta = new Vector2(112f, 112f);
                 icon.sprite = ArtLibrary.Art(art.Id); icon.preserveAspect = true;
                 if (icon.sprite == null)
                 {
                     icon.color = Color.clear;
                     UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, art.Name.Substring(0, 1), 36, UiFactory.Gold);
                 }
-                Text(row, "Name", .14f, .76f, .78f, .97f, art.Name, 34, UiFactory.Gold);
+                Text(row, "Name", .21f, .76f, .78f, .97f, art.Name, 34, UiFactory.Gold);
                 Text(row, "Kind", .80f, .76f, .97f, .97f, Progression.IsUltimate(art) ? "필살기" : "무공", 26, UiFactory.Dim);
                 string resources = "내공 " + spec.QiCost + (spec.SpiritCost > 0 ? " · 기세 " + spec.SpiritCost : "")
                     + (spec.Cooldown > 0 ? " · 재사용 " + spec.Cooldown + "턴" : " · 재사용 없음");
                 if (hero) resources += " · 숙련 " + Mastery.LevelNames[Mastery.Level(Save, art.Id)];
-                Text(row, "Resources", .04f, .56f, .97f, .74f, resources, 26, UiFactory.PaperText);
+                Text(row, "Resources", .21f, .56f, .97f, .74f, resources, 26, UiFactory.PaperText);
                 string effect = spec.Effect == SkillEffect.HealAlly ? "아군 체력 " + Math.Round(spec.HealPct * 100f) + "% 회복"
                     : spec.Effect == SkillEffect.GuardParty ? "아군 전체 방어 태세"
                     : spec.Effect == SkillEffect.Evade ? "회피 확률 " + Math.Round(spec.EvadeChance * 100f) + "%"
