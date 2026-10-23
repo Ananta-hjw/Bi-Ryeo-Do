@@ -120,7 +120,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Panel("Backdrop", root, Vector2.zero, Vector2.one, Backdrop).raycastTarget = true;   // swallows taps so nothing underneath (the 강호 tab) is pressed during the battle
             _backdropImage = UiFactory.Panel("StageArt", root, Vector2.zero, Vector2.one, new Color(1f, 1f, 1f, 0f));
             _backdropImage.preserveAspect = false;
-            UiFactory.Panel("Dim", root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.35f)); // keeps text readable over artwork
+            UiFactory.Panel("Dim", root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.22f)); // keeps text readable over artwork
             BuildBoard(root);
 
             _cardsRoot = UiFactory.Rect("Cards", root, Vector2.zero, Vector2.one);
@@ -946,8 +946,8 @@ namespace BiRyeoDo.Game.UI
 
         // ------------------------------------------------------------------ the board (6 x 3 tiles, our side left, the enemies right)
 
-        private const float FieldLeft = .015f, FieldRight = .705f;
-        private const float FieldTop = .706f, FieldBottom = .142f, HeaderBottom = .710f, HeaderTop = .734f;
+        private const float FieldLeft = .015f, FieldRight = .985f;
+        private const float FieldTop = .778f, FieldBottom = .38f, HeaderBottom = .781f, HeaderTop = .803f;
         private static readonly Color PartyTile = new Color(0.18f, 0.42f, 0.37f, 0.07f), EnemyTile = new Color(0.52f, 0.20f, 0.15f, 0.07f);
 
         /// <summary>The screen rectangle (fractions of the battle root) of a board tile.</summary>
@@ -963,7 +963,7 @@ namespace BiRyeoDo.Game.UI
         /// <summary>The floor: our half tinted blue, the enemy half red; tiles light up green where the acting member may walk.</summary>
         private void BuildBoard(RectTransform root)
         {
-            UiFactory.Panel("FieldWash", root, new Vector2(FieldLeft, FieldBottom), new Vector2(FieldRight, HeaderTop), new Color(.02f, .045f, .05f, .32f));
+            UiFactory.Panel("FieldWash", root, new Vector2(FieldLeft, FieldBottom), new Vector2(FieldRight, HeaderTop), new Color(.02f, .045f, .05f, .16f));
             UiFactory.Glyph("halo", root, new Vector2(.12f, .28f), new Vector2(.60f, .70f), new Color(.83f, .72f, .48f, .065f));
             // Column header: 앞 (facing the other side) / 중 / 뒤, so it is clear where the front and back lines are.
             string[] names = { "뒤", "중", "앞", "앞", "중", "뒤" };
@@ -1024,6 +1024,10 @@ namespace BiRyeoDo.Game.UI
                 p.QiText = GaugeText("QiText", p.Root, 0.110f, 0.200f);
                 p.SpiritText = GaugeText("SpiritText", p.Root, 0.015f, 0.105f);
                 p.QiText.gameObject.SetActive(false); p.SpiritText.gameObject.SetActive(false);
+                FixedLabelHeight(p.Name, 1f, 32f);
+                p.Name.rectTransform.anchoredPosition = new Vector2(0f, -16f);
+                FixedLabelHeight(p.Status, .66f, 30f);
+                FixedLabelHeight(p.HpText, .275f, 28f);
                 p.ActionBadge = BuildActionBadge(p.Root);
                 var panelUnit = unit;
                 var catchImg = p.Root.gameObject.AddComponent<Image>();
@@ -1136,6 +1140,13 @@ namespace BiRyeoDo.Game.UI
                 card.IntentBack = UiFactory.Panel("IntentBack", card.Root, new Vector2(.01f, 0f), new Vector2(.99f, .145f), HudInk);
                 card.Intent = UiFactory.Label("Intent", card.Root, new Vector2(0.02f, 0.0f), new Vector2(0.98f, 0.145f), "", 21, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
+                FixedLabelHeight(card.Name, 1f, 32f);
+                card.Name.rectTransform.anchoredPosition = new Vector2(0f, -16f);
+                FixedLabelHeight(card.Realm, .74f, 24f);
+                FixedLabelHeight(card.Badge, .58f, 28f);
+                FixedLabelHeight(card.HpText, .30f, 28f);
+                FixedLabelHeight(card.Intent, 0f, 26f);
+                card.Intent.rectTransform.anchoredPosition = new Vector2(0f, 13f);
                 card.ActionBadge = BuildActionBadge(card.Root);
 
                 // Tap to attack (only while an attack is being aimed)
@@ -1214,7 +1225,7 @@ namespace BiRyeoDo.Game.UI
             _aimPartner = partner;
             _jointMode = false;
             SoundManager.Sfx("ui_click");
-            _log.text = "「" + (partner != null ? _jointName : skill.Name) + "」 — 칠 적을 누르세요.  초록 = 공격 가능 · 빨강 = 공격 불가";
+            _log.text = "「" + (partner != null ? _jointName : skill.Name) + "」 — 칠 적을 누르세요.  금색 = 공격 가능 · 붉은색 = 사거리 밖";
             RefreshCommands();
             RefreshCards();
         }
@@ -1382,6 +1393,7 @@ namespace BiRyeoDo.Game.UI
             for (int i = 0; i < _turnChips.Count; i++)
             {
                 bool has = i < order.Count;
+                _turnUnits[i] = has ? order[i] : null;
                 _turnChips[i].gameObject.SetActive(has);
                 if (!has) continue;
                 bool ours = order[i].Team == Team.Player;

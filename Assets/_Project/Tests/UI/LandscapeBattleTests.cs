@@ -62,7 +62,7 @@ namespace BiRyeoDo.Tests.UI
                     Assert.That(area.xMin, Is.GreaterThanOrEqualTo(0f));
                     Assert.That(area.xMax, Is.LessThanOrEqualTo(1f));
                     Assert.That(area.yMin, Is.GreaterThanOrEqualTo(0f));
-                    Assert.That(area.yMax, Is.LessThanOrEqualTo(.75f));
+                    Assert.That(area.yMax, Is.LessThanOrEqualTo(.27f));
                     Assert.That(rect.rect.width, Is.GreaterThan(160f));
                     Assert.That(rect.rect.height, Is.GreaterThan(120f));
                     foreach (var previous in buttons) Assert.IsFalse(Intersects(previous, area), "Commands overlap");
@@ -71,6 +71,50 @@ namespace BiRyeoDo.Tests.UI
                         for (int row = 0; row < Board.Rows; row++)
                             Assert.IsFalse(Intersects(area, (Rect)tileMethod.Invoke(null, new object[] { col, row })), "Command covers a target");
                 }
+            }
+        }
+
+        [TestCase(1440f)]
+        [TestCase(1920f)]
+        [TestCase(2400f)]
+        public void BattleUsesWideFieldAndSeparatedReadableHudAndCommandRows(float width)
+        {
+            Build(width);
+            var header = (RectTransform)_canvas.transform.Find("BattleHeader");
+            var ribbon = (RectTransform)_canvas.transform.Find("TurnRibbon");
+            var focus = (RectTransform)_canvas.transform.Find("EnemyFocus");
+            var actor = (RectTransform)_canvas.transform.Find("ActingMember");
+            var log = (RectTransform)_canvas.transform.Find("BattleLog");
+            var hint = (RectTransform)_canvas.transform.Find("CommandHint");
+            var field = (RectTransform)_canvas.transform.Find("FieldWash");
+            Assert.Greater(field.rect.width, width * .95f);
+            Assert.IsFalse(Intersects(Anchors(ribbon), Anchors(focus)));
+            Assert.IsFalse(Intersects(Anchors(header), Anchors(ribbon)));
+            Assert.IsFalse(Intersects(Anchors(focus), Anchors(field)));
+            Assert.IsFalse(Intersects(Anchors(actor), Anchors(log)));
+            Assert.IsFalse(Intersects(Anchors(actor), Anchors(field)));
+            Assert.IsFalse(Intersects(Anchors(hint), Anchors(field)));
+            Assert.GreaterOrEqual(((RectTransform)focus.Find("Intent")).rect.height, 56f);
+            Assert.Greater(((RectTransform)actor.Find("Actor")).offsetMin.x, 68f);
+            Assert.AreEqual(5, ribbon.GetComponentsInChildren<Button>(true).Length);
+            Assert.IsNotNull(focus.GetComponent<Button>());
+            Assert.IsTrue(focus.GetComponent<Image>().raycastTarget);
+            Assert.DoesNotThrow(() => focus.GetComponent<Button>().onClick.Invoke());
+            Assert.DoesNotThrow(() => ribbon.Find("Turn0").GetComponent<Button>().onClick.Invoke());
+            log.GetComponent<Button>().onClick.Invoke();
+            Assert.IsTrue(_canvas.transform.Find("Tip").gameObject.activeSelf);
+            _canvas.transform.Find("Tip").gameObject.SetActive(false);
+            int[] order = { 0, 1, 2, 3, 4, 9, 8, 5, 6, 7 };
+            for (int position = 0; position < order.Length; position++)
+            {
+                var button = (RectTransform)_canvas.transform.Find("Command" + order[position]);
+                Assert.That(button.anchorMax.y, Is.EqualTo(position < 5 ? .26f : .13f).Within(.001f));
+                Assert.IsFalse(Intersects(Anchors(button), Anchors(actor)));
+                Assert.IsFalse(Intersects(Anchors(button), Anchors(log)));
+                var label = button.Find("Label") as RectTransform;
+                var detail = button.Find("Detail") as RectTransform;
+                Assert.IsFalse(Intersects(Anchors(label), Anchors(detail)));
+                Assert.LessOrEqual(((RectTransform)button.Find("Icon")).anchorMax.x, label.anchorMin.x);
             }
         }
 
