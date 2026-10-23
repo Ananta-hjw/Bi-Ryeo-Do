@@ -204,7 +204,7 @@ namespace BiRyeoDo.Game.UI
                 if (icon != null)
                 {
                     var pic = UiFactory.Panel("TabIcon", btn.transform, new Vector2(.22f, .5f), new Vector2(.22f, .5f), UiFactory.Dim);
-                    pic.rectTransform.sizeDelta = new Vector2(64f, 64f);
+                    pic.rectTransform.sizeDelta = new Vector2(76f, 76f);
                     pic.sprite = icon;
                     pic.preserveAspect = true;
                     _tabIcons[i] = pic;
@@ -212,7 +212,7 @@ namespace BiRyeoDo.Game.UI
                 else
                 {
                     var glyph = UiFactory.Glyph(TabIconKeys[i], btn.transform, new Vector2(.22f, .5f), new Vector2(.22f, .5f), UiFactory.Dim);
-                    glyph.rectTransform.sizeDelta = new Vector2(64f, 64f);
+                    glyph.rectTransform.sizeDelta = new Vector2(76f, 76f);
                     glyph.Stroke = 3f;
                     _tabIcons[i] = glyph;
                 }
@@ -308,7 +308,7 @@ namespace BiRyeoDo.Game.UI
                 bool selected = (int)NavigationTabs[i] == index;
                 _tabButtons[i].color = selected ? UiFactory.InkSoft : Color.clear;
                 _tabLabels[i].color = selected ? UiFactory.Gold : UiFactory.Dim;
-                _tabIcons[i].color = selected ? UiFactory.Gold : UiFactory.Dim;
+                _tabIcons[i].color = selected ? Color.white : new Color(.72f, .76f, .78f, 1f);
                 _tabMarks[i].SetActive(selected);
             }
         }

@@ -259,7 +259,7 @@ namespace BiRyeoDo.Game.UI
             var iconMax = wide ? new Vector2(.25f, .87f) : new Vector2(.73f, .94f);
             if (art != null)
             {
-                var pic = UiFactory.Panel("IconArt", rt, iconMin, iconMax, UiFactory.Gold);
+                var pic = UiFactory.Panel("IconArt", rt, iconMin, iconMax, Color.white);
                 pic.sprite = art;
                 pic.preserveAspect = true;
             }

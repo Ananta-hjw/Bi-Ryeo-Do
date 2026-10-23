@@ -29,7 +29,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.ScrollBody(UiFactory.Label("Hint", Root, new Vector2(0.05f, .755f), new Vector2(0.95f, .84f), toast ?? ("두 " + save.Doo.ToString("N0") + "  ·  심득석 " + InnerArts.Stones(save) + "  ·  " + slotNote), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             var content = CodexPanel.Scroller(Root, Embedded ? .02f : .10f, .745f);
-            const float rowHeight = 360f, gap = 16f;
+            const float rowHeight = 420f, gap = 16f;
             RectTransform row = null;
             for (int i = 0; i < InnerArts.All.Length; i++)
             {
@@ -48,21 +48,30 @@ namespace BiRyeoDo.Game.UI
                 var band = UiFactory.Panel("Card" + i, row, new Vector2(left, 0f), new Vector2(left + .49f, 1f), UiFactory.Ink).rectTransform;
                 band.GetComponent<Image>().raycastTarget = true;
                 UiFactory.Frame(band, equipped ? UiFactory.Gold : UiFactory.GoldDim, 2f);
-                UiFactory.Label("Name", band, new Vector2(.04f, .78f), new Vector2(.96f, .97f), (unlocked ? a.Name : "???") + (InnerArts.Level(save, a.Id) > 0 ? "  +" + InnerArts.Level(save, a.Id) : "") + (equipped ? "  [장착]" : "") + (NewIds.Contains(a.Id) && !learned ? "  <color=#FF6A5A>[새 심법]</color>" : ""), 32, unlocked ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
-                UiFactory.Label("Effect", band, new Vector2(.04f, .50f), new Vector2(.96f, .77f), unlocked ? InnerArts.EffectText(a, InnerArts.Level(save, a.Id)) : InnerArts.UnlockText(a) + "하면 열립니다", 30, new Color(0.45f, 0.85f, 0.5f, 1f), TextAnchor.MiddleLeft, FontStyle.Normal);
-                UiFactory.Label("Desc", band, new Vector2(.04f, .32f), new Vector2(.96f, .49f), unlocked ? a.Description : "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                var icon = UiFactory.Rect("Icon", band, new Vector2(0f, 1f), new Vector2(0f, 1f));
+                icon.pivot = new Vector2(0f, 1f);
+                icon.anchoredPosition = new Vector2(16f, -16f);
+                icon.sizeDelta = new Vector2(112f, 112f);
+                var picture = UiFactory.Panel("Picture", icon, Vector2.zero, Vector2.one, unlocked ? Color.white : new Color(.45f, .45f, .48f));
+                picture.sprite = ArtLibrary.InnerArt(a.Id);
+                picture.preserveAspect = true;
+                if (picture.sprite == null)
+                    UiFactory.Glyph("fortune", icon, Vector2.zero, Vector2.one, unlocked ? UiFactory.Gold : UiFactory.Dim);
+                UiFactory.Label("Name", band, new Vector2(.25f, .74f), new Vector2(.96f, .97f), (unlocked ? a.Name : "???") + (InnerArts.Level(save, a.Id) > 0 ? "  +" + InnerArts.Level(save, a.Id) : "") + (equipped ? "  [장착]" : "") + (NewIds.Contains(a.Id) && !learned ? "  <color=#FF6A5A>[새 심법]</color>" : ""), 32, unlocked ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
+                UiFactory.Label("Effect", band, new Vector2(.04f, .46f), new Vector2(.96f, .69f), unlocked ? InnerArts.EffectText(a, InnerArts.Level(save, a.Id)) : InnerArts.UnlockText(a) + "하면 열립니다", 30, new Color(0.45f, 0.85f, 0.5f, 1f), TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Desc", band, new Vector2(.04f, .30f), new Vector2(.96f, .45f), unlocked ? a.Description : "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var id = a.Id;
                 string label; Color color; bool enabled;
                 if (learned) { label = equipped ? "해제" : "장착"; color = equipped ? UiFactory.InkSoft : UiFactory.Red; enabled = true; }
                 else if (!unlocked) { label = "잠김"; color = UiFactory.InkSoft; enabled = false; }
                 else { label = "습득 " + a.LearnCost.ToString("N0") + "두"; enabled = save.Doo >= a.LearnCost; color = enabled ? UiFactory.Red : UiFactory.InkSoft; }
-                var btn = UiFactory.Button("Act", band, new Vector2(.04f, .025f), new Vector2(learned ? .47f : .96f, .30f), label, color, () => Press(id), 26);
+                var btn = UiFactory.Button("Act", band, new Vector2(.04f, .025f), new Vector2(learned ? .47f : .96f, .28f), label, color, () => Press(id), 26);
                 btn.interactable = enabled;
                 if (learned)
                 {
                     int cost = InnerArts.NextCost(save, id);
                     bool can = cost >= 0 && InnerArts.Stones(save) >= cost;
-                    var up = UiFactory.Button("Enhance", band, new Vector2(.51f, .025f), new Vector2(.96f, .30f), cost < 0 ? "최대 강화" : "강화 심득석 " + cost, can ? UiFactory.Gold : new Color(0.30f, 0.30f, 0.33f, 1f), () => Enhance(id), 24);
+                    var up = UiFactory.Button("Enhance", band, new Vector2(.51f, .025f), new Vector2(.96f, .28f), cost < 0 ? "최대 강화" : "강화 심득석 " + cost, can ? UiFactory.Gold : new Color(0.30f, 0.30f, 0.33f, 1f), () => Enhance(id), 24);
                     up.interactable = can;
                 }
             }

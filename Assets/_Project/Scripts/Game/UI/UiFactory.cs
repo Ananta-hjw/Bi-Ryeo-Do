@@ -47,6 +47,28 @@ namespace BiRyeoDo.Game.UI
             }
         }
 
+        private static Sprite _bottomShade;
+        /// <summary>A neutral alpha fade, with no hard top edge or background-specific tint.</summary>
+        public static Sprite BottomShade
+        {
+            get
+            {
+                if (_bottomShade == null)
+                {
+                    var texture = new Texture2D(1, 64, TextureFormat.RGBA32, false)
+                    { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+                    for (int y = 0; y < 64; y++)
+                        texture.SetPixel(0, y, new Color(0f, 0f, 0f, .55f * Mathf.Pow(1f - y / 63f, 1.5f)));
+                    texture.Apply(false, true);
+                    _bottomShade = Sprite.Create(texture, new Rect(0f, 0f, 1f, 64f), new Vector2(.5f, .5f), 100f);
+                }
+                return _bottomShade;
+            }
+        }
+
+        /// <summary>Shared circular alpha silhouette for UI stencil masks.</summary>
+        public static Sprite CircleMask { get { return HelpCircle; } }
+
         /// <summary>Rich-text hex such as "#66A6FF" for a grade colour.</summary>
         public static string GradeHex(BiRyeoDo.Core.ItemGrade grade) { return "#" + ColorUtility.ToHtmlStringRGB(GradeColor(grade)); }
 
@@ -152,6 +174,17 @@ namespace BiRyeoDo.Game.UI
             img.color = color;
             img.raycastTarget = false;
             return img;
+        }
+
+        /// <summary>A large square picture whose proportions stay consistent as list rows grow.</summary>
+        public static Image TopIcon(Transform parent, float size, float top = 16f)
+        {
+            var image = Panel("Icon", parent, new Vector2(.5f, 1f), new Vector2(.5f, 1f), Color.white);
+            image.rectTransform.pivot = new Vector2(.5f, 1f);
+            image.rectTransform.sizeDelta = new Vector2(size, size);
+            image.rectTransform.anchoredPosition = new Vector2(0f, -top);
+            image.preserveAspect = true;
+            return image;
         }
 
         public static Text Label(string name, Transform parent, Vector2 min, Vector2 max, string text, int size,
@@ -273,7 +306,7 @@ namespace BiRyeoDo.Game.UI
             Frame(band, GoldDim, 2f);
             var glyph = Glyph(icon, band, new Vector2(0f, .5f), new Vector2(0f, .5f), Gold);
             glyph.rectTransform.pivot = new Vector2(0f, .5f);
-            glyph.rectTransform.sizeDelta = new Vector2(80f, 80f);
+            glyph.rectTransform.sizeDelta = new Vector2(92f, 92f);
             glyph.rectTransform.anchoredPosition = new Vector2(24f, 0f);
             glyph.Stroke = 3f;
             var text = Label("Header", band, new Vector2(0f, .10f), new Vector2(titleRight, .90f), title, 40, Gold, TextAnchor.MiddleLeft);

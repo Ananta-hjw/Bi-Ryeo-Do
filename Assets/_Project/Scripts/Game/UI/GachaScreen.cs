@@ -68,7 +68,7 @@ namespace BiRyeoDo.Game.UI
             var resultsContent = CodexPanel.Scroller(root, .14f, .855f);
             LandscapeMenu.Place((RectTransform)resultsContent.parent, .33f, .14f, .985f, .855f);
             _resultsScroll = resultsContent.parent.GetComponent<ScrollRect>();
-            const float rowHeight = 360f, gap = 16f;
+            const float rowHeight = 400f, gap = 16f;
             RectTransform row = null;
             for (int i = 0; i < Gacha.FiftyPullCount; i++)
             {
@@ -88,11 +88,11 @@ namespace BiRyeoDo.Game.UI
                 var c = new Card { Root = rt.gameObject };
                 c.Frame = UiFactory.Panel("Frame", rt, Vector2.zero, Vector2.one, UiFactory.GoldDim);
                 c.Bg = UiFactory.Panel("Bg", rt, new Vector2(.015f, .015f), new Vector2(.985f, .985f), new Color(.06f, .08f, .12f, .96f));
-                c.Icon = UiFactory.Panel("Icon", rt, new Vector2(.24f, .56f), new Vector2(.76f, .97f), Color.white);
+                c.Icon = UiFactory.TopIcon(rt, 180f, 40f);
                 c.IconGlyph = UiFactory.Label("Glyph", c.Icon.transform, Vector2.zero, Vector2.one, "", 34, UiFactory.PaperText);
-                c.Name = UiFactory.Body(UiFactory.Label("Name", rt, new Vector2(.04f, .365f), new Vector2(.96f, .55f), "", 26, UiFactory.PaperText));
-                c.Effect = UiFactory.Body(UiFactory.Label("Effect", rt, new Vector2(.04f, .04f), new Vector2(.96f, .35f), "", 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal));
-                c.Tag = UiFactory.Label("Tag", rt, new Vector2(.73f, .86f), new Vector2(.98f, .98f), "", 22, UiFactory.Gold, TextAnchor.MiddleRight);
+                c.Name = UiFactory.Body(UiFactory.Label("Name", rt, new Vector2(.04f, .28f), new Vector2(.96f, .44f), "", 26, UiFactory.PaperText));
+                c.Effect = UiFactory.Body(UiFactory.Label("Effect", rt, new Vector2(.04f, .02f), new Vector2(.96f, .26f), "", 24, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal));
+                c.Tag = UiFactory.Label("Tag", rt, new Vector2(.60f, .915f), new Vector2(.96f, .995f), "", 22, UiFactory.Gold, TextAnchor.MiddleRight);
                 c.Root.SetActive(false);
                 _cards.Add(c);
             }
@@ -133,11 +133,11 @@ namespace BiRyeoDo.Game.UI
             {
                 var item = pool[i];
                 var row = CodexPanel.Band(content, i);
-                var icon = UiFactory.Panel("Icon", row, new Vector2(.025f, .12f), new Vector2(.16f, .88f), Color.white);
+                var icon = UiFactory.Panel("Icon", row, new Vector2(.025f, .12f), new Vector2(.19f, .88f), Color.white);
                 ItemArt.Apply(icon, UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, "", 40, UiFactory.Gold), item);
-                UiFactory.Label("Name", row, new Vector2(.19f, .57f), new Vector2(.96f, .95f), UiFactory.GradedName(item), 30, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                UiFactory.Body(UiFactory.Label("Effect", row, new Vector2(.19f, .18f), new Vector2(.96f, .55f), item.IsGear ? UiFactory.GearEffectText(item) : item.Description, 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal));
-                UiFactory.Label("Set", row, new Vector2(.19f, .02f), new Vector2(.96f, .17f), item.IsGear ? "세트: " + (Gear.SetOf(item.Id)?.Name ?? "없음") : "소모품", 24, UiFactory.Gold, TextAnchor.MiddleLeft);
+                UiFactory.Label("Name", row, new Vector2(.22f, .57f), new Vector2(.96f, .95f), UiFactory.GradedName(item), 30, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                UiFactory.Body(UiFactory.Label("Effect", row, new Vector2(.22f, .18f), new Vector2(.96f, .55f), item.IsGear ? UiFactory.GearEffectText(item) : item.Description, 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal));
+                UiFactory.Label("Set", row, new Vector2(.22f, .02f), new Vector2(.96f, .17f), item.IsGear ? "세트: " + (Gear.SetOf(item.Id)?.Name ?? "없음") : "소모품", 24, UiFactory.Gold, TextAnchor.MiddleLeft);
             }
             UiFactory.Button("Close", card.transform, new Vector2(.30f, .015f), new Vector2(.70f, .14f), "닫기", UiFactory.InkSoft, ClosePool, 32);
             Canvas.ForceUpdateCanvases();

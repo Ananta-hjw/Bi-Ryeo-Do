@@ -75,9 +75,9 @@ namespace BiRyeoDo.Game.UI
             for (int i = 0; i < 2; i++)
                 _phaseMarks.Add(UiFactory.Panel("PhaseMark" + i, _focusHp.Root, new Vector2(.5f, 0f), new Vector2(.502f, 1f), UiFactory.Gold));
 
-            var deck = UiFactory.Panel("CommandDeck", root, Vector2.zero, new Vector2(1f, .345f), HudInk);
-            UiFactory.Panel("DeckRule", deck.transform, new Vector2(0f, .99f), Vector2.one, UiFactory.GoldDim);
-            var header = UiFactory.Rect("ActingMember", root, new Vector2(.015f, .27f), new Vector2(.455f, .338f));
+            var deck = UiFactory.Panel("CommandDeck", root, Vector2.zero, new Vector2(1f, .335f), Color.white);
+            deck.sprite = UiFactory.BottomShade;
+            var header = UiFactory.Rect("ActingMember", root, new Vector2(.015f, .218f), new Vector2(.455f, .29f));
             _commandHeader = header.gameObject;
             var portraitFrame = UiFactory.Panel("PortraitBack", header, new Vector2(0f, .5f), new Vector2(0f, .5f), UiFactory.InkSoft);
             portraitFrame.rectTransform.pivot = new Vector2(0f, .5f);
@@ -92,8 +92,7 @@ namespace BiRyeoDo.Game.UI
             _actorName.rectTransform.offsetMin = new Vector2(84f, 0f);
             _actorResources.rectTransform.offsetMin = new Vector2(84f, 0f);
 
-            var log = UiFactory.Panel("BattleLog", root, new Vector2(.47f, .27f), new Vector2(.985f, .338f), HudInk);
-            UiFactory.Panel("LogAccent", log.transform, Vector2.zero, new Vector2(.004f, 1f), UiFactory.GoldDim);
+            var log = UiFactory.Panel("BattleLog", root, new Vector2(.47f, .218f), new Vector2(.985f, .29f), Color.clear);
             _turnNotice = UiFactory.Label("CurrentTurn", log.transform, new Vector2(.025f, .57f), new Vector2(.975f, 1f), "", 28, UiFactory.Gold, TextAnchor.MiddleLeft);
             log.raycastTarget = true;
             var logInfo = log.gameObject.AddComponent<Button>();
@@ -103,22 +102,35 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Inspect", log.transform, new Vector2(.88f, .02f), new Vector2(.985f, .56f), "상세", 22, UiFactory.Gold);
             _log = UiFactory.Label("Log", log.transform, new Vector2(.025f, .02f), new Vector2(.86f, .56f), "무공을 고른 뒤 대상을 선택해 주세요.", 24, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
             // Keep target guidance at the top of the command area, separate from combat feedback.
-            UiFactory.Panel("HintBack", root, new Vector2(.025f, .345f), new Vector2(.975f, .375f), new Color(.025f, .05f, .055f, .8f));
-            _commandHint = UiFactory.Label("CommandHint", root, new Vector2(.025f, .345f), new Vector2(.975f, .375f), "", 26, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal);
+            _commandHint = UiFactory.Label("CommandHint", root, new Vector2(.025f, .294f), new Vector2(.975f, .328f), "", 26, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal);
+
+            foreach (var text in new[] { _actorName, _actorResources, _turnNotice, _log, _commandHint })
+                OutlineCommandText(text);
 
             for (int i = 0; i < _commands.Length; i++)
             {
                 int index = i;
-                var btn = UiFactory.Button("Command" + i, root, Vector2.zero, Vector2.one, "", UiFactory.InkSoft, () => OnCommandPressed(index), 32);
+                var btn = UiFactory.Button("Command" + i, root, Vector2.zero, Vector2.one, "", Color.clear, () => OnCommandPressed(index), 24);
                 var label = btn.GetComponentInChildren<Text>();
-                label.resizeTextMinSize = 28;
-                var detail = UiFactory.Label("Detail", btn.transform, Vector2.zero, Vector2.one, "", 23, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
-                detail.resizeTextMinSize = 22;
-                var icon = UiFactory.Panel("Icon", btn.transform, Vector2.zero, Vector2.one, Color.white);
+                label.fontSize = label.resizeTextMaxSize = 24;
+                label.resizeTextMinSize = 22;
+                var detail = UiFactory.Label("Detail", btn.transform, Vector2.zero, Vector2.one, "", 22, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+                detail.resizeTextMinSize = 20;
+                var clip = UiFactory.Rect("IconClip", btn.transform, Vector2.zero, Vector2.one);
+                var silhouette = clip.gameObject.AddComponent<Image>();
+                silhouette.sprite = UiFactory.CircleMask;
+                silhouette.raycastTarget = false;
+                silhouette.preserveAspect = true;
+                clip.gameObject.AddComponent<Mask>().showMaskGraphic = false;
+                var icon = UiFactory.Panel("Icon", clip, Vector2.zero, Vector2.one, Color.white);
                 icon.preserveAspect = true;
                 icon.gameObject.SetActive(false);
-                var glyph = UiFactory.Glyph(CommandGlyph(i), btn.transform, Vector2.zero, Vector2.one, UiFactory.Gold);
-                _commands[i] = new CommandButton { Button = btn, Image = btn.GetComponent<Image>(), Label = label, Detail = detail, Root = btn.gameObject, Icon = icon, Fallback = glyph };
+                var glyph = UiFactory.Glyph(CommandGlyph(i), clip, Vector2.zero, Vector2.one, UiFactory.Gold);
+                var rim = UiFactory.Glyph("icon_rim", clip, Vector2.zero, Vector2.one, UiFactory.GoldDim);
+                btn.targetGraphic = rim;
+                OutlineCommandText(label); OutlineCommandText(detail);
+                _commands[i] = new CommandButton { Button = btn, Image = btn.GetComponent<Image>(), Label = label, Detail = detail,
+                    Root = btn.gameObject, Icon = icon, Fallback = glyph, Rim = rim };
                 btn.gameObject.AddComponent<LongPress>().OnLong = () => ShowCommandTip(index);
             }
             LayoutCommands(false);
@@ -137,20 +149,39 @@ namespace BiRyeoDo.Game.UI
 
         private void LayoutCommands(bool picker)
         {
-            // Primary attacks are on the first row; defensive and support actions stay below.
+            // Large icons share one compact row; transparent full buttons retain generous hit areas.
             int[] order = { 0, 1, 2, 3, 4, 9, 8, 5, 6, 7 };
             for (int i = 0; i < _commands.Length; i++)
             {
                 var command = _commands[i];
                 int position = picker ? i : System.Array.IndexOf(order, i);
-                int row = position / 5, column = position % 5;
-                float left = .015f + column * .195f, top = .26f - row * .13f;
-                PlaceHud((RectTransform)command.Root.transform, left, top - .12f, left + .185f, top);
-                PlaceHud(command.Icon.rectTransform, .035f, .26f, .235f, .80f);
-                PlaceHud(command.Fallback.rectTransform, .035f, .26f, .235f, .80f);
-                PlaceHud(command.Label.rectTransform, .26f, .43f, .975f, .95f);
-                PlaceHud(command.Detail.rectTransform, .26f, .045f, .975f, .43f);
+                float left = .012f + position * .098f;
+                PlaceHud((RectTransform)command.Root.transform, left, .008f, left + .092f, .213f);
+                var clip = (RectTransform)command.Icon.transform.parent;
+                PlaceHud(clip, .5f, 1f, .5f, 1f);
+                clip.pivot = new Vector2(.5f, 1f);
+                clip.sizeDelta = new Vector2(104f, 104f);
+                clip.anchoredPosition = new Vector2(0f, -8f);
+                PlaceHud(command.Icon.rectTransform, 0f, 0f, 1f, 1f);
+                PlaceHud(command.Fallback.rectTransform, 0f, 0f, 1f, 1f);
+                PlaceHud(command.Rim.rectTransform, 0f, 0f, 1f, 1f);
+                CommandCaption(command.Label.rectTransform, 116f, 56f);
+                CommandCaption(command.Detail.rectTransform, 172f, 24f);
             }
+        }
+
+        private static void CommandCaption(RectTransform rect, float top, float height)
+        {
+            PlaceHud(rect, .01f, 1f, .99f, 1f);
+            rect.offsetMin = new Vector2(0f, -top - height);
+            rect.offsetMax = new Vector2(0f, -top);
+        }
+
+        private static void OutlineCommandText(Text text)
+        {
+            var outline = text.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0f, 0f, 0f, .95f);
+            outline.effectDistance = new Vector2(1.5f, -1.5f);
         }
 
         private static void FixedLabelHeight(Text label, float center, float height)
@@ -234,7 +265,7 @@ namespace BiRyeoDo.Game.UI
             var panel = PanelOf(me.Id);
             int qi = panel != null ? panel.ShownQi : me.Qi, spirit = panel != null ? panel.ShownSpirit : me.Spirit;
             string action = _animating ? _actorAction ?? "" : "내 차례 · 행동 선택";
-            _actorName.text = me.Name + (action.Length > 0 ? " · " + action : "");
+            _actorName.text = me.Name;
             if (_turnNotice != null)
             {
                 _turnNotice.text = (_animating ? (me.Team == Team.Player ? "아군 · " : "적 · ") : "내 차례 · ") + me.Name + (_animating && action.Length > 0 ? " · " + action : "");

@@ -127,13 +127,13 @@ namespace BiRyeoDo.Game.UI
             int enh = gear ? Gear.Stars(save, item.Id) : 0;
             var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, new Color(0.05f, 0.07f, 0.11f, 0.99f));
             UiFactory.Frame(card.transform, UiFactory.GradeColor(item.Grade), 3f);
-            var big = UiFactory.Panel("Picture", card.transform, new Vector2(0.74f, 0.855f), new Vector2(0.95f, 0.985f), Color.white);
+            var big = UiFactory.Panel("Picture", card.transform, new Vector2(0.66f, 0.82f), new Vector2(0.96f, 0.985f), Color.white);
             UiFactory.Frame(big.transform, UiFactory.GradeColor(item.Grade), 2f);
             var bigGlyph = UiFactory.Label("Glyph", big.transform, Vector2.zero, Vector2.one, "", 60, UiFactory.PaperText);
             ItemArt.Apply(big, bigGlyph, item);
-            UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.90f), new Vector2(0.72f, 0.98f), UiFactory.GradedName(item) + (gear ? " · " + Gear.StarsText(save, item.Id) : ""), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
+            UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.90f), new Vector2(0.63f, 0.98f), UiFactory.GradedName(item) + (gear ? " · " + Gear.StarsText(save, item.Id) : ""), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
             string kind = KindName(item) + (gear && Gear.IsHeroOnly(item.Id) ? "  ·  " + Gear.HeroOnlyLabel : "") + (gear && Inventory.IsEquipped(save, item.Id) ? "  ·  착용 중" : "") + (gear && Inventory.WearingCompanions(save, item.Id).Count > 0 ? "  ·  동료 " + string.Join(",", Inventory.WearingCompanions(save, item.Id)) : "") + (item.Kind == ItemKind.Consumable || item.Kind == ItemKind.Material ? "  ·  보유 " + Inventory.Count(save, item.Id) + "개" : "");
-            UiFactory.Label("Kind", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.72f, 0.90f), kind, 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("Kind", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.63f, 0.90f), kind, 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
 
             var lines = new List<string>();
             if (gear) lines.Add("강화 · 장착 · 해제는 장비 탭의 부위 칸에서 합니다.\n\n<color=#9ADB9F>" + UiFactory.GearEffectText(item, 0, enh) + "</color>" + (enh > 0 && item.Grade != ItemGrade.Transcendent ? "   (돌파 전 " + UiFactory.GearEffectText(item, 0) + ")" : ""));
@@ -562,7 +562,7 @@ namespace BiRyeoDo.Game.UI
             var iconRect = UiFactory.Rect("Icon", rt, new Vector2(.5f, 1f), new Vector2(.5f, 1f));
             iconRect.pivot = new Vector2(.5f, 1f);
             iconRect.anchoredPosition = new Vector2(0f, -16f);
-            iconRect.sizeDelta = new Vector2(88f, 88f);
+            iconRect.sizeDelta = new Vector2(132f, 132f);
             row.Icon = iconRect.gameObject.AddComponent<Image>();
             row.IconGlyph = UiFactory.Label("Glyph", iconRect, Vector2.zero, Vector2.one, "", 44, UiFactory.PaperText);
             row.Title = UiFactory.Body(UiFactory.Label("Name", rt, Vector2.zero, Vector2.one, "", 28, UiFactory.PaperText, TextAnchor.UpperLeft));
@@ -588,9 +588,9 @@ namespace BiRyeoDo.Game.UI
                     var row = _rows[i];
                     float nameHeight = UiFactory.MeasureHeight(row.Title, row.Title.text, cardWidth - 24f) + 8f;
                     float detailHeight = UiFactory.MeasureHeight(row.Detail, row.Detail.text, cardWidth - 24f) + 8f;
-                    SetTextRegion(row.Title.rectTransform, 112f, nameHeight);
-                    SetTextRegion(row.Detail.rectTransform, 124f + nameHeight, detailHeight);
-                    height = Mathf.Max(height, 140f + nameHeight + detailHeight);
+                    SetTextRegion(row.Title.rectTransform, 156f, nameHeight);
+                    SetTextRegion(row.Detail.rectTransform, 168f + nameHeight, detailHeight);
+                    height = Mathf.Max(height, 184f + nameHeight + detailHeight);
                 }
                 for (int i = start; i < Mathf.Min(start + Columns, _visibleCount); i++)
                 {

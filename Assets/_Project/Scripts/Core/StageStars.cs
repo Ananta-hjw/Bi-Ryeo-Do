@@ -40,18 +40,18 @@ namespace BiRyeoDo.Core
         private static readonly int[][] FastLimits =
         {
             new[] { 4, 8, 7, 10 },   // 1
-            new[] { 3, 5, 9 },   // 2
+            new[] { 3, 5, 7, 9, 10 },   // 2
             new[] { 4, 5, 5 },   // 3
             new[] { 5, 8, 7 },   // 4
             new[] { 3, 10 },   // 5
             new[] { 6, 7, 8 },   // 6
-            new[] { 5, 9, 11, 10 },   // 7
+            new[] { 5, 5, 6, 6, 5, 9, 11, 10 },   // 7
             new[] { 5, 10, 13 },   // 8
             new[] { 7, 7, 15, 13 },   // 9
             new[] { 6, 14, 13 },   // 10
-            new[] { 6, 6, 14 },   // 11
-            new[] { 6, 14, 12 },   // 12
-            new[] { 18, 17 },   // 13
+            new[] { 9, 6, 6, 18 },   // 11
+            new[] { 6, 7, 7, 8, 8, 12 },   // 12
+            new[] { 12, 18, 18, 17 },   // 13
             new[] { 19, 17, 28 },   // 14
             new[] { 16, 17, 10 },   // 15
             new[] { 18, 15, 12 },   // 16
@@ -224,7 +224,7 @@ namespace BiRyeoDo.Core
 
         public static int Total(SaveData save)
         {
-            int n = 0;
+            int n = save.RetiredStoryStars;
             foreach (var e in save.StageStars) n += Count(e.Mask);
             return n;
         }

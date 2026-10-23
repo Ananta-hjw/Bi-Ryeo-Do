@@ -32,7 +32,7 @@ namespace BiRyeoDo.Core
             new Entry("백무영", "baek_muyeong", "구정회 부회주"),
             new Entry("추일태", "chu_iltae", "구정회, 검혼관"),
             new Entry("문일기", "mun_ilgi", "화산비천응, 검술 노사"),
-            new Entry("나백천", "na_baekcheon", "무림맹주, 나예린의 아버지"),
+            new Entry("나백천", "na_baekcheon", "무림맹주, 나씨 가문의 수장"),
             new Entry("조천우", "jo_cheonu", "스토리 인물"),
             new Entry("당평", "dang_pyeong", "사천당문, 암기 노사"),
             new Entry("무진자", "mu_jinja", "무당 전대 장로"),

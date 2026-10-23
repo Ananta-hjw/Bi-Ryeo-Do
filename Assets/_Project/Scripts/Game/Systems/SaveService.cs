@@ -34,8 +34,11 @@ namespace BiRyeoDo.Game.Systems
             try
             {
                 if (!File.Exists(path)) return null;
-                var data = JsonUtility.FromJson<SaveData>(File.ReadAllText(path));
+                var json = File.ReadAllText(path);
+                var data = JsonUtility.FromJson<SaveData>(json);
                 if (data == null || data.Version != SaveData.CurrentVersion) return null;
+                if (!json.Contains("\"StoryContentRevision\"")) data.StoryContentRevision = 0;
+                StoryContentMigration.Apply(data);
                 Gear.EnsureProgression(data);
                 return data;
             }

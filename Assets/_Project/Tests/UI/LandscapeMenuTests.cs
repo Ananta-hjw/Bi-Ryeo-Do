@@ -97,8 +97,8 @@ namespace BiRyeoDo.Tests.UI
                 var icon = Bounds((RectTransform)page.Find("HeaderBand/Glyph_" + kind));
                 var title = Bounds((RectTransform)page.Find("HeaderBand/Header"));
                 Assert.That(band.height, Is.EqualTo(115f).Within(.1f));
-                Assert.That(icon.width, Is.EqualTo(80f).Within(.1f));
-                Assert.That(icon.height, Is.EqualTo(80f).Within(.1f));
+                Assert.That(icon.width, Is.EqualTo(92f).Within(.1f));
+                Assert.That(icon.height, Is.EqualTo(92f).Within(.1f));
                 Assert.That(icon.center.y, Is.EqualTo(band.center.y).Within(.1f));
                 Assert.Less(icon.xMax, title.xMin);
                 Assert.Greater(icon.yMin, band.yMin);
@@ -307,8 +307,8 @@ namespace BiRyeoDo.Tests.UI
             for (int i = 0; i < icons.Length; i++)
             {
                 var icon = Bounds(icons[i].rectTransform);
-                Assert.That(icon.width, Is.EqualTo(64f).Within(.1f));
-                Assert.That(icon.height, Is.EqualTo(64f).Within(.1f));
+                Assert.That(icon.width, Is.EqualTo(76f).Within(.1f));
+                Assert.That(icon.height, Is.EqualTo(76f).Within(.1f));
                 Assert.Less(icon.xMax, Bounds(labels[i].rectTransform).xMin);
             }
         }
@@ -331,6 +331,9 @@ namespace BiRyeoDo.Tests.UI
             Assert.Less(first.xMax, second.xMin); Assert.Less(second.xMax, third.xMin);
             Assert.That(first.yMax, Is.EqualTo(third.yMax).Within(.1f));
             Assert.Less(fourth.yMax, first.yMin);
+            var bagIcon = Bounds((RectTransform)content.Find("Item0/Icon"));
+            Assert.That(bagIcon.width, Is.EqualTo(132f).Within(.1f));
+            Assert.Less(Bounds((RectTransform)content.Find("Item0/Name")).yMax, bagIcon.yMin);
             Invoke(bag, "OpenDetail", "iron_sword");
             var detail = _canvas.transform.Find("ItemDetail");
             Assert.IsTrue(detail.gameObject.activeSelf);
@@ -381,6 +384,10 @@ namespace BiRyeoDo.Tests.UI
             var layout = content.GetComponent<ReadingList>();
             Canvas.ForceUpdateCanvases(); layout.Reflow();
             var rows = Enumerable.Range(0, content.childCount).Select(i => (RectTransform)content.GetChild(i)).ToArray();
+            var artIcon = Bounds((RectTransform)rows[0].Find("Icon"));
+            Assert.That(artIcon.width, Is.EqualTo(144f).Within(.1f));
+            Assert.That(artIcon.height, Is.EqualTo(144f).Within(.1f));
+            Assert.Less(artIcon.xMax, Bounds((RectTransform)rows[0].Find("Title")).xMin);
             var heights = rows.Select(row => row.rect.height).ToArray();
             var positions = rows.Select(row => row.anchoredPosition).ToArray();
             float contentHeight = content.sizeDelta.y;
@@ -416,6 +423,10 @@ namespace BiRyeoDo.Tests.UI
             {
                 var card = rows[index / 2].Find("Card" + index);
                 Assert.IsNotNull(card);
+                var innerIcon = Bounds((RectTransform)card.Find("Icon"));
+                Assert.That(innerIcon.width, Is.EqualTo(112f).Within(.1f));
+                Assert.Less(innerIcon.xMax, Bounds((RectTransform)card.Find("Name")).xMin);
+                Assert.Less(Bounds((RectTransform)card.Find("Effect")).yMax, innerIcon.yMin);
                 var act = Bounds((RectTransform)card.Find("Act"));
                 Assert.Less(act.yMax, Bounds((RectTransform)card.Find("Desc")).yMin);
                 if (index % 2 == 1)
@@ -593,6 +604,9 @@ namespace BiRyeoDo.Tests.UI
                 {
                     var card = (RectTransform)content.Find("Row" + i / 3 + "/Card" + i);
                     Assert.IsTrue(card.gameObject.activeInHierarchy);
+                    var resultIcon = Bounds((RectTransform)card.Find("Icon"));
+                    Assert.That(resultIcon.width, Is.EqualTo(180f).Within(.1f));
+                    Assert.Less(Bounds((RectTransform)card.Find("Name")).yMax, resultIcon.yMin);
                     if (i % 3 != 0)
                     {
                         var previous = (RectTransform)content.Find("Row" + i / 3 + "/Card" + (i - 1));

@@ -17,12 +17,12 @@ namespace BiRyeoDo.Tests.UI
         private GameObject _canvas;
         private BattleScreen _screen;
 
-        private void Build(float width)
+        private void Build(float width, float height = 1080f)
         {
             _canvas = new GameObject("LandscapeBattle", typeof(RectTransform), typeof(Canvas));
             _canvas.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
             var root = _canvas.GetComponent<RectTransform>();
-            root.sizeDelta = new Vector2(width, 1080f);
+            root.sizeDelta = new Vector2(width, height);
             _screen = _canvas.AddComponent<BattleScreen>();
             _screen.Build(root);
             Canvas.ForceUpdateCanvases();
@@ -63,7 +63,7 @@ namespace BiRyeoDo.Tests.UI
                     Assert.That(area.xMax, Is.LessThanOrEqualTo(1f));
                     Assert.That(area.yMin, Is.GreaterThanOrEqualTo(0f));
                     Assert.That(area.yMax, Is.LessThanOrEqualTo(.27f));
-                    Assert.That(rect.rect.width, Is.GreaterThan(160f));
+                    Assert.That(rect.rect.width, Is.GreaterThan(125f));
                     Assert.That(rect.rect.height, Is.GreaterThan(120f));
                     foreach (var previous in buttons) Assert.IsFalse(Intersects(previous, area), "Commands overlap");
                     buttons.Add(area);
@@ -74,12 +74,12 @@ namespace BiRyeoDo.Tests.UI
             }
         }
 
-        [TestCase(1440f)]
-        [TestCase(1920f)]
-        [TestCase(2400f)]
-        public void BattleUsesWideFieldAndSeparatedReadableHudAndCommandRows(float width)
+        [TestCase(1440f, 960f)]
+        [TestCase(1920f, 1080f)]
+        [TestCase(2400f, 1080f)]
+        public void BattleUsesWideFieldAndFloatingCircularCommands(float width, float height)
         {
-            Build(width);
+            Build(width, height);
             var header = (RectTransform)_canvas.transform.Find("BattleHeader");
             var ribbon = (RectTransform)_canvas.transform.Find("TurnRibbon");
             var focus = (RectTransform)_canvas.transform.Find("EnemyFocus");
@@ -104,18 +104,58 @@ namespace BiRyeoDo.Tests.UI
             log.GetComponent<Button>().onClick.Invoke();
             Assert.IsTrue(_canvas.transform.Find("Tip").gameObject.activeSelf);
             _canvas.transform.Find("Tip").gameObject.SetActive(false);
+            Assert.AreSame(UiFactory.BottomShade, _canvas.transform.Find("CommandDeck").GetComponent<Image>().sprite);
+            Assert.IsNull(_canvas.transform.Find("CommandDeck/DeckRule"));
+            Assert.IsNull(_canvas.transform.Find("HintBack"));
+            Assert.AreEqual(0f, log.GetComponent<Image>().color.a);
+            Assert.AreEqual(0f, field.GetComponent<Image>().color.a);
             int[] order = { 0, 1, 2, 3, 4, 9, 8, 5, 6, 7 };
             for (int position = 0; position < order.Length; position++)
             {
                 var button = (RectTransform)_canvas.transform.Find("Command" + order[position]);
-                Assert.That(button.anchorMax.y, Is.EqualTo(position < 5 ? .26f : .13f).Within(.001f));
+                Assert.That(button.anchorMax.y, Is.EqualTo(.213f).Within(.001f));
                 Assert.IsFalse(Intersects(Anchors(button), Anchors(actor)));
                 Assert.IsFalse(Intersects(Anchors(button), Anchors(log)));
                 var label = button.Find("Label") as RectTransform;
                 var detail = button.Find("Detail") as RectTransform;
                 Assert.IsFalse(Intersects(Anchors(label), Anchors(detail)));
-                Assert.LessOrEqual(((RectTransform)button.Find("Icon")).anchorMax.x, label.anchorMin.x);
+                var clip = (RectTransform)button.Find("IconClip");
+                var icon = (RectTransform)clip.Find("Icon");
+                Assert.That(clip.rect.width, Is.EqualTo(104f).Within(.1f));
+                Assert.That(clip.rect.height, Is.EqualTo(104f).Within(.1f));
+                Assert.IsFalse(clip.GetComponent<Mask>().showMaskGraphic);
+                Assert.IsFalse(clip.GetComponent<Image>().raycastTarget);
+                Assert.AreEqual(0f, button.GetComponent<Image>().color.a);
+                Assert.IsTrue(button.GetComponent<Image>().raycastTarget);
+                Assert.IsNull(button.Find("Glyph_frame"));
+                Assert.IsNotNull(label.GetComponent<Outline>());
+                Assert.LessOrEqual(detail.offsetMax.y, label.offsetMin.y);
+                Assert.LessOrEqual(label.offsetMax.y, clip.anchoredPosition.y - clip.rect.height);
+                Assert.GreaterOrEqual(button.rect.height + detail.offsetMin.y, 0f);
             }
+        }
+
+        [Test]
+        public void CommandStatesKeepTransparentHitAreasAndShowClearCancelAndCosts()
+        {
+            Build(1440f, 960f);
+            Invoke("SetCommand", 1, "참단절영의 장 천지이분", "내공 52", true, null);
+            var command = _canvas.transform.Find("Command1");
+            Assert.AreEqual("천지이분", command.Find("Label").GetComponent<Text>().text);
+            Assert.AreEqual("내공 52", command.Find("Detail").GetComponent<Text>().text);
+            Assert.IsTrue(command.GetComponent<Button>().interactable);
+            Assert.AreEqual(0f, command.GetComponent<Image>().color.a);
+            Invoke("SetCommand", 1, "참단절영의 장 천지이분", "내공 부족", false, null);
+            Assert.IsFalse(command.GetComponent<Button>().interactable);
+            Assert.AreEqual(0f, command.GetComponent<Image>().color.a);
+            Assert.Less(command.Find("IconClip/Glyph_arts").GetComponent<WuxiaGlyph>().color.a, .5f);
+            typeof(BattleScreen).GetField("_itemMode", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(_screen, true);
+            Invoke("LayoutCommands", true);
+            Invoke("SetCommand", 7, "취소", "다시 고르기", true, null);
+            var cancel = _canvas.transform.Find("Command7");
+            Assert.AreEqual("close", cancel.Find("IconClip/Glyph_bag").GetComponent<WuxiaGlyph>().Key);
+            Assert.IsTrue(cancel.GetComponent<Button>().interactable);
+            Assert.IsNotNull(cancel.GetComponent<LongPress>());
         }
 
         [Test]

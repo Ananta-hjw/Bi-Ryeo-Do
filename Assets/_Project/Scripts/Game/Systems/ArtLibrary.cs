@@ -4,10 +4,10 @@ using UnityEngine;
 namespace BiRyeoDo.Game.Systems
 {
     /// <summary>
-    /// Optional artwork dropped into <c>Assets/_Project/Resources/Art</c>. Files are matched by name, so nothing has to be wired up:
+    /// Painted UI icons come from ReadableIconLibrary; other artwork and legacy fallbacks are dropped into <c>Assets/_Project/Resources/Art</c>. Files are matched by name, so nothing has to be wired up:
     /// <c>Backgrounds/stage_01.png</c>, <c>Characters/tiger.png</c> (enemy id), <c>Characters/player.png</c>, <c>Items/laundry_bat.png</c> (item id). Player, companions, enemies and story-only NPCs all live in <c>Characters</c>, found by id.
     /// Any missing file returns null and the UI falls back to its flat-colour placeholder.
-    /// Textures are turned into sprites at runtime, so the PNG import settings do not matter.
+    /// Sprites are cached at runtime. Readable sheets preserve their original dimensions and disable mipmaps.
     /// </summary>
     public static class ArtLibrary
     {
@@ -15,16 +15,19 @@ namespace BiRyeoDo.Game.Systems
 
         public static Sprite Background(int stageNumber) { return Load("Backgrounds/stage_" + stageNumber.ToString("00")); }
         public static Sprite Enemy(string enemyId) { return Load("Characters/" + enemyId); }
-        /// <summary>Home-screen button icon: <c>Icons/&lt;key&gt;.png</c> (daily, quest, fortune, star, tower, stage, promotion, party).</summary>
-        public static Sprite Icon(string key) { return Load("Icons/" + key); }
-        /// <summary>Item picture: <c>Items/&lt;item id&gt;.png</c>, else the kind's default <c>Items/_weapon|_armor|_pants|_boots|_accessory|_consumable|_material|_key.png</c>.</summary>
+        /// <summary>Painted menu/command icon first; legacy fallback: <c>Icons/&lt;key&gt;.png</c> (daily, quest, fortune, star, tower, stage, promotion, party).</summary>
+        public static Sprite Icon(string key) { return ReadableIconLibrary.Find("Icon", key) ?? Load("Icons/" + key); }
+        /// <summary>Individually mapped item picture first; legacy fallback: <c>Items/&lt;item id&gt;.png</c>, else the kind's default <c>Items/_weapon|_armor|_pants|_boots|_accessory|_consumable|_material|_key.png</c>.</summary>
         public static Sprite Item(BiRyeoDo.Core.ItemData item)
         {
             if (item == null) return null;
-            return Load("Items/" + item.Id) ?? Load("Items/_" + item.Kind.ToString().ToLowerInvariant());
+            return ReadableIconLibrary.Find("Item", item.Id) ?? Load("Items/" + item.Id)
+                ?? ReadableIconLibrary.Find("DefaultItem", item.Kind.ToString()) ?? Load("Items/_" + item.Kind.ToString().ToLowerInvariant());
         }
-        /// <summary>Martial art picture: <c>Arts/&lt;art id&gt;.png</c> (also the skill id in battle); null when missing.</summary>
-        public static Sprite Art(string artId) { return string.IsNullOrEmpty(artId) ? null : Load("Arts/" + artId); }
+        /// <summary>Individually mapped martial-art picture first; legacy fallback: <c>Arts/&lt;art id&gt;.png</c> (also the skill id in battle); null when missing.</summary>
+        public static Sprite Art(string artId) { return string.IsNullOrEmpty(artId) ? null : ReadableIconLibrary.Find("Art", artId) ?? Load("Arts/" + artId); }
+        /// <summary>Individual passive-method icon, shared with the martial-arts workspace.</summary>
+        public static Sprite InnerArt(string id) { return ReadableIconLibrary.Find("Inner", id); }
         /// <summary>Small chibi figure used only on the battle field: <c>Battle/&lt;id&gt;.png</c> (player, companion id or enemy ArtKey), drawn facing right. Null when missing, and the battle falls back to the large portrait.</summary>
         public static Sprite Chibi(string id) { return string.IsNullOrEmpty(id) ? null : Load("Battle/" + id); }
         /// <summary>Stand-in battle figure for a character with neither a <c>Battle/</c> nor a <c>Characters/</c> picture: <c>Battle/default_assassin.png</c> for bandits and assassins, <c>default_woman.png</c> for the women listed in <c>Genders</c>, else <c>default_man.png</c> (all under <c>Battle/</c>). Null when that file is missing too.</summary>

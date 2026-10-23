@@ -81,6 +81,13 @@ namespace BiRyeoDo.Tests.UI
             var row = Content.Find("Row0");
             Assert.AreEqual(3, row.GetComponentsInChildren<Button>().Length);
             var cards = row.GetComponentsInChildren<Button>().Select(button => (RectTransform)button.transform).ToArray();
+            foreach (var card in cards)
+            {
+                var icon = Bounds((RectTransform)card.Find("Icon"));
+                Assert.That(icon.width, Is.EqualTo(160f).Within(.1f));
+                Assert.That(icon.height, Is.EqualTo(160f).Within(.1f));
+                Assert.Less(Bounds((RectTransform)card.Find("Name")).yMax, icon.yMin);
+            }
             Assert.Less(Bounds(cards[0]).xMax, Bounds(cards[1]).xMin); Assert.Less(Bounds(cards[1]).xMax, Bounds(cards[2]).xMin);
             Assert.IsFalse(Enabled("Equip")); Assert.IsTrue(Enabled("Remove"));
             Content.GetComponentsInChildren<Button>().First(button => button.name == "Item_" + alternatives[0].Id).onClick.Invoke();
