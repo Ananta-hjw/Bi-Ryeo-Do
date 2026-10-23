@@ -629,9 +629,12 @@ namespace BiRyeoDo.Tests.UI
             Assert.AreEqual(doo, _save.Doo); Assert.AreEqual(pulls, _save.GachaPulls);
         }
 
-        [Test]
-        public void GradeButtonsShowOnlyTheActualPoolAndPreviewDoesNotSpendOrGrantAnything()
+        [TestCase(1440f)]
+        [TestCase(1920f)]
+        [TestCase(2400f)]
+        public void GradeButtonsShowOnlyTheActualPoolAndPreviewDoesNotSpendOrGrantAnything(float width)
         {
+            Root.sizeDelta = new Vector2(width, 960f);
             var screen = _canvas.AddComponent<GachaScreen>(); screen.Build(Root);
             long doo = _save.Doo;
             int pulls = _save.GachaPulls;
@@ -644,8 +647,26 @@ namespace BiRyeoDo.Tests.UI
                 Assert.IsTrue(modal.gameObject.activeSelf);
                 var pool = Gacha.Pool((ItemGrade)grade);
                 var content = modal.Find("Card/Viewport/Content");
-                var names = Enumerable.Range(0, content.childCount).Select(i => content.GetChild(i).Find("Name").GetComponent<Text>().text).ToArray();
-                CollectionAssert.AreEquivalent(pool.Select(item => UiFactory.GradedName(item)).ToArray(), names);
+                var names = content.GetComponentsInChildren<Text>().Where(label => label.name == "Name").Select(label => label.text).ToArray();
+                CollectionAssert.AreEquivalent(pool.Select(item => item.Name).ToArray(), names);
+                Assert.AreEqual((pool.Count + 2) / 3, content.childCount);
+                Canvas.ForceUpdateCanvases();
+                for (int rowIndex = 0; rowIndex < content.childCount; rowIndex++)
+                {
+                    var row = content.GetChild(rowIndex);
+                    Assert.AreEqual(Math.Min(3, pool.Count - rowIndex * 3), row.childCount);
+                    float previousRight = float.MinValue;
+                    foreach (RectTransform cell in row)
+                    {
+                        var area = Bounds(cell);
+                        Assert.Greater(area.xMin, previousRight);
+                        previousRight = area.xMax;
+                        var icon = cell.Find("Icon").GetComponent<Image>();
+                        Assert.IsNotNull(icon.sprite);
+                        Assert.GreaterOrEqual(icon.rectTransform.rect.width, 128f);
+                        Assert.Greater(Bounds(icon.rectTransform).yMin, Bounds((RectTransform)cell.Find("Name")).yMax);
+                    }
+                }
                 StringAssert.Contains(pool.Count + "종", modal.Find("Card/Title").GetComponent<Text>().text);
                 ComfortableButton("GachaPool/Card/Close");
                 Assert.Greater(Bounds((RectTransform)modal.Find("Card/Viewport")).yMin, Bounds((RectTransform)modal.Find("Card/Close")).yMax);

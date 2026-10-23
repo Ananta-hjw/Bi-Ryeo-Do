@@ -587,10 +587,10 @@
     {
       "category": "Item",
       "id": "jin_biroedo",
-      "sheet": "items_0",
-      "cell": 9,
-      "columns": 8,
-      "rows": 8
+      "sheet": "jin_biroedo",
+      "cell": 0,
+      "columns": 1,
+      "rows": 1
     },
     {
       "category": "Item",
@@ -635,10 +635,10 @@
     {
       "category": "Item",
       "id": "mukrin_talisman",
-      "sheet": "items_0",
-      "cell": 15,
-      "columns": 8,
-      "rows": 8
+      "sheet": "elemental_equipment",
+      "cell": 8,
+      "columns": 4,
+      "rows": 3
     },
     {
       "category": "Item",
@@ -747,10 +747,10 @@
     {
       "category": "Item",
       "id": "blackiron_blade",
-      "sheet": "items_0",
-      "cell": 29,
-      "columns": 8,
-      "rows": 8
+      "sheet": "elemental_equipment",
+      "cell": 4,
+      "columns": 4,
+      "rows": 3
     },
     {
       "category": "Item",
@@ -811,38 +811,30 @@
     {
       "category": "Item",
       "id": "starfall_sword",
-      "sheet": "items_0",
-      "cell": 37,
-      "columns": 8,
-      "rows": 8
+      "sheet": "equipment_repair",
+      "cell": 0,
+      "columns": 4,
+      "rows": 2
     },
     {
       "category": "Item",
       "id": "heaven_cutter",
-      "sheet": "items_0",
-      "cell": 38,
-      "columns": 8,
-      "rows": 8
+      "sheet": "equipment_repair",
+      "cell": 1,
+      "columns": 4,
+      "rows": 2
     },
     {
       "category": "Item",
       "id": "cloth_robe",
-      "sheet": "items_0",
-      "cell": 39,
-      "columns": 8,
-      "rows": 8
+      "sheet": "equipment_repair",
+      "cell": 3,
+      "columns": 4,
+      "rows": 2
     },
     {
       "category": "Item",
       "id": "leather_vest",
-      "sheet": "items_0",
-      "cell": 40,
-      "columns": 8,
-      "rows": 8
-    },
-    {
-      "category": "Item",
-      "id": "padded_coat",
       "sheet": "items_0",
       "cell": 41,
       "columns": 8,
@@ -850,7 +842,7 @@
     },
     {
       "category": "Item",
-      "id": "chain_shirt",
+      "id": "padded_coat",
       "sheet": "items_0",
       "cell": 42,
       "columns": 8,
@@ -858,7 +850,7 @@
     },
     {
       "category": "Item",
-      "id": "scholar_robe",
+      "id": "chain_shirt",
       "sheet": "items_0",
       "cell": 43,
       "columns": 8,
@@ -866,7 +858,7 @@
     },
     {
       "category": "Item",
-      "id": "tigerhide_coat",
+      "id": "scholar_robe",
       "sheet": "items_0",
       "cell": 44,
       "columns": 8,
@@ -874,7 +866,7 @@
     },
     {
       "category": "Item",
-      "id": "mountain_armor",
+      "id": "tigerhide_coat",
       "sheet": "items_0",
       "cell": 45,
       "columns": 8,
@@ -882,7 +874,7 @@
     },
     {
       "category": "Item",
-      "id": "silk_battle_robe",
+      "id": "mountain_armor",
       "sheet": "items_0",
       "cell": 46,
       "columns": 8,
@@ -890,7 +882,7 @@
     },
     {
       "category": "Item",
-      "id": "snakescale_vest",
+      "id": "silk_battle_robe",
       "sheet": "items_0",
       "cell": 47,
       "columns": 8,
@@ -898,7 +890,7 @@
     },
     {
       "category": "Item",
-      "id": "jade_scale_armor",
+      "id": "snakescale_vest",
       "sheet": "items_0",
       "cell": 48,
       "columns": 8,
@@ -906,7 +898,7 @@
     },
     {
       "category": "Item",
-      "id": "crimson_longcoat",
+      "id": "jade_scale_armor",
       "sheet": "items_0",
       "cell": 49,
       "columns": 8,
@@ -914,7 +906,7 @@
     },
     {
       "category": "Item",
-      "id": "blackturtle_cloak",
+      "id": "crimson_longcoat",
       "sheet": "items_0",
       "cell": 50,
       "columns": 8,
@@ -922,7 +914,7 @@
     },
     {
       "category": "Item",
-      "id": "dragonscale_armor",
+      "id": "blackturtle_cloak",
       "sheet": "items_0",
       "cell": 51,
       "columns": 8,
@@ -930,7 +922,7 @@
     },
     {
       "category": "Item",
-      "id": "phoenix_robe",
+      "id": "dragonscale_armor",
       "sheet": "items_0",
       "cell": 52,
       "columns": 8,
@@ -938,7 +930,7 @@
     },
     {
       "category": "Item",
-      "id": "heavensilk_robe",
+      "id": "phoenix_robe",
       "sheet": "items_0",
       "cell": 53,
       "columns": 8,
@@ -946,7 +938,7 @@
     },
     {
       "category": "Item",
-      "id": "vajra_armor",
+      "id": "heavensilk_robe",
       "sheet": "items_0",
       "cell": 54,
       "columns": 8,
@@ -954,7 +946,7 @@
     },
     {
       "category": "Item",
-      "id": "jade_ring",
+      "id": "vajra_armor",
       "sheet": "items_0",
       "cell": 55,
       "columns": 8,
@@ -962,75 +954,83 @@
     },
     {
       "category": "Item",
+      "id": "jade_ring",
+      "sheet": "items_0",
+      "cell": 63,
+      "columns": 9,
+      "rows": 8
+    },
+    {
+      "category": "Item",
       "id": "wooden_charm",
       "sheet": "items_0",
-      "cell": 56,
-      "columns": 8,
+      "cell": 64,
+      "columns": 9,
       "rows": 8
     },
     {
       "category": "Item",
       "id": "copper_bell",
       "sheet": "items_0",
-      "cell": 57,
-      "columns": 8,
+      "cell": 65,
+      "columns": 9,
       "rows": 8
     },
     {
       "category": "Item",
       "id": "straw_sandals",
-      "sheet": "items_0",
-      "cell": 58,
-      "columns": 8,
-      "rows": 8
+      "sheet": "equipment_repair",
+      "cell": 4,
+      "columns": 4,
+      "rows": 2
     },
     {
       "category": "Item",
       "id": "silver_hairpin",
       "sheet": "items_0",
-      "cell": 59,
-      "columns": 8,
+      "cell": 67,
+      "columns": 9,
       "rows": 8
     },
     {
       "category": "Item",
       "id": "jade_pendant",
       "sheet": "items_0",
-      "cell": 60,
-      "columns": 8,
+      "cell": 68,
+      "columns": 9,
       "rows": 8
     },
     {
       "category": "Item",
       "id": "iron_bracer",
       "sheet": "items_0",
-      "cell": 61,
-      "columns": 8,
+      "cell": 69,
+      "columns": 9,
       "rows": 8
     },
     {
       "category": "Item",
       "id": "wind_boots",
       "sheet": "items_0",
-      "cell": 62,
-      "columns": 8,
+      "cell": 70,
+      "columns": 9,
       "rows": 8
     },
     {
       "category": "Item",
       "id": "cinnabar_amulet",
       "sheet": "items_0",
-      "cell": 63,
-      "columns": 8,
+      "cell": 71,
+      "columns": 9,
       "rows": 8
     },
     {
       "category": "Item",
       "id": "thunder_beads",
-      "sheet": "items_1",
+      "sheet": "elemental_equipment",
       "cell": 0,
-      "columns": 8,
-      "rows": 8
+      "columns": 4,
+      "rows": 3
     },
     {
       "category": "Item",
@@ -1115,10 +1115,10 @@
     {
       "category": "Item",
       "id": "heavenly_demon_core",
-      "sheet": "items_1",
-      "cell": 11,
-      "columns": 8,
-      "rows": 8
+      "sheet": "elemental_equipment",
+      "cell": 10,
+      "columns": 4,
+      "rows": 3
     },
     {
       "category": "Item",
@@ -1243,26 +1243,26 @@
     {
       "category": "Item",
       "id": "thunder_robe",
-      "sheet": "items_1",
-      "cell": 27,
-      "columns": 8,
-      "rows": 8
+      "sheet": "elemental_equipment",
+      "cell": 1,
+      "columns": 4,
+      "rows": 3
     },
     {
       "category": "Item",
       "id": "thunder_pants",
-      "sheet": "items_1",
-      "cell": 28,
-      "columns": 8,
-      "rows": 8
+      "sheet": "elemental_equipment",
+      "cell": 2,
+      "columns": 4,
+      "rows": 3
     },
     {
       "category": "Item",
       "id": "thunder_boots",
-      "sheet": "items_1",
-      "cell": 29,
-      "columns": 8,
-      "rows": 8
+      "sheet": "elemental_equipment",
+      "cell": 3,
+      "columns": 4,
+      "rows": 3
     },
     {
       "category": "Item",
@@ -1307,8 +1307,8 @@
     {
       "category": "Item",
       "id": "biroe_blade",
-      "sheet": "items_1",
-      "cell": 35,
+      "sheet": "items_0",
+      "cell": 9,
       "columns": 8,
       "rows": 8
     },
@@ -1340,7 +1340,7 @@
       "category": "Item",
       "id": "gen_wea_nor01",
       "sheet": "items_1",
-      "cell": 39,
+      "cell": 40,
       "columns": 8,
       "rows": 8
     },
@@ -1348,7 +1348,7 @@
       "category": "Item",
       "id": "gen_wea_nor02",
       "sheet": "items_1",
-      "cell": 40,
+      "cell": 41,
       "columns": 8,
       "rows": 8
     },
@@ -1356,7 +1356,7 @@
       "category": "Item",
       "id": "gen_wea_nor03",
       "sheet": "items_1",
-      "cell": 41,
+      "cell": 42,
       "columns": 8,
       "rows": 8
     },
@@ -1364,7 +1364,7 @@
       "category": "Item",
       "id": "gen_wea_nor04",
       "sheet": "items_1",
-      "cell": 42,
+      "cell": 43,
       "columns": 8,
       "rows": 8
     },
@@ -1372,7 +1372,7 @@
       "category": "Item",
       "id": "gen_wea_nor05",
       "sheet": "items_1",
-      "cell": 43,
+      "cell": 44,
       "columns": 8,
       "rows": 8
     },
@@ -1380,7 +1380,7 @@
       "category": "Item",
       "id": "gen_wea_nor06",
       "sheet": "items_1",
-      "cell": 44,
+      "cell": 45,
       "columns": 8,
       "rows": 8
     },
@@ -1388,7 +1388,7 @@
       "category": "Item",
       "id": "gen_wea_nor07",
       "sheet": "items_1",
-      "cell": 45,
+      "cell": 46,
       "columns": 8,
       "rows": 8
     },
@@ -1396,7 +1396,7 @@
       "category": "Item",
       "id": "gen_wea_nor08",
       "sheet": "items_1",
-      "cell": 46,
+      "cell": 47,
       "columns": 8,
       "rows": 8
     },
@@ -1404,7 +1404,7 @@
       "category": "Item",
       "id": "gen_wea_nor09",
       "sheet": "items_1",
-      "cell": 47,
+      "cell": 48,
       "columns": 8,
       "rows": 8
     },
@@ -1412,7 +1412,7 @@
       "category": "Item",
       "id": "gen_wea_nor10",
       "sheet": "items_1",
-      "cell": 48,
+      "cell": 49,
       "columns": 8,
       "rows": 8
     },
@@ -1420,7 +1420,7 @@
       "category": "Item",
       "id": "gen_arm_nor01",
       "sheet": "items_1",
-      "cell": 49,
+      "cell": 50,
       "columns": 8,
       "rows": 8
     },
@@ -1428,7 +1428,7 @@
       "category": "Item",
       "id": "gen_arm_nor02",
       "sheet": "items_1",
-      "cell": 50,
+      "cell": 51,
       "columns": 8,
       "rows": 8
     },
@@ -1436,7 +1436,7 @@
       "category": "Item",
       "id": "gen_arm_nor03",
       "sheet": "items_1",
-      "cell": 51,
+      "cell": 52,
       "columns": 8,
       "rows": 8
     },
@@ -1444,7 +1444,7 @@
       "category": "Item",
       "id": "gen_arm_nor04",
       "sheet": "items_1",
-      "cell": 52,
+      "cell": 53,
       "columns": 8,
       "rows": 8
     },
@@ -1452,7 +1452,7 @@
       "category": "Item",
       "id": "gen_arm_nor05",
       "sheet": "items_1",
-      "cell": 53,
+      "cell": 54,
       "columns": 8,
       "rows": 8
     },
@@ -1460,7 +1460,7 @@
       "category": "Item",
       "id": "gen_arm_nor06",
       "sheet": "items_1",
-      "cell": 54,
+      "cell": 55,
       "columns": 8,
       "rows": 8
     },
@@ -1468,7 +1468,7 @@
       "category": "Item",
       "id": "gen_arm_nor07",
       "sheet": "items_1",
-      "cell": 55,
+      "cell": 56,
       "columns": 8,
       "rows": 8
     },
@@ -1476,7 +1476,7 @@
       "category": "Item",
       "id": "gen_arm_nor08",
       "sheet": "items_1",
-      "cell": 56,
+      "cell": 57,
       "columns": 8,
       "rows": 8
     },
@@ -1484,7 +1484,7 @@
       "category": "Item",
       "id": "gen_arm_nor09",
       "sheet": "items_1",
-      "cell": 57,
+      "cell": 58,
       "columns": 8,
       "rows": 8
     },
@@ -1492,7 +1492,7 @@
       "category": "Item",
       "id": "gen_arm_nor10",
       "sheet": "items_1",
-      "cell": 58,
+      "cell": 59,
       "columns": 8,
       "rows": 8
     },
@@ -1500,7 +1500,7 @@
       "category": "Item",
       "id": "gen_pan_nor01",
       "sheet": "items_1",
-      "cell": 59,
+      "cell": 60,
       "columns": 8,
       "rows": 8
     },
@@ -1508,7 +1508,7 @@
       "category": "Item",
       "id": "gen_pan_nor02",
       "sheet": "items_1",
-      "cell": 60,
+      "cell": 61,
       "columns": 8,
       "rows": 8
     },
@@ -1516,25 +1516,25 @@
       "category": "Item",
       "id": "gen_pan_nor03",
       "sheet": "items_1",
-      "cell": 61,
-      "columns": 8,
-      "rows": 8
-    },
-    {
-      "category": "Item",
-      "id": "gen_pan_nor04",
-      "sheet": "items_1",
       "cell": 62,
       "columns": 8,
       "rows": 8
     },
     {
       "category": "Item",
+      "id": "gen_pan_nor04",
+      "sheet": "equipment_repair",
+      "cell": 7,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Item",
       "id": "gen_pan_nor05",
-      "sheet": "items_1",
-      "cell": 63,
-      "columns": 8,
-      "rows": 8
+      "sheet": "equipment_repair",
+      "cell": 5,
+      "columns": 4,
+      "rows": 2
     },
     {
       "category": "Item",
@@ -1787,10 +1787,10 @@
     {
       "category": "Item",
       "id": "gen_wea_fin08",
-      "sheet": "items_2",
-      "cell": 31,
-      "columns": 8,
-      "rows": 8
+      "sheet": "equipment_repair",
+      "cell": 6,
+      "columns": 4,
+      "rows": 2
     },
     {
       "category": "Item",
@@ -2291,10 +2291,10 @@
     {
       "category": "Item",
       "id": "gen_wea_epi02",
-      "sheet": "items_3",
-      "cell": 30,
-      "columns": 8,
-      "rows": 8
+      "sheet": "elemental_equipment",
+      "cell": 5,
+      "columns": 4,
+      "rows": 3
     },
     {
       "category": "Item",
@@ -2315,10 +2315,10 @@
     {
       "category": "Item",
       "id": "gen_arm_epi01",
-      "sheet": "items_3",
-      "cell": 33,
-      "columns": 8,
-      "rows": 8
+      "sheet": "elemental_equipment",
+      "cell": 6,
+      "columns": 4,
+      "rows": 3
     },
     {
       "category": "Item",
@@ -2363,10 +2363,10 @@
     {
       "category": "Item",
       "id": "gen_boo_epi01",
-      "sheet": "items_3",
-      "cell": 39,
-      "columns": 8,
-      "rows": 8
+      "sheet": "elemental_equipment",
+      "cell": 7,
+      "columns": 4,
+      "rows": 3
     },
     {
       "category": "Item",
@@ -2436,73 +2436,73 @@
       "category": "Item",
       "id": "gen_arm_leg02",
       "sheet": "items_3",
-      "cell": 48,
-      "columns": 8,
+      "cell": 54,
+      "columns": 9,
       "rows": 8
     },
     {
       "category": "Item",
       "id": "gen_arm_leg03",
       "sheet": "items_3",
-      "cell": 49,
-      "columns": 8,
+      "cell": 55,
+      "columns": 9,
       "rows": 8
     },
     {
       "category": "Item",
       "id": "gen_pan_leg01",
       "sheet": "items_3",
-      "cell": 50,
-      "columns": 8,
+      "cell": 56,
+      "columns": 9,
       "rows": 8
     },
     {
       "category": "Item",
       "id": "gen_pan_leg02",
       "sheet": "items_3",
-      "cell": 51,
-      "columns": 8,
+      "cell": 57,
+      "columns": 9,
       "rows": 8
     },
     {
       "category": "Item",
       "id": "gen_boo_leg01",
       "sheet": "items_3",
-      "cell": 52,
-      "columns": 8,
+      "cell": 58,
+      "columns": 9,
       "rows": 8
     },
     {
       "category": "Item",
       "id": "gen_acc_leg01",
       "sheet": "items_3",
-      "cell": 53,
-      "columns": 8,
+      "cell": 59,
+      "columns": 9,
       "rows": 8
     },
     {
       "category": "Item",
       "id": "gen_acc_leg02",
       "sheet": "items_3",
-      "cell": 54,
-      "columns": 8,
+      "cell": 60,
+      "columns": 9,
       "rows": 8
     },
     {
       "category": "Item",
       "id": "gen_wea_myt01",
-      "sheet": "special",
-      "cell": 0,
+      "sheet": "equipment_repair",
+      "cell": 2,
       "columns": 4,
       "rows": 2
     },
     {
       "category": "Item",
       "id": "gen_acc_myt01",
-      "sheet": "items_3",
-      "cell": 56,
-      "columns": 8,
-      "rows": 8
+      "sheet": "elemental_equipment",
+      "cell": 9,
+      "columns": 4,
+      "rows": 3
     },
     {
       "category": "Item",

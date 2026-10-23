@@ -1,0 +1,282 @@
+id,name,kind,grade,sheet,x_from_left_px,y_from_top_px,width_px,height_px,result
+bear_gall,웅담,Consumable,Fine,details,890.0,3.0,437.5,437.5,verified
+okruju,옥루주,Consumable,Fine,items_0,159.75,3.0,150.75,150.75,verified
+ginseng,인형설삼,Consumable,Epic,items_0,316.5,3.0,150.75,150.75,verified
+insight_stone,심득석,Material,Epic,items_0,473.25,3.0,150.75,150.75,verified
+art_scroll_5,무공 수련서 (소),Consumable,Rare,items_0,630.0,3.0,150.75,150.75,verified
+art_scroll_10,무공 수련서 (중),Consumable,Epic,items_0,786.75,3.0,150.75,150.75,verified
+art_scroll_20,무공 수련서 (대),Consumable,Legendary,items_0,943.5,3.0,150.75,150.75,verified
+leather,가죽,Material,Normal,items_0,1100.25,3.0,150.75,150.75,verified
+laundry_bat,강철 빨래방망이,Weapon,Fine,items_0,3.0,159.75,150.75,150.75,verified
+jin_biroedo,진비뢰도,Weapon,Transcendent,jin_biroedo,3.0,3.0,1248.0,1248.0,corrected
+mukryonghwan,묵룡환,Accessory,Rare,items_0,316.5,159.75,150.75,150.75,verified
+roegeum,뇌금 묵뢰,Accessory,Mythic,details,446.5,446.5,437.5,437.5,verified
+claw_necklace,발톱 목걸이,Accessory,Fine,items_0,630.0,159.75,150.75,150.75,verified
+ilgeup_yeongdan,일급영단,Consumable,Legendary,items_0,786.75,159.75,150.75,150.75,verified
+seungryong_pae,승룡패,Key,Rare,items_0,943.5,159.75,150.75,150.75,verified
+mukrin_talisman,묵린혈망 독아 부적,Accessory,Rare,elemental_equipment,3.0,727.0,356.0,356.0,corrected
+meal_academy,학관 정식,Consumable,Normal,items_0,3.0,316.5,150.75,150.75,verified
+biaoguk_ration,표국 건량,Consumable,Normal,items_0,159.75,316.5,150.75,150.75,verified
+taegeuk_pill,태극환,Consumable,Rare,items_0,316.5,316.5,150.75,150.75,verified
+plum_elixir,매화 영단,Consumable,Rare,items_0,473.25,316.5,150.75,150.75,verified
+antidote,해독 영약,Consumable,Fine,items_0,630.0,316.5,150.75,150.75,verified
+greenwood_liquor,녹림 화주,Consumable,Fine,items_0,786.75,316.5,150.75,150.75,verified
+cheonyul_pae,천율패,Key,Epic,items_0,943.5,316.5,150.75,150.75,verified
+iron_sword,낡은 철검,Weapon,Normal,items_0,1100.25,316.5,150.75,150.75,verified
+oak_club,박달나무 곤봉,Weapon,Normal,items_0,3.0,473.25,150.75,150.75,verified
+hunter_knife,사냥꾼 단도,Weapon,Normal,items_0,159.75,473.25,150.75,150.75,verified
+cheonggang_sword,청강검,Weapon,Fine,items_0,316.5,473.25,150.75,150.75,verified
+twin_daggers,쌍비수,Weapon,Fine,items_0,473.25,473.25,150.75,150.75,verified
+dumok_spear,단목창,Weapon,Fine,items_0,630.0,473.25,150.75,150.75,verified
+blackiron_blade,흑철도,Weapon,Rare,elemental_equipment,3.0,365.0,356.0,356.0,corrected
+windcut_sword,풍절검,Weapon,Rare,items_0,943.5,473.25,150.75,150.75,verified
+thunder_dagger,뇌문 비수,Weapon,Rare,items_0,1100.25,473.25,150.75,150.75,verified
+frost_sword,한철검,Weapon,Epic,items_0,3.0,630.0,150.75,150.75,verified
+crimson_saber,적염도,Weapon,Legendary,items_0,159.75,630.0,150.75,150.75,verified
+crescent_glaive,월아극,Weapon,Epic,items_0,316.5,630.0,150.75,150.75,verified
+storm_blade,폭풍도,Weapon,Epic,items_0,473.25,630.0,150.75,150.75,verified
+dragonfang_sword,용아검,Weapon,Legendary,items_0,630.0,630.0,150.75,150.75,verified
+starfall_sword,성락검,Weapon,Mythic,equipment_repair,3.0,3.0,437.5,437.5,corrected
+heaven_cutter,참천도,Weapon,Mythic,equipment_repair,446.5,3.0,437.5,437.5,corrected
+cloth_robe,무명 도복,Armor,Normal,equipment_repair,1333.5,3.0,437.5,437.5,corrected
+leather_vest,가죽 조끼,Armor,Normal,items_0,159.75,786.75,150.75,150.75,corrected
+padded_coat,솜누비 겉옷,Armor,Normal,items_0,316.5,786.75,150.75,150.75,corrected
+chain_shirt,쇠사슬 속옷,Armor,Fine,items_0,473.25,786.75,150.75,150.75,corrected
+scholar_robe,유삼,Armor,Fine,items_0,630.0,786.75,150.75,150.75,corrected
+tigerhide_coat,호피 외투,Armor,Fine,items_0,786.75,786.75,150.75,150.75,corrected
+mountain_armor,산문 철갑,Armor,Rare,items_0,943.5,786.75,150.75,150.75,corrected
+silk_battle_robe,비단 전포,Armor,Rare,items_0,1100.25,786.75,150.75,150.75,corrected
+snakescale_vest,사린 갑옷,Armor,Rare,items_0,3.0,943.5,150.75,150.75,corrected
+jade_scale_armor,옥린갑,Armor,Epic,items_0,159.75,943.5,150.75,150.75,corrected
+crimson_longcoat,적운 장포,Armor,Epic,items_0,316.5,943.5,150.75,150.75,corrected
+blackturtle_cloak,현무 망토,Armor,Epic,items_0,473.25,943.5,150.75,150.75,corrected
+dragonscale_armor,용린 전갑,Armor,Legendary,items_0,630.0,943.5,150.75,150.75,corrected
+phoenix_robe,봉황 우의,Armor,Legendary,items_0,786.75,943.5,150.75,150.75,corrected
+heavensilk_robe,천잠보의,Armor,Mythic,items_0,943.5,943.5,150.75,150.75,corrected
+vajra_armor,금강불괴갑,Armor,Mythic,items_0,1100.25,943.5,150.75,150.75,corrected
+jade_ring,옥가락지,Accessory,Normal,items_0,3.0,1100.25,133.333,150.75,corrected
+wooden_charm,목각 부적,Accessory,Normal,items_0,142.333,1100.25,133.333,150.75,corrected
+copper_bell,구리 방울,Accessory,Normal,items_0,281.667,1100.25,133.333,150.75,corrected
+straw_sandals,짚신 한 켤레,Boots,Normal,equipment_repair,3.0,446.5,437.5,437.5,corrected
+silver_hairpin,은비녀,Accessory,Fine,items_0,560.333,1100.25,133.333,150.75,corrected
+jade_pendant,비취 패옥,Accessory,Fine,items_0,699.667,1100.25,133.333,150.75,corrected
+iron_bracer,철완갑,Accessory,Fine,items_0,839.0,1100.25,133.333,150.75,corrected
+wind_boots,바람신,Boots,Fine,items_0,978.333,1100.25,133.333,150.75,corrected
+cinnabar_amulet,주사 부적,Accessory,Rare,items_0,1117.667,1100.25,133.333,150.75,corrected
+thunder_beads,뇌정 염주,Accessory,Rare,elemental_equipment,3.0,3.0,356.0,356.0,corrected
+moonlight_pendant,월광 노리개,Accessory,Rare,items_1,159.75,3.0,150.75,150.75,verified
+bronze_gauntlet,청동 장갑,Accessory,Rare,items_1,316.5,3.0,150.75,150.75,verified
+sapphire_ring,청옥 반지,Accessory,Epic,items_1,473.25,3.0,150.75,150.75,verified
+bloodjade_bracelet,혈옥 팔찌,Accessory,Epic,items_1,630.0,3.0,150.75,150.75,verified
+starlight_necklace,성광 목걸이,Accessory,Epic,items_1,786.75,3.0,150.75,150.75,verified
+ninetail_charm,구미 부적,Accessory,Epic,items_1,943.5,3.0,150.75,150.75,verified
+dragon_pearl,여의주,Accessory,Legendary,items_1,1100.25,3.0,150.75,150.75,verified
+thunder_crown,뇌제관,Accessory,Legendary,items_1,3.0,159.75,150.75,150.75,verified
+snowlotus_charm,설련 패,Accessory,Legendary,items_1,159.75,159.75,150.75,150.75,verified
+phoenix_feather,봉황 깃털,Accessory,Legendary,items_1,316.5,159.75,150.75,150.75,verified
+heavenly_demon_core,천마심주,Accessory,Mythic,elemental_equipment,727.0,727.0,356.0,356.0,corrected
+taegeuk_jade,태극 옥패,Accessory,Mythic,items_1,630.0,159.75,150.75,150.75,verified
+emperor_seal,제왕금인,Accessory,Mythic,items_1,786.75,159.75,150.75,150.75,verified
+herbal_tea,약초차,Consumable,Normal,items_1,943.5,159.75,150.75,150.75,verified
+rice_cake,영양 떡,Consumable,Normal,items_1,1100.25,159.75,150.75,150.75,verified
+snow_ginseng,설삼,Consumable,Rare,items_1,3.0,316.5,150.75,150.75,verified
+thunder_wine,뇌주,Consumable,Rare,details,446.5,3.0,437.5,437.5,verified
+train_pants,수련용 베바지,Pants,Normal,items_1,316.5,316.5,150.75,150.75,verified
+ironwall_greaves,철갑 각반,Pants,Rare,items_1,473.25,316.5,150.75,150.75,verified
+ironwall_boots,철편 군화,Boots,Fine,items_1,630.0,316.5,150.75,150.75,verified
+gale_pants,질풍 경장 바지,Pants,Rare,items_1,786.75,316.5,150.75,150.75,verified
+gale_feather,질풍 깃 장식,Accessory,Rare,items_1,943.5,316.5,150.75,150.75,verified
+frost_pants,빙백 설고,Pants,Epic,items_1,1100.25,316.5,150.75,150.75,verified
+frost_boots,설원 장화,Boots,Epic,items_1,3.0,473.25,150.75,150.75,verified
+flame_pants,적염 전고,Pants,Epic,items_1,159.75,473.25,150.75,150.75,verified
+flame_boots,화령 신,Boots,Epic,items_1,316.5,473.25,150.75,150.75,verified
+thunder_robe,뇌문 장포,Armor,Rare,elemental_equipment,365.0,3.0,356.0,356.0,corrected
+thunder_pants,뇌문 바지,Pants,Rare,elemental_equipment,727.0,3.0,356.0,356.0,corrected
+thunder_boots,뇌광 신,Boots,Epic,elemental_equipment,1089.0,3.0,356.0,356.0,corrected
+dragon_greaves,용린 각반,Pants,Legendary,items_1,943.5,473.25,150.75,150.75,verified
+dragon_boots,용족 신,Boots,Legendary,items_1,1100.25,473.25,150.75,150.75,verified
+emperor_robe,제왕 곤룡포,Armor,Mythic,items_1,3.0,630.0,150.75,150.75,verified
+emperor_pants,제왕 용문고,Pants,Mythic,items_1,159.75,630.0,150.75,150.75,verified
+emperor_boots,제왕 옥리,Boots,Mythic,items_1,316.5,630.0,150.75,150.75,verified
+biroe_blade,비뢰도 낙뢰,Weapon,Mythic,items_0,159.75,159.75,150.75,150.75,corrected
+biroe_robe,뇌광 비뢰포,Armor,Mythic,items_1,630.0,630.0,150.75,150.75,verified
+biroe_pants,뇌령 비뢰고,Pants,Mythic,items_1,786.75,630.0,150.75,150.75,verified
+biroe_boots,비뢰 질보화,Boots,Mythic,items_1,943.5,630.0,150.75,150.75,verified
+gen_wea_nor01,녹슨 장검,Weapon,Normal,items_1,3.0,786.75,150.75,150.75,corrected
+gen_wea_nor02,나무 목검,Weapon,Normal,items_1,159.75,786.75,150.75,150.75,corrected
+gen_wea_nor03,죽창,Weapon,Normal,items_1,316.5,786.75,150.75,150.75,corrected
+gen_wea_nor04,쇠 도리깨,Weapon,Normal,items_1,473.25,786.75,150.75,150.75,corrected
+gen_wea_nor05,푸줏간 칼,Weapon,Normal,items_1,630.0,786.75,150.75,150.75,corrected
+gen_wea_nor06,농부의 낫,Weapon,Normal,items_1,786.75,786.75,150.75,150.75,corrected
+gen_wea_nor07,부러진 창날,Weapon,Normal,items_1,943.5,786.75,150.75,150.75,corrected
+gen_wea_nor08,대나무 곤,Weapon,Normal,items_1,1100.25,786.75,150.75,150.75,corrected
+gen_wea_nor09,돌도끼,Weapon,Normal,items_1,3.0,943.5,150.75,150.75,corrected
+gen_wea_nor10,쇠 부젓가락,Weapon,Normal,items_1,159.75,943.5,150.75,150.75,corrected
+gen_arm_nor01,삼베 저고리,Armor,Normal,items_1,316.5,943.5,150.75,150.75,corrected
+gen_arm_nor02,누비 배자,Armor,Normal,items_1,473.25,943.5,150.75,150.75,corrected
+gen_arm_nor03,농부 적삼,Armor,Normal,items_1,630.0,943.5,150.75,150.75,corrected
+gen_arm_nor04,무명 장삼,Armor,Normal,items_1,786.75,943.5,150.75,150.75,corrected
+gen_arm_nor05,가죽 흉갑,Armor,Normal,items_1,943.5,943.5,150.75,150.75,corrected
+gen_arm_nor06,대나무 갑,Armor,Normal,items_1,1100.25,943.5,150.75,150.75,corrected
+gen_arm_nor07,마포 도포,Armor,Normal,items_1,3.0,1100.25,150.75,150.75,corrected
+gen_arm_nor08,하인복,Armor,Normal,items_1,159.75,1100.25,150.75,150.75,corrected
+gen_arm_nor09,사냥꾼 조끼,Armor,Normal,items_1,316.5,1100.25,150.75,150.75,corrected
+gen_arm_nor10,짚 도롱이,Armor,Normal,items_1,473.25,1100.25,150.75,150.75,corrected
+gen_pan_nor01,삼베 바지,Pants,Normal,items_1,630.0,1100.25,150.75,150.75,corrected
+gen_pan_nor02,무명 잠방이,Pants,Normal,items_1,786.75,1100.25,150.75,150.75,corrected
+gen_pan_nor03,누비 바지,Pants,Normal,items_1,943.5,1100.25,150.75,150.75,corrected
+gen_pan_nor04,가죽 행전,Pants,Normal,equipment_repair,1333.5,446.5,437.5,437.5,corrected
+gen_pan_nor05,짚 각반,Pants,Normal,equipment_repair,446.5,446.5,437.5,437.5,corrected
+gen_pan_nor06,마포 하의,Pants,Normal,items_2,3.0,3.0,150.75,150.75,verified
+gen_pan_nor07,사냥꾼 바지,Pants,Normal,items_2,159.75,3.0,150.75,150.75,verified
+gen_pan_nor08,대님 바지,Pants,Normal,items_2,316.5,3.0,150.75,150.75,verified
+gen_pan_nor09,광목 바지,Pants,Normal,items_2,473.25,3.0,150.75,150.75,verified
+gen_boo_nor01,나막신,Boots,Normal,items_2,630.0,3.0,150.75,150.75,verified
+gen_boo_nor02,가죽 장화,Boots,Normal,items_2,786.75,3.0,150.75,150.75,verified
+gen_boo_nor03,삼 마혜,Boots,Normal,items_2,943.5,3.0,150.75,150.75,verified
+gen_boo_nor04,징 박은 신,Boots,Normal,items_2,1100.25,3.0,150.75,150.75,verified
+gen_boo_nor05,목화,Boots,Normal,items_2,3.0,159.75,150.75,150.75,verified
+gen_boo_nor06,무명 헝겊신,Boots,Normal,items_2,159.75,159.75,150.75,150.75,verified
+gen_boo_nor07,풀잎 신,Boots,Normal,items_2,316.5,159.75,150.75,150.75,verified
+gen_boo_nor08,산길 신,Boots,Normal,items_2,473.25,159.75,150.75,150.75,verified
+gen_boo_nor09,얇은 가죽신,Boots,Normal,items_2,630.0,159.75,150.75,150.75,verified
+gen_boo_nor10,대나무 신,Boots,Normal,items_2,786.75,159.75,150.75,150.75,verified
+gen_acc_nor01,구리 반지,Accessory,Normal,items_2,943.5,159.75,150.75,150.75,verified
+gen_acc_nor02,나무 구슬,Accessory,Normal,items_2,1100.25,159.75,150.75,150.75,verified
+gen_acc_nor03,질긴 허리끈,Accessory,Normal,items_2,3.0,316.5,150.75,150.75,verified
+gen_acc_nor04,대나무 피리,Accessory,Normal,items_2,159.75,316.5,150.75,150.75,verified
+gen_acc_nor05,조개 목걸이,Accessory,Normal,items_2,316.5,316.5,150.75,150.75,verified
+gen_acc_nor06,낡은 호신 부적,Accessory,Normal,items_2,473.25,316.5,150.75,150.75,verified
+gen_acc_nor07,짚 팔찌,Accessory,Normal,items_2,630.0,316.5,150.75,150.75,verified
+gen_acc_nor08,돌 노리개,Accessory,Normal,items_2,786.75,316.5,150.75,150.75,verified
+gen_acc_nor09,헝겊 머리띠,Accessory,Normal,items_2,943.5,316.5,150.75,150.75,verified
+gen_acc_nor10,쇠 열쇠고리,Accessory,Normal,items_2,1100.25,316.5,150.75,150.75,verified
+gen_wea_fin01,정련 환도,Weapon,Fine,items_2,3.0,473.25,150.75,150.75,verified
+gen_wea_fin02,철편,Weapon,Fine,items_2,159.75,473.25,150.75,150.75,verified
+gen_wea_fin03,청동 쌍검,Weapon,Fine,items_2,316.5,473.25,150.75,150.75,verified
+gen_wea_fin04,사모창,Weapon,Fine,items_2,473.25,473.25,150.75,150.75,verified
+gen_wea_fin05,박도,Weapon,Fine,items_2,630.0,473.25,150.75,150.75,verified
+gen_wea_fin06,쇠사슬 낫,Weapon,Fine,items_2,786.75,473.25,150.75,150.75,verified
+gen_wea_fin07,단봉,Weapon,Fine,items_2,943.5,473.25,150.75,150.75,verified
+gen_wea_fin08,철선,Weapon,Fine,equipment_repair,890.0,446.5,437.5,437.5,corrected
+gen_arm_fin01,청포,Armor,Fine,items_2,3.0,630.0,150.75,150.75,verified
+gen_arm_fin02,철편 갑옷,Armor,Fine,items_2,159.75,630.0,150.75,150.75,verified
+gen_arm_fin03,호위 무복,Armor,Fine,items_2,316.5,630.0,150.75,150.75,verified
+gen_arm_fin04,면갑,Armor,Fine,items_2,473.25,630.0,150.75,150.75,verified
+gen_arm_fin05,쇠비늘 조끼,Armor,Fine,items_2,630.0,630.0,150.75,150.75,verified
+gen_arm_fin06,학창의,Armor,Fine,items_2,786.75,630.0,150.75,150.75,verified
+gen_arm_fin07,표국 제복,Armor,Fine,items_2,943.5,630.0,150.75,150.75,verified
+gen_arm_fin08,은사 덧옷,Armor,Fine,items_2,1100.25,630.0,150.75,150.75,verified
+gen_pan_fin01,면 바지,Pants,Fine,items_2,3.0,786.75,150.75,150.75,verified
+gen_pan_fin02,청포 하의,Pants,Fine,items_2,159.75,786.75,150.75,150.75,verified
+gen_pan_fin03,철편 각반,Pants,Fine,items_2,316.5,786.75,150.75,150.75,verified
+gen_pan_fin04,호위 바지,Pants,Fine,items_2,473.25,786.75,150.75,150.75,verified
+gen_pan_fin05,가죽 장고,Pants,Fine,items_2,630.0,786.75,150.75,150.75,verified
+gen_pan_fin06,비단 바지,Pants,Fine,items_2,786.75,786.75,150.75,150.75,verified
+gen_pan_fin07,쇠사슬 하의,Pants,Fine,items_2,943.5,786.75,150.75,150.75,verified
+gen_pan_fin08,표사 각반,Pants,Fine,items_2,1100.25,786.75,150.75,150.75,verified
+gen_boo_fin01,철편 신,Boots,Fine,items_2,3.0,943.5,150.75,150.75,verified
+gen_boo_fin02,사슴가죽 장화,Boots,Fine,items_2,159.75,943.5,150.75,150.75,verified
+gen_boo_fin03,행상 신,Boots,Fine,items_2,316.5,943.5,150.75,150.75,verified
+gen_boo_fin04,경공 연습화,Boots,Fine,items_2,473.25,943.5,150.75,150.75,verified
+gen_boo_fin05,호피 신,Boots,Fine,items_2,630.0,943.5,150.75,150.75,verified
+gen_boo_fin06,청포 장화,Boots,Fine,items_2,786.75,943.5,150.75,150.75,verified
+gen_boo_fin07,표행 군화,Boots,Fine,items_2,943.5,943.5,150.75,150.75,verified
+gen_acc_fin01,은 반지,Accessory,Fine,items_2,1100.25,943.5,150.75,150.75,verified
+gen_acc_fin02,청동 거울,Accessory,Fine,items_2,3.0,1100.25,150.75,150.75,verified
+gen_acc_fin03,옥 귀걸이,Accessory,Fine,items_2,159.75,1100.25,150.75,150.75,verified
+gen_acc_fin04,가죽 팔찌,Accessory,Fine,items_2,316.5,1100.25,150.75,150.75,verified
+gen_acc_fin05,구슬 팔찌,Accessory,Fine,items_2,473.25,1100.25,150.75,150.75,verified
+gen_acc_fin06,호랑이 이빨,Accessory,Fine,items_2,630.0,1100.25,150.75,150.75,verified
+gen_acc_fin07,백동 비녀,Accessory,Fine,items_2,786.75,1100.25,150.75,150.75,verified
+gen_acc_fin08,비단 주머니,Accessory,Fine,items_2,943.5,1100.25,150.75,150.75,verified
+gen_wea_rar01,칠성검,Weapon,Rare,items_2,1100.25,1100.25,150.75,150.75,verified
+gen_wea_rar02,오행도,Weapon,Rare,details,3.0,3.0,437.5,437.5,verified
+gen_wea_rar03,곡월도,Weapon,Rare,items_3,159.75,3.0,150.75,150.75,verified
+gen_wea_rar04,삼지창,Weapon,Rare,items_3,316.5,3.0,150.75,150.75,verified
+gen_wea_rar05,은사 연검,Weapon,Rare,items_3,473.25,3.0,150.75,150.75,verified
+gen_wea_rar06,흑철 장곤,Weapon,Rare,items_3,630.0,3.0,150.75,150.75,verified
+gen_wea_rar07,비연검,Weapon,Rare,items_3,786.75,3.0,150.75,150.75,verified
+gen_arm_rar01,흑견 장삼,Armor,Rare,items_3,943.5,3.0,150.75,150.75,verified
+gen_arm_rar02,사슴가죽 갑,Armor,Rare,items_3,1100.25,3.0,150.75,150.75,verified
+gen_arm_rar03,응련 갑옷,Armor,Rare,items_3,3.0,159.75,150.75,150.75,verified
+gen_arm_rar04,철사 전포,Armor,Rare,items_3,159.75,159.75,150.75,150.75,verified
+gen_arm_rar05,은린 도복,Armor,Rare,items_3,316.5,159.75,150.75,150.75,verified
+gen_arm_rar06,백호 가죽옷,Armor,Rare,items_3,473.25,159.75,150.75,150.75,verified
+gen_pan_rar01,흑견 하의,Pants,Rare,items_3,630.0,159.75,150.75,150.75,verified
+gen_pan_rar02,은사 고,Pants,Rare,items_3,786.75,159.75,150.75,150.75,verified
+gen_pan_rar03,응련 각반,Pants,Rare,items_3,943.5,159.75,150.75,150.75,verified
+gen_pan_rar04,사슴가죽 바지,Pants,Rare,items_3,1100.25,159.75,150.75,150.75,verified
+gen_boo_rar01,흑견 장화,Boots,Rare,items_3,3.0,316.5,150.75,150.75,verified
+gen_boo_rar02,은사 비화,Boots,Rare,items_3,159.75,316.5,150.75,150.75,verified
+gen_boo_rar03,응련 장화,Boots,Rare,items_3,316.5,316.5,150.75,150.75,verified
+gen_boo_rar04,백호 가죽신,Boots,Rare,items_3,473.25,316.5,150.75,150.75,verified
+gen_boo_rar05,경공 비혜,Boots,Rare,items_3,630.0,316.5,150.75,150.75,verified
+gen_boo_rar06,철각화,Boots,Rare,items_3,786.75,316.5,150.75,150.75,verified
+gen_boo_rar07,구름 신,Boots,Rare,items_3,943.5,316.5,150.75,150.75,verified
+gen_acc_rar01,흑옥 반지,Accessory,Rare,items_3,1100.25,316.5,150.75,150.75,verified
+gen_acc_rar02,은 향낭,Accessory,Rare,items_3,3.0,473.25,150.75,150.75,verified
+gen_acc_rar03,칠보 노리개,Accessory,Rare,items_3,159.75,473.25,150.75,150.75,verified
+gen_acc_rar04,응골 깃,Accessory,Rare,items_3,316.5,473.25,150.75,150.75,verified
+gen_acc_rar05,자수정 목걸이,Accessory,Rare,items_3,473.25,473.25,150.75,150.75,verified
+gen_acc_rar06,호박 구슬,Accessory,Rare,items_3,630.0,473.25,150.75,150.75,verified
+gen_wea_epi01,현철중검,Weapon,Epic,items_3,786.75,473.25,150.75,150.75,verified
+gen_wea_epi02,자하검,Weapon,Epic,elemental_equipment,365.0,365.0,356.0,356.0,corrected
+gen_wea_epi03,백호창,Weapon,Epic,items_3,1100.25,473.25,150.75,150.75,verified
+gen_wea_epi04,청룡언월도,Weapon,Epic,items_3,3.0,630.0,150.75,150.75,verified
+gen_arm_epi01,자운포,Armor,Epic,elemental_equipment,727.0,365.0,356.0,356.0,corrected
+gen_arm_epi02,청룡 비늘갑,Armor,Epic,items_3,316.5,630.0,150.75,150.75,verified
+gen_arm_epi03,설표 가죽옷,Armor,Epic,items_3,473.25,630.0,150.75,150.75,verified
+gen_arm_epi04,월영 도포,Armor,Epic,items_3,630.0,630.0,150.75,150.75,verified
+gen_pan_epi01,자운 하의,Pants,Epic,items_3,786.75,630.0,150.75,150.75,verified
+gen_pan_epi02,청룡 하의,Pants,Epic,items_3,943.5,630.0,150.75,150.75,verified
+gen_boo_epi01,자운 신,Boots,Epic,elemental_equipment,1089.0,365.0,356.0,356.0,corrected
+gen_acc_epi01,홍옥 반지,Accessory,Epic,items_3,3.0,786.75,150.75,150.75,verified
+gen_acc_epi02,청룡 비늘 패,Accessory,Epic,items_3,159.75,786.75,150.75,150.75,verified
+gen_acc_epi03,설표 송곳니,Accessory,Epic,items_3,316.5,786.75,150.75,150.75,verified
+gen_acc_epi04,월장 귀걸이,Accessory,Epic,items_3,473.25,786.75,150.75,150.75,verified
+gen_wea_leg01,벽력도,Weapon,Legendary,items_3,630.0,786.75,150.75,150.75,verified
+gen_wea_leg02,적룡창,Weapon,Legendary,items_3,786.75,786.75,150.75,150.75,verified
+gen_wea_leg03,월광검,Weapon,Legendary,items_3,943.5,786.75,150.75,150.75,verified
+gen_arm_leg01,천룡 은갑,Armor,Legendary,items_3,1100.25,786.75,150.75,150.75,verified
+gen_arm_leg02,구름무늬 보의,Armor,Legendary,items_3,3.0,943.5,133.333,150.75,corrected
+gen_arm_leg03,오행 신갑,Armor,Legendary,items_3,142.333,943.5,133.333,150.75,corrected
+gen_pan_leg01,천잠 장고,Pants,Legendary,items_3,281.667,943.5,133.333,150.75,corrected
+gen_pan_leg02,금강 각반,Pants,Legendary,items_3,421.0,943.5,133.333,150.75,corrected
+gen_boo_leg01,천룡 비화,Boots,Legendary,items_3,560.333,943.5,133.333,150.75,corrected
+gen_acc_leg01,천룡 비늘 목걸이,Accessory,Legendary,items_3,699.667,943.5,133.333,150.75,corrected
+gen_acc_leg02,봉인 구슬,Accessory,Legendary,items_3,839.0,943.5,133.333,150.75,corrected
+gen_wea_myt01,혼천검,Weapon,Mythic,equipment_repair,890.0,3.0,437.5,437.5,corrected
+gen_acc_myt01,혼원주,Accessory,Mythic,elemental_equipment,365.0,727.0,356.0,356.0,corrected
+gen_acc_myt02,무극 옥환,Accessory,Mythic,special,446.5,3.0,437.5,437.5,verified
+mat_weapon_0,철 부스러기,Material,Normal,items_3,3.0,1100.25,203.0,150.75,verified
+mat_armor_0,삼베 조각,Material,Normal,items_3,212.0,1100.25,203.0,150.75,verified
+mat_pants_0,광목 자투리,Material,Normal,items_3,421.0,1100.25,203.0,150.75,verified
+mat_boots_0,가죽 밑창,Material,Normal,items_3,630.0,1100.25,203.0,150.75,verified
+mat_accessory_0,구슬 부스러기,Material,Normal,items_3,839.0,1100.25,203.0,150.75,verified
+mat_weapon_1,정련 철괴,Material,Fine,items_3,1048.0,1100.25,203.0,150.75,verified
+mat_armor_1,질긴 가죽,Material,Fine,items_4,3.0,3.0,150.75,150.75,verified
+mat_pants_1,누빔 솜,Material,Fine,items_4,159.75,3.0,150.75,150.75,verified
+mat_boots_1,징 쇠조각,Material,Fine,items_4,316.5,3.0,150.75,150.75,verified
+mat_accessory_1,옥 조각,Material,Fine,items_4,473.25,3.0,150.75,150.75,verified
+mat_weapon_2,흑철 정,Material,Rare,items_4,630.0,3.0,150.75,150.75,verified
+mat_armor_2,은사 실타래,Material,Rare,items_4,786.75,3.0,150.75,150.75,verified
+mat_pants_2,흑견 천,Material,Rare,items_4,943.5,3.0,150.75,150.75,verified
+mat_boots_2,경공 밑창,Material,Rare,items_4,1100.25,3.0,150.75,150.75,verified
+mat_accessory_2,보석 가루,Material,Rare,items_4,3.0,159.75,150.75,150.75,verified
+mat_weapon_3,현철 조각,Material,Epic,items_4,159.75,159.75,150.75,150.75,verified
+mat_armor_3,자운 비단,Material,Epic,items_4,316.5,159.75,150.75,150.75,verified
+mat_pants_3,청룡 직물,Material,Epic,items_4,473.25,159.75,150.75,150.75,verified
+mat_boots_3,운보 가죽,Material,Epic,items_4,630.0,159.75,150.75,150.75,verified
+mat_accessory_3,영석,Material,Epic,items_4,786.75,159.75,150.75,150.75,verified
+mat_weapon_4,용린 강철,Material,Legendary,items_4,943.5,159.75,150.75,150.75,verified
+mat_armor_4,천잠 명주,Material,Legendary,items_4,1100.25,159.75,150.75,150.75,verified
+mat_pants_4,금강사 천,Material,Legendary,items_4,3.0,316.5,150.75,150.75,verified
+mat_boots_4,천리 밑창,Material,Legendary,items_4,159.75,316.5,150.75,150.75,verified
+mat_accessory_4,정령석,Material,Legendary,items_4,316.5,316.5,150.75,150.75,verified
+gear_polish,하급 영석,Material,Normal,special,890.0,3.0,437.5,437.5,verified
+gear_spirit_mid,중급 영석,Material,Fine,special,1333.5,3.0,437.5,437.5,verified
+gear_spirit_high,고급 영석,Material,Rare,special,3.0,446.5,437.5,437.5,verified
+gear_iron_high,상급 현철,Material,Epic,special,446.5,446.5,437.5,437.5,verified
+gear_iron_ancient,만년 현철,Material,Legendary,special,890.0,446.5,437.5,437.5,verified
+gear_celestial_stone,신물:천외비석,Material,Mythic,special,1333.5,446.5,437.5,437.5,verified

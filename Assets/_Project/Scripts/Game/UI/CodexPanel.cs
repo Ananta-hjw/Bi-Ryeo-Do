@@ -115,7 +115,8 @@ namespace BiRyeoDo.Game.UI
                     bool seen = Codex.HasItem(save, it.Id);
                     var band = Band(content, n++);
                     var glyph = UiFactory.Panel("Icon", band, new Vector2(0.025f, 0.14f), new Vector2(0.125f, 0.86f), seen ? Dark(UiFactory.GradeColor(it.Grade)) : new Color(0.15f, 0.15f, 0.17f, 1f));
-                    UiFactory.Label("Glyph", glyph.transform, Vector2.zero, Vector2.one, seen ? it.Name.Substring(0, 1) : "?", 44, UiFactory.PaperText);
+                    var letter = UiFactory.Label("Glyph", glyph.transform, Vector2.zero, Vector2.one, seen ? it.Name.Substring(0, 1) : "?", 44, UiFactory.PaperText);
+                    if (seen) ItemArt.Apply(glyph, letter, it);
                     UiFactory.Label("Name", band, new Vector2(0.15f, 0.52f), new Vector2(0.97f, 0.96f), seen ? UiFactory.GradedName(it) : "<color=#555B66>[" + Grades.NameOf(it.Grade) + "]</color> ???", 30, UiFactory.PaperText, TextAnchor.MiddleLeft);
                     UiFactory.Label("Info", band, new Vector2(0.15f, 0.04f), new Vector2(0.97f, 0.52f), seen ? it.Description : "아직 손에 넣지 못했습니다", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 }

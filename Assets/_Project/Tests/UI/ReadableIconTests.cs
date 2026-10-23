@@ -49,6 +49,64 @@ namespace BiRyeoDo.Tests.UI
             }
         }
 
+        [TestCase("cloth_robe", "equipment_repair", 3, 4, 2)]
+        [TestCase("straw_sandals", "equipment_repair", 4, 4, 2)]
+        [TestCase("starfall_sword", "equipment_repair", 0, 4, 2)]
+        [TestCase("heaven_cutter", "equipment_repair", 1, 4, 2)]
+        [TestCase("gen_wea_myt01", "equipment_repair", 2, 4, 2)]
+        [TestCase("leather_vest", "items_0", 41, 8, 8)]
+        [TestCase("vajra_armor", "items_0", 55, 8, 8)]
+        [TestCase("jade_ring", "items_0", 63, 9, 8)]
+        [TestCase("cinnabar_amulet", "items_0", 71, 9, 8)]
+        [TestCase("gen_wea_nor01", "items_1", 40, 8, 8)]
+        [TestCase("gen_pan_nor03", "items_1", 62, 8, 8)]
+        [TestCase("gen_acc_myt01", "elemental_equipment", 9, 4, 3)]
+        [TestCase("thunder_beads", "elemental_equipment", 0, 4, 3)]
+        [TestCase("blackiron_blade", "elemental_equipment", 4, 4, 3)]
+        [TestCase("heavenly_demon_core", "elemental_equipment", 10, 4, 3)]
+        [TestCase("biroe_blade", "items_0", 9, 8, 8)]
+        [TestCase("jin_biroedo", "jin_biroedo", 0, 1, 1)]
+        public void AuditedEquipmentRegionsStayWithinTheActualIllustrationCell(string id, string sheet, int cell, int columns, int rows)
+        {
+            var sprite = ReadableIconLibrary.Find("Item", id);
+            CheckBounds(sprite, id);
+            Assert.AreEqual(sheet, sprite.texture.name);
+            float width = sprite.texture.width / (float)columns, height = sprite.texture.height / (float)rows;
+            Assert.AreEqual(cell % columns * width + 3f, sprite.rect.x, .1f);
+            Assert.AreEqual(sprite.texture.height - (cell / columns + 1) * height + 3f, sprite.rect.y, .1f);
+            Assert.AreEqual(width - 6f, sprite.rect.width, .1f);
+            Assert.AreEqual(height - 6f, sprite.rect.height, .1f);
+        }
+
+        [Test]
+        public void GradeBackgroundMaterialsAreSharedSubtleAndResetWhenAnIconBecomesNormal()
+        {
+            var first = new GameObject("First", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            var second = new GameObject("Second", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            try
+            {
+                var a = first.GetComponent<Image>(); var b = second.GetComponent<Image>();
+                var colors = new HashSet<Color>();
+                foreach (ItemGrade grade in new[] { ItemGrade.Fine, ItemGrade.Rare, ItemGrade.Epic, ItemGrade.Legendary, ItemGrade.Mythic, ItemGrade.Transcendent })
+                {
+                    ItemIconPalette.Apply(a, grade); ItemIconPalette.Apply(b, grade);
+                    Assert.AreSame(a.material, b.material);
+                    Assert.AreEqual("BiRyeoDo/UI/GradeIcon", a.material.shader.name);
+                    Assert.IsTrue(a.material.HasProperty("_Stencil"));
+                    var background = ItemIconPalette.Background(grade);
+                    Assert.AreEqual(background, a.material.GetColor("_Background"));
+                    Assert.LessOrEqual(Mathf.Max(background.r, Mathf.Max(background.g, background.b)), .25f);
+                    Assert.IsTrue(colors.Add(background));
+                }
+                Assert.Greater(ItemIconPalette.Background(ItemGrade.Fine).g, ItemIconPalette.Background(ItemGrade.Fine).r);
+                Assert.Greater(ItemIconPalette.Background(ItemGrade.Rare).b, ItemIconPalette.Background(ItemGrade.Rare).r);
+                ItemIconPalette.Apply(a, ItemGrade.Normal);
+                Assert.AreEqual(Graphic.defaultGraphicMaterial, a.material);
+                Assert.AreEqual(Color.clear, ItemIconPalette.Background(ItemGrade.Normal));
+            }
+            finally { Object.DestroyImmediate(first); Object.DestroyImmediate(second); }
+        }
+
         [Test]
         public void MenuAndCommandIconsResolveAndUnknownItemUsesItsKindFallback()
         {

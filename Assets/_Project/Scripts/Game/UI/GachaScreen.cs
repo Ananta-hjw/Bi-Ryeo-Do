@@ -129,15 +129,31 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Odds", card.transform, new Vector2(.04f, .79f), new Vector2(.96f, .86f),
                 "등급 확률 " + (rate * 100d).ToString("0.#") + "% · 같은 등급 안에서는 모든 아이템이 동일한 확률입니다.", 26, UiFactory.PaperText);
             var content = CodexPanel.Scroller(card.rectTransform, .16f, .78f);
+            const float rowHeight = 360f, gap = 16f;
+            RectTransform row = null;
             for (int i = 0; i < pool.Count; i++)
             {
+                if (i % 3 == 0)
+                {
+                    int rowIndex = i / 3;
+                    row = UiFactory.Rect("Row" + rowIndex, content, new Vector2(.025f, 1f), new Vector2(.975f, 1f));
+                    row.pivot = new Vector2(.5f, 1f);
+                    row.sizeDelta = new Vector2(0f, rowHeight);
+                    row.anchoredPosition = new Vector2(0f, -gap - rowIndex * (rowHeight + gap));
+                    ReadingList.Register(row, rowHeight, gap);
+                }
                 var item = pool[i];
-                var row = CodexPanel.Band(content, i);
-                var icon = UiFactory.Panel("Icon", row, new Vector2(.025f, .12f), new Vector2(.19f, .88f), Color.white);
+                float left = i % 3 * .339f;
+                var cell = UiFactory.Rect("Item" + i, row, new Vector2(left, 0f), new Vector2(left + .322f, 1f));
+                var background = cell.gameObject.AddComponent<Image>();
+                background.color = UiFactory.InkSoft;
+                background.raycastTarget = true;
+                UiFactory.Frame(cell, UiFactory.GradeColor(grade), 2f);
+                var icon = UiFactory.TopIcon(cell, 128f, 16f);
                 ItemArt.Apply(icon, UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, "", 40, UiFactory.Gold), item);
-                UiFactory.Label("Name", row, new Vector2(.22f, .57f), new Vector2(.96f, .95f), UiFactory.GradedName(item), 30, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                UiFactory.Body(UiFactory.Label("Effect", row, new Vector2(.22f, .18f), new Vector2(.96f, .55f), item.IsGear ? UiFactory.GearEffectText(item) : item.Description, 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal));
-                UiFactory.Label("Set", row, new Vector2(.22f, .02f), new Vector2(.96f, .17f), item.IsGear ? "세트: " + (Gear.SetOf(item.Id)?.Name ?? "없음") : "소모품", 24, UiFactory.Gold, TextAnchor.MiddleLeft);
+                UiFactory.Body(UiFactory.Label("Name", cell, new Vector2(.05f, .38f), new Vector2(.95f, .59f), item.Name, 28, UiFactory.PaperText, TextAnchor.MiddleCenter));
+                UiFactory.Body(UiFactory.Label("Effect", cell, new Vector2(.05f, .12f), new Vector2(.95f, .36f), item.IsGear ? UiFactory.GearEffectText(item) : item.Description, 24, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal));
+                UiFactory.Label("Set", cell, new Vector2(.05f, .015f), new Vector2(.95f, .11f), item.IsGear ? "세트: " + (Gear.SetOf(item.Id)?.Name ?? "없음") : "소모품", 23, UiFactory.Gold, TextAnchor.MiddleLeft);
             }
             UiFactory.Button("Close", card.transform, new Vector2(.30f, .015f), new Vector2(.70f, .14f), "닫기", UiFactory.InkSoft, ClosePool, 32);
             Canvas.ForceUpdateCanvases();
