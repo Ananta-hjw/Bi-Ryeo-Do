@@ -48,8 +48,8 @@ namespace BiRyeoDo.Game.UI
 
             var content = CodexPanel.Scroller(list, Embedded ? .02f : .10f, .745f);
             _scroll = content.parent.GetComponent<ScrollRect>();
-            const float icon = 124f;
-            var grid = new ReadingGrid(content, 2, 340f);
+            const float icon = 100f;
+            var grid = new ReadingGrid(content, 3, 340f);   // three cards per row
             for (int i = 0; i < InnerArts.All.Length; i++)
             {
                 var a = InnerArts.All[i];

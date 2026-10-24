@@ -551,7 +551,7 @@ namespace BiRyeoDo.Tests.UI
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
-        public void MartialArtsUseTwoCardsPerRowAndKeepTheirHeightAcrossRefreshes(float width)
+        public void MartialArtsUseThreeCardsPerRowAndKeepTheirHeightAcrossRefreshes(float width)
         {
             Root.sizeDelta = new Vector2(width, 960f);
             var art = EarlyGameContent.Arts.First(a => a.OwnerId == null);
@@ -563,16 +563,16 @@ namespace BiRyeoDo.Tests.UI
             Canvas.ForceUpdateCanvases(); layout.Reflow();
             var rows = Enumerable.Range(0, content.childCount).Select(i => (RectTransform)content.GetChild(i)).ToArray();
             int total = EarlyGameContent.Arts.Count(a => a.OwnerId == null);
-            Assert.AreEqual((total + 1) / 2, rows.Length);
-            Assert.AreEqual(2, rows[0].childCount);
+            Assert.AreEqual((total + 2) / 3, rows.Length);
+            Assert.AreEqual(3, rows[0].childCount);
             var firstCard = rows[0].Find("Card0");
             var artIcon = Bounds((RectTransform)firstCard.Find("Icon"));
-            Assert.That(artIcon.width, Is.EqualTo(144f).Within(.1f));
-            Assert.That(artIcon.height, Is.EqualTo(144f).Within(.1f));
+            Assert.That(artIcon.width, Is.EqualTo(120f).Within(.1f));
+            Assert.That(artIcon.height, Is.EqualTo(120f).Within(.1f));
             Assert.Less(artIcon.xMax, Bounds((RectTransform)firstCard.Find("Title")).xMin);
             for (int index = 0; index < total; index++)
             {
-                var card = (RectTransform)rows[index / 2].Find("Card" + index);
+                var card = (RectTransform)rows[index / 3].Find("Card" + index);
                 var button = Bounds((RectTransform)card.Find("Btn" + index));
                 Assert.GreaterOrEqual(button.height, 70f);
                 foreach (RectTransform chip in card.Find("Chips"))
@@ -583,7 +583,7 @@ namespace BiRyeoDo.Tests.UI
                     Assert.GreaterOrEqual(bounds.xMin, Bounds(card).xMin);
                     Assert.Greater(bounds.yMin, button.yMax);
                 }
-                if (index % 2 == 1) Assert.Less(Bounds((RectTransform)rows[index / 2].Find("Card" + (index - 1))).xMax, Bounds(card).xMin);
+                if (index % 3 != 0) Assert.Less(Bounds((RectTransform)rows[index / 3].Find("Card" + (index - 1))).xMax, Bounds(card).xMin);
             }
             var heights = rows.Select(row => row.rect.height).ToArray();
             var positions = rows.Select(row => row.anchoredPosition).ToArray();
@@ -603,10 +603,25 @@ namespace BiRyeoDo.Tests.UI
             }
         }
 
+        [Test]
+        public void TappingAnEquippedSlotTakesThatArtOff()
+        {
+            var art = EarlyGameContent.Arts.First(a => a.OwnerId == null && !Progression.IsUltimate(a));
+            if (!_save.LearnedArts.Contains(art.Id)) _save.LearnedArts.Add(art.Id);
+            _save.EquippedArts.Clear(); _save.EquippedArts.Add(art.Id);
+            var arts = _canvas.AddComponent<MartialArtsScreen>(); arts.Build(Root);
+            Invoke(arts, "Refresh");
+            var slot = _canvas.transform.Find("ArtsPage/SlotBar/Slot0");
+            Assert.IsNotNull(slot.Find("Unequip"));
+            slot.GetComponent<Button>().onClick.Invoke();
+            Assert.IsFalse(_save.EquippedArts.Contains(art.Id));
+            Assert.IsTrue(_save.LearnedArts.Contains(art.Id), "unequipping keeps the art learned");
+        }
+
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
-        public void InnerArtsUseTwoCardsPerRowWithStableHeightAndSeparateActions(float width)
+        public void InnerArtsUseThreeCardsPerRowWithStableHeightAndSeparateActions(float width)
         {
             Root.sizeDelta = new Vector2(width, 960f);
             var arts = _canvas.AddComponent<MartialArtsScreen>(); arts.Build(Root);
@@ -615,21 +630,21 @@ namespace BiRyeoDo.Tests.UI
             var layout = content.GetComponent<ReadingList>();
             Canvas.ForceUpdateCanvases(); layout.Reflow();
             var rows = Enumerable.Range(0, content.childCount).Select(i => (RectTransform)content.GetChild(i)).ToArray();
-            Assert.AreEqual((InnerArts.All.Length + 1) / 2, rows.Length);
+            Assert.AreEqual((InnerArts.All.Length + 2) / 3, rows.Length);
             for (int index = 0; index < InnerArts.All.Length; index++)
             {
-                var card = rows[index / 2].Find("Card" + index);
+                var card = rows[index / 3].Find("Card" + index);
                 Assert.IsNotNull(card);
                 var innerIcon = Bounds((RectTransform)card.Find("Icon"));
-                Assert.That(innerIcon.width, Is.EqualTo(124f).Within(.1f));
+                Assert.That(innerIcon.width, Is.EqualTo(100f).Within(.1f));
                 Assert.Less(innerIcon.xMax, Bounds((RectTransform)card.Find("Name")).xMin);
                 Assert.Less(Bounds((RectTransform)card.Find("Effect")).yMax, innerIcon.yMin);
                 var act = Bounds((RectTransform)card.Find("Act"));
                 Assert.Less(act.yMax, Bounds((RectTransform)card.Find("Effect")).yMin);
                 Assert.GreaterOrEqual(act.height, 60f);
-                if (index % 2 != 0)
+                if (index % 3 != 0)
                 {
-                    var left = rows[index / 2].Find("Card" + (index - 1));
+                    var left = rows[index / 3].Find("Card" + (index - 1));
                     Assert.Less(Bounds((RectTransform)left).xMax, Bounds((RectTransform)card).xMin);
                     Assert.That(Bounds((RectTransform)left).yMax, Is.EqualTo(Bounds((RectTransform)card).yMax).Within(.1f));
                 }
