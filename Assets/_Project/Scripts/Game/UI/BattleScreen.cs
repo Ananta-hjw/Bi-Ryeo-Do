@@ -117,10 +117,13 @@ namespace BiRyeoDo.Game.UI
             _root = root;
             _basicMotion = root.gameObject.AddComponent<BasicAttackMotion>();
 
-            UiFactory.Panel("Backdrop", root, Vector2.zero, Vector2.one, Backdrop).raycastTarget = true;   // swallows taps so nothing underneath (the 강호 tab) is pressed during the battle
+            var backdrop = UiFactory.Panel("Backdrop", root, Vector2.zero, Vector2.one, Backdrop);
+            backdrop.raycastTarget = true;   // swallows taps so nothing underneath (the 강호 tab) is pressed during the battle
             _backdropImage = UiFactory.Panel("StageArt", root, Vector2.zero, Vector2.one, new Color(1f, 1f, 1f, 0f));
             BackgroundCover.Apply(_backdropImage);
-            UiFactory.Panel("Dim", root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.22f)); // keeps text readable over artwork
+            var dim = UiFactory.Panel("Dim", root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.22f)); // keeps text readable over artwork
+            // The stage art covers the whole display, notch strips included; the HUD stays inside the safe area.
+            foreach (var layer in new[] { backdrop, _backdropImage, dim }) layer.gameObject.AddComponent<FullBleed>();
             BuildBoard(root);
 
             _cardsRoot = UiFactory.Rect("Cards", root, Vector2.zero, Vector2.one);
@@ -950,7 +953,7 @@ namespace BiRyeoDo.Game.UI
         // ------------------------------------------------------------------ the board (6 x 3 tiles, our side left, the enemies right)
 
         private const float FieldLeft = .015f, FieldRight = .985f;
-        private const float FieldTop = .778f, FieldBottom = .335f, HeaderBottom = .781f, HeaderTop = .803f;
+        private const float FieldTop = .784f, FieldBottom = .305f, HeaderBottom = .786f, HeaderTop = .806f;
         private static readonly Color PartyTile = new Color(0.18f, 0.42f, 0.37f, 0.07f), EnemyTile = new Color(0.52f, 0.20f, 0.15f, 0.07f);
 
         /// <summary>The screen rectangle (fractions of the battle root) of a board tile.</summary>

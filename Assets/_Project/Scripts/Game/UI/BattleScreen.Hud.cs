@@ -102,7 +102,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Inspect", log.transform, new Vector2(.88f, .02f), new Vector2(.985f, .56f), "상세", 22, UiFactory.Gold);
             _log = UiFactory.Label("Log", log.transform, new Vector2(.025f, .02f), new Vector2(.86f, .56f), "무공을 고른 뒤 대상을 선택해 주세요.", 24, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
             // Keep target guidance at the top of the command area, separate from combat feedback.
-            _commandHint = UiFactory.Label("CommandHint", root, new Vector2(.025f, .294f), new Vector2(.975f, .328f), "", 26, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal);
+            _commandHint = UiFactory.Label("CommandHint", root, new Vector2(.025f, .284f), new Vector2(.975f, .314f), "", 26, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal);
 
             foreach (var text in new[] { _actorName, _actorResources, _turnNotice, _log, _commandHint })
                 OutlineCommandText(text);
@@ -147,6 +147,8 @@ namespace BiRyeoDo.Game.UI
             rect.offsetMin = Vector2.zero; rect.offsetMax = Vector2.zero;
         }
 
+        private const float IconSize = 128f;   // command icons; the name and cost lines sit right under them
+
         private void LayoutCommands(bool picker)
         {
             // Large icons share one compact row; transparent full buttons retain generous hit areas.
@@ -160,13 +162,13 @@ namespace BiRyeoDo.Game.UI
                 var clip = (RectTransform)command.Icon.transform.parent;
                 PlaceHud(clip, .5f, 1f, .5f, 1f);
                 clip.pivot = new Vector2(.5f, 1f);
-                clip.sizeDelta = new Vector2(104f, 104f);
-                clip.anchoredPosition = new Vector2(0f, -8f);
+                clip.sizeDelta = new Vector2(IconSize, IconSize);
+                clip.anchoredPosition = new Vector2(0f, -4f);
                 PlaceHud(command.Icon.rectTransform, 0f, 0f, 1f, 1f);
                 PlaceHud(command.Fallback.rectTransform, 0f, 0f, 1f, 1f);
                 PlaceHud(command.Rim.rectTransform, 0f, 0f, 1f, 1f);
-                CommandCaption(command.Label.rectTransform, 116f, 56f);
-                CommandCaption(command.Detail.rectTransform, 172f, 24f);
+                CommandCaption(command.Label.rectTransform, IconSize + 2f, 52f);
+                CommandCaption(command.Detail.rectTransform, IconSize + 54f, 24f);
             }
         }
 
@@ -273,7 +275,7 @@ namespace BiRyeoDo.Game.UI
             }
             _actorResources.text = "내공 " + qi + " / " + me.Stats.MaxQi + "    기세 " + spirit + " / " + InteractiveBattle.MaxSpirit;
             _commandHint.text = _animating ? "전황을 확인해 주세요." : Aiming ? "공격할 적 선택 · 금색: 선택 가능 / 붉은색: 사거리 밖 · 취소로 돌아가기" : AimingAlly ? "회복할 아군을 선택해 주세요."
-                : _itemMode ? "사용할 아이템을 선택해 주세요." : _jointMode ? "함께 공격할 동료를 선택해 주세요." : "공격·무공 선택 → 대상 선택  |  길게 누르면 자세한 설명";
+                : _itemMode ? "사용할 아이템을 선택해 주세요." : _jointMode ? "함께 공격할 동료를 선택해 주세요." : "";
             var pic = UnitPortrait(me);
             _actorPortrait.sprite = pic;
             _actorPortrait.gameObject.SetActive(pic != null);
