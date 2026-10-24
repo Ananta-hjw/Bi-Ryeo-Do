@@ -6,7 +6,7 @@ namespace BiRyeoDo.Tests
 {
     public class MidgameExpansionTests
     {
-        // The planner cache key does not include encounter lists; paired content probes must reset it.
+        // Keep paired content probes independent of cached plans, even when their combat inputs happen to match.
         [SetUp]
         [TearDown]
         public void ClearPlanningCache()

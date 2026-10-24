@@ -51,6 +51,27 @@ namespace BiRyeoDo.Core
 
         public bool IsAlive { get { return Hp > 0; } }
 
+        /// <summary>A private-state copy for formation forecasts; skill/move definitions are read-only in battle.</summary>
+        internal Combatant CopyForPlanning()
+        {
+            var copy = new Combatant(Id, Name, Team, _stats, null)
+            {
+                _baseStats = _baseStats, Hp = Hp, Qi = Qi, Gauge = Gauge, Spirit = Spirit,
+                QiRegenBonus = QiRegenBonus, SpiritDealtBonus = SpiritDealtBonus, SpiritTakenBonus = SpiritTakenBonus,
+                StartSpirit = StartSpirit, Lifesteal = Lifesteal, RescuerId = RescuerId, RescueUsed = RescueUsed,
+                Col = Col, Row = Row, Range = Range, Guarding = Guarding, Evading = Evading, EvadeChance = EvadeChance,
+                Charging = Charging, Stunned = Stunned, Rank = Rank, IsBoss = IsBoss, RetreatHpPct = RetreatHpPct,
+                MoveIndex = MoveIndex, Moves = Moves, Phases = Phases, PhaseIndex = PhaseIndex, AwakeningStrike = AwakeningStrike
+            };
+            copy.Skills.Clear();
+            copy.Skills.AddRange(Skills);
+            foreach (var entry in Cooldowns) copy.Cooldowns.Add(entry.Key, entry.Value);
+            foreach (var status in Statuses) copy.Statuses.Add(new StatusEffect { Kind = status.Kind, Turns = status.Turns });
+            return copy;
+        }
+
+        internal CombatStats? PhaseBaseStats { get { return _baseStats; } }
+
         public Combatant(string id, string name, Team team, CombatStats stats, IEnumerable<SkillSpec> skills, bool applyRealmBonus = false)
         {
             Id = id;

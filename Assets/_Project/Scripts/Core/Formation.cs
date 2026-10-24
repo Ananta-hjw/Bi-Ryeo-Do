@@ -6,9 +6,9 @@ namespace BiRyeoDo.Core
     /// <summary>
     /// 진형: where the party and the enemies stand when a fight starts (see <see cref="Board"/>).
     /// The party's tiles are the player's choice (<see cref="SaveData.Placement"/>, set in the 파티 편성 screen); without a valid custom
-    /// choice the automatic arrangement picks the lines by expected damage against the stage's enemies (<see cref="FormationPlanner"/>), falling back to the
+    /// choice the automatic arrangement picks the lines by combat forecasts against the stage's enemies (<see cref="FormationPlanner"/>), falling back to the
     /// stat rule (<see cref="FrontScores"/>: the sturdiest in front, the strongest attackers at the back, healers in the middle). Enemies answer our lines the
-    /// same way, or by the stat rule for big groups; bosses follow the same rule as everyone else and snipers stand in the deepest column.
+    /// same way, or by the stat rule for big groups; bosses follow the same rule as everyone else.
     /// </summary>
     public static class Formation
     {
@@ -227,7 +227,7 @@ namespace BiRyeoDo.Core
             return AutoFor(save, ids, st);
         }
 
-        // ------------------------------------------------------------------ planned arrangement (expected damage, see FormationPlanner)
+        // ------------------------------------------------------------------ planned arrangement (combat forecasts, see FormationPlanner)
 
         /// <summary>The protagonist as he fights: equipped arts (four ordinary + one 비기), stats and 심법 perks.</summary>
         public static Combatant BuildHero(SaveData save)
@@ -274,15 +274,22 @@ namespace BiRyeoDo.Core
             if (st == null) return null;
             var party = BuildParty(save, ids);
             if (party.Count != ids.Count) return null;
+            bool resume = !st.IsQuest && !st.IsTower && StageProgress.Has(save, st.Number) && save.ProgressDifficulty == st.Difficulty;
+            int first = resume ? Math.Min(save.ProgressNext, st.Encounters.Length) : 0;
+            if (resume) StageProgress.Restore(save, party);
+            var fights = FormationPlanner.FightsOf(st);
+            if (first > 0) fights.RemoveRange(0, first);
+            if (fights.Count == 0) return null;
+            var trials = new List<TrialRule>();
             var key = new System.Text.StringBuilder();
             key.Append(st.Number).Append('/').Append(st.Difficulty).Append('/').Append(st.IsQuest ? st.QuestId : "").Append('/').Append(st.IsTower ? st.TowerFloor : 0);
-            foreach (var m in party)
+            key.Append(FormationPlanner.Fingerprint(party, false));
+            for (int f = 0; f < fights.Count; f++)
             {
-                key.Append('|').Append(m.Id).Append(':').Append(m.Stats.MaxHp).Append(',').Append(m.Stats.Attack).Append(',').Append(m.Stats.Defense).Append(',').Append(m.Stats.Speed);
-                // Every skill field the planner reads, so swapping an art, picking a variant or reaching 극의 re-plans.
-                foreach (var sk in m.Skills)
-                    key.Append(';').Append(sk.Id).Append(',').Append(sk.Power).Append(',').Append(sk.Hits).Append(',').Append(sk.Cooldown).Append(',').Append(sk.Range)
-                       .Append(',').Append(sk.AllEnemies ? 1 : 0).Append(',').Append((int)sk.Effect).Append(',').Append(sk.HealPct).Append(',').Append(sk.SpiritCost);
+                var trial = st.TrialFor(first + f);
+                trials.Add(trial);
+                key.Append("/fight/").Append(FormationPlanner.Fingerprint(fights[f], false));
+                if (trial != null) key.Append("/trial/").Append((int)trial.Kind).Append('/').Append(trial.Limit);
             }
             Dictionary<string, int> fixedCols = null;
             if (pinned != null)
@@ -293,18 +300,16 @@ namespace BiRyeoDo.Core
             Dictionary<string, int> lines;
             string k = key.ToString();
             if (PlanCache.TryGetValue(k, out lines)) return lines;
-            var fights = FormationPlanner.FightsOf(st);
-            if (fights.Count == 0) return null;
             var hint = new Dictionary<string, int>();
             foreach (var kv in Auto(ids, save)) hint[kv.Key] = kv.Value[0];
-            lines = FormationPlanner.PlanPartyLines(party, fights, hint, fixedCols);
+            lines = FormationPlanner.PlanPartyLines(party, fights, hint, fixedCols, trials);
             if (PlanCache.Count > 64) PlanCache.Clear();
             PlanCache[k] = lines;
             return lines;
         }
 
         /// <summary>
-        /// The automatic arrangement: lines chosen by expected damage against the stage's enemies (<see cref="FormationPlanner"/>; the next stage to clear
+        /// The automatic arrangement: lines chosen by combat forecasts against the stage's enemies (<see cref="FormationPlanner"/>; the next stage to clear
         /// when none is given), rows by the simple stat rule (the most defensive member in the middle of the front line).
         /// </summary>
         public static Dictionary<string, int[]> AutoFor(SaveData save, IList<string> ids, StageData st = null)
@@ -405,7 +410,7 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>
-        /// Places the enemies as the best answer to the lines our party stands in (expected damage, <see cref="FormationPlanner.PlanEnemyCols"/>);
+        /// Places the enemies as the best answer to the lines our party stands in (combat forecasts, <see cref="FormationPlanner.PlanEnemyCols"/>);
         /// falls back to the simple stat rule for big groups, a lone enemy, or when some enemies already have a tile.
         /// </summary>
         public static void PlaceEnemies(IList<Combatant> enemies, IList<Combatant> party)
@@ -414,6 +419,11 @@ namespace BiRyeoDo.Core
             foreach (var e in enemies) if (e.Col >= 0) anyPlaced = true;
             var cols = !anyPlaced && enemies.Count > 1 ? FormationPlanner.PlanEnemyCols(enemies, party) : null;
             if (cols == null) { PlaceEnemies(enemies); return; }
+            PlaceEnemyColumns(enemies, cols);
+        }
+
+        internal static void PlaceEnemyColumns(IList<Combatant> enemies, int[] cols)
+        {
             var stats = new List<CombatStats>();
             foreach (var e in enemies) stats.Add(e.Stats);
             var scores = FrontScores(stats);
