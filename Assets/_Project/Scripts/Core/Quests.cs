@@ -38,6 +38,14 @@ namespace BiRyeoDo.Core
                 Trial = TrialRule.Deadline("추격전", "33행동 안에 모두 쓰러뜨리세요.", 33), RewardDoo = 18900 },
             new QuestData { Id = "q_salgwi", Edge = 1.027f, Name = "살귀대 정찰조 제압", Brief = "정찰조가 신호를 보내기 전에 소리 없이 제압하라.", RefStage = 26, Encounter = 0,
                 Trial = TrialRule.Deadline("소리 없는 제압", "46행동 안에 모두 쓰러뜨리세요.", 46), RewardDoo = 24300, ItemId = "ilgeup_yeongdan" },
+            new QuestData { Id = "q_salryong", Edge = 2.2f, Name = "살룡대 잔당 추적", Brief = "불탄 은장 근처에 복면 무리가 아직 남아 있다는 소문. 흩어지기 전에 따라잡아 달라는 의뢰.", RefStage = 31, Encounter = 0,
+                Trial = TrialRule.Deadline("잔당 추적", "44행동 안에 모두 쓰러뜨리세요.", 44), RewardDoo = 28800, ItemId = "ginseng" },
+            new QuestData { Id = "q_dojeon", Edge = 2.2f, Name = "도전자 정리", Brief = "황금 완장을 노리는 입관 희망자들이 밤길에 몰려다닌다. 소란이 커지기 전에 정리해 달라는 의뢰.", RefStage = 33, Encounter = 1,
+                Trial = TrialRule.Deadline("야간 정리", "42행동 안에 모두 쓰러뜨리세요.", 42), RewardDoo = 30600 },
+            new QuestData { Id = "q_jungwon", Edge = 2.2f, Name = "중원표국 뒷골목 정리", Brief = "대문이 베인 뒤로 중원표국 표사들이 뒷골목을 막고 서 있다. 길을 터 달라는 의뢰.", RefStage = 34, Encounter = 0,
+                Trial = TrialRule.Deadline("길 트기", "44행동 안에 모두 쓰러뜨리세요.", 44), RewardDoo = 32400, ItemId = "okruju" },
+            new QuestData { Id = "q_hyeol", Edge = 2.2f, Name = "십삼혈 잔당 수색", Brief = "전설의 새벽에 달아난 붉은 옷의 잔당이 남창 어딘가에 숨었다. 다시 피를 보기 전에 찾아내라.", RefStage = 35, Encounter = 1,
+                Trial = TrialRule.Deadline("잔당 수색", "44행동 안에 모두 쓰러뜨리세요.", 44), RewardDoo = 34200, ItemId = "ginseng" },
         };
 
         public static QuestData Find(string id)

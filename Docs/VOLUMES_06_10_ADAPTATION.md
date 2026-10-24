@@ -2,7 +2,7 @@
 
 ## Scope and sources
 
-Based on `Story/analysis/vol06.md` through `vol10.md`, cross-checked with the character and main-story notes. Original source files and analyses are untouched. All 31 stage IDs remain available, including the remotely added stage 31. Stages 14–20 now contain **29 main-story fights instead of 20**; these use the current party, growth and equipment, with ordinary rewards rather than fixed-stat side scenarios.
+Based on `Story/analysis/vol06.md` through `vol10.md`, cross-checked with the character and main-story notes. Original source files and analyses are untouched. All 36 current stage IDs remain available, including the remotely added and split stages 31–36. Stages 14–20 now contain **29 main-story fights instead of 20**; these use the current party, growth and equipment, with ordinary rewards rather than fixed-stat side scenarios.
 
 `Core/StoryMidgame.cs` centralizes prologues, introductions, conclusions, briefings, interludes, aftermaths and 29 encounter-adjacent scene groups. First-clear, resumed playback and Records replay share that data. Quest, tower and isolated-fight suppression remains in place.
 
@@ -48,6 +48,20 @@ Story revision 2→3 remaps earned stars and final-fight completion across all d
 
 ## Validation and limits
 
-Forty deterministic runs per expanded stage at the balance bot's prepared level, with start-kit equipment and no progression, produced 34/40 wins at stages 14/18 and 40/40 at 15/17/19. A continuous 14–21 run with actual experience, currency and mastery progression cleared 10/40 times with the additions versus 4/40 without those added fights (same revised stage-17 guards in both cases). Successful expanded runs ended at level 21 with about 65% party HP after stage 21. This deliberately limited bot ignores equipment upgrades, training and tactical items; it is a regression probe, not a player win-rate estimate. The existing Ice Sword fight remains the main bottleneck for that restricted build.
+The latest difficulty increase (`70fd7f9`) is integrated. All added opponents pass through `StageData.EnemyFor` and `StageStars.ScaleEnemy`; no extra per-opponent hardening is stacked on top. The ordinary first Gal survival fight still uses normal scaling, because its raw HP multiplier is below the special fixed-survival-enemy threshold.
 
-Final Core: 691 tests, 676 passed; the remaining 15 failures have the same names and messages as the 661-test pre-change baseline (646 passed). All 30 added tests pass. Game/UI and UI-test C# compilation succeeds with no errors. `git diff --check` passes. Unity rendering, pagination and hands-on difficulty require the Editor; .NET validation cannot exercise those.
+| Stage | Additional HP and attack factor from `NormalHarden` | Hard/extreme additional factor | Prepared bot level | Wins / 40 | Mean actions on wins |
+|---|---:|---:|---:|---:|---:|
+| 14 | √1.89 ≈ 1.375 | 1.311 | 19 | 38 | 163.4 |
+| 15 | √2.08 ≈ 1.442 | 1.320 | 20 | 40 | 82.2 |
+| 17 | √2.49 ≈ 1.578 | 1.337 | 24 | 40 | 74.0 |
+| 18 | √1.59 ≈ 1.261 | 1.346 | 24 | 36 | 69.9 |
+| 19 | √3.12 ≈ 1.766 | 1.354 | 26 | 40 | 171.4 |
+
+These factors are layered onto the existing stage and difficulty rules. The preparation level uses the remotely raised `NormalExtraEdgeLevels`; the test bot's extra levels stand in for equipment, inner arts and training it does not use. They do not grant levels to the player. New/replacement fight speed-star limits were measured against this stronger preparation level; retained fights inherit the upstream recalibrated limits at their new indices. Hard/extreme limits also inherit `HardExtra`.
+
+Growth tests compare expanded versus shorter versions of each chapter with real experience/currency progression at that chapter's prepared level. They confirm the added experience and currency are actually paid, including experience spent on level-ups. The old no-upgrade 14–21 continuous-clear probe is no longer a suitable pass criterion: after the remote increase both variants clear 0/40 without further preparation. Enemies were not weakened to force that probe to pass. The earlier 4/40→10/40 result predates this increase.
+
+Formation's private planning cache omits enemy lists. The paired content probes clear it before each variant to avoid sharing a plan between different encounter arrays.
+
+Final Core: 710 tests, 700 passed; the remaining 10 failures have the same names and messages as the latest remote baseline (666 tests, 656 passed). All 44 added tests pass, including 31 expansion/difficulty checks. Game/UI and UI-test C# compilation succeeds with no errors. `git diff --check` passes. Unity rendering, pagination and hands-on difficulty require the Editor; .NET validation cannot exercise those.
