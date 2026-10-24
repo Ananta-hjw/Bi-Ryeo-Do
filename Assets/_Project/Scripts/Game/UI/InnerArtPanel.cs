@@ -155,7 +155,6 @@ namespace BiRyeoDo.Game.UI
                 // "Variant" takes the right-hand button place in the landscape inspector.
                 UiFactory.Button("Variant", card.transform, new Vector2(0.05f, 0.10f), new Vector2(0.95f, 0.18f), cost < 0 ? "최대 강화" : "강화 심득석 " + cost, can ? UiFactory.Gold : new Color(0.30f, 0.30f, 0.33f, 1f), () => Enhance(id), 30).interactable = can;
             }
-            UiFactory.BackButton(card.transform, new Vector2(0.30f, 0.015f), new Vector2(0.70f, 0.09f), () => { _selected = null; Open(); });
             LandscapeMenu.Inspector(card.rectTransform);
         }
 

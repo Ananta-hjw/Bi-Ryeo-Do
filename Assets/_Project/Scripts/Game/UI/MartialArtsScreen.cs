@@ -219,7 +219,6 @@ namespace BiRyeoDo.Game.UI
             bool canVariant = learned && level >= Mastery.VariantLevel && Mastery.AvailableVariants(art).Count > 0;
             if (canVariant)
                 UiFactory.Button("Variant", card.transform, new Vector2(0.05f, 0.10f), new Vector2(0.95f, 0.18f), "변초 바꾸기 (지금: " + (variant == ArtVariant.None ? "없음" : Mastery.VariantName(variant)) + ")", UiFactory.Gold, () => { OnMastery(art); OpenDetail(art); }, 30);
-            UiFactory.BackButton(card.transform, new Vector2(0.30f, 0.015f), new Vector2(0.70f, 0.09f), CloseDetail);
             LandscapeMenu.Inspector(card.rectTransform);
         }
 
