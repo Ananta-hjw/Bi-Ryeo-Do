@@ -36,7 +36,7 @@ namespace BiRyeoDo.Tests
             Assert.IsTrue(st.IsTower);
             Assert.AreEqual(5, st.TowerFloor);
             Assert.AreEqual(1, st.Encounters.Length);
-            Assert.AreEqual(Tower.FloorLevel(5), st.RecommendedLevel);
+            Assert.AreEqual(Tower.RecommendedCurve(5), st.RecommendedLevel);
         }
 
         [Test]

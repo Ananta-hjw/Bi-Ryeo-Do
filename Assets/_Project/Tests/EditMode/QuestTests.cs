@@ -38,9 +38,11 @@ namespace BiRyeoDo.Tests
             foreach (var q in Quests.All)
             {
                 var st = Quests.ToStage(q);
-                int wins = Enumerable.Range(1, 20).Count(seed => SimpleBot.ClearStage(st, seed));
+                // Quests unlock after this stage; include companions/arts that have actually joined by then.
+                int wins = Enumerable.Range(1, 20).Count(seed => BalanceSimulation.Play(st,
+                    BalanceSimulation.Starter(q.RefStage + 1, BalanceSimulation.BotLevel(st)), seed).Won);
                 TestContext.Out.WriteLine(q.Id + " " + wins + "/20");
-                Assert.GreaterOrEqual(wins, 8, q.Id + " " + wins + "/20");
+                Assert.GreaterOrEqual(wins, 17, q.Id + " " + wins + "/20");
             }
         }
     

@@ -563,7 +563,7 @@ namespace BiRyeoDo.Game.UI
                 var items = new List<string>();
                 foreach (var s in Tower.RewardItems(floor)) { var it = EarlyGameContent.FindItem(s.Id); if (it != null) items.Add(it.Name); }
                 UiFactory.Label("Info", card.transform, new Vector2(0.05f, 0.08f), new Vector2(0.95f, 0.62f),
-                    "상대: " + string.Join(", ", names) + "\n권장 Lv." + Tower.FloorLevel(floor)
+                    "상대: " + string.Join(", ", names) + "\n권장 Lv." + Tower.RecommendedPlayerLevel(floor)
                     + "\n첫 돌파 보상: 은자 " + Recommend.TowerDoo(save, floor).ToString("N0") + (items.Count > 0 ? ", " + string.Join(", ", items) : "")
                     + " + 경험\n" + Recommend.Line(save, Recommend.ForTowerFloor(floor)), 30, Recommend.Meets(save, Recommend.ForTowerFloor(floor)) ? UiFactory.PaperText : UiFactory.Red, TextAnchor.MiddleCenter, FontStyle.Normal);
                 UiFactory.Button("Go", _towerOverlay, new Vector2(0.25f, 0.34f), new Vector2(0.75f, 0.44f), "도전", UiFactory.Red, () => StartTower(floor), 44);
