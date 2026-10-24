@@ -237,6 +237,13 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <param name="seen">true when the page is really being looked at: its red dot is cleared.</param>
+        /// <summary>Opens on the given page (0 무공, 1 심법), now if the tab is showing or the next time it is.</summary>
+        public void OpenPage(int page)
+        {
+            _page = page;
+            if (_built && isActiveAndEnabled) ShowPage(page);
+        }
+
         private void ShowPage(int page, bool seen = true)
         {
             _page = page;

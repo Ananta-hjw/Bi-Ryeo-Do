@@ -23,7 +23,7 @@ namespace BiRyeoDo.Game.UI
         private const string Gain = "#8FDB98", Loss = "#FF7A6A";
 
         /// <summary>Effects coloured by whether they help (green) or cost (red), joined by the separator.</summary>
-        private static string Colored(InnerArt a, int level, string separator)
+        internal static string Colored(InnerArt a, int level, string separator)
         {
             var parts = new List<string>();
             foreach (var p in InnerArts.EffectParts(a, level)) parts.Add("<color=" + (p.Value ? Gain : Loss) + ">" + p.Key + "</color>");

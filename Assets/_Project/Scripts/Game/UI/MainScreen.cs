@@ -88,7 +88,8 @@ namespace BiRyeoDo.Game.UI
             _world = worldMenuRoot.gameObject.AddComponent<WorldScreen>();
 
             var artsRoot = UiFactory.Rect("ArtsLandscape", panels[(int)TabRouter.Tab.MartialArts].transform, Vector2.zero, Vector2.one);
-            artsRoot.gameObject.AddComponent<MartialArtsScreen>().Build(artsRoot);
+            var arts = artsRoot.gameObject.AddComponent<MartialArtsScreen>();
+            arts.Build(artsRoot);
             var bagRoot = UiFactory.Rect("BagLandscape", panels[(int)TabRouter.Tab.Bag].transform, Vector2.zero, Vector2.one);
             bagRoot.gameObject.AddComponent<BagScreen>().Build(bagRoot);
             var gachaRoot = UiFactory.Rect("GachaLandscape", panels[(int)TabRouter.Tab.Gacha].transform, Vector2.zero, Vector2.one);
@@ -100,7 +101,8 @@ namespace BiRyeoDo.Game.UI
             _equipment.Build(equipmentRoot);
             var companionRoot = (RectTransform)panels[(int)TabRouter.Tab.Companions].transform;
             _companions = companionRoot.gameObject.AddComponent<CompanionScreen>();
-            _companions.Build(companionRoot, () => Select((int)TabRouter.Tab.MartialArts));
+            _companions.Build(companionRoot, () => { arts.OpenPage(0); Select((int)TabRouter.Tab.MartialArts); },
+                () => { arts.OpenPage(1); Select((int)TabRouter.Tab.MartialArts); });
 
             // The battle host blocks navigation throughout combat and story playback.
             var overlay = UiFactory.Panel("BattleOverlay", safe, Vector2.zero, Vector2.one, UiFactory.Parchment).rectTransform;
