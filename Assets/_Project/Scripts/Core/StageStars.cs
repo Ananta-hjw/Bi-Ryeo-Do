@@ -52,12 +52,12 @@ namespace BiRyeoDo.Core
             new[] { 9, 6, 6, 18 },   // 11
             new[] { 6, 7, 7, 8, 8, 12 },   // 12
             new[] { 12, 18, 18, 17 },   // 13
-            new[] { 19, 17, 28 },   // 14
-            new[] { 16, 17, 10 },   // 15
+            new[] { 11, 14, 11, 10, 16, 19, 17, 28 },   // 14
+            new[] { 7, 16, 17, 10 },   // 15
             new[] { 18, 15, 12 },   // 16
-            new[] { 21, 17, 13 },   // 17
-            new[] { 18, 21 },   // 18
-            new[] { 28, 21, 19 },   // 19
+            new[] { 12, 21, 20 },   // 17
+            new[] { 18, 14, 21 },   // 18
+            new[] { 28, 15, 11, 21, 19 },   // 19
             new[] { 28, 18, 26 },   // 20
             new[] { 28, 22, 19 },   // 21
             new[] { 33, 27, 28 },   // 22
@@ -315,6 +315,11 @@ namespace BiRyeoDo.Core
             foreach (var st in EarlyGameContent.Stages)
             {
                 if (st.Number > save.ClearedStage) break;
+                // Recorded stages may have newly inserted fights; backfill only entirely legacy stages.
+                bool recorded = false;
+                foreach (var entry in save.StageStars)
+                    if (entry.Stage == st.Number && entry.Diff == 0) { recorded = true; break; }
+                if (recorded) continue;
                 for (int f = 0; f < st.Encounters.Length; f++)
                     if ((MaskOf(save, st.Number, f, 0) & 1) == 0) Record(save, st.Number, f, 0, 1);
             }

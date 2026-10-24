@@ -57,14 +57,14 @@ namespace BiRyeoDo.Core
             } },
             new MemoryData { Id = "m_geum", Title = "묵금 연주의 밤", Volume = 7, UnlockStage = 15, RewardDoo = 2500, Lines = new[]
             {
-                "그날 밤 비류연은 사면초가에 노래가 없다며 홀로 묵금을 연주한다. 나예린이 그를 찾아온다.",
+                "무당산 합숙지가 고립된 밤. 비류연은 사면초가에 노래가 없다며 홀로 묵금을 연주한다. 나예린이 그를 찾아온다.",
                 "나예린|당신은 언제나 혼자군요.",
                 "비류연|나 소저도 마찬가지 아닌가요.",
                 "나예린은 묵금 소리가 듣기 좋은 데 놀란다.",
             } },
             new MemoryData { Id = "m_flee", Title = "도망 작전", Volume = 7, UnlockStage = 15, RewardDoo = 2810, Lines = new[]
             {
-                "비류연은 염도에게 연애 상담을 한다. 동정심을 얻으려면 약해져야 한다는 조언이었다.",
+                "무당산의 두 번째 공세를 앞두고 비류연은 염도에게 연애 상담을 한다. 동정심을 얻으려면 약해져야 한다는 조언이었다.",
                 "그래서 \"도망치기\" 작전을 시도했지만, 결국 나예린의 뒤에 숨은 꼴만 되고 만다.",
             } },
             new MemoryData { Id = "m_visit", Title = "병문안", Volume = 10, UnlockStage = 19, RewardDoo = 4060, Lines = new[]

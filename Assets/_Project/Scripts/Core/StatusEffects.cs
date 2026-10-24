@@ -106,7 +106,7 @@ namespace BiRyeoDo.Core
             { "독액", StatusKind.Poison }, { "극독 일섬", StatusKind.Poison },
             { "화령염천도세", StatusKind.Burn }, { "화룡의 숨결", StatusKind.Burn }, { "진홍십칠염", StatusKind.Burn }, { "명염참", StatusKind.Burn },
             { "불의 성벽", StatusKind.Burn }, { "검염기", StatusKind.Burn },
-            { "빙령수혼", StatusKind.Chill }, { "백빙신침", StatusKind.Chill }, { "백빙신정", StatusKind.Chill },
+            { "빙령수혼", StatusKind.Chill }, { "백빙신침", StatusKind.Chill }, { "백빙신첨", StatusKind.Chill }, { "백빙신정", StatusKind.Chill },
             { "혈검", StatusKind.Bleed }, { "혈풍무", StatusKind.Bleed }, { "혈폭 난사", StatusKind.Bleed }, { "혈야구성", StatusKind.Bleed },
             { "혈마전", StatusKind.Bleed }, { "만사혈장", StatusKind.Bleed }, { "굉천혈류패왕십자인", StatusKind.Bleed }, { "혈겁쇄법 노룡분쇄", StatusKind.Bleed },
             { "물어뜯기", StatusKind.Bleed }, { "할퀴기", StatusKind.Bleed },

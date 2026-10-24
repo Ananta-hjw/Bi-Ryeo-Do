@@ -28,7 +28,7 @@ namespace BiRyeoDo.Core
                 Trial = TrialRule.Deadline("신속 소탕", "8행동 안에 모두 쓰러뜨리세요.", 8), RewardDoo = 4050, ItemId = "okruju" },
             new QuestData { Id = "q_hoajang", Edge = 1.084f, Name = "호아장 수련생 단속", Brief = "소란을 피우는 수련생들을 짧은 시간에 제압해 달라는 의뢰.", RefStage = 6, Encounter = 1,
                 Trial = TrialRule.Deadline("신속 제압", "7행동 안에 모두 쓰러뜨리세요.", 7), RewardDoo = 5850 },
-            new QuestData { Id = "q_sadae", Edge = 1.502f, Name = "철각비마대 척후 격퇴", Brief = "정찰병이 길을 열기 전에 막아야 한다.", RefStage = 15, Encounter = 0,
+            new QuestData { Id = "q_sadae", Edge = 1.502f, Name = "철각비마대 척후 격퇴", Brief = "정찰병이 길을 열기 전에 막아야 한다.", RefStage = 15, Encounter = 1,
                 Trial = TrialRule.Deadline("척후 격퇴", "23행동 안에 모두 쓰러뜨리세요.", 23), RewardDoo = 12600, ItemId = "ginseng" },
             new QuestData { Id = "q_baegin", Edge = 1.027f, Name = "저잣거리 자객 소탕", Brief = "백인 자객들이 사람 많은 거리에 숨어 있다. 소란이 커지기 전에 끝내라.", RefStage = 16, Encounter = 0,
                 Trial = TrialRule.Deadline("속전속결", "22행동 안에 모두 쓰러뜨리세요.", 22), RewardDoo = 13500 },

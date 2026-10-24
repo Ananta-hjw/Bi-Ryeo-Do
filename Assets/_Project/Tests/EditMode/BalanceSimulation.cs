@@ -13,6 +13,7 @@ namespace BiRyeoDo.Tests
             public bool Won;
             public int Actions, FailedFight = -1;
             public double HpLeft;
+            public readonly List<int> FightActions = new List<int>();
         }
 
         // A prepared player: start-kit gear, entry mastery, free breath, no training or faction bonuses.
@@ -70,6 +71,7 @@ namespace BiRyeoDo.Tests
                     if (progression && actor.Id == Inventory.Hero && command.Kind == CommandKind.Skill && command.Skill.Id != "basic")
                         Mastery.RecordUse(save, command.Skill.Id);
                 }
+                result.FightActions.Add(battle.PartyActions);
                 if (!battle.PlayerWon) { result.FailedFight = k; return result; }
                 if (progression)
                 {

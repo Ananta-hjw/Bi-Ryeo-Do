@@ -5,7 +5,7 @@ namespace BiRyeoDo.Core
     /// <summary>Preserve cleared stages, earned stars and boss-clear records when the early story fight lists change.</summary>
     public static class StoryContentMigration
     {
-        public const int CurrentRevision = 2;
+        public const int CurrentRevision = 3;
         public static void Apply(SaveData save)
         {
             if (save == null || save.StoryContentRevision >= CurrentRevision) return;
@@ -45,6 +45,30 @@ namespace BiRyeoDo.Core
                 }
                 if (save.ProgressStage == 7 || save.ProgressStage == 11 || save.ProgressStage == 13)
                     StageProgress.Clear(save);
+            }
+            if (save.StoryContentRevision < 3)
+            {
+                for (int i = save.StageStars.Count - 1; i >= 0; i--)
+                {
+                    var star = save.StageStars[i];
+                    if (star.Stage == 14) star.Fight += 5;
+                    else if (star.Stage == 15) star.Fight += 1;
+                    else if (star.Stage == 18 && star.Fight == 1) star.Fight = 2;
+                    else if (star.Stage == 19 && star.Fight > 0) star.Fight += 2;
+                    else if (star.Stage == 17)
+                    {
+                        if (star.Fight == 0) star.Fight = 1;
+                        else if (star.Fight == 1)
+                        {
+                            // The mixed guard rehearsal is retired; retain its already earned stars once.
+                            save.RetiredStoryStars += StageStars.Count(star.Mask);
+                            save.StageStars.RemoveAt(i);
+                        }
+                        // The former final confrontation remains final-fight completion credit.
+                    }
+                }
+                if (save.ProgressStage == 14 || save.ProgressStage == 15 || save.ProgressStage == 17
+                    || save.ProgressStage == 18 || save.ProgressStage == 19) StageProgress.Clear(save);
             }
             save.StoryContentRevision = CurrentRevision;
         }

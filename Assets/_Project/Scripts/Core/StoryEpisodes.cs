@@ -262,10 +262,15 @@ namespace BiRyeoDo.Core
                 for (int i = 0; i < stage.Encounters.Length; i++)
                 {
                     StoryScene[] scenes;
-                    if (Before.TryGetValue(stage.Number * 100 + i, out scenes)) Append(lines, scenes);
+                    if (TryScenes(stage.Number * 100 + i, out scenes)) Append(lines, scenes);
                 }
             if (stage.Outro != null) lines.AddRange(stage.Outro);
             return lines.ToArray();
+        }
+
+        private static bool TryScenes(int key, out StoryScene[] scenes)
+        {
+            return StoryMidgame.Episodes.TryGetValue(key, out scenes) || Before.TryGetValue(key, out scenes);
         }
 
         private static void Append(List<string> lines, StoryScene[] scenes)
@@ -285,7 +290,7 @@ namespace BiRyeoDo.Core
             if (stage == null || save == null || stage.IsQuest || stage.IsTower || singleFight
                 || save.ClearedStage >= stage.Number || stage.Encounters == null || encounter < 0 || encounter >= stage.Encounters.Length) return null;
             StoryScene[] scenes;
-            return Before.TryGetValue(stage.Number * 100 + encounter, out scenes) ? scenes : null;
+            return TryScenes(stage.Number * 100 + encounter, out scenes) ? scenes : null;
         }
     }
 }
