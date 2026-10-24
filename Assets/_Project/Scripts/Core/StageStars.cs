@@ -200,9 +200,17 @@ namespace BiRyeoDo.Core
             return (1.05f + 0.005f * (Math.Min(36, stage) - 7)) * NormalAtkTuneTable[Math.Min(NormalAtkTuneTable.Length, stage) - 1] * (float)Math.Pow(NormalHarden(stage), HardenAtkExp);
         }
 
-        /// <summary>일반 난이도 스테이지 <see cref="NormalStatEaseFromStage"/>부터 적 공격·방어에 곱하는 배율(어려움·극악은 그대로).</summary>
+        /// <summary>일반 난이도 적 공격·방어 배율: 스테이지 7 x0.93, 8 x0.87, 9부터 x0.8로 점점 낮춘다(어려움·극악은 그대로).</summary>
+        static readonly float[] NormalStatEaseRamp = { 0.93f, 0.87f };
         public const float NormalStatEase = 0.8f;
-        public const int NormalStatEaseFromStage = 8;
+        public const int NormalStatEaseFromStage = 7;
+
+        public static float NormalStatEaseFor(int stage)
+        {
+            if (stage < NormalStatEaseFromStage) return 1f;
+            int i = stage - NormalStatEaseFromStage;
+            return i < NormalStatEaseRamp.Length ? NormalStatEaseRamp[i] : NormalStatEase;
+        }
 
         public static EnemyData ScaleEnemy(EnemyData enemy, int stage, int difficulty)
         {
@@ -211,9 +219,9 @@ namespace BiRyeoDo.Core
             // Hard difficulties still start from the original table, so this does not move their progression targets.
             if (difficulty == 0)
             {
-                // 일반 8+ only: attack and defense x0.8 (the harder difficulties keep their values).
+                // 일반 only: attack and defense eased from stage 7 (x0.93, x0.87, then x0.8); the harder difficulties keep their values.
                 if (enemy.HpMul > 10f) return enemy;   // survival-only enemies keep their stats
-                float soft = stage >= NormalStatEaseFromStage ? NormalStatEase : 1f;
+                float soft = NormalStatEaseFor(stage);
                 float hp = NormalHpBoost(stage), atk = NormalAtkBoost(stage);
                 if (stage >= 24 && stage <= 36) { hp *= 0.85f; atk *= 1.25f; }
                 return enemy.Scaled(hp, atk * soft, soft);
