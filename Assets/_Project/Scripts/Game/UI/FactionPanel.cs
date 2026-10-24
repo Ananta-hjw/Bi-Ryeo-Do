@@ -10,6 +10,7 @@ namespace BiRyeoDo.Game.UI
     /// <summary>One of two overlays: 세력 평판 (기록 tab) or the 객잔 whose shelves open with it (강호 tab side button).</summary>
     public sealed class FactionPanel : OverlayPanel
     {
+        private ScrollRect _scroll;
         private readonly bool _shop;   // true = 객잔, false = 세력 평판
 
         public FactionPanel(RectTransform root, Action onChange, bool shop = false) : base(root, onChange)
@@ -28,6 +29,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.ScrollBody(UiFactory.Label("Toast", Root, new Vector2(0.05f, .80f), new Vector2(0.95f, .89f), toast ?? (_shop ? "세력 평판이 오르면 그 세력의 선반이 열립니다. 평판은 기록 탭 「세력 평판」에서 봅니다." : "그 세력의 스테이지에서 전투를 이기면 평판이 쌓입니다 (일반 +1, 어려움 +2, 극악 +3)"), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             var content = CodexPanel.Scroller(Root, .16f, .79f);
+            _scroll = content.parent.GetComponent<ScrollRect>();
             if (_shop) DrawShop(content, save);
             else DrawReputation(content, save);
             AddClose();
@@ -110,7 +112,7 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <summary>Details of one good: picture, shelf, description, limit and the buy button.</summary>
-        private void OpenGood(ShopGood g)
+        private void OpenGood(ShopGood g, string feedback = null)
         {
             var save = GameManager.Instance.Save;
             var old = Root.Find("GoodDetail");
@@ -128,10 +130,11 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Shelf", card.transform, new Vector2(.40f, .66f), new Vector2(.95f, .84f),
                 owner + " 선반" + (g.Limit > 0 ? "\n구매 " + Shop.Bought(save, g.Id) + " / " + g.Limit : ""), 28, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
             string body = open ? Shop.DescriptionOf(g) : owner + " 평판이 「" + Factions.TierNames[g.MinTier] + "」 이상이면 열립니다.";
+            if (!string.IsNullOrEmpty(feedback)) body = feedback + "\n\n" + body;
             UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(.06f, .30f), new Vector2(.94f, .62f), body, 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 30));
             bool can = open && !sold && afford;
             string label = sold ? "매진" : !open ? "잠김" : g.Price.ToString("N0") + "은자에 사기" + (afford ? "" : " (은자 부족)");
-            UiFactory.Button("Buy", card.transform, new Vector2(.06f, .15f), new Vector2(.94f, .27f), label, can ? UiFactory.Red : UiFactory.InkSoft, () => { UnityEngine.Object.Destroy(layer.gameObject); Buy(g); }, 32).interactable = can;
+            UiFactory.Button("Buy", card.transform, new Vector2(.06f, .15f), new Vector2(.94f, .27f), label, can ? UiFactory.Red : UiFactory.InkSoft, () => Buy(g), 32).interactable = can;
             UiFactory.BackButton(card.transform, new Vector2(.30f, .02f), new Vector2(.70f, .12f), () => UnityEngine.Object.Destroy(layer.gameObject));
         }
 
@@ -139,9 +142,15 @@ namespace BiRyeoDo.Game.UI
         {
             var save = GameManager.Instance.Save;
             string error;
+            float position = _scroll != null ? _scroll.verticalNormalizedPosition : 1f;
             var note = Shop.Buy(save, g.Id, out error);
             if (note != null) { GameManager.Instance.SaveNow(); SoundManager.Sfx("win"); }
             Open(note ?? error);
+            Canvas.ForceUpdateCanvases();
+            _scroll.content.GetComponent<ReadingList>()?.Reflow();
+            Canvas.ForceUpdateCanvases();
+            _scroll.verticalNormalizedPosition = position;
+            OpenGood(g, note ?? error);
         }
     }
 }

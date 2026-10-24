@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using BiRyeoDo.Core;
 using BiRyeoDo.Game.Systems;
 using UnityEngine;
@@ -30,9 +31,11 @@ namespace BiRyeoDo.Game.UI
 
             var content = CodexPanel.Scroller(Root, .16f, 0.84f);
             var grid = new ReadingGrid(content, 3, 270f);
-            for (int i = 0; i < Memories.All.Length; i++)
+            // Stable ordering keeps story order inside each availability group.
+            var memories = Memories.All.OrderBy(m => Memories.IsSeen(save, m.Id) ? 2 : Memories.IsUnlocked(save, m) ? 0 : 1).ToArray();
+            for (int i = 0; i < memories.Length; i++)
             {
-                var m = Memories.All[i];
+                var m = memories[i];
                 var band = grid.Add("Memory" + i);
                 bool open = Memories.IsUnlocked(save, m), seen = Memories.IsSeen(save, m.Id);
                 UiFactory.Label("Name", band, new Vector2(0.04f, 0.65f), new Vector2(0.96f, 0.96f), open ? m.Title : "???", 32, open ? (seen ? UiFactory.InkSoft : UiFactory.PaperText) : UiFactory.InkSoft, TextAnchor.MiddleLeft);
