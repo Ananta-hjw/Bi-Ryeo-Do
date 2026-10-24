@@ -89,7 +89,7 @@ namespace BiRyeoDo.Tests
             var bi = EarlyGameContent.FindEnemy("bi_daegongja");
             double biPower = Realm.Power(bi.CreateCombatant("b").Stats);
             // Trial opponents (검후 and the 은가면, who are 천무삼성) stand above him on purpose. He tops 1부 (stages 1-30); 2부 enemies may stand higher.
-            var partTwo = new HashSet<string>(EarlyGameContent.Stages.Where(st => st.Number > StageStars.LevelLineStage).SelectMany(st => st.Encounters.SelectMany(x => x)));
+            var partTwo = new HashSet<string>(EarlyGameContent.Stages.Where(st => st.Number > 30).SelectMany(st => st.Encounters.SelectMany(x => x)));
             foreach (var e in EarlyGameContent.Enemies)
             {
                 if (e == bi || e.HpMul > 20f || e.Id.StartsWith("mask_") || !Realm.HasRealm(e) || partTwo.Contains(e.Id)) continue;
@@ -120,23 +120,21 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void ExtremeSwordQueenKeepsItsPreBonusRealmAndBoostsItsDefense()
+        public void ExtremeSwordQueenKeepsItsPreBonusRealmAndGrowsWithDifficulty()
         {
             var queen = EarlyGameContent.FindEnemy("geomhu_ioksang");
-            var normal = StageStars.ScaleEnemy(queen, 29, 0).CreateCombatant("q").Stats;
-            var hard = StageStars.ScaleEnemy(queen, 29, 1).CreateCombatant("q").Stats;
+            var normal = StageStars.ScaleEnemy(queen, 29, 0).CreateCombatant("q");
+            var hard = StageStars.ScaleEnemy(queen, 29, 1).CreateCombatant("q");
             var data = StageStars.ScaleEnemy(queen, 29, 2);
             var before = data.BuildStatsBeforeRealm();
             var unit = data.CreateCombatant("q");
             var extreme = unit.Stats;
-            Assert.AreEqual(0.4, BattleEngine.DefenseConstant / (BattleEngine.DefenseConstant + before.EffDefense), 0.002);   // 극악: x0.4 (defense about 500 on the current scale)
             Assert.AreEqual((int)System.Math.Round(before.Defense * (1f + Realm.Bonus(unit.RealmStep))), extreme.Defense);
-            Assert.Less(BattleEngine.DefenseConstant / (BattleEngine.DefenseConstant + extreme.EffDefense), .4);
-            Assert.Greater(extreme.Defense, hard.Defense);
-            Assert.Greater(hard.Defense, normal.Defense);
-            Assert.AreEqual("초절정 극", Realm.Label(unit.RealmStep));
-            Assert.Greater(unit.RealmPowerBeforeBonus, 2200.0);   // not pinned to one number any more: difficulty rises, the ladder stays
-            Assert.Less(unit.RealmPowerBeforeBonus, 3000.0);
+            Assert.AreEqual(Realm.Power(before), unit.RealmPowerBeforeBonus, 1e-6);
+            Assert.Greater(extreme.Defense, hard.Stats.Defense);
+            Assert.Greater(hard.Stats.Defense, normal.Stats.Defense);
+            Assert.Greater(unit.RealmPowerBeforeBonus, hard.RealmPowerBeforeBonus);
+            Assert.GreaterOrEqual(unit.RealmStep, hard.RealmStep);
         }
 
         [Test]

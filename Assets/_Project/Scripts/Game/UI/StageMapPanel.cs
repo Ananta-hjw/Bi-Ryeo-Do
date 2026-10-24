@@ -234,7 +234,7 @@ namespace BiRyeoDo.Game.UI
             _preview.color = _preview.sprite == null ? UiFactory.InkSoft : Color.white;
             _stageKind.text = "스테이지 " + stage.Number.ToString("00") + " · " + StageStars.DifficultyNames[diff] + (resume ? " · 저장됨" : Cleared(save, stage) ? " · 돌파" : "");
             _stageTitle.text = stage.Name;
-            _level.text = "권장 Lv." + stage.RecommendedPlayerLevel;
+            _level.text = "권장 Lv." + StageStars.RecommendedPlayerLevel(stage.Number, diff);
             _fights.text = "전투 " + stage.Encounters.Length + "회";
             _stars.text = "★ " + StageStars.StarsOfStage(save, stage.Number, diff) + " / " + StageStars.MaxStarsOfStage(stage.Number);
             Recommend.StageReward(save, stage.WithDifficulty(diff), out long exp, out long doo);
