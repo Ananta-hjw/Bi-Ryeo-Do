@@ -76,7 +76,7 @@ namespace BiRyeoDo.Tests
         public void TowerBossSpikesAreChallengingButNotWalls(int floor)
         {
             int story = Math.Max(8, Math.Min(30, floor + 6));
-            int level = Progression.PlayerLevelAt(Tower.FloorLevel(floor));
+            int level = Tower.RecommendedPlayerLevel(floor);
             int wins = 0, grownWins = 0;
             for (int seed = 301; seed <= 400; seed++)
             {
@@ -87,7 +87,7 @@ namespace BiRyeoDo.Tests
                 if (BalanceSimulation.Play(stage, grown, seed).Won) grownWins++;
             }
             TestContext.Out.WriteLine("tower " + floor + ": " + wins + "/100; +1 level " + grownWins + "/100");
-            Assert.That(wins, Is.InRange(floor == 5 ? 55 : 60, 95));   // floor 5 sits on a bot cliff (97 -> 58 within a 1% HP step), so its lower bound is 55
+            Assert.GreaterOrEqual(wins, 85, "prepared, telegraph-aware players should have a reliable route; careless play is checked separately");
             Assert.GreaterOrEqual(grownWins, wins, "one level of investment must not reduce the measured chance");
         }
 
@@ -123,7 +123,7 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void NormalPacingDoesNotLeakIntoQuestsTowerOrHardDifficulties()
+        public void SideContentUsesNormalScalingOnceAndHardDifficultiesKeepTheirOwnRules()
         {
             var stage = EarlyGameContent.FindStage(26);
             var id = stage.Encounters[0][0];
@@ -135,11 +135,18 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(raw.HpMul * StageStars.HpFor(26, 1) / (float)Math.Pow(StageStars.NormalEase(26), 0.7) * StageStars.NormalHpBoost(26) * StageStars.HardExtra(26, 1), hard.HpMul, 0.001f);   // 어려움 carries the stage boost and its own extra, but not the late-stage x0.85
             var quest = Quests.ToStage(Quests.Find("q_salgwi"));
             id = quest.Encounters[0][0];
-            Assert.AreEqual(Quests.Scale(quest.QuestId, EarlyGameContent.FindEnemy(id)).HpMul, quest.EnemyFor(id).HpMul);
+            var q = Quests.Find(quest.QuestId);
+            var questBase = StageStars.ScaleEnemy(EarlyGameContent.FindEnemy(id), q.RefStage, 0);
+            Assert.AreEqual(questBase.HpMul * (float)Math.Pow(q.Edge, .7), quest.EnemyFor(id).HpMul, .001f);
             var tower = Tower.ToStage(BalanceSimulation.Starter(30, 26), 24);
             id = tower.Encounters[0][0];
             Assert.AreSame(EarlyGameContent.FindEnemy(id), tower.EnemyFor(id));
-            Assert.AreEqual(Tower.NormalAtk[24], Tower.AtkMulFor(24, false));
+            var towerEnemy = tower.EnemyFor(id);
+            int anchor = Tower.ReferenceStage(24);
+            float late = anchor >= 24 ? .85f : 1f;
+            Assert.AreEqual(Tower.NormalHpMul * Tower.FloorHpTune(24) * StageStars.NormalHpBoost(anchor) * late, towerEnemy.HpMul, .001f);
+            Assert.AreEqual(Tower.AtkMulFor(24, false) * StageStars.NormalAtkBoost(anchor) * StageStars.NormalStatEase * 1.25f, towerEnemy.AtkMul, .001f);
+            Assert.AreEqual(StageStars.NormalStatEase, towerEnemy.DefMul, .001f);
             Assert.Greater(Tower.BuildEnemies(35)[0].BuildStats().Attack, Tower.BuildEnemies(30)[0].BuildStats().Attack);
         }
     }

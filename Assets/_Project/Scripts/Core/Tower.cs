@@ -4,17 +4,14 @@ using System.Collections.Generic;
 namespace BiRyeoDo.Core
 {
     /// <summary>
-    /// 무한 비무대 (infinite tower): one fight per floor, every 5th floor a boss. The first floors are about as hard as the early
-    /// stages and floor 30 about as hard as stage 30; beyond that the enemies keep growing. Enemies are copies of the story
-    /// enemies set to the floor's level, so the same balance rules apply. The only reward for a floor is the first clear.
+    /// Fixed floor progression: one fight per floor and a boss every fifth floor. Story scaling and preparation targets
+    /// are shared, with separate deep-floor HP/attack growth. Enemy identity is cosmetic; scripts are tower-specific.
+    /// Neither enemy strength nor first-clear rewards change with a player's equipment.
     /// </summary>
     public static class Tower
     {
         public const int UnlockStage = 8;   // the full party (효룡, 장홍, 윤준호) has joined; floors are tuned for it
         public const int BossEvery = 5;
-
-        /// <summary>Floors that were tuned directly with the bot; deeper floors keep the last values and grow 3% per floor.</summary>
-        public const int TunedFloors = 24;
 
         public static bool Unlocked(SaveData save) { return save.ClearedStage >= UnlockStage; }
 
@@ -57,55 +54,70 @@ namespace BiRyeoDo.Core
         private static EnemyData PickNear(List<EnemyData> pool, int level, Random rng)
         {
             var sorted = new List<EnemyData>(pool);
-            sorted.Sort((a, b) => Math.Abs(a.Level - level).CompareTo(Math.Abs(b.Level - level)));
+            sorted.Sort((a, b) =>
+            {
+                int distance = Math.Abs(a.Level - level).CompareTo(Math.Abs(b.Level - level));
+                return distance != 0 ? distance : StringComparer.Ordinal.Compare(a.Id, b.Id);
+            });
             int window = Math.Min(5, sorted.Count);
             return sorted[rng.Next(window)];
         }
 
-        // Every tower enemy uses the same simple scripts (the story enemies' own scripts vary a lot in difficulty), so floors differ only by numbers.
-        private static readonly EnemyMove[] NormalMoves = { EnemyMove.Attack("연타", 0.8f, 2), EnemyMove.Attack("일격", 1.2f) };
-        private static readonly EnemyMove[] BossMoves = { EnemyMove.Attack("연격", 0.7f, 3), EnemyMove.Attack("강타", 1.3f), EnemyMove.Wind("기를 모은다"), EnemyMove.Attack("필살 일격", 3.0f) };
-
-        public const float NormalHpMul = 1.7f, BossHpMul = 3.4f;
-        public static float Floor5EscortPressure = 0.77f;
-        public static float Floor5BossHp = 1.15f;   // the floor-5 boss's HP, raised a little when its attack was eased (see Docs/BALANCE.md)
-
-        // Attack multipliers per floor (index = floor, 0..TunedFloors), fitted with the balance bot so that a party whose level equals
-        // the floor level wins most of the time on normal floors and about half the time on bosses.
-        public static float[] NormalAtk = { 16.5f, 16.5f, 16.5f, 16.5f, 16.5f, 16.5f, 15.4f, 13.75f, 8.25f, 8.25f, 8.25f, 8.53f, 8.53f, 8.53f, 8.53f, 8.53f, 8.53f, 8.25f, 6.32f, 6.32f, 6.32f, 6.6f, 6.6f, 6.6f, 6.6f };
-        public static float[] BossAtk = { 13.75f, 13.75f, 13.75f, 13.75f, 13.75f, 11.83f, 11.83f, 11.83f, 11.83f, 11.83f, 13.2f, 11f, 9.62f, 8.8f, 8.25f, 7.97f, 7.7f, 7.15f, 6.6f, 6.32f, 6.05f, 6.32f, 6.32f, 6.32f, 6.32f };
-
-        /// <summary>Test hook for tuning: when set, replaces the fitted attack multiplier of a floor.</summary>
-        public static Dictionary<int, float> AtkOverride;
-
-        public static float AtkMulFor(int floor, bool boss)
+        private static readonly EnemyMove[] NormalMoves = { EnemyMove.Attack("연타", .8f, 2), EnemyMove.Attack("일격", 1.2f) };
+        private static readonly EnemyMove[][] BossPatterns =
         {
-            float v;
-            if (AtkOverride != null && AtkOverride.TryGetValue(floor, out v)) return v;
-            var table = boss ? BossAtk : NormalAtk;
-            // Correct only the measured boss-floor spikes, including their escorts. Do not ease ordinary floors.
-            // Beyond 30 keep the final correction while Clone's 3%-per-floor growth continues.
-            float pressure = floor == 5 ? 0.88f : floor == 15 ? 0.9f : floor == 25 ? 0.95f
-                : floor >= 30 && IsBossFloor(floor) ? 0.8f : 1f;
-            if (floor == 10 && boss) pressure *= 0.85f;
-            if (floor == 5) pressure = boss ? 0.88f * 0.8f : Floor5EscortPressure;   // the boss alone is eased to 80% of its former attack; its escort has its own factor
-            return table[Math.Max(0, Math.Min(floor, TunedFloors))] * pressure * (boss ? 1f + 0.4f * (FloorAtkTune(floor) - 1f) : FloorAtkTune(floor));   // bosses were already corrected on their spike floors
+            new[] { EnemyMove.Attack("연격", .6f, 3), EnemyMove.Attack("강타", 1.3f), EnemyMove.Wind("기를 모은다"), EnemyMove.Attack("필살 일격", 3f) },
+            new[] { EnemyMove.Attack("일격", 1.2f).Sniping().FromDistance(), EnemyMove.Attack("강타", 1.3f), EnemyMove.Wind("기를 모은다"), EnemyMove.Attack("필살 일격", 3f) },
+            new[] { EnemyMove.Attack("연격", .45f, 4), EnemyMove.Attack("연타", .65f, 2), EnemyMove.Wind("기를 모은다"), EnemyMove.Attack("필살 일격", 3f) }
+        };
+        public const float NormalHpMul = 1.7f, BossHpMul = 3.4f;
+
+        /// <summary>Fixed story anchor for a floor; never follows the player's current save or equipment.</summary>
+        public static int ReferenceStage(int floor)
+        {
+            int result = UnlockStage, distance = int.MaxValue;
+            foreach (var stage in EarlyGameContent.Stages)
+            {
+                if (stage.Number < UnlockStage) continue;
+                int gap = Math.Abs(stage.RecommendedLevel - FloorLevel(floor));
+                if (gap < distance) { result = stage.Number; distance = gap; }
+            }
+            return result;
         }
 
-        /// <summary>The early floors' enemies were glass cannons (a blow of 140-210% of the protagonist's HP on floors 1-10): attack x0.75 on floor 1 rising to x1 on floor 16.</summary>
-        public static float FloorAtkTune(int floor) { return floor >= 16 ? 1f : 0.75f + 0.25f * (Math.Max(1, floor) - 1) / 15f; }
-
-        /// <summary>...and fell in 6-8 hits: ordinary enemies get HP x1.25 on floor 1 down to x1 on floor 13 (bosses keep theirs).</summary>
-        public static float FloorHpTune(int floor) { return floor >= 13 ? 1f : 1.25f - 0.25f * (Math.Max(1, floor) - 1) / 12f; }
-
-        private static EnemyData Clone(EnemyData t, string id, int floor, int level, double creep)
+        public static int RecommendedPlayerLevel(int floor)
         {
-            return new EnemyData
+            return Progression.PlayerLevelAt(FloorLevel(floor)) + StageStars.NormalEdgeLevels(ReferenceStage(floor));
+        }
+
+        public static int RecommendedCurve(int floor) { return (int)Math.Round(Progression.CurveLevel(RecommendedPlayerLevel(floor))); }
+
+        // The underlying level curve keeps growing. Taper only the extra multiplier beyond floor 30 so
+        // stronger defenses and longer fights do not compound into a sudden one-hit/attrition wall.
+        public static float AtkMulFor(int floor, bool boss) { return (boss ? 3.0f : 3.3f) / (1f + .01f * Math.Max(0, floor - 30)); }
+        public static float FloorHpTune(int floor) { return floor >= 13 ? 1f : 1.25f - .25f * (Math.Max(1, floor) - 1) / 12f; }
+
+        internal static List<BossPhase> PhasesFor()
+        {
+            return new List<BossPhase>
+            {
+                new BossPhase { HpPct = BossPhases.FirstPct, AtkMul = BossPhases.FirstAtk, DefMul = BossPhases.FirstDef,
+                    Lines = new[] { "비무 상대가 기세를 끌어올린다." } },
+                new BossPhase { HpPct = BossPhases.SecondPct, AtkMul = BossPhases.SecondAtk, DefMul = BossPhases.SecondDef,
+                    Lines = new[] { "상대의 공세가 더욱 거세진다." } }
+            };
+        }
+
+        private static EnemyData Clone(EnemyData t, string id, int floor, int level, double hpFactor)
+        {
+            var enemy = new EnemyData
             {
                 Id = id, Name = t.Name, ArtId = t.ArtKey, IsBoss = t.IsBoss, Level = level,
-                HpMul = (float)((t.IsBoss ? BossHpMul * (floor == 5 ? Floor5BossHp : 1f) : NormalHpMul * FloorHpTune(floor)) * creep), AtkMul = (float)(AtkMulFor(floor, t.IsBoss) * creep),
-                DefMul = 1f, SpeedAdd = 0, Moves = t.IsBoss ? BossMoves : NormalMoves
+                HpMul = t.IsBoss ? BossHpMul : NormalHpMul * FloorHpTune(floor),
+                AtkMul = AtkMulFor(floor, t.IsBoss),
+                DefMul = 1f, SpeedAdd = 0, Moves = t.IsBoss ? BossPatterns[(floor / BossEvery) % BossPatterns.Length] : NormalMoves
             };
+            return StageStars.ScaleEnemy(enemy, ReferenceStage(floor), 0).Scaled((float)hpFactor, 1f);
         }
 
         /// <summary>The (deterministic) enemies of a floor, registered so battle code can look them up by id.</summary>
@@ -114,18 +126,18 @@ namespace BiRyeoDo.Core
             EnsurePools();
             var rng = new Random(floor * 7919 + 13);
             int level = FloorLevel(floor);
-            double creep = floor > TunedFloors ? 1.0 + 0.03 * (floor - TunedFloors) : 1.0;
+            double hpFactor = 1.0 / (1.0 + .02 * Math.Max(0, floor - 30));
             var list = new List<EnemyData>();
             if (IsBossFloor(floor))
             {
-                list.Add(Clone(PickNear(_bosses, level, rng), "tower" + floor + "_0", floor, level, creep));
+                list.Add(Clone(PickNear(_bosses, level, rng), "tower" + floor + "_0", floor, level, hpFactor));
                 int adds = floor >= 15 ? 2 : 1;
-                for (int i = 0; i < adds; i++) list.Add(Clone(PickNear(_normals, level, rng), "tower" + floor + "_" + (i + 1), floor, level, creep));
+                for (int i = 0; i < adds; i++) list.Add(Clone(PickNear(_normals, level, rng), "tower" + floor + "_" + (i + 1), floor, level, hpFactor));
             }
             else
             {
                 int count = floor >= 8 ? 3 : 2;
-                for (int i = 0; i < count; i++) list.Add(Clone(PickNear(_normals, level, rng), "tower" + floor + "_" + i, floor, level, creep));
+                for (int i = 0; i < count; i++) list.Add(Clone(PickNear(_normals, level, rng), "tower" + floor + "_" + i, floor, level, hpFactor));
             }
             foreach (var e in list) EarlyGameContent.RegisterDynamicEnemy(e);
             return list.ToArray();
@@ -144,7 +156,7 @@ namespace BiRyeoDo.Core
                 Intro = new[] { IsBossFloor(floor) ? "이 층에는 강한 상대가 기다린다." : floor + "층. 위로 오를수록 상대는 강해진다." },
                 Outro = new[] { floor + "층을 돌파했다." },
                 Encounters = new[] { ids },
-                RecommendedLevel = FloorLevel(floor),
+                RecommendedLevel = RecommendedCurve(floor),
                 DooTotal = RewardDoo(floor)
             };
         }

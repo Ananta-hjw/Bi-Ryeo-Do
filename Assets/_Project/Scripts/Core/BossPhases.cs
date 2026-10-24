@@ -20,9 +20,10 @@ namespace BiRyeoDo.Core
         public const float FirstAtk = 1.1f, FirstDef = 1f;    // 50%: attack +10%
         public const float SecondAtk = 1.3f, SecondDef = 1.2f;  // 25%: attack +30% in all, defense +20%
 
-        /// <summary>The phases of this enemy, in the order they trigger (null for anything but a story boss with lines).</summary>
+        /// <summary>The phases of this enemy in trigger order: authored story lines or the shared tower-boss presentation.</summary>
         public static List<BossPhase> For(EnemyData enemy)
         {
+            if (enemy != null && enemy.IsBoss && enemy.Id.StartsWith("tower", System.StringComparison.Ordinal)) return Tower.PhasesFor();
             string[] first, second;
             if (enemy == null || !enemy.IsBoss || !BossPhaseLines.TryGet(enemy.Id, out first, out second)) return null;
             float secondPct = enemy.RetreatHpPct > 0f ? System.Math.Max(RetreatPhasePct, enemy.RetreatHpPct + 0.05f) : SecondPct;

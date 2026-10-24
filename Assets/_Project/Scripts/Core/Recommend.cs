@@ -110,11 +110,11 @@ namespace BiRyeoDo.Core
             if (st.IsTower) return ForTowerFloor(st.TowerFloor);
             int diff = st.IsQuest ? 0 : st.Difficulty;
             double byLevel = HeroPowerAtCurve(st.RecommendedLevel + StageStars.LevelAdd(st.Number, diff)
-                + (st.IsQuest ? 0.0 : Progression.CurvePerPlayerLevel * StageStars.NormalEdgeLevels(st.Number)));
+                + Progression.CurvePerPlayerLevel * StageStars.NormalEdgeLevels(st.Number));
             return diff == 0 ? byLevel : Math.Max(byLevel, VersusStrongest * StrongestEnemy(st));
         }
 
-        public static double ForTowerFloor(int floor) { return HeroPowerAtCurve(Tower.FloorLevel(floor)); }
+        public static double ForTowerFloor(int floor) { return HeroPowerAtCurve(Tower.RecommendedCurve(floor)); }
 
         public static double ForPromotion(PromotionOffer offer)
         {
