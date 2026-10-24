@@ -95,7 +95,7 @@ namespace BiRyeoDo.Tests.UI
         [TestCase("Memories", 3)]
         [TestCase("Stories", 2)]
         [TestCase("Factions", 2)]
-        [TestCase("Shop", 2)]
+        [TestCase("Shop", 5)]
         [TestCase("Ritual", 2)]
         [TestCase("Codex", 3)]
         [TestCase("Achievements", 2)]

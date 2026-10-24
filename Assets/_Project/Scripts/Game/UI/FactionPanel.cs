@@ -49,10 +49,11 @@ namespace BiRyeoDo.Game.UI
             return n;
         }
 
+        private const int ShopColumns = 5;
+
+        /// <summary>객잔 shelf: five compact cards per row (big icon, name, price); tapping one opens its details and the buy button.</summary>
         private int DrawShop(RectTransform content, SaveData save)
         {
-            int n = 0;
-            var grid = new ReadingGrid(content, 2, 300f);
             var goods = new List<ShopGood>(Shop.Goods);
             // Open goods first, then by faction tier.
             goods.Sort((a, b) =>
@@ -61,21 +62,77 @@ namespace BiRyeoDo.Game.UI
                 if (oa != ob) return oa.CompareTo(ob);
                 return a.MinTier != b.MinTier ? a.MinTier.CompareTo(b.MinTier) : a.Price.CompareTo(b.Price);
             });
-            foreach (var g in goods)
+            const float rowHeight = 300f, gap = 16f, colGap = .012f;
+            float cardWidth = (1f - colGap * (ShopColumns - 1)) / ShopColumns;
+            RectTransform row = null;
+            for (int i = 0; i < goods.Count; i++)
             {
-                var band = grid.Add("Entry" + n++);
-                bool open = Shop.IsOpen(save, g), sold = Shop.SoldOut(save, g), afford = save.Doo >= g.Price;
-                string owner = g.FactionId == null ? "객잔" : Factions.Find(g.FactionId).Name;
-                string limit = g.Limit > 0 ? "  (" + Shop.Bought(save, g.Id) + "/" + g.Limit + ")" : "";
-                UiFactory.Label("Name", band, new Vector2(0.04f, 0.73f), new Vector2(0.96f, 0.96f), (open ? Shop.NameOf(g) : "???") + limit, 30, open ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
-                UiFactory.Label("Info", band, new Vector2(0.04f, 0.30f), new Vector2(0.96f, 0.70f),
-                    open ? "[" + owner + "] " + Shop.DescriptionOf(g) : owner + " 평판 " + Factions.TierNames[g.MinTier] + " 필요", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
-                var good = g;
-                bool can = open && !sold && afford;
-                var btn = UiFactory.Button("Buy", band, new Vector2(0.04f, 0.04f), new Vector2(0.96f, 0.26f), sold ? "매진" : open ? g.Price.ToString("N0") + "은자" : "잠김", can ? UiFactory.Red : UiFactory.InkSoft, () => Buy(good), 26);
-                btn.interactable = can;
+                if (i % ShopColumns == 0)
+                {
+                    int r = i / ShopColumns;
+                    row = UiFactory.Rect("Row" + r, content, new Vector2(.025f, 1f), new Vector2(.975f, 1f));
+                    row.pivot = new Vector2(.5f, 1f);
+                    row.sizeDelta = new Vector2(0f, rowHeight);
+                    row.anchoredPosition = new Vector2(0f, -gap - r * (rowHeight + gap));
+                    ReadingList.Register(row, rowHeight, gap);
+                }
+                var g = goods[i];
+                bool open = Shop.IsOpen(save, g), sold = Shop.SoldOut(save, g);
+                float x0 = (i % ShopColumns) * (cardWidth + colGap);
+                var card = UiFactory.Button("Good" + i, row, new Vector2(x0, 0f), new Vector2(x0 + cardWidth, 1f), "", UiFactory.Ink, () => OpenGood(g), 26);
+                UiFactory.Frame(card.transform, open && !sold ? UiFactory.GoldDim : new Color(.25f, .27f, .28f, 1f), 2f);
+                var icon = UiFactory.Panel("Icon", card.transform, new Vector2(.12f, .40f), new Vector2(.88f, .96f), Color.white);
+                icon.raycastTarget = false;
+                var glyph = UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, "", 60, UiFactory.PaperText);
+                GoodIcon(icon, glyph, g, open);
+                UiFactory.Label("Name", card.transform, new Vector2(.04f, .17f), new Vector2(.96f, .40f), open ? Shop.NameOf(g) : "???", 26, open ? UiFactory.PaperText : UiFactory.InkSoft);
+                UiFactory.Label("Price", card.transform, new Vector2(.04f, .02f), new Vector2(.96f, .17f), sold ? "매진" : open ? g.Price.ToString("N0") + "은자" : "잠김",
+                    26, sold || !open ? UiFactory.Dim : save.Doo >= g.Price ? UiFactory.Gold : new Color(1f, .55f, .45f, 1f));
             }
-            return n;
+            content.sizeDelta = new Vector2(0f, gap + ((goods.Count + ShopColumns - 1) / ShopColumns) * (rowHeight + gap));
+            return goods.Count;
+        }
+
+        /// <summary>The good's picture: the item's own art, or a scroll glyph for 숙련 수련 and 경험치 두루마리; grey while its shelf is shut.</summary>
+        private static void GoodIcon(Image icon, Text glyph, ShopGood g, bool open)
+        {
+            var item = g.Kind == ShopKind.Item ? EarlyGameContent.FindItem(g.ItemId) : null;
+            if (item != null) ItemArt.Apply(icon, glyph, item);
+            else
+            {
+                icon.sprite = null;
+                icon.color = new Color(0f, 0f, 0f, 0f);
+                glyph.text = "";
+                UiFactory.Glyph(g.Kind == ShopKind.Training ? "arts" : "record", icon.transform, Vector2.zero, Vector2.one, UiFactory.Gold).raycastTarget = false;
+            }
+            icon.preserveAspect = true;
+            if (!open) icon.color = new Color(.35f, .35f, .38f, icon.color.a);
+        }
+
+        /// <summary>Details of one good: picture, shelf, description, limit and the buy button.</summary>
+        private void OpenGood(ShopGood g)
+        {
+            var save = GameManager.Instance.Save;
+            var old = Root.Find("GoodDetail");
+            if (old != null) UnityEngine.Object.Destroy(old.gameObject);
+            var layer = UiFactory.Rect("GoodDetail", Root, Vector2.zero, Vector2.one);
+            layer.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, .78f);   // blocks the shelf underneath
+            var card = UiFactory.Panel("Card", layer, new Vector2(.25f, .08f), new Vector2(.75f, .92f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
+            bool open = Shop.IsOpen(save, g), sold = Shop.SoldOut(save, g), afford = save.Doo >= g.Price;
+            var icon = UiFactory.Panel("Icon", card.transform, new Vector2(.06f, .64f), new Vector2(.36f, .96f), Color.white);
+            var glyph = UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, "", 60, UiFactory.PaperText);
+            GoodIcon(icon, glyph, g, open);
+            string owner = g.FactionId == null ? "객잔" : Factions.Find(g.FactionId).Name;
+            UiFactory.Label("Title", card.transform, new Vector2(.40f, .84f), new Vector2(.95f, .96f), open ? Shop.NameOf(g) : "???", 38, UiFactory.Gold, TextAnchor.MiddleLeft);
+            UiFactory.Label("Shelf", card.transform, new Vector2(.40f, .66f), new Vector2(.95f, .84f),
+                owner + " 선반" + (g.Limit > 0 ? "\n구매 " + Shop.Bought(save, g.Id) + " / " + g.Limit : ""), 28, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+            string body = open ? Shop.DescriptionOf(g) : owner + " 평판이 「" + Factions.TierNames[g.MinTier] + "」 이상이면 열립니다.";
+            UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(.06f, .30f), new Vector2(.94f, .62f), body, 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 30));
+            bool can = open && !sold && afford;
+            string label = sold ? "매진" : !open ? "잠김" : g.Price.ToString("N0") + "은자에 사기" + (afford ? "" : " (은자 부족)");
+            UiFactory.Button("Buy", card.transform, new Vector2(.06f, .15f), new Vector2(.94f, .27f), label, can ? UiFactory.Red : UiFactory.InkSoft, () => { UnityEngine.Object.Destroy(layer.gameObject); Buy(g); }, 32).interactable = can;
+            UiFactory.BackButton(card.transform, new Vector2(.30f, .02f), new Vector2(.70f, .12f), () => UnityEngine.Object.Destroy(layer.gameObject));
         }
 
         private void Buy(ShopGood g)
