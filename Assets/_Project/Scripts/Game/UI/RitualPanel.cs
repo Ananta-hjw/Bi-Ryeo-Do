@@ -37,15 +37,15 @@ namespace BiRyeoDo.Game.UI
             var conditions = Ritual.Conditions(save);
             var content = CodexPanel.Scroller(Root, .16f, .79f);
             LandscapeMenu.Place((RectTransform)content.parent, .02f, .16f, .65f, .79f);
+            var grid = new ReadingGrid(content, 2, 240f);
             for (int i = 0; i < conditions.Count; i++)
             {
                 var c = conditions[i];
-                var band = CodexPanel.Band(content, i);
+                var band = grid.Add("Condition" + i);
                 UiFactory.Label("Mark", band, new Vector2(0.03f, 0.1f), new Vector2(0.14f, 0.9f), c.Done ? "✔" : "✘", 44, c.Done ? new Color(0.45f, 0.85f, 0.5f, 1f) : UiFactory.Red);
                 UiFactory.Label("Text", band, new Vector2(0.16f, 0.50f), new Vector2(0.97f, 0.96f), c.Text, 30, c.Done ? UiFactory.PaperText : UiFactory.Dim, TextAnchor.MiddleLeft);
                 UiFactory.Label("Progress", band, new Vector2(0.16f, 0.04f), new Vector2(0.97f, 0.50f), "현재: " + c.Progress, 30, c.Done ? new Color(0.45f, 0.85f, 0.5f, 1f) : UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
             }
-            SetListHeight(content, conditions.Count);
 
             var rewardIcon = UiFactory.Panel("RewardIcon", Root, new Vector2(.73f, .61f), new Vector2(.93f, .79f), Color.white);
             UiFactory.Frame(rewardIcon.transform, UiFactory.GradeColor(sword.Grade), 2f);

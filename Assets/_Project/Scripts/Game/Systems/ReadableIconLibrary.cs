@@ -38,7 +38,8 @@ namespace BiRyeoDo.Game.Systems
             }
             if (texture == null) return null;
             float width = texture.width / (float)entry.columns, height = texture.height / (float)entry.rows;
-            // Omit the grid seams and keep bilinear filtering inside each icon's cell.
+            // Explicit regions follow measured dividers; equal-grid slicing is only a legacy fallback.
+            // Omit seams and keep bilinear filtering inside the illustration.
             const float inset = 3f;
             var rect = entry.width > 0f && entry.height > 0f
                 ? new Rect(entry.x * texture.width + inset,

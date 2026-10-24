@@ -12,6 +12,7 @@ namespace BiRyeoDo.Game.UI
     {
         private readonly RectTransform _codexRoot, _achRoot;
         private readonly Action _onChange;
+        private RectTransform _detail;
         private int _tab;                       // 0 enemies, 1 items, 2 arts
         private static readonly string[] TabNames = { "적", "물품", "무공" };
         internal const float RowH = 220f, RowGap = 16f;   // tall enough for two stacked, easy-to-hit buttons
@@ -92,6 +93,7 @@ namespace BiRyeoDo.Game.UI
 
             string summary;
             var content = Scroller(_codexRoot, .16f, .69f);
+            var grid = new ReadingGrid(content, 3, 290f);
             int n = 0;
             if (_tab == 0)
             {
@@ -99,11 +101,11 @@ namespace BiRyeoDo.Game.UI
                 foreach (var e in EarlyGameContent.Enemies)
                 {
                     bool seen = Codex.HasEnemy(save, e.Id);
-                    var band = Band(content, n++);
-                    var glyph = UiFactory.Panel("Icon", band, new Vector2(0.025f, 0.14f), new Vector2(0.125f, 0.86f), seen ? new Color(0.30f, 0.20f, 0.20f, 1f) : new Color(0.15f, 0.15f, 0.17f, 1f));
-                    UiFactory.Label("Glyph", glyph.transform, Vector2.zero, Vector2.one, seen ? e.Name.Substring(0, 1) : "?", 44, UiFactory.PaperText);
-                    UiFactory.Label("Name", band, new Vector2(0.15f, 0.52f), new Vector2(0.97f, 0.96f), seen ? e.Name + (e.IsBoss ? "  (우두머리)" : "") : "???", 32, seen ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
-                    UiFactory.Label("Info", band, new Vector2(0.15f, 0.06f), new Vector2(0.97f, 0.52f), seen ? "Lv." + e.DisplayLevel + (Realm.HasRealm(e) ? "  ·  경지 " + Realm.ForEnemy(e) : "") : "아직 쓰러뜨리지 못했습니다", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    var card = grid.Add("Enemy" + n++);
+                    var icon = UiFactory.Panel("Icon", card, new Vector2(.04f, .57f), new Vector2(.25f, .94f), UiFactory.InkSoft);
+                    UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, seen ? e.Name.Substring(0, 1) : "?", 44, UiFactory.PaperText);
+                    UiFactory.Label("Name", card, new Vector2(.29f, .57f), new Vector2(.96f, .95f), seen ? e.Name : "???", 30, seen ? UiFactory.PaperText : UiFactory.Dim, TextAnchor.MiddleLeft);
+                    UiFactory.Label("Info", card, new Vector2(.04f, .10f), new Vector2(.96f, .53f), seen ? "Lv." + e.DisplayLevel + (e.IsBoss ? " · 우두머리" : "") + (Realm.HasRealm(e) ? "\n경지 " + Realm.ForEnemy(e) : "") : "아직 쓰러뜨리지 못했습니다", 28, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 }
             }
             else if (_tab == 1)
@@ -114,12 +116,22 @@ namespace BiRyeoDo.Game.UI
                 foreach (var it in items)
                 {
                     bool seen = Codex.HasItem(save, it.Id);
-                    var band = Band(content, n++);
-                    var glyph = UiFactory.Panel("Icon", band, new Vector2(0.025f, 0.14f), new Vector2(0.125f, 0.86f), seen ? Dark(UiFactory.GradeColor(it.Grade)) : new Color(0.15f, 0.15f, 0.17f, 1f));
-                    var letter = UiFactory.Label("Glyph", glyph.transform, Vector2.zero, Vector2.one, seen ? it.Name.Substring(0, 1) : "?", 44, UiFactory.PaperText);
-                    if (seen) ItemArt.Apply(glyph, letter, it);
-                    UiFactory.Label("Name", band, new Vector2(0.15f, 0.52f), new Vector2(0.97f, 0.96f), seen ? UiFactory.GradedName(it) : "<color=#555B66>[" + Grades.NameOf(it.Grade) + "]</color> ???", 30, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                    UiFactory.Label("Info", band, new Vector2(0.15f, 0.04f), new Vector2(0.97f, 0.52f), seen ? it.Description : "아직 손에 넣지 못했습니다", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    var card = grid.Add("Item" + n++);
+                    var icon = UiFactory.Panel("Icon", card, new Vector2(.04f, .57f), new Vector2(.25f, .94f), Color.white);
+                    var letter = UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, "?", 44, UiFactory.PaperText);
+                    if (seen) ItemArt.Apply(icon, letter, it);
+                    else icon.color = UiFactory.InkSoft;
+                    UiFactory.Label("Name", card, new Vector2(.29f, .57f), new Vector2(.96f, .95f), seen ? UiFactory.GradedName(it) : "[" + Grades.NameOf(it.Grade) + "] ???", 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                    string effect = seen ? (it.IsGear ? StatusSheet.EffectText(it) + "\n세트: " + (Gear.SetOf(it.Id)?.Name ?? "없음") : it.Description) : "아직 손에 넣지 못했습니다";
+                    UiFactory.Label("Info", card, new Vector2(.04f, .19f), new Vector2(.96f, .54f), effect, 26, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    if (seen)
+                    {
+                        UiFactory.Label("DetailHint", card, new Vector2(.04f, .035f), new Vector2(.96f, .16f), "눌러서 상세 보기", 24, UiFactory.Gold, TextAnchor.MiddleLeft, FontStyle.Normal);
+                        var item = it;
+                        var button = card.gameObject.AddComponent<Button>();
+                        button.targetGraphic = card.GetComponent<Image>();
+                        button.onClick.AddListener(() => ShowDetail(UiFactory.GradedName(item), item.Description + (item.IsGear ? "\n\n" + StatusSheet.EffectText(item) + "\n세트: " + (Gear.SetOf(item.Id)?.Name ?? "없음") : "")));
+                    }
                 }
             }
             else
@@ -131,13 +143,22 @@ namespace BiRyeoDo.Game.UI
                 foreach (var a in arts)
                 {
                     bool known = save.LearnedArts.Contains(a.Id);
-                    var band = Band(content, n++);
-                    UiFactory.Label("Name", band, new Vector2(0.04f, 0.52f), new Vector2(0.70f, 0.96f), known ? a.Name : "???", 32, known ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
-                    UiFactory.Label("Info", band, new Vector2(0.04f, 0.04f), new Vector2(0.97f, 0.52f), known ? a.Description : a.UnlockText + "하면 배울 수 있습니다", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
-                    UiFactory.Label("State", band, new Vector2(0.70f, 0.52f), new Vector2(0.97f, 0.96f), known ? "습득" : "미습득", 30, known ? UiFactory.Gold : UiFactory.Dim, TextAnchor.MiddleRight);
+                    var card = grid.Add("Art" + n++);
+                    var icon = UiFactory.Panel("Icon", card, new Vector2(.04f, .57f), new Vector2(.25f, .94f), UiFactory.InkSoft);
+                    if (known) { icon.sprite = ArtLibrary.Art(a.Id); icon.color = Color.white; icon.preserveAspect = true; }
+                    else UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, "?", 44, UiFactory.Dim);
+                    UiFactory.Label("Name", card, new Vector2(.29f, .57f), new Vector2(.96f, .95f), known ? a.Name : "???", 30, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                    UiFactory.Label("Info", card, new Vector2(.04f, .19f), new Vector2(.96f, .54f), known ? (a.AllEnemies ? "전체 대상" : a.SpiritCost > 0 ? "필살기" : "무공") + " · 내공 " + a.QiCost + (a.SpiritCost > 0 ? " · 기세 " + a.SpiritCost : "") + "\n재사용 " + a.Cooldown + "턴" : a.UnlockText + " 후 습득 가능", 26, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    UiFactory.Label("State", card, new Vector2(.04f, .035f), new Vector2(.96f, .16f), known ? "습득 · 눌러서 상세 보기" : "미습득", 24, known ? UiFactory.Gold : UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    if (known)
+                    {
+                        var art = a;
+                        var button = card.gameObject.AddComponent<Button>();
+                        button.targetGraphic = card.GetComponent<Image>();
+                        button.onClick.AddListener(() => ShowDetail(art.Name, art.Description));
+                    }
                 }
             }
-            content.sizeDelta = new Vector2(0f, RowGap + n * (RowH + RowGap));
             UiFactory.Label("Summary", _codexRoot, new Vector2(0.05f, .70f), new Vector2(0.95f, .78f), summary, 30, UiFactory.Gold);
             UiFactory.Button("Close", _codexRoot, new Vector2(0.25f, .015f), new Vector2(0.75f, .14f), "닫기", UiFactory.InkSoft, () => { _codexRoot.gameObject.SetActive(false); _onChange(); }, 36);
         }
@@ -160,24 +181,34 @@ namespace BiRyeoDo.Game.UI
             // Ready first, then in progress, then taken.
             list.Sort((a, b) => Rank(save, a).CompareTo(Rank(save, b)));
             var content = Scroller(_achRoot, .16f, .78f);
+            var grid = new ReadingGrid(content, 2, 310f);
             for (int i = 0; i < list.Count; i++)
             {
                 var a = list[i];
-                var band = Band(content, i);
+                var band = grid.Add("Achievement" + i);
                 bool claimed = Achievements.IsClaimed(save, a), can = Achievements.CanClaim(save, a);
                 int target = Achievements.TargetOf(a), prog = Math.Min(Achievements.Progress(save, a), target);
-                UiFactory.Label("Name", band, new Vector2(0.04f, 0.54f), new Vector2(0.68f, 0.97f), a.Name, 32, claimed ? UiFactory.InkSoft : UiFactory.PaperText, TextAnchor.MiddleLeft);
-                UiFactory.Label("Desc", band, new Vector2(0.04f, 0.04f), new Vector2(0.68f, 0.54f),
-                    a.Description + "  (" + prog + "/" + target + ")  · 보상 " + a.RewardDoo.ToString("N0") + "두" + (string.IsNullOrEmpty(a.RewardItemId) ? "" : " + 아이템"), 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Name", band, new Vector2(.04f, .75f), new Vector2(.96f, .96f), a.Name, 32, claimed ? UiFactory.Dim : UiFactory.PaperText, TextAnchor.MiddleLeft);
+                UiFactory.Label("Desc", band, new Vector2(.04f, .47f), new Vector2(.96f, .73f), a.Description, 28, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Progress", band, new Vector2(.04f, .28f), new Vector2(.96f, .45f), prog + " / " + target + " · 보상 " + a.RewardDoo.ToString("N0") + "두" + (string.IsNullOrEmpty(a.RewardItemId) ? "" : " + " + EarlyGameContent.FindItem(a.RewardItemId)?.Name), 27, UiFactory.Gold, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var id = a.Id;
-                var btn = UiFactory.Button("Claim", band, new Vector2(0.71f, 0.14f), new Vector2(0.97f, 0.86f), claimed ? "수령 완료" : can ? "수령" : "진행 중", can ? UiFactory.Red : UiFactory.InkSoft, () => Claim(id), 26);
+                var btn = UiFactory.Button("Claim", band, new Vector2(.04f, .04f), new Vector2(.96f, .25f), claimed ? "수령 완료" : can ? "수령" : "진행 중", can ? UiFactory.Red : UiFactory.InkSoft, () => Claim(id), 28);
                 btn.interactable = can;
             }
-            content.sizeDelta = new Vector2(0f, RowGap + list.Count * (RowH + RowGap));
             UiFactory.Button("Close", _achRoot, new Vector2(0.25f, .015f), new Vector2(0.75f, .14f), "닫기", UiFactory.InkSoft, () => { _achRoot.gameObject.SetActive(false); _onChange(); }, 36);
         }
 
-        private static Color Dark(Color c) { return new Color(c.r * 0.6f, c.g * 0.6f, c.b * 0.6f, 1f); }
+        private void ShowDetail(string title, string body)
+        {
+            SoundManager.Sfx("ui_click");
+            if (_detail != null)
+            {
+                if (Application.isPlaying) UnityEngine.Object.Destroy(_detail.gameObject);
+                else UnityEngine.Object.DestroyImmediate(_detail.gameObject);
+            }
+            _detail = UiFactory.InfoWindow(_codexRoot, title, body);
+            UiFactory.ShowInfo(_detail);
+        }
 
         private static int Rank(SaveData save, AchievementData a)
         {

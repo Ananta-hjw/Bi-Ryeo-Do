@@ -25,50 +25,29 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Streak", Root, new Vector2(0.05f, 0.855f), new Vector2(0.95f, 0.92f),
                 "연속 수련 " + save.DailyStreak + "일" + (next > 0 ? "  ·  " + next + "일째 보상까지 " + (next - save.DailyStreak) + "일" : ""), 28, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
-            // Six missions do not fit one screen: they scroll between the streak line and the bonus text.
-            const float bandHeight = 210f, bandGap = 14f;
-            var viewport = UiFactory.Rect("MissionViewport", Root, new Vector2(.03f, .16f), new Vector2(.65f, .85f));
-            viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
-            viewport.gameObject.AddComponent<RectMask2D>();
-            var content = UiFactory.Rect("MissionContent", viewport, new Vector2(0f, 1f), new Vector2(1f, 1f));
-            content.pivot = new Vector2(0.5f, 1f);
-            content.sizeDelta = new Vector2(0f, missions.Count * (bandHeight + bandGap));
-            var scroll = viewport.gameObject.AddComponent<ScrollRect>();
-            scroll.viewport = viewport;
-            scroll.content = content;
-            scroll.horizontal = false;
-            scroll.movementType = ScrollRect.MovementType.Clamped;
-            scroll.scrollSensitivity = 40f;
-            UiFactory.ScrollIndicator(scroll, viewport);
-
+            var content = CodexPanel.Scroller(Root, .27f, .80f);
+            var grid = new ReadingGrid(content, 3, 280f);
             for (int i = 0; i < missions.Count; i++)
             {
                 var m = missions[i];
-                var band = UiFactory.Panel("Mission" + i, content, Vector2.zero, Vector2.one, UiFactory.Ink);
-                var bandRect = band.rectTransform;
-                bandRect.anchorMin = new Vector2(0f, 1f);
-                bandRect.anchorMax = new Vector2(1f, 1f);
-                bandRect.pivot = new Vector2(0.5f, 1f);
-                bandRect.offsetMin = new Vector2(0f, -(i * (bandHeight + bandGap) + bandHeight));
-                bandRect.offsetMax = new Vector2(0f, -(i * (bandHeight + bandGap)));
-                UiFactory.Frame(band.transform, UiFactory.GoldDim, 2f);
+                var band = grid.Add("Mission" + i);
                 bool done = Daily.IsDone(save, m), claimed = Daily.IsClaimed(save, i);
                 string tier = m.Tier == 0 ? "쉬움" : m.Tier == 1 ? "보통" : "어려움";
-                UiFactory.Label("Name", band.transform, new Vector2(0.04f, 0.56f), new Vector2(0.66f, 0.96f), "[" + tier + "] " + m.Name, 30, claimed ? UiFactory.InkSoft : UiFactory.PaperText, TextAnchor.MiddleLeft);
+                UiFactory.Label("Name", band, new Vector2(.04f, .68f), new Vector2(.96f, .96f), "[" + tier + "] " + m.Name, 30, claimed ? UiFactory.Dim : UiFactory.PaperText, TextAnchor.MiddleLeft);
                 int prog = Daily.ProgressOf(save, m);
-                var bar = UiFactory.MakeBar("Bar", band.transform, new Vector2(0.04f, 0.32f), new Vector2(0.62f, 0.46f), new Color(0f, 0f, 0f, 0.7f), done ? UiFactory.Gold : new Color(0.38f, 0.62f, 0.95f, 1f));
+                var bar = UiFactory.MakeBar("Bar", band, new Vector2(.04f, .57f), new Vector2(.96f, .62f), new Color(0f, 0f, 0f, .7f), done ? UiFactory.Gold : new Color(.38f, .62f, .95f, 1f));
                 bar.SetPct(m.Target > 0 ? (float)prog / m.Target : 0f);
-                UiFactory.Label("Count", band.transform, new Vector2(0.04f, 0.28f), new Vector2(0.66f, 0.50f), prog + "/" + m.Target, 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-                UiFactory.ScrollBody(UiFactory.Label("Reward", band.transform, new Vector2(0.04f, 0.04f), new Vector2(0.66f, 0.30f), "보상 두 " + Daily.RewardDoo(save, m).ToString("N0"), 28, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 28);
+                UiFactory.Label("Count", band, new Vector2(.04f, .42f), new Vector2(.96f, .55f), prog + " / " + m.Target, 28, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Reward", band, new Vector2(.04f, .28f), new Vector2(.96f, .41f), "보상 " + Daily.RewardDoo(save, m).ToString("N0") + "두", 28, UiFactory.Gold, TextAnchor.MiddleLeft, FontStyle.Normal);
                 int index = i;
-                var btn = UiFactory.Button("Claim", band.transform, new Vector2(0.72f, 0.16f), new Vector2(0.97f, 0.84f), claimed ? "수령 완료" : done ? "받기" : "진행 중", done && !claimed ? UiFactory.Red : UiFactory.InkSoft, () => Claim(index), 26);
+                var btn = UiFactory.Button("Claim", band, new Vector2(.04f, .04f), new Vector2(.96f, .25f), claimed ? "수령 완료" : done ? "받기" : "진행 중", done && !claimed ? UiFactory.Red : UiFactory.InkSoft, () => Claim(index), 28);
                 btn.interactable = done && !claimed;
             }
-
-            string bonus = Daily.AllClaimed(save) ? "오늘의 여섯 임무를 모두 끝냈습니다!" : "여섯 임무를 모두 받으면 보너스: 두 " + Daily.AllClearDoo(save).ToString("N0") + " + 웅담 2개, 연속 수련 +1일";
-            UiFactory.ScrollBody(UiFactory.Label("Bonus", Root, new Vector2(.68f, .58f), new Vector2(.97f, .83f), bonus, 30, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
-            UiFactory.ScrollBody(UiFactory.Label("Milestones", Root, new Vector2(.68f, .30f), new Vector2(.97f, .56f), "연속 보상: 3일 옥루주 3 · 7일 인형설삼 · 14일 일급영단+심득석 2 · 30일마다 일급영단 2+심득석 4 + 두 31,200", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
-            UiFactory.ScrollBody(UiFactory.Label("Toast", Root, new Vector2(.68f, .16f), new Vector2(.97f, .28f), toast ?? "임무는 내일 0시에 새로 바뀝니다 (기기 시간 기준)", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            string bonus = Daily.AllClaimed(save) ? "오늘의 여섯 임무를 모두 끝냈습니다!" : "모두 수령 시: " + Daily.AllClearDoo(save).ToString("N0") + "두 · 웅담 2개 · 심득석 1개 · 연속 수련 +1일";
+            UiFactory.ScrollBody(UiFactory.Label("Bonus", Root, new Vector2(.04f, .15f), new Vector2(.96f, .26f), bonus, 28, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal), 28);
+            UiFactory.Label("Toast", Root, new Vector2(.04f, .80f), new Vector2(.96f, .85f), toast ?? "임무는 매일 0시에 바뀝니다 (기기 시간 기준)", 26, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
+            var help = UiFactory.InfoWindow(Root, "일일 임무와 연속 보상", bonus + "\n\n연속 보상: 3일 옥루주 3 · 7일 인형설삼 · 14일 일급영단+심득석 2 · 30일마다 일급영단 2+심득석 4 + 31,200두");
+            UiFactory.HelpButton(Root, () => UiFactory.ShowInfo(help));
             AddClose();
         }
 

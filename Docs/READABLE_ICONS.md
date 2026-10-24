@@ -13,7 +13,7 @@ The painted wuxia icon set covers all 31 martial arts, 20 inner methods and 281 
 - `equipment_repair.png`: 4×2 sheet with distinct star/comet, vermilion slash and jade vortex mythical weapons, plus corrected cloth robe, straw sandals, straw greaves, iron fan and leather leg wraps.
 - `jin_biroedo.png`: transparent full-size transcendent icon, paired angular silver daggers without chains, white/violet lightning and a gold energy halo.
 
-`cell` is zero-based, counted left to right and top to bottom. `columns` and `rows` describe the slicing grid for that entry. The same sheet may contain rows with different column counts; do not assume a single grid for the entire image. Six material illustrations in the final row of `items_3.png` use explicit normalized `x`, `y`, `width`, `height`; `y` is measured from the top. These measured overrides and the remapped final sheet account for the generated art's actual layout. Do not regenerate ordering from array positions alone.
+`cell` is zero-based, counted left to right and top to bottom. `columns` and `rows` describe the slicing grid for that entry. The same sheet may contain rows with different column counts and nonuniform pixel sizes; do not assume a single grid for the entire image. All item/default regions now use measured normalized rectangles; `cell` identifies the illustration only. See the boundary correction below. Normalized `x`, `y`, `width`, `height` describe the measured region; `y` is measured from the top. These measured overrides and the remapped final sheet account for the generated art's actual layout. Do not regenerate ordering from array positions alone.
 
 The loader insets each region by three pixels to exclude grid seams. Sheet dimensions remain unchanged on import, mipmaps are disabled and textures are compressed. Sprites and source textures are cached and shared; no texture copies or GPU readbacks are needed.
 
@@ -32,7 +32,7 @@ Reviewed all 281 item entries, including all 229 equipment entries, against the 
 
 - `items_0`: an extra weapon before the robes shifts the armor run by one; the final accessory row contains nine illustrations.
 - `items_1`: an extra purple weapon before the normal weapons shifts subsequent weapons, armor and pants by one. The missing straw greaves and unclear leather wraps now have dedicated replacement pictures.
-- `items_3`: the penultimate row contains nine illustrations, including the legendary equipment and the mythic orb. The final materials row still uses its existing six-column explicit regions.
+- `items_3`: the earlier nine-column assumption for the penultimate row was incorrect and is superseded by the pixel-boundary audit below. The row has eight illustrations; the final materials row has six.
 - `equipment_repair`: repairs the two reported starter icons directly and replaces the coiled-wire picture of the iron fan with a recognizable folding fan.
 
 The three non-Biroe mythic weapons use separate effects: 성락검 has platinum/gold stars and a comet trail, 참천도 has a vermilion/gold cutting crescent, 혼천검 has jade/turquoise flowing vortices. These are visual treatments, without new gameplay effects or item statistics. The Biroe armor and accessories retain their original purple lightning artwork; the later explicit weapon-icon exchange is described below.
@@ -95,3 +95,29 @@ The stage selector uses two stage cards per measured row, preserving the shared 
 UI regression sources cover two-column stage availability, three-column inner methods, the character picker's available roster, cancel/selection behavior and page retention at several landscape widths. C# compilation passes; UI execution and touch checks require Unity Editor.
 
 The shared `CharacterPicker` component keeps roster filtering, selected-person marking, portrait layout and dismissal identical in companion/equipment workspaces. Equipment picker regressions cover available characters, cancel, slot retention, hero-only filtering and no inventory/equipment changes at 1440/1920/2400 widths. Cloud validation compiles these sources; Unity Editor is required to execute UI checks.
+
+
+## Illustration boundary correction (2026-10-24)
+
+Reports of a second object next to 봉인 구슬 and below 한철검 exposed incorrect equal-grid assumptions. The previous geometry audit only proved rectangles were inside the image and did not overlap each other; it did not prove they followed the actual painted dividers.
+
+All **281 item icons**, all eight kind defaults and 24 additional mapped icons now use explicit measured source rectangles (313 regions total). Source PNG artwork, item stats and rarity are unchanged. The shared catalog fixes gacha results/previews, equipment slots/lists, bag cards and inspectors together.
+
+Notable repairs:
+
+- `items_0` rows are not equal height: the sword row begins at Y=611, not 627. The old frost-sword crop included the next row's robe. Its bottom row has nine **unequal-width** cells, fixing jade rings, wooden charms, bells, pendants and boots.
+- `items_1`'s final row starts at Y=1082; `items_2`'s at Y=1092. Both are measured instead of assumed to start at 1097.25.
+- `items_3`'s legendary row is **eight columns**, fixing the sealed orb, dragon necklace, boots, pants and robes. Its materials row is six columns.
+- `items_4`'s final status-symbol row is **seven unequal-width columns**, fixing stun, poison, inner wound, speed and attack symbols.
+
+`Docs/ICON_SHEET_LAYOUTS.json` records visually inspected divider coordinates. `Tools/audit_icon_regions.py` validates the catalog against these dividers and PNG dimensions, checks complete CSV coverage and rejects overlapping item regions. Run:
+
+```bash
+python3 Tools/audit_icon_regions.py
+# After deliberately updating inspected sheet boundaries:
+python3 Tools/audit_icon_regions.py --write
+```
+
+`--write` refreshes normalized catalog rectangles and `ITEM_ICON_AUDIT.csv`; it never modifies PNGs. The loader keeps its existing three-pixel filtering inset. A new/replaced illustration sheet must have its divider layout inspected rather than inferred solely from the item count.
+
+Validation: 385 catalog mappings pass geometry checks, including 313 measured regions and 281 distinct item regions. Browser-rendered source-region previews of all 281 items were inspected for neighboring fragments. UI regression sources pin 24 representative item rectangles and seven status-symbol rectangles, and check pairwise item-region separation. Game/UI and UI-test C# sources compile successfully. These cloud previews verify source slicing; Unity shader execution and device rendering still require Editor/device verification.
