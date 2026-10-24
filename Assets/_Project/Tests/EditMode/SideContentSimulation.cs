@@ -12,6 +12,7 @@ namespace BiRyeoDo.Tests
         {
             public bool Won;
             public int Actions, EnemyActions, Deaths;
+            public long DamageTaken;
             public double HpLeft;
         }
 
@@ -35,11 +36,17 @@ namespace BiRyeoDo.Tests
         public static Result Play(StageData stage, SaveData save, int seed, bool defend = true)
         {
             var party = BalanceSimulation.Party(save, stage);
-            var enemies = stage.Encounters[0].Select((id, i) => stage.EnemyFor(id).CreateCombatant(id + i)).ToList();
+            var enemies = stage.Encounters[0].Select((id, i) => stage.EnemyFor(id, stage.TrialFor(0)).CreateCombatant(id + i)).ToList();
             var battle = new InteractiveBattle(party, enemies, new SeededRandom(seed * 1000 + stage.Number * 10)) { Trial = stage.TrialFor(0) };
-            battle.Begin();
-            while (!battle.IsOver) battle.PlayerAct(defend ? SimpleBot.Choose(battle) : WithoutTelegraphResponse(battle));
-            return new Result { Won = battle.PlayerWon, Actions = battle.PartyActions, EnemyActions = battle.EnemyActions,
+            var partyIds = new HashSet<string>(party.Select(p => p.Id));
+            long taken = 0;
+            void Record(IEnumerable<BattleEvent> events)
+            {
+                foreach (var e in events) if (e.Damage > 0 && e.TargetId != null && partyIds.Contains(e.TargetId)) taken += e.Damage;
+            }
+            Record(battle.Begin());
+            while (!battle.IsOver) Record(battle.PlayerAct(defend ? SimpleBot.Choose(battle) : WithoutTelegraphResponse(battle)));
+            return new Result { Won = battle.PlayerWon, Actions = battle.PartyActions, EnemyActions = battle.EnemyActions, DamageTaken = taken,
                 Deaths = party.Count(p => !p.IsAlive), HpLeft = party.Sum(p => (double)p.Hp) / party.Sum(p => (double)p.Stats.MaxHp) };
         }
 

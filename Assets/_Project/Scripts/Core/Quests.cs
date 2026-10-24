@@ -61,8 +61,9 @@ namespace BiRyeoDo.Core
             if (q == null) return enemy;
             if (q.RefStage >= 15)
             {
-                enemy = StageStars.ScaleEnemy(enemy, q.RefStage, 0);
-                if (q.Trial != null && q.Trial.Kind == TrialKind.Survive) enemy = enemy.Scaled(1.25f, 1f);
+                bool survive = q.Trial != null && q.Trial.Kind == TrialKind.Survive;
+                enemy = StageStars.ScaleEnemy(enemy, q.RefStage, 0, survive);
+                if (survive) enemy = enemy.Scaled(1.25f, 1f);
             }
             if (q.Edge <= 1f) return enemy;
             return enemy.Scaled((float)Math.Pow(q.Edge, 0.7), (float)Math.Pow(q.Edge, 0.3));

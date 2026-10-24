@@ -40,7 +40,7 @@ namespace BiRyeoDo.Tests
             var stage = Quests.ToStage(q);
             foreach (string enemyId in stage.Encounters[0])
             {
-                var baseline = reference.EnemyFor(enemyId);
+                var baseline = reference.EnemyFor(enemyId, q.Trial);
                 float endurance = q.Trial.Kind == TrialKind.Survive ? 1.25f : 1;
                 var enemy = stage.EnemyFor(enemyId);
                 Assert.AreEqual(baseline.HpMul * Math.Pow(q.Edge, .7) * endurance, enemy.HpMul, .001);
@@ -94,7 +94,9 @@ namespace BiRyeoDo.Tests
             var careful = Enumerable.Range(901, 40).Select(seed => SideContentSimulation.Play(stage, save, seed)).ToArray();
             var reckless = Enumerable.Range(901, 40).Select(seed => SideContentSimulation.Play(stage, save, seed, false)).ToArray();
             Assert.GreaterOrEqual(careful.Count(r => r.Won), 34);
-            Assert.Greater(careful.Average(r => r.HpLeft), reckless.Average(r => r.HpLeft) + .08);
+            TestContext.Out.WriteLine("tower " + floor + " incoming damage: " + careful.Average(r => r.DamageTaken) + " vs " + reckless.Average(r => r.DamageTaken));
+            Assert.Greater(careful.Average(r => r.HpLeft), reckless.Average(r => r.HpLeft));
+            Assert.Less(careful.Average(r => r.DamageTaken), reckless.Average(r => r.DamageTaken) * .95);
         }
 
         [TestCase(40)]
