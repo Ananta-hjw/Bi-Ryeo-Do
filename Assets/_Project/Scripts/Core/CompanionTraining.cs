@@ -53,7 +53,7 @@ namespace BiRyeoDo.Core
             if (level >= MaxLevel) { error = "이미 최고 수련 단계입니다."; return false; }
             if (level >= Cap(save, id)) { error = "인연이 더 깊어져야 이 이상 수련할 수 있습니다. (" + Bonds.LevelNames[Math.Min(3, Bonds.Level(save, id) + 1)] + " 필요)"; return false; }
             long cost = CostFor(level + 1);
-            if (save.Doo < cost) { error = "두가 모자랍니다. (" + cost.ToString("N0") + "두)"; return false; }
+            if (save.Doo < cost) { error = "은자가 모자랍니다. (" + cost.ToString("N0") + "은자)"; return false; }
             save.Doo -= cost;
             TrainingEntry entry = null;
             foreach (var e in save.CompanionTraining) if (e.Id == id) entry = e;

@@ -118,7 +118,7 @@ namespace BiRyeoDo.Tests.UI
             var summary = (RectTransform)_canvas.transform.Find("Identity/SummaryViewport");
             Assert.Less(change.anchorMax.y, portrait.anchorMin.y);
             Assert.Greater(change.anchorMin.y, summary.anchorMax.y);
-            Click("Pages/Page2");
+            Click("Pages/Page3");
             Click("Identity/ChangeCharacter");
             var picker = _canvas.transform.Find("CharacterPicker");
             var names = picker.GetComponentsInChildren<Button>().Where(button => button.name.StartsWith("Person_")).Select(button => button.name).ToArray();
@@ -151,14 +151,16 @@ namespace BiRyeoDo.Tests.UI
                 var expected = EarlyGameContent.Arts.Where(art => (owner == Inventory.Hero ? art.OwnerId == null : art.OwnerId == owner)
                     && unit.Skills.Any(skill => skill.Id == art.Id)).ToList();
                 var content = _canvas.transform.Find("Page/List/Viewport/Content");
-                var names = Enumerable.Range(0, content.childCount).Select(i => content.GetChild(i).Find("Name").GetComponent<Text>().text).ToArray();
+                // Two cards per row
+                var cards = content.GetComponentsInChildren<Transform>().Where(t => t.parent != null && t.parent.parent == content && t.name.StartsWith("Card")).ToList();
+                var names = cards.Select(card => card.Find("Name").GetComponent<Text>().text).ToArray();
                 CollectionAssert.AreEquivalent(expected.Select(art => art.Name).ToArray(), names);
                 Assert.IsFalse(names.Contains(unused.Name));
-                for (int i = 0; i < expected.Count; i++)
+                Assert.AreEqual((expected.Count + 1) / 2, content.childCount);
+                foreach (var card in cards)
                 {
-                    var row = content.GetChild(i);
-                    Assert.IsNotNull(row.Find("Resources")); Assert.IsNotNull(row.Find("Effect"));
-                    Assert.IsNull(row.Find("Action")); Assert.IsNull(row.Find("Variant"));
+                    Assert.IsNotNull(card.Find("Resources")); Assert.IsNotNull(card.Find("Effect"));
+                    Assert.IsNull(card.Find("Action")); Assert.IsNull(card.Find("Variant"));
                 }
             }
         }
@@ -167,13 +169,19 @@ namespace BiRyeoDo.Tests.UI
         public void CharacterTabsOmitTrainingAndCompanionTrainingLivesUnderBonds()
         {
             var tabs = _canvas.transform.Find("Pages").GetComponentsInChildren<Button>();
-            CollectionAssert.AreEqual(new[] { "상태", "무공", "인연" }, tabs.Select(t => t.GetComponentInChildren<Text>().text).ToArray());
+            CollectionAssert.AreEqual(new[] { "상태", "무공", "심법", "인연" }, tabs.Select(t => t.GetComponentInChildren<Text>().text).ToArray());
             Click("Pages/Page1");
             Assert.IsNull(_canvas.transform.Find("Page/HeroGrowthViewport"));
             Assert.IsNotNull(_canvas.transform.Find("Page/ArtsMenu"));
+            // 심법: the equipped inner arts as two-column cards, like 무공
+            Click("Pages/Page2");
+            Assert.IsNotNull(_canvas.transform.Find("Page/InnerMenu"));
+            var innerContent = _canvas.transform.Find("Page/List/Viewport/Content");
+            Assert.AreEqual(_save.EquippedInner.Count, innerContent.GetComponentsInChildren<Transform>().Count(t => t.parent != null && t.parent.parent == innerContent && t.name.StartsWith("Card")));
             var companion = EarlyGameContent.Companions.First();
             ChoosePerson(companion.Id);
-            Click("Pages/Page2");
+            Assert.IsNull(_canvas.transform.Find("Page/InnerMenu"), "companions have no 심법");
+            Click("Pages/Page3");
             const string trainingPath = "Page/List/Viewport/Content/Row0/Train";
             Assert.IsTrue(_canvas.transform.Find(trainingPath).GetComponent<Button>().interactable);
             _save.Doo = 0; _screen.Refresh();

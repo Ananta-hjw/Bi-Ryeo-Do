@@ -118,7 +118,7 @@ namespace BiRyeoDo.Tests
             Assert.IsNull(Shop.Buy(save, "aca_scroll", out error));
             var poor = new SaveData { Doo = 10 };
             Assert.IsNull(Shop.Buy(poor, "inn_gall", out error));
-            StringAssert.Contains("두", error);
+            StringAssert.Contains("은자", error);
             Assert.AreEqual(10, poor.Doo);
         }
 

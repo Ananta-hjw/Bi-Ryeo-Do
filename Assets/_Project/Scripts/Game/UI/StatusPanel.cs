@@ -31,7 +31,7 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             Begin();
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.935f), new Vector2(0.95f, 0.995f), "상태창", 44, UiFactory.Gold);
-            _content = CodexPanel.Scroller(Root, .16f, 0.93f);
+            _content = CodexPanel.Scroller(Root, .03f, 0.87f);
             _y = Gap;
 
             // Header: portrait + name, level, rank, exp
@@ -42,7 +42,7 @@ namespace BiRyeoDo.Game.UI
             else UiFactory.Body(UiFactory.Label("Glyph", pic.transform, Vector2.zero, Vector2.one, "비", 56, UiFactory.PaperText));
             long need = Progression.ExpToNext(save.Level);
             Text(head, 0.23f, 0.97f, 0.50f, 0.96f, "비류연  Lv." + save.Level + "  ·  " + Promotion.RankName(Promotion.EffectiveRank(save)), 38, UiFactory.Gold);
-            Text(head, 0.23f, 0.97f, 0.06f, 0.50f, "경험 " + save.Exp.ToString("N0") + " / " + need.ToString("N0") + "\n두 " + save.Doo.ToString("N0"), 28, UiFactory.PaperText, TextAnchor.UpperLeft);
+            Text(head, 0.23f, 0.97f, 0.06f, 0.50f, "경험 " + save.Exp.ToString("N0") + " / " + need.ToString("N0") + "\n은자 " + save.Doo.ToString("N0"), 28, UiFactory.PaperText, TextAnchor.UpperLeft);
 
             // Gear
             Section(GearTitle(save));
@@ -127,7 +127,7 @@ namespace BiRyeoDo.Game.UI
             }
 
             _content.sizeDelta = new Vector2(0f, _y + Gap);
-            UiFactory.Button("Close", Root, new Vector2(0.25f, .015f), new Vector2(0.75f, .14f), "닫기", UiFactory.InkSoft, () => { Root.gameObject.SetActive(false); OnChange(); }, 34);
+            UiFactory.BackCorner(Root, () => { Root.gameObject.SetActive(false); OnChange(); });
         }
 
         // ------------------------------------------------------------------ layout helpers (pixel rows inside the scroll content)
@@ -265,7 +265,7 @@ namespace BiRyeoDo.Game.UI
             }
             string summary = current != null ? UiFactory.GearEffectText(current, applied, Gear.Stars(save, current.Id)) : "아래 목록에서 장비를 선택해 주세요.";
             UiFactory.ScrollBody(UiFactory.Label("CurrentEffect", equipped.transform, new Vector2(.04f, .04f), new Vector2(.71f, .52f), summary, 27, UiFactory.PaperText, TextAnchor.UpperLeft), 27);
-            string upgradeLabel = current == null ? "강화" : !unlocked ? "등급 개방\n" + unlockCost.ToString("N0") + "두"
+            string upgradeLabel = current == null ? "강화" : !unlocked ? "등급 개방\n" + unlockCost.ToString("N0") + "은자"
                 : stored >= Gear.MaxLevel ? "최대 +100" : stored >= cap ? "한계돌파 필요" : "강화 +" + next;
             var upgrade = UiFactory.Button("EnhanceSlot", equipped.transform, new Vector2(.74f, .55f), new Vector2(.97f, .95f), upgradeLabel, UiFactory.Red, () =>
             {
@@ -292,7 +292,7 @@ namespace BiRyeoDo.Game.UI
                 material.Name + " " + Inventory.Count(save, material.Id).ToString("N0") + "개"
                     + (hasNext ? "\n강화 시 " + Gear.StoneCost(next) + "개 사용" : "\n최대 강화"), 25, UiFactory.PaperText, TextAnchor.MiddleLeft));
             UiFactory.Body(UiFactory.Label("Doo", resources.transform, new Vector2(.45f, .04f), new Vector2(.74f, .96f),
-                save.Doo.ToString("N0") + "두" + (hasNext ? "\n강화 시 " + Gear.DooCost(next).ToString("N0") + "두" : ""), 25, UiFactory.Gold, TextAnchor.MiddleLeft));
+                save.Doo.ToString("N0") + "은자" + (hasNext ? "\n강화 시 " + Gear.DooCost(next).ToString("N0") + "은자" : ""), 25, UiFactory.Gold, TextAnchor.MiddleLeft));
             UiFactory.Body(UiFactory.Label("UnlockedGrade", resources.transform, new Vector2(.76f, .04f), new Vector2(.98f, .96f),
                 Grades.NameOf(Gear.UnlockedGrade(save, owner, slotIndex)) + "까지 개방"
                     + (current != null && !unlocked ? "\n" + Grades.NameOf(current.Grade) + " 미개방" : ""), 24, UiFactory.PaperText, TextAnchor.MiddleLeft));
@@ -373,7 +373,7 @@ namespace BiRyeoDo.Game.UI
             string traits = UiFactory.GearTraitsText(item, stars);
             if (traits.Length > 0) lines.Add("돌파 추가 능력치 (강화·기본 효과 보너스 미적용)\n" + traits);
             if (!Gear.IsGradeUnlocked(save, owner, slotIndex, item.Grade))
-                lines.Add("등급 미개방: 기본·돌파 효과만 적용됩니다.\n개방 비용 " + Gear.GradeUnlockCost(save, owner, slotIndex, item.Grade).ToString("N0") + "두");
+                lines.Add("등급 미개방: 기본·돌파 효과만 적용됩니다.\n개방 비용 " + Gear.GradeUnlockCost(save, owner, slotIndex, item.Grade).ToString("N0") + "은자");
             if (otherSlot) lines.Add("이 인물의 다른 장신구 칸에 착용 중입니다. 먼저 해제해 주세요.");
             else if (!worn && !available) lines.Add("다른 인물이 착용 중입니다. 먼저 해제해 주세요.");
             UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(.06f, .36f), new Vector2(.94f, .79f),

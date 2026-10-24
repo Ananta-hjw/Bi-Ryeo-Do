@@ -78,7 +78,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.ScrollIndicator(scroll, viewport);
 
             var arts = EarlyGameContent.Arts.Where(a => a.OwnerId == null).ToArray();
-            var grid = new ReadingGrid(content, 2, 440f);
+            var grid = new ReadingGrid(content, 3, 470f);   // three cards per row
             for (int i = 0; i < arts.Length; i++)
             {
                 var art = arts[i];
@@ -102,12 +102,12 @@ namespace BiRyeoDo.Game.UI
                 row.Tag = UiFactory.Label("Tag", tagBack.transform, Vector2.zero, Vector2.one, "", 22, UiFactory.Gold);
                 // Keep the title beside the large icon and put wrapped badges and the action underneath.
                 row.Title = UiFactory.Body(UiFactory.Label("Title", rt, new Vector2(0f, 1f), new Vector2(0.96f, 1f), "", 30, UiFactory.PaperText, TextAnchor.MiddleLeft));
-                row.Title.rectTransform.offsetMin = new Vector2(176f, -160f);
+                row.Title.rectTransform.offsetMin = new Vector2(IconH + 32f, -IconH - 16f);
                 row.Title.rectTransform.offsetMax = new Vector2(0f, -16f);
                 row.Chips = UiFactory.Rect("Chips", rt, new Vector2(.04f, 1f), new Vector2(.96f, 1f));
                 row.Chips.pivot = new Vector2(0f, 1f);
-                row.Chips.offsetMin = new Vector2(0f, -334f);
-                row.Chips.offsetMax = new Vector2(0f, -184f);
+                row.Chips.offsetMin = new Vector2(0f, -380f);   // room for four wrapped lines of badges above the button
+                row.Chips.offsetMax = new Vector2(0f, -IconH - 30f);
                 row.Detail = UiFactory.Body(UiFactory.Label("Detail", rt, new Vector2(.04f, .25f), new Vector2(.96f, .56f), "", 28, UiFactory.Dim, TextAnchor.UpperLeft, FontStyle.Normal));
                 row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(.04f, 0f), new Vector2(.96f, 0f), "", UiFactory.Red, () => OnPressed(art), 28);
                 row.Button.GetComponent<RectTransform>().offsetMin = new Vector2(0f, 18f);
@@ -126,7 +126,7 @@ namespace BiRyeoDo.Game.UI
         }
 
         // Row parts keep one size: learning, equipping or a 변초 changes only the words, never the row or its buttons.
-        private const float ButtonH = 72f, IconH = 144f;
+        private const float ButtonH = 72f, IconH = 120f;
 
         private RectTransform _detail;
         private string _detailId;
@@ -208,13 +208,13 @@ namespace BiRyeoDo.Game.UI
             string mainLabel; Color mainColor; bool mainOn;
             if (learned) { mainLabel = equipped ? "해제" : "장착"; mainColor = equipped ? UiFactory.InkSoft : UiFactory.Red; mainOn = true; }
             else if (!unlocked) { mainLabel = "잠김"; mainColor = UiFactory.InkSoft; mainOn = false; }
-            else { mainOn = save.Doo >= art.LearnCost; mainLabel = "습득 " + art.LearnCost.ToString("N0") + "두"; mainColor = mainOn ? UiFactory.Red : UiFactory.InkSoft; }
+            else { mainOn = save.Doo >= art.LearnCost; mainLabel = "습득 " + art.LearnCost.ToString("N0") + "은자"; mainColor = mainOn ? UiFactory.Red : UiFactory.InkSoft; }
             var main = UiFactory.Button("Main", card.transform, new Vector2(0.05f, 0.19f), new Vector2(0.95f, 0.285f), mainLabel, mainColor, () => { OnPressed(art); OpenDetail(art); }, 34);
             main.interactable = mainOn;
             bool canVariant = learned && level >= Mastery.VariantLevel && Mastery.AvailableVariants(art).Count > 0;
             if (canVariant)
                 UiFactory.Button("Variant", card.transform, new Vector2(0.05f, 0.10f), new Vector2(0.95f, 0.18f), "변초 바꾸기 (지금: " + (variant == ArtVariant.None ? "없음" : Mastery.VariantName(variant)) + ")", UiFactory.Gold, () => { OnMastery(art); OpenDetail(art); }, 30);
-            UiFactory.Button("Close", card.transform, new Vector2(0.30f, 0.015f), new Vector2(0.70f, 0.09f), "닫기", UiFactory.InkSoft, CloseDetail, 34);
+            UiFactory.BackButton(card.transform, new Vector2(0.30f, 0.015f), new Vector2(0.70f, 0.09f), CloseDetail);
             LandscapeMenu.Inspector(card.rectTransform);
         }
 
@@ -237,6 +237,13 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <param name="seen">true when the page is really being looked at: its red dot is cleared.</param>
+        /// <summary>Opens on the given page (0 무공, 1 심법), now if the tab is showing or the next time it is.</summary>
+        public void OpenPage(int page)
+        {
+            _page = page;
+            if (_built && isActiveAndEnabled) ShowPage(page);
+        }
+
         private void ShowPage(int page, bool seen = true)
         {
             _page = page;
@@ -343,11 +350,11 @@ namespace BiRyeoDo.Game.UI
         /// <summary>Wrapped badges for the effect (power, hits, area, status), followed by reach, cost and cooldown. Mastery and 변초 are applied when learned.</summary>
         private static void BuildChips(RectTransform parent, ArtData a, SkillSpec spec)
         {
-            const float gap = 8f, line = 50f;
+            const float gap = 6f, line = 44f;
             float x = 0f, y = 0f;
             System.Action<string, Color> add = (text, color) =>
             {
-                float width = UiFactory.Chip(parent, x, y, text, color);
+                float width = UiFactory.Chip(parent, x, y, text, color, 38f, 22);
                 var chip = (RectTransform)parent.GetChild(parent.childCount - 1);
                 if (x > 0f && x + width > parent.rect.width)
                 {
@@ -395,11 +402,14 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Frame(slot.transform, ult ? UiFactory.Gold : UiFactory.GoldDim, 2f);
                 if (art != null)
                 {
+                    // Tapping an equipped slot takes that art off (the ✕ in the corner says so)
                     var tap = slot.gameObject.AddComponent<Button>();
                     tap.targetGraphic = slot;
                     tap.transition = Selectable.Transition.None;
                     var target = art;
-                    tap.onClick.AddListener(() => OpenDetail(target));
+                    tap.onClick.AddListener(() => Unequip(target));
+                    var off = UiFactory.Label("Unequip", slot.transform, new Vector2(.84f, .58f), new Vector2(.99f, .98f), "✕", 20, UiFactory.Dim);
+                    off.raycastTarget = false;
                     var picture = ArtLibrary.Art(art.Id);
                     var icon = UiFactory.Panel("Icon", slot.transform, new Vector2(.04f, .12f), new Vector2(.32f, .88f), picture != null ? Color.white : IconColor(art));
                     icon.sprite = picture;
@@ -414,13 +424,24 @@ namespace BiRyeoDo.Game.UI
             }
         }
 
+        /// <summary>Takes an art out of its slot (from the slot bar above the list).</summary>
+        private void Unequip(ArtData art)
+        {
+            var save = GameManager.Instance.Save;
+            if (!save.EquippedArts.Remove(art.Id)) return;
+            _hint.text = art.Name + " 장착 해제";
+            GameManager.Instance.SaveNow();
+            Refresh();
+            if (_detailId == art.Id) OpenDetail(art);   // the open detail card shows 장착 again
+        }
+
         private void Refresh()
         {
             if (_page != 0) return;   // an embedded panel redraws itself
             var save = GameManager.Instance.Save;
             Canvas.ForceUpdateCanvases();
             RefreshSlots(save);
-            _header.text = "무공 · 장착 " + Progression.EquippedCount(save, false) + "/" + Progression.MaxEquippedArts + " · 필살 " + Progression.EquippedCount(save, true) + "/" + Progression.MaxEquippedUltimates + " · " + save.Doo.ToString("N0") + "두";
+            _header.text = "무공 · 장착 " + Progression.EquippedCount(save, false) + "/" + Progression.MaxEquippedArts + " · 필살 " + Progression.EquippedCount(save, true) + "/" + Progression.MaxEquippedUltimates + " · " + save.Doo.ToString("N0") + "은자";
 
             foreach (var r in _rows)
             {
@@ -461,7 +482,7 @@ namespace BiRyeoDo.Game.UI
                 else
                 {
                     bool can = save.Doo >= a.LearnCost;
-                    r.ButtonLabel.text = "습득 " + a.LearnCost.ToString("N0") + "두";
+                    r.ButtonLabel.text = "습득 " + a.LearnCost.ToString("N0") + "은자";
                     r.ButtonImage.color = can ? UiFactory.Red : UiFactory.InkSoft;
                     r.Button.interactable = can;
                 }

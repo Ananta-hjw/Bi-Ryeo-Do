@@ -89,6 +89,16 @@ namespace BiRyeoDo.Game.UI
                 case "icon_rim":
                     Ring(mesh, .5f, .5f, .48f, 64);
                     break;
+                case "back":   // 돌아가기: a thin U-turn arrow pointing left
+                    Line(mesh, .14f, .66f, .62f, .66f);
+                    Line(mesh, .14f, .66f, .32f, .84f); Line(mesh, .14f, .66f, .32f, .48f);
+                    for (int i = 0; i < 16; i++)
+                    {
+                        float a = Mathf.PI * .5f - i * Mathf.PI / 16f, b = Mathf.PI * .5f - (i + 1) * Mathf.PI / 16f;
+                        Line(mesh, .62f + Mathf.Cos(a) * .2f, .46f + Mathf.Sin(a) * .2f, .62f + Mathf.Cos(b) * .2f, .46f + Mathf.Sin(b) * .2f);
+                    }
+                    Line(mesh, .62f, .26f, .4f, .26f);
+                    break;
                 case "close":
                     Line(mesh, .28f, .28f, .72f, .72f); Line(mesh, .28f, .72f, .72f, .28f);
                     break;
@@ -146,12 +156,20 @@ namespace BiRyeoDo.Game.UI
                     Ring(mesh,.5f,.5f,.36f); Ring(mesh,.5f,.5f,.28f);
                     Path(mesh,.4f,.4f,.4f,.6f,.6f,.6f,.6f,.4f,.4f,.4f);
                     break;
-                case "settings":
-                    Ring(mesh,.5f,.5f,.24f); Ring(mesh,.5f,.5f,.08f);
-                    for (int i = 0; i < 8; i++)
+                case "settings":   // a cog: eight square teeth around the rim and a hub
                     {
-                        float a = i * Mathf.PI / 4f;
-                        Line(mesh,.5f+Mathf.Cos(a)*.28f,.5f+Mathf.Sin(a)*.28f,.5f+Mathf.Cos(a)*.4f,.5f+Mathf.Sin(a)*.4f);
+                        const int teeth = 8;
+                        float inner = .30f, outer = .42f, half = Mathf.PI / teeth * .45f;
+                        var pts = new System.Collections.Generic.List<float>();
+                        for (int i = 0; i < teeth; i++)
+                        {
+                            float c = i * Mathf.PI * 2f / teeth;
+                            foreach (var (r, a) in new[] { (inner, c - Mathf.PI / teeth + half), (inner, c - half), (outer, c - half * .8f), (outer, c + half * .8f), (inner, c + half) })
+                            { pts.Add(.5f + Mathf.Cos(a) * r); pts.Add(.5f + Mathf.Sin(a) * r); }
+                        }
+                        pts.Add(pts[0]); pts.Add(pts[1]);
+                        Path(mesh, pts.ToArray());
+                        Ring(mesh, .5f, .5f, .13f, 32);
                     }
                     break;
                 default: // scroll: records, daily missions and commissions

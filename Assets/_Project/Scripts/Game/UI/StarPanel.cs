@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using BiRyeoDo.Core;
 using BiRyeoDo.Game.Systems;
 using UnityEngine;
@@ -28,14 +29,23 @@ namespace BiRyeoDo.Game.UI
             all.interactable = ready > 0;
             var content = CodexPanel.Scroller(Root, .16f, .79f);
             var grid = new ReadingGrid(content, 3, 300f);
-            for (int i = 0; i < StageStars.Chests.Length; i++)
+            // Ready to open first, then the ones still needing stars, then the ones already taken
+            var order = new List<int>();
+            for (int rank = 0; rank < 3; rank++)
+                for (int i = 0; i < StageStars.Chests.Length; i++)
+                {
+                    var chestNow = StageStars.Chests[i];
+                    bool claimedNow = save.ClaimedStarChests.Contains(chestNow.Stars);
+                    if ((claimedNow ? 2 : StageStars.CanClaim(save, chestNow) ? 0 : 1) == rank) order.Add(i);
+                }
+            foreach (int i in order)
             {
                 var c = StageStars.Chests[i];
                 var chest = c;
                 var band = grid.Add("Chest" + i);
                 bool claimed = save.ClaimedStarChests.Contains(c.Stars), can = StageStars.CanClaim(save, c);
                 UiFactory.Label("Name", band, new Vector2(.04f, .74f), new Vector2(.96f, .96f), "★ " + c.Stars + "개", 34, claimed ? UiFactory.Dim : UiFactory.Gold, TextAnchor.MiddleLeft);
-                string reward = c.Doo.ToString("N0") + "두";
+                string reward = c.Doo.ToString("N0") + "은자";
                 if (!string.IsNullOrEmpty(c.ItemId)) reward += "\n" + EarlyGameContent.FindItem(c.ItemId)?.Name + " ×" + c.ItemCount;
                 if (c.Insight > 0) reward += " · 심득석 " + c.Insight + "개";
                 UiFactory.Label("Reward", band, new Vector2(.04f, .42f), new Vector2(.96f, .72f), reward, 28, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);

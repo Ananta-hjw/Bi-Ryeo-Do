@@ -95,6 +95,7 @@ namespace BiRyeoDo.Tests.UI
         [TestCase("Memories", 3)]
         [TestCase("Stories", 2)]
         [TestCase("Factions", 2)]
+        [TestCase("Shop", 5)]
         [TestCase("Ritual", 2)]
         [TestCase("Codex", 3)]
         [TestCase("Achievements", 2)]
@@ -108,6 +109,7 @@ namespace BiRyeoDo.Tests.UI
                 case "Memories": new MemoryPanel(root, () => { }, null).Open(); break;
                 case "Stories": new StoryLogPanel(root, () => { }, null).Open(); break;
                 case "Factions": new FactionPanel(root, () => { }).Open(); break;
+                case "Shop": new FactionPanel(root, () => { }, true).Open(); break;
                 case "Ritual": new RitualPanel(root, () => { }, null).Open(); break;
                 default:
                     var other = Overlay("Other");

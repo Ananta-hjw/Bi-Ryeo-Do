@@ -213,10 +213,16 @@ namespace BiRyeoDo.Tests.UI
             {
                 Invoke(world, method);
             }
+            // 닫기 is gone: each full-screen overlay has the 돌아가기 arrow in its top-left corner, above its list.
             foreach (var name in new[] { "StageOverlay", "QuestOverlay", "TowerOverlay", "FortuneOverlay", "PartyOverlay", "SettingsOverlay" })
-                ComfortableButton("World/" + name + "/Close");
-            Assert.Greater(Bounds((RectTransform)worldRoot.Find("StageOverlay/Viewport")).yMin,
-                Bounds((RectTransform)worldRoot.Find("StageOverlay/Close")).yMax);
+            {
+                ComfortableButton("World/" + name + "/Back");
+                Assert.IsNull(worldRoot.Find(name + "/Close"), name);
+                var overlay = Bounds((RectTransform)worldRoot.Find(name));
+                Assert.GreaterOrEqual(Bounds((RectTransform)worldRoot.Find(name + "/Back")).yMin, overlay.yMax - 110f, name);
+            }
+            Assert.Less(Bounds((RectTransform)worldRoot.Find("StageOverlay/Viewport")).yMax,
+                Bounds((RectTransform)worldRoot.Find("StageOverlay/Back")).yMin + 1f);
             ComfortableButton("World/PartyOverlay/Formation/FormAuto");
 
             var bagRoot = UiFactory.Rect("Bag", Root, Vector2.zero, Vector2.one);
@@ -235,14 +241,11 @@ namespace BiRyeoDo.Tests.UI
             recordRoot.gameObject.AddComponent<RecordScreen>().Build(recordRoot, (title, lines, done) => { });
             recordRoot.Find("MenuViewport/Viewport/Content/Menu_faction").GetComponent<Button>().onClick.Invoke();
             string faction = "Record/Workspace/FactionOverlay/";
-            ComfortableButton(faction + "Tab0"); ComfortableButton(faction + "Tab1"); ComfortableButton(faction + "Close");
+            ComfortableButton(faction + "Back");   // 세력 평판 only: the 객잔 is its own panel now, so there are no tabs
             var factionRoot = recordRoot.Find("Workspace/FactionOverlay");
-            Assert.Greater(Bounds((RectTransform)factionRoot.Find("Viewport")).yMin,
-                Bounds((RectTransform)factionRoot.Find("Close")).yMax);
+            Assert.IsNull(factionRoot.Find("Tab0"));
             Assert.Less(Bounds((RectTransform)factionRoot.Find("Viewport")).yMax,
                 Bounds((RectTransform)factionRoot.Find("ToastViewport")).yMin);
-            Assert.Less(Bounds((RectTransform)factionRoot.Find("ToastViewport")).yMax,
-                Bounds((RectTransform)factionRoot.Find("Tab0")).yMin);
 
             var peopleRoot = UiFactory.Rect("PeopleTest", Root, Vector2.zero, Vector2.one);
             peopleRoot.gameObject.AddComponent<CompanionScreen>().Build(peopleRoot, () => { });
@@ -309,7 +312,7 @@ namespace BiRyeoDo.Tests.UI
             home.Build(homeRoot, world, menu => opened = menu, selected => tab = selected);
             Canvas.ForceUpdateCanvases();
             ComfortableButton("Home/StageList"); ComfortableButton("Home/Header/Settings");
-            foreach (var name in new[] { "MissionsMenu", "ChallengeMenu", "PartyMenu" }) ComfortableButton("Home/" + name);
+            foreach (var name in new[] { "MissionsMenu", "ChallengeMenu", "PartyMenu", "ShopMenu" }) ComfortableButton("Home/" + name);
             var layer = homeRoot.Find("FlyoutLayer");
             Assert.IsFalse(layer.gameObject.activeSelf);
             Assert.IsNull(homeRoot.Find("Quick_뽑기"));
@@ -346,14 +349,18 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsFalse(layer.gameObject.activeSelf);
             homeRoot.Find("PartyMenu").GetComponent<Button>().onClick.Invoke();
             Assert.AreEqual(WorldScreen.Menu.Party, opened);
-            string[] cards = { "협객", "무공", "행낭", "기록" };
-            TabRouter.Tab[] routes = { TabRouter.Tab.Companions, TabRouter.Tab.MartialArts, TabRouter.Tab.Bag, TabRouter.Tab.Record };
+            homeRoot.Find("ShopMenu").GetComponent<Button>().onClick.Invoke();
+            Assert.AreEqual(WorldScreen.Menu.Shop, opened);
+            // Six screen cards replace the bottom tab bar: every route but 강호 is reachable from here.
+            string[] cards = { "협객", "장비", "무공", "뽑기", "행낭", "기록" };
+            TabRouter.Tab[] routes = { TabRouter.Tab.Companions, TabRouter.Tab.Equipment, TabRouter.Tab.MartialArts, TabRouter.Tab.Gacha, TabRouter.Tab.Bag, TabRouter.Tab.Record };
+            CollectionAssert.AreEquivalent(System.Enum.GetValues(typeof(TabRouter.Tab)).Cast<TabRouter.Tab>().Where(t => t != TabRouter.Tab.World), routes);
             for (int i = 0; i < cards.Length; i++)
             {
                 var card = homeRoot.Find("Home_" + cards[i]);
                 Assert.GreaterOrEqual(Bounds((RectTransform)card).height, 275f);
-                Assert.GreaterOrEqual(Bounds((RectTransform)card).width, width * .26f);
-                Assert.GreaterOrEqual(card.Find("Title").GetComponent<Text>().fontSize, 44);
+                Assert.GreaterOrEqual(Bounds((RectTransform)card).width, width * .17f);
+                Assert.GreaterOrEqual(card.Find("Title").GetComponent<Text>().fontSize, 42);
                 card.GetComponent<Button>().onClick.Invoke();
                 Assert.AreEqual(routes[i], tab);
             }
@@ -371,48 +378,89 @@ namespace BiRyeoDo.Tests.UI
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
-        public void BottomNavigationIncludesEquipmentAndGachaWithoutChangingExistingRouteIds(float width)
+        public void EveryScreenButTheLobbyHasTheSameBackBarAboveItsPanel(float width)
         {
             Root.sizeDelta = new Vector2(width, 960f);
             var main = _canvas.AddComponent<MainScreen>();
-            Invoke(main, "BuildTabBar", Root);
-            string[] names = { "강호", "협객", "장비", "무공", "뽑기", "행낭", "기록" };
-            var buttons = _canvas.transform.Find("TabBar").GetComponentsInChildren<Button>();
-            CollectionAssert.AreEqual(names.Select(name => "Tab_" + name).ToArray(), buttons.Select(button => button.name).ToArray());
-            var navigation = (TabRouter.Tab[])typeof(MainScreen).GetField("NavigationTabs", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
-            CollectionAssert.AreEquivalent(System.Enum.GetValues(typeof(TabRouter.Tab)), navigation);
-            foreach (var name in names) ComfortableButton("TabBar/Tab_" + name);
-            var icons = (Graphic[])typeof(MainScreen).GetField("_tabIcons", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(main);
-            var labels = (Text[])typeof(MainScreen).GetField("_tabLabels", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(main);
-            for (int i = 0; i < icons.Length; i++)
+            var panel = UiFactory.Rect("Panel", Root, Vector2.zero, Vector2.one);
+            panel.offsetMax = new Vector2(0f, -104f);
+            Invoke(main, "BuildBackBar", panel, "협객");
+            ComfortableButton("Panel/BackBar/Back");
+            Canvas.ForceUpdateCanvases();
+            var bar = Bounds((RectTransform)panel.Find("BackBar"));
+            Assert.That(bar.yMin, Is.EqualTo(Bounds(panel).yMax).Within(.5f), "the bar sits right above the panel");
+            Assert.That(bar.width, Is.EqualTo(width).Within(.5f));
+            Assert.AreEqual("back", panel.Find("BackBar/Back").GetComponentInChildren<WuxiaGlyph>().Key);
+            Assert.Less(Bounds((RectTransform)panel.Find("BackBar/Back")).xMax, Bounds((RectTransform)panel.Find("BackBar/Title")).xMin + 1f);
+            Assert.IsNull(typeof(MainScreen).GetMethod("BuildTabBar", BindingFlags.Instance | BindingFlags.NonPublic), "there is no bottom tab bar any more");
+        }
+
+        [TestCase(1440f)]
+        [TestCase(2400f)]
+        public void ScreenHeadersMoveIntoTheTopBarAndLeaveNoBandBehind(float width)
+        {
+            Root.sizeDelta = new Vector2(width, 960f);
+            var main = _canvas.AddComponent<MainScreen>();
+            foreach (var kind in new[] { "bag", "gacha", "record", "arts" })
             {
-                var icon = Bounds(icons[i].rectTransform);
-                Assert.That(icon.width, Is.EqualTo(76f).Within(.1f));
-                Assert.That(icon.height, Is.EqualTo(76f).Within(.1f));
-                Assert.Less(icon.xMax, Bounds(labels[i].rectTransform).xMin);
+                var panel = UiFactory.Rect("Panel_" + kind, Root, Vector2.zero, Vector2.one);
+                panel.offsetMax = new Vector2(0f, -104f);
+                Invoke(main, "BuildBackBar", panel, kind);
+                var root = UiFactory.Rect("Screen", panel, Vector2.zero, Vector2.one);
+                if (kind == "bag") root.gameObject.AddComponent<BagScreen>().Build(root);
+                else if (kind == "gacha") root.gameObject.AddComponent<GachaScreen>().Build(root);
+                else if (kind == "record") root.gameObject.AddComponent<RecordScreen>().Build(root, null);
+                else root.gameObject.AddComponent<MartialArtsScreen>().Build(root);
+                panel.Find("BackBar").SetAsLastSibling();
+                Canvas.ForceUpdateCanvases();
+                var page = kind == "arts" ? root.Find("ArtsPage") : root;
+                Assert.IsNull(page.Find("HeaderBand"), kind + ": the old band is gone");
+                var info = panel.Find("BackBar/Info");
+                Assert.AreEqual(1, info.childCount, kind);
+                var host = info.GetChild(0);
+                var bar = Bounds((RectTransform)panel.Find("BackBar"));
+                var header = Bounds((RectTransform)host.Find("Header"));
+                Assert.That(header.center.y, Is.EqualTo(bar.center.y).Within(1f), kind);
+                if (kind != "record")
+                {
+                    var help = Bounds((RectTransform)host.Find("Help"));
+                    Assert.That(help.center.y, Is.EqualTo(bar.center.y).Within(1f), kind);
+                    Assert.Less(header.xMin, help.xMin);
+                }
+                if (kind == "bag") Assert.IsNotNull(host.Find("BulkDismantleButton"));
+                if (kind == "arts")
+                {
+                    // The 무공/심법 page buttons now sit right under the top bar, above the art list
+                    var pageButton = Bounds((RectTransform)root.Find("Page0"));
+                    Assert.Less(pageButton.yMax, bar.yMin + 1f);
+                    Assert.Less(Bounds((RectTransform)page.Find("Viewport")).yMax, pageButton.yMin + 1f);
+                }
             }
         }
 
         [Test]
-        public void RecordNavigationBadgeReflectsUnreadPagesAndSurvivesOpeningOnlyTheTab()
+        public void LobbyRecordCardBadgeReflectsUnreadPages()
         {
-            var main = _canvas.AddComponent<MainScreen>();
-            Invoke(main, "BuildTabBar", Root);
-            Invoke(main, "RefreshNotices", _save);
-            var dot = Root.Find("TabBar/Tab_기록/NewDot");
-            Assert.IsTrue(dot.gameObject.activeSelf);
+            var routes = UiFactory.Rect("Routes", Root, Vector2.zero, Vector2.one);
+            var world = routes.gameObject.AddComponent<WorldScreen>();
+            world.Build(routes, stage => { }, offer => { }, () => { });
+            routes.gameObject.SetActive(false);
+            var homeRoot = UiFactory.Rect("Home", Root, Vector2.zero, Vector2.one);
+            var home = homeRoot.gameObject.AddComponent<LandscapeHome>();
+            home.Build(homeRoot, world, menu => { }, tab => { });
+            home.Refresh();
+            var dot = homeRoot.Find("Home_기록/Badge");
             int count = RecordUpdates.Count(_save);
-            Assert.AreEqual(count > 99 ? "99+" : count.ToString(), dot.Find("Count").GetComponent<Text>().text);
-            Assert.AreNotSame(ArtLibrary.Icon("party"), ArtLibrary.Icon("companion"));
+            Assert.AreEqual(count > 0, dot.gameObject.activeSelf);
+            if (count > 0) Assert.AreEqual(count > 99 ? "99+" : count.ToString(), dot.Find("Count").GetComponent<Text>().text);
             foreach (var page in new[] { RecordUpdates.CodexPage, RecordUpdates.StoryPage, RecordUpdates.FactionPage }) RecordUpdates.Acknowledge(_save, page);
             foreach (var achievement in Achievements.All) _save.ClaimedAchievements.Add(achievement.Id);
             foreach (var memory in Memories.All) _save.SeenMemories.Add(memory.Id);
-            Invoke(main, "RefreshNotices", _save);
+            home.Refresh();
             Assert.IsFalse(dot.gameObject.activeSelf);
-            Codex.SeeItem(_save, "straw_sandals");
             // Start-kit items may already have been discovered; force a fresh valid item.
             Codex.SeeItem(_save, EarlyGameContent.Items.First(item => !_save.SeenItems.Contains(item.Id)).Id);
-            Invoke(main, "RefreshNotices", _save);
+            home.Refresh();
             Assert.IsTrue(dot.gameObject.activeSelf);
         }
 
@@ -503,7 +551,7 @@ namespace BiRyeoDo.Tests.UI
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
-        public void MartialArtsUseTwoCardsPerRowAndKeepTheirHeightAcrossRefreshes(float width)
+        public void MartialArtsUseThreeCardsPerRowAndKeepTheirHeightAcrossRefreshes(float width)
         {
             Root.sizeDelta = new Vector2(width, 960f);
             var art = EarlyGameContent.Arts.First(a => a.OwnerId == null);
@@ -515,16 +563,16 @@ namespace BiRyeoDo.Tests.UI
             Canvas.ForceUpdateCanvases(); layout.Reflow();
             var rows = Enumerable.Range(0, content.childCount).Select(i => (RectTransform)content.GetChild(i)).ToArray();
             int total = EarlyGameContent.Arts.Count(a => a.OwnerId == null);
-            Assert.AreEqual((total + 1) / 2, rows.Length);
-            Assert.AreEqual(2, rows[0].childCount);
+            Assert.AreEqual((total + 2) / 3, rows.Length);
+            Assert.AreEqual(3, rows[0].childCount);
             var firstCard = rows[0].Find("Card0");
             var artIcon = Bounds((RectTransform)firstCard.Find("Icon"));
-            Assert.That(artIcon.width, Is.EqualTo(144f).Within(.1f));
-            Assert.That(artIcon.height, Is.EqualTo(144f).Within(.1f));
+            Assert.That(artIcon.width, Is.EqualTo(120f).Within(.1f));
+            Assert.That(artIcon.height, Is.EqualTo(120f).Within(.1f));
             Assert.Less(artIcon.xMax, Bounds((RectTransform)firstCard.Find("Title")).xMin);
             for (int index = 0; index < total; index++)
             {
-                var card = (RectTransform)rows[index / 2].Find("Card" + index);
+                var card = (RectTransform)rows[index / 3].Find("Card" + index);
                 var button = Bounds((RectTransform)card.Find("Btn" + index));
                 Assert.GreaterOrEqual(button.height, 70f);
                 foreach (RectTransform chip in card.Find("Chips"))
@@ -535,7 +583,7 @@ namespace BiRyeoDo.Tests.UI
                     Assert.GreaterOrEqual(bounds.xMin, Bounds(card).xMin);
                     Assert.Greater(bounds.yMin, button.yMax);
                 }
-                if (index % 2 == 1) Assert.Less(Bounds((RectTransform)rows[index / 2].Find("Card" + (index - 1))).xMax, Bounds(card).xMin);
+                if (index % 3 != 0) Assert.Less(Bounds((RectTransform)rows[index / 3].Find("Card" + (index - 1))).xMax, Bounds(card).xMin);
             }
             var heights = rows.Select(row => row.rect.height).ToArray();
             var positions = rows.Select(row => row.anchoredPosition).ToArray();
@@ -555,10 +603,25 @@ namespace BiRyeoDo.Tests.UI
             }
         }
 
+        [Test]
+        public void TappingAnEquippedSlotTakesThatArtOff()
+        {
+            var art = EarlyGameContent.Arts.First(a => a.OwnerId == null && !Progression.IsUltimate(a));
+            if (!_save.LearnedArts.Contains(art.Id)) _save.LearnedArts.Add(art.Id);
+            _save.EquippedArts.Clear(); _save.EquippedArts.Add(art.Id);
+            var arts = _canvas.AddComponent<MartialArtsScreen>(); arts.Build(Root);
+            Invoke(arts, "Refresh");
+            var slot = _canvas.transform.Find("ArtsPage/SlotBar/Slot0");
+            Assert.IsNotNull(slot.Find("Unequip"));
+            slot.GetComponent<Button>().onClick.Invoke();
+            Assert.IsFalse(_save.EquippedArts.Contains(art.Id));
+            Assert.IsTrue(_save.LearnedArts.Contains(art.Id), "unequipping keeps the art learned");
+        }
+
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
-        public void InnerArtsUseTwoCardsPerRowWithStableHeightAndSeparateActions(float width)
+        public void InnerArtsUseThreeCardsPerRowWithStableHeightAndSeparateActions(float width)
         {
             Root.sizeDelta = new Vector2(width, 960f);
             var arts = _canvas.AddComponent<MartialArtsScreen>(); arts.Build(Root);
@@ -567,21 +630,21 @@ namespace BiRyeoDo.Tests.UI
             var layout = content.GetComponent<ReadingList>();
             Canvas.ForceUpdateCanvases(); layout.Reflow();
             var rows = Enumerable.Range(0, content.childCount).Select(i => (RectTransform)content.GetChild(i)).ToArray();
-            Assert.AreEqual((InnerArts.All.Length + 1) / 2, rows.Length);
+            Assert.AreEqual((InnerArts.All.Length + 2) / 3, rows.Length);
             for (int index = 0; index < InnerArts.All.Length; index++)
             {
-                var card = rows[index / 2].Find("Card" + index);
+                var card = rows[index / 3].Find("Card" + index);
                 Assert.IsNotNull(card);
                 var innerIcon = Bounds((RectTransform)card.Find("Icon"));
-                Assert.That(innerIcon.width, Is.EqualTo(124f).Within(.1f));
+                Assert.That(innerIcon.width, Is.EqualTo(100f).Within(.1f));
                 Assert.Less(innerIcon.xMax, Bounds((RectTransform)card.Find("Name")).xMin);
                 Assert.Less(Bounds((RectTransform)card.Find("Effect")).yMax, innerIcon.yMin);
                 var act = Bounds((RectTransform)card.Find("Act"));
                 Assert.Less(act.yMax, Bounds((RectTransform)card.Find("Effect")).yMin);
                 Assert.GreaterOrEqual(act.height, 60f);
-                if (index % 2 != 0)
+                if (index % 3 != 0)
                 {
-                    var left = rows[index / 2].Find("Card" + (index - 1));
+                    var left = rows[index / 3].Find("Card" + (index - 1));
                     Assert.Less(Bounds((RectTransform)left).xMax, Bounds((RectTransform)card).xMin);
                     Assert.That(Bounds((RectTransform)left).yMax, Is.EqualTo(Bounds((RectTransform)card).yMax).Within(.1f));
                 }

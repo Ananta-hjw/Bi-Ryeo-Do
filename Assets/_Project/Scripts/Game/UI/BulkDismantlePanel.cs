@@ -108,7 +108,7 @@ namespace BiRyeoDo.Game.UI
 
             var go = UiFactory.Button("Go", card.transform, new Vector2(.43f, .025f), new Vector2(.76f, .155f), plan.Count == 0 ? "분해할 장비 없음" : "선택한 " + total + "개 분해", plan.Count == 0 ? UiFactory.InkSoft : UiFactory.Red, () => UiFactory.Confirm(_root, "일괄 분해할까요?", "선택한 장비 " + total + "개를 분해합니다.\n분해한 장비는 되돌릴 수 없습니다.", total + "개 분해", () => Perform(plan)), 32);
             go.interactable = plan.Count > 0;
-            UiFactory.Button("Close", card.transform, new Vector2(.79f, .025f), new Vector2(.97f, .155f), "닫기", UiFactory.InkSoft, () => { Hide(); _changed(); }, 32);
+            UiFactory.BackButton(card.transform, new Vector2(.79f, .025f), new Vector2(.97f, .155f), () => { Hide(); _changed(); });
         }
 
         private static void Toggle(Transform parent, string name, float x0, float x1, float y0, float y1, string label, bool on, Color accent, UnityEngine.Events.UnityAction onClick, int size = 28)

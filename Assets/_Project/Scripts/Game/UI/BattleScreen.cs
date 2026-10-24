@@ -570,7 +570,7 @@ namespace BiRyeoDo.Game.UI
                 if (!_fled && !stage.IsQuest && !stage.IsTower) { StageProgress.Clear(save); GameManager.Instance.SaveNow(); }
                 if (singleDone)
                 {
-                    yield return ShowResult("전투 " + (_lastFightNumber) + " 승리!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + MaterialSummary(materialLines) + (_lastStarLine.Length > 0 ? "\n" + _lastStarLine : "") + "\n\n다른 전투는 스테이지를 다시 눌러 고를 수 있습니다.", false);
+                    yield return ShowResult("전투 " + (_lastFightNumber) + " 승리!", "획득  경험 " + gainedExp + " · 은자 " + gainedDoo + MaterialSummary(materialLines) + (_lastStarLine.Length > 0 ? "\n" + _lastStarLine : "") + "\n\n다른 전투는 스테이지를 다시 눌러 고를 수 있습니다.", false);
                     break;
                 }
                 if (cleared && stage.IsQuest)
@@ -579,7 +579,7 @@ namespace BiRyeoDo.Game.UI
                     string questNote = quest != null ? Quests.Complete(save, quest) : "";
                     string bonds = AwardBonds(save, quest != null ? quest.BondPoints : 1);
                     GameManager.Instance.SaveNow();
-                    yield return ShowResult("의뢰 완수!", "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (questNote.Length > 0 ? "\n" + questNote : "") + (bonds.Length > 0 ? "\n" + bonds : ""), false);
+                    yield return ShowResult("의뢰 완수!", "획득  경험 " + gainedExp + " · 은자 " + gainedDoo + (questNote.Length > 0 ? "\n" + questNote : "") + (bonds.Length > 0 ? "\n" + bonds : ""), false);
                 }
                 else if (cleared && stage.IsTower)
                 {
@@ -587,7 +587,7 @@ namespace BiRyeoDo.Game.UI
                     if (towerFirst) Daily.Record(save, DailyEvent.TowerClear);   // replays of cleared floors do not count
                     GameManager.Instance.SaveNow();
                     yield return ShowResult(stage.TowerFloor + "층 돌파!", towerFirst
-                        ? "획득  경험 " + gainedExp + " · 두 " + gainedDoo + (towerNote.Length > 0 ? "\n" + towerNote : "")
+                        ? "획득  경험 " + gainedExp + " · 은자 " + gainedDoo + (towerNote.Length > 0 ? "\n" + towerNote : "")
                         : "이미 돌파한 층입니다. (보상 없음)", false);
                 }
                 else if (cleared)
@@ -617,7 +617,7 @@ namespace BiRyeoDo.Game.UI
                 }
                 else
                 {
-                    yield return ShowResult("패배...", "다시 도전하면 " + (pickStart > 0 ? "고른 전투(전투 " + (pickStart + 1) + ")" : "이 스테이지의 첫 전투") + "부터 시작합니다. (이미 얻은 경험과 두는 그대로 남습니다.)", true);
+                    yield return ShowResult("패배...", "다시 도전하면 " + (pickStart > 0 ? "고른 전투(전투 " + (pickStart + 1) + ")" : "이 스테이지의 첫 전투") + "부터 시작합니다. (이미 얻은 경험과 은자는 그대로 남습니다.)", true);
                     again = _retry;
                     resume = false;
                     startIndex = pickStart;
@@ -743,7 +743,7 @@ namespace BiRyeoDo.Game.UI
                 if (lost)
                 {
                     bool canRetry = Promotion.CanAfford(save, offer);
-                    yield return ShowResult("패배...", "입장료 " + offer.Fee.ToString("N0") + "두는 돌려받지 못합니다." + (canRetry ? "\n다시 도전하려면 입장료를 한 번 더 내야 합니다." : "\n두가 모자라 다시 도전할 수 없습니다."), true, canRetry);
+                    yield return ShowResult("패배...", "입장료 " + offer.Fee.ToString("N0") + "은자는 돌려받지 못합니다." + (canRetry ? "\n다시 도전하려면 입장료를 한 번 더 내야 합니다." : "\n은자가 모자라 다시 도전할 수 없습니다."), true, canRetry);
                     if (_retry && Promotion.Pay(save, offer)) { GameManager.Instance.SaveNow(); again = true; }
                 }
                 else
@@ -752,7 +752,7 @@ namespace BiRyeoDo.Game.UI
                     int levels = Progression.AddExp(save, offer.ExpReward);
                     GameManager.Instance.SaveNow();
                     yield return ShowResult(Promotion.RankName(offer.TargetRank) + " 승급!",
-                        (anyDraw ? "무승부가 섞여 상금이 절반입니다.\n" : "") + "상금 " + doo.ToString("N0") + "두 · 경험 " + offer.ExpReward + (levels > 0 ? "\nLv." + save.Level + " 상승!" : ""), false);
+                        (anyDraw ? "무승부가 섞여 상금이 절반입니다.\n" : "") + "상금 " + doo.ToString("N0") + "은자 · 경험 " + offer.ExpReward + (levels > 0 ? "\nLv." + save.Level + " 상승!" : ""), false);
                 }
             }
 
@@ -1032,6 +1032,7 @@ namespace BiRyeoDo.Game.UI
                 p.SpiritText = GaugeText("SpiritText", p.Root, 0.015f, 0.105f);
                 p.QiText.gameObject.SetActive(false); p.SpiritText.gameObject.SetActive(false);
                 FixedLabelHeight(p.Name, 1f, 32f);
+                OutlineCommandText(p.Name);   // readable where the head of the figure reaches the name
                 p.Name.rectTransform.anchoredPosition = new Vector2(0f, -16f);
                 FixedLabelHeight(p.Status, .66f, 30f);
                 FixedLabelHeight(p.HpText, .275f, 28f);
@@ -1140,9 +1141,8 @@ namespace BiRyeoDo.Game.UI
                     card.Qi.Root.gameObject.SetActive(false); card.Spirit.Root.gameObject.SetActive(false);
                     card.QiText.gameObject.SetActive(false); card.SpiritText.gameObject.SetActive(false);
                 }
-                // 무공 경지 under the name, from the stats this fight actually uses (harder difficulties raise it)
-                string realm = Realm.HasRealm(data) ? Realm.Label(units[i].RealmStep) : "";
-                card.Realm = UiFactory.Label("Realm", card.Root, new Vector2(0.03f, 0.73f), new Vector2(0.97f, 0.845f), realm, 18, new Color(0.85f, 0.75f, 0.45f, 1f));
+                // No 무공 경지 on the board (it stays in the enemy info card); the label is kept empty for the layout code below.
+                card.Realm = UiFactory.Label("Realm", card.Root, new Vector2(0.03f, 0.73f), new Vector2(0.97f, 0.845f), "", 18, new Color(0.85f, 0.75f, 0.45f, 1f));
                 card.Badge = UiFactory.Label("Badge", card.Root, new Vector2(0.04f, 0.60f), new Vector2(0.96f, 0.73f), "", 20, UiFactory.PaperText);
                 card.IntentBack = UiFactory.Panel("IntentBack", card.Root, new Vector2(.01f, 0f), new Vector2(.99f, .145f), HudInk);
                 card.Intent = UiFactory.Label("Intent", card.Root, new Vector2(0.02f, 0.0f), new Vector2(0.98f, 0.145f), "", 21, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
@@ -1155,6 +1155,8 @@ namespace BiRyeoDo.Game.UI
                 FixedLabelHeight(card.Intent, 0f, 26f);
                 card.Intent.rectTransform.anchoredPosition = new Vector2(0f, 13f);
                 card.ActionBadge = BuildActionBadge(card.Root);
+                card.Name.transform.SetAsLastSibling();   // the name is drawn over the figure, which can reach the top of the cell
+                OutlineCommandText(card.Name);
 
                 // Tap to attack (only while an attack is being aimed)
                 var tap = card.Root.gameObject.AddComponent<Button>();
@@ -1627,7 +1629,7 @@ namespace BiRyeoDo.Game.UI
             _tipTitle = UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.86f), new Vector2(0.72f, 0.98f), "", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
             _tipBody = UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(0.06f, .18f), new Vector2(0.94f, 0.74f), "", 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 36);
             _tipBody.lineSpacing = 1.25f;
-            UiFactory.Button("Close", card.transform, new Vector2(.30f, .02f), new Vector2(.70f, .16f), "닫기", UiFactory.InkSoft, () => { _tipRoot.SetActive(false); StartCoroutine(GuardTaps(.3f)); }, 34);
+            UiFactory.BackButton(card.transform, new Vector2(.30f, .02f), new Vector2(.70f, .16f), () => { _tipRoot.SetActive(false); StartCoroutine(GuardTaps(.3f)); });
             _tipRoot.SetActive(false);
         }
 
@@ -1919,7 +1921,7 @@ namespace BiRyeoDo.Game.UI
             if (_fled || _fleeAsking) return;
             _fleeAsking = true;
             string body = _promotionRun ? "지금 비무를 그만두고 돌아갑니다.\n낸 입장료는 돌려받지 못합니다."
-                : "지금 전투를 그만두고 돌아갑니다.\n이번 전투의 보상은 받지 못합니다. 이미 이긴 전투에서 얻은 경험과 두는 남습니다.";
+                : "지금 전투를 그만두고 돌아갑니다.\n이번 전투의 보상은 받지 못합니다. 이미 이긴 전투에서 얻은 경험과 은자는 남습니다.";
             var window = UiFactory.Confirm(_root, "전투를 포기할까요?", body, "포기", () => { _fleeAsking = false; Flee(); });
             // 「취소」 destroys the window without a callback: clear the flag when it goes away
             window.gameObject.AddComponent<OnDestroyHook>().Done = () => _fleeAsking = false;

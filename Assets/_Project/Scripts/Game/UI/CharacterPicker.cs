@@ -53,7 +53,7 @@ namespace BiRyeoDo.Game.UI
                     owner == selected ? UiFactory.Gold : UiFactory.PaperText, TextAnchor.MiddleLeft));
                 UiFactory.Body(UiFactory.Label("Selected", button.transform, new Vector2(.40f, .06f), new Vector2(.97f, .33f), owner == selected ? "현재 선택" : "선택하기", 22, UiFactory.Dim, TextAnchor.MiddleLeft));
             }
-            UiFactory.Button("Close", card, new Vector2(.30f, .015f), new Vector2(.70f, .14f), "닫기", UiFactory.InkSoft, () => root.gameObject.SetActive(false), 28);
+            UiFactory.BackButton(card, new Vector2(.30f, .015f), new Vector2(.70f, .14f), () => root.gameObject.SetActive(false));
             Canvas.ForceUpdateCanvases();
             content.GetComponent<ReadingList>()?.Reflow();
         }

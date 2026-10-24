@@ -178,6 +178,37 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void BulkFusionUsesOnlyTickedGradesAndSlotsAndKeepsTheRemainder()
+        {
+            var save = new SaveData();
+            string weaponN = Salvage.IdOf(ItemKind.Weapon, ItemGrade.Normal), bootsN = Salvage.IdOf(ItemKind.Boots, ItemGrade.Normal);
+            string weaponF = Salvage.IdOf(ItemKind.Weapon, ItemGrade.Fine), armorN = Salvage.IdOf(ItemKind.Armor, ItemGrade.Normal);
+            Inventory.Add(save, weaponN, 137);   // 2 fusions, 37 left
+            Inventory.Add(save, bootsN, 50);     // slot not ticked
+            Inventory.Add(save, weaponF, 80);    // grade not ticked
+            Inventory.Add(save, armorN, 49);     // not enough for one
+            var grades = new[] { true, false, false, false, false };
+            var slots = new[] { true, true, false, false, true };
+
+            var plan = Salvage.BulkFusePlan(save, grades, slots);
+            Assert.AreEqual(1, plan.Count);
+            Assert.AreEqual(weaponN, plan[0].Material.Id);
+            Assert.AreEqual(137, plan[0].Have);
+            Assert.AreEqual(2, plan[0].Times);
+            Assert.AreEqual(100, plan[0].Spent);
+            Assert.AreEqual(37, plan[0].Left);
+
+            var made = Salvage.FuseBulk(save, plan, new SeededRandom(3));
+            Assert.AreEqual(2, made.Count);
+            Assert.IsTrue(made.All(m => m.Grade == ItemGrade.Fine && m.Kind == ItemKind.Weapon));
+            Assert.AreEqual(37, Inventory.Count(save, weaponN));
+            Assert.AreEqual(50, Inventory.Count(save, bootsN));
+            Assert.AreEqual(80, Inventory.Count(save, weaponF));
+            Assert.AreEqual(49, Inventory.Count(save, armorN));
+            Assert.AreEqual(0, Salvage.BulkFusePlan(save, grades, slots).Count);
+        }
+
+        [Test]
         public void ADuplicatePullStaysInTheBagAsASpare()
         {
             var save = new SaveData { Doo = 100000 };

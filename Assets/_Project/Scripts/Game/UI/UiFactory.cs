@@ -315,8 +315,52 @@ namespace BiRyeoDo.Game.UI
             return rect;
         }
 
+        /// <summary>The info area of the top bar of the screen that holds <paramref name="from"/> (MainScreen's back bar), or null outside one.</summary>
+        public static RectTransform HeaderSlotFor(Transform from)
+        {
+            for (var t = from; t != null; t = t.parent)
+            {
+                var slot = t.Find("BackBar/Info");
+                if (slot != null) return (RectTransform)slot;
+            }
+            return null;
+        }
+
+        /// <summary>The page's own header container inside the top bar (made on first use), or null when the page has no top bar.</summary>
+        private static RectTransform HeaderHost(Transform page, bool create)
+        {
+            var slot = HeaderSlotFor(page);
+            if (slot == null) return null;
+            string key = "Header_" + page.GetInstanceID();
+            var host = slot.Find(key) as RectTransform;
+            if (host != null || !create) return host;
+            host = Rect(key, slot, Vector2.zero, Vector2.one);
+            var tracker = slot.GetComponent<HeaderSlot>();   // not ??: a missing Unity component is a fake null
+            if (tracker == null) tracker = slot.gameObject.AddComponent<HeaderSlot>();
+            tracker.Register(host.gameObject, page.gameObject);
+            return host;
+        }
+
+        /// <summary>
+        /// The page header: icon and info line, plus the ? and header buttons placed with <see cref="HelpButton"/> / <see cref="CenterInHeader"/>.
+        /// Inside a screen with a top bar it is drawn in that bar and the page grows upward by the old band's height, so nothing is left in its place;
+        /// elsewhere (pop-ups, tests) it is the old band at the top of the page.
+        /// </summary>
         public static Text TabHeader(Transform parent, string icon, string title = "", float titleRight = .84f)
         {
+            var host = HeaderHost(parent, true);
+            if (host != null)
+            {
+                var page = (RectTransform)parent;
+                page.offsetMax = new Vector2(page.offsetMax.x, page.offsetMax.y + TabHeaderMargin + TabHeaderHeight);
+                var mark = Glyph(icon, host, new Vector2(0f, .5f), new Vector2(0f, .5f), Gold);
+                mark.rectTransform.pivot = new Vector2(0f, .5f);
+                mark.rectTransform.sizeDelta = new Vector2(64f, 64f);
+                mark.Stroke = 3f;
+                var info = Label("Header", host, new Vector2(0f, .08f), new Vector2(titleRight, .92f), title, 36, Gold, TextAnchor.MiddleLeft);
+                info.rectTransform.offsetMin = new Vector2(80f, 0f);
+                return info;
+            }
             var band = TopLane("HeaderBand", parent);
             var background = band.gameObject.AddComponent<Image>();
             background.color = Ink; background.raycastTarget = false;
@@ -333,6 +377,17 @@ namespace BiRyeoDo.Game.UI
 
         public static void CenterInHeader(RectTransform rect, float height)
         {
+            var host = HeaderHost(rect.parent, false);
+            if (host != null)
+            {
+                // Same horizontal place, now measured across the top bar's info area
+                rect.SetParent(host, false);
+                rect.anchorMin = new Vector2(rect.anchorMin.x, .5f);
+                rect.anchorMax = new Vector2(rect.anchorMax.x, .5f);
+                rect.offsetMin = new Vector2(0f, -height / 2f);
+                rect.offsetMax = new Vector2(0f, height / 2f);
+                return;
+            }
             var min = rect.offsetMin; var max = rect.offsetMax;
             rect.anchorMin = new Vector2(rect.anchorMin.x, 1f);
             rect.anchorMax = new Vector2(rect.anchorMax.x, 1f);
@@ -373,9 +428,21 @@ namespace BiRyeoDo.Game.UI
         /// <summary>Compact circular help control with the same diameter on every screen.</summary>
         public static Button HelpButton(Transform parent, UnityAction onClick)
         {
-            var rect = Rect("Help", parent, new Vector2(.905f, .935f), new Vector2(.905f, .935f));
-            rect.sizeDelta = new Vector2(76f, 76f);
-            CenterInHeader(rect, 76f);
+            var host = HeaderHost(parent, false);
+            RectTransform rect;
+            if (host != null)
+            {
+                rect = Rect("Help", host, new Vector2(1f, .5f), new Vector2(1f, .5f));   // the right end of the top bar
+                rect.pivot = new Vector2(1f, .5f);
+                rect.anchoredPosition = Vector2.zero;
+                rect.sizeDelta = new Vector2(76f, 76f);
+            }
+            else
+            {
+                rect = Rect("Help", parent, new Vector2(.905f, .935f), new Vector2(.905f, .935f));
+                rect.sizeDelta = new Vector2(76f, 76f);
+                CenterInHeader(rect, 76f);
+            }
             var image = rect.gameObject.AddComponent<Image>();
             image.sprite = HelpCircle;
             image.color = Color.white;
@@ -407,7 +474,7 @@ namespace BiRyeoDo.Game.UI
             cardTap.targetGraphic = card;
             cardTap.transition = Selectable.Transition.None;
             Body(ScrollBody(Label("Body", card.transform, new Vector2(.06f, .20f), new Vector2(.94f, .83f), body, 32, PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 32), 1.35f);
-            Button("Close", card.transform, new Vector2(0.30f, 0.04f), new Vector2(0.70f, 0.17f), "닫기", InkSoft, () => window.gameObject.SetActive(false), 34);
+            BackButton(card.transform, new Vector2(0.30f, 0.04f), new Vector2(0.70f, 0.17f), () => window.gameObject.SetActive(false));
             window.gameObject.SetActive(false);
             return window;
         }
@@ -438,6 +505,29 @@ namespace BiRyeoDo.Game.UI
             if (window == null) return;
             window.SetAsLastSibling();
             window.gameObject.SetActive(true);
+        }
+
+        /// <summary>돌아가기 in a card or pop-up: a button in the given place showing only the thin gold U-turn arrow (it replaced every 닫기).</summary>
+        public static Button BackButton(Transform parent, Vector2 min, Vector2 max, UnityAction onClick)
+        {
+            var button = Button("Close", parent, min, max, "", InkSoft, onClick, 28);
+            var arrow = Glyph("back", button.transform, new Vector2(.5f, .5f), new Vector2(.5f, .5f), Gold);
+            arrow.rectTransform.sizeDelta = new Vector2(84f, 72f);
+            arrow.raycastTarget = false;
+            return button;
+        }
+
+        /// <summary>돌아가기 on a full-screen overlay: the same arrow in the same top-left spot as the screens' back bar.</summary>
+        public static Button BackCorner(Transform parent, UnityAction onClick)
+        {
+            var button = Button("Back", parent, new Vector2(0f, 1f), new Vector2(0f, 1f), "", Color.clear, onClick, 28);
+            var rect = (RectTransform)button.transform;
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = new Vector2(16f, -6f);
+            rect.sizeDelta = new Vector2(135f, 96f);
+            var arrow = Glyph("back", button.transform, new Vector2(.12f, .1f), new Vector2(.88f, .9f), Gold);
+            arrow.raycastTarget = false;
+            return button;
         }
 
         public static Button Button(string name, Transform parent, Vector2 min, Vector2 max, string label, Color bg,

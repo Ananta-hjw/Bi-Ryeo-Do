@@ -11,19 +11,20 @@ namespace BiRyeoDo.Game.UI
     /// <summary>Shared landscape workspace for the protagonist and joined companions.</summary>
     public sealed class CompanionScreen : MonoBehaviour
     {
-        private static readonly string[] Pages = { "상태", "무공", "인연" };
+        private static readonly string[] Pages = { "상태", "무공", "심법", "인연" };
         private RectTransform _page, _identity, _picker, _tabs, _message;
         private string _owner = Inventory.Hero, _toast;
         private int _tab;
-        private Action _openArts;
+        private Action _openArts, _openInner;
         private bool _built, _resetScroll = true;
         private SaveData Save { get { return GameManager.Instance.Save; } }
         private CompanionData Companion { get { return EarlyGameContent.FindCompanion(_owner); } }
         private string OwnerName { get { return _owner == Inventory.Hero ? "비류연" : Companion.Name; } }
 
-        public void Build(RectTransform root, Action openArts)
+        public void Build(RectTransform root, Action openArts, Action openInner = null)
         {
             _openArts = openArts;
+            _openInner = openInner ?? openArts;
             UiFactory.Panel("Background", root, Vector2.zero, Vector2.one, new Color(.035f, .065f, .067f, .42f));
             _identity = UiFactory.Rect("Identity", root, new Vector2(.02f, .04f), new Vector2(.255f, .965f));
             _tabs = UiFactory.Rect("Pages", root, new Vector2(.275f, .865f), new Vector2(.98f, .965f));
@@ -82,7 +83,8 @@ namespace BiRyeoDo.Game.UI
             for (int i = 0; i < Pages.Length; i++)
             {
                 int page = i;
-                var button = Button(_tabs, "Page" + i, i * .335f, 0f, i * .335f + .325f, 1f, Pages[i], () => { _tab = page; _resetScroll = true; _toast = null; Refresh(); });
+                float w = 1f / Pages.Length;
+                var button = Button(_tabs, "Page" + i, i * w, 0f, (i + 1) * w - .01f, 1f, Pages[i], () => { _tab = page; _resetScroll = true; _toast = null; Refresh(); });
                 button.GetComponent<Image>().color = i == _tab ? UiFactory.Red : UiFactory.InkSoft;
                 if (i == _tab) UiFactory.Frame(button.transform, UiFactory.Gold, 2f);
             }
@@ -90,7 +92,8 @@ namespace BiRyeoDo.Game.UI
             {
                 case 0: BuildStatus(); break;
                 case 1: BuildArts(); break;
-                case 2: BuildBonds(); break;
+                case 2: BuildInner(); break;
+                case 3: BuildBonds(); break;
             }
             Canvas.ForceUpdateCanvases();
             var newList = _page.Find("List/Viewport");
@@ -103,7 +106,7 @@ namespace BiRyeoDo.Game.UI
                 scroll.verticalNormalizedPosition = position;
             }
             _resetScroll = false;
-            Reading(_message, "Feedback", 0f, 0f, 1f, 1f, _toast ?? (_tab == 1 ? "현재 전투에서 사용하는 무공만 표시합니다." : "인물을 바꿔도 선택한 탭을 유지합니다."), 26).color = UiFactory.Gold;
+            Reading(_message, "Feedback", 0f, 0f, 1f, 1f, _toast ?? (_tab == 1 ? "현재 전투에서 사용하는 무공만 표시합니다." : _tab == 2 ? "장착한 심법은 늘 적용됩니다." : "인물을 바꿔도 선택한 탭을 유지합니다."), 26).color = UiFactory.Gold;
         }
 
         private void OpenCharacterPicker()
@@ -197,37 +200,92 @@ namespace BiRyeoDo.Game.UI
             var summary = UiFactory.Panel("ArtsSummary", _page, new Vector2(0f, .82f), Vector2.one, UiFactory.Ink).rectTransform;
             Text(summary, "Heading", .03f, .47f, .97f, .98f, (hero ? "장착 중인 무공" : "현재 사용 무공") + " · " + arts.Count + "개", 32, UiFactory.Gold);
             Text(summary, "Note", .03f, .03f, .97f, .46f, "전투에 적용되는 효과와 소모 자원을 표시합니다.", 24, UiFactory.Dim);
-            var list = List(_page, 0f, hero ? .19f : .08f, 1f, .80f, arts.Count, 300f);
+            // Two cards per row
+            var list = List(_page, 0f, hero ? .19f : .08f, 1f, .80f, (arts.Count + 1) / 2, 300f);
             for (int i = 0; i < arts.Count; i++)
             {
                 var art = arts[i]; var spec = unit.Skills.First(skill => skill.Id == art.Id);
-                var row = Row(list, i, 300f);
-                var icon = UiFactory.Panel("Icon", row, new Vector2(.025f, .80f), new Vector2(.025f, .80f), Color.white);
+                var row = Card(list, i, 300f);
+                var icon = UiFactory.Panel("Icon", row, new Vector2(.03f, .80f), new Vector2(.03f, .80f), Color.white);
                 icon.rectTransform.pivot = new Vector2(0f, .5f);
-                icon.rectTransform.sizeDelta = new Vector2(112f, 112f);
+                icon.rectTransform.sizeDelta = new Vector2(100f, 100f);
                 icon.sprite = ArtLibrary.Art(art.Id); icon.preserveAspect = true;
                 if (icon.sprite == null)
                 {
                     icon.color = Color.clear;
                     UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, art.Name.Substring(0, 1), 36, UiFactory.Gold);
                 }
-                Text(row, "Name", .21f, .76f, .78f, .97f, art.Name, 34, UiFactory.Gold);
-                Text(row, "Kind", .80f, .76f, .97f, .97f, Progression.IsUltimate(art) ? "필살기" : "무공", 26, UiFactory.Dim);
+                Text(row, "Name", .25f, .76f, .80f, .97f, art.Name, 32, UiFactory.Gold);
+                Text(row, "Kind", .80f, .76f, .97f, .97f, Progression.IsUltimate(art) ? "필살기" : "무공", 24, UiFactory.Dim);
                 string resources = "내공 " + spec.QiCost + (spec.SpiritCost > 0 ? " · 기세 " + spec.SpiritCost : "")
                     + (spec.Cooldown > 0 ? " · 재사용 " + spec.Cooldown + "턴" : " · 재사용 없음");
                 if (hero) resources += " · 숙련 " + Mastery.LevelNames[Mastery.Level(Save, art.Id)];
-                Text(row, "Resources", .21f, .56f, .97f, .74f, resources, 26, UiFactory.PaperText);
+                Text(row, "Resources", .25f, .56f, .97f, .74f, resources, 24, UiFactory.PaperText);
                 string effect = spec.Effect == SkillEffect.HealAlly ? "아군 체력 " + Math.Round(spec.HealPct * 100f) + "% 회복"
                     : spec.Effect == SkillEffect.GuardParty ? "아군 전체 방어 태세"
                     : spec.Effect == SkillEffect.Evade ? "회피 확률 " + Math.Round(spec.EvadeChance * 100f) + "%"
                     : spec.Effect == SkillEffect.Cleanse ? "아군 상태 이상 해제"
                     : "위력 ×" + spec.Power.ToString("0.##") + " · " + Math.Max(1, spec.Hits) + "타 · " + (spec.AllEnemies ? "적 전체" : "적 1명");
-                Text(row, "Effect", .04f, .35f, .97f, .54f, effect, 30, UiFactory.Jade);
-                Text(row, "Description", .04f, .04f, .97f, .33f, art.Description, 26, UiFactory.PaperText);
+                Text(row, "Effect", .04f, .35f, .97f, .54f, effect, 26, UiFactory.Jade);
+                Text(row, "Description", .04f, .04f, .97f, .33f, art.Description, 24, UiFactory.PaperText);
             }
             if (arts.Count == 0) Text(_page, "Empty", .04f, .40f, .96f, .70f, "현재 장착 중인 무공이 없습니다.", 30, UiFactory.Dim);
             if (hero) Button(_page, "ArtsMenu", .25f, .005f, .75f, .17f, "무공 변경 · 관리", _openArts);
             else Text(_page, "AutoArts", .02f, .005f, .98f, .07f, "동료 무공은 레벨과 수련에 따라 자동으로 적용됩니다.", 24, UiFactory.Dim);
+        }
+
+        /// <summary>심법 page: the inner arts 비류연 has equipped, as two cards per row like the 무공 page (companions have none).</summary>
+        private void BuildInner()
+        {
+            if (_owner != Inventory.Hero)
+            {
+                Reading(_page, "Empty", .05f, .3f, .95f, .7f, "심법은 비류연만 익히고 장착합니다.");
+                return;
+            }
+            var equipped = Save.EquippedInner.Select(InnerArts.Find).Where(a => a != null).ToList();
+            var summary = UiFactory.Panel("InnerSummary", _page, new Vector2(0f, .82f), Vector2.one, UiFactory.Ink).rectTransform;
+            Text(summary, "Heading", .03f, .47f, .97f, .98f, "장착 중인 심법 · " + equipped.Count + " / " + InnerArts.SlotCount(Save) + "칸", 32, UiFactory.Gold);
+            Text(summary, "Note", .03f, .03f, .97f, .46f, "초록은 얻는 효과, 빨강은 잃는 효과입니다.", 24, UiFactory.Dim);
+            var list = List(_page, 0f, .19f, 1f, .80f, (equipped.Count + 1) / 2, 300f);
+            for (int i = 0; i < equipped.Count; i++)
+            {
+                var a = equipped[i];
+                int level = InnerArts.Level(Save, a.Id);
+                var card = Card(list, i, 300f);
+                var icon = UiFactory.Panel("Icon", card, new Vector2(.03f, .80f), new Vector2(.03f, .80f), Color.white);
+                icon.rectTransform.pivot = new Vector2(0f, .5f);
+                icon.rectTransform.sizeDelta = new Vector2(100f, 100f);
+                icon.sprite = ArtLibrary.InnerArt(a.Id); icon.preserveAspect = true;
+                if (icon.sprite == null)
+                {
+                    icon.color = Color.clear;
+                    UiFactory.Glyph("fortune", icon.transform, Vector2.zero, Vector2.one, UiFactory.Gold);
+                }
+                Text(card, "Name", .25f, .76f, .97f, .97f, a.Name + (level > 0 ? "  +" + level : ""), 32, UiFactory.Gold);
+                Text(card, "Effect", .25f, .40f, .97f, .74f, InnerArtPanel.Colored(a, level, "\n"), 24, UiFactory.PaperText);
+                Text(card, "Description", .04f, .04f, .97f, .38f, a.Description, 24, UiFactory.PaperText);
+            }
+            if (equipped.Count == 0) Text(_page, "Empty", .04f, .40f, .96f, .70f, "현재 장착 중인 심법이 없습니다.", 30, UiFactory.Dim);
+            Button(_page, "InnerMenu", .25f, .005f, .75f, .17f, "심법 변경 · 관리", _openInner);
+        }
+
+        /// <summary>Card <paramref name="index"/> of a two-column list: rows of two, each row measured as one so a long card grows its row.</summary>
+        private static RectTransform Card(RectTransform content, int index, float height)
+        {
+            int rowIndex = index / 2;
+            var row = content.Find("Row" + rowIndex) as RectTransform;
+            if (row == null)
+            {
+                row = UiFactory.Rect("Row" + rowIndex, content, new Vector2(.015f, 1f), new Vector2(.965f, 1f));
+                row.pivot = new Vector2(.5f, 1f); row.sizeDelta = new Vector2(0f, height);
+                row.anchoredPosition = new Vector2(0f, -12f - rowIndex * (height + 12f));
+                ReadingList.Register(row, height, 12f);
+            }
+            float x0 = index % 2 == 0 ? 0f : .51f;
+            var card = UiFactory.Panel("Card" + index, row, new Vector2(x0, 0f), new Vector2(x0 + .49f, 1f), UiFactory.Ink).rectTransform;
+            card.GetComponent<Image>().raycastTarget = true;
+            UiFactory.Frame(card, UiFactory.GoldDim, 1f);
+            return card;
         }
 
         private void BuildBonds()
@@ -245,7 +303,7 @@ namespace BiRyeoDo.Game.UI
                     + "\n수련 Lv." + CompanionTraining.LevelOf(Save, companion.Id) + " / " + CompanionTraining.Cap(Save, companion.Id), 28);
                 int training = CompanionTraining.LevelOf(Save, companion.Id), cap = CompanionTraining.Cap(Save, companion.Id);
                 long cost = CompanionTraining.NextCost(Save, companion.Id);
-                string label = training >= CompanionTraining.MaxLevel ? "수련 완료" : training >= cap ? "인연 성장 필요" : "동료 수련\n" + cost.ToString("N0") + "두";
+                string label = training >= CompanionTraining.MaxLevel ? "수련 완료" : training >= cap ? "인연 성장 필요" : "동료 수련\n" + cost.ToString("N0") + "은자";
                 Button(row, "Train", .70f, .12f, .97f, .68f, label, () =>
                 {
                     string error;
