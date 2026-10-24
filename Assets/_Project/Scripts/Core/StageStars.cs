@@ -200,22 +200,46 @@ namespace BiRyeoDo.Core
             return (1.05f + 0.005f * (Math.Min(36, stage) - 7)) * NormalAtkTuneTable[Math.Min(NormalAtkTuneTable.Length, stage) - 1] * (float)Math.Pow(NormalHarden(stage), HardenAtkExp);
         }
 
-        /// <summary>일반 난이도 스테이지 <see cref="NormalStatEaseFromStage"/>부터 적 공격·방어에 곱하는 배율(어려움·극악은 그대로).</summary>
+        /// <summary>일반 난이도 적 공격·방어 배율: 스테이지 7 x0.93, 8 x0.87, 9부터 x0.8로 점점 낮춘다(어려움·극악은 그대로).</summary>
+        static readonly float[] NormalStatEaseRamp = { 0.93f, 0.87f };
         public const float NormalStatEase = 0.8f;
-        public const int NormalStatEaseFromStage = 8;
+        public const int NormalStatEaseFromStage = 7;
 
-        public static EnemyData ScaleEnemy(EnemyData enemy, int stage, int difficulty)
+        public static float NormalStatEaseFor(int stage)
+        {
+            if (stage < NormalStatEaseFromStage) return 1f;
+            int i = stage - NormalStatEaseFromStage;
+            return i < NormalStatEaseRamp.Length ? NormalStatEaseRamp[i] : NormalStatEase;
+        }
+
+        /// <summary>일반 난이도 적 체력 배율. 균형 봇으로 잰 현재 난이도에 맞춰 어려운 스테이지일수록 조금 더 줄인다
+        /// (봇이 남기는 체력 30% 미만 x0.90, 72% 미만 x0.93, 85% 이하 x0.95, 그 위 x0.97). 버티기 시험 전투는 줄이지 않는다.</summary>
+        static readonly float[] NormalHpTrimTable =
+        {
+            0.90f, 0.97f, 0.97f, 0.90f, 0.90f, 0.90f, 0.95f, 0.93f, 0.97f, 0.93f,   //  1-10
+            0.93f, 0.95f, 0.93f, 0.93f, 0.95f, 0.97f, 0.97f, 0.95f, 0.97f, 0.97f,   // 11-20
+            0.97f, 0.97f, 0.95f, 0.95f, 0.97f, 0.97f, 0.97f, 0.97f, 0.97f, 0.97f,   // 21-30
+            0.95f, 0.97f, 0.95f, 0.97f, 0.97f, 0.95f,                               // 31-36
+        };
+
+        public static float NormalHpTrim(int stage) { return stage >= 1 && stage <= NormalHpTrimTable.Length ? NormalHpTrimTable[stage - 1] : 1f; }
+
+        /// <summary>Stage 6's boss 호천상 keeps full HP: the bot (solo, at its level) lost far more often with a weaker boss there (87% → 41%), one level up it made no difference.</summary>
+        public static float NormalHpTrim(int stage, EnemyData enemy) { return stage == 6 && enemy != null && enemy.IsBoss ? 1f : NormalHpTrim(stage); }
+
+        public static EnemyData ScaleEnemy(EnemyData enemy, int stage, int difficulty, bool survive = false)
         {
             difficulty = Clamp(difficulty);
             // Shorten the longest normal stages without removing pressure. Survival-only enemies keep their rules/stats.
             // Hard difficulties still start from the original table, so this does not move their progression targets.
             if (difficulty == 0)
             {
-                // 일반 8+ only: attack and defense x0.8 (the harder difficulties keep their values).
+                // 일반 only: attack and defense eased from stage 7 (x0.93, x0.87, then x0.8); the harder difficulties keep their values.
                 if (enemy.HpMul > 10f) return enemy;   // survival-only enemies keep their stats
-                float soft = stage >= NormalStatEaseFromStage ? NormalStatEase : 1f;
+                float soft = NormalStatEaseFor(stage);
                 float hp = NormalHpBoost(stage), atk = NormalAtkBoost(stage);
                 if (stage >= 24 && stage <= 36) { hp *= 0.85f; atk *= 1.25f; }
+                if (!survive) hp *= NormalHpTrim(stage, enemy);   // a 버티기 fight keeps its enemy's HP
                 return enemy.Scaled(hp, atk * soft, soft);
             }
             float ease = NormalEase(stage), extra = HardExtra(stage, difficulty);

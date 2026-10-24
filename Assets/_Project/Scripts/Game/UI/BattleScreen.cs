@@ -824,7 +824,7 @@ namespace BiRyeoDo.Game.UI
             var data = new EnemyData[enemyIds.Length];
             for (int i = 0; i < data.Length; i++)
             {
-                data[i] = stage.EnemyFor(enemyIds[i]);
+                data[i] = stage.EnemyFor(enemyIds[i], trial);
             }
             if (trial != null)
             {

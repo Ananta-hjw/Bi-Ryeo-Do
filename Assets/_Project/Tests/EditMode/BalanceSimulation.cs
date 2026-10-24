@@ -57,7 +57,7 @@ namespace BiRyeoDo.Tests
             {
                 var enemies = stage.Encounters[k].Select((id, i) =>
                 {
-                    var data = stage.EnemyFor(id);
+                    var data = stage.EnemyFor(id, stage.TrialFor(k));
                     return data.CreateCombatant(id + i);
                 }).ToList();
                 var battle = new InteractiveBattle(party, enemies, new SeededRandom(seed * 1000 + stage.Number * 10 + k)) { Trial = stage.TrialFor(k) };

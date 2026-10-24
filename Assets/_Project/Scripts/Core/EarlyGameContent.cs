@@ -222,12 +222,12 @@ namespace BiRyeoDo.Core
         public string QuestId;
         public int Difficulty;  // 0 일반, 1 어려움, 2 극악 (see StageStars); set on a copy made by WithDifficulty
 
-        /// <summary>Enemy data for this workflow, shared by combat, previews and formation planning.</summary>
-        public EnemyData EnemyFor(string id)
+        /// <summary>Enemy data for this workflow, shared by combat, previews and formation planning. Pass the fight's trial so a 버티기 fight keeps full enemy HP.</summary>
+        public EnemyData EnemyFor(string id, TrialRule trial = null)
         {
             var enemy = EarlyGameContent.FindEnemy(id);
             if (enemy == null || IsTower) return enemy;
-            return IsQuest ? Quests.Scale(QuestId, enemy) : StageStars.ScaleEnemy(enemy, Number, Difficulty);
+            return IsQuest ? Quests.Scale(QuestId, enemy) : StageStars.ScaleEnemy(enemy, Number, Difficulty, trial != null && trial.Kind == TrialKind.Survive);
         }
 
         public StageData WithDifficulty(int difficulty)

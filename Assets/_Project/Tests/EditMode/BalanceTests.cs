@@ -128,7 +128,7 @@ namespace BiRyeoDo.Tests
             var stage = EarlyGameContent.FindStage(26);
             var id = stage.Encounters[0][0];
             var raw = EarlyGameContent.FindEnemy(id);
-            Assert.AreEqual(raw.HpMul * StageStars.NormalHpBoost(26) * 0.85f, stage.EnemyFor(id).HpMul, 0.001f);   // 일반 only: boosted, then the late-stage shortening
+            Assert.AreEqual(raw.HpMul * StageStars.NormalHpBoost(26) * 0.85f * StageStars.NormalHpTrim(26), stage.EnemyFor(id).HpMul, 0.001f);   // 일반 only: boosted, then the late-stage shortening and the HP trim
             var survivalEnemy = EarlyGameContent.FindEnemy("geomhu_ioksang");
             Assert.AreSame(survivalEnemy, EarlyGameContent.FindStage(29).EnemyFor(survivalEnemy.Id));
             var hard = stage.WithDifficulty(1).EnemyFor(id);
