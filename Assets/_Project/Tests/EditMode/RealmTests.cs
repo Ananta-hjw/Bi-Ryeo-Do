@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using BiRyeoDo.Core;
@@ -86,10 +87,11 @@ namespace BiRyeoDo.Tests
         {
             var bi = EarlyGameContent.FindEnemy("bi_daegongja");
             double biPower = Realm.Power(bi.CreateCombatant("b").Stats);
-            // Trial opponents (검후 and the 은가면, who are 천무삼성) stand above him on purpose.
+            // Trial opponents (검후 and the 은가면, who are 천무삼성) stand above him on purpose. He tops 1부 (stages 1-30); 2부 enemies may stand higher.
+            var partTwo = new HashSet<string>(EarlyGameContent.Stages.Where(st => st.Number > StageStars.LevelLineStage).SelectMany(st => st.Encounters.SelectMany(x => x)));
             foreach (var e in EarlyGameContent.Enemies)
             {
-                if (e == bi || e.HpMul > 20f || e.Id.StartsWith("mask_") || !Realm.HasRealm(e)) continue;
+                if (e == bi || e.HpMul > 20f || e.Id.StartsWith("mask_") || !Realm.HasRealm(e) || partTwo.Contains(e.Id)) continue;
                 Assert.Greater(biPower, Realm.Power(e.CreateCombatant(e.Id).Stats), e.Id);
             }
             Assert.AreEqual("절정 완숙", Realm.ForEnemy(bi));   // 초절정 초입 only on 어려움 (일반 stages 7+ were eased)

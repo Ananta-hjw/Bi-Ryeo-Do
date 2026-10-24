@@ -562,6 +562,15 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("사일검법", 0.7f, 3), EnemyMove.Wind("찌르기를 노린다"), EnemyMove.Attack("사일 찌르기", 2.6f) } },
             new EnemyData { Id = "gwan_cheolsu_eogeom", ArtId = "gwan_cheolsu", Name = "빙검 관철수 (특훈)", Level = 67, IsBoss = true, HpMul = 45.426f, AtkMul = 3.500f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("이기어검", 0.8f, 2).FromDistance(), EnemyMove.Attack("어검분영술", 1.3f).FromDistance(), EnemyMove.Wind("검을 허공에 띄운다"), EnemyMove.Attack("비검 일섬", 2.8f).FromDistance() } },
+            // Stage 32: 무극검과 누명 (19권). 이시건 is only endured (in the novel he apologizes and leaves); the patrol brawl and the 청흔 duel are fought by the party (in the novel 비류연 alone).
+            new EnemyData { Id = "i_sigeon", Name = "마천각 이공자 이시건", Level = 69, HpMul = 45.426f, AtkMul = 4.500f, SpeedAdd = 8,
+                Moves = new[] { EnemyMove.Attack("손가락 검기", 0.8f, 2).FromDistance(), EnemyMove.Attack("자운", 1.3f), EnemyMove.Wind("자운암풍이 소용돌이친다"), EnemyMove.Attack("광풍난주", 2.8f) } },
+            new EnemyData { Id = "ipgwan_dojeonja", Name = "입관 희망자", Level = 68, HpMul = 2.100f, AtkMul = 3.800f, SpeedAdd = 2,
+                Moves = new[] { EnemyMove.Attack("명문 검법", 0.8f, 2), EnemyMove.Attack("완장 노리기", 1.3f) } },
+            new EnemyData { Id = "chimbaetneun_ja", Name = "침 뱉은 도전자", Level = 68, HpMul = 2.500f, AtkMul = 4.400f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("시비", 0.7f, 3), EnemyMove.Wind("침을 뱉는다"), EnemyMove.Attack("악다구니 일격", 2.7f) } },
+            new EnemyData { Id = "cheong_heun_mugeuk", ArtId = "ha_sein", Name = "삼절검 청흔", Level = 70, IsBoss = true, HpMul = 7.161f, AtkMul = 4.250f, SpeedAdd = 6,
+                Moves = new[] { EnemyMove.Attack("삼환회선비검", 0.7f, 3), EnemyMove.Attack("태극검", 1.3f), EnemyMove.Wind("삼정태극검혜를 펼친다"), EnemyMove.Attack("무극검 일관", 3.5f) } },
         };
 
         // Items. Names come from volumes 1-3; effects and numbers are placeholders.
@@ -656,6 +665,7 @@ namespace BiRyeoDo.Core
             new DropData { EnemyId = "mu_jeong", ItemId = "ginseng", Chance = 0.50f },
             new DropData { EnemyId = "bi_daegongja", ItemId = "ilgeup_yeongdan", Chance = 0.20f },
             new DropData { EnemyId = "hyeol_pyo", ItemId = "ginseng", Chance = 0.50f },
+            new DropData { EnemyId = "cheong_heun_mugeuk", ItemId = "ilgeup_yeongdan", Chance = 0.20f },
         };
 
         /// <summary>One-time rewards for clearing a stage for the first time.</summary>
@@ -692,6 +702,7 @@ namespace BiRyeoDo.Core
             { 29, new[] { new ItemStack("cheonyul_pae", 1), new ItemStack("ginseng", 3) } },   // 중토관 천율패
             { 30, new[] { new ItemStack("ilgeup_yeongdan", 3), new ItemStack("ginseng", 3) } },   // 화산규약지회 우승
             { 31, new[] { new ItemStack("ilgeup_yeongdan", 1), new ItemStack("ginseng", 3) } },   // 승천무제 시험관
+            { 32, new[] { new ItemStack("ilgeup_yeongdan", 2), new ItemStack("ginseng", 2) } },   // 무극검과 누명
         };
 
         /// <summary>What the protagonist starts with.</summary>
@@ -1688,6 +1699,49 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
                     null,
                     TrialRule.Deadline("황금 완장", "유란과 유운비가 황금 완장을 노린다. 30행동 안에 두 도전자를 제압하라!", 30),
                     TrialRule.Survive("이기어검 특훈", "빙검을 이길 필요는 없다. 허공에서 날아드는 검을 12번 버텨라!", 12),
+                } },
+            new StageData { Number = 32, Name = "무극검과 누명", RecommendedLevel = 69, DooTotal = 17000,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "백 년의 숙원", Lines = new[] {
+                            "공손세가 가주 공손경운은 자신이 모란, 곧 모용가 검의 벽을 넘지 못했다고 고백하고 아들에게 가주의 보검 극예를 넘긴다.",
+                            "공손절휘는 열아홉, 십 년을 지존검법에 바쳤다. 그는 승천무제에서 모란의 후계자를 꺾겠다고 맹세한다.",
+                            "사흘 동안 모용휘를 쫓아 스무 번의 대결을 엿보지만, 모용휘는 도전자를 모두 주먹 한 방에 끝낸다. 시선을 눈치챈 모용휘가 기를 날려 경고한다.",
+                            "모용휘|(주먹부터 나가는 걸 보니, 나도 비류연 공에게 물들었군.)",
+                        } },
+                    new StoryScene { Title = "빈대떡을 부치는 법", Lines = new[] {
+                            "마천각 사신 이시건이 학관주 마진가를 만난다. 반쪽 부를 맞추니 활과 화살 문양의 대대가 들어맞는다.",
+                            "군사 손문경이 마천각이 화산 사건을 덮으려 한다고 몰아세운다. 마진가는 빈대떡을 뒤집으려면 요리사가 필요하다고 말한다.",
+                            "마진가는 사천멸겁을 꺼낸다. 확인된 죽음은 남천과 동천뿐, 서천은 중상만 입었고 최고수 북천은 행방불명이다.",
+                            "이시건은 속으로 동요하고, 학관이 마련한 숙소를 거절한다.",
+                            "손문경|기밀은 사신 앞에서만 흘렸습니다. 이 정보가 다른 데서 나오면, 통로는 저 사람입니다.",
+                        } },
+                },
+                Intro = new[] {
+                    "금란주루. 겨울 내내 학관에 머문 은설란이 나예린을 끌고 와 독주 여섯 병을 비운다.",
+                    "은설란|남자들은 바보예요. 그 사람도 자기 이상만 쫓다가 말 한마디 없이 죽었어요.",
+                    "은설란이 쓰러진 사이, 마천각 이공자 이시건이 손가락 짓만으로 빙봉영화수호대 팔호위를 쓰러뜨리고 나예린에게 다가온다.",
+                    "나예린|거절하겠어요.",
+                    "위층에서 검성·도성에게 밥을 얻어먹던 비류연이 젓가락을 던진다.",
+                },
+                Outro = new[] {
+                    "비류연이 오른팔의 묵룡환 하나를 풀고, 느린 손을 세 검 사이로 밀어 넣는다. 비뢰도 상급오의 변역의 장, 적중화. 청흔이 피를 토하며 패배를 인정한다.",
+                    "백무영의 깃발 신호에 무원대 서른과 구정회 칠십여 명이 검진을 펼친다. 나예린이 검을 뽑으려 하자 비류연이 말린다.",
+                    "비류연|예린답지 않아요. 나를 믿어 줘요.",
+                    "나예린|믿을게요.",
+                    "비류연은 수갑을 차고 순순히 연행된다. 홀로 남은 나예린은 스스로에게 맹세한다.",
+                    "나예린|류연도, 령 언니도 내 손으로 되찾겠어.",
+                    "학관의 독신 남자들이 흰 머리띠에 살 자를 쓰고 「즉살 비류연」 현수막을 든다. 이틀 만에 상소가 산처럼 쌓인다.",
+                    "감옥으로 면회 온 장홍에게 비류연은 대리인으로 남궁상을 고른다. 그리고 남궁상에게 말한다.",
+                    "비류연|날 위해 죽어 줘야겠다.",
+                    "다섯 번째 밤. 화산파 매화 옷에 황금 완장을 찬 시험관을 노리던 공손절휘 앞에서 시험관이 돌아서며 뇌전 같은 쾌검을 날린다.",
+                    "남궁상|남궁세가의 남궁상이다.",
+                    "며칠 뒤 중양표국. 유은성이 달려와 진소령에게 비무 상대 남궁상이 피살당했다고 전한다.",
+                },
+                Encounters = new[] { new[] { "i_sigeon" }, new[] { "ipgwan_dojeonja", "chimbaetneun_ja", "ipgwan_dojeonja" }, new[] { "cheong_heun_mugeuk" } },
+                Trials = new[]
+                {
+                    TrialRule.Survive("금란주루의 광풍난주", "사신 이시건을 쓰러뜨릴 수는 없다. 자운암풍의 공격을 10번 버텨라!", 10),
                 } },
         };
 

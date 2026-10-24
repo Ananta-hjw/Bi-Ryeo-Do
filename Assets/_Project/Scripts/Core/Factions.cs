@@ -42,7 +42,7 @@ namespace BiRyeoDo.Core
         public static readonly FactionData[] All =
         {
             new FactionData { Id = "academy", Name = "천무학관", Description = "무림맹 산하의 학관. 수련과 시험이 이어진다.", PerkText = "경험치",
-                Stages = new[] { 2, 6, 7, 8, 9, 10, 11, 12, 13, 16, 17, 19, 20 }, Perk = PerkKind.ExpPct, PerkSteps = new[] { 0.03f, 0.06f, 0.10f } },
+                Stages = new[] { 2, 6, 7, 8, 9, 10, 11, 12, 13, 16, 17, 19, 20, 32 }, Perk = PerkKind.ExpPct, PerkSteps = new[] { 0.03f, 0.06f, 0.10f } },
             new FactionData { Id = "biaoguk", Name = "중양표국", Description = "표행을 맡는 표국. 길과 물자에 밝다.", PerkText = "얻는 두",
                 Stages = new[] { 2, 3, 5, 22, 25, 31 }, Perk = PerkKind.DooPct, PerkSteps = new[] { 0.03f, 0.06f, 0.10f } },
             new FactionData { Id = "wudang", Name = "무당파", Description = "태극의 문파. 호흡과 회복에 능하다.", PerkText = "전투 사이 정비 회복량",
