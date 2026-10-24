@@ -13,10 +13,11 @@ namespace BiRyeoDo.Game.UI
         private sealed class Row
         {
             public ArtData Art;
-            public Text Title, Detail, ButtonLabel, MasteryLabel, Tag;
-            public Button Button, MasteryButton;
-            public Image ButtonImage, MasteryImage, Icon;
+            public Text Title, Detail, ButtonLabel, Tag;
+            public Button Button;
+            public Image ButtonImage, Icon;
             public Text IconGlyph;
+            public RectTransform Chips;
         }
 
         private readonly List<Row> _rows = new List<Row>();
@@ -28,7 +29,7 @@ namespace BiRyeoDo.Game.UI
         private readonly GameObject[] _pageDots = new GameObject[PageNames.Length];
         private readonly Text[] _pageDotTexts = new Text[PageNames.Length];
         private readonly HashSet<string> _newArtIds = new HashSet<string>();   // arts flagged new when this page was opened (tagged in the list)
-        private RectTransform _artsRoot;
+        private RectTransform _artsRoot, _slotBar;
         private InnerArtPanel _inner;
 
         public void Build(RectTransform tab)
@@ -59,8 +60,11 @@ namespace BiRyeoDo.Game.UI
             UiFactory.HelpButton(root, () => UiFactory.ShowInfo(_masteryHelp));   // right next to the 두 figure, inside the header band
             _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, .755f), new Vector2(0.95f, .84f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
+            // What is equipped right now: four art slots and the 필살기 slot.
+            _slotBar = UiFactory.Rect("SlotBar", root, new Vector2(.04f, .625f), new Vector2(.96f, .745f));
+
             // The list scrolls: the protagonist has far more arts than fit on one screen.
-            var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, .745f));
+            var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, .615f));
             viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
             viewport.gameObject.AddComponent<RectMask2D>();
             var content = UiFactory.Rect("Content", viewport, new Vector2(0f, 1f), new Vector2(1f, 1f));
@@ -103,18 +107,21 @@ namespace BiRyeoDo.Game.UI
                 var tagBack = UiFactory.Panel("TagBack", row.Icon.transform, new Vector2(0f, 0f), new Vector2(1f, 0.26f), new Color(0f, 0f, 0f, 0.72f));
                 tagBack.raycastTarget = false;
                 row.Tag = UiFactory.Label("Tag", tagBack.transform, Vector2.zero, Vector2.one, "", 22, UiFactory.Gold);
-                row.Title = UiFactory.Label("Title", rt, new Vector2(0f, 0.50f), new Vector2(0.51f, 0.97f), "", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0f, 0.03f), new Vector2(0.51f, 0.50f), "", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
-                row.Title.rectTransform.offsetMin = new Vector2(176f, 0f);
-                row.Detail.rectTransform.offsetMin = new Vector2(176f, 0f);
-                row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(0.52f, 0.5f), new Vector2(0.73f, 0.5f), "", UiFactory.Red, () => OnPressed(art), 28);
+                // Pixel-placed from the row's top so the row keeps its height: name line, then two lines of badges (or the lock note).
+                row.Title = UiFactory.Body(UiFactory.Label("Title", rt, new Vector2(0f, 1f), new Vector2(0.77f, 1f), "", 32, UiFactory.PaperText, TextAnchor.MiddleLeft));
+                row.Title.rectTransform.offsetMin = new Vector2(176f, -84f);
+                row.Title.rectTransform.offsetMax = new Vector2(0f, -12f);
+                row.Chips = UiFactory.Rect("Chips", rt, new Vector2(0f, 1f), new Vector2(0f, 1f));
+                row.Chips.pivot = new Vector2(0f, 1f);
+                row.Chips.anchoredPosition = new Vector2(176f, -90f);
+                row.Chips.sizeDelta = Vector2.zero;
+                row.Detail = UiFactory.Body(UiFactory.Label("Detail", rt, new Vector2(0f, 1f), new Vector2(0.77f, 1f), "", 28, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal));
+                row.Detail.rectTransform.offsetMin = new Vector2(176f, -188f);
+                row.Detail.rectTransform.offsetMax = new Vector2(0f, -90f);
+                row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(0.78f, 0.5f), new Vector2(0.97f, 0.5f), "", UiFactory.Red, () => OnPressed(art), 28);
                 FixHeight(row.Button.GetComponent<RectTransform>(), ButtonH);
                 row.ButtonImage = row.Button.GetComponent<Image>();
                 row.ButtonLabel = row.Button.GetComponentInChildren<Text>();
-                row.MasteryButton = UiFactory.Button("Mastery" + i, rt, new Vector2(0.75f, 0.5f), new Vector2(0.97f, 0.5f), "", UiFactory.InkSoft, () => OnMastery(art), 24);
-                FixHeight(row.MasteryButton.GetComponent<RectTransform>(), ButtonH);
-                row.MasteryImage = row.MasteryButton.GetComponent<Image>();
-                row.MasteryLabel = row.MasteryButton.GetComponentInChildren<Text>();
                 _rows.Add(row);
             }
             var placeholder = UiFactory.Panel("InspectorPlaceholder", root.parent, new Vector2(.66f, .02f), new Vector2(.985f, .88f), UiFactory.Ink);
@@ -345,19 +352,80 @@ namespace BiRyeoDo.Game.UI
             Refresh();
         }
 
-        private static string Describe(ArtData a)
+        private static readonly Color ChipPower = new Color(0.50f, 0.20f, 0.17f, 1f), ChipArea = new Color(0.36f, 0.22f, 0.50f, 1f),
+            ChipSupport = new Color(0.18f, 0.38f, 0.42f, 1f), ChipStatus = new Color(0.55f, 0.36f, 0.12f, 1f),
+            ChipReach = new Color(0.17f, 0.30f, 0.50f, 1f), ChipQi = new Color(0.20f, 0.27f, 0.36f, 1f),
+            ChipSpirit = new Color(0.52f, 0.42f, 0.16f, 1f), ChipCooldown = new Color(0.26f, 0.28f, 0.30f, 1f);
+
+        /// <summary>Two lines of badges: what the art does (power, hits, area, status), then reach, cost and cooldown. Mastery and 변초 are applied when learned.</summary>
+        private static void BuildChips(RectTransform parent, ArtData a, SkillSpec spec)
         {
-            string cost = a.SpiritCost > 0 ? "기세 " + a.SpiritCost : a.QiCost > 0 ? "내공 " + a.QiCost : "내공 0";
-            string power = a.Effect == SkillEffect.Evade ? "회피" : "위력 ×" + a.Power.ToString("0.0") + (a.Hits > 1 ? " ×" + a.Hits + "타" : "") + (a.AllEnemies ? " 전체" : "") + " · " + SkillSpec.ReachText(a.EffectiveRange)
-                + (a.Inflict != StatusKind.None ? " · " + Statuses.Name(a.Inflict) : "");
-            string cd = a.Cooldown > 0 ? " · 재사용 " + a.Cooldown + "턴" : "";
-            return power + " · " + cost + cd;
+            const float gap = 8f, line = 50f;
+            float x = 0f;
+            System.Action<string, Color> add = (text, color) => x += UiFactory.Chip(parent, x, 0f, text, color) + gap;
+            if (a.Effect == SkillEffect.Evade) add("회피 " + Mathf.RoundToInt(spec.EvadeChance * 100f) + "%", ChipSupport);
+            else if (a.Effect == SkillEffect.GuardParty) add("파티 방어", ChipSupport);
+            else if (a.Effect == SkillEffect.HealAlly) add("치유 " + Mathf.RoundToInt(spec.HealPct * 100f) + "%", ChipSupport);
+            else
+            {
+                add("위력 ×" + spec.Power.ToString("0.0#"), ChipPower);
+                if (spec.Hits > 1) add(spec.Hits + "타", ChipPower);
+                if (spec.AllEnemies) add("적 전체", ChipArea);
+                if (a.Effect == SkillEffect.Stun) add("점혈", ChipSupport);
+            }
+            if (a.Inflict != StatusKind.None) add(Statuses.Name(a.Inflict) + " " + Mathf.RoundToInt(a.InflictChance * 100f) + "%", ChipStatus);
+
+            x = 0f;
+            System.Action<string, Color> add2 = (text, color) => x += UiFactory.Chip(parent, x, -line, text, color) + gap;
+            add2(SkillSpec.ReachText(a.EffectiveRange), ChipReach);
+            if (a.SpiritCost > 0) add2("기세 " + a.SpiritCost, ChipSpirit);
+            else add2("내공 " + spec.QiCost, ChipQi);
+            if (spec.Cooldown > 0) add2("재사용 " + spec.Cooldown + "턴", ChipCooldown);
+        }
+
+        /// <summary>The equipped arts as four slots plus the 필살기 slot; tapping a filled slot opens that art.</summary>
+        private void RefreshSlots(SaveData save)
+        {
+            LandscapeMenu.Clear(_slotBar);
+            var equipped = save.EquippedArts.Select(EarlyGameContent.FindArt).Where(a => a != null).ToList();
+            var normal = equipped.Where(a => !Progression.IsUltimate(a)).Take(Progression.MaxEquippedArts).ToList();
+            var ultimate = equipped.FirstOrDefault(Progression.IsUltimate);
+            int slots = Progression.MaxEquippedArts + 1;
+            const float gap = .012f;
+            float w = (1f - gap * (slots - 1)) / slots;
+            for (int i = 0; i < slots; i++)
+            {
+                bool ult = i == slots - 1;
+                var art = ult ? ultimate : i < normal.Count ? normal[i] : null;
+                float x0 = i * (w + gap);
+                var slot = UiFactory.Panel("Slot" + i, _slotBar, new Vector2(x0, 0f), new Vector2(x0 + w, 1f), UiFactory.Ink);
+                UiFactory.Frame(slot.transform, ult ? UiFactory.Gold : UiFactory.GoldDim, 2f);
+                if (art != null)
+                {
+                    var tap = slot.gameObject.AddComponent<Button>();
+                    tap.targetGraphic = slot;
+                    tap.transition = Selectable.Transition.None;
+                    var target = art;
+                    tap.onClick.AddListener(() => OpenDetail(target));
+                    var picture = ArtLibrary.Art(art.Id);
+                    var icon = UiFactory.Panel("Icon", slot.transform, new Vector2(.04f, .12f), new Vector2(.32f, .88f), picture != null ? Color.white : IconColor(art));
+                    icon.sprite = picture;
+                    icon.preserveAspect = true;
+                    if (picture == null) UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, art.Name.Substring(0, 1), 30, UiFactory.PaperText);
+                }
+                string name = art != null ? art.Name : ult ? "필살기 빈 칸" : "빈 칸";
+                var label = UiFactory.Body(UiFactory.Label("Name", slot.transform, new Vector2(art != null ? .35f : .05f, .05f), new Vector2(.97f, .95f),
+                    (ult ? "<color=#D4B87A>필살</color>\n" : "") + name, 22, art != null ? UiFactory.PaperText : UiFactory.Dim, art != null ? TextAnchor.MiddleLeft : TextAnchor.MiddleCenter, FontStyle.Normal), 1.05f);
+                label.resizeTextForBestFit = true;   // long names shrink inside the fixed slot instead of spilling
+                label.resizeTextMinSize = 16;
+            }
         }
 
         private void Refresh()
         {
             if (_page != 0) return;   // an embedded panel redraws itself
             var save = GameManager.Instance.Save;
+            RefreshSlots(save);
             _header.text = "무공 · 장착 " + Progression.EquippedCount(save, false) + "/" + Progression.MaxEquippedArts + " · 필살 " + Progression.EquippedCount(save, true) + "/" + Progression.MaxEquippedUltimates + " · " + save.Doo.ToString("N0") + "두";
 
             foreach (var r in _rows)
@@ -375,15 +443,14 @@ namespace BiRyeoDo.Game.UI
                 r.IconGlyph.text = picture != null ? "" : a.Name.Substring(0, 1);
                 r.Icon.color = picture != null ? ((learned || unlocked) ? Color.white : new Color(0.35f, 0.35f, 0.38f, 1f))
                     : (learned || unlocked) ? IconColor(a) : new Color(0.2f, 0.2f, 0.22f, 1f);
-                r.Title.text = a.Name + (variant != ArtVariant.None ? "(" + Mastery.VariantName(variant) + ")" : "");
+                r.Title.text = a.Name + (variant != ArtVariant.None ? "(" + Mastery.VariantName(variant) + ")" : "")
+                    + (learned ? "  <size=24><color=#D4B87A>" + Stars(mLevel) + " " + Mastery.LevelNames[mLevel] + "</color></size>" : "");
                 r.Tag.text = equipped ? "장착 중" : _newArtIds.Contains(a.Id) && !learned ? "<color=#FF6A5A>새 무공</color>" : "";
                 r.Tag.transform.parent.gameObject.SetActive(r.Tag.text.Length > 0);
-                bool canVariant = Mastery.AvailableVariants(a).Count > 0;
-                r.MasteryButton.gameObject.SetActive(learned);
-                r.MasteryLabel.text = Stars(mLevel) + " " + Mastery.LevelNames[mLevel] + (mLevel >= Mastery.VariantLevel && canVariant ? "\n변초 바꾸기"
-                    : "\n" + (Mastery.UsesToNext(save, a.Id) < 0 ? Mastery.Uses(save, a.Id) + "회" : Mastery.Uses(save, a.Id) + "/" + Mastery.Thresholds[mLevel + 1] + "회"));
-                r.MasteryImage.color = mLevel >= Mastery.VariantLevel && canVariant ? UiFactory.Gold : UiFactory.InkSoft;
-                r.Detail.text = learned || unlocked ? Describe(a) : a.UnlockText + "하면 열립니다";
+                bool open = learned || unlocked;
+                r.Detail.text = open ? "" : a.UnlockText + "하면 열립니다";
+                LandscapeMenu.Clear(r.Chips);
+                if (open) BuildChips(r.Chips, a, learned ? Mastery.Apply(save, a) : a.ToSpec());
 
                 if (learned)
                 {

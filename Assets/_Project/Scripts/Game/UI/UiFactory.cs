@@ -210,6 +210,23 @@ namespace BiRyeoDo.Game.UI
             return t;
         }
 
+        /// <summary>A small fixed-size badge placed in pixels from its parent's top-left; returns its width so callers can line badges up.</summary>
+        public static float Chip(Transform parent, float x, float y, string text, Color back, float height = 42f, int size = 24)
+        {
+            var chip = Panel("Chip", parent, new Vector2(0f, 1f), new Vector2(0f, 1f), back);
+            chip.raycastTarget = false;
+            var label = Body(Label("Text", chip.transform, Vector2.zero, Vector2.one, text, size, PaperText, TextAnchor.MiddleCenter, FontStyle.Normal));
+            label.horizontalOverflow = HorizontalWrapMode.Overflow;
+            float width = label.preferredWidth;
+            if (width < 1f) width = text.Length * size * .8f;   // no layout info yet: a generous estimate
+            width = Mathf.Ceil(width) + 22f;
+            var rt = chip.rectTransform;
+            rt.pivot = new Vector2(0f, 1f);
+            rt.anchoredPosition = new Vector2(x, y);
+            rt.sizeDelta = new Vector2(width, height);
+            return width;
+        }
+
         /// <summary>Reading-text style: a fixed font size (no shrink-to-fit, so sizes match across rows) with roomier lines.</summary>
         public static Text Body(Text t, float lineSpacing = 1.25f)
         {

@@ -180,22 +180,30 @@ namespace BiRyeoDo.Core
         /// <summary>"체력 +10%  방어 +4%  내공 회복 +2"</summary>
         public static string EffectText(InnerArt a, int level = 0)
         {
-            var b = a;
-            a = Scaled(b, level);
             var p = new List<string>();
-            if (a.HpPct != 0f) p.Add("체력 " + Pct(a.HpPct));
-            if (a.QiPct != 0f) p.Add("내공 " + Pct(a.QiPct));
-            if (a.AtkPct != 0f) p.Add("공격 " + Pct(a.AtkPct));
-            if (a.DefPct != 0f) p.Add("방어 " + Pct(a.DefPct));
-            if (a.SpeedAdd != 0) p.Add("속도 " + (a.SpeedAdd > 0 ? "+" : "") + a.SpeedAdd);
-            if (a.CritAdd != 0f) p.Add("치명타 " + Pct(a.CritAdd));
-            if (a.CritDmgAdd != 0f) p.Add("치명타 피해 +" + Math.Round(a.CritDmgAdd * 100f) + "%p");
-            if (a.QiRegen != 0) p.Add("내공 회복 +" + a.QiRegen);
-            if (a.SpiritDealt != 0) p.Add("가한 기세 +" + a.SpiritDealt);
-            if (a.SpiritTaken != 0) p.Add("받은 기세 +" + a.SpiritTaken);
-            if (a.StartSpirit != 0) p.Add("시작 기세 " + a.StartSpirit);
-            if (a.Lifesteal != 0f) p.Add("흡수 " + Math.Round(a.Lifesteal * 100f) + "%");
+            foreach (var part in EffectParts(a, level)) p.Add(part.Key);
             return string.Join("  ", p);
+        }
+
+        /// <summary>Each effect as its text and whether it helps (true) or costs (false), for colouring.</summary>
+        public static List<KeyValuePair<string, bool>> EffectParts(InnerArt a, int level = 0)
+        {
+            a = Scaled(a, level);
+            var p = new List<KeyValuePair<string, bool>>();
+            Action<string, float> add = (text, value) => p.Add(new KeyValuePair<string, bool>(text, value > 0f));
+            if (a.HpPct != 0f) add("체력 " + Pct(a.HpPct), a.HpPct);
+            if (a.QiPct != 0f) add("내공 " + Pct(a.QiPct), a.QiPct);
+            if (a.AtkPct != 0f) add("공격 " + Pct(a.AtkPct), a.AtkPct);
+            if (a.DefPct != 0f) add("방어 " + Pct(a.DefPct), a.DefPct);
+            if (a.SpeedAdd != 0) add("속도 " + (a.SpeedAdd > 0 ? "+" : "") + a.SpeedAdd, a.SpeedAdd);
+            if (a.CritAdd != 0f) add("치명타 " + Pct(a.CritAdd), a.CritAdd);
+            if (a.CritDmgAdd != 0f) add("치명타 피해 +" + Math.Round(a.CritDmgAdd * 100f) + "%p", a.CritDmgAdd);
+            if (a.QiRegen != 0) add("내공 회복 +" + a.QiRegen, a.QiRegen);
+            if (a.SpiritDealt != 0) add("가한 기세 +" + a.SpiritDealt, a.SpiritDealt);
+            if (a.SpiritTaken != 0) add("받은 기세 +" + a.SpiritTaken, a.SpiritTaken);
+            if (a.StartSpirit != 0) add("시작 기세 " + a.StartSpirit, a.StartSpirit);
+            if (a.Lifesteal != 0f) add("흡수 " + Math.Round(a.Lifesteal * 100f) + "%", a.Lifesteal);
+            return p;
         }
 
         /// <summary>A copy of the 심법 with its numbers scaled to the level (for display).</summary>
