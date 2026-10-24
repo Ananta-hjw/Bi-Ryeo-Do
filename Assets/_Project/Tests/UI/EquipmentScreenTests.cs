@@ -61,6 +61,41 @@ namespace BiRyeoDo.Tests.UI
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
+        public void RecommendationsStayAboveTheFigureAndWearerLabelsNameOtherPeople(float width)
+        {
+            _canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(width, 960f);
+            Inventory.Add(_save, "iron_sword", 1);
+            Assert.IsTrue(Inventory.EquipFor(_save, "hyo_ryong", "iron_sword", out string error), error);
+            _screen.Refresh(); Canvas.ForceUpdateCanvases();
+            var card = Content.GetComponentsInChildren<Button>().Single(b => b.name == "Item_iron_sword").transform;
+            StringAssert.Contains("\"효룡\"", card.Find("State").GetComponent<Text>().text);
+            StringAssert.Contains("장착 중", card.Find("State").GetComponent<Text>().text);
+            Assert.Less(Bounds((RectTransform)card.Find("State")).yMax, Bounds((RectTransform)card.Find("Name")).yMin);
+            var recommend = Bounds((RectTransform)Root.Find("Workspace/Character/Recommend"));
+            Assert.GreaterOrEqual(recommend.height, 64f);
+            Assert.Greater(recommend.yMin, Bounds((RectTransform)Root.Find("Workspace/Character/BattleFigure")).yMax);
+            Assert.Less(recommend.yMax, Bounds((RectTransform)Root.Find("Workspace/Character/Sets")).yMin);
+            _screen.SelectOwner("hyo_ryong");
+            var heroWeapon = _save.EquippedGear.Select(EarlyGameContent.FindItem).First(i => i.Kind == ItemKind.Weapon);
+            card = Content.GetComponentsInChildren<Button>().Single(b => b.name == "Item_" + heroWeapon.Id).transform;
+            StringAssert.Contains("\"비류연\"", card.Find("State").GetComponent<Text>().text);
+        }
+
+        [Test]
+        public void RecommendationButtonKeepsAnAlreadyRecommendedLoadoutAndShowsFeedback()
+        {
+            // Apply through Core first; the no-change button path does not write a persistent save in this test.
+            Assert.IsTrue(EquipmentRecommendation.Equip(_save, Inventory.Hero, out _, out string error), error);
+            var gear = _save.EquippedGear.ToArray();
+            _screen.Refresh();
+            Click("Workspace/Character/Recommend");
+            CollectionAssert.AreEqual(gear, _save.EquippedGear);
+            StringAssert.Contains("현재 장비가 추천 조합", Root.Find("Workspace/Inventory/Hint").GetComponent<Text>().text);
+        }
+
+        [TestCase(1440f)]
+        [TestCase(1920f)]
+        [TestCase(2400f)]
         public void NameDropdownChangesTheViewedPersonWhilePreservingTheAccessorySlot(float width)
         {
             _canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(width, 960f);
@@ -204,12 +239,12 @@ namespace BiRyeoDo.Tests.UI
             Inventory.Add(_save, boots.Id, 1);
             Click("Workspace/Inventory/Group3");
             Content.GetComponentsInChildren<Button>().First(button => button.name == "Item_" + boots.Id).onClick.Invoke();
-            StringAssert.StartsWith("신발", Root.Find("Workspace/Inventory/Selection/State").GetComponent<Text>().text);
+            StringAssert.StartsWith("신발", Root.Find("Workspace/Inventory/Selection/StateViewport/State").GetComponent<Text>().text);
             Click("Workspace/Character/WearSlot5");
             var accessory = EarlyGameContent.Items.First(item => item.Kind == ItemKind.Accessory && item.IsGear && !Gear.IsHeroOnly(item.Id));
             Inventory.Add(_save, accessory.Id, 1); _screen.Refresh();
             Content.GetComponentsInChildren<Button>().First(button => button.name == "Item_" + accessory.Id).onClick.Invoke();
-            StringAssert.StartsWith("장신구 2", Root.Find("Workspace/Inventory/Selection/State").GetComponent<Text>().text);
+            StringAssert.StartsWith("장신구 2", Root.Find("Workspace/Inventory/Selection/StateViewport/State").GetComponent<Text>().text);
         }
     }
 }
