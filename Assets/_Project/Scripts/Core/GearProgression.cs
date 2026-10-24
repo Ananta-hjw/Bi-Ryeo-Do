@@ -188,7 +188,7 @@ namespace BiRyeoDo.Core
             if (item == null) { error = "개방할 부위에 장비를 먼저 장착해 주세요."; return false; }
             long cost = GradeUnlockCost(save, owner, index, item.Grade);
             if (cost == 0) { error = "이미 개방한 등급입니다."; return false; }
-            if (save.Doo < cost) { error = "등급 개방에 필요한 두가 부족합니다."; return false; }
+            if (save.Doo < cost) { error = "등급 개방에 필요한 은자가 부족합니다."; return false; }
             save.Doo -= cost;
             Entry(save, owner, index).UnlockedGrade = (int)item.Grade;
             return true;
@@ -354,7 +354,7 @@ namespace BiRyeoDo.Core
             var material = MaterialForLevel(current + 1);
             int stones = StoneCost(current + 1);
             long doo = DooCost(current + 1);
-            if (Inventory.Count(save, material.Id) < stones || save.Doo < doo) { error = "강화에 필요한 " + material.Name + " 또는 두가 부족합니다."; return false; }
+            if (Inventory.Count(save, material.Id) < stones || save.Doo < doo) { error = "강화에 필요한 " + material.Name + " 또는 은자가 부족합니다."; return false; }
             if (!Inventory.Remove(save, material.Id, stones)) { error = material.Name + "이(가) 부족합니다."; return false; }
             save.Doo -= doo;
             Entry(save, owner, index).Level = current + 1;

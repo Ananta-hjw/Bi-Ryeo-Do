@@ -44,7 +44,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.TabHeader(list, "arts", "심법 · 장착 " + save.EquippedInner.Count + "/" + slots, .97f);
             UiFactory.HelpButton(list, () => { if (HelpPanel.Instance != null) HelpPanel.Instance.Show("inner"); });
             string slotNote = slots >= 4 ? "모든 칸이 열렸습니다" : "다음 칸: " + (save.ClearedStage < 10 ? "스테이지 10 돌파" : save.ClearedStage < 20 ? "스테이지 20 돌파" : "어려움 스테이지 " + InnerArts.FourthSlotStage + " 돌파");
-            UiFactory.ScrollBody(UiFactory.Label("Hint", list, new Vector2(0.05f, .755f), new Vector2(0.95f, .84f), toast ?? ("두 " + save.Doo.ToString("N0") + "  ·  심득석 " + InnerArts.Stones(save) + "  ·  " + slotNote), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            UiFactory.ScrollBody(UiFactory.Label("Hint", list, new Vector2(0.05f, .755f), new Vector2(0.95f, .84f), toast ?? ("은자 " + save.Doo.ToString("N0") + "  ·  심득석 " + InnerArts.Stones(save) + "  ·  " + slotNote), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             var content = CodexPanel.Scroller(list, Embedded ? .02f : .10f, .745f);
             _scroll = content.parent.GetComponent<ScrollRect>();
@@ -94,7 +94,7 @@ namespace BiRyeoDo.Game.UI
                 string label; Color color; bool enabled;
                 if (learned) { label = equipped ? "해제" : "장착"; color = equipped ? UiFactory.InkSoft : UiFactory.Red; enabled = true; }
                 else if (!unlocked) { label = "잠김"; color = UiFactory.InkSoft; enabled = false; }
-                else { label = "습득 " + a.LearnCost.ToString("N0") + "두"; enabled = save.Doo >= a.LearnCost; color = enabled ? UiFactory.Red : UiFactory.InkSoft; }
+                else { label = "습득 " + a.LearnCost.ToString("N0") + "은자"; enabled = save.Doo >= a.LearnCost; color = enabled ? UiFactory.Red : UiFactory.InkSoft; }
                 var btn = UiFactory.Button("Act", row, new Vector2(.04f, .04f), new Vector2(.96f, .23f), label, color, () => Press(id), 26);
                 btn.interactable = enabled;
             }
@@ -146,7 +146,7 @@ namespace BiRyeoDo.Game.UI
             string label; Color color; bool enabled;
             if (learned) { label = equipped ? "해제" : "장착"; color = equipped ? UiFactory.InkSoft : UiFactory.Red; enabled = true; }
             else if (!unlocked) { label = "잠김"; color = UiFactory.InkSoft; enabled = false; }
-            else { label = "습득 " + a.LearnCost.ToString("N0") + "두"; enabled = save.Doo >= a.LearnCost; color = enabled ? UiFactory.Red : UiFactory.InkSoft; }
+            else { label = "습득 " + a.LearnCost.ToString("N0") + "은자"; enabled = save.Doo >= a.LearnCost; color = enabled ? UiFactory.Red : UiFactory.InkSoft; }
             UiFactory.Button("Main", card.transform, new Vector2(0.05f, 0.19f), new Vector2(0.95f, 0.285f), label, color, () => Press(id), 34).interactable = enabled;
             if (learned)
             {

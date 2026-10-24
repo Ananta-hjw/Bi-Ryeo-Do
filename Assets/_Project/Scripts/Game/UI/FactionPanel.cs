@@ -24,7 +24,7 @@ namespace BiRyeoDo.Game.UI
             Begin();
             if (!Tutorial.IsDone(save, "faction") && HelpPanel.Instance != null) HelpPanel.Instance.Show("faction", true);
 
-            UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "세력과 객잔 · " + save.Doo.ToString("N0") + "두", 40, UiFactory.Gold);
+            UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "세력과 객잔 · " + save.Doo.ToString("N0") + "은자", 40, UiFactory.Gold);
             for (int t = 0; t < TabNames.Length; t++)
             {
                 int tab = t;
@@ -78,7 +78,7 @@ namespace BiRyeoDo.Game.UI
                     open ? "[" + owner + "] " + Shop.DescriptionOf(g) : owner + " 평판 " + Factions.TierNames[g.MinTier] + " 필요", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var good = g;
                 bool can = open && !sold && afford;
-                var btn = UiFactory.Button("Buy", band, new Vector2(0.04f, 0.04f), new Vector2(0.96f, 0.26f), sold ? "매진" : open ? g.Price.ToString("N0") + "두" : "잠김", can ? UiFactory.Red : UiFactory.InkSoft, () => Buy(good), 26);
+                var btn = UiFactory.Button("Buy", band, new Vector2(0.04f, 0.04f), new Vector2(0.96f, 0.26f), sold ? "매진" : open ? g.Price.ToString("N0") + "은자" : "잠김", can ? UiFactory.Red : UiFactory.InkSoft, () => Buy(good), 26);
                 btn.interactable = can;
             }
             return n;

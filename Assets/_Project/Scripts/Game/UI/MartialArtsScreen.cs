@@ -208,7 +208,7 @@ namespace BiRyeoDo.Game.UI
             string mainLabel; Color mainColor; bool mainOn;
             if (learned) { mainLabel = equipped ? "해제" : "장착"; mainColor = equipped ? UiFactory.InkSoft : UiFactory.Red; mainOn = true; }
             else if (!unlocked) { mainLabel = "잠김"; mainColor = UiFactory.InkSoft; mainOn = false; }
-            else { mainOn = save.Doo >= art.LearnCost; mainLabel = "습득 " + art.LearnCost.ToString("N0") + "두"; mainColor = mainOn ? UiFactory.Red : UiFactory.InkSoft; }
+            else { mainOn = save.Doo >= art.LearnCost; mainLabel = "습득 " + art.LearnCost.ToString("N0") + "은자"; mainColor = mainOn ? UiFactory.Red : UiFactory.InkSoft; }
             var main = UiFactory.Button("Main", card.transform, new Vector2(0.05f, 0.19f), new Vector2(0.95f, 0.285f), mainLabel, mainColor, () => { OnPressed(art); OpenDetail(art); }, 34);
             main.interactable = mainOn;
             bool canVariant = learned && level >= Mastery.VariantLevel && Mastery.AvailableVariants(art).Count > 0;
@@ -420,7 +420,7 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             Canvas.ForceUpdateCanvases();
             RefreshSlots(save);
-            _header.text = "무공 · 장착 " + Progression.EquippedCount(save, false) + "/" + Progression.MaxEquippedArts + " · 필살 " + Progression.EquippedCount(save, true) + "/" + Progression.MaxEquippedUltimates + " · " + save.Doo.ToString("N0") + "두";
+            _header.text = "무공 · 장착 " + Progression.EquippedCount(save, false) + "/" + Progression.MaxEquippedArts + " · 필살 " + Progression.EquippedCount(save, true) + "/" + Progression.MaxEquippedUltimates + " · " + save.Doo.ToString("N0") + "은자";
 
             foreach (var r in _rows)
             {
@@ -461,7 +461,7 @@ namespace BiRyeoDo.Game.UI
                 else
                 {
                     bool can = save.Doo >= a.LearnCost;
-                    r.ButtonLabel.text = "습득 " + a.LearnCost.ToString("N0") + "두";
+                    r.ButtonLabel.text = "습득 " + a.LearnCost.ToString("N0") + "은자";
                     r.ButtonImage.color = can ? UiFactory.Red : UiFactory.InkSoft;
                     r.Button.interactable = can;
                 }

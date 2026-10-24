@@ -190,7 +190,7 @@ namespace BiRyeoDo.Game.UI
                 int target = Achievements.TargetOf(a), prog = Math.Min(Achievements.Progress(save, a), target);
                 UiFactory.Label("Name", band, new Vector2(.04f, .75f), new Vector2(.96f, .96f), a.Name, 32, claimed ? UiFactory.Dim : UiFactory.PaperText, TextAnchor.MiddleLeft);
                 UiFactory.Label("Desc", band, new Vector2(.04f, .47f), new Vector2(.96f, .73f), a.Description, 28, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
-                UiFactory.Label("Progress", band, new Vector2(.04f, .28f), new Vector2(.96f, .45f), prog + " / " + target + " · 보상 " + a.RewardDoo.ToString("N0") + "두" + (string.IsNullOrEmpty(a.RewardItemId) ? "" : " + " + EarlyGameContent.FindItem(a.RewardItemId)?.Name), 27, UiFactory.Gold, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Progress", band, new Vector2(.04f, .28f), new Vector2(.96f, .45f), prog + " / " + target + " · 보상 " + a.RewardDoo.ToString("N0") + "은자" + (string.IsNullOrEmpty(a.RewardItemId) ? "" : " + " + EarlyGameContent.FindItem(a.RewardItemId)?.Name), 27, UiFactory.Gold, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var id = a.Id;
                 var btn = UiFactory.Button("Claim", band, new Vector2(.04f, .04f), new Vector2(.96f, .25f), claimed ? "수령 완료" : can ? "수령" : "진행 중", can ? UiFactory.Red : UiFactory.InkSoft, () => Claim(id), 28);
                 btn.interactable = can;

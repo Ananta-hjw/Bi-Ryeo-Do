@@ -33,14 +33,14 @@ namespace BiRyeoDo.Core
                 {
                     new FortuneChoice { Label = "폭포를 맞으며 수련한다", Result = "물살을 버텨내며 호흡이 한결 안정되었다. 경험 +", ExpLevels = 0.5 },
                     new FortuneChoice { Label = "무공 초식을 반복해 익힌다", Result = "장착한 무공을 밤새 반복했다. 숙련이 올랐다.", MasteryUses = 6 },
-                    new FortuneChoice { Label = "그냥 푹 잔다", Result = "개운하게 잤다. 일어나 보니 머리맡에 약간의 두가 놓여 있다.", Doo = 470 },
+                    new FortuneChoice { Label = "그냥 푹 잔다", Result = "개운하게 잤다. 일어나 보니 머리맡에 약간의 은자가 놓여 있다.", Doo = 470 },
                 } },
             new FortuneEvent { Id = "f_peddler", Title = "수상한 행상", UnlockStage = 4,
                 Text = new[] { "길가에서 행상이 보따리를 펼친다. \"귀한 영약이오. 지금 아니면 못 구하오.\"", "믿을 만한 물건일까?" },
                 Choices = new[]
                 {
-                    new FortuneChoice { Label = "영약을 산다 (-800두)", Result = "한 병을 샀다. 진짜 영약이었다!", Doo = -800, ItemId = "ginseng" },
-                    new FortuneChoice { Label = "흥정해서 약초만 산다 (-200두)", Result = "약초 한 뿌리를 싸게 샀다.", Doo = -200, ItemId = "bear_gall" },
+                    new FortuneChoice { Label = "영약을 산다 (-800은자)", Result = "한 병을 샀다. 진짜 영약이었다!", Doo = -800, ItemId = "ginseng" },
+                    new FortuneChoice { Label = "흥정해서 약초만 산다 (-200은자)", Result = "약초 한 뿌리를 싸게 샀다.", Doo = -200, ItemId = "bear_gall" },
                     new FortuneChoice { Label = "지나친다", Result = "행상은 아쉬운 얼굴로 보따리를 쌌다." },
                 } },
             new FortuneEvent { Id = "f_campfire", Title = "모닥불 곁의 밤", UnlockStage = 7,
@@ -62,7 +62,7 @@ namespace BiRyeoDo.Core
                 Text = new[] { "헌책방 구석에서 낡은 비급 조각을 발견했다. 내용은 알아볼 수 없다.", "어떻게 할까?" },
                 Choices = new[]
                 {
-                    new FortuneChoice { Label = "풀이를 사서 깊이 연구한다 (-3000두)", Result = "며칠 밤을 새워 연구했다. 모든 장착 무공이 크게 숙련되었다.", Doo = -3000, MasteryUses = 25 },
+                    new FortuneChoice { Label = "풀이를 사서 깊이 연구한다 (-3000은자)", Result = "며칠 밤을 새워 연구했다. 모든 장착 무공이 크게 숙련되었다.", Doo = -3000, MasteryUses = 25 },
                     new FortuneChoice { Label = "되팔아 돈으로 바꾼다", Result = "수집가가 후하게 값을 쳐주었다.", Doo = 3900 },
                 } },
             new FortuneEvent { Id = "f_reunion", Title = "오랜 동료와의 술자리", UnlockStage = 22,
@@ -84,8 +84,8 @@ namespace BiRyeoDo.Core
                 Text = new[] { "저잣거리 객잔에 들어서니 온갖 소문이 오간다.", "어떤 이야기에 귀를 기울일까?" },
                 Choices = new[]
                 {
-                    new FortuneChoice { Label = "정보꾼에게 소문을 산다 (-600두)", Result = "값진 이야기였다. 큰 깨달음을 얻었다. 경험 +", Doo = -600, ExpLevels = 0.9 },
-                    new FortuneChoice { Label = "일행과 술잔을 기울인다 (-100두)", Result = "시끌벅적한 술자리에서 서로가 한결 가까워졌다.", Doo = -100, BondPoints = 2 },
+                    new FortuneChoice { Label = "정보꾼에게 소문을 산다 (-600은자)", Result = "값진 이야기였다. 큰 깨달음을 얻었다. 경험 +", Doo = -600, ExpLevels = 0.9 },
+                    new FortuneChoice { Label = "일행과 술잔을 기울인다 (-100은자)", Result = "시끌벅적한 술자리에서 서로가 한결 가까워졌다.", Doo = -100, BondPoints = 2 },
                     new FortuneChoice { Label = "남의 대화에는 신경 쓰지 않는다", Result = "자리에 떨어진 두 몇 푼을 주웠다.", Doo = 550 },
                 } },
             new FortuneEvent { Id = "f_blacksmith", Title = "늙은 대장장이", UnlockStage = 14,
@@ -94,21 +94,21 @@ namespace BiRyeoDo.Core
                 {
                     new FortuneChoice { Label = "일손을 거든다", Result = "풀무질을 도왔더니 품삯을 두둑이 받았다.", Doo = 1870 },
                     new FortuneChoice { Label = "망치질을 지켜보며 운기한다", Result = "쇠를 두드리는 박자에 호흡을 맞추었다. 경험 +", ExpLevels = 0.6 },
-                    new FortuneChoice { Label = "비상약을 맡겨 둔 것을 찾는다 (-900두)", Result = "대장장이가 몰래 달여 둔 귀한 약을 건네주었다.", Doo = -900, ItemId = "ginseng" },
+                    new FortuneChoice { Label = "비상약을 맡겨 둔 것을 찾는다 (-900은자)", Result = "대장장이가 몰래 달여 둔 귀한 약을 건네주었다.", Doo = -900, ItemId = "ginseng" },
                 } },
             new FortuneEvent { Id = "f_monk", Title = "산사의 노승", UnlockStage = 19,
                 Text = new[] { "고요한 산사. 노승이 마당을 쓸다 말고 이쪽을 본다.", "\"검을 쥔 손에 물어볼 것이 많아 보이는구려.\"" },
                 Choices = new[]
                 {
                     new FortuneChoice { Label = "선문답을 나눈다", Result = "알 듯 말 듯한 말 속에서 마음이 맑아졌다. 경험 +", ExpLevels = 1.0 },
-                    new FortuneChoice { Label = "시주하고 수련을 청한다 (-1500두)", Result = "노승이 직접 초식을 바로잡아 주었다. 일행도 곁에서 함께 배웠다.", Doo = -1500, MasteryUses = 15, BondPoints = 1 },
+                    new FortuneChoice { Label = "시주하고 수련을 청한다 (-1500은자)", Result = "노승이 직접 초식을 바로잡아 주었다. 일행도 곁에서 함께 배웠다.", Doo = -1500, MasteryUses = 15, BondPoints = 1 },
                     new FortuneChoice { Label = "공양만 하고 떠난다", Result = "노승이 공양 답례로 약병을 쥐여 주었다.", ItemId = "okruju" },
                 } },
             new FortuneEvent { Id = "f_white_tiger", Title = "술동이 앞의 백호", UnlockStage = 31,
                 Text = new[] { "산길 모퉁이에서 커다란 하얀 호랑이가 빈 술동이 앞에 앉아 이쪽을 본다.", "황금빛 눈이 무언가를 기다리는 것 같다." },
                 Choices = new[]
                 {
-                    new FortuneChoice { Label = "주막에서 술 한 동이를 사 온다 (-1200두)", Result = "호랑이가 단숨에 비우고 꼬리를 흔들며 사라졌다. 그 자리에 산삼 한 뿌리가 놓여 있다.", Doo = -1200, ItemId = "ginseng" },
+                    new FortuneChoice { Label = "주막에서 술 한 동이를 사 온다 (-1200은자)", Result = "호랑이가 단숨에 비우고 꼬리를 흔들며 사라졌다. 그 자리에 산삼 한 뿌리가 놓여 있다.", Doo = -1200, ItemId = "ginseng" },
                     new FortuneChoice { Label = "눈을 마주친 채 천천히 물러난다", Result = "등골이 서늘한 긴장 속에서 기감이 한층 날카로워졌다. 경험 +", ExpLevels = 0.8 },
                     new FortuneChoice { Label = "동료들과 한달음에 달아난다", Result = "한참을 달린 끝에 서로의 꼴을 보고 다 같이 웃음을 터뜨렸다.", BondPoints = 3 },
                 } },
@@ -124,7 +124,7 @@ namespace BiRyeoDo.Core
                 Text = new[] { "표국 별채 앞에 박달나무 목침 하나가 굴러 나와 있다. 안에서는 우렁찬 코골이가 들린다.", "어떻게 할까?" },
                 Choices = new[]
                 {
-                    new FortuneChoice { Label = "조심스레 문 앞에 돌려놓는다", Result = "코골이가 잦아들고, 문틈으로 술값 정도의 두가 굴러 나왔다.", Doo = 1870 },
+                    new FortuneChoice { Label = "조심스레 문 앞에 돌려놓는다", Result = "코골이가 잦아들고, 문틈으로 술값 정도의 은자가 굴러 나왔다.", Doo = 1870 },
                     new FortuneChoice { Label = "문을 두드려 깨운다", Result = "날아온 목침에 이마를 맞고 기절했다. 깨어나니 이상하게 머리가 맑다. 경험 +", ExpLevels = 1.0 },
                     new FortuneChoice { Label = "동료들과 살금살금 물러난다", Result = "숨죽여 물러나다 서로 눈이 마주쳐 웃음을 참느라 혼났다.", BondPoints = 3 },
                 } },
@@ -191,7 +191,7 @@ namespace BiRyeoDo.Core
                 foreach (var id in companionIds) Bonds.Add(save, id, c.BondPoints);
             if (c.MasteryUses > 0)
                 Mastery.Train(save, c.MasteryUses);
-            if (c.Doo > 0) text += "\n두 +" + c.Doo.ToString("N0");   // the payout is shown, like every other reward
+            if (c.Doo > 0) text += "\n은자 +" + c.Doo.ToString("N0");   // the payout is shown, like every other reward
             return text;
         }
     }

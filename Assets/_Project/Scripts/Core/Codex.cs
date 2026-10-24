@@ -212,7 +212,7 @@ namespace BiRyeoDo.Core
             if (a == null || !CanClaim(save, a)) return null;
             save.ClaimedAchievements.Add(a.Id);
             save.Doo += a.RewardDoo;
-            string note = "두 +" + a.RewardDoo.ToString("N0");
+            string note = "은자 +" + a.RewardDoo.ToString("N0");
             if (!string.IsNullOrEmpty(a.RewardItemId))
             {
                 var item = EarlyGameContent.FindItem(a.RewardItemId);
@@ -233,7 +233,7 @@ namespace BiRyeoDo.Core
                 if (!string.IsNullOrEmpty(a.RewardItemId)) { var it = EarlyGameContent.FindItem(a.RewardItemId); if (it != null) extra.Add(it.Name); }
             }
             if (n == 0) return null;
-            return n + "건 수령: 두 +" + doo.ToString("N0") + (extra.Count > 0 ? ", " + string.Join(", ", extra) : "");
+            return n + "건 수령: 은자 +" + doo.ToString("N0") + (extra.Count > 0 ? ", " + string.Join(", ", extra) : "");
         }
     }
 }

@@ -20,7 +20,7 @@ namespace BiRyeoDo.Game.UI
             Begin();
             if (!Tutorial.IsDone(save, "training") && HelpPanel.Instance != null) HelpPanel.Instance.Show("training", true);
 
-            UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "동료 수련 · " + save.Doo.ToString("N0") + "두", 40, UiFactory.Gold);
+            UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "동료 수련 · " + save.Doo.ToString("N0") + "은자", 40, UiFactory.Gold);
             UiFactory.ScrollBody(UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.845f), new Vector2(0.95f, 0.92f), toast ?? "수련 단계마다 체력·공격·방어 +4%. 인연이 깊을수록 더 높이 수련할 수 있습니다 (서먹 3 · 친분 5 · 신뢰 8 · 의기투합 10).", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             var content = CodexPanel.Scroller(Root, 0.09f, 0.84f);
@@ -38,7 +38,7 @@ namespace BiRyeoDo.Game.UI
                 var companion = c;
                 bool maxed = level >= CompanionTraining.MaxLevel, capped = level >= cap;
                 bool can = !maxed && !capped && save.Doo >= cost;
-                string label = maxed ? "최고 단계" : capped ? "인연 필요" : "수련\n" + cost.ToString("N0") + "두";
+                string label = maxed ? "최고 단계" : capped ? "인연 필요" : "수련\n" + cost.ToString("N0") + "은자";
                 var btn = UiFactory.Button("Train", band, new Vector2(0.69f, 0.12f), new Vector2(0.97f, 0.88f), label, can ? UiFactory.Red : UiFactory.InkSoft, () => Train(companion), 24);
                 btn.interactable = can;
             }

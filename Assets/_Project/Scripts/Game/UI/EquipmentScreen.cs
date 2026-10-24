@@ -95,7 +95,7 @@ namespace BiRyeoDo.Game.UI
             Label(change.transform, "Name", .02f, .02f, .85f, .98f, OwnerName + " · Lv." + level, 28, UiFactory.Gold);
             UiFactory.Label("Arrow", change.transform, new Vector2(.87f, .05f), new Vector2(.99f, .95f), "▾", 28, UiFactory.Gold);
             UiFactory.Panel("Underline", change.transform, new Vector2(.02f, 0f), new Vector2(.98f, .02f), UiFactory.GoldDim);
-            Label(left, "Doo", .03f, .84f, .59f, .90f, Save.Doo.ToString("N0") + "두", 24);
+            Label(left, "Doo", .03f, .84f, .59f, .90f, Save.Doo.ToString("N0") + "은자", 24);
             Action(left, "Sets", .61f, .85f, .97f, .985f, "세트 효과", OpenSets);
             var figure = UiFactory.Panel("BattleFigure", left, new Vector2(.235f, .14f), new Vector2(.765f, .84f), Color.white);
             // Use only files under Art/Battle, including the battle fallback when a figure is missing.
@@ -199,12 +199,12 @@ namespace BiRyeoDo.Game.UI
             if (item == null) return "해당 부위의 장비를 획득하면 여기에 표시됩니다.";
             bool worn = Gear.ItemInSlot(Save, _owner, _slot)?.Id == item.Id;
             if (!worn) return "선택한 장비는 아래 버튼으로 장착할 수 있습니다.";
-            if (!Gear.IsGradeUnlocked(Save, _owner, _slot, item.Grade)) return "등급 개방 비용 " + Gear.GradeUnlockCost(Save, _owner, _slot, item.Grade).ToString("N0") + "두";
+            if (!Gear.IsGradeUnlocked(Save, _owner, _slot, item.Grade)) return "등급 개방 비용 " + Gear.GradeUnlockCost(Save, _owner, _slot, item.Grade).ToString("N0") + "은자";
             int next = Gear.SlotLevel(Save, _owner, _slot) + 1;
             if (next > Gear.MaxLevel) return "최대 강화에 도달했습니다.";
             if (next > Gear.Cap(Save, item.Id)) return "현재 강화 상한입니다. 한계돌파로 상한을 높일 수 있습니다.";
             var stone = Gear.MaterialForLevel(next);
-            return "다음 강화: " + stone.Name + " " + Inventory.Count(Save, stone.Id) + "/" + Gear.StoneCost(next) + "개 · " + Gear.DooCost(next).ToString("N0") + "두";
+            return "다음 강화: " + stone.Name + " " + Inventory.Count(Save, stone.Id) + "/" + Gear.StoneCost(next) + "개 · " + Gear.DooCost(next).ToString("N0") + "은자";
         }
 
         private void BuildActions(RectTransform parent, ItemData item)

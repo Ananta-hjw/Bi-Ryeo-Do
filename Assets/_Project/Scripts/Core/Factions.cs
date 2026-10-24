@@ -43,7 +43,7 @@ namespace BiRyeoDo.Core
         {
             new FactionData { Id = "academy", Name = "천무학관", Description = "무림맹 산하의 학관. 수련과 시험이 이어진다.", PerkText = "경험치",
                 Stages = new[] { 2, 6, 7, 8, 9, 10, 11, 12, 13, 16, 17, 19, 20, 32, 33, 34, 36 }, Perk = PerkKind.ExpPct, PerkSteps = new[] { 0.03f, 0.06f, 0.10f } },
-            new FactionData { Id = "biaoguk", Name = "중양표국", Description = "표행을 맡는 표국. 길과 물자에 밝다.", PerkText = "얻는 두",
+            new FactionData { Id = "biaoguk", Name = "중양표국", Description = "표행을 맡는 표국. 길과 물자에 밝다.", PerkText = "얻는 은자",
                 Stages = new[] { 2, 3, 5, 22, 25, 31, 35 }, Perk = PerkKind.DooPct, PerkSteps = new[] { 0.03f, 0.06f, 0.10f } },
             new FactionData { Id = "wudang", Name = "무당파", Description = "태극의 문파. 호흡과 회복에 능하다.", PerkText = "전투 사이 정비 회복량",
                 Stages = new[] { 14, 15, 18 }, Perk = PerkKind.RestHeal, PerkSteps = new[] { 0.05f, 0.10f, 0.15f } },
@@ -273,7 +273,7 @@ namespace BiRyeoDo.Core
             if (g == null) { error = "없는 물건입니다."; return null; }
             if (!IsOpen(save, g)) { error = Factions.Find(g.FactionId).Name + " 평판 " + Factions.TierNames[g.MinTier] + " 이상이 필요합니다."; return null; }
             if (SoldOut(save, g)) { error = "더 이상 살 수 없습니다."; return null; }
-            if (save.Doo < g.Price) { error = "두가 모자랍니다. (" + g.Price.ToString("N0") + "두)"; return null; }
+            if (save.Doo < g.Price) { error = "은자가 모자랍니다. (" + g.Price.ToString("N0") + "은자)"; return null; }
             string note;
             switch (g.Kind)
             {

@@ -388,7 +388,7 @@ namespace BiRyeoDo.Core
             if (!CanClaim(save, c)) return null;
             save.ClaimedStarChests.Add(c.Stars);
             save.Doo += c.Doo;
-            string text = "별 " + c.Stars + "개 보상: 두 +" + c.Doo.ToString("N0");
+            string text = "별 " + c.Stars + "개 보상: 은자 +" + c.Doo.ToString("N0");
             var item = string.IsNullOrEmpty(c.ItemId) ? null : EarlyGameContent.FindItem(c.ItemId);
             if (item != null) { Inventory.Add(save, c.ItemId, c.ItemCount); text += ", " + item.Name + (c.ItemCount > 1 ? " x" + c.ItemCount : ""); }
             if (c.Insight > 0) { Inventory.Add(save, InnerArts.StoneId, c.Insight); text += ", 심득석 x" + c.Insight; }
@@ -414,7 +414,7 @@ namespace BiRyeoDo.Core
                 }
             }
             if (n == 0) return null;
-            return "별 보상 " + n + "개: 두 +" + doo.ToString("N0") + (items.Count > 0 ? ", " + string.Join(", ", items) : "") + (insight > 0 ? ", 심득석 x" + insight : "");
+            return "별 보상 " + n + "개: 은자 +" + doo.ToString("N0") + (items.Count > 0 ? ", " + string.Join(", ", items) : "") + (insight > 0 ? ", 심득석 x" + insight : "");
         }
 
         /// <summary>Extra drop rolls on harder difficulties (1 + difficulty rolls per fight).</summary>

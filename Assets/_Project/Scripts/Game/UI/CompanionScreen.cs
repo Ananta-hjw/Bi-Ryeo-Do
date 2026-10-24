@@ -245,7 +245,7 @@ namespace BiRyeoDo.Game.UI
                     + "\n수련 Lv." + CompanionTraining.LevelOf(Save, companion.Id) + " / " + CompanionTraining.Cap(Save, companion.Id), 28);
                 int training = CompanionTraining.LevelOf(Save, companion.Id), cap = CompanionTraining.Cap(Save, companion.Id);
                 long cost = CompanionTraining.NextCost(Save, companion.Id);
-                string label = training >= CompanionTraining.MaxLevel ? "수련 완료" : training >= cap ? "인연 성장 필요" : "동료 수련\n" + cost.ToString("N0") + "두";
+                string label = training >= CompanionTraining.MaxLevel ? "수련 완료" : training >= cap ? "인연 성장 필요" : "동료 수련\n" + cost.ToString("N0") + "은자";
                 Button(row, "Train", .70f, .12f, .97f, .68f, label, () =>
                 {
                     string error;

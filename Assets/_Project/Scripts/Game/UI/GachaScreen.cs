@@ -194,12 +194,12 @@ namespace BiRyeoDo.Game.UI
         private void Refresh()
         {
             var save = GameManager.Instance.Save;
-            _header.text = "뽑기 · " + save.Doo.ToString("N0") + "두";
+            _header.text = "뽑기 · " + save.Doo.ToString("N0") + "은자";
             for (int i = 0; i < 3; i++)
             {
                 int n = _sizes[i];
                 bool can = Gacha.CanAfford(save, n);
-                _buttonLabels[i].text = n + "회 뽑기\n" + Gacha.CostFor(n).ToString("N0") + "두";
+                _buttonLabels[i].text = n + "회 뽑기\n" + Gacha.CostFor(n).ToString("N0") + "은자";
                 _buttons[i].interactable = can && !_busy;
                 _buttonImages[i].color = can ? UiFactory.Red : UiFactory.InkSoft;
             }
@@ -212,7 +212,7 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             var rng = new SeededRandom(unchecked(Environment.TickCount * 397) ^ (_pullCounter++ * 7919));
             var results = Gacha.Pull(save, count, rng);
-            if (results == null) { _hint.text = "두가 모자랍니다."; return; }
+            if (results == null) { _hint.text = "은자가 모자랍니다."; return; }
             GameManager.Instance.SaveNow();
             _pending = results;
             StartCoroutine(Reveal(results));

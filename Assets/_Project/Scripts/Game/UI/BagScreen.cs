@@ -156,7 +156,7 @@ namespace BiRyeoDo.Game.UI
                 if (item.SpiritGain > 0) fx.Add("기세 +" + item.SpiritGain);
                 if (item.MasteryUses > 0) fx.Add("배운 무공 하나의 숙련 +" + item.MasteryUses + "회");
                 if (fx.Count > 0) lines.Add("<color=#9ADB9F>" + string.Join("  ", fx) + "</color>");
-                if (item.Kind == ItemKind.Material && item.SellValue > 0) lines.Add("판매가 " + Income.Boost(item.SellValue).ToString("N0") + "두 (1개)");
+                if (item.Kind == ItemKind.Material && item.SellValue > 0) lines.Add("판매가 " + Income.Boost(item.SellValue).ToString("N0") + "은자 (1개)");
             }
             string flavor = StatusSheet.Flavor(item);
             if (flavor.Length > 0) lines.Add(flavor);
@@ -208,7 +208,7 @@ namespace BiRyeoDo.Game.UI
             else if (item.Kind == ItemKind.Material && item.SellValue > 0)
             {
                 int count = Inventory.Count(save, item.Id);
-                UiFactory.Button("Sell", card.transform, new Vector2(0.05f, 0.13f), new Vector2(0.95f, 0.22f), "전부 판매 +" + (Income.Boost(item.SellValue) * count).ToString("N0") + "두", UiFactory.Red, () => { DoMain(item); }, 32);
+                UiFactory.Button("Sell", card.transform, new Vector2(0.05f, 0.13f), new Vector2(0.95f, 0.22f), "전부 판매 +" + (Income.Boost(item.SellValue) * count).ToString("N0") + "은자", UiFactory.Red, () => { DoMain(item); }, 32);
             }
             else if (item.Kind == ItemKind.Material)
             {
@@ -282,7 +282,7 @@ namespace BiRyeoDo.Game.UI
             {
                 int count = Inventory.Count(save, item.Id);
                 long gold = Inventory.Sell(save, item.Id, count);
-                _flash = item.Name + " " + count + "개를 팔아 " + gold.ToString("N0") + "두를 얻었습니다.";
+                _flash = item.Name + " " + count + "개를 팔아 " + gold.ToString("N0") + "은자를 얻었습니다.";
             }
             GameManager.Instance.SaveNow();
             Refresh();
@@ -505,7 +505,7 @@ namespace BiRyeoDo.Game.UI
         {
             if (!_built) return;
             var save = GameManager.Instance.Save;
-            _header.text = "행낭 · " + save.Doo.ToString("N0") + "두";
+            _header.text = "행낭 · " + save.Doo.ToString("N0") + "은자";
             _hint.text = !string.IsNullOrEmpty(_flash) ? _flash : "";
             _flash = null;
 

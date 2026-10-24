@@ -225,7 +225,7 @@ namespace BiRyeoDo.Game.UI
 
             var doo = UiFactory.Panel("DooChip", root, new Vector2(0.42f, 0.932f), new Vector2(0.69f, 0.988f), UiFactory.Ink);
             UiFactory.Frame(doo.transform, UiFactory.GoldDim, 2f);
-            UiFactory.Label("Icon", doo.transform, new Vector2(0.04f, 0f), new Vector2(0.28f, 1f), "두", 30, UiFactory.Gold);
+            UiFactory.Label("Icon", doo.transform, new Vector2(0.04f, 0f), new Vector2(0.28f, 1f), "은자", 30, UiFactory.Gold);
             _dooText = UiFactory.Label("Doo", doo.transform, new Vector2(0.28f, 0f), new Vector2(0.96f, 1f), "", 30, UiFactory.PaperText, TextAnchor.MiddleRight);
 
             var rank = UiFactory.Panel("RankChip", root, new Vector2(0.71f, 0.932f), new Vector2(0.865f, 0.988f), UiFactory.Ink);
@@ -438,7 +438,7 @@ namespace BiRyeoDo.Game.UI
                     var band = offerGrid.Add("Offer" + offerIndex++);
                     UiFactory.Label("Name", band, new Vector2(0.04f, 0.72f), new Vector2(0.96f, 0.96f), offer.Opponents[0].Name.Split(' ')[0] + " 비무첩", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
                     UiFactory.Label("Info", band, new Vector2(0.04f, 0.47f), new Vector2(0.96f, 0.70f),
-                        "입장료 " + offer.Fee.ToString("N0") + "두 · 상금 " + offer.DooReward.ToString("N0") + "두", 30, afford ? UiFactory.PaperText : UiFactory.Red, TextAnchor.MiddleLeft, FontStyle.Normal);
+                        "입장료 " + offer.Fee.ToString("N0") + "은자 · 상금 " + offer.DooReward.ToString("N0") + "은자", 30, afford ? UiFactory.PaperText : UiFactory.Red, TextAnchor.MiddleLeft, FontStyle.Normal);
                     double need = Recommend.ForPromotion(offer);
                     UiFactory.Label("Need", band, new Vector2(0.04f, 0.28f), new Vector2(0.96f, 0.46f),
                         "추천 최소 " + Recommend.Text(need), 30, Recommend.Meets(save, need) ? UiFactory.Dim : UiFactory.Red, TextAnchor.MiddleLeft, FontStyle.Normal);
@@ -552,7 +552,7 @@ namespace BiRyeoDo.Game.UI
             if (!Tutorial.IsDone(save, "board") && HelpPanel.Instance != null) HelpPanel.Instance.Show("board", true);
             UiFactory.Label("Title", _questOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "의뢰 게시판", 44, UiFactory.Gold);
             UiFactory.ScrollBody(UiFactory.Label("Rules", _questOverlay, new Vector2(0.05f, 0.85f), new Vector2(0.95f, 0.92f),
-                "이미 지나온 싸움에 조건이 붙어 다시 나옵니다. 한 번씩만 받을 수 있고, 두와 보상을 얻습니다.", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 32);
+                "이미 지나온 싸움에 조건이 붙어 다시 나옵니다. 한 번씩만 받을 수 있고, 은자와 보상을 얻습니다.", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 32);
 
             var partyNow = new List<string>();
             foreach (var c in EarlyGameContent.SelectCompanionsFor(Math.Max(1, save.HighestUnlockedStage), save)) partyNow.Add(c.Name);
@@ -568,7 +568,7 @@ namespace BiRyeoDo.Game.UI
                 var band = questGrid.Add("Quest" + q.Id);
                 UiFactory.Label("Name", band, new Vector2(0.04f, 0.72f), new Vector2(0.96f, 0.96f), q.Name + (done ? "  (완료)" : ""), 32, done ? UiFactory.InkSoft : UiFactory.PaperText, TextAnchor.MiddleLeft);
                 UiFactory.Label("Info", band, new Vector2(0.04f, 0.42f), new Vector2(0.96f, 0.70f), q.Trial.Brief, 28, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-                string reward = "보상 " + Recommend.QuestDoo(save, q).ToString("N0") + "두";
+                string reward = "보상 " + Recommend.QuestDoo(save, q).ToString("N0") + "은자";
                 if (!string.IsNullOrEmpty(q.ItemId)) reward += " · " + EarlyGameContent.FindItem(q.ItemId)?.Name;
                 UiFactory.Label("Reward", band, new Vector2(.04f, .27f), new Vector2(.96f, .41f), reward, 27, UiFactory.Gold, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var quest = q;
@@ -620,7 +620,7 @@ namespace BiRyeoDo.Game.UI
                 foreach (var s in Tower.RewardItems(floor)) { var it = EarlyGameContent.FindItem(s.Id); if (it != null) items.Add(it.Name); }
                 UiFactory.Label("Info", card.transform, new Vector2(0.05f, 0.08f), new Vector2(0.95f, 0.62f),
                     "상대: " + string.Join(", ", names) + "\n권장 Lv." + Tower.FloorLevel(floor)
-                    + "\n첫 돌파 보상: 두 " + Recommend.TowerDoo(save, floor).ToString("N0") + (items.Count > 0 ? ", " + string.Join(", ", items) : "")
+                    + "\n첫 돌파 보상: 은자 " + Recommend.TowerDoo(save, floor).ToString("N0") + (items.Count > 0 ? ", " + string.Join(", ", items) : "")
                     + " + 경험\n" + Recommend.Line(save, Recommend.ForTowerFloor(floor)), 30, Recommend.Meets(save, Recommend.ForTowerFloor(floor)) ? UiFactory.PaperText : UiFactory.Red, TextAnchor.MiddleCenter, FontStyle.Normal);
                 UiFactory.Button("Go", _towerOverlay, new Vector2(0.25f, 0.34f), new Vector2(0.75f, 0.44f), "도전", UiFactory.Red, () => StartTower(floor), 44);
                 if (save.TowerBest > 0)
@@ -882,7 +882,7 @@ namespace BiRyeoDo.Game.UI
             bool enough = Recommend.Meets(save, need);
             string payNote = Recommend.IsReplay(save, st) ? "  (이미 깬 곳이라 절반)" : "";
             UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Reward", _prepOverlay, new Vector2(0.05f, 0.645f), new Vector2(0.95f, 0.775f),
-                "예상 보상  경험 " + rewardExp.ToString("N0") + " · 두 " + rewardDoo.ToString("N0") + payNote + "\n" + Recommend.Line(save, need), 30, enough ? UiFactory.PaperText : UiFactory.Red, TextAnchor.UpperLeft, FontStyle.Normal), 32), 1.15f);
+                "예상 보상  경험 " + rewardExp.ToString("N0") + " · 은자 " + rewardDoo.ToString("N0") + payNote + "\n" + Recommend.Line(save, need), 30, enough ? UiFactory.PaperText : UiFactory.Red, TextAnchor.UpperLeft, FontStyle.Normal), 32), 1.15f);
 
             var enemyText = new System.Text.StringBuilder("나올 적\n");
             foreach (var l in lines) enemyText.Append(l).Append('\n');

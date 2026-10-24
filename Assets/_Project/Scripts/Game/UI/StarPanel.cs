@@ -35,7 +35,7 @@ namespace BiRyeoDo.Game.UI
                 var band = grid.Add("Chest" + i);
                 bool claimed = save.ClaimedStarChests.Contains(c.Stars), can = StageStars.CanClaim(save, c);
                 UiFactory.Label("Name", band, new Vector2(.04f, .74f), new Vector2(.96f, .96f), "★ " + c.Stars + "개", 34, claimed ? UiFactory.Dim : UiFactory.Gold, TextAnchor.MiddleLeft);
-                string reward = c.Doo.ToString("N0") + "두";
+                string reward = c.Doo.ToString("N0") + "은자";
                 if (!string.IsNullOrEmpty(c.ItemId)) reward += "\n" + EarlyGameContent.FindItem(c.ItemId)?.Name + " ×" + c.ItemCount;
                 if (c.Insight > 0) reward += " · 심득석 " + c.Insight + "개";
                 UiFactory.Label("Reward", band, new Vector2(.04f, .42f), new Vector2(.96f, .72f), reward, 28, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);

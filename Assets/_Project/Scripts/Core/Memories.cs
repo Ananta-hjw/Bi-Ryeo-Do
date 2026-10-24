@@ -192,7 +192,7 @@ namespace BiRyeoDo.Core
             if (m == null || !IsUnlocked(save, m) || IsSeen(save, id)) return notes;
             save.SeenMemories.Add(id);
             save.Doo += m.RewardDoo;
-            notes.Add("두 +" + m.RewardDoo.ToString("N0"));
+            notes.Add("은자 +" + m.RewardDoo.ToString("N0"));
             // The bond is part of her companion progress, so it only grows once she has joined the party (stage 16).
             var heroine = EarlyGameContent.FindCompanion(HeroineId);
             if (heroine != null && heroine.JoinStage <= save.HighestUnlockedStage)
@@ -205,7 +205,7 @@ namespace BiRyeoDo.Core
                 if (SeenCount(save) < ms.Count || save.ClaimedMemoryMilestones.Contains(ms.Count)) continue;
                 save.ClaimedMemoryMilestones.Add(ms.Count);
                 save.Doo += ms.Doo;
-                string text = "추억 " + ms.Count + "개 보상: 두 +" + ms.Doo.ToString("N0");
+                string text = "추억 " + ms.Count + "개 보상: 은자 +" + ms.Doo.ToString("N0");
                 var item = string.IsNullOrEmpty(ms.ItemId) ? null : EarlyGameContent.FindItem(ms.ItemId);
                 if (item != null) { Inventory.Add(save, item.Id, ms.ItemCount); text += ", " + item.Name + (ms.ItemCount > 1 ? " x" + ms.ItemCount : ""); }
                 notes.Add(text);

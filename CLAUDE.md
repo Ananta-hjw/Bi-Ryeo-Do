@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-"비뢰도" (Bi-Ryeo-Do): a personal, single-player Android game in Unity. Genre: wuxia + **player-driven turn-based battles** + growth by levelling and learning martial arts (no reincarnation). The user explicitly does NOT want an idle/auto-battle game: every turn the player picks a command (attack, martial art, guard, meditate), chooses the target, and fights should feel fast. Visual mood only is borrowed from 수련협객 (ink-wash look, currency 두). Never published, so copyright/store concerns are out of scope. Design notes and the screenshot analysis live in `Docs/GAME_DESIGN.md`; the user supplies the story separately (goes into `StageDef.storyText`).
+"비뢰도" (Bi-Ryeo-Do): a personal, single-player Android game in Unity. Genre: wuxia + **player-driven turn-based battles** + growth by levelling and learning martial arts (no reincarnation). The user explicitly does NOT want an idle/auto-battle game: every turn the player picks a command (attack, martial art, guard, meditate), chooses the target, and fights should feel fast. Visual mood only is borrowed from 수련협객 (ink-wash look). The currency is shown to the player as **은자** (`SaveData.Doo` and other `Doo` identifiers keep the old name; every player-facing string says 은자, and the notes below that still say 두 mean 은자). Never published, so copyright/store concerns are out of scope. Design notes and the screenshot analysis live in `Docs/GAME_DESIGN.md`; the user supplies the story separately (goes into `StageDef.storyText`).
 
 Reply to the user in Korean (see `.claude/settings.json`); keep code identifiers and comments in English.
 

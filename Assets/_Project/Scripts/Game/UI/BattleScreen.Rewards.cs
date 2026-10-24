@@ -45,7 +45,7 @@ namespace BiRyeoDo.Game.UI
             else RewardText("Victory", stars.transform, Vector2.zero, Vector2.one, "전투 승리", 42, UiFactory.Gold, TextAnchor.MiddleCenter);
 
             RewardValue(card.transform, .05f, .49f, "획득 경험치", "+" + exp.ToString("N0"), QiBlue);
-            RewardValue(card.transform, .51f, .95f, "획득 두", "+" + doo.ToString("N0"), UiFactory.Gold);
+            RewardValue(card.transform, .51f, .95f, "획득 은자", "+" + doo.ToString("N0"), UiFactory.Gold);
             RewardText("LootTitle", card.transform, new Vector2(.06f, .49f), new Vector2(.94f, .55f), "획득 물품", 30, UiFactory.Gold);
             var content = CodexPanel.Scroller(card, .15f, .49f);
             int rowIndex = 0;
@@ -145,7 +145,7 @@ namespace BiRyeoDo.Game.UI
                 newStars > 0 ? "이번 진행에서 새로 얻은 별  +" + newStars : "새로 얻은 별 없음 · 최고 기록은 유지됩니다", 28,
                 newStars > 0 ? UiFactory.Gold : UiFactory.Dim, TextAnchor.MiddleCenter);
             RewardValue(card, .05f, .49f, "이번 진행 경험치", "+" + exp.ToString("N0"), QiBlue);
-            RewardValue(card, .51f, .95f, "이번 진행 두", "+" + doo.ToString("N0"), UiFactory.Gold);
+            RewardValue(card, .51f, .95f, "이번 진행 은자", "+" + doo.ToString("N0"), UiFactory.Gold);
             RewardText("SummaryTitle", card, new Vector2(.06f, .49f), new Vector2(.94f, .55f), "보상 및 전투 기록", 30, UiFactory.Gold);
             var content = CodexPanel.Scroller(card, .15f, .49f);
             int index = 0;

@@ -12,7 +12,7 @@ namespace BiRyeoDo.Game.UI
         private WorldScreen _world;
         private Action<WorldScreen.Menu> _openMenu;
         private Action<TabRouter.Tab> _select;
-        private Text _identity, _doo, _material, _name, _realm, _quote, _featuredTitle, _featuredDetail, _featuredAction;
+        private Text _identity, _doo, _name, _realm, _quote, _featuredTitle, _featuredDetail, _featuredAction;
         private Text _quest, _daily, _fortune, _stars, _arts, _missionsBadge;
         private RectTransform _flyoutLayer, _missionsFlyout, _challengeFlyout;
         private Image _missionsButton, _challengeButton;
@@ -35,8 +35,7 @@ namespace BiRyeoDo.Game.UI
             _identity = HomeText("Identity", header.transform, .03f, .01f, .30f, .98f, "", 30, UiFactory.Gold);
             _experience = UiFactory.MakeBar("Experience", header.transform, new Vector2(.03f, .02f), new Vector2(.30f, .09f), Color.black, UiFactory.Jade);
             UiFactory.Button("Status", header.transform, new Vector2(.02f, .04f), new Vector2(.32f, .96f), "", Color.clear, () => _select(TabRouter.Tab.Companions), 28);
-            _material = HomeText("Material", header.transform, .40f, .01f, .62f, .98f, "", 28, UiFactory.PaperText);
-            _doo = HomeText("Doo", header.transform, .64f, .01f, .84f, .98f, "", 30, UiFactory.Gold, TextAnchor.MiddleRight);
+            _doo = HomeText("Doo", header.transform, .44f, .01f, .84f, .98f, "", 42, UiFactory.Gold, TextAnchor.MiddleRight);
             UiFactory.Button("Settings", header.transform, new Vector2(.87f, .04f), new Vector2(.98f, .96f), "설정", UiFactory.InkSoft, () => _openMenu(WorldScreen.Menu.Settings), 28);
 
             HomeText("Masthead", root, .035f, .805f, .40f, .885f, "비 뢰 도", 58, UiFactory.PaperText);
@@ -196,8 +195,7 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             if (!ReferenceEquals(save, _shownSave)) { _shownSave = save; _world.Refresh(); _lobbyStep = 0; }
             _identity.text = "비류연  Lv." + save.Level + " · " + Promotion.RankName(Promotion.EffectiveRank(save));
-            _doo.text = save.Doo.ToString("N0") + "두";
-            _material.text = Gear.Polish.Name + "  " + Inventory.Count(save, Gear.StoneId).ToString("N0");
+            _doo.text = save.Doo.ToString("N0") + "은자";
             _experience.SetPct((float)save.Exp / Math.Max(1L, Progression.ExpToNext(save.Level)));
             var stage = _world.FeaturedStage;
             if (stage != null)

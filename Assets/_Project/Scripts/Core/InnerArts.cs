@@ -110,7 +110,7 @@ namespace BiRyeoDo.Core
             if (a == null) { error = "알 수 없는 심법입니다."; return false; }
             if (IsLearned(save, id)) { error = "이미 익혔습니다."; return false; }
             if (!IsUnlocked(save, a)) { error = UnlockText(a) + "해야 합니다."; return false; }
-            if (save.Doo < a.LearnCost) { error = "두가 모자랍니다. (" + a.LearnCost.ToString("N0") + "두 필요)"; return false; }
+            if (save.Doo < a.LearnCost) { error = "은자가 모자랍니다. (" + a.LearnCost.ToString("N0") + "두 필요)"; return false; }
             save.Doo -= a.LearnCost;
             save.LearnedInner.Add(id);
             return true;
