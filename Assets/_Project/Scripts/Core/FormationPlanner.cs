@@ -554,12 +554,13 @@ namespace BiRyeoDo.Core
         {
             var fights = new List<IList<Combatant>>();
             if (st == null || st.Encounters == null) return fights;
-            foreach (var group in st.Encounters)
+            for (int k = 0; k < st.Encounters.Length; k++)
             {
+                var group = st.Encounters[k];
                 var list = new List<Combatant>();
                 for (int i = 0; i < group.Length; i++)
                 {
-                    var e = st.EnemyFor(group[i]);
+                    var e = st.EnemyFor(group[i], st.TrialFor(k));
                     if (e != null) list.Add(e.CreateCombatant(e.Id + "#" + i));
                 }
                 fights.Add(list);

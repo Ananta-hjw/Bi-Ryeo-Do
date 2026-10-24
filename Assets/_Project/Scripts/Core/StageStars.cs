@@ -212,7 +212,22 @@ namespace BiRyeoDo.Core
             return i < NormalStatEaseRamp.Length ? NormalStatEaseRamp[i] : NormalStatEase;
         }
 
-        public static EnemyData ScaleEnemy(EnemyData enemy, int stage, int difficulty)
+        /// <summary>일반 난이도 적 체력 배율. 균형 봇으로 잰 현재 난이도에 맞춰 어려운 스테이지일수록 조금 더 줄인다
+        /// (봇이 남기는 체력 30% 미만 x0.90, 72% 미만 x0.93, 85% 이하 x0.95, 그 위 x0.97). 버티기 시험 전투는 줄이지 않는다.</summary>
+        static readonly float[] NormalHpTrimTable =
+        {
+            0.90f, 0.97f, 0.97f, 0.90f, 0.90f, 0.90f, 0.95f, 0.93f, 0.97f, 0.93f,   //  1-10
+            0.93f, 0.95f, 0.93f, 0.93f, 0.95f, 0.97f, 0.97f, 0.95f, 0.97f, 0.97f,   // 11-20
+            0.97f, 0.97f, 0.95f, 0.95f, 0.97f, 0.97f, 0.97f, 0.97f, 0.97f, 0.97f,   // 21-30
+            0.95f, 0.97f, 0.95f, 0.97f, 0.97f, 0.95f,                               // 31-36
+        };
+
+        public static float NormalHpTrim(int stage) { return stage >= 1 && stage <= NormalHpTrimTable.Length ? NormalHpTrimTable[stage - 1] : 1f; }
+
+        /// <summary>Stage 6's boss 호천상 keeps full HP: the bot (solo, at its level) lost far more often with a weaker boss there (87% → 41%), one level up it made no difference.</summary>
+        public static float NormalHpTrim(int stage, EnemyData enemy) { return stage == 6 && enemy != null && enemy.IsBoss ? 1f : NormalHpTrim(stage); }
+
+        public static EnemyData ScaleEnemy(EnemyData enemy, int stage, int difficulty, bool survive = false)
         {
             difficulty = Clamp(difficulty);
             // Shorten the longest normal stages without removing pressure. Survival-only enemies keep their rules/stats.
@@ -224,6 +239,7 @@ namespace BiRyeoDo.Core
                 float soft = NormalStatEaseFor(stage);
                 float hp = NormalHpBoost(stage), atk = NormalAtkBoost(stage);
                 if (stage >= 24 && stage <= 36) { hp *= 0.85f; atk *= 1.25f; }
+                if (!survive) hp *= NormalHpTrim(stage, enemy);   // a 버티기 fight keeps its enemy's HP
                 return enemy.Scaled(hp, atk * soft, soft);
             }
             float ease = NormalEase(stage), extra = HardExtra(stage, difficulty);
