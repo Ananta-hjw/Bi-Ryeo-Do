@@ -46,8 +46,7 @@ namespace BiRyeoDo.Game.UI
             string bonus = Daily.AllClaimed(save) ? "오늘의 여섯 임무를 모두 끝냈습니다!" : "모두 수령 시: " + Daily.AllClearDoo(save).ToString("N0") + "두 · 웅담 2개 · 심득석 1개 · 연속 수련 +1일";
             UiFactory.ScrollBody(UiFactory.Label("Bonus", Root, new Vector2(.04f, .15f), new Vector2(.96f, .26f), bonus, 28, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal), 28);
             UiFactory.Label("Toast", Root, new Vector2(.04f, .80f), new Vector2(.96f, .85f), toast ?? "임무는 매일 0시에 바뀝니다 (기기 시간 기준)", 26, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
-            var help = UiFactory.InfoWindow(Root, "일일 임무와 연속 보상", bonus + "\n\n연속 보상: 3일 옥루주 3 · 7일 인형설삼 · 14일 일급영단+심득석 2 · 30일마다 일급영단 2+심득석 4 + 31,200두");
-            UiFactory.HelpButton(Root, () => UiFactory.ShowInfo(help));
+            UiFactory.HelpButton(Root, () => { if (HelpPanel.Instance != null) HelpPanel.Instance.Show("daily"); });
             AddClose();
         }
 
