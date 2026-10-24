@@ -148,7 +148,8 @@ namespace BiRyeoDo.Game.UI
             var worn = Inventory.GearOf(Save, _owner);
             var items = Save.Items.Select(stack => EarlyGameContent.FindItem(stack.Id))
                 .Where(item => item != null && item.IsGear && item.Kind == Gear.KindForSlot(_slot) && Inventory.Count(Save, item.Id) > 0 && (Hero || !Gear.IsHeroOnly(item.Id)))
-                .Distinct().OrderByDescending(item => worn.Contains(item.Id)).ThenByDescending(item => item.Grade).ThenBy(item => item.Name).ToList();
+                .Distinct().OrderBy(item => !worn.Contains(item.Id) && Inventory.Free(Save, item.Id) <= 0)
+                .ThenByDescending(item => worn.Contains(item.Id)).ThenByDescending(item => item.Grade).ThenBy(item => item.Name).ToList();
             var current = Gear.ItemInSlot(Save, _owner, _slot);
             if (!items.Any(item => item.Id == _selectedId)) _selectedId = current?.Id ?? items.FirstOrDefault(item => item.Kind == Gear.KindForSlot(_slot))?.Id;
             var selected = items.FirstOrDefault(item => item.Id == _selectedId);
