@@ -207,13 +207,44 @@ namespace BiRyeoDo.Tests
             var ult = EarlyGameContent.Arts.First(a => a.OwnerId == null && a.SpiritCost > 0 && a.Power > 0);
             var save = new SaveData();
             float[] expect = { 1f, 1.05f, 1.10f, 1.20f, 1.40f };
-            int[] uses = { 0, 10, 25, 50, 80 };
+            int[] uses = { 0, 2, 5, 10, 20 };
             for (int lv = 0; lv < 5; lv++)
             {
                 for (int i = Mastery.Uses(save, ult.Id); i < uses[lv]; i++) Mastery.RecordUse(save, ult.Id);
+                Assert.AreEqual(lv, Mastery.Level(save, ult.Id), "uses " + uses[lv]);
                 Assert.AreEqual(ult.Power * expect[lv], Mastery.Apply(save, ult).Power, 0.001f, "level " + lv);
             }
             Assert.AreEqual(0, Mastery.AvailableVariants(ult).Count);
+        }
+
+        [Test]
+        public void UltimatesStepUpAtTwoFiveTenTwentyUsesAndScrollsGiveOneTwoFour()
+        {
+            var ult = EarlyGameContent.Arts.First(a => a.OwnerId == null && a.SpiritCost > 0 && a.Power > 0);
+            var normal = EarlyGameContent.Arts.First(a => a.OwnerId == null && a.SpiritCost == 0 && a.Power > 0);
+            CollectionAssert.AreEqual(new[] { 0, 2, 5, 10, 20 }, Mastery.ThresholdsFor(ult));
+            CollectionAssert.AreEqual(new[] { 0, 10, 25, 50, 80 }, Mastery.ThresholdsFor(normal));
+            var save = new SaveData();
+            Assert.AreEqual(-1, Mastery.RecordUse(save, ult.Id));
+            Assert.AreEqual(1, Mastery.RecordUse(save, ult.Id));     // the 2nd use reaches 소성
+            Assert.AreEqual(3, Mastery.UsesToNext(save, ult.Id));    // 대성 at 5
+            int[] gains = { 1, 2, 4 };
+            for (int i = 0; i < Mastery.ScrollIds.Length; i++)
+            {
+                var scroll = EarlyGameContent.FindItem(Mastery.ScrollIds[i]);
+                Assert.AreEqual(gains[i], Mastery.ScrollUses(scroll, ult));
+                Assert.AreEqual(scroll.MasteryUses, Mastery.ScrollUses(scroll, normal));
+            }
+            save.LearnedArts.Add(ult.Id);
+            Inventory.Add(save, "art_scroll_20", 1);
+            bool used;
+            Mastery.UseScroll(save, "art_scroll_20", ult.Id, out used);
+            Assert.IsTrue(used);
+            Assert.AreEqual(6, Mastery.Uses(save, ult.Id));          // 2 + 4
+            Assert.AreEqual(2, Mastery.Level(save, ult.Id));
+            save.EquippedArts.Add(ult.Id);
+            Mastery.Train(save, 12);                                   // free practice: a fifth for a 비기
+            Assert.AreEqual(8, Mastery.Uses(save, ult.Id));
         }
 
         [Test]

@@ -154,7 +154,7 @@ namespace BiRyeoDo.Game.UI
                 if (item.HealPct > 0f) fx.Add("체력 " + Mathf.RoundToInt(item.HealPct * 100f) + "% 회복");
                 if (item.QiRestore > 0) fx.Add("내공 " + (item.QiRestore >= 999 ? "가득" : "+" + item.QiRestore));
                 if (item.SpiritGain > 0) fx.Add("기세 +" + item.SpiritGain);
-                if (item.MasteryUses > 0) fx.Add("배운 무공 하나의 숙련 +" + item.MasteryUses + "회");
+                if (item.MasteryUses > 0) fx.Add("배운 무공 하나의 숙련 +" + item.MasteryUses + "회 (필살기 +" + Mastery.ScrollUses(item, PickUltimate()) + "회)");
                 if (fx.Count > 0) lines.Add("<color=#9ADB9F>" + string.Join("  ", fx) + "</color>");
                 if (item.Kind == ItemKind.Material && item.SellValue > 0) lines.Add("판매가 " + Income.Boost(item.SellValue).ToString("N0") + "은자 (1개)");
             }
@@ -259,6 +259,13 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <summary>Use a training scroll or sell a material stack from item details.</summary>
+        /// <summary>Any 비기, only to ask how many uses a 수련서 gives one (the number is the same for every 비기).</summary>
+        private static ArtData PickUltimate()
+        {
+            foreach (var a in EarlyGameContent.Arts) if (a.SpiritCost > 0 && a.OwnerId == null) return a;
+            return null;
+        }
+
         private void DoMain(ItemData item)
         {
             var save = GameManager.Instance.Save;
@@ -299,7 +306,7 @@ namespace BiRyeoDo.Game.UI
             var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, new Color(0.05f, 0.07f, 0.11f, 0.99f));
             UiFactory.Frame(card.transform, UiFactory.GradeColor(scroll.Grade), 3f);
             UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.91f), new Vector2(0.95f, 0.99f), UiFactory.GradedName(scroll), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
-            UiFactory.ScrollBody(UiFactory.Label("Hint", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.91f), "숙련을 +" + scroll.MasteryUses + "회 올릴 무공을 하나 고르세요. (보유 " + Inventory.Count(save, scroll.Id) + "개)", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 30);
+            UiFactory.ScrollBody(UiFactory.Label("Hint", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.91f), "숙련을 +" + scroll.MasteryUses + "회(필살기 +" + Mastery.ScrollUses(scroll, PickUltimate()) + "회) 올릴 무공을 하나 고르세요. (보유 " + Inventory.Count(save, scroll.Id) + "개)", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 30);
 
             var arts = Mastery.ScrollTargets(save);
             var viewport = UiFactory.Rect("PickViewport", card.transform, new Vector2(0.03f, 0.13f), new Vector2(0.97f, 0.83f));
@@ -321,7 +328,7 @@ namespace BiRyeoDo.Game.UI
                 var art = arts[i];
                 int lv = Mastery.Level(save, art.Id);
                 int toNext = Mastery.UsesToNext(save, art.Id);
-                string progress = Mastery.LevelNames[lv] + "  ·  " + Mastery.Uses(save, art.Id) + "회" + (toNext >= 0 ? " (다음 단계까지 " + toNext + "회)" : " (최고 단계)");
+                string progress = Mastery.LevelNames[lv] + "  ·  " + Mastery.Uses(save, art.Id) + "회" + (toNext >= 0 ? " (다음 단계까지 " + toNext + "회)" : " (최고 단계)") + "  ·  +" + Mastery.ScrollUses(scroll, art) + "회";
                 var rt = UiFactory.Rect("Pick" + i, content, new Vector2(0.02f, 1f), new Vector2(0.98f, 1f));
                 rt.pivot = new Vector2(0.5f, 1f);
                 rt.anchoredPosition = new Vector2(0f, -(gap + i * (rowH + gap)));

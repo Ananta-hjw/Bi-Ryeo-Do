@@ -23,6 +23,10 @@ namespace BiRyeoDo.Core
     public static class Mastery
     {
         public static readonly int[] Thresholds = { 0, 10, 25, 50, 80 };
+        /// <summary>비기 (필살기) are used at most about once a fight, so their steps come far sooner: 소성 2, 대성 5, 극성 10, 극의 20 uses.</summary>
+        public static readonly int[] UltimateThresholds = { 0, 2, 5, 10, 20 };
+
+        public static int[] ThresholdsFor(ArtData art) { return art != null && art.SpiritCost > 0 ? UltimateThresholds : Thresholds; }
         public static readonly string[] LevelNames = { "입문", "소성", "대성", "극성", "극의" };
         public static readonly float[] PowerBonus = { 0f, 0.03f, 0.07f, 0.15f, 0.30f };
         public static readonly float[] UltimatePowerBonus = { 0f, 0.05f, 0.10f, 0.20f, 0.40f };   // 비기 have no 변초, so they grow more
@@ -48,7 +52,7 @@ namespace BiRyeoDo.Core
                     if (art.Cooldown > 0) parts.Add("재사용 -1턴");
                     if (art.QiCost > 0) parts.Add("내공 -" + Math.Round((1f - MasterQiFactor) * 100f) + "%");
                 }
-                lines.Add(LevelNames[i] + " (" + Thresholds[i] + "회)  " + (parts.Count > 0 ? string.Join(" · ", parts) : "기본"));
+                lines.Add(LevelNames[i] + " (" + ThresholdsFor(art)[i] + "회)  " + (parts.Count > 0 ? string.Join(" · ", parts) : "기본"));
             }
             return lines;
         }
@@ -58,10 +62,14 @@ namespace BiRyeoDo.Core
             return art.SpiritCost > 0 ? UltimatePowerBonus[level] : PowerBonus[level];
         }
 
-        public static int LevelOf(int uses)
+        public static int LevelOf(int uses) { return LevelOf(Thresholds, uses); }
+
+        public static int LevelOf(ArtData art, int uses) { return LevelOf(ThresholdsFor(art), uses); }
+
+        private static int LevelOf(int[] steps, int uses)
         {
             int level = 0;
-            for (int i = 0; i < Thresholds.Length; i++) if (uses >= Thresholds[i]) level = i;
+            for (int i = 0; i < steps.Length; i++) if (uses >= steps[i]) level = i;
             return level;
         }
 
@@ -75,7 +83,8 @@ namespace BiRyeoDo.Core
         public static int UsesToNext(SaveData save, string artId)
         {
             int lv = Level(save, artId);
-            return lv >= Thresholds.Length - 1 ? -1 : Thresholds[lv + 1] - Uses(save, artId);
+            var steps = ThresholdsFor(EarlyGameContent.FindArt(artId));
+            return lv >= steps.Length - 1 ? -1 : steps[lv + 1] - Uses(save, artId);
         }
 
         /// <summary>One line listing every step for the 무공 tab: "소성 10회(위력 +3%) · 대성 25회(+7%) · 극성 50회(+15%, 변초) · 극의 80회(+30%, 재사용 -1턴, 내공 -20%)".</summary>
@@ -87,7 +96,7 @@ namespace BiRyeoDo.Core
                 + "· " + LevelNames[2] + " " + Thresholds[2] + "회　 위력 +7%\n"
                 + "· " + LevelNames[3] + " " + Thresholds[3] + "회　 위력 +15%, 변초\n"
                 + "· " + LevelNames[4] + " " + Thresholds[4] + "회　 위력 +30%, 재사용 -1턴, 내공 -20%\n\n"
-                + "비기: 변초 없음, 위력 +5 / 10 / 20 / 40%\n"
+                + "비기(필살기): " + string.Join(" / ", new[] { UltimateThresholds[1], UltimateThresholds[2], UltimateThresholds[3], UltimateThresholds[4] }) + "회마다 단계, 변초 없음, 위력 +5 / 10 / 20 / 40%\n"
                 + "변초는 무공을 눌러 상세 창에서 바꿉니다.";
         }
 
@@ -98,12 +107,23 @@ namespace BiRyeoDo.Core
         }
 
         public static int Uses(SaveData save, string artId) { var e = Find(save, artId); return e != null ? e.Uses : 0; }
-        public static int Level(SaveData save, string artId) { return LevelOf(Uses(save, artId)); }
+        public static int Level(SaveData save, string artId) { return LevelOf(EarlyGameContent.FindArt(artId), Uses(save, artId)); }
         public static ArtVariant VariantOf(SaveData save, string artId) { var e = Find(save, artId); return e != null ? (ArtVariant)e.Variant : ArtVariant.None; }
 
         // 무공 수련서: found after winning a fight (each rolled on its own), also sold by the 천무학관 shelf.
         public static readonly string[] ScrollIds = { "art_scroll_5", "art_scroll_10", "art_scroll_20" };
         public static readonly float[] ScrollChance = { 0.10f, 0.05f, 0.02f };
+        /// <summary>Uses a 수련서 adds to a 비기 (소 1, 중 2, 대 4) instead of its <see cref="ItemData.MasteryUses"/>, since 비기 steps are much shorter.</summary>
+        public static readonly int[] UltimateScrollUses = { 1, 2, 4 };
+
+        /// <summary>Uses one 수련서 adds to this art.</summary>
+        public static int ScrollUses(ItemData scroll, ArtData art)
+        {
+            if (scroll == null) return 0;
+            if (art == null || art.SpiritCost <= 0) return scroll.MasteryUses;
+            int i = Array.IndexOf(ScrollIds, scroll.Id);
+            return i >= 0 ? UltimateScrollUses[i] : Math.Max(1, (int)Math.Round(scroll.MasteryUses / 5.0));
+        }
 
         /// <summary>First stage of the given difficulty (0 normal, 1 어려움, 2 극악) where each 수련서 starts to drop: 소 from the start, 중 from normal 20, 대 from 어려움 10.</summary>
         public static readonly int[] ScrollDropDifficulty = { 0, 0, 1 }, ScrollDropStage = { 1, 20, 10 };
@@ -150,20 +170,22 @@ namespace BiRyeoDo.Core
             var art = EarlyGameContent.FindArt(artId);
             if (art == null || art.OwnerId != null || !save.LearnedArts.Contains(artId)) return "배운 무공을 골라 주세요.";
             Inventory.Remove(save, itemId, 1);
-            int before = Level(save, artId);
-            for (int i = 0; i < item.MasteryUses; i++) RecordUse(save, artId);
+            int before = Level(save, artId), gain = ScrollUses(item, art);
+            for (int i = 0; i < gain; i++) RecordUse(save, artId);
             used = true;
             int after = Level(save, artId);
-            return art.Name + "의 숙련 +" + item.MasteryUses + "회 (" + Uses(save, artId) + "회)" + (after > before ? "  " + LevelNames[after] + "에 올랐습니다!" : "");
+            return art.Name + "의 숙련 +" + gain + "회 (" + Uses(save, artId) + "회)" + (after > before ? "  " + LevelNames[after] + "에 올랐습니다!" : "");
         }
 
-        /// <summary>Free practice: counts <paramref name="uses"/> uses for every equipped art of the protagonist.</summary>
+        /// <summary>Free practice: counts <paramref name="uses"/> uses for every equipped art of the protagonist (a 비기 gets a fifth, at least one, like the 수련서).</summary>
         public static void Train(SaveData save, int uses)
         {
             foreach (var artId in save.EquippedArts)
             {
                 var art = EarlyGameContent.FindArt(artId);
-                if (art != null && art.OwnerId == null) for (int i = 0; i < uses; i++) RecordUse(save, artId);
+                if (art == null || art.OwnerId != null) continue;
+                int n = art.SpiritCost > 0 ? Math.Max(1, (int)Math.Round(uses / 5.0)) : uses;
+                for (int i = 0; i < n; i++) RecordUse(save, artId);
             }
         }
 
@@ -172,9 +194,10 @@ namespace BiRyeoDo.Core
         {
             var e = Find(save, artId);
             if (e == null) { e = new ArtMasteryEntry { Id = artId }; save.ArtMastery.Add(e); }
-            int before = LevelOf(e.Uses);
+            var art = EarlyGameContent.FindArt(artId);
+            int before = LevelOf(art, e.Uses);
             e.Uses++;
-            int after = LevelOf(e.Uses);
+            int after = LevelOf(art, e.Uses);
             return after > before ? after : -1;
         }
 
