@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using BiRyeoDo.Core;
 using BiRyeoDo.Game.Systems;
 using UnityEngine;
@@ -22,6 +23,12 @@ namespace BiRyeoDo.Game.UI
         private bool _built;
         private float _refreshTimer, _lobbyTimer;
         private int _lobbyStep;
+        // The speaker and line change with a short cross-fade: portrait, name card and speech fade out (the portrait drifting left),
+        // then the next one fades in drifting from the right.
+        private CanvasGroup _portraitFade, _identityFade, _quoteFade;
+        private string _shownLine;   // "speaker|line" now on screen; null shows the next one at once
+        private Coroutine _swap;
+        private const float FadeOut = .22f, FadeIn = .38f, Drift = 28f;
         private SaveData _shownSave;
 
         public void Build(RectTransform root, WorldScreen world, Action<WorldScreen.Menu> openMenu, Action<TabRouter.Tab> select)
@@ -41,14 +48,17 @@ namespace BiRyeoDo.Game.UI
             HomeText("Masthead", root, .035f, .805f, .40f, .885f, "비 뢰 도", 58, UiFactory.PaperText);
             _portrait = UiFactory.Panel("Character", root, new Vector2(.115f, .16f), new Vector2(.43f, .79f), Color.white);
             _portrait.preserveAspect = true;
+            _portraitFade = _portrait.gameObject.AddComponent<CanvasGroup>();
             _portraitGlyph = UiFactory.Label("Fallback", _portrait.transform, Vector2.zero, Vector2.one, "", 150, UiFactory.Gold);
             UiFactory.Button("CharacterTalk", root, new Vector2(.12f, .27f), new Vector2(.42f, .79f), "", Color.clear, () => { _lobbyStep++; _lobbyTimer = 0f; RefreshLobby(); }, 24);
             var identity = UiFactory.Panel("CharacterIdentity", root, new Vector2(.125f, .13f), new Vector2(.415f, .27f), new Color(.035f, .08f, .085f, .92f));
+            _identityFade = identity.gameObject.AddComponent<CanvasGroup>();
             UiFactory.Panel("Seal", identity.transform, Vector2.zero, new Vector2(.012f, 1f), UiFactory.Red);
             _name = HomeText("Name", identity.transform, .04f, .44f, .97f, .98f, "", 44, UiFactory.PaperText);
             _realm = HomeText("Realm", identity.transform, .04f, .04f, .97f, .44f, "", 28, UiFactory.Gold);
             var quote = UiFactory.Panel("Dialogue", root, new Vector2(.125f, .018f), new Vector2(.415f, .117f), UiFactory.Ink);
             UiFactory.Frame(quote.transform, UiFactory.GoldDim, 1f);
+            _quoteFade = quote.gameObject.AddComponent<CanvasGroup>();
             _quote = UiFactory.ScrollBody(UiFactory.Label("Quote", quote.transform, new Vector2(.025f, .04f), new Vector2(.98f, .96f), "", 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 28);
 
             HomeText("MenuTitle", root, .435f, .80f, .79f, .885f, "강호를 걷는 길", 40, UiFactory.Gold);
@@ -178,7 +188,16 @@ namespace BiRyeoDo.Game.UI
             label.transform.parent.gameObject.SetActive(count > 0);
         }
 
-        private void OnEnable() { if (_built) { _world.Refresh(); Refresh(); } }
+        private void OnEnable()
+        {
+            if (!_built) return;
+            // A fade cut short by leaving the tab must not leave the character half-faded.
+            _swap = null;
+            SetLobbyFade(1f, 0f);
+            _shownLine = null;
+            _world.Refresh();
+            Refresh();
+        }
 
         private void Update()
         {
@@ -220,13 +239,55 @@ namespace BiRyeoDo.Game.UI
             if (!_built || GameManager.Instance == null) return;
             var save = GameManager.Instance.Save;
             var scene = Lobby.Pick(save, _lobbyStep);
+            _scenery.sprite = SceneryArt.Menu("world");
+            string key = scene.Speaker + "|" + scene.Text;
+            if (key == _shownLine)
+            {
+                if (_swap == null) ShowLobbyLine(scene, save);   // same line: only the realm can have moved on
+                return;
+            }
+            bool first = _shownLine == null;
+            _shownLine = key;
+            if (first || !isActiveAndEnabled) { ShowLobbyLine(scene, save); return; }
+            if (_swap != null) StopCoroutine(_swap);
+            _swap = StartCoroutine(SwapLobbyLine(scene, save));
+        }
+
+        private void ShowLobbyLine(LobbyLine scene, SaveData save)
+        {
             _name.text = scene.Speaker;
             _quote.text = scene.Text;
             _portrait.sprite = ArtLibrary.Feathered(ArtLibrary.Portrait(scene.Speaker));
             _portrait.color = _portrait.sprite != null ? Color.white : Color.clear;
             _portraitGlyph.text = _portrait.sprite == null ? scene.Speaker.Substring(0, 1) : "";
             _realm.text = scene.Speaker == StoryLine.Protagonist ? Realm.Label(Realm.StepOf(Realm.Power(InnerArts.HeroStatsBeforeRealm(save)))) : "";
-            _scenery.sprite = SceneryArt.Menu("world");
+        }
+
+        private IEnumerator SwapLobbyLine(LobbyLine scene, SaveData save)
+        {
+            float from = _portraitFade.alpha;
+            for (float t = 0f; t < FadeOut; t += Time.unscaledDeltaTime)
+            {
+                float k = t / FadeOut;
+                SetLobbyFade(Mathf.Lerp(from, 0f, k), -Drift * k * k);
+                yield return null;
+            }
+            ShowLobbyLine(scene, save);
+            for (float t = 0f; t < FadeIn; t += Time.unscaledDeltaTime)
+            {
+                float k = Mathf.SmoothStep(0f, 1f, t / FadeIn);
+                SetLobbyFade(k, Drift * (1f - k));
+                yield return null;
+            }
+            SetLobbyFade(1f, 0f);
+            _swap = null;
+        }
+
+        /// <summary>Alpha of the portrait, name card and speech, and the portrait's sideways drift in pixels.</summary>
+        private void SetLobbyFade(float alpha, float drift)
+        {
+            _portraitFade.alpha = _identityFade.alpha = _quoteFade.alpha = alpha;
+            _portrait.rectTransform.anchoredPosition = new Vector2(drift, 0f);
         }
     }
 }
