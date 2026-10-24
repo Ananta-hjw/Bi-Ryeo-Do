@@ -799,7 +799,16 @@ namespace BiRyeoDo.Game.UI
                     bool selected = here != null && here == _placeSelected;
                     var tint = here == null ? new Color(0.28f, 0.50f, 0.85f, 0.25f) : selected ? UiFactory.Gold : UiFactory.Ink;
                     int cc = col, rr = row;
-                    UiFactory.Button("Tile" + col + rr, parent, new Vector2(x0 + 0.004f, y1 - ch + 0.003f), new Vector2(x0 + cw - 0.004f, y1 - 0.003f), here == null ? "" : names[here], tint, () => OnPlacementTile(ids, cc, rr, redraw, st), 26);
+                    // The member stands in the tile as their battle figure (the name only when there is no picture).
+                    var figure = here == null ? null : ArtLibrary.Chibi(here == Formation.HeroId ? "player" : here) ?? ArtLibrary.DefaultChibi(here == Formation.HeroId ? "player" : here);
+                    var tile = UiFactory.Button("Tile" + col + rr, parent, new Vector2(x0 + 0.004f, y1 - ch + 0.003f), new Vector2(x0 + cw - 0.004f, y1 - 0.003f), here == null || figure != null ? "" : names[here], tint, () => OnPlacementTile(ids, cc, rr, redraw, st), 26);
+                    if (figure != null)
+                    {
+                        var pic = UiFactory.Panel("Figure", tile.transform, new Vector2(.04f, .04f), new Vector2(.96f, .96f), Color.white);
+                        pic.sprite = figure;
+                        pic.preserveAspect = true;
+                        pic.raycastTarget = false;
+                    }
                 }
         }
 

@@ -23,7 +23,7 @@ namespace BiRyeoDo.Game.UI
             if (size.x <= 0f || size.y <= 0f || (size == _lastSize && image.sprite == _lastSprite)) return;
             _lastSize = size; _lastSprite = image.sprite;
             float aspect = image.sprite.rect.width / Mathf.Max(1f, image.sprite.rect.height);
-            float height = Mathf.Min(size.y * .52f, size.x * .96f / aspect);
+            float height = Mathf.Min(size.y * .62f, size.x * .96f / aspect);   // feet at .38 of the cell, head up to its top
             rect.sizeDelta = new Vector2(height * aspect, height);
         }
     }
