@@ -19,6 +19,7 @@ All lore lives in `Story/` (see `Story/README.md`). The user provides the origin
 - Before writing any story-dependent content (stage names/`storyText`, enemies, bosses, dialogue, 기화 events, martial-art lore), read `Story/INDEX.md`, then the relevant `Story/analysis/volXX.md`, `Story/CHARACTERS.md` and `Story/GAME_MAPPING.md`. Do not invent canon; if the analysis doesn't cover it, say so and ask.
 - When asked to analyze a volume, follow the procedure in `Story/README.md`: one volume at a time, fill `analysis/_TEMPLATE.md`, split events into main story vs. substories, then update `MAIN_STORY.md`, `SUBSTORIES.md`, `CHARACTERS.md`, `GAME_MAPPING.md` and the `INDEX.md` status table.
 - Record which game assets carry which story beats in `Story/GAME_MAPPING.md` so content stays traceable to the source volume.
+- When implementing a volume (user's standing rule): one volume does not have to be one stage. Split a volume with a lot of content into several stages, and also add 기연(`Fortunes`), 나예린 추억(`Memories`), 의뢰(`Quests`) or other systems where the volume calls for them.
 
 ## Environment
 
