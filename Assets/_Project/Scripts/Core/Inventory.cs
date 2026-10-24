@@ -102,6 +102,19 @@ namespace BiRyeoDo.Core
             return names;
         }
 
+        /// <summary>All current wearers, optionally excluding one owner; includes the protagonist and bench companions.</summary>
+        public static List<string> WearerNames(SaveData save, string id, string exceptOwner = null)
+        {
+            var names = new List<string>();
+            if (exceptOwner != Hero && save.EquippedGear.Contains(id)) names.Add("비류연");
+            foreach (var entry in save.CompanionGear)
+            {
+                if (entry.Id == exceptOwner || !entry.Items.Contains(id)) continue;
+                names.Add(EarlyGameContent.FindCompanion(entry.Id)?.Name ?? entry.Id);
+            }
+            return names;
+        }
+
         /// <summary>If copies were used up while more people wear the piece than copies remain, companions give it back.</summary>
         private static void TrimWorn(SaveData save, string id)
         {
@@ -230,14 +243,21 @@ namespace BiRyeoDo.Core
                 var b = Gear.ActiveBonus(set, n);
                 atk += b.AtkPct; def += b.DefPct; hp += b.HpPct; qi += b.QiPct; crit += b.CritAdd; speed += b.SpeedAdd;
             }
-            stats.MaxHp = (int)Math.Round(stats.MaxHp * (1f + hp));
-            stats.MaxQi = (int)Math.Round(stats.MaxQi * (1f + qi));
-            stats.Attack = (int)Math.Round(stats.Attack * (1f + atk));
-            stats.Defense = (int)Math.Round(stats.Defense * (1f + def));
-            stats.Speed = Math.Max(1, stats.Speed + (int)Math.Round(speed));
-            stats.CritRate = Math.Max(0f, Math.Min(1f, stats.CritRate + crit));
-            stats.CritDamage += critDmg;
-            stats.StartSpirit += startSpirit;
+            return ApplyGearEffects(stats, new GearEffects { HpPct = hp, QiPct = qi, AtkPct = atk, DefPct = def,
+                CritAdd = crit, CritDmgAdd = critDmg, SpeedAdd = speed, StartSpirit = startSpirit });
+        }
+
+        // Shared final scaling for actual loadouts and precomputed recommendation candidates.
+        internal static CombatStats ApplyGearEffects(CombatStats stats, GearEffects effects)
+        {
+            stats.MaxHp = (int)Math.Round(stats.MaxHp * (1f + effects.HpPct));
+            stats.MaxQi = (int)Math.Round(stats.MaxQi * (1f + effects.QiPct));
+            stats.Attack = (int)Math.Round(stats.Attack * (1f + effects.AtkPct));
+            stats.Defense = (int)Math.Round(stats.Defense * (1f + effects.DefPct));
+            stats.Speed = Math.Max(1, stats.Speed + (int)Math.Round(effects.SpeedAdd));
+            stats.CritRate = Math.Max(0f, Math.Min(1f, stats.CritRate + effects.CritAdd));
+            stats.CritDamage += effects.CritDmgAdd;
+            stats.StartSpirit += effects.StartSpirit;
             return stats;
         }
 

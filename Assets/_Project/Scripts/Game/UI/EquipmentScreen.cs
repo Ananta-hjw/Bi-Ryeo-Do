@@ -97,7 +97,8 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Panel("Underline", change.transform, new Vector2(.02f, 0f), new Vector2(.98f, .02f), UiFactory.GoldDim);
             Label(left, "Doo", .03f, .84f, .59f, .90f, Save.Doo.ToString("N0") + "은자", 24);
             Action(left, "Sets", .61f, .85f, .97f, .985f, "세트 효과", OpenSets);
-            var figure = UiFactory.Panel("BattleFigure", left, new Vector2(.235f, .14f), new Vector2(.765f, .84f), Color.white);
+            Action(left, "Recommend", .29f, .755f, .71f, .83f, "추천 장비", EquipRecommended);
+            var figure = UiFactory.Panel("BattleFigure", left, new Vector2(.235f, .14f), new Vector2(.765f, .74f), Color.white);
             // Use only files under Art/Battle, including the battle fallback when a figure is missing.
             figure.sprite = ArtLibrary.Chibi(_owner) ?? ArtLibrary.DefaultChibi(_owner);
             figure.preserveAspect = true;
@@ -160,9 +161,9 @@ namespace BiRyeoDo.Game.UI
                 {
                     int index = i / 7;
                     row = UiFactory.Rect("Row" + index, content, new Vector2(.01f, 1f), new Vector2(.99f, 1f));
-                    row.pivot = new Vector2(.5f, 1f); row.sizeDelta = new Vector2(0f, 240f);
-                    row.anchoredPosition = new Vector2(0f, -14f - index * 254f);
-                    ReadingList.Register(row, 240f, 14f);
+                    row.pivot = new Vector2(.5f, 1f); row.sizeDelta = new Vector2(0f, 300f);
+                    row.anchoredPosition = new Vector2(0f, -14f - index * 314f);
+                    ReadingList.Register(row, 300f, 14f);
                 }
                 var item = items[i];
                 float x = i % 7 / 7f;
@@ -176,8 +177,12 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Frame(card, item.Id == _selectedId ? UiFactory.Gold : UiFactory.GradeColor(item.Grade), item.Id == _selectedId ? 4f : 2f);
                 var icon = UiFactory.TopIcon(card, 88f, 34f);
                 ItemArt.Apply(icon, UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, "", 36, UiFactory.Gold), item);
-                Label(card, "Name", .06f, .14f, .94f, .45f, item.Name, 22, UiFactory.GradeColor(item.Grade));
-                Label(card, "State", .04f, .01f, .96f, .13f, worn.Contains(item.Id) ? "착용 중" : Gear.StarsText(Save, item.Id), 18, UiFactory.Jade);
+                Label(card, "Name", .06f, .28f, .94f, .53f, item.Name, 22, UiFactory.GradeColor(item.Grade));
+                var wearers = Inventory.WearerNames(Save, item.Id, _owner);
+                if (worn.Contains(item.Id)) wearers.Add(OwnerName);
+                string ownership = wearers.Count == 0 ? Gear.StarsText(Save, item.Id)
+                    : "\"" + wearers[0] + "\"" + (wearers.Count > 1 ? " 외 " + (wearers.Count - 1) + "명" : "") + "\n장착 중";
+                Label(card, "State", .04f, .015f, .96f, .27f, ownership, 20, wearers.Count > 0 ? UiFactory.Jade : UiFactory.Dim);
                 if (item.Id == _selectedId) SelectionMarker(card, "선택 장비");
             }
             if (items.Count == 0) Label(right, "Empty", .05f, .40f, .95f, .68f, "보유한 장비가 없습니다.", 30, UiFactory.Dim);
@@ -214,9 +219,10 @@ namespace BiRyeoDo.Game.UI
             bool otherSlot = item != null && !worn && Inventory.GearOf(Save, _owner).Contains(item.Id);
             bool available = item != null && !worn && !otherSlot && Inventory.Free(Save, item.Id) > 0;
             Label(panel, "Name", .025f, .75f, .975f, .98f, item == null ? "장비를 선택해 주세요" : UiFactory.GradedName(item) + " · " + Gear.StarsText(Save, item.Id), 28, UiFactory.Gold);
-            Label(panel, "State", .025f, .54f, .975f, .74f, item == null ? "선택한 장비의 조작 버튼이 여기에 표시됩니다."
-                : SlotNames[_slot] + " · " + (worn ? "착용 중" : otherSlot ? "다른 장신구 칸에 착용 중" : available ? "장착 가능" : "다른 인물이 착용 중")
-                  + " · 적용 +" + Gear.AppliedSlotLevel(Save, _owner, _slot, item) + " / 상한 +" + Gear.Cap(Save, item.Id), 24);
+            var others = Inventory.WearerNames(Save, item?.Id, _owner);
+            UiFactory.ScrollBody(Label(panel, "State", .025f, .54f, .975f, .74f, item == null ? "선택한 장비의 조작 버튼이 여기에 표시됩니다."
+                : SlotNames[_slot] + " · " + (worn ? "착용 중" : otherSlot ? "다른 장신구 칸에 착용 중" : available ? "장착 가능" : string.Join(" · ", others.Select(name => "\"" + name + "\"")) + " 장착 중")
+                  + " · 적용 +" + Gear.AppliedSlotLevel(Save, _owner, _slot, item) + " / 상한 +" + Gear.Cap(Save, item.Id), 24), 24);
             UiFactory.ScrollBody(Label(panel, "Effects", .025f, .35f, .975f, .53f,
                 item == null ? "" : UiFactory.GearEffectText(item, Gear.AppliedSlotLevel(Save, _owner, _slot, item), Gear.Stars(Save, item.Id))
                     + " · 세트: " + (Gear.SetOf(item.Id)?.Name ?? "없음"), 22), 22);
@@ -242,6 +248,17 @@ namespace BiRyeoDo.Game.UI
             }, worn && (unlocked ? Gear.CanEnhanceSlot(Save, _owner, _slot) : Save.Doo >= cost));
         }
 
+        private void EquipRecommended()
+        {
+            string error;
+            int changed;
+            if (!EquipmentRecommendation.Equip(Save, _owner, out changed, out error))
+            { _feedback = error; Refresh(); return; }
+            _selectedId = null;
+            if (changed == 0) { _feedback = "현재 장비가 추천 조합입니다."; Refresh(); return; }
+            Complete(true, null, "추천 장비 " + changed + "부위를 장착했습니다.");
+        }
+
         private void Complete(bool success, string error, string message)
         {
             if (success) { GameManager.Instance.SaveNow(); SoundManager.Sfx("click"); _resetScroll = true; }
@@ -252,6 +269,7 @@ namespace BiRyeoDo.Game.UI
         {
             string text = UiFactory.GearEffectText(item, Gear.AppliedSlotLevel(Save, _owner, _slot, item), Gear.Stars(Save, item.Id))
                 + "\n\n돌파 추가 효과\n" + UiFactory.GearTraitsText(item, Gear.Stars(Save, item.Id))
+                + "\n\n장착 중: " + (Inventory.WearerNames(Save, item.Id).Count == 0 ? "없음" : string.Join(" · ", Inventory.WearerNames(Save, item.Id)))
                 + "\n\n세트: " + (Gear.SetOf(item.Id)?.Name ?? "없음") + "\n보유 " + Inventory.Count(Save, item.Id) + "개 · 여분 " + Gear.Spares(Save, item.Id) + "개"
                 + "\n부위 강화 +" + Gear.SlotLevel(Save, _owner, _slot) + " · 적용 +" + Gear.AppliedSlotLevel(Save, _owner, _slot, item) + " · 상한 +" + Gear.Cap(Save, item.Id)
                 + "\n\n" + SelectionHint(item, 0) + "\n\n" + StatusSheet.Flavor(item);
