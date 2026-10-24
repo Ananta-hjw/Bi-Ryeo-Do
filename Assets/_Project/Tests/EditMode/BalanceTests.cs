@@ -46,7 +46,7 @@ namespace BiRyeoDo.Tests
 
         [TestCase(24, 137, 215)]
         [TestCase(25, 123, 193)]
-        [TestCase(26, 157, 246)]
+        [TestCase(26, 130, 246)]   // shorter since 일반 8+ enemy attack/defense x0.8
         [TestCase(27, 85, 131)]
         [TestCase(28, 124, 194)]
         [TestCase(29, 160, 256)]
