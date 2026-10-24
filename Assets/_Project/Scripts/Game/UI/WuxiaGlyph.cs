@@ -156,12 +156,20 @@ namespace BiRyeoDo.Game.UI
                     Ring(mesh,.5f,.5f,.36f); Ring(mesh,.5f,.5f,.28f);
                     Path(mesh,.4f,.4f,.4f,.6f,.6f,.6f,.6f,.4f,.4f,.4f);
                     break;
-                case "settings":
-                    Ring(mesh,.5f,.5f,.24f); Ring(mesh,.5f,.5f,.08f);
-                    for (int i = 0; i < 8; i++)
+                case "settings":   // a cog: eight square teeth around the rim and a hub
                     {
-                        float a = i * Mathf.PI / 4f;
-                        Line(mesh,.5f+Mathf.Cos(a)*.28f,.5f+Mathf.Sin(a)*.28f,.5f+Mathf.Cos(a)*.4f,.5f+Mathf.Sin(a)*.4f);
+                        const int teeth = 8;
+                        float inner = .30f, outer = .42f, half = Mathf.PI / teeth * .45f;
+                        var pts = new System.Collections.Generic.List<float>();
+                        for (int i = 0; i < teeth; i++)
+                        {
+                            float c = i * Mathf.PI * 2f / teeth;
+                            foreach (var (r, a) in new[] { (inner, c - Mathf.PI / teeth + half), (inner, c - half), (outer, c - half * .8f), (outer, c + half * .8f), (inner, c + half) })
+                            { pts.Add(.5f + Mathf.Cos(a) * r); pts.Add(.5f + Mathf.Sin(a) * r); }
+                        }
+                        pts.Add(pts[0]); pts.Add(pts[1]);
+                        Path(mesh, pts.ToArray());
+                        Ring(mesh, .5f, .5f, .13f, 32);
                     }
                     break;
                 default: // scroll: records, daily missions and commissions

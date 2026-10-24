@@ -213,10 +213,16 @@ namespace BiRyeoDo.Tests.UI
             {
                 Invoke(world, method);
             }
+            // 닫기 is gone: each full-screen overlay has the 돌아가기 arrow in its top-left corner, above its list.
             foreach (var name in new[] { "StageOverlay", "QuestOverlay", "TowerOverlay", "FortuneOverlay", "PartyOverlay", "SettingsOverlay" })
-                ComfortableButton("World/" + name + "/Close");
-            Assert.Greater(Bounds((RectTransform)worldRoot.Find("StageOverlay/Viewport")).yMin,
-                Bounds((RectTransform)worldRoot.Find("StageOverlay/Close")).yMax);
+            {
+                ComfortableButton("World/" + name + "/Back");
+                Assert.IsNull(worldRoot.Find(name + "/Close"), name);
+                var overlay = Bounds((RectTransform)worldRoot.Find(name));
+                Assert.GreaterOrEqual(Bounds((RectTransform)worldRoot.Find(name + "/Back")).yMin, overlay.yMax - 110f, name);
+            }
+            Assert.Less(Bounds((RectTransform)worldRoot.Find("StageOverlay/Viewport")).yMax,
+                Bounds((RectTransform)worldRoot.Find("StageOverlay/Back")).yMin + 1f);
             ComfortableButton("World/PartyOverlay/Formation/FormAuto");
 
             var bagRoot = UiFactory.Rect("Bag", Root, Vector2.zero, Vector2.one);
@@ -235,14 +241,11 @@ namespace BiRyeoDo.Tests.UI
             recordRoot.gameObject.AddComponent<RecordScreen>().Build(recordRoot, (title, lines, done) => { });
             recordRoot.Find("MenuViewport/Viewport/Content/Menu_faction").GetComponent<Button>().onClick.Invoke();
             string faction = "Record/Workspace/FactionOverlay/";
-            ComfortableButton(faction + "Tab0"); ComfortableButton(faction + "Tab1"); ComfortableButton(faction + "Close");
+            ComfortableButton(faction + "Back");   // 세력 평판 only: the 객잔 is its own panel now, so there are no tabs
             var factionRoot = recordRoot.Find("Workspace/FactionOverlay");
-            Assert.Greater(Bounds((RectTransform)factionRoot.Find("Viewport")).yMin,
-                Bounds((RectTransform)factionRoot.Find("Close")).yMax);
+            Assert.IsNull(factionRoot.Find("Tab0"));
             Assert.Less(Bounds((RectTransform)factionRoot.Find("Viewport")).yMax,
                 Bounds((RectTransform)factionRoot.Find("ToastViewport")).yMin);
-            Assert.Less(Bounds((RectTransform)factionRoot.Find("ToastViewport")).yMax,
-                Bounds((RectTransform)factionRoot.Find("Tab0")).yMin);
 
             var peopleRoot = UiFactory.Rect("PeopleTest", Root, Vector2.zero, Vector2.one);
             peopleRoot.gameObject.AddComponent<CompanionScreen>().Build(peopleRoot, () => { });

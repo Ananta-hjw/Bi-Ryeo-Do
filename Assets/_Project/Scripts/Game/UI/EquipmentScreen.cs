@@ -271,7 +271,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Frame(card, UiFactory.GoldDim, 2f);
             Label(card, "Title", .04f, .85f, .96f, .98f, title, 34, UiFactory.Gold);
             UiFactory.ScrollBody(Label(card, "Body", .04f, .17f, .96f, .83f, text, 28), 28);
-            Action(card, "Close", .30f, .015f, .70f, .145f, "닫기", () => _modal.gameObject.SetActive(false));
+            UiFactory.BackButton(card, new Vector2(.30f, .015f), new Vector2(.70f, .145f), () => _modal.gameObject.SetActive(false));
         }
     }
 }

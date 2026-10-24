@@ -164,7 +164,7 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Body(UiFactory.Label("Effect", cell, new Vector2(.05f, .12f), new Vector2(.95f, .36f), item.IsGear ? UiFactory.GearEffectText(item) : item.Description, 22, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal));
                 UiFactory.Label("Set", cell, new Vector2(.05f, .015f), new Vector2(.95f, .11f), item.IsGear ? "세트: " + (Gear.SetOf(item.Id)?.Name ?? "없음") : "소모품", 20, UiFactory.Gold, TextAnchor.MiddleLeft);
             }
-            UiFactory.Button("Close", card.transform, new Vector2(.30f, .015f), new Vector2(.70f, .14f), "닫기", UiFactory.InkSoft, ClosePool, 32);
+            UiFactory.BackButton(card.transform, new Vector2(.30f, .015f), new Vector2(.70f, .14f), ClosePool);
             Canvas.ForceUpdateCanvases();
             var layout = content.GetComponent<ReadingList>();
             if (layout != null) layout.Reflow();

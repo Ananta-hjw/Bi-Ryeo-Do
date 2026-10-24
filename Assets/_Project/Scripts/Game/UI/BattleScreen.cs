@@ -1629,7 +1629,7 @@ namespace BiRyeoDo.Game.UI
             _tipTitle = UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.86f), new Vector2(0.72f, 0.98f), "", 40, UiFactory.Gold, TextAnchor.MiddleLeft);
             _tipBody = UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(0.06f, .18f), new Vector2(0.94f, 0.74f), "", 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 36);
             _tipBody.lineSpacing = 1.25f;
-            UiFactory.Button("Close", card.transform, new Vector2(.30f, .02f), new Vector2(.70f, .16f), "닫기", UiFactory.InkSoft, () => { _tipRoot.SetActive(false); StartCoroutine(GuardTaps(.3f)); }, 34);
+            UiFactory.BackButton(card.transform, new Vector2(.30f, .02f), new Vector2(.70f, .16f), () => { _tipRoot.SetActive(false); StartCoroutine(GuardTaps(.3f)); });
             _tipRoot.SetActive(false);
         }
 

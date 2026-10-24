@@ -407,7 +407,7 @@ namespace BiRyeoDo.Game.UI
             cardTap.targetGraphic = card;
             cardTap.transition = Selectable.Transition.None;
             Body(ScrollBody(Label("Body", card.transform, new Vector2(.06f, .20f), new Vector2(.94f, .83f), body, 32, PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 32), 1.35f);
-            Button("Close", card.transform, new Vector2(0.30f, 0.04f), new Vector2(0.70f, 0.17f), "닫기", InkSoft, () => window.gameObject.SetActive(false), 34);
+            BackButton(card.transform, new Vector2(0.30f, 0.04f), new Vector2(0.70f, 0.17f), () => window.gameObject.SetActive(false));
             window.gameObject.SetActive(false);
             return window;
         }
@@ -438,6 +438,29 @@ namespace BiRyeoDo.Game.UI
             if (window == null) return;
             window.SetAsLastSibling();
             window.gameObject.SetActive(true);
+        }
+
+        /// <summary>돌아가기 in a card or pop-up: a button in the given place showing only the thin gold U-turn arrow (it replaced every 닫기).</summary>
+        public static Button BackButton(Transform parent, Vector2 min, Vector2 max, UnityAction onClick)
+        {
+            var button = Button("Close", parent, min, max, "", InkSoft, onClick, 28);
+            var arrow = Glyph("back", button.transform, new Vector2(.5f, .5f), new Vector2(.5f, .5f), Gold);
+            arrow.rectTransform.sizeDelta = new Vector2(84f, 72f);
+            arrow.raycastTarget = false;
+            return button;
+        }
+
+        /// <summary>돌아가기 on a full-screen overlay: the same arrow in the same top-left spot as the screens' back bar.</summary>
+        public static Button BackCorner(Transform parent, UnityAction onClick)
+        {
+            var button = Button("Back", parent, new Vector2(0f, 1f), new Vector2(0f, 1f), "", Color.clear, onClick, 28);
+            var rect = (RectTransform)button.transform;
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = new Vector2(16f, -6f);
+            rect.sizeDelta = new Vector2(135f, 96f);
+            var arrow = Glyph("back", button.transform, new Vector2(.12f, .1f), new Vector2(.88f, .9f), Gold);
+            arrow.raycastTarget = false;
+            return button;
         }
 
         public static Button Button(string name, Transform parent, Vector2 min, Vector2 max, string label, Color bg,

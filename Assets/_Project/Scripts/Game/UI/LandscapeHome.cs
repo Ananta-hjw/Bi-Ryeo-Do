@@ -38,12 +38,19 @@ namespace BiRyeoDo.Game.UI
             BackgroundCover.Apply(_scenery);
             UiFactory.Panel("Wash", root, Vector2.zero, Vector2.one, new Color(.02f, .07f, .075f, .40f));
             UiFactory.Glyph("halo", root, new Vector2(-.08f, .10f), new Vector2(.45f, .95f), new Color(.75f, .66f, .43f, .14f));
-            var header = UiFactory.Panel("Header", root, new Vector2(0f, .89f), Vector2.one, UiFactory.Ink);
+            // Same height as the other screens' back bar (MainScreen.BackBarHeight)
+            var header = UiFactory.Panel("Header", root, new Vector2(0f, 1f), Vector2.one, UiFactory.Ink);
+            header.rectTransform.offsetMin = new Vector2(0f, -104f);
             _identity = HomeText("Identity", header.transform, .03f, .01f, .30f, .98f, "", 30, UiFactory.Gold);
             _experience = UiFactory.MakeBar("Experience", header.transform, new Vector2(.03f, .02f), new Vector2(.30f, .09f), Color.black, UiFactory.Jade);
             UiFactory.Button("Status", header.transform, new Vector2(.02f, .04f), new Vector2(.32f, .96f), "", Color.clear, () => _select(TabRouter.Tab.Companions), 28);
-            _doo = HomeText("Doo", header.transform, .44f, .01f, .84f, .98f, "", 42, UiFactory.Gold, TextAnchor.MiddleRight);
-            UiFactory.Button("Settings", header.transform, new Vector2(.87f, .04f), new Vector2(.98f, .96f), "설정", UiFactory.InkSoft, () => _openMenu(WorldScreen.Menu.Settings), 28);
+            _doo = HomeText("Doo", header.transform, .44f, .01f, .90f, .98f, "", 42, UiFactory.Gold, TextAnchor.MiddleRight);
+            var settings = UiFactory.Button("Settings", header.transform, new Vector2(1f, .5f), new Vector2(1f, .5f), "", Color.clear, () => _openMenu(WorldScreen.Menu.Settings), 28);
+            var settingsRect = (RectTransform)settings.transform;
+            settingsRect.pivot = new Vector2(1f, .5f);
+            settingsRect.anchoredPosition = new Vector2(-16f, 0f);
+            settingsRect.sizeDelta = new Vector2(96f, 96f);
+            UiFactory.Glyph("settings", settings.transform, new Vector2(.1f, .1f), new Vector2(.9f, .9f), UiFactory.Gold).raycastTarget = false;   // 설정: a gold cog
 
             HomeText("Masthead", root, .035f, .805f, .40f, .885f, "비 뢰 도", 58, UiFactory.PaperText);
             _portrait = UiFactory.Panel("Character", root, new Vector2(.115f, .16f), new Vector2(.43f, .79f), Color.white);

@@ -31,7 +31,7 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             Begin();
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.935f), new Vector2(0.95f, 0.995f), "상태창", 44, UiFactory.Gold);
-            _content = CodexPanel.Scroller(Root, .16f, 0.93f);
+            _content = CodexPanel.Scroller(Root, .03f, 0.87f);
             _y = Gap;
 
             // Header: portrait + name, level, rank, exp
@@ -127,7 +127,7 @@ namespace BiRyeoDo.Game.UI
             }
 
             _content.sizeDelta = new Vector2(0f, _y + Gap);
-            UiFactory.Button("Close", Root, new Vector2(0.25f, .015f), new Vector2(0.75f, .14f), "닫기", UiFactory.InkSoft, () => { Root.gameObject.SetActive(false); OnChange(); }, 34);
+            UiFactory.BackCorner(Root, () => { Root.gameObject.SetActive(false); OnChange(); });
         }
 
         // ------------------------------------------------------------------ layout helpers (pixel rows inside the scroll content)

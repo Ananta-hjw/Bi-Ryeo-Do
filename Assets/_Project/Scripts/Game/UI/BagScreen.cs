@@ -215,7 +215,7 @@ namespace BiRyeoDo.Game.UI
                 var blocked = UiFactory.Button("Sell", card.transform, new Vector2(0.05f, 0.13f), new Vector2(0.95f, 0.22f), "판매 불가", new Color(0.30f, 0.30f, 0.33f, 1f), null, 32);
                 blocked.interactable = false;
             }
-            UiFactory.Button("Close", card.transform, new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.10f), "닫기", UiFactory.InkSoft, CloseDetail, 34);
+            UiFactory.BackButton(card.transform, new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.10f), CloseDetail);
             LandscapeMenu.Inspector(card.rectTransform);
         }
 

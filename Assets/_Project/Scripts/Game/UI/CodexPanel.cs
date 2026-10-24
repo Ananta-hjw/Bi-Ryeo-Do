@@ -160,7 +160,7 @@ namespace BiRyeoDo.Game.UI
                 }
             }
             UiFactory.Label("Summary", _codexRoot, new Vector2(0.05f, .70f), new Vector2(0.95f, .78f), summary, 30, UiFactory.Gold);
-            UiFactory.Button("Close", _codexRoot, new Vector2(0.25f, .015f), new Vector2(0.75f, .14f), "닫기", UiFactory.InkSoft, () => { _codexRoot.gameObject.SetActive(false); _onChange(); }, 36);
+            UiFactory.BackCorner(_codexRoot, () => { _codexRoot.gameObject.SetActive(false); _onChange(); });
         }
 
         // ------------------------------------------------------------------ 업적
@@ -195,7 +195,7 @@ namespace BiRyeoDo.Game.UI
                 var btn = UiFactory.Button("Claim", band, new Vector2(.04f, .04f), new Vector2(.96f, .25f), claimed ? "수령 완료" : can ? "수령" : "진행 중", can ? UiFactory.Red : UiFactory.InkSoft, () => Claim(id), 28);
                 btn.interactable = can;
             }
-            UiFactory.Button("Close", _achRoot, new Vector2(0.25f, .015f), new Vector2(0.75f, .14f), "닫기", UiFactory.InkSoft, () => { _achRoot.gameObject.SetActive(false); _onChange(); }, 36);
+            UiFactory.BackCorner(_achRoot, () => { _achRoot.gameObject.SetActive(false); _onChange(); });
         }
 
         private void ShowDetail(string title, string body)
