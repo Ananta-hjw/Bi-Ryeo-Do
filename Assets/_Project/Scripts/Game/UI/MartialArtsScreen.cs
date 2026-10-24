@@ -152,6 +152,7 @@ namespace BiRyeoDo.Game.UI
             int level = Mastery.Level(save, art.Id);
             var variant = Mastery.VariantOf(save, art.Id);
             var spec = learned ? Mastery.Apply(save, art) : art.ToSpec();
+            bool hidden = !learned && !unlocked;   // a locked art shows only ??? and how it opens, like 심법
 
             var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, new Color(0.05f, 0.07f, 0.11f, 0.99f));
             UiFactory.Frame(card.transform, ultimate ? UiFactory.Gold : UiFactory.GoldDim, 3f);
@@ -159,11 +160,12 @@ namespace BiRyeoDo.Game.UI
             var picture = ArtLibrary.Art(art.Id);
             big.sprite = picture;
             big.preserveAspect = true;
-            if (picture != null) big.color = Color.white;
+            if (picture != null) big.color = hidden ? new Color(0.35f, 0.35f, 0.38f, 1f) : Color.white;
+            else if (hidden) big.color = new Color(0.2f, 0.2f, 0.22f, 1f);
             UiFactory.Frame(big.transform, UiFactory.Gold, 2f);
-            if (picture == null) UiFactory.Label("Glyph", big.transform, Vector2.zero, Vector2.one, art.Name.Substring(0, 1), 60, UiFactory.PaperText);
-            UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.91f), new Vector2(0.63f, 0.985f), art.Name + (variant != ArtVariant.None && learned ? "(" + Mastery.VariantName(variant) + ")" : ""), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
-            string kind = (ultimate ? "비기 (기세 " + art.SpiritCost + ")" : art.AllEnemies ? "전체 무공" : art.Effect == SkillEffect.None ? "일반 무공" : "보조 무공")
+            if (picture == null) UiFactory.Label("Glyph", big.transform, Vector2.zero, Vector2.one, hidden ? "?" : art.Name.Substring(0, 1), 60, UiFactory.PaperText);
+            UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.91f), new Vector2(0.63f, 0.985f), hidden ? "???" : art.Name + (variant != ArtVariant.None && learned ? "(" + Mastery.VariantName(variant) + ")" : ""), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
+            string kind = hidden ? "잠긴 무공" : (ultimate ? "비기 (기세 " + art.SpiritCost + ")" : art.AllEnemies ? "전체 무공" : art.Effect == SkillEffect.None ? "일반 무공" : "보조 무공")
                 + (equipped ? "  ·  장착 중" : learned ? "  ·  배움" : "");
             // Command icon of the kind of use: 비기 → 필살기 slot, evade/guard → 방어, heal → 운기, otherwise → 공격.
             var kindIcon = ArtLibrary.Icon(ultimate ? "ultimate_slot" : art.Effect == SkillEffect.Evade || art.Effect == SkillEffect.GuardParty ? "cmd_guard" : art.Effect == SkillEffect.HealAlly ? "cmd_meditate" : "cmd_attack");
@@ -179,29 +181,32 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Kind", card.transform, new Vector2(kindX, 0.86f), new Vector2(0.63f, 0.91f), kind, 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
 
             var lines = new List<string>();
-            lines.Add(art.Description);
-            string cost = art.SpiritCost > 0 ? "기세 " + art.SpiritCost : spec.QiCost > 0 ? "내공 " + spec.QiCost : "내공 0";
-            string effect = art.Effect == SkillEffect.Evade ? "다음 차례까지 공격을 " + Mathf.RoundToInt(spec.EvadeChance * 100f) + "% 확률로 회피"
-                : art.Effect == SkillEffect.GuardParty ? "파티 전원 방어 태세"
-                : art.Effect == SkillEffect.HealAlly ? "아군 체력 " + Mathf.RoundToInt(spec.HealPct * 100f) + "% 회복"
-                : "위력 ×" + spec.Power.ToString("0.00") + (spec.Hits > 1 ? " ×" + spec.Hits + "타" : "") + (spec.AllEnemies ? " · 적 전체" : "") + (art.Effect == SkillEffect.Stun ? " · 점혈(굳음)" : "")
-                + (art.Inflict != StatusKind.None ? " · " + Statuses.Name(art.Inflict) + " " + Mathf.RoundToInt(art.InflictChance * 100f) + "%" : "");
-            lines.Add("<color=#9ADB9F>" + effect + "</color>\n" + cost + (spec.Cooldown > 0 ? " · 재사용 " + spec.Cooldown + "턴" : "") + " · 닿는 범위: " + SkillSpec.ReachText(art.EffectiveRange)
-                + (learned && (variant != ArtVariant.None || level > 0) ? "\n(숙련·변초가 반영된 값입니다)" : ""));
-            if (art.Inflict != StatusKind.None) lines.Add(Statuses.Describe(art.Inflict));
-            if (!learned && !unlocked) lines.Add(art.UnlockText + "하면 배울 수 있습니다.");
-
-            var steps = Mastery.LevelLines(art);
-            if (steps.Count > 0)
+            if (hidden) lines.Add(art.UnlockText + "하면 배울 수 있습니다.");
+            else
             {
-                var sb = new System.Text.StringBuilder("숙련 " + (learned ? "(" + Mastery.Uses(save, art.Id) + "회 사용)" : "") + "\n");
-                for (int i = 0; i < steps.Count; i++) sb.Append(learned && i == level ? "▶ " : "   ").Append(steps[i]).Append(i < steps.Count - 1 ? "\n" : "");
-                lines.Add(sb.ToString());
-                var variants = Mastery.AvailableVariants(art);
-                if (ultimate) lines.Add("비기는 변초가 없는 대신 숙련 위력 보너스가 큽니다 (5% · 10% · 20% · 40%).");
-                else if (variants.Count > 0)
-                    lines.Add("변초 (" + Mastery.LevelNames[Mastery.VariantLevel] + "부터)\n" + string.Join("\n", variants.Select(v => Mastery.VariantHint(v))));
-                else lines.Add("이 무공에는 변초가 없습니다.");
+                lines.Add(art.Description);
+                string cost = art.SpiritCost > 0 ? "기세 " + art.SpiritCost : spec.QiCost > 0 ? "내공 " + spec.QiCost : "내공 0";
+                string effect = art.Effect == SkillEffect.Evade ? "다음 차례까지 공격을 " + Mathf.RoundToInt(spec.EvadeChance * 100f) + "% 확률로 회피"
+                    : art.Effect == SkillEffect.GuardParty ? "파티 전원 방어 태세"
+                    : art.Effect == SkillEffect.HealAlly ? "아군 체력 " + Mathf.RoundToInt(spec.HealPct * 100f) + "% 회복"
+                    : "위력 ×" + spec.Power.ToString("0.00") + (spec.Hits > 1 ? " ×" + spec.Hits + "타" : "") + (spec.AllEnemies ? " · 적 전체" : "") + (art.Effect == SkillEffect.Stun ? " · 점혈(굳음)" : "")
+                    + (art.Inflict != StatusKind.None ? " · " + Statuses.Name(art.Inflict) + " " + Mathf.RoundToInt(art.InflictChance * 100f) + "%" : "");
+                lines.Add("<color=#9ADB9F>" + effect + "</color>\n" + cost + (spec.Cooldown > 0 ? " · 재사용 " + spec.Cooldown + "턴" : "") + " · 닿는 범위: " + SkillSpec.ReachText(art.EffectiveRange)
+                    + (learned && (variant != ArtVariant.None || level > 0) ? "\n(숙련·변초가 반영된 값입니다)" : ""));
+                if (art.Inflict != StatusKind.None) lines.Add(Statuses.Describe(art.Inflict));
+
+                var steps = Mastery.LevelLines(art);
+                if (steps.Count > 0)
+                {
+                    var sb = new System.Text.StringBuilder("숙련 " + (learned ? "(" + Mastery.Uses(save, art.Id) + "회 사용)" : "") + "\n");
+                    for (int i = 0; i < steps.Count; i++) sb.Append(learned && i == level ? "▶ " : "   ").Append(steps[i]).Append(i < steps.Count - 1 ? "\n" : "");
+                    lines.Add(sb.ToString());
+                    var variants = Mastery.AvailableVariants(art);
+                    if (ultimate) lines.Add("비기는 변초가 없는 대신 숙련 위력 보너스가 큽니다 (5% · 10% · 20% · 40%).");
+                    else if (variants.Count > 0)
+                        lines.Add("변초 (" + Mastery.LevelNames[Mastery.VariantLevel] + "부터)\n" + string.Join("\n", variants.Select(v => Mastery.VariantHint(v))));
+                    else lines.Add("이 무공에는 변초가 없습니다.");
+                }
             }
             UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.30f), new Vector2(0.94f, 0.85f), string.Join("\n\n", lines), 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 36);
 
@@ -455,10 +460,11 @@ namespace BiRyeoDo.Game.UI
                 var picture = ArtLibrary.Art(a.Id);
                 r.Icon.sprite = picture;
                 r.Icon.preserveAspect = true;
-                r.IconGlyph.text = picture != null ? "" : a.Name.Substring(0, 1);
+                bool hidden = !learned && !unlocked;   // like 심법: a locked art shows as ???
+                r.IconGlyph.text = picture != null ? "" : hidden ? "?" : a.Name.Substring(0, 1);
                 r.Icon.color = picture != null ? ((learned || unlocked) ? Color.white : new Color(0.35f, 0.35f, 0.38f, 1f))
                     : (learned || unlocked) ? IconColor(a) : new Color(0.2f, 0.2f, 0.22f, 1f);
-                r.Title.text = a.Name + (variant != ArtVariant.None ? "(" + Mastery.VariantName(variant) + ")" : "")
+                r.Title.text = hidden ? "???" : a.Name + (variant != ArtVariant.None ? "(" + Mastery.VariantName(variant) + ")" : "")
                     + (learned ? "  <size=24><color=#D4B87A>" + Stars(mLevel) + " " + Mastery.LevelNames[mLevel] + "</color></size>" : "");
                 r.Tag.text = equipped ? "장착 중" : _newArtIds.Contains(a.Id) && !learned ? "<color=#FF6A5A>새 무공</color>" : "";
                 r.Tag.transform.parent.gameObject.SetActive(r.Tag.text.Length > 0);
