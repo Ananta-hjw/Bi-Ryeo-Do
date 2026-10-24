@@ -333,7 +333,9 @@ namespace BiRyeoDo.Game.UI
 
         private void OnFeaturedPressed()
         {
-            if (_featStage != null) OnStagePressed(_featStage, _onStartRef, false);
+            // The featured stage is the next 일반 story stage (its card shows 일반 info), so it always starts on 일반,
+            // whatever difficulty the stage list was left on (a 어려움 pick there used to make this button do nothing).
+            if (_featStage != null) OnStagePressed(_featStage, _onStartRef, false, 0);
         }
 
         private static RectTransform NewRow(RectTransform content, int index, float h, float gap, Color color)
@@ -925,11 +927,12 @@ namespace BiRyeoDo.Game.UI
             if (_shop != null) _shop.Hide();
         }
 
-        private void OnStagePressed(StageData st, Action<StageData> onStart, bool fromList)
+        private void OnStagePressed(StageData st, Action<StageData> onStart, bool fromList, int forcedDifficulty = -1)
         {
             var save = GameManager.Instance.Save;
             if (save.HighestUnlockedStage < st.Number || !Promotion.StageAllowed(save, st.Number)) return;
-            int diff = StageProgress.Has(save, st.Number) ? save.ProgressDifficulty : Mathf.Clamp(save.Difficulty, 0, StageStars.DifficultyCount - 1);
+            int diff = StageProgress.Has(save, st.Number) ? save.ProgressDifficulty
+                : forcedDifficulty >= 0 ? forcedDifficulty : Mathf.Clamp(save.Difficulty, 0, StageStars.DifficultyCount - 1);
             if (!StageStars.Unlocked(save, st.Number, diff)) return;
             var run = st.WithDifficulty(diff);
             OpenPrep(run, () =>
