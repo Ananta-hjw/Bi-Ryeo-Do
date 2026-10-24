@@ -122,6 +122,26 @@ namespace BiRyeoDo.Tests
             Assert.That(NotLost(2), Is.InRange(20, 80));
         }
 
+        [TestCase(1, 1)]
+        [TestCase(10, 1)]
+        [TestCase(20, 1)]
+        [TestCase(36, 1)]
+        [TestCase(1, 2)]
+        [TestCase(20, 2)]
+        [TestCase(36, 2)]
+        public void HarderStagesPlayLikeTheSameNormalStageAtTheirTargetLevel(int number, int difficulty)   // 어려움·극악 재조정: same win rate, about the same fight length
+        {
+            var normal = EarlyGameContent.FindStage(number);
+            var harder = normal.WithDifficulty(difficulty);
+            int level = (int)Math.Round(StageStars.TargetLevel(number, difficulty));
+            var baseRuns = Enumerable.Range(901, 20).Select(seed => BalanceSimulation.Play(normal, BalanceSimulation.Starter(number, StageStars.NormalBotLevel(number)), seed)).ToList();
+            var runs = Enumerable.Range(901, 20).Select(seed => BalanceSimulation.Play(harder, BalanceSimulation.Starter(number, level), seed)).ToList();
+            Assert.GreaterOrEqual(runs.Count(r => r.Won), 17, "the bot at the target level should win about as often as on 일반");
+            double ratio = runs.Where(r => r.Won).Average(r => r.Actions) / baseRuns.Where(r => r.Won).Average(r => r.Actions);
+            TestContext.Out.WriteLine(number + "/" + difficulty + ": lv" + level + ", length x" + ratio.ToString("F2"));
+            Assert.That(ratio, Is.InRange(0.8, 1.6), "fights must not become slogs");
+        }
+
         [Test]
         public void SideContentUsesNormalScalingOnceAndHardDifficultiesKeepTheirOwnRules()
         {
@@ -132,7 +152,8 @@ namespace BiRyeoDo.Tests
             var survivalEnemy = EarlyGameContent.FindEnemy("geomhu_ioksang");
             Assert.AreSame(survivalEnemy, EarlyGameContent.FindStage(29).EnemyFor(survivalEnemy.Id));
             var hard = stage.WithDifficulty(1).EnemyFor(id);
-            Assert.AreEqual(raw.HpMul * StageStars.HpFor(26, 1) / (float)Math.Pow(StageStars.NormalEase(26), 0.7) * StageStars.NormalHpBoost(26) * StageStars.HardExtra(26, 1), hard.HpMul, 0.001f);   // 어려움 carries the stage boost and its own extra, but not the late-stage x0.85
+            Assert.AreEqual(stage.EnemyFor(id).HpMul * StageStars.HardHpFix(26, 1), hard.HpMul, 0.001f);   // 어려움 = the 일반 enemy of the stage, raised by level, with the fight-length fix
+            Assert.AreEqual(stage.EnemyFor(id).Level + StageStars.LevelAdd(26, 1), hard.Level);
             var quest = Quests.ToStage(Quests.Find("q_salgwi"));
             id = quest.Encounters[0][0];
             var q = Quests.Find(quest.QuestId);

@@ -196,8 +196,12 @@ namespace BiRyeoDo.Tests
                 Assert.AreEqual(shared.HpMul, actual.HpMul);
                 Assert.AreEqual(shared.AtkMul, actual.AtkMul);
                 Assert.AreEqual(shared.BuildStats().MaxHp, actual.BuildStats().MaxHp);
-                Assert.Greater(actual.HpMul, raw.HpMul);
-                Assert.Greater(actual.AtkMul, raw.AtkMul * (difficulty == 0 ? StageStars.NormalStatEaseFor(number) : 1f));   // 일반 attack is eased from stage 7
+                if (difficulty == 0)
+                {
+                    Assert.Greater(actual.HpMul, raw.HpMul);
+                    Assert.Greater(actual.AtkMul, raw.AtkMul * StageStars.NormalStatEaseFor(number));   // 일반 attack is eased from stage 7
+                }
+                else Assert.Greater(actual.Level, raw.Level);   // harder: the same enemy raised by level (HP traded for attack to keep the fight length)
                 if (prior != null)
                 {
                     Assert.Greater(actual.BuildStats().MaxHp, prior.BuildStats().MaxHp);

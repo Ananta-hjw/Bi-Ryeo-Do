@@ -29,10 +29,73 @@ namespace BiRyeoDo.Core
     {
         public const int DifficultyCount = 3;
         public static readonly string[] DifficultyNames = { "일반", "어려움", "극악" };
-        public static readonly float[] HpScale = { 1.0f, 2.005f, 3.461f };
-        public static readonly float[] AtkScale = { 1.0f, 1.602f, 2.434f };
-        // Defense is raised only a little: it takes damage x K/(K+Defense), so a few percent already shows (극악 검후 이옥상 takes x0.4 = defense 1500).
-        public static readonly float[] DefScale = { 1.0f, 1.0207f, 1.0579f };
+        /// <summary>
+        /// 어려움·극악 재조정: a harder difficulty opens once its entry stage is cleared on the difficulty below (일반 20 → 어려움, 어려움 20 → 극악).
+        /// Its stage 1 is built to feel like that entry stage, and every later stage rises from there at <see cref="HardSlope"/> of the 일반 slope.
+        /// The difficulty is measured in the level the balance bot needs (<see cref="TargetLevel"/>); the enemies are the 일반 enemies of the same stage,
+        /// raised by the curve levels the bot gains over 일반 (<see cref="LevelAdd"/>), with a fitted HP/attack trade that keeps the fights about as long as on 일반 (<see cref="HardLengthTable"/>).
+        /// </summary>
+        public const int EntryStage = 20;
+        public const double HardSlope = 0.75;
+
+        /// <summary>
+        /// Raised level for level, the enemies of a harder difficulty would last about twice (어려움) or three times (극악) as long as on 일반, because HP grows
+        /// faster than damage up the curve. This table (index = difficulty, then stage - 1; fitted with the balance bot) shortens them back to about
+        /// <see cref="HardLengthTarget"/> times the 일반 fight: HP / f, attack x f^<see cref="HardAtkExp"/> so the shorter fight still hurts as much.
+        /// </summary>
+        public static readonly float[][] HardLengthTable =
+        {
+            null,
+            new[]
+            {
+                1.067f, 2.079f, 2.688f, 1.739f, 2.079f, 1.820f, 1.812f, 1.649f, 1.540f, 1.828f, 1.765f, 1.807f,
+                1.668f, 1.792f, 1.769f, 1.787f, 1.851f, 1.557f, 1.561f, 1.573f, 1.762f, 1.558f, 1.564f, 1.865f,
+                1.353f, 1.462f, 1.351f, 1.377f, 1.374f, 1.318f, 1.449f, 1.304f, 1.251f, 1.197f, 1.232f, 1.118f,
+            },
+            new[]
+            {
+                1.542f, 2.949f, 3.715f, 2.415f, 2.705f, 2.151f, 2.536f, 2.489f, 2.355f, 2.742f, 2.556f, 2.506f,
+                2.036f, 2.411f, 2.476f, 2.561f, 2.311f, 2.286f, 2.401f, 2.026f, 2.459f, 2.289f, 2.090f, 2.441f,
+                2.079f, 2.368f, 2.056f, 2.115f, 2.033f, 1.921f, 2.038f, 1.882f, 1.751f, 1.819f, 1.733f, 1.708f,
+            },
+        };
+        public const float HardLengthTarget = 1.15f;
+        public static double HardAtkExp = 0.85;
+
+        static float HardLength(int stage, int difficulty)
+        {
+            var t = HardLengthTable[Clamp(difficulty)];
+            return t == null ? 1f : t[Math.Max(1, Math.Min(t.Length, stage)) - 1];
+        }
+
+        /// <summary>Enemy HP factor of a harder difficulty on top of the raised 일반 enemy.</summary>
+        public static float HardHpFix(int stage, int difficulty) { return 1f / HardLength(stage, difficulty); }
+
+        /// <summary>Enemy attack factor of a harder difficulty on top of the raised 일반 enemy.</summary>
+        public static float HardAtkFix(int stage, int difficulty)
+        {
+            var tune = HardAtkTune[Clamp(difficulty)];
+            float t = tune == null ? 1f : tune[Math.Max(1, Math.Min(tune.Length, stage)) - 1];
+            return (float)Math.Pow(HardLength(stage, difficulty), HardAtkExp) * t;
+        }
+
+        /// <summary>Per-stage attack tune of the harder difficulties (index = difficulty, then stage - 1), fitted with the balance bot so each stage leaves it about as much HP as the same 일반 stage.</summary>
+        public static readonly float[][] HardAtkTune =
+        {
+            null,
+            new[]
+            {
+                1.777f, 1.150f, 0.879f, 0.949f, 1.000f, 0.735f, 0.804f, 1.180f, 0.784f, 0.902f, 0.794f, 0.825f,
+                0.835f, 0.868f, 0.949f, 0.717f, 0.754f, 0.698f, 0.764f, 0.804f, 0.527f, 0.974f, 0.655f, 0.745f,
+                0.879f, 0.857f, 0.794f, 0.403f, 0.514f, 1.079f, 0.846f, 0.555f, 1.079f, 0.368f, 0.987f, 0.857f,
+            },
+            new[]
+            {
+                1.777f, 1.307f, 0.630f, 0.949f, 1.000f, 0.879f, 0.857f, 1.291f, 0.937f, 0.925f, 0.764f, 0.672f,
+                0.974f, 0.999f, 1.012f, 0.717f, 0.774f, 0.794f, 0.814f, 0.647f, 0.555f, 0.902f, 0.868f, 0.764f,
+                0.745f, 0.794f, 0.555f, 0.368f, 0.949f, 0.949f, 0.698f, 0.501f, 0.879f, 0.355f, 0.794f, 0.630f,
+            },
+        };
         public static readonly float[] RewardFactor = { 1.0f, 1.5f, 2.2f };   // 두 and exp
         public static readonly string[] StarNames = { "돌파", "전원 생존", "신속" };
 
@@ -83,20 +146,14 @@ namespace BiRyeoDo.Core
             return 12 + stage / 2;
         }
 
-        /// <summary>The 신속 limit on a difficulty: harder enemies have more HP, so the limit grows with <see cref="HpFor"/>.</summary>
+        /// <summary>The 신속 limit on a difficulty: harder fights are fitted to last about <see cref="HardLengthTarget"/> times the 일반 one (the bot measured x1.1-1.3; 극악 a little longer).</summary>
         public static int FastLimit(int stage, int fight, int difficulty)
         {
             if (difficulty <= 0) return FastLimit(stage, fight);
-            // More HP and a little more defense both lengthen the fight. The defense is approximated by the curve at the stage's 일반 level
-            // The higher enemy level of the harder difficulties (LevelAdd) and the HP it brings are not counted, so on the early stages,
-            // where LevelAdd is largest, the limit mostly follows HpFor.
-            var st = EarlyGameContent.FindStage(stage);
-            double d0 = st != null ? Progression.StatsFor(st.RecommendedLevel).Defense : 0.0;
-            double defEffect = (BattleEngine.DefenseConstant + d0 * DefFor(stage, difficulty)) / (BattleEngine.DefenseConstant + d0);
-            // The table is measured on the eased 일반 enemies, while the harder difficulties scale the original ones (see NormalEase); both carry the same stage boost (NormalHpBoost).
-            double hp = HpFor(stage, difficulty) / Math.Pow(NormalEase(stage), 0.7) * HardExtra(stage, difficulty);
-            return (int)Math.Ceiling(FastLimit(stage, fight) * Math.Max(1.0, hp) * Math.Max(1.0, defEffect));
+            return (int)Math.Ceiling(FastLimit(stage, fight) * FastLimitFactor[Clamp(difficulty)]);
         }
+
+        static readonly float[] FastLimitFactor = { 1f, 1.2f, 1.3f };
 
         public static int FightCount(int stage)
         {
@@ -107,49 +164,41 @@ namespace BiRyeoDo.Core
         /// <summary>Stars a stage can give on one difficulty (3 per fight).</summary>
         public static int MaxStarsOfStage(int stage) { return FightCount(stage) * 3; }
 
-        // The protagonist fights alone until stage 7 and the party then grows stronger than the stage curve alone suggests,
-        // so the extra difficulty ramps up with the stage: gentle in the solo stages, steep late.
-        public static float EarlyRamp = 0.15f, SoloRamp = 0.05f, LateBase = 0.7f, LateStep = 0.03f;
-
-        public static float Ramp(int stage)
+        /// <summary>The level the balance bot plays a 일반 stage at: the recommended level plus <see cref="NormalEdgeLevels"/>.</summary>
+        public static int NormalBotLevel(int stage)
         {
-            return stage <= 4 ? EarlyRamp : stage <= 6 ? SoloRamp : LateBase + LateStep * (stage - 7);
+            var st = EarlyGameContent.FindStage(stage);
+            return st == null ? 1 : st.RecommendedPlayerLevel + NormalEdgeLevels(stage);
         }
 
-        public static float HpFor(int stage, int difficulty) { return 1f + (HpScale[Clamp(difficulty)] - 1f) * Ramp(stage); }
-        public static float AtkFor(int stage, int difficulty) { return 1f + (AtkScale[Clamp(difficulty)] - 1f) * Ramp(stage); }
-        // The harder difficulties are meant for a protagonist who already cleared the easier one, so their enemies start at a higher level:
-        // 어려움 stage 1 is built for level 30 and 극악 stage 1 for level 60, rising in a straight line to the level the last stage already has.
-        public static readonly int[] BaseLevel = { 0, 33, 63 };
+        /// <summary>
+        /// Bot level a stage is built for on a difficulty. 일반 = <see cref="NormalBotLevel"/>; a harder one starts at the entry stage of the difficulty below
+        /// and climbs <see cref="HardSlope"/> as fast as 일반 does from its stage 1 (어려움 1 ≈ 일반 20, 극악 1 ≈ 어려움 20).
+        /// </summary>
+        public static double TargetLevel(int stage, int difficulty)
+        {
+            difficulty = Clamp(difficulty);
+            if (difficulty == 0) return NormalBotLevel(stage);
+            return TargetLevel(EntryStage, difficulty - 1) + HardSlope * (NormalBotLevel(stage) - NormalBotLevel(1));
+        }
 
-        /// <summary>The level line of the harder difficulties ends at this stage (the end of 1부); later stages already sit above it.</summary>
-        public const int LevelLineStage = 30;
+        /// <summary>권장 레벨 shown for a stage on a difficulty: the 일반 recommendation plus the levels the bot needs over 일반 there.</summary>
+        public static int RecommendedPlayerLevel(int stage, int difficulty)
+        {
+            var st = EarlyGameContent.FindStage(stage);
+            if (st == null) return 1;
+            return st.RecommendedPlayerLevel + (Clamp(difficulty) == 0 ? 0 : (int)Math.Round(TargetLevel(stage, difficulty) - NormalBotLevel(stage)));
+        }
 
-        /// <summary>How many levels every enemy of a stage gets on a difficulty (0 on 일반 or when the stage already is past the line).</summary>
+        /// <summary>Curve levels every enemy of a stage gets on a difficulty: the bot's extra levels over 일반, in enemy curve levels (0 on 일반).</summary>
         public static int LevelAdd(int stage, int difficulty)
         {
             difficulty = Clamp(difficulty);
-            var st = EarlyGameContent.FindStage(stage);
-            var last = EarlyGameContent.FindStage(LevelLineStage);
-            if (difficulty == 0 || st == null || last == null) return 0;
-            double t = Math.Min(1.0, (stage - 1.0) / (LevelLineStage - 1.0));
-            double floor = BaseLevel[difficulty] + (last.RecommendedLevel - BaseLevel[difficulty]) * t;
-            return Math.Max(0, (int)Math.Round(floor - st.RecommendedLevel));
+            if (difficulty == 0 || EarlyGameContent.FindStage(stage) == null) return 0;
+            return Math.Max(0, (int)Math.Round((TargetLevel(stage, difficulty) - NormalBotLevel(stage)) * Progression.CurvePerPlayerLevel));
         }
 
-        public static float DefFor(int stage, int difficulty) { return 1f + (DefScale[Clamp(difficulty)] - 1f) * Ramp(stage); }
         private static int Clamp(int difficulty) { return Math.Max(0, Math.Min(DifficultyCount - 1, difficulty)); }
-
-        // 일반 난이도를 손본 배율(1~6은 조금 더 세게, 7부터는 동료가 나온 뒤라 많이 약하게). 어려움·극악은 이 조정 전의 원래 수치에서 출발하므로 ScaleEnemy가 되돌려 주고, 그 뒤의 일반 상향(스테이지별 x1.03~1.12)은 어려움·극악에도 그대로 이어진다.
-        static readonly float[] NormalEaseTable =
-        {
-            1f, 1f, 1f, 1.3f, 1.5f, 1.5f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.65f, 0.65f, 0.6f, 0.6f,
-            0.6f, 0.6f, 0.65f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.65f,
-            0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f,
-        };
-
-        /// <summary>How much stronger (&gt;1) or weaker (&lt;1) a stage's 일반 enemies are than the enemy table the harder difficulties were tuned against.</summary>
-        public static float NormalEase(int stage) { return stage >= 1 && stage <= NormalEaseTable.Length ? NormalEaseTable[stage - 1] : 1f; }
 
         /// <summary>
         /// 일반 난이도 enemy boost on top of the enemy table: HP mostly (x1.1 on stage 1 up to x2.6 on stage 30, a little more every stage), attack a little.
@@ -181,9 +230,6 @@ namespace BiRyeoDo.Core
         };
         public static double HardenHpExp = 0.5, HardenAtkExp = 0.5;   // half HP, half attack: fights get longer and deadlier, but not slogs
         public static float NormalHarden(int stage) { return stage >= 1 && stage <= NormalHardenTable.Length ? NormalHardenTable[stage - 1] : NormalHardenTable[NormalHardenTable.Length - 1]; }
-
-        /// <summary>어려움·극악 상향(2026-10 말): enemy HP and attack x1.2 on stage 1, rising in a straight line to x1.5 on stage 36, on top of everything else.</summary>
-        public static float HardExtra(int stage, int difficulty) { return difficulty <= 0 ? 1f : 1.2f + 0.3f * (Math.Max(1, Math.Min(36, stage)) - 1) / 35f; }
 
         public static float NormalHpBoost(int stage) { return NormalHpBoostTable[Math.Max(1, Math.Min(NormalHpBoostTable.Length, stage)) - 1] * (float)Math.Pow(NormalHarden(stage), HardenHpExp); }
         // Per-stage correction of the attack boost (stage 1-6 = 1): stages whose enemies hit far harder than their neighbours (a heavy blow of more than about
@@ -230,8 +276,6 @@ namespace BiRyeoDo.Core
         public static EnemyData ScaleEnemy(EnemyData enemy, int stage, int difficulty, bool survive = false)
         {
             difficulty = Clamp(difficulty);
-            // Shorten the longest normal stages without removing pressure. Survival-only enemies keep their rules/stats.
-            // Hard difficulties still start from the original table, so this does not move their progression targets.
             if (difficulty == 0)
             {
                 // 일반 only: attack and defense eased from stage 7 (x0.93, x0.87, then x0.8); the harder difficulties keep their values.
@@ -242,9 +286,8 @@ namespace BiRyeoDo.Core
                 if (!survive) hp *= NormalHpTrim(stage, enemy);   // a 버티기 fight keeps its enemy's HP
                 return enemy.Scaled(hp, atk * soft, soft);
             }
-            float ease = NormalEase(stage), extra = HardExtra(stage, difficulty);
-            if (enemy.HpMul > 10f) return enemy.Scaled(HpFor(stage, difficulty) / (float)Math.Pow(ease, 0.7) * extra, AtkFor(stage, difficulty) / (float)Math.Pow(ease, 0.3) * extra, DefFor(stage, difficulty), LevelAdd(stage, difficulty));   // survival-only enemies are not boosted
-            return enemy.Scaled(HpFor(stage, difficulty) / (float)Math.Pow(ease, 0.7) * NormalHpBoost(stage) * extra, AtkFor(stage, difficulty) / (float)Math.Pow(ease, 0.3) * NormalAtkBoost(stage) * extra, DefFor(stage, difficulty), LevelAdd(stage, difficulty));
+            // 어려움·극악: the 일반 enemy of the same stage (and fight), raised by the bot's extra levels, times the fitted correction.
+            return ScaleEnemy(enemy, stage, 0, survive).Scaled(HardHpFix(stage, difficulty), HardAtkFix(stage, difficulty), 1f, LevelAdd(stage, difficulty));
         }
 
         public static string TagFor(int difficulty) { return difficulty <= 0 ? "" : "[" + DifficultyNames[Math.Min(DifficultyCount - 1, difficulty)] + "] "; }
@@ -312,12 +355,9 @@ namespace BiRyeoDo.Core
             return difficulty <= 0 ? "스테이지 " + stage + "에 도달" : DifficultyNames[Math.Min(difficulty, DifficultyNames.Length - 1)] + " 스테이지 " + stage + " 돌파";
         }
 
-        /// <summary>Protagonist level needed before a difficulty can be entered at all: 어려움 from level 20, 극악 from level 40.</summary>
-        public static readonly int[] MinLevel = { 0, 10, 20 };   // player levels (stage 30 on 일반 is level 25)
-
         /// <summary>
-        /// A harder difficulty needs the protagonist level, then opens stage by stage: the same stage must be cleared on the difficulty
-        /// below AND the previous stage on this one.
+        /// A harder difficulty opens once <see cref="EntryStage"/> is cleared on the difficulty below (일반 20 → 어려움, 어려움 20 → 극악),
+        /// then stage by stage: the same stage must be cleared on the difficulty below AND the previous stage on this one.
         /// </summary>
         public static bool Unlocked(SaveData save, int stage, int difficulty)
         {
@@ -329,7 +369,7 @@ namespace BiRyeoDo.Core
         {
             difficulty = Clamp(difficulty);
             if (difficulty <= 0) return "";
-            if (save.Level < MinLevel[difficulty]) return "Lv." + MinLevel[difficulty] + "\n필요";
+            if (!StageCleared(save, EntryStage, difficulty - 1)) return DifficultyNames[difficulty - 1] + " " + EntryStage + "\n돌파 필요";
             if (!StageCleared(save, stage, difficulty - 1)) return DifficultyNames[difficulty - 1] + "\n돌파 필요";
             if (stage > 1 && !StageCleared(save, stage - 1, difficulty)) return "앞 스테이지\n돌파 필요";
             return "";
