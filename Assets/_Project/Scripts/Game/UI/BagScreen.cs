@@ -11,7 +11,7 @@ namespace BiRyeoDo.Game.UI
     /// <summary>Three-column inventory. Item actions live in the detail window.</summary>
     public class BagScreen : MonoBehaviour
     {
-        private const int Columns = 3;
+        private const int Columns = 7;   // compact cards (icon, name, stars, count); effects are in the inspector
         private const float RowGap = 16f;
 
         private sealed class Row
@@ -525,14 +525,13 @@ namespace BiRyeoDo.Game.UI
                 var wearers = Inventory.WearingCompanions(save, item.Id);
                 if (Inventory.IsEquipped(save, item.Id)) wearers.Insert(0, "비류연");
                 ItemArt.Apply(row.Icon, row.IconGlyph, item);
-                int enh = item.IsGear ? Gear.Stars(save, item.Id) : 0;
-                var set = item.IsGear ? Gear.SetOf(item.Id) : null;
-                row.Title.text = UiFactory.GradedName(item) + (item.IsGear ? " · " + Gear.StarsText(save, item.Id) : "") + (stack.Count > 1 ? " ×" + stack.Count : "") + (wearers.Count > 0 ? "\n착용: " + string.Join(", ", wearers) : "");
-                row.Detail.text = item.IsGear
-                    ? UiFactory.GearEffectText(item, 0, enh).Replace("  ", "\n") + "\n\n" + (set != null ? set.Name + " 세트" : "세트 없음")
-                    : item.MasteryUses > 0 ? "숙련 +" + item.MasteryUses + "회"
-                    : item.Kind == ItemKind.Consumable ? ConsumableSummary(item)
-                    : item.Kind == ItemKind.Material ? "재료" : "중요 물품";
+                string count = stack.Count > 1 ? "×" + stack.Count : "";
+                row.Title.text = UiFactory.GradedName(item)
+                    + (item.IsGear ? "\n" + Gear.StarsText(save, item.Id) + (count.Length > 0 ? " " + count : "") : count.Length > 0 ? "\n" + count : "")
+                    + (wearers.Count > 0 ? "\n<color=#9ADB9F>착용 중</color>" : "");
+                row.Detail.text = "";
+                row.Title.fontSize = 20;
+                row.Title.alignment = TextAnchor.UpperCenter;
             }
             _layoutDirty = true;
         }
@@ -573,7 +572,7 @@ namespace BiRyeoDo.Game.UI
             _rows.Add(row);
         }
 
-        // Measure the three cards together so long names and effects never overlap the next row.
+        // Measure each row's cards together (3 per row, 7 on the 장비 tab) so long names and effects never overlap the next row.
         private void LateUpdate()
         {
             if (!_built || _content.rect.width < 1f) return;
@@ -582,25 +581,34 @@ namespace BiRyeoDo.Game.UI
             _layoutWidth = width;
             _layoutDirty = false;
             float y = RowGap;
-            float cardWidth = width * .296f;
-            for (int start = 0; start < _visibleCount; start += Columns)
+            int columns = Columns;
+            // The cards share a .92 span with .01 gaps.
+            float cardFrac = (.92f - (columns - 1) * .01f) / columns;
+            float step = cardFrac + .01f;
+            float cardWidth = width * cardFrac;
+            float icon = Mathf.Min(132f, cardWidth - 20f);
+            for (int start = 0; start < _visibleCount; start += columns)
             {
                 float height = 0f;
-                for (int i = start; i < Mathf.Min(start + Columns, _visibleCount); i++)
+                for (int i = start; i < Mathf.Min(start + columns, _visibleCount); i++)
                 {
                     var row = _rows[i];
-                    float nameHeight = UiFactory.MeasureHeight(row.Title, row.Title.text, cardWidth - 24f) + 8f;
-                    float detailHeight = UiFactory.MeasureHeight(row.Detail, row.Detail.text, cardWidth - 24f) + 8f;
-                    SetTextRegion(row.Title.rectTransform, 156f, nameHeight);
-                    SetTextRegion(row.Detail.rectTransform, 168f + nameHeight, detailHeight);
-                    height = Mathf.Max(height, 184f + nameHeight + detailHeight);
+                    var iconRect = (RectTransform)row.Icon.transform;
+                    iconRect.sizeDelta = new Vector2(icon, icon);
+                    const float pad = 12f;
+                    float nameHeight = UiFactory.MeasureHeight(row.Title, row.Title.text, cardWidth - pad) + 8f;
+                    float detailHeight = string.IsNullOrEmpty(row.Detail.text) ? 0f : UiFactory.MeasureHeight(row.Detail, row.Detail.text, cardWidth - pad) + 8f;
+                    float top = 16f + icon + 8f;
+                    SetTextRegion(row.Title.rectTransform, top, nameHeight, pad);
+                    SetTextRegion(row.Detail.rectTransform, top + 12f + nameHeight, detailHeight, pad);
+                    height = Mathf.Max(height, top + 28f + nameHeight + detailHeight);
                 }
-                for (int i = start; i < Mathf.Min(start + Columns, _visibleCount); i++)
+                for (int i = start; i < Mathf.Min(start + columns, _visibleCount); i++)
                 {
                     var rt = (RectTransform)_rows[i].Band.transform;
-                    float left = .04f + (i % Columns) * .31f;
+                    float left = .04f + (i % columns) * step;
                     rt.anchorMin = new Vector2(left, 1f);
-                    rt.anchorMax = new Vector2(left + .296f, 1f);
+                    rt.anchorMax = new Vector2(left + cardFrac, 1f);
                     rt.sizeDelta = new Vector2(0f, height);
                     rt.anchoredPosition = new Vector2(0f, -y);
                 }
@@ -609,13 +617,13 @@ namespace BiRyeoDo.Game.UI
             _content.sizeDelta = new Vector2(0f, y);
         }
 
-        private static void SetTextRegion(RectTransform rect, float top, float height)
+        private static void SetTextRegion(RectTransform rect, float top, float height, float pad = 24f)
         {
             rect.anchorMin = new Vector2(0f, 1f);
             rect.anchorMax = Vector2.one;
             rect.pivot = new Vector2(0f, 1f);
-            rect.sizeDelta = new Vector2(-24f, height);
-            rect.anchoredPosition = new Vector2(12f, -top);
+            rect.sizeDelta = new Vector2(-pad, height);
+            rect.anchoredPosition = new Vector2(pad / 2f, -top);
         }
     }
 }
