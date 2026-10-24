@@ -163,40 +163,84 @@ namespace BiRyeoDo.Tests.UI
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
-        public void StageListUsesTwoCardsPerRowWithEveryStageAndSeparateActions(float width)
+        public void StageMapKeepsEveryJourneyReachableAndStopsSeparateFromInspector(float width)
         {
             Root.sizeDelta = new Vector2(width, 960f);
             var world = _canvas.AddComponent<WorldScreen>();
             world.Build(Root, stage => { }, offer => { }, () => { });
             Invoke(world, "OpenStageOverlay");
-            Canvas.ForceUpdateCanvases();
-            var content = (RectTransform)Root.Find("StageOverlay/Viewport/Content");
-            var layout = content.GetComponent<ReadingList>(); layout.Reflow();
-            Canvas.ForceUpdateCanvases();
-            var rows = content.Cast<Transform>().Where(child => child.name.StartsWith("StageRow")).ToArray();
-            Assert.AreEqual((EarlyGameContent.Stages.Length + 1) / 2, rows.Length);
-            for (int i = 0; i < EarlyGameContent.Stages.Length; i++)
+            var map = (StageMapPanel)typeof(WorldScreen).GetField("_stageMap", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(world);
+            var seen = new System.Collections.Generic.HashSet<int>();
+            for (int page = 0; page < map.PageCount; page++)
             {
-                var stage = EarlyGameContent.Stages[i];
-                var card = (RectTransform)rows[i / 2].Find("Stage" + stage.Number);
-                Assert.IsNotNull(card);
-                Assert.AreEqual(System.Math.Min(2, EarlyGameContent.Stages.Length - i / 2 * 2), rows[i / 2].childCount);
-                StringAssert.Contains(stage.Name, card.Find("Title").GetComponent<Text>().text);
-                var button = Bounds((RectTransform)card.Find("Go" + i));
-                Assert.Greater(button.height, 90f);
-                Assert.Greater(button.xMin, Bounds((RectTransform)card.Find("Title")).xMax);
-                if (i % 2 == 1)
+                map.Select(EarlyGameContent.Stages[page * StageMapPanel.StagesPerPage].Number, _save);
+                Canvas.ForceUpdateCanvases();
+                var nodes = Root.Find("StageOverlay/Viewport/Nodes").Cast<Transform>()
+                    .Where(child => child.name.StartsWith("Stage")).ToArray();
+                Assert.AreEqual(System.Math.Min(6, EarlyGameContent.Stages.Length - page * 6), nodes.Length);
+                var viewport = Bounds((RectTransform)Root.Find("StageOverlay/Viewport"));
+                var inspector = Bounds((RectTransform)Root.Find("StageOverlay/StageDetail"));
+                foreach (var node in nodes)
                 {
-                    var previous = Bounds((RectTransform)rows[i / 2].Find("Stage" + EarlyGameContent.Stages[i - 1].Number));
-                    Assert.Less(previous.xMax, Bounds(card).xMin);
-                    Assert.AreEqual(previous.yMax, Bounds(card).yMax, .1f);
+                    int number = int.Parse(node.name.Substring(5));
+                    Assert.IsTrue(seen.Add(number));
+                    var stage = EarlyGameContent.FindStage(number);
+                    Assert.AreEqual(stage.Name, node.Find("NamePlate/Name").GetComponent<Text>().text);
+                    var bounds = Bounds((RectTransform)node);
+                    Assert.GreaterOrEqual(bounds.xMin, viewport.xMin);
+                    Assert.LessOrEqual(bounds.xMax, viewport.xMax);
+                    Assert.Less(bounds.xMax, inspector.xMin);
+                    Assert.Greater(bounds.height, 150);
+                    foreach (var other in nodes)
+                        if (other != node) Assert.IsFalse(bounds.Overlaps(Bounds((RectTransform)other)), node.name + " overlaps " + other.name);
                 }
+                Assert.AreEqual(page > 0, Root.Find("StageOverlay/MapNavigation/Previous").GetComponent<Button>().interactable);
+                Assert.AreEqual(page + 1 < map.PageCount, Root.Find("StageOverlay/MapNavigation/Next").GetComponent<Button>().interactable);
+                ComfortableButton("StageOverlay/StageDetail/Go");
             }
-            float height = content.sizeDelta.y;
-            for (int i = 0; i < 5; i++)
+            Assert.AreEqual(EarlyGameContent.Stages.Length, seen.Count);
+        }
+
+        [Test]
+        public void MapInspectionDoesNotStartLockedStagesAndResumeUsesTheStoredDifficulty()
+        {
+            var overlay = UiFactory.Rect("Map", Root, Vector2.zero, Vector2.one);
+            int started = 0;
+            _save.ClearedStage = 0;
+            var panel = new StageMapPanel(overlay, stage => started++, () => { }, () => { }, () => { });
+            panel.Select(36, _save);
+            Assert.AreEqual(0, started);
+            Assert.IsFalse(overlay.Find("StageDetail/Go").GetComponent<Button>().interactable);
+            overlay.Find("StageDetail/Go").GetComponent<Button>().onClick.Invoke();
+            Assert.AreEqual(0, started, "the callback must also guard against locked stages");
+            StringAssert.Contains("이전 스테이지", overlay.Find("StageDetail/ConditionViewport/Condition").GetComponent<Text>().text);
+            panel.Select(1, _save);
+            overlay.Find("StageDetail/Go").GetComponent<Button>().onClick.Invoke();
+            Assert.AreEqual(1, started);
+            _save.ProgressStage = 1; _save.ProgressNext = 1; _save.ProgressDifficulty = 0; _save.Difficulty = 2;
+            panel.Open(_save);
+            Assert.AreEqual(1, panel.SelectedStage);
+            StringAssert.Contains("일반", overlay.Find("StageDetail/StageKind").GetComponent<Text>().text);
+            Assert.AreEqual("이어하기", overlay.Find("StageDetail/Go").GetComponentInChildren<Text>().text);
+        }
+
+        [Test]
+        public void MapShortcutsOpenAboveTheMapAndKeepItsSelection()
+        {
+            var world = _canvas.AddComponent<WorldScreen>();
+            world.Build(Root, stage => { }, offer => { }, () => { });
+            Invoke(world, "OpenStageOverlay");
+            var map = (StageMapPanel)typeof(WorldScreen).GetField("_stageMap", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(world);
+            map.Select(9, _save);
+            foreach (var shortcut in new[] { new[] { "StarRewards", "StarOverlay" }, new[] { "Inn", "ShopOverlay" } })
             {
-                world.Refresh(); Canvas.ForceUpdateCanvases(); layout.Reflow(true);
-                Assert.AreEqual(height, content.sizeDelta.y, .5f);
+                Root.Find("StageOverlay/MapHeader/" + shortcut[0]).GetComponent<Button>().onClick.Invoke();
+                var overlay = Root.Find(shortcut[1]);
+                Assert.IsTrue(overlay.gameObject.activeSelf);
+                Assert.Greater(overlay.GetSiblingIndex(), Root.Find("StageOverlay").GetSiblingIndex());
+                overlay.Find("Back").GetComponent<Button>().onClick.Invoke();
+                Assert.AreEqual(9, map.SelectedStage);
+                Assert.IsTrue(Root.Find("StageOverlay").gameObject.activeSelf);
             }
         }
 

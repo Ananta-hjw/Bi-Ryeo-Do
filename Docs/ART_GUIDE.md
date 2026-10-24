@@ -415,3 +415,7 @@ AI 프롬프트 예시: "wuxia ink-wash style icon of <아이템 설명>, single
 | `cmd_item.png` | 아이템 |
 | `cmd_joint.png` | 합공 |
 
+
+### 강호 여정 지도
+
+`Resources/Art/Backgrounds/world_journey_map.png`는 스테이지 선택 전용 16:9 산수화 지도입니다. 글자·표식·길을 그림에 합치지 않고 `StageMapPanel`/`StageMapRoute`가 표시하므로 진행 상태와 해상도에 맞게 갱신됩니다. 그림 속 지형·건물은 장식이며 원작의 실제 지리 관계를 정의하지 않습니다. 기존 전투 배경은 선택한 지역의 오른쪽 상세 그림에 사용합니다.
