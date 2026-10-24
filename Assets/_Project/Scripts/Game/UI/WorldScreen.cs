@@ -561,9 +561,12 @@ namespace BiRyeoDo.Game.UI
             var questList = CodexPanel.Scroller(_questOverlay, .16f, 0.80f);
             int shown = 0;
             var questGrid = new ReadingGrid(questList, 2, 300f);
-            foreach (var q in Quests.All)
+            // Open quests first, finished ones at the end (each group keeps the board's order)
+            var board = new List<QuestData>();
+            foreach (var q in Quests.All) if (Quests.IsUnlocked(save, q) && !Quests.IsDone(save, q.Id)) board.Add(q);
+            foreach (var q in Quests.All) if (Quests.IsUnlocked(save, q) && Quests.IsDone(save, q.Id)) board.Add(q);
+            foreach (var q in board)
             {
-                if (!Quests.IsUnlocked(save, q)) continue;
                 bool done = Quests.IsDone(save, q.Id);
                 var band = questGrid.Add("Quest" + q.Id);
                 UiFactory.Label("Name", band, new Vector2(0.04f, 0.72f), new Vector2(0.96f, 0.96f), q.Name + (done ? "  (완료)" : ""), 32, done ? UiFactory.InkSoft : UiFactory.PaperText, TextAnchor.MiddleLeft);

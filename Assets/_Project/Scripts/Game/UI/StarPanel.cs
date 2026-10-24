@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using BiRyeoDo.Core;
 using BiRyeoDo.Game.Systems;
 using UnityEngine;
@@ -28,7 +29,16 @@ namespace BiRyeoDo.Game.UI
             all.interactable = ready > 0;
             var content = CodexPanel.Scroller(Root, .16f, .79f);
             var grid = new ReadingGrid(content, 3, 300f);
-            for (int i = 0; i < StageStars.Chests.Length; i++)
+            // Ready to open first, then the ones still needing stars, then the ones already taken
+            var order = new List<int>();
+            for (int rank = 0; rank < 3; rank++)
+                for (int i = 0; i < StageStars.Chests.Length; i++)
+                {
+                    var chestNow = StageStars.Chests[i];
+                    bool claimedNow = save.ClaimedStarChests.Contains(chestNow.Stars);
+                    if ((claimedNow ? 2 : StageStars.CanClaim(save, chestNow) ? 0 : 1) == rank) order.Add(i);
+                }
+            foreach (int i in order)
             {
                 var c = StageStars.Chests[i];
                 var chest = c;

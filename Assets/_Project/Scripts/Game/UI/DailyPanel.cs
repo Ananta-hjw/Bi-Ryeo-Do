@@ -27,7 +27,15 @@ namespace BiRyeoDo.Game.UI
 
             var content = CodexPanel.Scroller(Root, .27f, .80f);
             var grid = new ReadingGrid(content, 3, 280f);
-            for (int i = 0; i < missions.Count; i++)
+            // Ready to claim first, then still in progress, then already claimed (the claim keeps the mission's own index)
+            var order = new List<int>();
+            for (int rank = 0; rank < 3; rank++)
+                for (int i = 0; i < missions.Count; i++)
+                {
+                    bool claimedNow = Daily.IsClaimed(save, i), doneNow = Daily.IsDone(save, missions[i]);
+                    if ((claimedNow ? 2 : doneNow ? 0 : 1) == rank) order.Add(i);
+                }
+            foreach (int i in order)
             {
                 var m = missions[i];
                 var band = grid.Add("Mission" + i);
