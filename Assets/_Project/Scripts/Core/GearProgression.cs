@@ -117,7 +117,7 @@ namespace BiRyeoDo.Core
             if (save.GearBreakthroughs == null) save.GearBreakthroughs = new List<GearLevel>();
             if (save.GearLevels == null) save.GearLevels = new List<GearLevel>();
             if (Inventory.Count(save, Ritual.RewardId) > 0) GrantTranscendentStarsRaw(save, Ritual.RewardId);
-            if (save.GearProgressionMigrated) { MigrateGradeUnlocks(save); return; }
+            if (save.GearProgressionMigrated) { MigrateGradeUnlocks(save); MigrateLowGradeUnlocks(save); return; }
             bool migrateGrades = !save.GearGradeUnlocksMigrated;
             // SyncSlots re-enters this method; finish legacy slot assignments before grade migration.
             save.GearGradeUnlocksMigrated = true;
@@ -144,6 +144,23 @@ namespace BiRyeoDo.Core
             }
             save.GearLevels.Clear();
             if (migrateGrades) { save.GearGradeUnlocksMigrated = false; MigrateGradeUnlocks(save); }
+            MigrateLowGradeUnlocks(save);
+        }
+
+        /// <summary>
+        /// 고급·희귀·영웅 used to be open for free. Once, keep an enhanced slot's current gear of those grades open so no bonus is lost;
+        /// an unenhanced slot pays the new price when it is first enhanced.
+        /// </summary>
+        private static void MigrateLowGradeUnlocks(SaveData save)
+        {
+            if (save.GearLowGradeUnlocksMigrated) return;
+            save.GearLowGradeUnlocksMigrated = true;
+            foreach (var slot in save.GearSlots)
+            {
+                var item = EarlyGameContent.FindItem(slot.ItemId);
+                if (slot.Level > 0 && item != null && item.IsGear && item.Grade <= ItemGrade.Epic && Inventory.GearOf(save, slot.Owner).Contains(item.Id))
+                    slot.UnlockedGrade = Math.Max(slot.UnlockedGrade, (int)item.Grade);
+            }
         }
 
         private static void MigrateGradeUnlocks(SaveData save)
@@ -162,8 +179,8 @@ namespace BiRyeoDo.Core
         public static ItemGrade UnlockedGrade(SaveData save, string owner, int index)
         {
             EnsureProgression(save);
-            if (index < 0 || index >= 6) return ItemGrade.Epic;
-            return (ItemGrade)Math.Max((int)ItemGrade.Epic, Math.Min((int)ItemGrade.Transcendent, Entry(save, owner, index).UnlockedGrade));
+            if (index < 0 || index >= 6) return ItemGrade.Normal;
+            return (ItemGrade)Math.Max((int)ItemGrade.Normal, Math.Min((int)ItemGrade.Transcendent, Entry(save, owner, index).UnlockedGrade));
         }
 
         public static bool IsGradeUnlocked(SaveData save, string owner, int index, ItemGrade grade)
@@ -171,9 +188,15 @@ namespace BiRyeoDo.Core
             return index >= 0 && index < 6 && grade <= UnlockedGrade(save, owner, index);
         }
 
+        /// <summary>은자 to open each grade from the one below it: 일반 free, 고급 1,000, 희귀 3,000, 영웅 5,000, 전설 15,000, 신화 30,000, 초월 60,000.</summary>
+        public static readonly long[] GradeUnlockSteps = { 0, 1000, 3000, 5000, 15000, 30000, 60000 };
+
+        /// <summary>Everything paid to have this grade open (the steps up to it): 고급 1,000 … 전설 24,000, 신화 54,000, 초월 114,000.</summary>
         public static long GradeUnlockTotal(ItemGrade grade)
         {
-            return grade >= ItemGrade.Transcendent ? 100000 : grade >= ItemGrade.Mythic ? 40000 : grade >= ItemGrade.Legendary ? 10000 : 0;
+            long total = 0;
+            for (int g = 1; g <= (int)grade && g < GradeUnlockSteps.Length; g++) total += GradeUnlockSteps[g];
+            return total;
         }
 
         public static long GradeUnlockCost(SaveData save, string owner, int index, ItemGrade grade)

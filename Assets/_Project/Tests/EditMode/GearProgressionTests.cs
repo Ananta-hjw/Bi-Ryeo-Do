@@ -44,9 +44,9 @@ namespace BiRyeoDo.Tests
             return EarlyGameContent.Items.First(i => i.Kind == ItemKind.Weapon && i.Grade == grade).Id;
         }
 
-        [TestCase(ItemGrade.Legendary, 10000)]
-        [TestCase(ItemGrade.Mythic, 40000)]
-        [TestCase(ItemGrade.Transcendent, 100000)]
+        [TestCase(ItemGrade.Legendary, 24000)]
+        [TestCase(ItemGrade.Mythic, 54000)]
+        [TestCase(ItemGrade.Transcendent, 114000)]
         public void DirectUnlockChargesAllUnpaidGradesAndDoesNotRepeat(ItemGrade grade, long cost)
         {
             var save = Funded();
@@ -68,12 +68,12 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void SequentialUnlocksCostTenThirtyAndSixtyThousandAndSurviveReplacement()
+        public void SequentialUnlocksCostEachUnpaidStepAndSurviveReplacement()
         {
             var save = Funded();
             string error;
             var grades = new[] { ItemGrade.Legendary, ItemGrade.Mythic, ItemGrade.Transcendent };
-            var costs = new long[] { 10000, 30000, 60000 };
+            var costs = new long[] { 24000, 30000, 60000 };
             long before = save.Doo;
             for (int i = 0; i < grades.Length; i++)
             {
@@ -81,13 +81,13 @@ namespace BiRyeoDo.Tests
                 Assert.AreEqual(costs[i], Gear.GradeUnlockCost(save, Inventory.Hero, 0, grades[i]));
                 Assert.IsTrue(Gear.UnlockSlotGrade(save, Inventory.Hero, 0, out error), error);
             }
-            Assert.AreEqual(before - 100000, save.Doo);
+            Assert.AreEqual(before - 114000, save.Doo);
             Equip(save, Weapon(ItemGrade.Legendary));
             Assert.IsTrue(Gear.IsGradeUnlocked(save, Inventory.Hero, 0, ItemGrade.Legendary));
             Inventory.Unequip(save, Weapon(ItemGrade.Legendary));
             Assert.AreEqual(ItemGrade.Transcendent, Gear.UnlockedGrade(save, Inventory.Hero, 0));
-            Assert.AreEqual(ItemGrade.Epic, Gear.UnlockedGrade(save, "hyo_ryong", 0));
-            Assert.AreEqual(ItemGrade.Epic, Gear.UnlockedGrade(save, Inventory.Hero, 1));
+            Assert.AreEqual(ItemGrade.Normal, Gear.UnlockedGrade(save, "hyo_ryong", 0));
+            Assert.AreEqual(ItemGrade.Normal, Gear.UnlockedGrade(save, Inventory.Hero, 1));
         }
 
         [Test]
@@ -117,7 +117,7 @@ namespace BiRyeoDo.Tests
             string error;
             Assert.IsFalse(Gear.UnlockSlotGrade(save, Inventory.Hero, 0, out error));
             Assert.AreEqual(99999, save.Doo);
-            Assert.AreEqual(ItemGrade.Epic, Gear.UnlockedGrade(save, Inventory.Hero, 0));
+            Assert.AreEqual(ItemGrade.Normal, Gear.UnlockedGrade(save, Inventory.Hero, 0));
             Assert.IsFalse(Gear.UnlockSlotGrade(save, Inventory.Hero, -1, out error));
         }
 
@@ -164,6 +164,24 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void EnhancedLowGradeSlotsStayUnlockedWhenUnlockPricesStart()
+        {
+            var save = new SaveData { GearProgressionMigrated = true, Doo = 321 };
+            save.Items.Add(new ItemStack("mukryonghwan", 1));
+            save.Items.Add(new ItemStack("claw_necklace", 1));
+            save.EquippedGear.Add("mukryonghwan");
+            save.EquippedGear.Add("claw_necklace");
+            save.GearSlots.Add(new GearSlot { Owner = Inventory.Hero, Index = 4, ItemId = "mukryonghwan", Level = 5 });
+            save.GearSlots.Add(new GearSlot { Owner = Inventory.Hero, Index = 5, ItemId = "claw_necklace", Level = 0 });
+            Gear.EnsureProgression(save);
+            Assert.AreEqual(ItemGrade.Rare, Gear.UnlockedGrade(save, Inventory.Hero, 4));
+            Assert.AreEqual(5, Gear.LevelFor(save, Inventory.Hero, "mukryonghwan"));
+            Assert.AreEqual(ItemGrade.Normal, Gear.UnlockedGrade(save, Inventory.Hero, 5));
+            Assert.AreEqual(1000, Gear.GradeUnlockCost(save, Inventory.Hero, 5, ItemGrade.Fine));
+            Assert.AreEqual(321, save.Doo);
+        }
+
+        [Test]
         public void LegacySecondAccessoryUnlockMigratesToTheCorrectSlot()
         {
             var save = new SaveData();
@@ -174,7 +192,7 @@ namespace BiRyeoDo.Tests
             save.EquippedGear.Add(id);
             save.GearLevels.Add(new GearLevel { Id = id, Level = 1 });
             Gear.EnsureProgression(save);
-            Assert.AreEqual(ItemGrade.Epic, Gear.UnlockedGrade(save, Inventory.Hero, 4));
+            Assert.AreEqual(ItemGrade.Normal, Gear.UnlockedGrade(save, Inventory.Hero, 4));
             Assert.AreEqual(ItemGrade.Legendary, Gear.UnlockedGrade(save, Inventory.Hero, 5));
             Assert.AreEqual(4, Gear.LevelFor(save, Inventory.Hero, id));
         }
@@ -402,6 +420,8 @@ namespace BiRyeoDo.Tests
             Equip(save, "mukryonghwan");
             Equip(save, "claw_necklace");
             string error;
+            Assert.IsTrue(Gear.UnlockSlotGrade(save, Inventory.Hero, 4, out error), error);
+            Assert.IsTrue(Gear.UnlockSlotGrade(save, Inventory.Hero, 5, out error), error);
             for (int i = 0; i < 3; i++) Gear.EnhanceSlot(save, Inventory.Hero, 4, out error);
             for (int i = 0; i < 7; i++) Gear.EnhanceSlot(save, Inventory.Hero, 5, out error);
             Inventory.Unequip(save, "mukryonghwan");
@@ -422,6 +442,7 @@ namespace BiRyeoDo.Tests
             Equip(save, "mukryonghwan");
             Equip(save, "iron_bracer", "hyo_ryong");
             string error;
+            Assert.IsTrue(Gear.UnlockSlotGrade(save, Inventory.Hero, 4, out error), error);
             Gear.EnhanceSlot(save, Inventory.Hero, 4, out error);
             Assert.IsFalse(Inventory.EquipInSlot(save, Inventory.Hero, ItemKind.Accessory, 0, "iron_bracer", out error));
             Assert.AreEqual("claw_necklace", Gear.ItemInSlot(save, Inventory.Hero, 4).Id);

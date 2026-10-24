@@ -47,6 +47,7 @@ namespace BiRyeoDo.Core
         public List<GearLevel> GearLevels = new List<GearLevel>();   // legacy item enhancements; migrated once
         public bool GearProgressionMigrated;
         public bool GearGradeUnlocksMigrated;
+        public bool GearLowGradeUnlocksMigrated;   // 고급~영웅 개방이 유료가 된 뒤 한 번: 이미 강화한 부위의 장비 등급을 그대로 연 것으로 둔다
         public List<GearLevel> GearBreakthroughs = new List<GearLevel>();
         public List<GearSlot> GearSlots = new List<GearSlot>();
         public List<string> ReadRecordUpdates = new List<string>();   // acknowledged codex, story and faction record updates
