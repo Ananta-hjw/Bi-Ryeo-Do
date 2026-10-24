@@ -7,14 +7,14 @@ using UnityEngine.UI;
 
 namespace BiRyeoDo.Game.UI
 {
-    /// <summary>세력 평판 and 객잔 overlay: two tabs, reputation per faction and the shop whose shelves open with it.</summary>
+    /// <summary>One of two overlays: 세력 평판 (기록 tab) or the 객잔 whose shelves open with it (강호 tab side button).</summary>
     public sealed class FactionPanel : OverlayPanel
     {
-        private int _tab;   // 0 평판, 1 객잔
-        private static readonly string[] TabNames = { "평판", "객잔" };
+        private readonly bool _shop;   // true = 객잔, false = 세력 평판
 
-        public FactionPanel(RectTransform root, Action onChange) : base(root, onChange)
+        public FactionPanel(RectTransform root, Action onChange, bool shop = false) : base(root, onChange)
         {
+            _shop = shop;
         }
 
         public void Open(string toast = null)
@@ -24,18 +24,12 @@ namespace BiRyeoDo.Game.UI
             Begin();
             if (!Tutorial.IsDone(save, "faction") && HelpPanel.Instance != null) HelpPanel.Instance.Show("faction", true);
 
-            UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "세력과 객잔 · " + save.Doo.ToString("N0") + "은자", 40, UiFactory.Gold);
-            for (int t = 0; t < TabNames.Length; t++)
-            {
-                int tab = t;
-                float x0 = 0.05f + t * 0.47f;
-                UiFactory.Button("Tab" + t, Root, new Vector2(x0, .79f), new Vector2(x0 + 0.43f, 0.91f), TabNames[t], t == _tab ? UiFactory.Red : UiFactory.InkSoft, () => { _tab = tab; Open(); }, 30);
-            }
-            UiFactory.ScrollBody(UiFactory.Label("Toast", Root, new Vector2(0.05f, .70f), new Vector2(0.95f, .78f), toast ?? (_tab == 0 ? "그 세력의 스테이지에서 전투를 이기면 평판이 쌓입니다 (일반 +1, 어려움 +2, 극악 +3)" : "세력 평판이 오르면 그 세력의 선반이 열립니다"), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            UiFactory.Label("Title", Root, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.99f), (_shop ? "객잔 · " + save.Doo.ToString("N0") + "은자" : "세력 평판"), 40, UiFactory.Gold);
+            UiFactory.ScrollBody(UiFactory.Label("Toast", Root, new Vector2(0.05f, .80f), new Vector2(0.95f, .89f), toast ?? (_shop ? "세력 평판이 오르면 그 세력의 선반이 열립니다. 평판은 기록 탭 「세력 평판」에서 봅니다." : "그 세력의 스테이지에서 전투를 이기면 평판이 쌓입니다 (일반 +1, 어려움 +2, 극악 +3)"), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
-            var content = CodexPanel.Scroller(Root, .16f, .69f);
-            if (_tab == 0) DrawReputation(content, save);
-            else DrawShop(content, save);
+            var content = CodexPanel.Scroller(Root, .16f, .79f);
+            if (_shop) DrawShop(content, save);
+            else DrawReputation(content, save);
             AddClose();
         }
 

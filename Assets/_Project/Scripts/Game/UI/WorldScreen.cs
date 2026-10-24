@@ -22,6 +22,7 @@ namespace BiRyeoDo.Game.UI
         private StarPanel _stars;
         private SaveData _syncedSave;
         private DailyPanel _daily;
+        private FactionPanel _shop;   // 객잔, opened from the 강호 side buttons
         private Text _dailyRowDetail, _dailyBadge;
         private Action _onStatus;
         private Text _starRowDetail, _starBadge, _starsTitle;
@@ -210,6 +211,7 @@ namespace BiRyeoDo.Game.UI
 
             _daily = new DailyPanel(UiFactory.Rect("DailyOverlay", root, Vector2.zero, Vector2.one), Refresh);
             _stars = new StarPanel(UiFactory.Rect("StarOverlay", root, Vector2.zero, Vector2.one), Refresh);
+            _shop = new FactionPanel(UiFactory.Rect("ShopOverlay", root, Vector2.zero, Vector2.one), Refresh, true);
             Refresh();
         }
 
@@ -936,7 +938,7 @@ namespace BiRyeoDo.Game.UI
             _onPromote(offer);
         }
 
-        public enum Menu { Featured, Stages, Quests, Fortunes, Party, Tower, Promotion, Daily, Stars, Settings }
+        public enum Menu { Featured, Stages, Quests, Fortunes, Party, Tower, Promotion, Daily, Stars, Settings, Shop }
 
         public StageData FeaturedStage { get { return _featStage; } }
 
@@ -946,7 +948,7 @@ namespace BiRyeoDo.Game.UI
             {
                 foreach (var overlay in new[] { _promoOverlay, _partyOverlay, _prepOverlay, _questOverlay, _fortuneOverlay, _settingsOverlay, _towerOverlay, _stageOverlay })
                     if (overlay != null && overlay.gameObject.activeSelf) return true;
-                return (_stars != null && _stars.IsOpen) || (_daily != null && _daily.IsOpen);
+                return (_stars != null && _stars.IsOpen) || (_daily != null && _daily.IsOpen) || (_shop != null && _shop.IsOpen);
             }
         }
 
@@ -966,6 +968,7 @@ namespace BiRyeoDo.Game.UI
                 case Menu.Daily: _daily.Open(); break;
                 case Menu.Stars: _stars.Open(); break;
                 case Menu.Settings: OpenSettingsOverlay(); break;
+                case Menu.Shop: _shop.Open(); break;
             }
         }
 
@@ -980,6 +983,7 @@ namespace BiRyeoDo.Game.UI
                 if (o != null) o.gameObject.SetActive(false);
             if (_stars != null) _stars.Hide();
             if (_daily != null) _daily.Hide();
+            if (_shop != null) _shop.Hide();
         }
 
         private void OnStagePressed(StageData st, Action<StageData> onStart, bool fromList)

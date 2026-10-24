@@ -89,6 +89,16 @@ namespace BiRyeoDo.Game.UI
                 case "icon_rim":
                     Ring(mesh, .5f, .5f, .48f, 64);
                     break;
+                case "back":   // 돌아가기: a thin U-turn arrow pointing left
+                    Line(mesh, .14f, .66f, .62f, .66f);
+                    Line(mesh, .14f, .66f, .32f, .84f); Line(mesh, .14f, .66f, .32f, .48f);
+                    for (int i = 0; i < 16; i++)
+                    {
+                        float a = Mathf.PI * .5f - i * Mathf.PI / 16f, b = Mathf.PI * .5f - (i + 1) * Mathf.PI / 16f;
+                        Line(mesh, .62f + Mathf.Cos(a) * .2f, .46f + Mathf.Sin(a) * .2f, .62f + Mathf.Cos(b) * .2f, .46f + Mathf.Sin(b) * .2f);
+                    }
+                    Line(mesh, .62f, .26f, .4f, .26f);
+                    break;
                 case "close":
                     Line(mesh, .28f, .28f, .72f, .72f); Line(mesh, .28f, .72f, .72f, .28f);
                     break;

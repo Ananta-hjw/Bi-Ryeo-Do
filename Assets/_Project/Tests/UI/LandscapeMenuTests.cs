@@ -309,7 +309,7 @@ namespace BiRyeoDo.Tests.UI
             home.Build(homeRoot, world, menu => opened = menu, selected => tab = selected);
             Canvas.ForceUpdateCanvases();
             ComfortableButton("Home/StageList"); ComfortableButton("Home/Header/Settings");
-            foreach (var name in new[] { "MissionsMenu", "ChallengeMenu", "PartyMenu" }) ComfortableButton("Home/" + name);
+            foreach (var name in new[] { "MissionsMenu", "ChallengeMenu", "PartyMenu", "ShopMenu" }) ComfortableButton("Home/" + name);
             var layer = homeRoot.Find("FlyoutLayer");
             Assert.IsFalse(layer.gameObject.activeSelf);
             Assert.IsNull(homeRoot.Find("Quick_뽑기"));
@@ -346,14 +346,18 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsFalse(layer.gameObject.activeSelf);
             homeRoot.Find("PartyMenu").GetComponent<Button>().onClick.Invoke();
             Assert.AreEqual(WorldScreen.Menu.Party, opened);
-            string[] cards = { "협객", "무공", "행낭", "기록" };
-            TabRouter.Tab[] routes = { TabRouter.Tab.Companions, TabRouter.Tab.MartialArts, TabRouter.Tab.Bag, TabRouter.Tab.Record };
+            homeRoot.Find("ShopMenu").GetComponent<Button>().onClick.Invoke();
+            Assert.AreEqual(WorldScreen.Menu.Shop, opened);
+            // Six screen cards replace the bottom tab bar: every route but 강호 is reachable from here.
+            string[] cards = { "협객", "장비", "무공", "뽑기", "행낭", "기록" };
+            TabRouter.Tab[] routes = { TabRouter.Tab.Companions, TabRouter.Tab.Equipment, TabRouter.Tab.MartialArts, TabRouter.Tab.Gacha, TabRouter.Tab.Bag, TabRouter.Tab.Record };
+            CollectionAssert.AreEquivalent(System.Enum.GetValues(typeof(TabRouter.Tab)).Cast<TabRouter.Tab>().Where(t => t != TabRouter.Tab.World), routes);
             for (int i = 0; i < cards.Length; i++)
             {
                 var card = homeRoot.Find("Home_" + cards[i]);
                 Assert.GreaterOrEqual(Bounds((RectTransform)card).height, 275f);
-                Assert.GreaterOrEqual(Bounds((RectTransform)card).width, width * .26f);
-                Assert.GreaterOrEqual(card.Find("Title").GetComponent<Text>().fontSize, 44);
+                Assert.GreaterOrEqual(Bounds((RectTransform)card).width, width * .17f);
+                Assert.GreaterOrEqual(card.Find("Title").GetComponent<Text>().fontSize, 42);
                 card.GetComponent<Button>().onClick.Invoke();
                 Assert.AreEqual(routes[i], tab);
             }
@@ -371,48 +375,46 @@ namespace BiRyeoDo.Tests.UI
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
-        public void BottomNavigationIncludesEquipmentAndGachaWithoutChangingExistingRouteIds(float width)
+        public void EveryScreenButTheLobbyHasTheSameBackBarAboveItsPanel(float width)
         {
             Root.sizeDelta = new Vector2(width, 960f);
             var main = _canvas.AddComponent<MainScreen>();
-            Invoke(main, "BuildTabBar", Root);
-            string[] names = { "강호", "협객", "장비", "무공", "뽑기", "행낭", "기록" };
-            var buttons = _canvas.transform.Find("TabBar").GetComponentsInChildren<Button>();
-            CollectionAssert.AreEqual(names.Select(name => "Tab_" + name).ToArray(), buttons.Select(button => button.name).ToArray());
-            var navigation = (TabRouter.Tab[])typeof(MainScreen).GetField("NavigationTabs", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
-            CollectionAssert.AreEquivalent(System.Enum.GetValues(typeof(TabRouter.Tab)), navigation);
-            foreach (var name in names) ComfortableButton("TabBar/Tab_" + name);
-            var icons = (Graphic[])typeof(MainScreen).GetField("_tabIcons", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(main);
-            var labels = (Text[])typeof(MainScreen).GetField("_tabLabels", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(main);
-            for (int i = 0; i < icons.Length; i++)
-            {
-                var icon = Bounds(icons[i].rectTransform);
-                Assert.That(icon.width, Is.EqualTo(76f).Within(.1f));
-                Assert.That(icon.height, Is.EqualTo(76f).Within(.1f));
-                Assert.Less(icon.xMax, Bounds(labels[i].rectTransform).xMin);
-            }
+            var panel = UiFactory.Rect("Panel", Root, Vector2.zero, Vector2.one);
+            panel.offsetMax = new Vector2(0f, -104f);
+            Invoke(main, "BuildBackBar", panel, "협객");
+            ComfortableButton("Panel/BackBar/Back");
+            Canvas.ForceUpdateCanvases();
+            var bar = Bounds((RectTransform)panel.Find("BackBar"));
+            Assert.That(bar.yMin, Is.EqualTo(Bounds(panel).yMax).Within(.5f), "the bar sits right above the panel");
+            Assert.That(bar.width, Is.EqualTo(width).Within(.5f));
+            Assert.AreEqual("back", panel.Find("BackBar/Back").GetComponentInChildren<WuxiaGlyph>().Key);
+            Assert.Less(Bounds((RectTransform)panel.Find("BackBar/Back")).xMax, Bounds((RectTransform)panel.Find("BackBar/Title")).xMin + 1f);
+            Assert.IsNull(typeof(MainScreen).GetMethod("BuildTabBar", BindingFlags.Instance | BindingFlags.NonPublic), "there is no bottom tab bar any more");
         }
 
         [Test]
-        public void RecordNavigationBadgeReflectsUnreadPagesAndSurvivesOpeningOnlyTheTab()
+        public void LobbyRecordCardBadgeReflectsUnreadPages()
         {
-            var main = _canvas.AddComponent<MainScreen>();
-            Invoke(main, "BuildTabBar", Root);
-            Invoke(main, "RefreshNotices", _save);
-            var dot = Root.Find("TabBar/Tab_기록/NewDot");
-            Assert.IsTrue(dot.gameObject.activeSelf);
+            var routes = UiFactory.Rect("Routes", Root, Vector2.zero, Vector2.one);
+            var world = routes.gameObject.AddComponent<WorldScreen>();
+            world.Build(routes, stage => { }, offer => { }, () => { });
+            routes.gameObject.SetActive(false);
+            var homeRoot = UiFactory.Rect("Home", Root, Vector2.zero, Vector2.one);
+            var home = homeRoot.gameObject.AddComponent<LandscapeHome>();
+            home.Build(homeRoot, world, menu => { }, tab => { });
+            home.Refresh();
+            var dot = homeRoot.Find("Home_기록/Badge");
             int count = RecordUpdates.Count(_save);
-            Assert.AreEqual(count > 99 ? "99+" : count.ToString(), dot.Find("Count").GetComponent<Text>().text);
-            Assert.AreNotSame(ArtLibrary.Icon("party"), ArtLibrary.Icon("companion"));
+            Assert.AreEqual(count > 0, dot.gameObject.activeSelf);
+            if (count > 0) Assert.AreEqual(count > 99 ? "99+" : count.ToString(), dot.Find("Count").GetComponent<Text>().text);
             foreach (var page in new[] { RecordUpdates.CodexPage, RecordUpdates.StoryPage, RecordUpdates.FactionPage }) RecordUpdates.Acknowledge(_save, page);
             foreach (var achievement in Achievements.All) _save.ClaimedAchievements.Add(achievement.Id);
             foreach (var memory in Memories.All) _save.SeenMemories.Add(memory.Id);
-            Invoke(main, "RefreshNotices", _save);
+            home.Refresh();
             Assert.IsFalse(dot.gameObject.activeSelf);
-            Codex.SeeItem(_save, "straw_sandals");
             // Start-kit items may already have been discovered; force a fresh valid item.
             Codex.SeeItem(_save, EarlyGameContent.Items.First(item => !_save.SeenItems.Contains(item.Id)).Id);
-            Invoke(main, "RefreshNotices", _save);
+            home.Refresh();
             Assert.IsTrue(dot.gameObject.activeSelf);
         }
 

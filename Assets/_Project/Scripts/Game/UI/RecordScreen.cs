@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace BiRyeoDo.Game.UI
 {
-    /// <summary>기록 tab: the non-combat records and menus — 도감, 업적, 이야기, 나예린 추억, 세력과 객잔. Each tile opens a pop-up panel inside this tab.</summary>
+    /// <summary>기록 tab: the non-combat records and menus — 도감, 업적, 이야기, 나예린 추억, 세력 평판. Each tile opens a pop-up panel inside this tab.</summary>
     public class RecordScreen : MonoBehaviour
     {
         private sealed class Entry
@@ -43,7 +43,7 @@ namespace BiRyeoDo.Game.UI
             _achE = Tile(content, 1, "업적", "achievement", () => { CloseOverlays(); _codex.OpenAchievements(); });
             _storyE = Tile(content, 2, "이야기 줄거리", "story", () => { CloseOverlays(); _storyLog.Open(); });
             _memoryE = Tile(content, 3, "나예린 추억", "memories", () => { CloseOverlays(); _memories.Open(); });
-            _factionE = Tile(content, 4, "세력과 객잔", "faction", () => { CloseOverlays(); _factions.Open(); });
+            _factionE = Tile(content, 4, "세력 평판", "faction", () => { CloseOverlays(); _factions.Open(); });
             _ritualE = Tile(content, 5, "전승의식", "ritual", () => { CloseOverlays(); _ritual.Open(); });
             _menuLayout = content.GetComponent<ReadingList>();
             _codex = new CodexPanel(UiFactory.Rect("CodexOverlay", workspace, Vector2.zero, Vector2.one), UiFactory.Rect("AchievementOverlay", workspace, Vector2.zero, Vector2.one), Refresh);
@@ -117,7 +117,7 @@ namespace BiRyeoDo.Game.UI
             SetBadge(_memoryE, unseen);
             var notes = new List<string>();
             foreach (var fa in Factions.All) if (Factions.Tier(save, fa.Id) > 0) notes.Add(fa.Name + " " + Factions.TierNames[Factions.Tier(save, fa.Id)]);
-            _factionE.Detail.text = notes.Count > 0 ? "평판: " + string.Join(" · ", notes) : "전투를 이기면 세력 평판이 쌓이고 객잔 선반이 열립니다";
+            _factionE.Detail.text = notes.Count > 0 ? "평판: " + string.Join(" · ", notes) : "전투를 이기면 세력 평판이 쌓이고, 강호 탭 객잔의 선반이 열립니다";
             SetBadge(_factionE, RecordUpdates.Unread(save, RecordUpdates.FactionPage));
             int ritualDone = Ritual.DoneCount(save), ritualTotal = Ritual.Conditions(save).Count;
             _ritualE.Detail.text = save.RitualDone ? "완료 — 진비뢰도를 얻었습니다" : "초월 등급 진비뢰도의 시련 · 조건 " + ritualDone + "/" + ritualTotal;

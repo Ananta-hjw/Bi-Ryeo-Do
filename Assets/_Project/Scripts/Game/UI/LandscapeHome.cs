@@ -14,7 +14,7 @@ namespace BiRyeoDo.Game.UI
         private Action<WorldScreen.Menu> _openMenu;
         private Action<TabRouter.Tab> _select;
         private Text _identity, _doo, _name, _realm, _quote, _featuredTitle, _featuredDetail, _featuredAction;
-        private Text _quest, _daily, _fortune, _stars, _arts, _missionsBadge;
+        private Text _quest, _daily, _fortune, _stars, _arts, _missionsBadge, _artsBadge, _recordBadge;
         private RectTransform _flyoutLayer, _missionsFlyout, _challengeFlyout;
         private Image _missionsButton, _challengeButton;
         private Image _portrait, _scenery, _journeyArt;
@@ -76,10 +76,14 @@ namespace BiRyeoDo.Game.UI
             _featuredDetail = HomeText("Detail", featured.transform, .035f, .04f, .70f, .39f, "", 26, UiFactory.Dim);
             _featuredAction = HomeText("Action", featured.transform, .73f, .04f, .965f, .39f, "", 28, UiFactory.Gold, TextAnchor.MiddleRight);
 
-            HomeCard(root, .435f, .70f, .325f, .615f, "협객", "상태 · 무공 · 인연", "companion", () => _select(TabRouter.Tab.Companions));
-            _arts = HomeCard(root, .72f, .985f, .325f, .615f, "무공", "무공 · 심법 관리", "arts", () => _select(TabRouter.Tab.MartialArts));
-            HomeCard(root, .435f, .70f, .015f, .305f, "행낭", "돌파 · 분해 · 합성", "bag", () => _select(TabRouter.Tab.Bag));
-            HomeCard(root, .72f, .985f, .015f, .305f, "기록", "도감 · 추억 · 세력", "record", () => _select(TabRouter.Tab.Record));
+            // Six screens in two rows of three; this is the only way into them now that there is no bottom tab bar.
+            Text unused;
+            HomeCard(root, .435f, .612f, .325f, .615f, "협객", "상태 · 인연 · 수련", "companion", () => _select(TabRouter.Tab.Companions), out unused);
+            HomeCard(root, .622f, .798f, .325f, .615f, "장비", "착용 · 강화 · 세트", "equipment", () => _select(TabRouter.Tab.Equipment), out unused);
+            _arts = HomeCard(root, .808f, .985f, .325f, .615f, "무공", "무공 · 심법", "arts", () => _select(TabRouter.Tab.MartialArts), out _artsBadge);
+            HomeCard(root, .435f, .612f, .015f, .305f, "뽑기", "장비 · 영약 뽑기", "gacha", () => _select(TabRouter.Tab.Gacha), out unused);
+            HomeCard(root, .622f, .798f, .015f, .305f, "행낭", "돌파 · 분해 · 합성", "bag", () => _select(TabRouter.Tab.Bag), out unused);
+            HomeCard(root, .808f, .985f, .015f, .305f, "기록", "도감 · 추억 · 세력", "record", () => _select(TabRouter.Tab.Record), out _recordBadge);
 
             // The full stage list remains available independently of the featured stage.
             UiFactory.Button("StageList", root, new Vector2(.81f, .787f), new Vector2(.975f, .885f), "스테이지 목록", UiFactory.InkSoft, () => _openMenu(WorldScreen.Menu.Stages), 26);
@@ -93,13 +97,14 @@ namespace BiRyeoDo.Game.UI
             return UiFactory.Body(UiFactory.Label(name, parent, new Vector2(x0, y0), new Vector2(x1, y1), text, size, color, align, FontStyle.Normal), 1.15f);
         }
 
-        private static Text HomeCard(RectTransform root, float x0, float x1, float y0, float y1, string title, string detail, string icon, Action action)
+        private static Text HomeCard(RectTransform root, float x0, float x1, float y0, float y1, string title, string detail, string icon, Action action, out Text badge)
         {
             var button = UiFactory.Button("Home_" + title, root, new Vector2(x0, y0), new Vector2(x1, y1), "", UiFactory.Ink, () => action(), 30);
             UiFactory.Frame(button.transform, UiFactory.GoldDim, 2f);
-            UiFactory.Glyph(icon, button.transform, new Vector2(.04f, .48f), new Vector2(.27f, .93f), UiFactory.Gold);
-            HomeText("Title", button.transform, .32f, .48f, .96f, .94f, title, 44, UiFactory.Gold);
-            return HomeText("Detail", button.transform, .05f, .08f, .95f, .41f, detail, 30, UiFactory.PaperText);
+            UiFactory.Glyph(icon, button.transform, new Vector2(.05f, .48f), new Vector2(.36f, .93f), UiFactory.Gold);
+            HomeText("Title", button.transform, .40f, .48f, .96f, .94f, title, 42, UiFactory.Gold);
+            badge = Badge(button.transform);
+            return HomeText("Detail", button.transform, .06f, .08f, .95f, .41f, detail, 26, UiFactory.PaperText);
         }
 
         private void BuildSideMenus(RectTransform root)
@@ -127,6 +132,7 @@ namespace BiRyeoDo.Game.UI
             LandscapeMenu.Place((RectTransform)_missionsBadge.transform.parent, .64f, .71f, .99f, .99f);
             _challengeButton = SideButton(root, "ChallengeMenu", "도전", "tower", .45f, () => ToggleFlyout(false)).GetComponent<Image>();
             SideButton(root, "PartyMenu", "파티 편성", "party", .26f, () => OpenSideMenu(WorldScreen.Menu.Party));
+            SideButton(root, "ShopMenu", "객잔", "coin", .07f, () => OpenSideMenu(WorldScreen.Menu.Shop));
             CloseFlyouts();
         }
 
@@ -225,7 +231,9 @@ namespace BiRyeoDo.Game.UI
                 _journeyArt.sprite = ArtLibrary.Background(stage.Number) ?? ArtLibrary.Background(1);
             }
             int arts = Discovery.Count(save);
-            _arts.text = arts > 0 ? "새 무공·심법 " + arts + "개" : "무공 · 심법 관리";
+            _arts.text = arts > 0 ? "새 무공·심법 " + arts + "개" : "무공 · 심법";
+            SetQuickCount(_artsBadge, arts);
+            SetQuickCount(_recordBadge, RecordUpdates.Count(save));
             SetQuickCount(_quest, Quests.Open(save).Count);
             SetQuickCount(_daily, Daily.ClaimableCount(save));
             SetQuickCount(_fortune, Fortunes.Open(save).Count);
