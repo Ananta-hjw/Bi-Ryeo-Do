@@ -257,6 +257,44 @@ namespace BiRyeoDo.Tests.UI
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
+        public void WholeJourneyCardOpensTheFeaturedRouteWithoutASeparateGoButton(float width)
+        {
+            Root.sizeDelta = new Vector2(width, 960f);
+            var routes = UiFactory.Rect("Routes", Root, Vector2.zero, Vector2.one);
+            var world = routes.gameObject.AddComponent<WorldScreen>();
+            world.Build(routes, stage => { }, offer => { }, () => { });
+            routes.gameObject.SetActive(false);
+            var homeRoot = UiFactory.Rect("Home", Root, Vector2.zero, Vector2.one);
+            var home = homeRoot.gameObject.AddComponent<LandscapeHome>();
+            WorldScreen.Menu? opened = null;
+            home.Build(homeRoot, world, menu => opened = menu, tab => { });
+            Canvas.ForceUpdateCanvases();
+            var journey = (RectTransform)homeRoot.Find("Journey");
+            Assert.IsNotNull(journey.GetComponent<Button>());
+            Assert.IsNull(journey.Find("Go"));
+            Assert.AreEqual(1, journey.GetComponentsInChildren<Button>(true).Length);
+            Assert.Greater(Bounds(journey).yMin, Bounds((RectTransform)homeRoot.Find("Home_협객")).yMax);
+            Assert.Less(Bounds(journey).yMax, Bounds((RectTransform)homeRoot.Find("StageList")).yMin);
+            Assert.Greater(Bounds((RectTransform)homeRoot.Find("Home_협객")).yMin, Bounds((RectTransform)homeRoot.Find("Home_행낭")).yMax);
+
+            _save.SwordRank = Promotion.GateRank;
+            world.Refresh(); home.Refresh();
+            journey.GetComponent<Button>().onClick.Invoke();
+            Assert.AreEqual(WorldScreen.Menu.Featured, opened);
+            StringAssert.Contains("출전", journey.Find("Action").GetComponent<Text>().text);
+            _save.ProgressStage = world.FeaturedStage.Number; _save.ProgressNext = 1;
+            home.Refresh();
+            StringAssert.Contains("이어하기", journey.Find("Action").GetComponent<Text>().text);
+            _save.SwordRank = 1;
+            home.Refresh();
+            journey.GetComponent<Button>().onClick.Invoke();
+            Assert.AreEqual(WorldScreen.Menu.Promotion, opened);
+            StringAssert.Contains("승급 필요", journey.Find("Action").GetComponent<Text>().text);
+        }
+
+        [TestCase(1440f)]
+        [TestCase(1920f)]
+        [TestCase(2400f)]
         public void LobbySideGroupsOpenToTheRightPreserveRoutesAndDismissCleanly(float width)
         {
             Root.sizeDelta = new Vector2(width, 960f);
@@ -313,7 +351,9 @@ namespace BiRyeoDo.Tests.UI
             for (int i = 0; i < cards.Length; i++)
             {
                 var card = homeRoot.Find("Home_" + cards[i]);
-                Assert.GreaterOrEqual(Bounds((RectTransform)card).height, 190f);
+                Assert.GreaterOrEqual(Bounds((RectTransform)card).height, 275f);
+                Assert.GreaterOrEqual(Bounds((RectTransform)card).width, width * .26f);
+                Assert.GreaterOrEqual(card.Find("Title").GetComponent<Text>().fontSize, 44);
                 card.GetComponent<Button>().onClick.Invoke();
                 Assert.AreEqual(routes[i], tab);
             }

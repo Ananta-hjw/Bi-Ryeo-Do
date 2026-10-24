@@ -52,25 +52,25 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Frame(quote.transform, UiFactory.GoldDim, 1f);
             _quote = UiFactory.ScrollBody(UiFactory.Label("Quote", quote.transform, new Vector2(.025f, .04f), new Vector2(.98f, .96f), "", 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 28);
 
-            HomeText("MenuTitle", root, .45f, .80f, .79f, .885f, "강호를 걷는 길", 40, UiFactory.Gold);
-            var featured = UiFactory.Panel("Journey", root, new Vector2(.45f, .61f), new Vector2(.975f, .775f), UiFactory.InkSoft);
-            _journeyArt = UiFactory.Panel("Art", featured.transform, Vector2.zero, Vector2.one, new Color(.55f, .65f, .60f, .16f));
-            BackgroundCover.Apply(_journeyArt);
-            UiFactory.Frame(featured.transform, UiFactory.Gold, 2f);
-            HomeText("Kicker", featured.transform, .035f, .76f, .72f, .98f, "다음 여정", 26, UiFactory.Gold);
-            _featuredTitle = HomeText("Stage", featured.transform, .035f, .43f, .74f, .77f, "", 36, UiFactory.PaperText);
-            _featuredDetail = HomeText("Detail", featured.transform, .035f, .04f, .74f, .43f, "", 26, UiFactory.Dim);
-            var go = UiFactory.Button("Go", featured.transform, new Vector2(.77f, .20f), new Vector2(.97f, .78f), "출전", UiFactory.Red, () =>
+            HomeText("MenuTitle", root, .435f, .80f, .79f, .885f, "강호를 걷는 길", 40, UiFactory.Gold);
+            var featured = UiFactory.Button("Journey", root, new Vector2(.435f, .635f), new Vector2(.985f, .775f), "", UiFactory.InkSoft, () =>
             {
                 var stage = _world.FeaturedStage;
                 _openMenu(stage != null && !Promotion.StageAllowed(GameManager.Instance.Save, stage.Number) ? WorldScreen.Menu.Promotion : WorldScreen.Menu.Featured);
             }, 32);
-            _featuredAction = go.GetComponentInChildren<Text>();
+            _journeyArt = UiFactory.Panel("Art", featured.transform, Vector2.zero, Vector2.one, new Color(.55f, .65f, .60f, .16f));
+            BackgroundCover.Apply(_journeyArt);
+            _journeyArt.raycastTarget = false;
+            UiFactory.Frame(featured.transform, UiFactory.Gold, 2f);
+            HomeText("Kicker", featured.transform, .035f, .75f, .96f, .98f, "다음 여정", 26, UiFactory.Gold);
+            _featuredTitle = HomeText("Stage", featured.transform, .035f, .39f, .96f, .75f, "", 36, UiFactory.PaperText);
+            _featuredDetail = HomeText("Detail", featured.transform, .035f, .04f, .70f, .39f, "", 26, UiFactory.Dim);
+            _featuredAction = HomeText("Action", featured.transform, .73f, .04f, .965f, .39f, "", 28, UiFactory.Gold, TextAnchor.MiddleRight);
 
-            HomeCard(root, .45f, .70f, .39f, .59f, "협객", "상태 · 무공 · 인연", "companion", () => _select(TabRouter.Tab.Companions));
-            _arts = HomeCard(root, .725f, .975f, .39f, .59f, "무공", "무공 · 심법 관리", "arts", () => _select(TabRouter.Tab.MartialArts));
-            HomeCard(root, .45f, .70f, .17f, .37f, "행낭", "돌파 · 분해 · 합성", "bag", () => _select(TabRouter.Tab.Bag));
-            HomeCard(root, .725f, .975f, .17f, .37f, "기록", "도감 · 추억 · 세력", "record", () => _select(TabRouter.Tab.Record));
+            HomeCard(root, .435f, .70f, .325f, .615f, "협객", "상태 · 무공 · 인연", "companion", () => _select(TabRouter.Tab.Companions));
+            _arts = HomeCard(root, .72f, .985f, .325f, .615f, "무공", "무공 · 심법 관리", "arts", () => _select(TabRouter.Tab.MartialArts));
+            HomeCard(root, .435f, .70f, .015f, .305f, "행낭", "돌파 · 분해 · 합성", "bag", () => _select(TabRouter.Tab.Bag));
+            HomeCard(root, .72f, .985f, .015f, .305f, "기록", "도감 · 추억 · 세력", "record", () => _select(TabRouter.Tab.Record));
 
             // The full stage list remains available independently of the featured stage.
             UiFactory.Button("StageList", root, new Vector2(.81f, .787f), new Vector2(.975f, .885f), "스테이지 목록", UiFactory.InkSoft, () => _openMenu(WorldScreen.Menu.Stages), 26);
@@ -88,9 +88,9 @@ namespace BiRyeoDo.Game.UI
         {
             var button = UiFactory.Button("Home_" + title, root, new Vector2(x0, y0), new Vector2(x1, y1), "", UiFactory.Ink, () => action(), 30);
             UiFactory.Frame(button.transform, UiFactory.GoldDim, 2f);
-            UiFactory.Glyph(icon, button.transform, new Vector2(.035f, .48f), new Vector2(.17f, .90f), UiFactory.Gold);
-            HomeText("Title", button.transform, .20f, .48f, .95f, .94f, title, 38, UiFactory.Gold);
-            return HomeText("Detail", button.transform, .045f, .07f, .95f, .43f, detail, 26, UiFactory.PaperText);
+            UiFactory.Glyph(icon, button.transform, new Vector2(.04f, .48f), new Vector2(.27f, .93f), UiFactory.Gold);
+            HomeText("Title", button.transform, .32f, .48f, .96f, .94f, title, 44, UiFactory.Gold);
+            return HomeText("Detail", button.transform, .05f, .08f, .95f, .41f, detail, 30, UiFactory.PaperText);
         }
 
         private void BuildSideMenus(RectTransform root)
@@ -204,7 +204,7 @@ namespace BiRyeoDo.Game.UI
             {
                 _featuredTitle.text = stage.Number.ToString("00") + " · " + stage.Name;
                 _featuredDetail.text = "권장 Lv." + stage.RecommendedPlayerLevel + " · 전투 " + stage.Encounters.Length + "회";
-                _featuredAction.text = !Promotion.StageAllowed(save, stage.Number) ? "승급 필요" : StageProgress.Has(save, stage.Number) ? "이어하기" : save.ClearedStage >= stage.Number ? "재도전" : "출전";
+                _featuredAction.text = (!Promotion.StageAllowed(save, stage.Number) ? "승급 필요" : StageProgress.Has(save, stage.Number) ? "이어하기" : save.ClearedStage >= stage.Number ? "재도전" : "출전") + "  ›";
                 _journeyArt.sprite = ArtLibrary.Background(stage.Number) ?? ArtLibrary.Background(1);
             }
             int arts = Discovery.Count(save);
