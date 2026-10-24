@@ -395,6 +395,49 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsNull(typeof(MainScreen).GetMethod("BuildTabBar", BindingFlags.Instance | BindingFlags.NonPublic), "there is no bottom tab bar any more");
         }
 
+        [TestCase(1440f)]
+        [TestCase(2400f)]
+        public void ScreenHeadersMoveIntoTheTopBarAndLeaveNoBandBehind(float width)
+        {
+            Root.sizeDelta = new Vector2(width, 960f);
+            var main = _canvas.AddComponent<MainScreen>();
+            foreach (var kind in new[] { "bag", "gacha", "record", "arts" })
+            {
+                var panel = UiFactory.Rect("Panel_" + kind, Root, Vector2.zero, Vector2.one);
+                panel.offsetMax = new Vector2(0f, -104f);
+                Invoke(main, "BuildBackBar", panel, kind);
+                var root = UiFactory.Rect("Screen", panel, Vector2.zero, Vector2.one);
+                if (kind == "bag") root.gameObject.AddComponent<BagScreen>().Build(root);
+                else if (kind == "gacha") root.gameObject.AddComponent<GachaScreen>().Build(root);
+                else if (kind == "record") root.gameObject.AddComponent<RecordScreen>().Build(root, null);
+                else root.gameObject.AddComponent<MartialArtsScreen>().Build(root);
+                panel.Find("BackBar").SetAsLastSibling();
+                Canvas.ForceUpdateCanvases();
+                var page = kind == "arts" ? root.Find("ArtsPage") : root;
+                Assert.IsNull(page.Find("HeaderBand"), kind + ": the old band is gone");
+                var info = panel.Find("BackBar/Info");
+                Assert.AreEqual(1, info.childCount, kind);
+                var host = info.GetChild(0);
+                var bar = Bounds((RectTransform)panel.Find("BackBar"));
+                var header = Bounds((RectTransform)host.Find("Header"));
+                Assert.That(header.center.y, Is.EqualTo(bar.center.y).Within(1f), kind);
+                if (kind != "record")
+                {
+                    var help = Bounds((RectTransform)host.Find("Help"));
+                    Assert.That(help.center.y, Is.EqualTo(bar.center.y).Within(1f), kind);
+                    Assert.Less(header.xMin, help.xMin);
+                }
+                if (kind == "bag") Assert.IsNotNull(host.Find("BulkDismantleButton"));
+                if (kind == "arts")
+                {
+                    // The 무공/심법 page buttons now sit right under the top bar, above the art list
+                    var pageButton = Bounds((RectTransform)root.Find("Page0"));
+                    Assert.Less(pageButton.yMax, bar.yMin + 1f);
+                    Assert.Less(Bounds((RectTransform)page.Find("Viewport")).yMax, pageButton.yMin + 1f);
+                }
+            }
+        }
+
         [Test]
         public void LobbyRecordCardBadgeReflectsUnreadPages()
         {

@@ -135,6 +135,12 @@ namespace BiRyeoDo.Game.UI
                 });
             }, () => Select((int)TabRouter.Tab.Companions));
             _home.Build(homeRoot, _world, OpenWorldMenu, tab => Select((int)tab));
+            // Screens that moved their header into the top bar grew upward under it: keep the bar drawn on top.
+            foreach (var panel in panels)
+            {
+                var bar = panel.transform.Find("BackBar");
+                if (bar != null) bar.SetAsLastSibling();
+            }
             _worldModal.SetActive(false);
 
             // Help card sits above everything (tutorial hints and the help list)
@@ -178,8 +184,14 @@ namespace BiRyeoDo.Game.UI
             rect.sizeDelta = new Vector2(BackBarHeight * 1.3f, BackBarHeight - 8f);
             var arrow = UiFactory.Glyph("back", back.transform, new Vector2(.12f, .1f), new Vector2(.88f, .9f), UiFactory.Gold);
             arrow.raycastTarget = false;
-            var name = UiFactory.Label("Title", bar, new Vector2(0f, 0f), new Vector2(.6f, 1f), title, 36, UiFactory.Gold, TextAnchor.MiddleLeft);
-            name.rectTransform.offsetMin = new Vector2(16f + BackBarHeight * 1.3f + 12f, 0f);
+            float titleLeft = 16f + BackBarHeight * 1.3f + 12f, titleWidth = 150f;
+            var name = UiFactory.Label("Title", bar, new Vector2(0f, 0f), new Vector2(0f, 1f), title, 36, UiFactory.Gold, TextAnchor.MiddleLeft);
+            name.rectTransform.offsetMin = new Vector2(titleLeft, 0f);
+            name.rectTransform.offsetMax = new Vector2(titleLeft + titleWidth, 0f);
+            // The screen's own header (icon, info, ? and header buttons) is drawn here instead of in a band of its own (UiFactory.TabHeader).
+            var info = UiFactory.Rect("Info", bar, Vector2.zero, Vector2.one);
+            info.offsetMin = new Vector2(titleLeft + titleWidth + 16f, 6f);
+            info.offsetMax = new Vector2(-16f, -6f);
         }
 
         /// <summary>돌아가기: back to the 강호 lobby.</summary>
