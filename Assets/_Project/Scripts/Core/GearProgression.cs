@@ -55,14 +55,24 @@ namespace BiRyeoDo.Core
             return NextMaterial(id) != null && Inventory.Count(save, id) >= MaterialFusionCost;
         }
 
-        public static ItemData FuseMaterial(SaveData save, string id, out string error)
+        /// <summary>How many times this material can be fused right now (3 each).</summary>
+        public static int MaxMaterialFusions(SaveData save, string id)
+        {
+            return NextMaterial(id) == null ? 0 : Inventory.Count(save, id) / MaterialFusionCost;
+        }
+
+        public static ItemData FuseMaterial(SaveData save, string id, out string error) { return FuseMaterial(save, id, 1, out error); }
+
+        /// <summary>Fuses <paramref name="times"/> x 3 of a material into as many of the next one, all at once.</summary>
+        public static ItemData FuseMaterial(SaveData save, string id, int times, out string error)
         {
             error = null;
             var result = NextMaterial(id);
             if (result == null) { error = "다음 등급으로 합성할 수 없는 재료입니다."; return null; }
-            if (Inventory.Count(save, id) < MaterialFusionCost) { error = "합성하려면 같은 강화 재료 3개가 필요합니다."; return null; }
-            if (!Inventory.Remove(save, id, MaterialFusionCost)) { error = "합성 재료가 부족합니다."; return null; }
-            Inventory.Add(save, result.Id, 1);
+            if (times < 1) { error = "합성할 개수를 골라 주세요."; return null; }
+            if (Inventory.Count(save, id) < MaterialFusionCost * times) { error = times == 1 ? "합성하려면 같은 강화 재료 3개가 필요합니다." : "합성 재료가 부족합니다."; return null; }
+            if (!Inventory.Remove(save, id, MaterialFusionCost * times)) { error = "합성 재료가 부족합니다."; return null; }
+            Inventory.Add(save, result.Id, times);
             return result;
         }
 
@@ -357,7 +367,8 @@ namespace BiRyeoDo.Core
         }
 
         public static int StoneCost(int nextLevel) { return 1 + (Math.Max(1, Math.Min(MaxLevel, nextLevel)) - 1) / 10; }
-        public static long DooCost(int nextLevel) { long n = Math.Max(1, Math.Min(MaxLevel, nextLevel)); return 100 + 20 * n + 2 * n * n; }
+        /// <summary>은자 for the next enhancement step n: 50 + 8n + 0.75n² (rounded), about 299,000 from +0 to +100.</summary>
+        public static long DooCost(int nextLevel) { long n = Math.Max(1, Math.Min(MaxLevel, nextLevel)); return (long)Math.Round(50 + 8 * n + 0.75 * n * n, MidpointRounding.AwayFromZero); }
         public static bool CanEnhanceSlot(SaveData save, string owner, int index)
         {
             var item = ItemInSlot(save, owner, index);

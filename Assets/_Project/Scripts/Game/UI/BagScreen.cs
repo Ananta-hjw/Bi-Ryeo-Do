@@ -122,6 +122,8 @@ namespace BiRyeoDo.Game.UI
 
         private RectTransform _detail;
         private string _detailId;
+        private string _fuseId;     // material whose 합성 count bar is shown, and the count picked on it
+        private int _fuseTimes;
         private string _confirmDismantle;   // an enhanced last copy waiting for a second press of 분해
 
         private void OpenDetail(string itemId)
@@ -192,9 +194,20 @@ namespace BiRyeoDo.Game.UI
             else if (Gear.NextMaterial(item.Id) != null)
             {
                 var next = Gear.NextMaterial(item.Id);
-                bool ready = Gear.CanFuseMaterial(save, item.Id);
-                var fuseBtn = UiFactory.Button("FuseMaterial", card.transform, new Vector2(0.05f, 0.13f), new Vector2(0.95f, 0.22f),
-                    "합성 " + Inventory.Count(save, item.Id) + " / 3 → " + next.Name + " 1개", ready ? UiFactory.Red : UiFactory.InkSoft, () => DoFuseMaterial(item), 28);
+                int maxTimes = Gear.MaxMaterialFusions(save, item.Id);
+                if (_fuseId != item.Id || _fuseTimes < 1 || _fuseTimes > maxTimes) { _fuseId = item.Id; _fuseTimes = maxTimes; }   // starts at the most that can be made
+                bool ready = maxTimes > 0;
+                bool withBar = maxTimes > 1;
+                Button fuseBtn = null;
+                string FuseLabel(int t) { return ready ? "합성 " + (t * Gear.MaterialFusionCost) + "개 → " + next.Name + " " + t + "개" : "합성 " + Inventory.Count(save, item.Id) + " / " + Gear.MaterialFusionCost + " → " + next.Name + " 1개"; }
+                if (withBar)
+                    CountBar.Create(card.transform, new Vector2(0.05f, 0.23f), new Vector2(0.95f, 0.30f), 1, maxTimes, _fuseTimes, t =>
+                    {
+                        _fuseTimes = t;
+                        if (fuseBtn != null) fuseBtn.GetComponentInChildren<Text>().text = FuseLabel(t);
+                    });
+                fuseBtn = UiFactory.Button(withBar ? "FuseMaterialHalf" : "FuseMaterial", card.transform, new Vector2(0.05f, 0.13f), new Vector2(0.95f, 0.22f),
+                    FuseLabel(_fuseTimes), ready ? UiFactory.Red : UiFactory.InkSoft, () => DoFuseMaterial(item, _fuseTimes), 28);
                 fuseBtn.interactable = ready;
             }
             else if (Salvage.IsFusable(item))
@@ -277,7 +290,7 @@ namespace BiRyeoDo.Game.UI
             }
             else if (Gear.NextMaterial(item.Id) != null)
             {
-                DoFuseMaterial(item);
+                DoFuseMaterial(item, Math.Max(1, _fuseId == item.Id ? _fuseTimes : 1));
                 return;
             }
             else if (Salvage.IsFusable(item))
@@ -457,16 +470,17 @@ namespace BiRyeoDo.Game.UI
             ReopenDetail(item);
         }
 
-        private void DoFuseMaterial(ItemData material)
+        private void DoFuseMaterial(ItemData material, int times)
         {
             var save = GameManager.Instance.Save;
             string error;
-            var made = Gear.FuseMaterial(save, material.Id, out error);
-            _flash = made != null ? made.Name + " 1개를 합성했습니다." : error;
-            if (made != null) { SoundManager.Sfx("levelup"); GameManager.Instance.SaveNow(); }
+            times = Math.Max(1, Math.Min(times, Gear.MaxMaterialFusions(save, material.Id)));
+            var made = Gear.FuseMaterial(save, material.Id, times, out error);
+            _flash = made != null ? made.Name + " " + times + "개를 합성했습니다." : error;
+            if (made != null) { SoundManager.Sfx("levelup"); GameManager.Instance.SaveNow(); _fuseTimes = 0; }   // the bar starts at the new maximum again
             Refresh();
             ReopenDetail(material);
-            if (made != null) ShowNotice("재료 합성 완료", material.Name + " 3개를 사용해\n" + UiFactory.GradedName(made) + " 1개를 얻었습니다.", UiFactory.Gold);
+            if (made != null) ShowNotice("재료 합성 완료", material.Name + " " + (times * Gear.MaterialFusionCost) + "개를 사용해\n" + UiFactory.GradedName(made) + " " + times + "개를 얻었습니다.", UiFactory.Gold);
         }
 
         private void DoFuse(ItemData material)

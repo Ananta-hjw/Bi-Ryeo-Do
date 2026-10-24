@@ -276,6 +276,36 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void ManyFusionsAtOnceUseThreeEachAndStopAtWhatTheBagHolds()
+        {
+            var save = new SaveData { Doo = 42 };
+            var source = Gear.Materials[0];
+            var target = Gear.Materials[1];
+            Inventory.Add(save, source.Id, 20);
+            Assert.AreEqual(6, Gear.MaxMaterialFusions(save, source.Id));
+            string error;
+            Assert.IsNull(Gear.FuseMaterial(save, source.Id, 7, out error));   // 21 needed, 20 held: nothing is used
+            Assert.AreEqual(20, Inventory.Count(save, source.Id));
+            Assert.IsNull(Gear.FuseMaterial(save, source.Id, 0, out error));
+            Assert.AreSame(target, Gear.FuseMaterial(save, source.Id, 6, out error), error);
+            Assert.AreEqual(2, Inventory.Count(save, source.Id));
+            Assert.AreEqual(6, Inventory.Count(save, target.Id));
+            Assert.AreEqual(0, Gear.MaxMaterialFusions(save, source.Id));
+            Assert.AreEqual(42, save.Doo);
+            Assert.AreEqual(0, Gear.MaxMaterialFusions(save, Gear.Materials[Gear.Materials.Length - 1].Id));
+        }
+
+        [Test]
+        public void EnhancingFromZeroToHundredCostsAboutThreeHundredThousand()
+        {
+            long total = 0;
+            for (int n = 1; n <= Gear.MaxLevel; n++) total += Gear.DooCost(n);
+            Assert.AreEqual(299175, total);
+            Assert.AreEqual(59, Gear.DooCost(1));
+            Assert.AreEqual(8350, Gear.DooCost(100));
+        }
+
+        [Test]
         public void InvalidAndFinalTierMaterialsCannotBeFusedOrConsumed()
         {
             var save = new SaveData();
@@ -388,7 +418,7 @@ namespace BiRyeoDo.Tests
             }
             Assert.AreEqual(100, Gear.LevelFor(save, Inventory.Hero, "iron_sword"));
             Assert.AreEqual(550, totalStones);
-            Assert.AreEqual(787700, totalDoo);
+            Assert.AreEqual(299175, totalDoo);
             Assert.AreEqual(100000000 - totalDoo, save.Doo);
             Assert.AreEqual(600000 - totalStones, Gear.Materials.Sum(m => Inventory.Count(save, m.Id)));
             var actual = Inventory.ApplyGear(new CombatStats { MaxHp = 1000, MaxQi = 100, Attack = 1000, Defense = 100, Speed = 100 }, save.EquippedGear, Gear.LevelsFor(save, Inventory.Hero));

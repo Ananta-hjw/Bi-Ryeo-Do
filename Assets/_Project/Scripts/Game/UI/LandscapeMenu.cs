@@ -55,6 +55,8 @@ namespace BiRyeoDo.Game.UI
                     case "Fuse":
                     case "FuseMaterial":
                     case "Sell": Place(rect, .04f, .20f, .96f, .34f); break;
+                    case "CountBar": Place(rect, .04f, .22f, .49f, .32f); break;
+                    case "FuseMaterialHalf": Place(rect, .51f, .20f, .96f, .34f); break;
                     case "Close": Place(rect, .25f, .025f, .75f, .17f); break;
                 }
             }
