@@ -10,23 +10,14 @@ namespace BiRyeoDo.Game.UI
     /// <summary>강호 탭: the story map. Pick an unlocked stage to fight it; cleared stages can be replayed for exp and 두.</summary>
     public class WorldScreen : MonoBehaviour
     {
-        private sealed class Row
-        {
-            public StageData Stage;
-            public Text Title, Detail, ButtonLabel;
-            public Image ButtonImage;
-            public Button Button;
-        }
-
-        private readonly List<Row> _rows = new List<Row>();
+        private StageMapPanel _stageMap;
         private StarPanel _stars;
         private SaveData _syncedSave;
         private DailyPanel _daily;
         private FactionPanel _shop;   // 객잔, opened from the 강호 side buttons
         private Text _dailyRowDetail, _dailyBadge;
         private Action _onStatus;
-        private Text _starRowDetail, _starBadge, _starsTitle;
-        private readonly Image[] _diffTabs = new Image[StageStars.DifficultyCount];
+        private Text _starRowDetail, _starBadge;
         private Text _towerRowDetail, _lvText, _dooText, _rankText, _promoRowDetail, _partyRowDetail, _questRowDetail, _fortuneRowDetail;
         private Text _promoBadge, _partyBadge, _questBadge, _fortuneBadge, _featTitle, _featSub, _featBtnLabel;
         private UiFactory.Bar _expBar;
@@ -58,7 +49,6 @@ namespace BiRyeoDo.Game.UI
 
             _homeRoot = root;
             _onStartRef = onStart;
-            var stages = EarlyGameContent.Stages;
 
             // Portrait-led portrait layout: identity, character, utility rail, journey and activity cards.
             _lobbyBg = UiFactory.Panel("Scenery", root, Vector2.zero, Vector2.one, UiFactory.Parchment);
@@ -119,63 +109,12 @@ namespace BiRyeoDo.Game.UI
 
             BuildStatusBar(root);
 
-            // ---- Stage list (opened by 스테이지 출전): difficulty picker and every stage.
-            const float gap = 16f, cardH = 210f;
+            // Illustrated journey map, with existing prep/replay entry points retained.
             _stageOverlay = UiFactory.Rect("StageOverlay", root, Vector2.zero, Vector2.one);
             _stageOverlay.gameObject.AddComponent<Image>().color = UiFactory.Parchment;
-            _starsTitle = UiFactory.Label("Title", _stageOverlay, new Vector2(0.05f, 0.925f), new Vector2(0.95f, 0.995f), "스테이지", 42, UiFactory.Gold);
-            var viewport = UiFactory.Rect("Viewport", _stageOverlay, new Vector2(0f, .03f), new Vector2(1f, 0.87f));   // below the 돌아가기 arrow
-            viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
-            viewport.gameObject.AddComponent<RectMask2D>();
-            var content = UiFactory.Rect("Content", viewport, new Vector2(0f, 1f), new Vector2(1f, 1f));
-            content.pivot = new Vector2(0.5f, 1f);
-            var scroll = viewport.gameObject.AddComponent<ScrollRect>();
-            scroll.viewport = viewport;
-            scroll.content = content;
-            scroll.horizontal = false;
-            scroll.movementType = ScrollRect.MovementType.Clamped;
-            scroll.scrollSensitivity = 40f;
-            UiFactory.ScrollIndicator(scroll, viewport);
-            float y = gap;
-
-            // Difficulty picker for the whole list
-            var diffRow = Place(content, 0.04f, 0.96f, y, 84f, new Color(0f, 0f, 0f, 0f));
-            for (int d = 0; d < StageStars.DifficultyCount; d++)
-            {
-                int diffIndex = d;
-                float x0 = d * 0.335f;
-                var btn = UiFactory.Button("Diff" + d, diffRow, new Vector2(x0, 0.04f), new Vector2(x0 + 0.325f, 0.96f), StageStars.DifficultyNames[d], UiFactory.InkSoft, () => { GameManager.Instance.Save.Difficulty = diffIndex; GameManager.Instance.SaveNow(); Refresh(); }, 30);
-                _diffTabs[d] = btn.GetComponent<Image>();
-            }
-            ReadingList.Register(diffRow, 100f, gap);
-            y += 84f + gap;
-
-            RectTransform stageRow = null;
-            for (int i = 0; i < stages.Length; i++)
-            {
-                var st = stages[i];
-                if (i % 2 == 0)
-                {
-                    stageRow = Place(content, .025f, .975f, y, cardH, Color.clear);
-                    stageRow.name = "StageRow" + i / 2;
-                    ReadingList.Register(stageRow, cardH, gap);
-                    y += cardH + gap;
-                }
-                float x = i % 2 * .51f;
-                var rt = UiFactory.Panel("Stage" + st.Number, stageRow, new Vector2(x, 0f), new Vector2(x + .49f, 1f), UiFactory.Ink).rectTransform;
-                UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
-                var row = new Row { Stage = st };
-                var badge = UiFactory.Panel("Badge", rt, new Vector2(0.025f, 0.14f), new Vector2(0.135f, 0.86f), new Color(0.20f, 0.17f, 0.10f, 1f));
-                UiFactory.Frame(badge.transform, UiFactory.Gold, 2f);
-                UiFactory.Label("Num", badge.transform, Vector2.zero, Vector2.one, st.Number.ToString(), 40, UiFactory.Gold);
-                row.Title = UiFactory.Label("Title", rt, new Vector2(0.16f, 0.50f), new Vector2(0.64f, 0.96f), "", 30, UiFactory.PaperText, TextAnchor.MiddleLeft);
-                row.Detail = UiFactory.Label("Detail", rt, new Vector2(0.16f, 0.04f), new Vector2(0.64f, 0.50f), "", 26, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
-                row.Button = UiFactory.Button("Go" + i, rt, new Vector2(0.66f, 0.15f), new Vector2(0.97f, 0.85f), "", UiFactory.Red, () => OnStagePressed(st, onStart, true), 34);
-                row.ButtonImage = row.Button.GetComponent<Image>();
-                row.ButtonLabel = row.Button.GetComponentInChildren<Text>();
-                _rows.Add(row);
-            }
-            content.sizeDelta = new Vector2(0f, y + gap);
+            _stageMap = new StageMapPanel(_stageOverlay, stage => OnStagePressed(stage, onStart, true), Refresh,
+                () => { _stars.Open(); _homeRoot.Find("StarOverlay").SetAsLastSibling(); },
+                () => { _shop.Open(); _homeRoot.Find("ShopOverlay").SetAsLastSibling(); });
             UiFactory.BackCorner(_stageOverlay, () => { _stageOverlay.gameObject.SetActive(false); Refresh(); });
             _stageOverlay.gameObject.SetActive(false);
 
@@ -594,7 +533,7 @@ namespace BiRyeoDo.Game.UI
             Refresh();
             _stageOverlay.gameObject.SetActive(true);
             Canvas.ForceUpdateCanvases();
-            _stageOverlay.Find("Viewport/Content").GetComponent<ReadingList>()?.Reflow(true);
+            _stageMap.Open(GameManager.Instance.Save);
             _stageOverlay.SetAsLastSibling();
         }
 
@@ -1056,10 +995,7 @@ namespace BiRyeoDo.Game.UI
             int starChests = StageStars.ClaimableCount(save);
             _starRowDetail.text = "별 " + StageStars.Total(save) + " / " + StageStars.MaxStars + " · 받을 수 있는 보상 " + starChests + "개";
             SetBadge(_starBadge, starChests);
-            _starsTitle.text = "스테이지   ★ " + StageStars.Total(save);
             if (_stageRowDetail != null) _stageRowDetail.text = _featStage != null ? "스테이지 " + _featStage.Number : "";
-            int pickedDiff = Mathf.Clamp(save.Difficulty, 0, StageStars.DifficultyCount - 1);
-            for (int d = 0; d < _diffTabs.Length; d++) _diffTabs[d].color = d == pickedDiff ? (d == 0 ? new Color(0.30f, 0.48f, 0.44f, 1f) : d == 1 ? new Color(0.70f, 0.45f, 0.12f, 1f) : UiFactory.Red) : UiFactory.InkSoft;
             _towerRowDetail.text = Tower.Unlocked(save) ? "최고 " + save.TowerBest + "층 · 다음 " + Tower.NextFloor(save) + "층" : "스테이지 " + Tower.UnlockStage + " 돌파 시 열립니다";
             _fortuneRowDetail.text = openFortunes > 0 ? "마주칠 기연 " + openFortunes + "건" : "새 기연 없음";
             SetBadge(_questBadge, openQuests);
@@ -1071,25 +1007,7 @@ namespace BiRyeoDo.Game.UI
             _partyRowDetail.text = current.Count == 0 ? "아직 함께할 동료가 없습니다" : "출전 동료: " + string.Join(", ", current)
                 + (AvailableCompanions(save).Count > EarlyGameContent.MaxCompanions ? "\n(동료 " + AvailableCompanions(save).Count + "명 중 " + EarlyGameContent.MaxCompanions + "명만 출전)" : "");
 
-            foreach (var r in _rows)
-            {
-                var st = r.Stage;
-                bool reached = save.HighestUnlockedStage >= st.Number;
-                bool rankOk = Promotion.StageAllowed(save, st.Number);
-                bool unlocked = reached && rankOk;
-                bool cleared = save.ClearedStage >= st.Number;
-                int diff = StageProgress.Has(save, st.Number) ? save.ProgressDifficulty : Mathf.Clamp(save.Difficulty, 0, StageStars.DifficultyCount - 1);
-                bool diffOpen = StageStars.Unlocked(save, st.Number, diff);
-                bool clearedHere = StageStars.StageCleared(save, st.Number, diff) || (diff == 0 && cleared);
-                int stageStarCount = StageStars.StarsOfStage(save, st.Number, diff);
-                string starText = stageStarCount > 0 ? "  ★" + stageStarCount + "/" + StageStars.MaxStarsOfStage(st.Number) : "";
-                r.Title.text = "스테이지 " + st.Number + " · " + st.Name + starText;
-                r.Detail.text = reached && !rankOk ? Promotion.RankName(Promotion.GateRank) + " 이상이 되어야 참가할 수 있습니다 (승급 시험장)" : unlocked ? "권장 Lv." + st.RecommendedLevel + " · 전투 " + st.Encounters.Length + "회" + PartyText(st) + (cleared ? " · 돌파" : "") : "이전 스테이지를 돌파하면 열립니다";
-                bool playable = unlocked && diffOpen;
-                r.ButtonLabel.text = !unlocked ? (reached ? "승급 필요" : "잠김") : !diffOpen ? StageStars.LockLabel(save, st.Number, diff) : StageProgress.Has(save, st.Number) ? "이어하기" : clearedHere ? "재도전" : "출전";
-                r.ButtonImage.color = !playable ? UiFactory.InkSoft : clearedHere ? new Color(0.35f, 0.35f, 0.32f, 1f) : UiFactory.Red;
-                r.Button.interactable = playable;
-            }
+            _stageMap.Refresh(save);
         }
     }
 }
