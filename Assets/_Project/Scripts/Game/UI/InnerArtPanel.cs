@@ -47,18 +47,15 @@ namespace BiRyeoDo.Game.UI
 
             var content = CodexPanel.Scroller(list, Embedded ? .02f : .10f, .745f);
             _scroll = content.parent.GetComponent<ScrollRect>();
-            const float rowHeight = 170f, gap = 16f, icon = 124f;
+            const float icon = 124f;
+            var grid = new ReadingGrid(content, 2, 340f);
             for (int i = 0; i < InnerArts.All.Length; i++)
             {
                 var a = InnerArts.All[i];
                 bool unlocked = InnerArts.IsUnlocked(save, a), learned = InnerArts.IsLearned(save, a.Id), equipped = InnerArts.IsEquipped(save, a.Id);
                 int level = InnerArts.Level(save, a.Id);
-                var row = UiFactory.Rect("Row" + i, content, new Vector2(.04f, 1f), new Vector2(.96f, 1f));
-                row.pivot = new Vector2(.5f, 1f);
-                row.sizeDelta = new Vector2(0f, rowHeight);
-                row.anchoredPosition = new Vector2(0f, -gap - i * (rowHeight + gap));
-                ReadingList.Register(row, rowHeight, gap);
-                var bg = row.gameObject.AddComponent<Image>();
+                var row = grid.Add("Card" + i);
+                var bg = row.GetComponent<Image>();
                 bg.color = a.Id == _selected ? new Color(0.12f, 0.17f, 0.18f, 0.97f) : UiFactory.Ink;
                 var tap = row.gameObject.AddComponent<Button>();   // tapping the row opens the inspector
                 tap.targetGraphic = bg;
@@ -67,9 +64,9 @@ namespace BiRyeoDo.Game.UI
                 tap.onClick.AddListener(() => { _selected = id; Open(); });
                 UiFactory.Frame(row, equipped ? UiFactory.Gold : UiFactory.GoldDim, 2f);
 
-                var iconRect = UiFactory.Rect("Icon", row, new Vector2(0f, .5f), new Vector2(0f, .5f));
-                iconRect.pivot = new Vector2(0f, .5f);
-                iconRect.anchoredPosition = new Vector2(16f, 0f);
+                var iconRect = UiFactory.Rect("Icon", row, new Vector2(0f, 1f), new Vector2(0f, 1f));
+                iconRect.pivot = new Vector2(0f, 1f);
+                iconRect.anchoredPosition = new Vector2(16f, -16f);
                 iconRect.sizeDelta = new Vector2(icon, icon);
                 var picture = UiFactory.Panel("Picture", iconRect, Vector2.zero, Vector2.one, unlocked ? Color.white : new Color(.45f, .45f, .48f));
                 picture.sprite = ArtLibrary.InnerArt(a.Id);
@@ -86,26 +83,20 @@ namespace BiRyeoDo.Game.UI
                     UiFactory.Label("Tag", tagBack.transform, Vector2.zero, Vector2.one, tag, 22, UiFactory.Gold);
                 }
 
-                var name = UiFactory.Body(UiFactory.Label("Name", row, new Vector2(0f, 1f), new Vector2(.77f, 1f),
+                var name = UiFactory.Body(UiFactory.Label("Name", row, new Vector2(0f, 1f), new Vector2(.96f, 1f),
                     (unlocked ? a.Name : "???") + (level > 0 ? "  <color=#D4B87A>+" + level + "</color>" : ""), 30, unlocked ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft));
-                name.rectTransform.offsetMin = new Vector2(icon + 32f, -70f);
-                name.rectTransform.offsetMax = new Vector2(0f, -12f);
-                var effect = UiFactory.Body(UiFactory.Label("Effect", row, new Vector2(0f, 0f), new Vector2(.77f, 1f),
+                name.rectTransform.offsetMin = new Vector2(icon + 32f, -140f);
+                name.rectTransform.offsetMax = new Vector2(0f, -16f);
+                UiFactory.Body(UiFactory.Label("Effect", row, new Vector2(.04f, .28f), new Vector2(.96f, .53f),
                     unlocked ? Colored(a, level, "  ") : InnerArts.UnlockText(a) + "하면 열립니다", 26, UiFactory.Dim, TextAnchor.UpperLeft, FontStyle.Normal), 1.15f);
-                effect.rectTransform.offsetMin = new Vector2(icon + 32f, 10f);
-                effect.rectTransform.offsetMax = new Vector2(0f, -76f);
 
                 string label; Color color; bool enabled;
                 if (learned) { label = equipped ? "해제" : "장착"; color = equipped ? UiFactory.InkSoft : UiFactory.Red; enabled = true; }
                 else if (!unlocked) { label = "잠김"; color = UiFactory.InkSoft; enabled = false; }
                 else { label = "습득 " + a.LearnCost.ToString("N0") + "두"; enabled = save.Doo >= a.LearnCost; color = enabled ? UiFactory.Red : UiFactory.InkSoft; }
-                var btn = UiFactory.Button("Act", row, new Vector2(.78f, .5f), new Vector2(.97f, .5f), label, color, () => Press(id), 26);
-                var btnRect = btn.GetComponent<RectTransform>();
-                btnRect.offsetMin = new Vector2(0f, -55f);
-                btnRect.offsetMax = new Vector2(0f, 55f);
+                var btn = UiFactory.Button("Act", row, new Vector2(.04f, .04f), new Vector2(.96f, .23f), label, color, () => Press(id), 26);
                 btn.interactable = enabled;
             }
-            content.sizeDelta = new Vector2(0f, gap + InnerArts.All.Length * (rowHeight + gap));
             Canvas.ForceUpdateCanvases();
             var layout = content.GetComponent<ReadingList>();
             if (layout != null) layout.Reflow();

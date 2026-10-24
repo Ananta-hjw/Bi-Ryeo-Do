@@ -78,48 +78,40 @@ namespace BiRyeoDo.Game.UI
             UiFactory.ScrollIndicator(scroll, viewport);
 
             var arts = EarlyGameContent.Arts.Where(a => a.OwnerId == null).ToArray();
-            const float rowH = 200f, gap = 16f;
-            content.sizeDelta = new Vector2(0f, arts.Length * (rowH + gap) + gap);
+            var grid = new ReadingGrid(content, 2, 440f);
             for (int i = 0; i < arts.Length; i++)
             {
                 var art = arts[i];
                 var row = new Row { Art = art };
-                var rt = UiFactory.Rect("Row" + i, content, new Vector2(0.04f, 1f), new Vector2(0.96f, 1f));
-                rt.pivot = new Vector2(0.5f, 1f);
-                rt.anchoredPosition = new Vector2(0f, -(gap + i * (rowH + gap)));
-                rt.sizeDelta = new Vector2(0f, rowH);
-                ReadingList.Register(rt, rowH, gap);
-                var bg = rt.gameObject.AddComponent<Image>();
-                bg.color = UiFactory.Ink;
-                bg.raycastTarget = true;   // lets a drag that starts on a row still scroll
+                var rt = grid.Add("Card" + i);
+                var bg = rt.GetComponent<Image>();
                 var tap = rt.gameObject.AddComponent<Button>();   // tapping the row itself opens the detail window
                 tap.targetGraphic = bg;
                 tap.transition = Selectable.Transition.None;
                 tap.onClick.AddListener(() => OpenDetail(art));
-                UiFactory.Frame(rt, UiFactory.GoldDim, 2f);
-                row.Icon = UiFactory.Panel("Icon", rt, new Vector2(0.025f, 0.5f), new Vector2(0.135f, 0.5f), IconColor(art));
+                row.Icon = UiFactory.Panel("Icon", rt, new Vector2(0f, 1f), new Vector2(0f, 1f), IconColor(art));
                 row.Icon.rectTransform.anchorMax = row.Icon.rectTransform.anchorMin;
-                row.Icon.rectTransform.pivot = new Vector2(0f, .5f);
+                row.Icon.rectTransform.pivot = new Vector2(0f, 1f);
+                row.Icon.rectTransform.anchoredPosition = new Vector2(16f, -16f);
                 row.Icon.rectTransform.sizeDelta = new Vector2(IconH, IconH);
                 UiFactory.Frame(row.Icon.transform, UiFactory.Gold, 2f);
                 row.IconGlyph = UiFactory.Label("Glyph", row.Icon.transform, Vector2.zero, Vector2.one, art.Name.Substring(0, 1), 50, UiFactory.PaperText);
-                // 장착 중 / 새 무공 sit on the icon instead of the title, so the title never gains a second line
+                // Keep state tags on the icon; the title can wrap beside it.
                 var tagBack = UiFactory.Panel("TagBack", row.Icon.transform, new Vector2(0f, 0f), new Vector2(1f, 0.26f), new Color(0f, 0f, 0f, 0.72f));
                 tagBack.raycastTarget = false;
                 row.Tag = UiFactory.Label("Tag", tagBack.transform, Vector2.zero, Vector2.one, "", 22, UiFactory.Gold);
-                // Pixel-placed from the row's top so the row keeps its height: name line, then two lines of badges (or the lock note).
-                row.Title = UiFactory.Body(UiFactory.Label("Title", rt, new Vector2(0f, 1f), new Vector2(0.77f, 1f), "", 32, UiFactory.PaperText, TextAnchor.MiddleLeft));
-                row.Title.rectTransform.offsetMin = new Vector2(176f, -84f);
-                row.Title.rectTransform.offsetMax = new Vector2(0f, -12f);
-                row.Chips = UiFactory.Rect("Chips", rt, new Vector2(0f, 1f), new Vector2(0f, 1f));
+                // Keep the title beside the large icon and put wrapped badges and the action underneath.
+                row.Title = UiFactory.Body(UiFactory.Label("Title", rt, new Vector2(0f, 1f), new Vector2(0.96f, 1f), "", 30, UiFactory.PaperText, TextAnchor.MiddleLeft));
+                row.Title.rectTransform.offsetMin = new Vector2(176f, -160f);
+                row.Title.rectTransform.offsetMax = new Vector2(0f, -16f);
+                row.Chips = UiFactory.Rect("Chips", rt, new Vector2(.04f, 1f), new Vector2(.96f, 1f));
                 row.Chips.pivot = new Vector2(0f, 1f);
-                row.Chips.anchoredPosition = new Vector2(176f, -90f);
-                row.Chips.sizeDelta = Vector2.zero;
-                row.Detail = UiFactory.Body(UiFactory.Label("Detail", rt, new Vector2(0f, 1f), new Vector2(0.77f, 1f), "", 28, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal));
-                row.Detail.rectTransform.offsetMin = new Vector2(176f, -188f);
-                row.Detail.rectTransform.offsetMax = new Vector2(0f, -90f);
-                row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(0.78f, 0.5f), new Vector2(0.97f, 0.5f), "", UiFactory.Red, () => OnPressed(art), 28);
-                FixHeight(row.Button.GetComponent<RectTransform>(), ButtonH);
+                row.Chips.offsetMin = new Vector2(0f, -334f);
+                row.Chips.offsetMax = new Vector2(0f, -184f);
+                row.Detail = UiFactory.Body(UiFactory.Label("Detail", rt, new Vector2(.04f, .25f), new Vector2(.96f, .56f), "", 28, UiFactory.Dim, TextAnchor.UpperLeft, FontStyle.Normal));
+                row.Button = UiFactory.Button("Btn" + i, rt, new Vector2(.04f, 0f), new Vector2(.96f, 0f), "", UiFactory.Red, () => OnPressed(art), 28);
+                row.Button.GetComponent<RectTransform>().offsetMin = new Vector2(0f, 18f);
+                row.Button.GetComponent<RectTransform>().offsetMax = new Vector2(0f, 18f + ButtonH);
                 row.ButtonImage = row.Button.GetComponent<Image>();
                 row.ButtonLabel = row.Button.GetComponentInChildren<Text>();
                 _rows.Add(row);
@@ -135,13 +127,7 @@ namespace BiRyeoDo.Game.UI
         }
 
         // Row parts keep one size: learning, equipping or a 변초 changes only the words, never the row or its buttons.
-        private const float ButtonH = 128f, IconH = 144f;
-
-        private static void FixHeight(RectTransform rt, float height)
-        {
-            rt.offsetMin = new Vector2(rt.offsetMin.x, -height / 2f);
-            rt.offsetMax = new Vector2(rt.offsetMax.x, height / 2f);
-        }
+        private const float ButtonH = 72f, IconH = 144f;
 
         private RectTransform _detail;
         private string _detailId;
@@ -357,12 +343,22 @@ namespace BiRyeoDo.Game.UI
             ChipReach = new Color(0.17f, 0.30f, 0.50f, 1f), ChipQi = new Color(0.20f, 0.27f, 0.36f, 1f),
             ChipSpirit = new Color(0.52f, 0.42f, 0.16f, 1f), ChipCooldown = new Color(0.26f, 0.28f, 0.30f, 1f);
 
-        /// <summary>Two lines of badges: what the art does (power, hits, area, status), then reach, cost and cooldown. Mastery and 변초 are applied when learned.</summary>
+        /// <summary>Wrapped badges for the effect (power, hits, area, status), followed by reach, cost and cooldown. Mastery and 변초 are applied when learned.</summary>
         private static void BuildChips(RectTransform parent, ArtData a, SkillSpec spec)
         {
             const float gap = 8f, line = 50f;
-            float x = 0f;
-            System.Action<string, Color> add = (text, color) => x += UiFactory.Chip(parent, x, 0f, text, color) + gap;
+            float x = 0f, y = 0f;
+            System.Action<string, Color> add = (text, color) =>
+            {
+                float width = UiFactory.Chip(parent, x, y, text, color);
+                var chip = (RectTransform)parent.GetChild(parent.childCount - 1);
+                if (x > 0f && x + width > parent.rect.width)
+                {
+                    x = 0f; y -= line;
+                    chip.anchoredPosition = new Vector2(x, y);
+                }
+                x += width + gap;
+            };
             if (a.Effect == SkillEffect.Evade) add("회피 " + Mathf.RoundToInt(spec.EvadeChance * 100f) + "%", ChipSupport);
             else if (a.Effect == SkillEffect.GuardParty) add("파티 방어", ChipSupport);
             else if (a.Effect == SkillEffect.HealAlly) add("치유 " + Mathf.RoundToInt(spec.HealPct * 100f) + "%", ChipSupport);
@@ -375,8 +371,8 @@ namespace BiRyeoDo.Game.UI
             }
             if (a.Inflict != StatusKind.None) add(Statuses.Name(a.Inflict) + " " + Mathf.RoundToInt(a.InflictChance * 100f) + "%", ChipStatus);
 
-            x = 0f;
-            System.Action<string, Color> add2 = (text, color) => x += UiFactory.Chip(parent, x, -line, text, color) + gap;
+            x = 0f; y -= line;
+            System.Action<string, Color> add2 = add;
             add2(SkillSpec.ReachText(a.EffectiveRange), ChipReach);
             if (a.SpiritCost > 0) add2("기세 " + a.SpiritCost, ChipSpirit);
             else add2("내공 " + spec.QiCost, ChipQi);
@@ -425,6 +421,7 @@ namespace BiRyeoDo.Game.UI
         {
             if (_page != 0) return;   // an embedded panel redraws itself
             var save = GameManager.Instance.Save;
+            Canvas.ForceUpdateCanvases();
             RefreshSlots(save);
             _header.text = "무공 · 장착 " + Progression.EquippedCount(save, false) + "/" + Progression.MaxEquippedArts + " · 필살 " + Progression.EquippedCount(save, true) + "/" + Progression.MaxEquippedUltimates + " · " + save.Doo.ToString("N0") + "두";
 
