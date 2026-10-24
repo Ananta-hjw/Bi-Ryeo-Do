@@ -48,33 +48,33 @@ namespace BiRyeoDo.Core
             new[] { 5, 5, 6, 6, 5, 9, 11, 10 },   // 7
             new[] { 5, 10, 13 },   // 8
             new[] { 7, 7, 15, 13 },   // 9
-            new[] { 6, 14, 13 },   // 10
-            new[] { 9, 6, 6, 18 },   // 11
-            new[] { 6, 7, 7, 8, 8, 12 },   // 12
-            new[] { 12, 18, 18, 17 },   // 13
-            new[] { 19, 17, 28 },   // 14
-            new[] { 16, 17, 10 },   // 15
-            new[] { 18, 15, 12 },   // 16
-            new[] { 21, 17, 13 },   // 17
-            new[] { 18, 21 },   // 18
-            new[] { 28, 21, 19 },   // 19
-            new[] { 28, 18, 26 },   // 20
-            new[] { 28, 22, 19 },   // 21
-            new[] { 33, 27, 28 },   // 22
-            new[] { 33, 28, 28 },   // 23
-            new[] { 37, 37, 34 },   // 24
-            new[] { 35, 32, 26 },   // 25
-            new[] { 39, 26, 28 },   // 26
-            new[] { 32, 39, 33 },   // 27
-            new[] { 26, 39, 31, 29 },   // 28
-            new[] { 35, 48, 29, 17, 61 },   // 29
-            new[] { 52, 38, 28 },   // 30
-            new[] { 49, 47 },   // 31
-            new[] { 26, 43 },   // 32
-            new[] { 34, 44, 55 },   // 33
-            new[] { 50, 58 },   // 34
-            new[] { 34, 39, 56 },   // 35
-            new[] { 21, 51 },   // 36
+            new[] { 8, 19, 18 },   // 10
+            new[] { 9, 5, 5, 23 },   // 11
+            new[] { 8, 7, 7, 8, 8, 19 },   // 12
+            new[] { 12, 23, 27, 26 },   // 13
+            new[] { 27, 17, 39 },   // 14
+            new[] { 21, 30, 18 },   // 15
+            new[] { 29, 22, 24 },   // 16
+            new[] { 41, 27, 29 },   // 17
+            new[] { 20, 30 },   // 18
+            new[] { 34, 34, 55 },   // 19
+            new[] { 43, 26, 37 },   // 20
+            new[] { 57, 41, 43 },   // 21
+            new[] { 61, 48, 50 },   // 22
+            new[] { 46, 37, 56 },   // 23
+            new[] { 51, 56, 52 },   // 24
+            new[] { 49, 48, 45 },   // 25
+            new[] { 74, 50, 57 },   // 26
+            new[] { 50, 61, 50 },   // 27
+            new[] { 28, 46, 34, 36 },   // 28
+            new[] { 42, 45, 27, 15, 71 },   // 29
+            new[] { 80, 55, 54 },   // 30
+            new[] { 53, 55 },   // 31
+            new[] { 28, 45 },   // 32
+            new[] { 37, 52, 69 },   // 33
+            new[] { 56, 69 },   // 34
+            new[] { 37, 47, 62 },   // 35
+            new[] { 23, 58 },   // 36
         };
 
         public static int FastLimit(int stage, int fight)
@@ -94,7 +94,7 @@ namespace BiRyeoDo.Core
             double d0 = st != null ? Progression.StatsFor(st.RecommendedLevel).Defense : 0.0;
             double defEffect = (BattleEngine.DefenseConstant + d0 * DefFor(stage, difficulty)) / (BattleEngine.DefenseConstant + d0);
             // The table is measured on the eased 일반 enemies, while the harder difficulties scale the original ones (see NormalEase); both carry the same stage boost (NormalHpBoost).
-            double hp = HpFor(stage, difficulty) / Math.Pow(NormalEase(stage), 0.7);
+            double hp = HpFor(stage, difficulty) / Math.Pow(NormalEase(stage), 0.7) * HardExtra(stage, difficulty);
             return (int)Math.Ceiling(FastLimit(stage, fight) * Math.Max(1.0, hp) * Math.Max(1.0, defEffect));
         }
 
@@ -165,9 +165,27 @@ namespace BiRyeoDo.Core
         /// Player levels a prepared player (gear, 심법, mastery, items) is expected to have over the stage's recommended level now that 일반 enemies have more HP:
         /// 0 for the solo stages 1-6, then (stage - 4) / 3 from stage 7 (+1) to stage 30 (+8). The balance bot is given the same levels, and the 추천 경지 of 일반 stages counts them.
         /// </summary>
-        public static int NormalEdgeLevels(int stage) { return stage <= 6 ? 0 : (stage - 4) / 3; }
+        public static int NormalEdgeLevels(int stage) { return (stage <= 6 ? 0 : (stage - 4) / 3) + NormalExtraEdgeLevels(stage); }
 
-        public static float NormalHpBoost(int stage) { return NormalHpBoostTable[Math.Max(1, Math.Min(NormalHpBoostTable.Length, stage)) - 1]; }
+        /// <summary>
+        /// 일반 상향(2026-10 말): the balance bot plays stages 10+ this many more levels above the recommendation (+2 on stage 10, rising to +8 on stage 36),
+        /// and the stage's enemies are hardened by <see cref="NormalHarden"/> so that the stronger bot wins about as often as before. A prepared player needs more.
+        /// </summary>
+        public static int NormalExtraEdgeLevels(int stage) { return stage < 10 ? 0 : (int)Math.Round(2.0 + 6.0 * (Math.Min(36, stage) - 10) / 26.0); }
+
+        /// <summary>Enemy strength factor per 일반 stage (index = stage - 1; HP x f^HardenHpExp, attack x f^HardenAtkExp), fitted with the balance bot at the raised levels. 어려움·극악 carry it too.</summary>
+        public static float[] NormalHardenTable =
+        {
+            1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1.93f, 2.32f, 1.94f, 2.03f, 1.89f, 2.08f, 3.11f, 2.49f, 1.59f,
+            3.12f, 3.50f, 2.57f, 2.92f, 3.50f, 2.08f, 2.21f, 2.40f, 2.07f, 1.26f, 1.00f, 2.30f, 1.70f, 1.65f, 1.97f, 1.94f, 1.98f, 2.09f,
+        };
+        public static double HardenHpExp = 0.5, HardenAtkExp = 0.5;   // half HP, half attack: fights get longer and deadlier, but not slogs
+        public static float NormalHarden(int stage) { return stage >= 1 && stage <= NormalHardenTable.Length ? NormalHardenTable[stage - 1] : NormalHardenTable[NormalHardenTable.Length - 1]; }
+
+        /// <summary>어려움·극악 상향(2026-10 말): enemy HP and attack x1.2 on stage 1, rising in a straight line to x1.5 on stage 36, on top of everything else.</summary>
+        public static float HardExtra(int stage, int difficulty) { return difficulty <= 0 ? 1f : 1.2f + 0.3f * (Math.Max(1, Math.Min(36, stage)) - 1) / 35f; }
+
+        public static float NormalHpBoost(int stage) { return NormalHpBoostTable[Math.Max(1, Math.Min(NormalHpBoostTable.Length, stage)) - 1] * (float)Math.Pow(NormalHarden(stage), HardenHpExp); }
         // Per-stage correction of the attack boost (stage 1-6 = 1): stages whose enemies hit far harder than their neighbours (a heavy blow of more than about
         // 100% / 75% / 45% of the protagonist's HP on 보스 / 정예 / 일반) are eased, at most x0.75; see Docs/BALANCE.md.
         static readonly float[] NormalAtkTuneTable =
@@ -179,7 +197,7 @@ namespace BiRyeoDo.Core
         public static float NormalAtkBoost(int stage)
         {
             if (stage <= 6) return 1f;
-            return (1.05f + 0.005f * (Math.Min(36, stage) - 7)) * NormalAtkTuneTable[Math.Min(NormalAtkTuneTable.Length, stage) - 1];
+            return (1.05f + 0.005f * (Math.Min(36, stage) - 7)) * NormalAtkTuneTable[Math.Min(NormalAtkTuneTable.Length, stage) - 1] * (float)Math.Pow(NormalHarden(stage), HardenAtkExp);
         }
 
         public static EnemyData ScaleEnemy(EnemyData enemy, int stage, int difficulty)
@@ -194,9 +212,9 @@ namespace BiRyeoDo.Core
                 if (stage >= 24 && stage <= 36) { hp *= 0.85f; atk *= 1.25f; }
                 return enemy.Scaled(hp, atk);
             }
-            float ease = NormalEase(stage);
-            if (enemy.HpMul > 10f) return enemy.Scaled(HpFor(stage, difficulty) / (float)Math.Pow(ease, 0.7), AtkFor(stage, difficulty) / (float)Math.Pow(ease, 0.3), DefFor(stage, difficulty), LevelAdd(stage, difficulty));   // survival-only enemies are not boosted
-            return enemy.Scaled(HpFor(stage, difficulty) / (float)Math.Pow(ease, 0.7) * NormalHpBoost(stage), AtkFor(stage, difficulty) / (float)Math.Pow(ease, 0.3) * NormalAtkBoost(stage), DefFor(stage, difficulty), LevelAdd(stage, difficulty));
+            float ease = NormalEase(stage), extra = HardExtra(stage, difficulty);
+            if (enemy.HpMul > 10f) return enemy.Scaled(HpFor(stage, difficulty) / (float)Math.Pow(ease, 0.7) * extra, AtkFor(stage, difficulty) / (float)Math.Pow(ease, 0.3) * extra, DefFor(stage, difficulty), LevelAdd(stage, difficulty));   // survival-only enemies are not boosted
+            return enemy.Scaled(HpFor(stage, difficulty) / (float)Math.Pow(ease, 0.7) * NormalHpBoost(stage) * extra, AtkFor(stage, difficulty) / (float)Math.Pow(ease, 0.3) * NormalAtkBoost(stage) * extra, DefFor(stage, difficulty), LevelAdd(stage, difficulty));
         }
 
         public static string TagFor(int difficulty) { return difficulty <= 0 ? "" : "[" + DifficultyNames[Math.Min(DifficultyCount - 1, difficulty)] + "] "; }

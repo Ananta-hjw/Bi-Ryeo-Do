@@ -44,20 +44,20 @@ namespace BiRyeoDo.Tests
             for (int n = 0; n < 4; n++) Assert.GreaterOrEqual(wins[n], (int)(reached[n] * 0.9));
         }
 
-        [TestCase(24, 90, 145)]
-        [TestCase(25, 75, 122)]
-        [TestCase(26, 75, 123)]
+        [TestCase(24, 137, 215)]
+        [TestCase(25, 123, 193)]
+        [TestCase(26, 157, 246)]
         [TestCase(27, 85, 131)]
-        [TestCase(28, 105, 165)]
+        [TestCase(28, 124, 194)]
         [TestCase(29, 160, 256)]
-        [TestCase(30, 100, 158)]
-        [TestCase(31, 80, 140)]
-        [TestCase(32, 55, 100)]
-        [TestCase(33, 130, 200)]
-        [TestCase(34, 90, 150)]
-        [TestCase(35, 110, 175)]
-        [TestCase(36, 60, 100)]
-        public void LateNormalStagesKeepPressureWithoutLongHpSlogs(int number, int minActions, int maxActions)
+        [TestCase(30, 165, 259)]
+        [TestCase(31, 96, 150)]
+        [TestCase(32, 63, 99)]
+        [TestCase(33, 136, 214)]
+        [TestCase(34, 110, 173)]
+        [TestCase(35, 127, 198)]
+        [TestCase(36, 70, 110)]
+        public void LateNormalStagesKeepPressureWithoutLongHpSlogs(int number, int minActions, int maxActions)   // ranges re-measured after the 일반 상향 (HP and attack both raised: longer fights are fine, slogs are not)
         {
             var stage = EarlyGameContent.FindStage(number);
             var runs = Enumerable.Range(301, 100).Select(seed => BalanceSimulation.Play(stage,
@@ -132,7 +132,7 @@ namespace BiRyeoDo.Tests
             var survivalEnemy = EarlyGameContent.FindEnemy("geomhu_ioksang");
             Assert.AreSame(survivalEnemy, EarlyGameContent.FindStage(29).EnemyFor(survivalEnemy.Id));
             var hard = stage.WithDifficulty(1).EnemyFor(id);
-            Assert.AreEqual(raw.HpMul * StageStars.HpFor(26, 1) / (float)Math.Pow(StageStars.NormalEase(26), 0.7) * StageStars.NormalHpBoost(26), hard.HpMul, 0.001f);   // 어려움 carries the stage boost but not the late-stage x0.85
+            Assert.AreEqual(raw.HpMul * StageStars.HpFor(26, 1) / (float)Math.Pow(StageStars.NormalEase(26), 0.7) * StageStars.NormalHpBoost(26) * StageStars.HardExtra(26, 1), hard.HpMul, 0.001f);   // 어려움 carries the stage boost and its own extra, but not the late-stage x0.85
             var quest = Quests.ToStage(Quests.Find("q_salgwi"));
             id = quest.Encounters[0][0];
             Assert.AreEqual(Quests.Scale(quest.QuestId, EarlyGameContent.FindEnemy(id)).HpMul, quest.EnemyFor(id).HpMul);

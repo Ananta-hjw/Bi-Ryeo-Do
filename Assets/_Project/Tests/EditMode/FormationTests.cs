@@ -300,7 +300,8 @@ public class FormationTests
     [Test]
     public void ANewcomerTakesTheBestFreeTileAndNobodyElseMoves()
     {
-        var save = Late();
+        // Planned against stage 10's enemies: from the hardened later stages on, the planner may also put the healer in front to share the blows.
+        var save = new SaveData { Level = 40, ClearedStage = 9 };
         var old = new List<string> { "player", "hyo_ryong" };
         var before = Formation.Resolve(save, old);
         var now = new List<string> { "player", "hyo_ryong", "yun_junho" };

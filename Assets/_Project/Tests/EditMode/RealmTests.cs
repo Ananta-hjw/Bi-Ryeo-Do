@@ -28,8 +28,9 @@ namespace BiRyeoDo.Tests
         [Test]
         public void DaegongjaBiOnHardIsTheFirstStepOfChojeoljeong()
         {
+            // The ladder was anchored on him (어려움 stage 30 = 초절정 초입); after the 어려움 상향 (HardExtra) he stands at or above it.
             var hard = StageStars.ScaleEnemy(EarlyGameContent.FindEnemy("bi_daegongja"), 30, 1).CreateCombatant("b");
-            Assert.AreEqual(Realm.AnchorStep, hard.RealmStep);
+            Assert.GreaterOrEqual(hard.RealmStep, Realm.AnchorStep);
             var normal = EarlyGameContent.FindEnemy("bi_daegongja").CreateCombatant("b");
             Assert.Less(normal.RealmStep, Realm.AnchorStep);   // on 일반 he is a step below
         }
