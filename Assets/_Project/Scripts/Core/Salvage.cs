@@ -237,5 +237,45 @@ namespace BiRyeoDo.Core
                 }
             return gained;
         }
+
+        // ------------------------------------------------------------------ 일괄 합성
+
+        /// <summary>One line of a bulk fusion: a crafting material, how many the bag holds and how many fusions it allows.</summary>
+        public sealed class FuseEntry
+        {
+            public ItemData Material;
+            public int Have, Times;
+            public int Spent { get { return Times * Need(Material); } }
+            public int Left { get { return Have - Spent; } }
+        }
+
+        /// <summary>Every crafting material of the ticked grades (일반 .. 전설, as <see cref="BulkGrades"/>) and slots that has enough for at least one fusion. Sorted by grade, then slot.</summary>
+        public static List<FuseEntry> BulkFusePlan(SaveData save, bool[] grades, bool[] slots)
+        {
+            var list = new List<FuseEntry>();
+            foreach (var mat in Materials)   // built grade by grade, slot by slot
+            {
+                int g = Array.IndexOf(BulkGrades, mat.Grade), k = Array.IndexOf(BulkKinds, SlotOf(mat));
+                if (g < 0 || k < 0 || !grades[g] || !slots[k] || FuseTargets(mat).Count == 0) continue;
+                int have = Inventory.Count(save, mat.Id), times = have / Need(mat);
+                if (times > 0) list.Add(new FuseEntry { Material = mat, Have = have, Times = times });
+            }
+            return list;
+        }
+
+        /// <summary>Fuses every entry of a plan as many times as it allows; returns the gear made, in order.</summary>
+        public static List<ItemData> FuseBulk(SaveData save, List<FuseEntry> plan, IRandom rng)
+        {
+            var made = new List<ItemData>();
+            foreach (var e in plan)
+                for (int i = 0; i < e.Times; i++)
+                {
+                    string error;
+                    var piece = Fuse(save, e.Material.Id, rng, out error);
+                    if (piece == null) break;
+                    made.Add(piece);
+                }
+            return made;
+        }
     }
 }

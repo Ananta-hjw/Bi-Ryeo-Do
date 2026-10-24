@@ -27,6 +27,7 @@ namespace BiRyeoDo.Game.UI
         private Text _header, _hint, _empty;
         private string _flash;
         private BulkDismantlePanel _bulkDismantle;
+        private BulkFusePanel _bulkFuse;
         private RectTransform _content;
         private int _filter = 1;                       // 0 all, 1 gear, 2 consumables, 3 materials & keys
         private readonly Image[] _filterTabs = new Image[4];
@@ -48,7 +49,13 @@ namespace BiRyeoDo.Game.UI
             if (_built) return;
             _built = true;
 
-            _header = UiFactory.TabHeader(root, "bag", "", .67f);
+            _header = UiFactory.TabHeader(root, "bag", "", .54f);
+            var fuseButton = UiFactory.Button("BulkFuseButton", root, new Vector2(.565f, .90f), new Vector2(.695f, .975f), "일괄 합성", new Color(0.55f, 0.36f, 0.14f, 1f), () =>
+            {
+                CloseDetail();
+                _bulkFuse.Show();
+            }, 28);
+            UiFactory.CenterInHeader((RectTransform)fuseButton.transform, 72f);
             var bulkButton = UiFactory.Button("BulkDismantleButton", root, new Vector2(.71f, .90f), new Vector2(.84f, .975f), "일괄 분해", UiFactory.Red, () =>
             {
                 CloseDetail();
@@ -107,6 +114,7 @@ namespace BiRyeoDo.Game.UI
             _detail.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.78f);   // dims and blocks the list underneath
             _detail.gameObject.SetActive(false);
             _bulkDismantle = new BulkDismantlePanel(root, (title, body) => ShowNotice(title, body, UiFactory.Gold), Refresh);
+            _bulkFuse = new BulkFusePanel(root, (title, body) => ShowNotice(title, body, UiFactory.Gold), Refresh);
             Refresh();
         }
 
@@ -237,6 +245,7 @@ namespace BiRyeoDo.Game.UI
             if (!_built) return;
             if (_detail != null) CloseDetail();
             if (_bulkDismantle != null) _bulkDismantle.Hide();
+            if (_bulkFuse != null) _bulkFuse.Hide();
             if (_notice != null) _notice.gameObject.SetActive(false);
         }
 
