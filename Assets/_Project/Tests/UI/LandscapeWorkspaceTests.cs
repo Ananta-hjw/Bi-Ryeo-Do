@@ -102,7 +102,7 @@ namespace BiRyeoDo.Tests.UI
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
-        public void ProfilePickerReplacesTheStripAndShortcutsAndPreservesTheCurrentPage(float width)
+        public void NameDropdownReplacesTheChangeButtonAndPreservesTheCurrentPage(float width)
         {
             _canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(width, 960f);
             Assert.IsNull(_canvas.transform.Find("People"));
@@ -110,6 +110,14 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsNull(_canvas.transform.Find("Identity/Equipment"));
             var change = (RectTransform)_canvas.transform.Find("Identity/ChangeCharacter");
             Assert.Greater(change.rect.height, 90f);
+            Assert.AreEqual("▾", change.Find("Arrow").GetComponent<Text>().text);
+            Assert.AreEqual(0f, change.GetComponent<Image>().color.a);
+            Assert.AreEqual("비류연", change.Find("Name").GetComponent<Text>().text);
+            Assert.IsFalse(_canvas.transform.Find("Identity").GetComponentsInChildren<Text>().Any(label => label.text == "인물 변경"));
+            var portrait = (RectTransform)_canvas.transform.Find("Identity/Portrait");
+            var summary = (RectTransform)_canvas.transform.Find("Identity/SummaryViewport");
+            Assert.Less(change.anchorMax.y, portrait.anchorMin.y);
+            Assert.Greater(change.anchorMin.y, summary.anchorMax.y);
             Click("Pages/Page2");
             Click("Identity/ChangeCharacter");
             var picker = _canvas.transform.Find("CharacterPicker");
@@ -120,7 +128,7 @@ namespace BiRyeoDo.Tests.UI
             var inventory = _save.Items.Select(stack => stack.Id + ":" + stack.Count).ToArray();
             var companion = EarlyGameContent.Companions.First();
             ChoosePerson(companion.Id);
-            Assert.AreEqual(companion.Name, _canvas.transform.Find("Identity/Name").GetComponent<Text>().text);
+            Assert.AreEqual(companion.Name, _canvas.transform.Find("Identity/ChangeCharacter/Name").GetComponent<Text>().text);
             Assert.IsNotNull(_canvas.transform.Find("Page/List/Viewport/Content/Row0/Train"));
             CollectionAssert.AreEqual(inventory, _save.Items.Select(stack => stack.Id + ":" + stack.Count).ToArray());
             Click("Identity/ChangeCharacter");
@@ -186,7 +194,7 @@ namespace BiRyeoDo.Tests.UI
             _screen.Refresh();
             Click("Identity/ChangeCharacter");
             Assert.IsFalse(_canvas.transform.Find("CharacterPicker").GetComponentsInChildren<Button>().Any(button => button.name == "Person_" + companion.Id));
-            Assert.AreEqual("비류연", _canvas.transform.Find("Identity/Name").GetComponent<Text>().text);
+            Assert.AreEqual("비류연", _canvas.transform.Find("Identity/ChangeCharacter/Name").GetComponent<Text>().text);
         }
 
         [TestCase(1920, 1080, 80f)]
