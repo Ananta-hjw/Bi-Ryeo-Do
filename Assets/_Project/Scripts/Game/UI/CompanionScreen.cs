@@ -124,15 +124,17 @@ namespace BiRyeoDo.Game.UI
         private void BuildIdentity()
         {
             UiFactory.Frame(_identity, UiFactory.GoldDim, 2f);
-            Portrait(_identity, OwnerName, .03f, .37f, .97f, .98f);
-            Text(_identity, "Name", .06f, .27f, .94f, .37f, OwnerName, 42, UiFactory.Gold);
+            Portrait(_identity, OwnerName, .03f, .40f, .97f, .98f);
+            var change = UiFactory.Button("ChangeCharacter", _identity, new Vector2(.04f, .25f), new Vector2(.96f, .39f), "", Color.clear, OpenCharacterPicker, 28);
+            Text(change.transform, "Name", .02f, .03f, .84f, .97f, OwnerName, 42, UiFactory.Gold);
+            UiFactory.Label("Arrow", change.transform, new Vector2(.87f, .05f), new Vector2(.99f, .95f), "▾", 28, UiFactory.Gold);
+            UiFactory.Panel("Underline", change.transform, new Vector2(.02f, 0f), new Vector2(.98f, .02f), UiFactory.GoldDim);
             bool hero = _owner == Inventory.Hero;
             int level = hero ? Save.Level : CompanionGrowth.LevelOf(Save, _owner);
             string realm = hero ? Realm.Label(Realm.StepOf(Realm.Power(InnerArts.HeroStatsBeforeRealm(Save)))) : StatusSheet.AllyRealm(Save, Companion);
             var fielded = EarlyGameContent.SelectCompanionsFor(Math.Max(1, Save.HighestUnlockedStage), Save);
             string deployment = hero ? "주인공" : fielded.Any(c => c.Id == _owner) ? "출전 편성" : "대기 중";
-            Reading(_identity, "Summary", .06f, .15f, .94f, .27f, "Lv." + level + " · " + (hero ? Promotion.RankName(Promotion.EffectiveRank(Save)) : Companion.Role) + " · " + deployment + "\n" + realm, 26);
-            Button(_identity, "ChangeCharacter", .04f, .015f, .96f, .145f, "인물 변경", OpenCharacterPicker);
+            Reading(_identity, "Summary", .06f, .035f, .94f, .24f, "Lv." + level + " · " + (hero ? Promotion.RankName(Promotion.EffectiveRank(Save)) : Companion.Role) + " · " + deployment + "\n" + realm, 26);
         }
 
         private void BuildStatus()
