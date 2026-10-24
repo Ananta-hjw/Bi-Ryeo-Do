@@ -290,7 +290,7 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <summary>Lists the learned arts; tapping one reads the 수련서 into it.</summary>
-        private void OpenScrollPicker(ItemData scroll)
+        private void OpenScrollPicker(ItemData scroll, float position = 1f)
         {
             var save = GameManager.Instance.Save;
             _detailId = scroll.Id;
@@ -299,8 +299,9 @@ namespace BiRyeoDo.Game.UI
             var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, new Color(0.05f, 0.07f, 0.11f, 0.99f));
             UiFactory.Frame(card.transform, UiFactory.GradeColor(scroll.Grade), 3f);
             UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.91f), new Vector2(0.95f, 0.99f), UiFactory.GradedName(scroll), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
-            UiFactory.ScrollBody(UiFactory.Label("Hint", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.91f), "숙련을 +" + scroll.MasteryUses + "회 올릴 무공을 하나 고르세요. (보유 " + Inventory.Count(save, scroll.Id) + "개)", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 30);
+            UiFactory.ScrollBody(UiFactory.Label("Hint", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.91f), Inventory.Count(save, scroll.Id) > 0 ? "숙련을 +" + scroll.MasteryUses + "회 올릴 무공을 하나 고르세요. (보유 " + Inventory.Count(save, scroll.Id) + "개)" : "수련서를 모두 사용했습니다. 무공의 현재 숙련을 확인할 수 있습니다.", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 30);
 
+            bool available = Inventory.Count(save, scroll.Id) > 0;
             var arts = Mastery.ScrollTargets(save);
             var viewport = UiFactory.Rect("PickViewport", card.transform, new Vector2(0.03f, 0.13f), new Vector2(0.97f, 0.83f));
             viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
@@ -329,6 +330,7 @@ namespace BiRyeoDo.Game.UI
                 ReadingList.Register(rt, rowH, gap);
                 string artId = art.Id;
                 var btn = UiFactory.Button("PickBtn" + i, rt, Vector2.zero, Vector2.one, "", UiFactory.Ink, () => ApplyScroll(scroll, artId), 28);
+                btn.interactable = available;
                 UiFactory.Frame(btn.transform, UiFactory.GoldDim, 2f);
                 var pic = ArtLibrary.Art(art.Id);
                 float textX = 0.04f;
@@ -342,17 +344,45 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Label("Progress", btn.transform, new Vector2(textX, 0.02f), new Vector2(0.96f, 0.5f), progress, 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
             }
             if (arts.Count == 0) UiFactory.Label("None", card.transform, new Vector2(0.05f, 0.4f), new Vector2(0.95f, 0.6f), "배운 무공이 없습니다.", 32, UiFactory.Dim);
-            UiFactory.Button("Close", card.transform, new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.10f), "취소", UiFactory.InkSoft, () => OpenDetail(scroll.Id), 34);
+            UiFactory.Button("Close", card.transform, new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.10f), "닫기", UiFactory.InkSoft, () =>
+            {
+                if (Inventory.Count(save, scroll.Id) > 0) OpenDetail(scroll.Id);
+                else CloseDetail();
+            }, 34);
+            Canvas.ForceUpdateCanvases();
+            content.GetComponent<ReadingList>()?.Reflow();
+            Canvas.ForceUpdateCanvases();
+            scrollRect.verticalNormalizedPosition = position;
         }
 
         private void ApplyScroll(ItemData scroll, string artId)
         {
             var save = GameManager.Instance.Save;
+            var picker = _detail.Find("Card/PickViewport").GetComponent<ScrollRect>();
+            float position = picker.verticalNormalizedPosition;
+            float bagPosition = _scroll.verticalNormalizedPosition;
+            int beforeUses = Mastery.Uses(save, artId), beforeLevel = Mastery.Level(save, artId);
             bool used;
-            _flash = Mastery.UseScroll(save, scroll.Id, artId, out used);
+            string result = Mastery.UseScroll(save, scroll.Id, artId, out used);
             if (used) { SoundManager.Sfx("levelup"); GameManager.Instance.SaveNow(); }
             Refresh();
-            ReopenDetail(scroll);
+            Canvas.ForceUpdateCanvases();
+            LateUpdate();   // Recalculate the bag height before restoring the position (including the last scroll).
+            Canvas.ForceUpdateCanvases();
+            _scroll.verticalNormalizedPosition = bagPosition;
+            OpenScrollPicker(scroll, position);
+            if (!used)
+            {
+                ShowNotice("수련서 사용 불가", result, UiFactory.Gold);
+                return;
+            }
+            var art = EarlyGameContent.FindArt(artId);
+            int afterLevel = Mastery.Level(save, artId), toNext = Mastery.UsesToNext(save, artId);
+            string body = art.Name + "\n\n숙련 횟수  " + beforeUses + " → " + Mastery.Uses(save, artId) + "회"
+                + "\n숙련 단계  " + Mastery.LevelNames[beforeLevel] + " → " + Mastery.LevelNames[afterLevel]
+                + "\n" + (toNext >= 0 ? "다음 단계까지 " + toNext + "회" : "최고 숙련 단계입니다.")
+                + "\n\n남은 수련서  " + Inventory.Count(save, scroll.Id) + "개";
+            ShowNotice(afterLevel > beforeLevel ? "무공 숙련 단계 상승" : "무공 수련 완료", body, UiFactory.Gold);
         }
 
         private void ReopenDetail(ItemData item)
