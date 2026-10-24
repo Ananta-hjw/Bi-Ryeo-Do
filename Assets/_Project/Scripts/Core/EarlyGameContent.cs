@@ -547,6 +547,21 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("사슬낫", 0.8f, 2), EnemyMove.Wind("사슬을 휘감는다"), EnemyMove.Attack("쇄풍 난무", 2.8f) } },
             new EnemyData { Id = "baek_sayeong_b", ArtId = "baek_sayeong", Name = "사교검 백사영", Level = 60, HpMul = 3.880f, AtkMul = 4.429f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("사교검", 0.7f, 3), EnemyMove.Wind("뱀처럼 몸을 낮춘다"), EnemyMove.Attack("백사교룡살", 2.9f) } },
+            // Stage 31: 승천무제 시험관 (17-18권). The 살룡대 fights and the training bout are 게임 연출 (in the novel 비류연 is not there / 남궁상 trains alone).
+            new EnemyData { Id = "salryong_daewon", Name = "살룡대 복면 무사", Level = 66, HpMul = 2.100f, AtkMul = 3.400f, SpeedAdd = 2,
+                Moves = new[] { EnemyMove.Attack("복면 도격", 0.8f, 2), EnemyMove.Attack("협살", 1.3f) } },
+            new EnemyData { Id = "cham_yeong", Name = "살룡대 참영", Level = 66, HpMul = 2.500f, AtkMul = 4.000f, SpeedAdd = 6,
+                Moves = new[] { EnemyMove.Attack("그림자 베기", 0.7f, 3), EnemyMove.Wind("그림자를 겹친다"), EnemyMove.Attack("참영도", 2.8f) } },
+            new EnemyData { Id = "gyeok_un", Name = "살룡대 격운", Level = 66, HpMul = 2.500f, AtkMul = 4.000f,
+                Moves = new[] { EnemyMove.Attack("격운장", 0.8f, 2), EnemyMove.Wind("구름 같은 장력을 모은다"), EnemyMove.Attack("격운파", 2.7f) } },
+            new EnemyData { Id = "hyeol_pyo", Name = "살룡대 수석조장 혈표", Level = 67, HpMul = 3.500f, AtkMul = 3.800f, SpeedAdd = 8,
+                Moves = new[] { EnemyMove.Attack("혈조", 0.7f, 3), EnemyMove.Attack("목 꺾기", 1.3f), EnemyMove.Wind("살기를 끌어올린다"), EnemyMove.Attack("혈표 일섬", 3.4f) } },
+            new EnemyData { Id = "yu_ran", Name = "아미 제자 유란", Level = 66, HpMul = 2.000f, AtkMul = 2.335f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("연화검법", 0.7f, 3), EnemyMove.Attack("연화 일섬", 1.3f) } },
+            new EnemyData { Id = "yu_unbi", Name = "점창 유운비", Level = 66, HpMul = 2.000f, AtkMul = 2.335f, SpeedAdd = 6,
+                Moves = new[] { EnemyMove.Attack("사일검법", 0.7f, 3), EnemyMove.Wind("찌르기를 노린다"), EnemyMove.Attack("사일 찌르기", 2.6f) } },
+            new EnemyData { Id = "gwan_cheolsu_eogeom", ArtId = "gwan_cheolsu", Name = "빙검 관철수 (특훈)", Level = 67, IsBoss = true, HpMul = 45.426f, AtkMul = 3.500f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("이기어검", 0.8f, 2).FromDistance(), EnemyMove.Attack("어검분영술", 1.3f).FromDistance(), EnemyMove.Wind("검을 허공에 띄운다"), EnemyMove.Attack("비검 일섬", 2.8f).FromDistance() } },
         };
 
         // Items. Names come from volumes 1-3; effects and numbers are placeholders.
@@ -640,6 +655,7 @@ namespace BiRyeoDo.Core
             new DropData { EnemyId = "sama_heun", ItemId = "ilgeup_yeongdan", Chance = 0.20f },
             new DropData { EnemyId = "mu_jeong", ItemId = "ginseng", Chance = 0.50f },
             new DropData { EnemyId = "bi_daegongja", ItemId = "ilgeup_yeongdan", Chance = 0.20f },
+            new DropData { EnemyId = "hyeol_pyo", ItemId = "ginseng", Chance = 0.50f },
         };
 
         /// <summary>One-time rewards for clearing a stage for the first time.</summary>
@@ -675,6 +691,7 @@ namespace BiRyeoDo.Core
             { 28, new[] { new ItemStack("ilgeup_yeongdan", 2), new ItemStack("ginseng", 2) } },
             { 29, new[] { new ItemStack("cheonyul_pae", 1), new ItemStack("ginseng", 3) } },   // 중토관 천율패
             { 30, new[] { new ItemStack("ilgeup_yeongdan", 3), new ItemStack("ginseng", 3) } },   // 화산규약지회 우승
+            { 31, new[] { new ItemStack("ilgeup_yeongdan", 1), new ItemStack("ginseng", 3) } },   // 승천무제 시험관
         };
 
         /// <summary>What the protagonist starts with.</summary>
@@ -1604,6 +1621,74 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
                     "원문은 대공자 비가 \"한때 은명이라 불렸던 남자\"임을 밝히고, 비류연의 사부로 보이는 백염백발의 노인이 불타는 청룡은장에서 제자를 찾아 길을 나서며 1부가 끝난다.",
                 },
                 Encounters = new[] { new[] { "ma_chilgeol_jeoji", "ma_chilgeol_jeoji", "ma_chilgeol_jeoji" }, new[] { "hwaryong_hwayeom", "ma_chilgeol_jeoji" }, new[] { "bi_daegongja" } } },
+            // 2부 (17-18권). The 살룡대 fights and the training bout are 게임 연출; the notes in the story text say so.
+            new StageData { Number = 31, Name = "승천무제 시험관", RecommendedLevel = 67, DooTotal = 16500,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "등가의 잣대", Lines = new[] {
+                            "홍매겁화로부터 수개월이 지난 초봄. 혁중은 염도·빙검의 사부가 이십 년 전 세상을 떠났음을 확인한다. 매듭지을 일이 있다며 나갔다가 가슴에 거미줄 같은 혈선을 안고 돌아왔다고 한다.",
+                            "혁중|자네들이 뽑아낸 것을 보겠다.",
+                            "혁중이 검지 하나를 치켜든다. 두 사람은 합격술로 기의 장벽을 뚫고 돌진했으나, 둘 다 기절했다.",
+                            "의약전 이인용 특실. 두 사람은 서로 등을 돌리고 누워 있다.",
+                            "빙검|빙염양의귀원합격이었다!",
+                            "염도|염빙양의귀원합격이다!",
+                            "비류연|그 할배는 멀쩡해요. 그래도 두 사람 합격술은 훌륭했어요.",
+                        } },
+                    new StoryScene { Title = "청부", Lines = new[] {
+                            "모용휘|죽으라 하면 죽고, 살라 하면 살겠습니다.",
+                            "혁중|검성을 죽여라! 방법은 맡기겠다.",
+                            "검성은 모용휘의 친조부이자 우상이다. 모용휘는 숨을 고르며 가까스로 진정한다.",
+                            "문가에서 엿듣던 비류연이 혁중과 내기를 건다. 비류연은 죽일 수 있다에, 혁중은 죽이지 못한다에 건다.",
+                        } },
+                    new StoryScene { Title = "회담", Lines = new[] {
+                            "학관주 마진가는 대공자와 마천칠걸의 행방을 쫓느라 쉬지 못한다. 책상에는 정례 행사의 예상 명부가 놓여 있다.",
+                            "빙검|중원표국에 대해 어떻게 생각하십니까.",
+                            "중원표국은 강호 물류의 칠 할을 쥐고 정천맹 십대원로 표왕의 비호를 받는다. 빙검은 사천의 중양표국을 은밀히 밀어 견제하자고 하고, 마진가가 동의한다.",
+                            "빙검|구체적인 안은 유능한 녀석이 며칠 안에 올릴 겁니다.",
+                        } },
+                    new StoryScene { Title = "몽환산장", Lines = new[] {
+                            "안개 속의 몽환산장. 한 여인이 검은 두건의 공포에게 쫓기는 악몽에서 깨어난다.",
+                            "몽무|영령 아가씨!",
+                            "기억은 흐릿하고, 밤마다 상처 자리가 화끈거린다. 장주는 한 달 뒤의 시험에 합격해 정혼자인 그분의 힘이 되라고 한다.",
+                            "영령|그것만이 제가 이 세상에 생을 부여받은 유일한 의미입니다.",
+                            "장주는 시비 몽무·환무를 붙여 보낸 뒤, 냉혹한 얼굴로 대계를 그르치면 안 된다고 이른다.",
+                        } },
+                    new StoryScene { Title = "어둠 속의 지배자", Lines = new[] {
+                            "멸겁 두 자가 쓰인 검은 장막 앞. 대공자 비가 화룡이 하늘로 솟아 화공이 불발했음을 보고하고, 예상 못한 변수로 비류연의 이름을 올린다.",
+                            "지배자|이 무림에서 누구도 두렵지 않으나 단 한 명, 그 노인만은 예외다.",
+                            "지배자|열쇠는 어찌 되었느냐.",
+                            "처분은 근신이다. 나오는 길에 사제 이시건이 새 비기 자운으로 비의 오른 소매를 터뜨린다.",
+                            "이시건|대공자라는 칭호, 반드시 떼어 내겠습니다.",
+                            "이시건이 이번 작전에서 데려온 여자를 캐묻자 비가 살기를 뿜는다.",
+                            "대공자|그녀는 죽었다.",
+                            "이시건은 번천계를 맡아 십삼혈을 거느리고 남창의 천무학관으로 향한다.",
+                        } },
+                },
+                Intro = new[] {
+                    "같은 무렵, 사천 아미산 영역의 청룡은장. 복면 집단 살룡대가 밤에 은장을 덮친다.",
+                    "장주 유재룡은 아들 유경영과 딸 유선아에게 금낭 둘과 황금빛 열쇠 황룡시, 옥패를 건넨다.",
+                    "유재룡|남창의 천무학관으로 가서 철권 마진가를 찾아라. 아미로 가는 길은 막혔을 것이다.",
+                    "아이들은 옷장 속의 진짜 통로로 빠져나간다.",
+                    "혈표|원한은 없다. 열쇠가 필요할 뿐이다.",
+                    "원작에서 살룡대의 서열 이위 참영과 삼위 격운은 유재룡의 가짜 통로 함정에 쓰러집니다. 이 싸움은 현재 편성 파티로 재현합니다.",
+                },
+                Outro = new[] {
+                    "날아드는 검을 피해 다니는 특훈은 보름 동안 이어진다.",
+                    "한편 남창. 불안해 표국을 몰래 빠져나온 남매 앞에 중원표국 대표두 윤이정이 나타난다. 아버지 유재룡의 의형제다.",
+                    "윤이정|나와 함께 가자. 중원표국이 방패가 되어 줄 것이다.",
+                    "진소령이 윤이정의 소매를 벤다. 유경영은 숙부의 오른팔에 용이 휘감은 듯한 새 상처를 본다. 반년 전에는 없던 상처다.",
+                    "유경영은 숙부의 손을 거절한다.",
+                    "진소령|내 착각인가. 장심에 음유한 내공이 있었던 듯한데.",
+                    "같은 밤 비류연은 식은땀을 흘리며 깨지만, 꿈의 내용은 기억하지 못한다.",
+                },
+                Encounters = new[] { new[] { "salryong_daewon", "cham_yeong", "gyeok_un" }, new[] { "salryong_daewon", "hyeol_pyo", "salryong_daewon" }, new[] { "yu_ran", "yu_unbi" }, new[] { "gwan_cheolsu_eogeom" } },
+                Trials = new[]
+                {
+                    null,
+                    null,
+                    TrialRule.Deadline("황금 완장", "유란과 유운비가 황금 완장을 노린다. 30행동 안에 두 도전자를 제압하라!", 30),
+                    TrialRule.Survive("이기어검 특훈", "빙검을 이길 필요는 없다. 허공에서 날아드는 검을 12번 버텨라!", 12),
+                } },
         };
 
         /// <summary>The player level a stage asks for before rounding (<see cref="StageData.RecommendedPlayerLevel"/> rounds it).</summary>

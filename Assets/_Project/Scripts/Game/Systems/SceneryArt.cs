@@ -10,7 +10,8 @@ namespace BiRyeoDo.Game.Systems
         {
             "forest", "manor", "road", "road", "manor", "manor", "cave", "manor", "pavilion", "pavilion",
             "academy", "academy", "academy", "forest", "road", "manor", "academy", "forest", "cave", "cave",
-            "road", "valley", "valley", "valley", "manor", "road", "valley", "manor", "cave", "valley"
+            "road", "valley", "valley", "valley", "manor", "road", "valley", "manor", "cave", "valley",
+            "academy"
         };
 
         public static string StageKey(int stage)

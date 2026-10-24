@@ -51,6 +51,7 @@ namespace BiRyeoDo.Tests
         [TestCase(28, 105, 165)]
         [TestCase(29, 160, 256)]
         [TestCase(30, 100, 158)]
+        [TestCase(31, 140, 210)]
         public void LateNormalStagesKeepPressureWithoutLongHpSlogs(int number, int minActions, int maxActions)
         {
             var stage = EarlyGameContent.FindStage(number);
