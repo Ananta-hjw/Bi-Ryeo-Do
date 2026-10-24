@@ -69,8 +69,9 @@ namespace BiRyeoDo.Core
             new[] { 26, 39, 31, 29 },   // 28
             new[] { 35, 48, 29, 17, 61 },   // 29
             new[] { 52, 38, 28 },   // 30
-            new[] { 49, 45, 24, 42 },   // 31
-            new[] { 34, 55, 63 },   // 32
+            new[] { 49, 47 },   // 31
+            new[] { 26, 43 },   // 32
+            new[] { 34, 44, 55 },   // 33
         };
 
         public static int FastLimit(int stage, int fight)
@@ -141,7 +142,7 @@ namespace BiRyeoDo.Core
         {
             1f, 1f, 1f, 1.3f, 1.5f, 1.5f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.65f, 0.65f, 0.6f, 0.6f,
             0.6f, 0.6f, 0.65f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.65f,
-            0.6f, 0.6f,
+            0.6f, 0.6f, 0.6f,
         };
 
         /// <summary>How much stronger (&gt;1) or weaker (&lt;1) a stage's 일반 enemies are than the enemy table the harder difficulties were tuned against.</summary>
@@ -155,7 +156,7 @@ namespace BiRyeoDo.Core
         {
             1.00f, 1.25f, 1.25f, 1.20f, 1.10f, 1.00f, 1.45f, 1.50f, 1.55f, 1.60f, 1.65f, 1.70f, 1.75f, 1.80f, 1.85f,
             1.90f, 1.95f, 2.00f, 2.05f, 2.10f, 2.15f, 2.20f, 2.25f, 2.30f, 2.35f, 2.40f, 2.45f, 2.50f, 2.55f, 2.60f,
-            2.65f, 2.70f,
+            2.65f, 2.70f, 2.75f,
         };
         /// <summary>
         /// Player levels a prepared player (gear, 심법, mastery, items) is expected to have over the stage's recommended level now that 일반 enemies have more HP:
@@ -170,12 +171,12 @@ namespace BiRyeoDo.Core
         {
             1f, 1f, 1f, 1f, 1f, 1f, 0.75f, 1f, 0.75f, 0.87f, 0.98f, 0.82f, 0.89f, 0.98f, 0.97f,
             1.06f, 1f, 0.76f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 0.96f, 1f, 1f, 1f,
-            1f, 1f,
+            1f, 1f, 1f,
         };
         public static float NormalAtkBoost(int stage)
         {
             if (stage <= 6) return 1f;
-            return (1.05f + 0.005f * (Math.Min(32, stage) - 7)) * NormalAtkTuneTable[Math.Min(NormalAtkTuneTable.Length, stage) - 1];
+            return (1.05f + 0.005f * (Math.Min(33, stage) - 7)) * NormalAtkTuneTable[Math.Min(NormalAtkTuneTable.Length, stage) - 1];
         }
 
         public static EnemyData ScaleEnemy(EnemyData enemy, int stage, int difficulty)
@@ -187,7 +188,7 @@ namespace BiRyeoDo.Core
             {
                 if (enemy.HpMul > 10f) return enemy;   // survival-only enemies keep their stats
                 float hp = NormalHpBoost(stage), atk = NormalAtkBoost(stage);
-                if (stage >= 24 && stage <= 32) { hp *= 0.85f; atk *= 1.25f; }
+                if (stage >= 24 && stage <= 33) { hp *= 0.85f; atk *= 1.25f; }
                 return enemy.Scaled(hp, atk);
             }
             float ease = NormalEase(stage);

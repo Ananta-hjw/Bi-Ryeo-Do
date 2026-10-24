@@ -38,6 +38,10 @@ namespace BiRyeoDo.Core
                 Trial = TrialRule.Deadline("추격전", "33행동 안에 모두 쓰러뜨리세요.", 33), RewardDoo = 18900 },
             new QuestData { Id = "q_salgwi", Edge = 1.027f, Name = "살귀대 정찰조 제압", Brief = "정찰조가 신호를 보내기 전에 소리 없이 제압하라.", RefStage = 26, Encounter = 0,
                 Trial = TrialRule.Deadline("소리 없는 제압", "46행동 안에 모두 쓰러뜨리세요.", 46), RewardDoo = 24300, ItemId = "ilgeup_yeongdan" },
+            new QuestData { Id = "q_salryong", Edge = 2.2f, Name = "살룡대 잔당 추적", Brief = "불탄 은장 근처에 복면 무리가 아직 남아 있다는 소문. 흩어지기 전에 따라잡아 달라는 의뢰.", RefStage = 31, Encounter = 0,
+                Trial = TrialRule.Deadline("잔당 추적", "44행동 안에 모두 쓰러뜨리세요.", 44), RewardDoo = 28800, ItemId = "ginseng" },
+            new QuestData { Id = "q_dojeon", Edge = 2.2f, Name = "도전자 정리", Brief = "황금 완장을 노리는 입관 희망자들이 밤길에 몰려다닌다. 소란이 커지기 전에 정리해 달라는 의뢰.", RefStage = 33, Encounter = 1,
+                Trial = TrialRule.Deadline("야간 정리", "42행동 안에 모두 쓰러뜨리세요.", 42), RewardDoo = 30600 },
         };
 
         public static QuestData Find(string id)

@@ -19,7 +19,7 @@ namespace BiRyeoDo.Tests
             CollectionAssert.AreEqual(new[] { "dan_pyeong", "jo_yeonil", "jin_pae", "ilyeon", "eonga_yeong", "jeon_okgi" }, tournament.Encounters.SelectMany(x => x));
             Assert.IsTrue(tournament.Encounters.All(x => x.Length == 1));
             CollectionAssert.AreEqual(new[] { "dang_munceon" }, EarlyGameContent.FindStage(13).Encounters[0]);
-            Assert.AreEqual(32, EarlyGameContent.Stages.Length, "Persisted stage and unlock IDs remain stable");
+            Assert.AreEqual(33, EarlyGameContent.Stages.Length, "Persisted stage and unlock IDs remain stable");
         }
 
         [Test]

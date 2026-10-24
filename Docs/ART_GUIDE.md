@@ -6,7 +6,7 @@
 
 | 위치 | 파일 이름 | 규격 |
 |---|---|---|
-| `Resources/Art/Backgrounds/` | `stage_01.png` … `stage_32.png` | 세로 1080×1920 (또는 9:16), 전투 화면 배경 |
+| `Resources/Art/Backgrounds/` | `stage_01.png` … `stage_33.png` | 세로 1080×1920 (또는 9:16), 전투 화면 배경 |
 | `Resources/Art/Characters/` | 아래 표의 id (예: `tiger.png`) | **투명 배경 PNG**, 512~1024px 정사각 |
 | `Resources/Art/Characters/` | `player.png` | 투명 배경 PNG, 512px 정사각 (상반신 권장) |
 
@@ -146,8 +146,9 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 | `stage_28.png` | 멸성대 | small roadside inn at noon surrounded by dark silhouettes, ink-wash style, vertical composition, no characters |
 | `stage_29.png` | 중토관 | dense wilderness mountain at dawn with mist, ink-wash style, vertical composition, no characters |
 | `stage_30.png` | 화룡멸겁대진 | red plum valley engulfed by a ring of fire and smoke, ink-wash style, vertical composition, no characters |
-| `stage_31.png` | 승천무제 시험관 | martial academy courtyard in early spring with a golden armband on a stone bench, flying swords in the mist, ink-wash style, vertical composition, no characters |
-| `stage_32.png` | 무극검과 누명 | evening street of Nanchang below a lantern-lit wine house, a ring of swordsmen under a red sunset, ink-wash style, vertical composition, no characters |
+| `stage_31.png` | 청룡은장의 밤 | burning Sichuan money-lender manor at night, masked silhouettes on the roofs, embers and smoke, ink-wash style, vertical composition, no characters |
+| `stage_32.png` | 승천무제 시험관 | martial academy courtyard in early spring with a golden armband on a stone bench, flying swords in the mist, ink-wash style, vertical composition, no characters |
+| `stage_33.png` | 무극검과 누명 | evening street of Nanchang below a lantern-lit wine house, a ring of swordsmen under a red sunset, ink-wash style, vertical composition, no characters |
 
 ## 적 (36종)
 
