@@ -1032,6 +1032,7 @@ namespace BiRyeoDo.Game.UI
                 p.SpiritText = GaugeText("SpiritText", p.Root, 0.015f, 0.105f);
                 p.QiText.gameObject.SetActive(false); p.SpiritText.gameObject.SetActive(false);
                 FixedLabelHeight(p.Name, 1f, 32f);
+                OutlineCommandText(p.Name);   // readable where the head of the figure reaches the name
                 p.Name.rectTransform.anchoredPosition = new Vector2(0f, -16f);
                 FixedLabelHeight(p.Status, .66f, 30f);
                 FixedLabelHeight(p.HpText, .275f, 28f);
@@ -1140,9 +1141,8 @@ namespace BiRyeoDo.Game.UI
                     card.Qi.Root.gameObject.SetActive(false); card.Spirit.Root.gameObject.SetActive(false);
                     card.QiText.gameObject.SetActive(false); card.SpiritText.gameObject.SetActive(false);
                 }
-                // 무공 경지 under the name, from the stats this fight actually uses (harder difficulties raise it)
-                string realm = Realm.HasRealm(data) ? Realm.Label(units[i].RealmStep) : "";
-                card.Realm = UiFactory.Label("Realm", card.Root, new Vector2(0.03f, 0.73f), new Vector2(0.97f, 0.845f), realm, 18, new Color(0.85f, 0.75f, 0.45f, 1f));
+                // No 무공 경지 on the board (it stays in the enemy info card); the label is kept empty for the layout code below.
+                card.Realm = UiFactory.Label("Realm", card.Root, new Vector2(0.03f, 0.73f), new Vector2(0.97f, 0.845f), "", 18, new Color(0.85f, 0.75f, 0.45f, 1f));
                 card.Badge = UiFactory.Label("Badge", card.Root, new Vector2(0.04f, 0.60f), new Vector2(0.96f, 0.73f), "", 20, UiFactory.PaperText);
                 card.IntentBack = UiFactory.Panel("IntentBack", card.Root, new Vector2(.01f, 0f), new Vector2(.99f, .145f), HudInk);
                 card.Intent = UiFactory.Label("Intent", card.Root, new Vector2(0.02f, 0.0f), new Vector2(0.98f, 0.145f), "", 21, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
@@ -1155,6 +1155,8 @@ namespace BiRyeoDo.Game.UI
                 FixedLabelHeight(card.Intent, 0f, 26f);
                 card.Intent.rectTransform.anchoredPosition = new Vector2(0f, 13f);
                 card.ActionBadge = BuildActionBadge(card.Root);
+                card.Name.transform.SetAsLastSibling();   // the name is drawn over the figure, which can reach the top of the cell
+                OutlineCommandText(card.Name);
 
                 // Tap to attack (only while an attack is being aimed)
                 var tap = card.Root.gameObject.AddComponent<Button>();
