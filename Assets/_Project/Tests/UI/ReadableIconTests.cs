@@ -49,33 +49,71 @@ namespace BiRyeoDo.Tests.UI
             }
         }
 
-        [TestCase("cloth_robe", "equipment_repair", 3, 4, 2)]
-        [TestCase("straw_sandals", "equipment_repair", 4, 4, 2)]
-        [TestCase("starfall_sword", "equipment_repair", 0, 4, 2)]
-        [TestCase("heaven_cutter", "equipment_repair", 1, 4, 2)]
-        [TestCase("gen_wea_myt01", "equipment_repair", 2, 4, 2)]
-        [TestCase("leather_vest", "items_0", 41, 8, 8)]
-        [TestCase("vajra_armor", "items_0", 55, 8, 8)]
-        [TestCase("jade_ring", "items_0", 63, 9, 8)]
-        [TestCase("cinnabar_amulet", "items_0", 71, 9, 8)]
-        [TestCase("gen_wea_nor01", "items_1", 40, 8, 8)]
-        [TestCase("gen_pan_nor03", "items_1", 62, 8, 8)]
-        [TestCase("gen_acc_myt01", "elemental_equipment", 9, 4, 3)]
-        [TestCase("thunder_beads", "elemental_equipment", 0, 4, 3)]
-        [TestCase("blackiron_blade", "elemental_equipment", 4, 4, 3)]
-        [TestCase("heavenly_demon_core", "elemental_equipment", 10, 4, 3)]
-        [TestCase("biroe_blade", "items_0", 9, 8, 8)]
-        [TestCase("jin_biroedo", "jin_biroedo", 0, 1, 1)]
-        public void AuditedEquipmentRegionsStayWithinTheActualIllustrationCell(string id, string sheet, int cell, int columns, int rows)
+        [TestCase("cloth_robe", "equipment_repair", 1333, 3, 438, 437)]
+        [TestCase("straw_sandals", "equipment_repair", 3, 446, 437, 438)]
+        [TestCase("starfall_sword", "equipment_repair", 3, 3, 437, 437)]
+        [TestCase("heaven_cutter", "equipment_repair", 446, 3, 438, 437)]
+        [TestCase("gen_wea_myt01", "equipment_repair", 890, 3, 437, 437)]
+        [TestCase("leather_vest", "items_0", 160, 771, 150, 142)]
+        [TestCase("vajra_armor", "items_0", 1099, 919, 152, 147)]
+        [TestCase("jade_ring", "items_0", 3, 1072, 113, 179)]
+        [TestCase("cinnabar_amulet", "items_0", 1103, 1072, 148, 179)]
+        [TestCase("gen_wea_nor01", "items_1", 3, 787, 151, 150)]
+        [TestCase("gen_pan_nor03", "items_1", 943, 1085, 151, 166)]
+        [TestCase("gen_acc_myt01", "elemental_equipment", 365, 727, 356, 356)]
+        [TestCase("thunder_beads", "elemental_equipment", 3, 3, 356, 356)]
+        [TestCase("blackiron_blade", "elemental_equipment", 3, 365, 356, 356)]
+        [TestCase("heavenly_demon_core", "elemental_equipment", 727, 727, 356, 356)]
+        [TestCase("biroe_blade", "items_0", 160, 154, 150, 151)]
+        [TestCase("jin_biroedo", "jin_biroedo", 3, 3, 1248, 1248)]
+        [TestCase("frost_sword", "items_0", 3, 614, 151, 151)]
+        [TestCase("gen_acc_leg02", "items_3", 943, 943, 151, 151)]
+        [TestCase("gen_acc_leg01", "items_3", 786, 943, 151, 151)]
+        [TestCase("wind_boots", "items_0", 943, 1072, 154, 179)]
+        [TestCase("wooden_charm", "items_0", 122, 1072, 119, 179)]
+        [TestCase("mat_weapon_0", "items_3", 3, 1100, 202, 151)]
+        [TestCase("gen_arm_nor07", "items_1", 3, 1085, 151, 166)]
+        public void AuditedEquipmentRegionsStayWithinTheActualIllustrationCell(string id, string sheet, int x, int top, int width, int height)
         {
             var sprite = ReadableIconLibrary.Find("Item", id);
             CheckBounds(sprite, id);
             Assert.AreEqual(sheet, sprite.texture.name);
-            float width = sprite.texture.width / (float)columns, height = sprite.texture.height / (float)rows;
-            Assert.AreEqual(cell % columns * width + 3f, sprite.rect.x, .1f);
-            Assert.AreEqual(sprite.texture.height - (cell / columns + 1) * height + 3f, sprite.rect.y, .1f);
-            Assert.AreEqual(width - 6f, sprite.rect.width, .1f);
-            Assert.AreEqual(height - 6f, sprite.rect.height, .1f);
+            Assert.AreEqual(x, sprite.rect.x, .1f);
+            Assert.AreEqual(sprite.texture.height - top - height, sprite.rect.y, .1f);
+            Assert.AreEqual(width, sprite.rect.width, .1f);
+            Assert.AreEqual(height, sprite.rect.height, .1f);
+        }
+
+        [TestCase("burn", 3, 150)]
+        [TestCase("chill", 159, 151)]
+        [TestCase("stun", 316, 180)]
+        [TestCase("poison", 502, 160)]
+        [TestCase("innerwound", 668, 175)]
+        [TestCase("speed", 849, 190)]
+        [TestCase("attack", 1045, 206)]
+        public void StatusIconsFollowTheirActualSevenColumnRow(string id, int left, int width)
+        {
+            var sprite = ArtLibrary.Icon(id);
+            CheckBounds(sprite, id);
+            Assert.AreEqual("items_4", sprite.texture.name);
+            Assert.AreEqual(left, sprite.rect.x, .1f);
+            Assert.AreEqual(1254 - 1099 - 152, sprite.rect.y, .1f);
+            Assert.AreEqual(width, sprite.rect.width, .1f);
+            Assert.AreEqual(152, sprite.rect.height, .1f);
+        }
+
+        [Test]
+        public void ItemRegionsNeverIncludeAnotherItemsIllustration()
+        {
+            var sprites = new List<Sprite>();
+            foreach (var item in EarlyGameContent.Items)
+            {
+                var sprite = ArtLibrary.Item(item);
+                foreach (var previous in sprites)
+                    if (sprite.texture == previous.texture)
+                        Assert.IsFalse(sprite.rect.Overlaps(previous.rect), sprite.name + " overlaps " + previous.name);
+                sprites.Add(sprite);
+            }
         }
 
         [Test]

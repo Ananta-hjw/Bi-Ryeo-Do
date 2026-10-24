@@ -34,17 +34,18 @@ namespace BiRyeoDo.Game.UI
             UiFactory.ScrollBody(UiFactory.Label("Toast", Root, new Vector2(0.05f, .70f), new Vector2(0.95f, .78f), toast ?? (_tab == 0 ? "그 세력의 스테이지에서 전투를 이기면 평판이 쌓입니다 (일반 +1, 어려움 +2, 극악 +3)" : "세력 평판이 오르면 그 세력의 선반이 열립니다"), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             var content = CodexPanel.Scroller(Root, .16f, .69f);
-            int n = _tab == 0 ? DrawReputation(content, save) : DrawShop(content, save);
-            SetListHeight(content, n);
+            if (_tab == 0) DrawReputation(content, save);
+            else DrawShop(content, save);
             AddClose();
         }
 
         private static int DrawReputation(RectTransform content, SaveData save)
         {
             int n = 0;
+            var grid = new ReadingGrid(content, 2, 300f);
             foreach (var f in Factions.All)
             {
-                var band = CodexPanel.Band(content, n++);
+                var band = grid.Add("Entry" + n++);
                 int tier = Factions.Tier(save, f.Id), points = Factions.Points(save, f.Id), next = Factions.ToNext(save, f.Id);
                 UiFactory.Label("Name", band, new Vector2(0.04f, 0.58f), new Vector2(0.96f, 0.97f), f.Name + "  ·  " + Factions.TierNames[tier], 32, tier >= 4 ? UiFactory.Gold : UiFactory.PaperText, TextAnchor.MiddleLeft);
                 string perk = f.PerkText + " " + (tier >= 2 ? "+" + Math.Round(Factions.PerkValue(save, f) * 100f) + (f.Perk == PerkKind.RestHeal ? "%p" : "%") : "(우호부터)");
@@ -57,6 +58,7 @@ namespace BiRyeoDo.Game.UI
         private int DrawShop(RectTransform content, SaveData save)
         {
             int n = 0;
+            var grid = new ReadingGrid(content, 2, 300f);
             var goods = new List<ShopGood>(Shop.Goods);
             // Open goods first, then by faction tier.
             goods.Sort((a, b) =>
@@ -67,16 +69,16 @@ namespace BiRyeoDo.Game.UI
             });
             foreach (var g in goods)
             {
-                var band = CodexPanel.Band(content, n++);
+                var band = grid.Add("Entry" + n++);
                 bool open = Shop.IsOpen(save, g), sold = Shop.SoldOut(save, g), afford = save.Doo >= g.Price;
                 string owner = g.FactionId == null ? "객잔" : Factions.Find(g.FactionId).Name;
                 string limit = g.Limit > 0 ? "  (" + Shop.Bought(save, g.Id) + "/" + g.Limit + ")" : "";
-                UiFactory.Label("Name", band, new Vector2(0.04f, 0.54f), new Vector2(0.66f, 0.97f), (open ? Shop.NameOf(g) : "???") + limit, 30, open ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
-                UiFactory.Label("Info", band, new Vector2(0.04f, 0.04f), new Vector2(0.66f, 0.54f),
+                UiFactory.Label("Name", band, new Vector2(0.04f, 0.73f), new Vector2(0.96f, 0.96f), (open ? Shop.NameOf(g) : "???") + limit, 30, open ? UiFactory.PaperText : UiFactory.InkSoft, TextAnchor.MiddleLeft);
+                UiFactory.Label("Info", band, new Vector2(0.04f, 0.30f), new Vector2(0.96f, 0.70f),
                     open ? "[" + owner + "] " + Shop.DescriptionOf(g) : owner + " 평판 " + Factions.TierNames[g.MinTier] + " 필요", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var good = g;
                 bool can = open && !sold && afford;
-                var btn = UiFactory.Button("Buy", band, new Vector2(0.69f, 0.14f), new Vector2(0.97f, 0.86f), sold ? "매진" : open ? g.Price.ToString("N0") + "두" : "잠김", can ? UiFactory.Red : UiFactory.InkSoft, () => Buy(good), 26);
+                var btn = UiFactory.Button("Buy", band, new Vector2(0.04f, 0.04f), new Vector2(0.96f, 0.26f), sold ? "매진" : open ? g.Price.ToString("N0") + "두" : "잠김", can ? UiFactory.Red : UiFactory.InkSoft, () => Buy(good), 26);
                 btn.interactable = can;
             }
             return n;

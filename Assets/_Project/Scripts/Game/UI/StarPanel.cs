@@ -22,27 +22,27 @@ namespace BiRyeoDo.Game.UI
 
             int total = StageStars.Total(save), ready = StageStars.ClaimableCount(save);
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "별 보상  ★ " + total + " / " + StageStars.MaxStars, 44, UiFactory.Gold);
-            UiFactory.ScrollBody(UiFactory.Label("Hint", Root, new Vector2(.03f, .14f), new Vector2(.27f, .78f), (toast ?? "전투(작은 스테이지)마다 별 3개: 돌파 · 전원 생존 · 신속. 난이도마다 따로 모읍니다.")
-                + (save.RetiredStoryStars > 0 ? "\n\n전투 개편 전 획득한 별 " + save.RetiredStoryStars + "개도 총합에 보존되어 있습니다." : ""), 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal), 30);
-            var all = UiFactory.Button("ClaimAll", Root, new Vector2(.03f, .80f), new Vector2(.27f, .90f), "모두 받기", ready > 0 ? UiFactory.Red : UiFactory.InkSoft, ClaimAll, 28);
+            UiFactory.ScrollBody(UiFactory.Label("Hint", Root, new Vector2(.04f, .81f), new Vector2(.74f, .91f), (toast ?? "전투마다 돌파 · 전원 생존 · 신속 별을 모아 보상을 받습니다.")
+                + (save.RetiredStoryStars > 0 ? "\n개편 전 획득 별 " + save.RetiredStoryStars + "개 포함" : ""), 28, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal), 28);
+            var all = UiFactory.Button("ClaimAll", Root, new Vector2(.77f, .81f), new Vector2(.97f, .91f), "모두 받기", ready > 0 ? UiFactory.Red : UiFactory.InkSoft, ClaimAll, 28);
             all.interactable = ready > 0;
-
-            var content = CodexPanel.Scroller(Root, .10f, .90f);
-            LandscapeMenu.Place((RectTransform)content.parent, .30f, .10f, .98f, .90f);
+            var content = CodexPanel.Scroller(Root, .16f, .79f);
+            var grid = new ReadingGrid(content, 3, 300f);
             for (int i = 0; i < StageStars.Chests.Length; i++)
             {
                 var c = StageStars.Chests[i];
                 var chest = c;
-                var band = CodexPanel.Band(content, i);
+                var band = grid.Add("Chest" + i);
                 bool claimed = save.ClaimedStarChests.Contains(c.Stars), can = StageStars.CanClaim(save, c);
-                UiFactory.Label("Name", band, new Vector2(0.04f, 0.54f), new Vector2(0.66f, 0.97f), "★ " + c.Stars + "개", 34, claimed ? UiFactory.InkSoft : UiFactory.Gold, TextAnchor.MiddleLeft);
-                string item = "";
-                if (!string.IsNullOrEmpty(c.ItemId)) { var it = EarlyGameContent.FindItem(c.ItemId); if (it != null) item = " + " + it.Name + (c.ItemCount > 1 ? " x" + c.ItemCount : ""); }
-                UiFactory.Label("Reward", band, new Vector2(0.04f, 0.04f), new Vector2(0.66f, 0.54f), "두 " + c.Doo.ToString("N0") + item + (claimed || can ? "" : "  (" + Math.Max(0, c.Stars - total) + "개 더)"), 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-                var btn = UiFactory.Button("Claim", band, new Vector2(0.69f, 0.14f), new Vector2(0.97f, 0.86f), claimed ? "받음" : can ? "받기" : "잠김", can ? UiFactory.Red : UiFactory.InkSoft, () => ClaimOne(chest), 26);
+                UiFactory.Label("Name", band, new Vector2(.04f, .74f), new Vector2(.96f, .96f), "★ " + c.Stars + "개", 34, claimed ? UiFactory.Dim : UiFactory.Gold, TextAnchor.MiddleLeft);
+                string reward = c.Doo.ToString("N0") + "두";
+                if (!string.IsNullOrEmpty(c.ItemId)) reward += "\n" + EarlyGameContent.FindItem(c.ItemId)?.Name + " ×" + c.ItemCount;
+                if (c.Insight > 0) reward += " · 심득석 " + c.Insight + "개";
+                UiFactory.Label("Reward", band, new Vector2(.04f, .42f), new Vector2(.96f, .72f), reward, 28, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Progress", band, new Vector2(.04f, .28f), new Vector2(.96f, .41f), claimed ? "수령 완료" : can ? "수령 가능" : "별 " + Math.Max(0, c.Stars - total) + "개 더 필요", 26, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                var btn = UiFactory.Button("Claim", band, new Vector2(.04f, .04f), new Vector2(.96f, .25f), claimed ? "받음" : can ? "받기" : "잠김", can ? UiFactory.Red : UiFactory.InkSoft, () => ClaimOne(chest), 28);
                 btn.interactable = can;
             }
-            SetListHeight(content, StageStars.Chests.Length);
             AddClose();
         }
 
