@@ -120,6 +120,22 @@ namespace BiRyeoDo.Core
                     new FortuneChoice { Label = "한 수 가르쳐 주고 수강료를 받는다", Result = "도전자는 고개를 숙이고 두둑한 수강료를 내밀었다.", Doo = 3360 },
                     new FortuneChoice { Label = "동료에게 상대를 맡긴다", Result = "동료가 멋지게 이겨 냈다. 다 함께 축배를 들었다.", BondPoints = 2, ExpLevels = 0.3 },
                 } },
+            new FortuneEvent { Id = "f_pillow", Title = "굴러 나온 목침", UnlockStage = 35,
+                Text = new[] { "표국 별채 앞에 박달나무 목침 하나가 굴러 나와 있다. 안에서는 우렁찬 코골이가 들린다.", "어떻게 할까?" },
+                Choices = new[]
+                {
+                    new FortuneChoice { Label = "조심스레 문 앞에 돌려놓는다", Result = "코골이가 잦아들고, 문틈으로 술값 정도의 두가 굴러 나왔다.", Doo = 1870 },
+                    new FortuneChoice { Label = "문을 두드려 깨운다", Result = "날아온 목침에 이마를 맞고 기절했다. 깨어나니 이상하게 머리가 맑다. 경험 +", ExpLevels = 1.0 },
+                    new FortuneChoice { Label = "동료들과 살금살금 물러난다", Result = "숨죽여 물러나다 서로 눈이 마주쳐 웃음을 참느라 혼났다.", BondPoints = 3 },
+                } },
+            new FortuneEvent { Id = "f_wager", Title = "대연무장의 내기판", UnlockStage = 36,
+                Text = new[] { "대연무장 구석에 투명 삼인방이 차린 내기판이 성황이다. 판돈이 쌓여 간다.", "\"자, 마감 전입니다! 어느 쪽에 거시겠소?\"" },
+                Choices = new[]
+                {
+                    new FortuneChoice { Label = "남궁상에게 건다", Result = "상식이 깨졌다. 배당을 두둑이 받았다.", Doo = 3900 },
+                    new FortuneChoice { Label = "판을 돕고 수수료를 받는다", Result = "장부를 맞춰 주었더니 삼인방이 수고비를 쥐여 주었다. 동료들과 나눠 먹었다.", Doo = 1560, BondPoints = 1 },
+                    new FortuneChoice { Label = "비무만 집중해서 본다", Result = "이기어검의 분영을 눈에 새겼다. 장착 무공의 감이 잡혔다.", MasteryUses = 15 },
+                } },
             new FortuneEvent { Id = "f_snownight", Title = "눈 내리는 밤", UnlockStage = 24,
                 Text = new[] { "눈이 쌓인 산길. 야영지의 모닥불이 잦아든다.", "차가운 밤을 어떻게 넘길까?" },
                 Choices = new[]

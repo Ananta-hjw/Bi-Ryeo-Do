@@ -85,7 +85,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void FortunesAreWellFormed()
         {
-            Assert.AreEqual(14, Fortunes.All.Length);
+            Assert.AreEqual(16, Fortunes.All.Length);
             Assert.AreEqual(Fortunes.All.Length, Fortunes.All.Select(f => f.Id).Distinct().Count());
             int max = EarlyGameContent.Stages.Max(st => st.Number);
             foreach (var f in Fortunes.All)

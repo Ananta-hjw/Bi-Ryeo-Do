@@ -569,6 +569,27 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("명문 검법", 0.8f, 2), EnemyMove.Attack("완장 노리기", 1.3f) } },
             new EnemyData { Id = "chimbaetneun_ja", Name = "침 뱉은 도전자", Level = 68, HpMul = 2.500f, AtkMul = 4.250f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("시비", 0.7f, 3), EnemyMove.Wind("침을 뱉는다"), EnemyMove.Attack("악다구니 일격", 2.7f) } },
+            // Stages 34-36: 20권. 비류연 is in prison for most of the volume, so these fights are 게임 연출 (the story text says who fought in the novel).
+            new EnemyData { Id = "jungwon_pyosa", Name = "중원표국 표사", Level = 70, HpMul = 2.100f, AtkMul = 3.400f, SpeedAdd = 2,
+                Moves = new[] { EnemyMove.Attack("표창", 0.8f, 2).FromDistance(), EnemyMove.Attack("박도 내려치기", 1.3f) } },
+            new EnemyData { Id = "o_yeong", Name = "오가 형제 오영", Level = 70, HpMul = 2.500f, AtkMul = 3.700f, SpeedAdd = 6,
+                Moves = new[] { EnemyMove.Attack("단도술", 0.7f, 3), EnemyMove.Wind("단도를 거꾸로 쥔다"), EnemyMove.Attack("쌍단도 교차", 2.7f) } },
+            new EnemyData { Id = "o_gi", Name = "오가 형제 오기", Level = 70, HpMul = 2.500f, AtkMul = 3.700f, SpeedAdd = 6,
+                Moves = new[] { EnemyMove.Attack("단도술", 0.7f, 3), EnemyMove.Wind("형과 등을 맞댄다"), EnemyMove.Attack("쌍단도 교차", 2.7f) } },
+            new EnemyData { Id = "yun_ijeong", Name = "풍마도 윤이정", Level = 70, HpMul = 3.000f, AtkMul = 3.700f, SpeedAdd = 2,
+                Moves = new[] { EnemyMove.Attack("풍마도법", 0.8f, 2), EnemyMove.Wind("삼현조화의 도막을 세운다"), EnemyMove.Attack("풍마귀혼", 2.8f) } },
+            new EnemyData { Id = "i_sigeon_jungwon", ArtId = "i_sigeon", Name = "마천각 이공자 이시건", Level = 71, IsBoss = true, RetreatHpPct = 0.3f, HpMul = 6.500f, AtkMul = 3.500f, SpeedAdd = 10,
+                Moves = new[] { EnemyMove.Attack("주박인", 0.7f, 3), EnemyMove.Attack("사검 그물", 1.3f), EnemyMove.Wind("열 근 철토시를 벗는다"), EnemyMove.Attack("삭풍참살인", 3.5f) } },
+            new EnemyData { Id = "i_sigeon_bait", ArtId = "i_sigeon", Name = "자운 암풍 이시건", Level = 71, HpMul = 45.426f, AtkMul = 4.600f, SpeedAdd = 10,
+                Moves = new[] { EnemyMove.Attack("질풍참살", 0.8f, 2), EnemyMove.Attack("사검 그물", 1.3f), EnemyMove.Wind("흑응의 기세를 모은다"), EnemyMove.Attack("흑응비섬", 2.8f) } },
+            new EnemyData { Id = "sipsamhyeol", Name = "십삼혈 살인광", Level = 71, HpMul = 1.900f, AtkMul = 2.600f, SpeedAdd = 4,
+                Moves = new[] { EnemyMove.Attack("혈설십삼식", 0.8f, 2), EnemyMove.Attack("살인 취미", 1.3f) } },
+            new EnemyData { Id = "il_hyeol", Name = "십삼혈의 우두머리 일혈", Level = 72, IsBoss = true, HpMul = 3.800f, AtkMul = 2.600f, SpeedAdd = 6,
+                Moves = new[] { EnemyMove.Attack("혈설십삼식", 0.7f, 3), EnemyMove.Attack("핏빛 손톱", 1.3f), EnemyMove.Wind("혈왕살을 끌어올린다"), EnemyMove.Attack("혈왕살", 3.5f) } },
+            new EnemyData { Id = "geomjon_gongson", Name = "검존 공손일취", Level = 72, HpMul = 45.426f, AtkMul = 4.600f, SpeedAdd = 6,
+                Moves = new[] { EnemyMove.Attack("노검존의 일검", 0.8f, 2), EnemyMove.Attack("분노의 검", 1.3f), EnemyMove.Wind("손자의 이름에 검을 뽑는다"), EnemyMove.Attack("지존검법", 2.8f) } },
+            new EnemyData { Id = "jin_soryeong", Name = "아미신녀 진소령", Level = 72, IsBoss = true, RetreatHpPct = 0.2f, HpMul = 7.500f, AtkMul = 5.200f, SpeedAdd = 8,
+                Moves = new[] { EnemyMove.Attack("이분영", 0.8f, 2).FromDistance(), EnemyMove.Attack("사련화영", 0.6f, 4).FromDistance(), EnemyMove.Wind("옥현이 허공에 떠오른다"), EnemyMove.Attack("팔련화린 난화만천", 0.45f, 8).FromDistance() } },
             new EnemyData { Id = "cheong_heun_mugeuk", ArtId = "ha_sein", Name = "삼절검 청흔", Level = 70, IsBoss = true, HpMul = 7.161f, AtkMul = 4.250f, SpeedAdd = 6,
                 Moves = new[] { EnemyMove.Attack("삼환회선비검", 0.7f, 3), EnemyMove.Attack("태극검", 1.3f), EnemyMove.Wind("삼정태극검혜를 펼친다"), EnemyMove.Attack("무극검 일관", 3.5f) } },
         };
@@ -666,6 +687,9 @@ namespace BiRyeoDo.Core
             new DropData { EnemyId = "bi_daegongja", ItemId = "ilgeup_yeongdan", Chance = 0.20f },
             new DropData { EnemyId = "hyeol_pyo", ItemId = "ginseng", Chance = 0.50f },
             new DropData { EnemyId = "cheong_heun_mugeuk", ItemId = "ilgeup_yeongdan", Chance = 0.20f },
+            new DropData { EnemyId = "i_sigeon_jungwon", ItemId = "ginseng", Chance = 0.50f },
+            new DropData { EnemyId = "il_hyeol", ItemId = "ginseng", Chance = 0.50f },
+            new DropData { EnemyId = "jin_soryeong", ItemId = "ilgeup_yeongdan", Chance = 0.20f },
         };
 
         /// <summary>One-time rewards for clearing a stage for the first time.</summary>
@@ -704,6 +728,9 @@ namespace BiRyeoDo.Core
             { 31, new[] { new ItemStack("ginseng", 3), new ItemStack("bear_gall", 3) } },   // 청룡은장의 밤
             { 32, new[] { new ItemStack("ilgeup_yeongdan", 1), new ItemStack("okruju", 3) } },   // 승천무제 시험관
             { 33, new[] { new ItemStack("ilgeup_yeongdan", 2), new ItemStack("ginseng", 2) } },   // 무극검과 누명
+            { 34, new[] { new ItemStack("ginseng", 3), new ItemStack("okruju", 3) } },   // 흰 봉황
+            { 35, new[] { new ItemStack("ilgeup_yeongdan", 1), new ItemStack("ginseng", 3) } },   // 전설의 포효
+            { 36, new[] { new ItemStack("ilgeup_yeongdan", 2), new ItemStack("ginseng", 3) } },   // 운명의 비무
         };
 
         /// <summary>What the protagonist starts with.</summary>
@@ -1773,6 +1800,113 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
                 Trials = new[]
                 {
                     TrialRule.Survive("금란주루의 광풍난주", "사신 이시건을 쓰러뜨릴 수는 없다. 자운암풍의 공격을 10번 버텨라!", 10),
+                } },
+            new StageData { Number = 34, Name = "흰 봉황", RecommendedLevel = 70, DooTotal = 17400,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "통곡", Lines = new[] {
+                            "천무학관이 남궁상의 장례로 들끓는다. 진령이 빈 관 앞에서 운다. 비류연이 미리 준 고춧가루와 양파 주머니 덕분이다.",
+                            "주작단은 무원대의 검시를 몸으로 막아선다.",
+                            "감옥으로 찾아온 장홍에게 비류연이 작전을 털어놓는다. 죽었다가 부활하는 작전이고, 시신 역할은 아는 곳에 숨겨 두었다.",
+                        } },
+                    new StoryScene { Title = "두 번의 방문", Lines = new[] {
+                            "나예린이 처음으로 이진설에게 도움을 청한다. 이진설은 남자 기숙사 검혼각에서 효룡을 끌어낸다.",
+                            "나예린은 용안으로 장홍을 압박해, 이시건이 중원표국 남창지국에 있다는 것을 알아낸다.",
+                        } },
+                },
+                Intro = new[] {
+                    "흰 봉황이 빈 산 위를 난다. 나예린이 애검 빙령의 검강으로 중원표국 남창지국의 대문을 열두 조각으로 베고 들어간다.",
+                    "이진설과 효룡이 표사들을 막는다. 오가 형제 오영과 오기가 앞을 가로막는다.",
+                    "원작에서 이 싸움은 나예린·이진설·효룡의 몫입니다. 비류연은 감옥에 있습니다. 이 싸움은 현재 편성 파티로 재현합니다.",
+                },
+                Outro = new[] {
+                    "나예린은 증언을 위해 목을 베지 않는다. 섬광탄이 터지고, 이시건과 윤이정이 달아난다. 이시건의 뺨에도 나예린의 상처가 남는다.",
+                    "감옥. 나예린이 실패했다고 하자 비류연이 고개를 젓는다.",
+                    "비류연|스스로 움직였잖아요. 그럼 성공이에요. 그 대신 손수 만든 음식 좀 넣어 주세요.",
+                    "이튿날 밤. 가죽끈으로 묶인 남궁상과 공손절휘가 중양표국 담을 넘다 진소령과 유은성에게 붙잡힌다.",
+                    "진소령|유령이 담을 넘다니. 베어도 되겠구나.",
+                    "장우양이 두 사람을 손님으로 맞는다. 공손절휘는 모용휘를 이기려고 황금 완장만 노렸을 뿐, 사람을 죽인 적이 없다.",
+                    "진소령은 공손절휘와 싸울 때 남궁상이 시간이 느려지는 감각에 들어갔다는 말을 듣고, 그것을 심안의 경지라 본다.",
+                },
+                Encounters = new[] { new[] { "jungwon_pyosa", "o_yeong", "o_gi" }, new[] { "yun_ijeong", "i_sigeon_jungwon" } } },
+            new StageData { Number = 35, Name = "전설의 포효", RecommendedLevel = 71, DooTotal = 17800,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "범죄를 촉탁하는 밤", Lines = new[] {
+                            "감옥의 비류연이 나예린이 만든 도시락을 먹는다. 써는 솜씨는 완벽하고, 불 조절은 실패했다.",
+                            "비류연|홍 아저씨, 이거 나 소저가 직접 만든 거예요.",
+                            "장홍은 나예린이 만든 음식이라는 데 경악한다.",
+                            "비류연|미끼를 잡은 다음 날 진범이 다시 나올 확률이 팔 할이에요. 안 나오면 만만한 학생을 하나 더 습격해서, 하루도 거르지 않는다고 믿게 하세요.",
+                        } },
+                    new StoryScene { Title = "채무 이행", Lines = new[] {
+                            "그물 역할을 할 사람이 하나 더 필요하다. 비류연에게 빚진 모용휘다.",
+                            "비류연|선불로 갚으시죠.",
+                            "모용휘|외상으로 하겠습니다.",
+                            "결국 모용휘는 몸으로 갚게 된다. 피풍의를 쓴 미끼 역할이다.",
+                        } },
+                },
+                Intro = new[] {
+                    "황금 완장 순찰자로 위장한 미끼를 이시건이 노린다. 자운 암풍 오의, 살식 질풍참살. 미끼는 피풍의를 쓴 모용휘였다.",
+                    "남궁상이 비류연이 가르친 대로 보지 말고 느끼며 뇌전검법 구명절초 성막밀밀로 막는다. 이시건은 자신이 함정에 걸렸음을 안다.",
+                    "이시건|화산지회 우승자라는 상징만 필요했을 뿐, 누구라도 상관없었다.",
+                    "원작에서 이시건을 막는 것은 남궁상·모용휘·공손절휘, 그리고 진소령과 유은성입니다. 이 싸움은 현재 편성 파티로 재현합니다.",
+                },
+                Outro = new[] {
+                    "남매의 방. 숙부 행세를 하던 윤이정의 오른 팔뚝에서 유경영은 가문 비전 용린폭의 상처를 본다.",
+                    "유경영|당신이… 아버지의 원수야.",
+                    "윤이정이 칼을 드는 순간 포효가 남창 전체에 울린다. 나무 위의 황금빛 두 눈, 백무후가 문을 부수고 윤이정을 앞발로 찢어 이시건에게 내던진다.",
+                    "나무를 방패로 삼았는데도 이시건의 왼쪽 얼굴 대부분이 발톱에 찢긴다. 그는 남은 십삼혈과 빈사의 윤이정을 차례로 던져 시간을 번다.",
+                    "사부|잠 좀 자자.",
+                    "노인이 던진 목침이 백무후의 콧등을 맞히고, 그 틈에 이시건만 달아난다.",
+                    "지하 감옥의 비류연도 익숙한 소리에 눈을 뜬다.",
+                    "비류연|사천에 사는 놈이 여기 있을 리가 없는데…",
+                    "전설이 된 새벽 뒤로 중양표국에는 계약이 쏟아진다. 노사부를 깨우러 들어간 유은성은 목침에 맞아 기절한다.",
+                },
+                Encounters = new[] { new[] { "i_sigeon_bait" }, new[] { "sipsamhyeol", "sipsamhyeol", "sipsamhyeol" }, new[] { "sipsamhyeol", "il_hyeol", "sipsamhyeol" } },
+                Trials = new[]
+                {
+                    TrialRule.Survive("미끼 작전", "이시건을 붙잡아 두어라. 유은성의 검이 닿을 때까지 자운 암풍의 공격을 10번 버텨라!", 10),
+                } },
+            new StageData { Number = 36, Name = "운명의 비무", RecommendedLevel = 72, DooTotal = 18200,
+                Prologue = new[]
+                {
+                    new StoryScene { Title = "소년, 천무학관에 서다", Lines = new[] {
+                            "진소령이 남매를 은사 마진가에게 데려간다. 유경영은 아버지의 유언대로 한 번도 열지 않은 비단 주머니를 건넨다.",
+                            "마진가|이것은 강호의 운명을 가를 물건이다. 네 아버지는 강호를 지키다 돌아가셨다.",
+                            "유경영|제 소원은 청룡은장을 다시 세우는 것입니다.",
+                            "마진가는 중원표국의 금강십이벽이 연루된 이상 표물을 중양표국으로 나눠 맡기겠다고 약속한다.",
+                        } },
+                    new StoryScene { Title = "영령, 접수하다", Lines = new[] {
+                            "동정호의 섬 자죽도. 뱃사람들이 용왕성이라 부르는 마천각에 몽환산장의 영령이 시비 몽무·환무와 함께 입관하러 온다.",
+                            "교관 옥유경이 그녀를 영입하려 하고, 접수처의 흑의서생이 면접을 본다.",
+                            "흑의서생|은명이라 하오.",
+                            "영령은 그 이름에 까닭 모르게 가슴이 아파 온다.",
+                        } },
+                },
+                Intro = new[] {
+                    "백무영이 감옥의 비류연을 풀어 관주 집무실로 데려간다.",
+                    "비류연|스스로 운명의 주인이 된 자는 두려워하지 않아요.",
+                    "집무실에는 마진가·진소령·유은성, 그리고 검존 공손일취가 있다. 검존은 물의를 일으킨 비류연을 시험관에서 빼겠다고 한다.",
+                    "비류연이 손자 이야기를 꺼내자, 손자가 납치되어 죽은 줄 안 검존이 검을 휘두른다.",
+                    "원작에서 비류연은 머리카락 몇 올만 잘린 채 피해 관주석에 앉아 있습니다. 이 싸움은 현재 편성 파티로 재현합니다.",
+                },
+                Outro = new[] {
+                    "날아간 애검 섬뢰가 진소령의 목덜미 뒤에서 멈춘다. 남궁상의 첫 이기어검이다. 남궁상은 그대로 쓰러진다.",
+                    "진소령|진령을 잘 부탁한다. 이제 고모라 불러도 좋다.",
+                    "빙검|이기어검을 아는 가장 좋은 방법은 직접 익히는 것이다.",
+                    "비류연|스무 해 동안 쌓은 한계 하나를 넘었을 뿐이에요.",
+                    "승천무제 본선. 공손절휘는 모용휘에게 지고 울고, 금사·은사 매화가 수놓인 검은 양산의 현의여인이 손수건을 건넨다. 그 여인은 남궁상의 열 초를 우산을 든 채 모두 피하고 합격한다.",
+                    "비류연은 사절단 명단에서 빠진다. 그는 금고에서 빛바랜 작은 상자를 꺼내고, 거울 앞에서 앞머리를 든다.",
+                    "비류연|오랜만이다.",
+                    "가위 소리가 난다. 출발하는 사절단을 천무삼성이 망루에서 배웅한다.",
+                    "흑마를 탄 현의여인이 나예린 곁에 다가온다. 나예린은 그 마음을 읽지 못한다. 여인의 눈이 햇빛에 호안석처럼 금빛으로 바뀐다.",
+                    "현의여인|오랜만이에요, 린.",
+                    "나예린|연비!",
+                },
+                Encounters = new[] { new[] { "geomjon_gongson" }, new[] { "jin_soryeong" } },
+                Trials = new[]
+                {
+                    TrialRule.Survive("검존의 오해", "검존을 쓰러뜨릴 일이 아니다. 남궁상이 공손절휘를 데려올 때까지 검을 6번 버텨라!", 6),
                 } },
         };
 
