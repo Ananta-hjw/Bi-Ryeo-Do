@@ -29,7 +29,7 @@ namespace BiRyeoDo.Game.UI
         {
             var top = UiFactory.Panel("BattleHeader", root, new Vector2(0f, .92f), Vector2.one, HudInk);
             UiFactory.Panel("HeaderRule", top.transform, Vector2.zero, new Vector2(1f, .018f), UiFactory.GoldDim);
-            _stageLabel = UiFactory.Label("Stage", top.transform, new Vector2(.035f, .06f), new Vector2(.70f, .96f), "", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
+            _stageLabel = UiFactory.Label("Stage", top.transform, new Vector2(.035f, .06f), new Vector2(.40f, .96f), "", 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
             var speed = UiFactory.Button("Speed", top.transform, new Vector2(.715f, .05f), new Vector2(.845f, .95f), "속도 x1", UiFactory.InkSoft, OnSpeedPressed, 28);
             _speedLabel = speed.GetComponentInChildren<Text>();
             UiFactory.Button("Flee", top.transform, new Vector2(.855f, .05f), new Vector2(.985f, .95f), "포기", HudInk, OnFleePressed, 28);
@@ -75,9 +75,12 @@ namespace BiRyeoDo.Game.UI
             for (int i = 0; i < 2; i++)
                 _phaseMarks.Add(UiFactory.Panel("PhaseMark" + i, _focusHp.Root, new Vector2(.5f, 0f), new Vector2(.502f, 1f), UiFactory.Gold));
 
-            var deck = UiFactory.Panel("CommandDeck", root, Vector2.zero, new Vector2(1f, .335f), Color.white);
+            // The board runs down to the command icons, which sit on the scene over a light shade (no separate deck band).
+            var deck = UiFactory.Panel("CommandDeck", root, Vector2.zero, new Vector2(1f, .22f), Color.white);
             deck.sprite = UiFactory.BottomShade;
-            var header = UiFactory.Rect("ActingMember", root, new Vector2(.015f, .218f), new Vector2(.455f, .29f));
+            deck.raycastTarget = false;
+            // The acting member's name, 내공 and 기세 live in the top bar, next to the stage name.
+            var header = UiFactory.Rect("ActingMember", top.transform, new Vector2(.41f, .06f), new Vector2(.70f, .94f));
             _commandHeader = header.gameObject;
             var portraitFrame = UiFactory.Panel("PortraitBack", header, new Vector2(0f, .5f), new Vector2(0f, .5f), UiFactory.InkSoft);
             portraitFrame.rectTransform.pivot = new Vector2(0f, .5f);
@@ -92,7 +95,9 @@ namespace BiRyeoDo.Game.UI
             _actorName.rectTransform.offsetMin = new Vector2(84f, 0f);
             _actorResources.rectTransform.offsetMin = new Vector2(84f, 0f);
 
+            // Kept for the 전황 text the code still writes, but hidden: no turn or aiming notices over the board.
             var log = UiFactory.Panel("BattleLog", root, new Vector2(.47f, .218f), new Vector2(.985f, .29f), Color.clear);
+            log.gameObject.SetActive(false);
             _turnNotice = UiFactory.Label("CurrentTurn", log.transform, new Vector2(.025f, .57f), new Vector2(.975f, 1f), "", 28, UiFactory.Gold, TextAnchor.MiddleLeft);
             log.raycastTarget = true;
             var logInfo = log.gameObject.AddComponent<Button>();
@@ -266,16 +271,14 @@ namespace BiRyeoDo.Game.UI
             }
             var panel = PanelOf(me.Id);
             int qi = panel != null ? panel.ShownQi : me.Qi, spirit = panel != null ? panel.ShownSpirit : me.Spirit;
-            string action = _animating ? _actorAction ?? "" : "내 차례 · 행동 선택";
             _actorName.text = me.Name;
             if (_turnNotice != null)
             {
-                _turnNotice.text = (_animating ? (me.Team == Team.Player ? "아군 · " : "적 · ") : "내 차례 · ") + me.Name + (_animating && action.Length > 0 ? " · " + action : "");
+                _turnNotice.text = "";   // no turn line: the acting member is marked on the board (green ▶) and in the top bar
                 _turnNotice.color = me.Team == Team.Player ? UiFactory.Gold : ThreatRed;
             }
             _actorResources.text = "내공 " + qi + " / " + me.Stats.MaxQi + "    기세 " + spirit + " / " + InteractiveBattle.MaxSpirit;
-            _commandHint.text = _animating ? "전황을 확인해 주세요." : Aiming ? "공격할 적 선택 · 금색: 선택 가능 / 붉은색: 사거리 밖 · 취소로 돌아가기" : AimingAlly ? "회복할 아군을 선택해 주세요."
-                : _itemMode ? "사용할 아이템을 선택해 주세요." : _jointMode ? "함께 공격할 동료를 선택해 주세요." : "";
+            _commandHint.text = "";   // the board's gold/red floor and the 취소 button already say what to do
             var pic = UnitPortrait(me);
             _actorPortrait.sprite = pic;
             _actorPortrait.gameObject.SetActive(pic != null);

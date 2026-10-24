@@ -15,6 +15,9 @@ namespace BiRyeoDo.Tests
                 Assert.IsFalse(string.IsNullOrEmpty(t.Title), t.Id);
                 Assert.Greater(t.Pages.Length, 0, t.Id);
                 foreach (var p in t.Pages) Assert.IsFalse(string.IsNullOrWhiteSpace(p), t.Id);
+                if (t.Details == null) continue;
+                Assert.Greater(t.Details.Length, 0, t.Id);
+                foreach (var p in t.Details) Assert.IsFalse(string.IsNullOrWhiteSpace(p), t.Id);
             }
         }
 

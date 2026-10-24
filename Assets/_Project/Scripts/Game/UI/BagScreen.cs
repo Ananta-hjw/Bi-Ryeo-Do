@@ -27,7 +27,6 @@ namespace BiRyeoDo.Game.UI
         private Text _header, _hint, _empty;
         private string _flash;
         private BulkDismantlePanel _bulkDismantle;
-        private RectTransform _help;   // the ? window: what the bag's buttons do
         private RectTransform _content;
         private int _filter = 1;                       // 0 all, 1 gear, 2 consumables, 3 materials & keys
         private readonly Image[] _filterTabs = new Image[4];
@@ -55,10 +54,9 @@ namespace BiRyeoDo.Game.UI
                 _bulkDismantle.Show();
             }, 28);
             UiFactory.CenterInHeader((RectTransform)bulkButton.transform, 72f);
-            UiFactory.HelpButton(root, () => UiFactory.ShowInfo(_help));   // right next to the 두 figure, inside the header band
+            UiFactory.HelpButton(root, () => { if (HelpPanel.Instance != null) HelpPanel.Instance.Show("gear"); });   // right next to the 두 figure: the full 돌파·분해·강화 help
             _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(.025f, .005f), new Vector2(.635f, .075f), "", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
-            _help = UiFactory.InfoWindow(root, "행낭 안내", "아이템을 누르면 상세 정보와 관리 버튼이 열립니다.\n· 돌파·분해: 아이템 상세창에서 합니다.\n· 일괄 분해: 상단 버튼에서 등급과 부위를 선택합니다.\n· 강화·장착: 장비 탭에서 합니다.");
 
             // Filter tabs
             for (int t = 0; t < FilterNames.Length; t++)
@@ -233,7 +231,6 @@ namespace BiRyeoDo.Game.UI
         {
             if (!_built) return;
             if (_detail != null) CloseDetail();
-            if (_help != null) _help.gameObject.SetActive(false);
             if (_bulkDismantle != null) _bulkDismantle.Hide();
             if (_notice != null) _notice.gameObject.SetActive(false);
         }

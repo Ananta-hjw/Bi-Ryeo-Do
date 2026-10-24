@@ -82,13 +82,13 @@ namespace BiRyeoDo.Core
         /// <summary>The 숙련 explanation behind the ? button of the 무공 tab (player-facing, one rule per line).</summary>
         public static string HelpText()
         {
-            return "비류연의 무공은 전투에서 쓴 횟수만큼 숙련됩니다.\n"
-                + "· " + LevelNames[1] + " " + Thresholds[1] + "회: 위력 +3%\n"
-                + "· " + LevelNames[2] + " " + Thresholds[2] + "회: 위력 +7%\n"
-                + "· " + LevelNames[3] + " " + Thresholds[3] + "회: 위력 +15%, 변초를 고를 수 있습니다\n"
-                + "· " + LevelNames[4] + " " + Thresholds[4] + "회: 위력 +30%, 재사용 -1턴, 내공 -20%\n"
-                + "비기는 변초가 없는 대신 단계마다 위력이 +5%, +10%, +20%, +40% 오릅니다.\n"
-                + "무공 줄 오른쪽의 숙련 버튼에서 변초를 바꿀 수 있습니다.";
+            return "<color=#D4B87A>숙련 (사용 횟수)</color>\n"
+                + "· " + LevelNames[1] + " " + Thresholds[1] + "회　 위력 +3%\n"
+                + "· " + LevelNames[2] + " " + Thresholds[2] + "회　 위력 +7%\n"
+                + "· " + LevelNames[3] + " " + Thresholds[3] + "회　 위력 +15%, 변초\n"
+                + "· " + LevelNames[4] + " " + Thresholds[4] + "회　 위력 +30%, 재사용 -1턴, 내공 -20%\n\n"
+                + "비기: 변초 없음, 위력 +5 / 10 / 20 / 40%\n"
+                + "변초는 무공을 눌러 상세 창에서 바꿉니다.";
         }
 
         public static string ConditionText()

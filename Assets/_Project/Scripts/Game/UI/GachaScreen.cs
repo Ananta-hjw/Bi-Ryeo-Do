@@ -20,7 +20,6 @@ namespace BiRyeoDo.Game.UI
         }
 
         private Text _header, _hint;
-        private RectTransform _help;   // the ? window
         private readonly int[] _sizes = { 1, Gacha.TenPullCount, Gacha.FiftyPullCount };
         private readonly Button[] _buttons = new Button[3];
         private readonly Image[] _buttonImages = new Image[3];
@@ -47,9 +46,8 @@ namespace BiRyeoDo.Game.UI
             _built = true;
 
             _header = UiFactory.TabHeader(root, "gacha");
-            UiFactory.HelpButton(root, () => UiFactory.ShowInfo(_help));   // at the right end of the header band, next to the 두 figure
+            UiFactory.HelpButton(root, () => { if (HelpPanel.Instance != null) HelpPanel.Instance.Show("gacha"); });   // at the right end of the header band, next to the 두 figure
             _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(.34f, .02f), new Vector2(.98f, .12f), "", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
-            _help = UiFactory.InfoWindow(root, "뽑기 안내", "같은 장비는 여분으로 쌓입니다.\n한계돌파하거나 분해해 재료를 얻을 수 있습니다.\n뽑은 결과는 행낭에 들어갑니다.");
 
             // Odds
             var odds = UiFactory.Panel("Odds", root, new Vector2(.025f, .42f), new Vector2(.315f, .855f), UiFactory.Ink);
@@ -189,7 +187,6 @@ namespace BiRyeoDo.Game.UI
         {
             if (!_built) return;
             StopAllCoroutines();
-            if (_help != null) _help.gameObject.SetActive(false);
             ClosePool();
             _busy = false;
         }

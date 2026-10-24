@@ -38,19 +38,21 @@ namespace BiRyeoDo.Game.UI
             _root.SetActive(false);
         }
 
-        /// <summary>Shows a topic and waits until the player has read every page. <paramref name="markDone"/> records it as seen.</summary>
+        /// <summary>Shows a topic and waits until the player has read every page. <paramref name="markDone"/> records it as seen.
+        /// The automatic first showing (markDone) uses the short pages; opening it on request (? buttons, help list) uses the fuller ones.</summary>
         public IEnumerator ShowAndWait(string topicId, bool markDone)
         {
             var topic = Tutorial.Find(topicId);
             if (topic == null) yield break;
+            var pages = topic.PagesFor(!markDone);
             _root.SetActive(true);
             _root.transform.SetAsLastSibling();
             _title.text = topic.Title;
-            for (int i = 0; i < topic.Pages.Length; i++)
+            for (int i = 0; i < pages.Length; i++)
             {
-                _body.text = topic.Pages[i];
-                _pageLabel.text = (i + 1) + " / " + topic.Pages.Length;
-                _buttonLabel.text = i == topic.Pages.Length - 1 ? "알겠어요" : "다음";
+                _body.text = pages[i];
+                _pageLabel.text = (i + 1) + " / " + pages.Length;
+                _buttonLabel.text = i == pages.Length - 1 ? "알겠어요" : "다음";
                 _tapped = false;
                 while (!_tapped) yield return null;
             }

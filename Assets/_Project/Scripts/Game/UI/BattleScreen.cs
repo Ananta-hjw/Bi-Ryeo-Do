@@ -953,7 +953,8 @@ namespace BiRyeoDo.Game.UI
         // ------------------------------------------------------------------ the board (6 x 3 tiles, our side left, the enemies right)
 
         private const float FieldLeft = .015f, FieldRight = .985f;
-        private const float FieldTop = .784f, FieldBottom = .305f, HeaderBottom = .786f, HeaderTop = .806f;
+        private const float FieldTop = .784f, FieldBottom = .218f, HeaderBottom = .786f, HeaderTop = .806f;
+        private static readonly Color TurnGreen = new Color(.36f, 1f, .62f, 1f);   // the acting member's ▶, frame and foot bar
         private static readonly Color PartyTile = new Color(0.18f, 0.42f, 0.37f, 0.07f), EnemyTile = new Color(0.52f, 0.20f, 0.15f, 0.07f);
 
         /// <summary>The screen rectangle (fractions of the battle root) of a board tile.</summary>
@@ -1371,13 +1372,13 @@ namespace BiRyeoDo.Game.UI
                         if (enemy.IsAlive && enemy.AwakeningStrike == null && enemy.Charging && enemy.ChargeTarget == u) { incoming = true; break; }
                 p.Status.text = incoming ? "강타 대상" + (afflicted.Length > 0 ? "\n" + afflicted : "")
                     : stance + (stance.Length > 0 && afflicted.Length > 0 ? " · " : "") + afflicted;
-                p.Name.color = u.IsAlive ? UiFactory.Gold : new Color(0.5f, 0.5f, 0.5f, 1f);
                 bool current = VisibleActor == u && p.ShownHp > 0;
-                p.ActionBadge.transform.parent.gameObject.SetActive(current && !_animating);   // only "내 차례"; no "행동 중" while the move plays
-                p.ActionBadge.text = "내 차례";
-                p.Name.text = (current ? "▶ " : "") + u.Name;
-                p.Frame.color = current ? UiFactory.Gold : new Color(0f, 0f, 0f, 0f);
-                p.ActiveFrame.color = current ? UiFactory.Gold : Color.clear;
+                // Whose turn: a bright green ▶ and a white name; everyone else keeps the plain gold name.
+                p.Name.color = !u.IsAlive ? new Color(0.5f, 0.5f, 0.5f, 1f) : current ? Color.white : UiFactory.Gold;
+                p.ActionBadge.transform.parent.gameObject.SetActive(false);   // the turn shows as ▶ before the name and the gold frame, not a 내 차례 tag over the figure
+                p.Name.text = (current ? "<color=#5CFF9D>▶</color> " : "") + u.Name;
+                p.Frame.color = current ? TurnGreen : new Color(0f, 0f, 0f, 0f);   // green = acting member (gold stays for aimed targets)
+                p.ActiveFrame.color = current ? TurnGreen : Color.clear;
                 p.Status.color = incoming ? ThreatRed : afflicted.Length > 0 ? StatusColor : UiFactory.PaperText;
                 if (AimingAlly && u.IsAlive && !current)
                 {

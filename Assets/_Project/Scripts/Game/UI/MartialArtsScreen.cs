@@ -57,7 +57,7 @@ namespace BiRyeoDo.Game.UI
             _inner = new InnerArtPanel(UiFactory.Rect("InnerArtPage", tab, Vector2.zero, new Vector2(1f, .88f)), Refresh) { Embedded = true };
 
             _header = UiFactory.TabHeader(root, "arts");
-            UiFactory.HelpButton(root, () => UiFactory.ShowInfo(_masteryHelp));   // right next to the 두 figure, inside the header band
+            UiFactory.HelpButton(root, () => { if (HelpPanel.Instance != null) HelpPanel.Instance.Show("mastery"); });   // right next to the 두 figure: the full 숙련·변초 help
             _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, .755f), new Vector2(0.95f, .84f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             // What is equipped right now: four art slots and the 필살기 slot.
@@ -122,7 +122,6 @@ namespace BiRyeoDo.Game.UI
             _detail = UiFactory.Rect("ArtDetail", tab, new Vector2(.66f, .02f), new Vector2(.985f, .88f));
             _detail.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.78f);   // dims and blocks the list underneath
             _detail.gameObject.SetActive(false);
-            _masteryHelp = UiFactory.InfoWindow(tab, "무공 숙련", Mastery.HelpText());
             ShowPage(0, false);
         }
 
@@ -131,7 +130,6 @@ namespace BiRyeoDo.Game.UI
 
         private RectTransform _detail;
         private string _detailId;
-        private RectTransform _masteryHelp;
 
         private void CloseDetail()
         {
@@ -225,7 +223,6 @@ namespace BiRyeoDo.Game.UI
         {
             if (!_built) return;
             CloseDetail();
-            if (_masteryHelp != null) _masteryHelp.gameObject.SetActive(false);
         }
 
         private void RefreshDots()
