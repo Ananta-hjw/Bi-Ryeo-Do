@@ -537,13 +537,16 @@ namespace BiRyeoDo.Game.UI
             _layoutDirty = true;
         }
 
-        private static string ConsumableSummary(ItemData item)
+        /// <summary>"체력 100% 회복\n내공 가득\n기세 +100" (lines joined with <paramref name="separator"/>).</summary>
+        public static string ConsumableSummary(ItemData item, string separator = "\n")
         {
             var effects = new List<string>();
             if (item.HealPct > 0f) effects.Add("체력 " + Mathf.RoundToInt(item.HealPct * 100f) + "% 회복");
             if (item.QiRestore > 0) effects.Add("내공 " + (item.QiRestore >= 999 ? "가득" : "+" + item.QiRestore));
             if (item.SpiritGain > 0) effects.Add("기세 +" + item.SpiritGain);
-            return effects.Count > 0 ? string.Join("\n", effects) : "전투 소모품";
+            if (item.Cleanse) effects.Add("상태 이상 해제");
+            if (item.MasteryUses > 0) effects.Add("숙련 +" + item.MasteryUses + "회");
+            return effects.Count > 0 ? string.Join(separator, effects) : "전투 소모품";
         }
 
         private void CreateCard()

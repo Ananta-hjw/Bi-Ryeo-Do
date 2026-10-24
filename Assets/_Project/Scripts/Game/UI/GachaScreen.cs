@@ -28,7 +28,14 @@ namespace BiRyeoDo.Game.UI
         private Text _emptyNote;
         private readonly List<Card> _cards = new List<Card>();
         private readonly List<RectTransform> _resultRows = new List<RectTransform>();
-        private ReadingList _resultsLayout;
+        private RectTransform _resultsContent;
+        private const float ResultRowHeight = 320f, ResultGap = 16f;
+
+        /// <summary>Scroll height for the visible result rows (rows have a fixed height).</summary>
+        private void FitResults(int rows)
+        {
+            _resultsContent.sizeDelta = new Vector2(_resultsContent.sizeDelta.x, ResultGap + rows * (ResultRowHeight + ResultGap));
+        }
         private ScrollRect _resultsScroll;
         private RectTransform _poolRoot;
         private bool _built, _busy;
@@ -62,13 +69,13 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Label("Count", chip.transform, new Vector2(0.04f, 0f), new Vector2(0.96f, 0.5f), Gacha.Pool(grade).Count + "종", 30, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
             }
 
-            // Result cards share a measured row, keeping five columns aligned as effects wrap.
+            // Result cards sit in fixed-height rows of five (a long description must not stretch a row; consumables show a short summary).
             _emptyNote = UiFactory.Label("Empty", root, new Vector2(.35f, .28f), new Vector2(.96f, .80f), "아직 뽑지 않았습니다.\n왼쪽 버튼으로 뽑아 보세요.\n등급·확률을 누르면 획득 가능한 목록이 열립니다.", 32, UiFactory.Dim, TextAnchor.LowerCenter, FontStyle.Normal);
             UiFactory.Glyph("gacha", _emptyNote.transform, new Vector2(.3f, .35f), new Vector2(.7f, .94f), new Color(.83f, .72f, .48f, .35f));
             var resultsContent = CodexPanel.Scroller(root, .14f, .855f);
             LandscapeMenu.Place((RectTransform)resultsContent.parent, .33f, .14f, .985f, .855f);
             _resultsScroll = resultsContent.parent.GetComponent<ScrollRect>();
-            const float rowHeight = 320f, gap = 16f;
+            const float rowHeight = ResultRowHeight, gap = ResultGap;
             RectTransform row = null;
             for (int i = 0; i < Gacha.FiftyPullCount; i++)
             {
@@ -79,7 +86,6 @@ namespace BiRyeoDo.Game.UI
                     row.pivot = new Vector2(.5f, 1f);
                     row.sizeDelta = new Vector2(0f, rowHeight);
                     row.anchoredPosition = new Vector2(0f, -gap - rowIndex * (rowHeight + gap));
-                    ReadingList.Register(row, rowHeight, gap);
                     _resultRows.Add(row);
                     row.gameObject.SetActive(false);
                 }
@@ -101,7 +107,7 @@ namespace BiRyeoDo.Game.UI
                 c.Root.SetActive(false);
                 _cards.Add(c);
             }
-            _resultsLayout = resultsContent.GetComponent<ReadingList>();
+            _resultsContent = resultsContent;
 
             // Buttons: 1 / 10 / 50 pulls
             for (int i = 0; i < 3; i++)
@@ -224,7 +230,7 @@ namespace BiRyeoDo.Game.UI
             foreach (var c in _cards) c.Root.SetActive(false);
             foreach (var row in _resultRows) row.gameObject.SetActive(false);
             _resultsScroll.StopMovement();
-            _resultsLayout.Reflow(true);
+            FitResults(0);
             Canvas.ForceUpdateCanvases();
             _resultsScroll.verticalNormalizedPosition = 1f;
             Refresh();
@@ -245,15 +251,11 @@ namespace BiRyeoDo.Game.UI
                 card.Frame.color = UiFactory.GradeColor(item.Grade);
                 ItemArt.Apply(card.Icon, card.IconGlyph, item);
                 card.Name.text = UiFactory.GradedName(item);
-                card.Effect.text = item.IsGear ? UiFactory.GearEffectText(item) : item.Description;
+                card.Effect.text = item.IsGear ? UiFactory.GearEffectText(item) : item.Kind == ItemKind.Consumable ? BagScreen.ConsumableSummary(item, "  ") : item.Kind == ItemKind.Material ? "재료" : "중요 물품";
                 card.Tag.text = r.Duplicate ? "여분 +1" : item.IsGear ? "NEW" : "";
                 _resultRows[i / 5].gameObject.SetActive(true);
                 card.Root.SetActive(true);
-                if (animate)
-                {
-                    Canvas.ForceUpdateCanvases();
-                    _resultsLayout.Reflow(true);
-                }
+                FitResults(i / 5 + 1);
                 if (animate) SoundManager.Sfx(item.Grade >= ItemGrade.Legendary ? "gacha_mythic" : item.Grade >= ItemGrade.Epic ? "gacha_rare" : "gacha_pull");
                 if (animate && item.Grade >= ItemGrade.Epic) SoundManager.Haptic(item.Grade >= ItemGrade.Legendary ? 150 : 60);
                 if (animate) yield return new WaitForSeconds(shown.Count > 10 ? .04f : shown.Count > 1 ? .14f : .05f);
@@ -262,7 +264,6 @@ namespace BiRyeoDo.Game.UI
             if (!animate)
             {
                 Canvas.ForceUpdateCanvases();
-                _resultsLayout.Reflow(true);
                 _resultsScroll.verticalNormalizedPosition = 1f;
             }
             var parts = new List<string>();
