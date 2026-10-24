@@ -197,7 +197,7 @@ namespace BiRyeoDo.Tests
                 Assert.AreEqual(shared.AtkMul, actual.AtkMul);
                 Assert.AreEqual(shared.BuildStats().MaxHp, actual.BuildStats().MaxHp);
                 Assert.Greater(actual.HpMul, raw.HpMul);
-                Assert.Greater(actual.AtkMul, raw.AtkMul);
+                Assert.Greater(actual.AtkMul, raw.AtkMul * (difficulty == 0 && number >= StageStars.NormalStatEaseFromStage ? StageStars.NormalStatEase : 1f));   // 일반 8+ attack is eased x0.8
                 if (prior != null)
                 {
                     Assert.Greater(actual.BuildStats().MaxHp, prior.BuildStats().MaxHp);
