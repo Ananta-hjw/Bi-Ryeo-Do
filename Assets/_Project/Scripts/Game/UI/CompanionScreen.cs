@@ -198,10 +198,11 @@ namespace BiRyeoDo.Game.UI
             var arts = EarlyGameContent.Arts.Where(art => (hero ? art.OwnerId == null : art.OwnerId == _owner)
                 && unit.Skills.Any(skill => skill.Id == art.Id)).ToList();
             var summary = UiFactory.Panel("ArtsSummary", _page, new Vector2(0f, .82f), Vector2.one, UiFactory.Ink).rectTransform;
-            Text(summary, "Heading", .03f, .47f, .97f, .98f, (hero ? "장착 중인 무공" : "현재 사용 무공") + " · " + arts.Count + "개", 32, UiFactory.Gold);
-            Text(summary, "Note", .03f, .03f, .97f, .46f, "전투에 적용되는 효과와 소모 자원을 표시합니다.", 24, UiFactory.Dim);
-            // Two cards per row
-            var list = List(_page, 0f, hero ? .19f : .08f, 1f, .80f, (arts.Count + 1) / 2, 300f);
+            Text(summary, "Heading", .03f, .47f, hero ? .84f : .97f, .98f, (hero ? "장착 중인 무공" : "현재 사용 무공") + " · " + arts.Count + "개", 32, UiFactory.Gold);
+            Text(summary, "Note", .03f, .03f, hero ? .84f : .97f, .46f, hero ? "전투에 적용되는 효과와 소모 자원을 표시합니다." : "동료 무공은 레벨과 수련에 따라 자동으로 적용됩니다.", 24, UiFactory.Dim);
+            if (hero) SummaryButton(summary, "ArtsMenu", _openArts);
+            // Two cards per row, using the whole page below the summary bar
+            var list = List(_page, 0f, 0f, 1f, .80f, (arts.Count + 1) / 2, 300f);
             for (int i = 0; i < arts.Count; i++)
             {
                 var art = arts[i]; var spec = unit.Skills.First(skill => skill.Id == art.Id);
@@ -230,8 +231,6 @@ namespace BiRyeoDo.Game.UI
                 Text(row, "Description", .04f, .04f, .97f, .33f, art.Description, 24, UiFactory.PaperText);
             }
             if (arts.Count == 0) Text(_page, "Empty", .04f, .40f, .96f, .70f, "현재 장착 중인 무공이 없습니다.", 30, UiFactory.Dim);
-            if (hero) Button(_page, "ArtsMenu", .25f, .005f, .75f, .17f, "무공 변경 · 관리", _openArts);
-            else Text(_page, "AutoArts", .02f, .005f, .98f, .07f, "동료 무공은 레벨과 수련에 따라 자동으로 적용됩니다.", 24, UiFactory.Dim);
         }
 
         /// <summary>심법 page: the inner arts 비류연 has equipped, as two cards per row like the 무공 page (companions have none).</summary>
@@ -244,9 +243,10 @@ namespace BiRyeoDo.Game.UI
             }
             var equipped = Save.EquippedInner.Select(InnerArts.Find).Where(a => a != null).ToList();
             var summary = UiFactory.Panel("InnerSummary", _page, new Vector2(0f, .82f), Vector2.one, UiFactory.Ink).rectTransform;
-            Text(summary, "Heading", .03f, .47f, .97f, .98f, "장착 중인 심법 · " + equipped.Count + " / " + InnerArts.SlotCount(Save) + "칸", 32, UiFactory.Gold);
-            Text(summary, "Note", .03f, .03f, .97f, .46f, "초록은 얻는 효과, 빨강은 잃는 효과입니다.", 24, UiFactory.Dim);
-            var list = List(_page, 0f, .19f, 1f, .80f, (equipped.Count + 1) / 2, 300f);
+            Text(summary, "Heading", .03f, .47f, .84f, .98f, "장착 중인 심법 · " + equipped.Count + " / " + InnerArts.SlotCount(Save) + "칸", 32, UiFactory.Gold);
+            Text(summary, "Note", .03f, .03f, .84f, .46f, "초록은 얻는 효과, 빨강은 잃는 효과입니다.", 24, UiFactory.Dim);
+            SummaryButton(summary, "InnerMenu", _openInner);
+            var list = List(_page, 0f, 0f, 1f, .80f, (equipped.Count + 1) / 2, 300f);
             for (int i = 0; i < equipped.Count; i++)
             {
                 var a = equipped[i];
@@ -266,7 +266,13 @@ namespace BiRyeoDo.Game.UI
                 Text(card, "Description", .04f, .04f, .97f, .38f, a.Description, 24, UiFactory.PaperText);
             }
             if (equipped.Count == 0) Text(_page, "Empty", .04f, .40f, .96f, .70f, "현재 장착 중인 심법이 없습니다.", 30, UiFactory.Dim);
-            Button(_page, "InnerMenu", .25f, .005f, .75f, .17f, "심법 변경 · 관리", _openInner);
+        }
+
+        /// <summary>Small 「변경」 button at the right end of an equipped-arts summary bar; opens the 무공 tab on the matching page.</summary>
+        private static void SummaryButton(RectTransform summary, string name, Action action)
+        {
+            var button = UiFactory.Button(name, summary, new Vector2(.86f, .2f), new Vector2(.98f, .8f), "변경", UiFactory.Red, () => action(), 26);
+            UiFactory.Frame(button.transform, UiFactory.GoldDim, 1f);
         }
 
         /// <summary>Card <paramref name="index"/> of a two-column list: rows of two, each row measured as one so a long card grows its row.</summary>

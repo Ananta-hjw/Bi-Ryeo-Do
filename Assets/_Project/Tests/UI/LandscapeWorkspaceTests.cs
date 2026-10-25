@@ -172,15 +172,15 @@ namespace BiRyeoDo.Tests.UI
             CollectionAssert.AreEqual(new[] { "상태", "무공", "심법", "인연" }, tabs.Select(t => t.GetComponentInChildren<Text>().text).ToArray());
             Click("Pages/Page1");
             Assert.IsNull(_canvas.transform.Find("Page/HeroGrowthViewport"));
-            Assert.IsNotNull(_canvas.transform.Find("Page/ArtsMenu"));
+            Assert.IsNotNull(_canvas.transform.Find("Page/ArtsSummary/ArtsMenu"));
             // 심법: the equipped inner arts as two-column cards, like 무공
             Click("Pages/Page2");
-            Assert.IsNotNull(_canvas.transform.Find("Page/InnerMenu"));
+            Assert.IsNotNull(_canvas.transform.Find("Page/InnerSummary/InnerMenu"));
             var innerContent = _canvas.transform.Find("Page/List/Viewport/Content");
             Assert.AreEqual(_save.EquippedInner.Count, innerContent.GetComponentsInChildren<Transform>().Count(t => t.parent != null && t.parent.parent == innerContent && t.name.StartsWith("Card")));
             var companion = EarlyGameContent.Companions.First();
             ChoosePerson(companion.Id);
-            Assert.IsNull(_canvas.transform.Find("Page/InnerMenu"), "companions have no 심법");
+            Assert.IsNull(_canvas.transform.Find("Page/InnerSummary/InnerMenu"), "companions have no 심법");
             Click("Pages/Page3");
             const string trainingPath = "Page/List/Viewport/Content/Row0/Train";
             Assert.IsTrue(_canvas.transform.Find(trainingPath).GetComponent<Button>().interactable);
