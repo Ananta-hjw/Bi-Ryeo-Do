@@ -8,15 +8,28 @@ namespace BiRyeoDo.Game.UI
     public static class UiFactory
     {
         // Ink, celadon, aged paper and cinnabar: shared across every menu.
-        public static readonly Color Parchment = new Color(.035f, .065f, .067f, 1f);
-        public static readonly Color Ink = new Color(.065f, .105f, .108f, .97f);
-        public static readonly Color InkSoft = new Color(.13f, .19f, .19f, .96f);
-        public static readonly Color Red = new Color(.66f, .22f, .17f, 1f);
-        public static readonly Color Gold = new Color(.83f, .72f, .48f, 1f);
-        public static readonly Color GoldDim = new Color(.46f, .41f, .29f, 1f);
+        public static readonly Color Parchment = new Color(.025f, .045f, .035f, 1f);
+        public static readonly Color Ink = new Color(.025f, .055f, .043f, .94f);
+        public static readonly Color InkSoft = new Color(.09f, .14f, .105f, .95f);
+        public static readonly Color Red = new Color(.68f, .25f, .16f, 1f);
+        public static readonly Color Gold = new Color(.88f, .77f, .49f, 1f);
+        public static readonly Color GoldDim = new Color(.58f, .49f, .30f, 1f);
         public static readonly Color PaperText = new Color(.94f, .91f, .82f, 1f);
         public static readonly Color Dim = new Color(.73f, .78f, .73f, 1f);
         public static readonly Color Jade = new Color(.39f, .62f, .55f, 1f);
+
+        public static readonly Color HeaderInk = new Color(.025f, .045f, .035f, .88f);
+        public static readonly Color MenuWash = new Color(.02f, .045f, .03f, .24f);
+        public static readonly Color ModalInk = new Color(.025f, .05f, .038f, .98f);
+
+        /// <summary>Readable landscape painting behind management pages; decoration never intercepts input.</summary>
+        public static void MenuBackdrop(RectTransform root, string key)
+        {
+            var scenery = Panel("MenuScenery", root, Vector2.zero, Vector2.one, Color.white);
+            scenery.sprite = Systems.SceneryArt.Menu(key);
+            BackgroundCover.Apply(scenery);
+            Panel("MenuWash", root, Vector2.zero, Vector2.one, MenuWash);
+        }
 
         public const string BreakthroughHex = "#8ECFFF";
         private const string LockedTraitHex = "#9CA6A0";
@@ -104,7 +117,7 @@ namespace BiRyeoDo.Game.UI
         public static void Frame(Transform parent, Color color, float thickness = 3f)
         {
             var graphic = Rect("Frame", parent, Vector2.zero, Vector2.one).gameObject.AddComponent<WuxiaGlyph>();
-            graphic.Key = "frame";
+            graphic.Key = "lobby_frame";
             graphic.Stroke = thickness;
             graphic.color = color;
             graphic.raycastTarget = false;
@@ -203,7 +216,7 @@ namespace BiRyeoDo.Game.UI
             t.resizeTextMinSize = Mathf.Min(size, 28);
             t.resizeTextMaxSize = size;
             t.raycastTarget = false;
-            if (name == "Title" || name == "Header") Heading(t);
+            if (name == "Title" || name == "Header" || name == "Chapter") Heading(t);
             var shadow = t.gameObject.AddComponent<Shadow>();
             shadow.effectColor = new Color(0f, 0f, 0f, 0.45f);
             shadow.effectDistance = new Vector2(1f, -1f);
@@ -342,7 +355,7 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <summary>
-        /// The page header: icon and info line, plus the ? and header buttons placed with <see cref="HelpButton"/> / <see cref="CenterInHeader"/>.
+        /// The page header: a standalone icon/name or live information in the common back bar, plus controls placed with <see cref="HelpButton"/> / <see cref="CenterInHeader"/>.
         /// Inside a screen with a top bar it is drawn in that bar and the page grows upward by the old band's height, so nothing is left in its place;
         /// elsewhere (pop-ups, tests) it is the old band at the top of the page.
         /// </summary>
@@ -353,12 +366,8 @@ namespace BiRyeoDo.Game.UI
             {
                 var page = (RectTransform)parent;
                 page.offsetMax = new Vector2(page.offsetMax.x, page.offsetMax.y + TabHeaderMargin + TabHeaderHeight);
-                var mark = Glyph(icon, host, new Vector2(0f, .5f), new Vector2(0f, .5f), Gold);
-                mark.rectTransform.pivot = new Vector2(0f, .5f);
-                mark.rectTransform.sizeDelta = new Vector2(64f, 64f);
-                mark.Stroke = 3f;
                 var info = Label("Header", host, new Vector2(0f, .08f), new Vector2(titleRight, .92f), title, 36, Gold, TextAnchor.MiddleLeft);
-                info.rectTransform.offsetMin = new Vector2(80f, 0f);
+                info.rectTransform.offsetMin = Vector2.zero;
                 return info;
             }
             var band = TopLane("HeaderBand", parent);
@@ -373,6 +382,13 @@ namespace BiRyeoDo.Game.UI
             var text = Label("Header", band, new Vector2(0f, .10f), new Vector2(titleRight, .90f), title, 40, Gold, TextAnchor.MiddleLeft);
             text.rectTransform.offsetMin = new Vector2(128f, 0f);
             return text;
+        }
+
+        /// <summary>The common back bar owns the icon and tab name; page headers only add their live information.</summary>
+        public static void SetTabHeader(Text header, string tabName, string information = "")
+        {
+            header.text = HeaderSlotFor(header.transform) != null ? information
+                : tabName + (string.IsNullOrEmpty(information) ? "" : " · " + information);
         }
 
         public static void CenterInHeader(RectTransform rect, float height)
@@ -466,7 +482,7 @@ namespace BiRyeoDo.Game.UI
             tap.targetGraphic = dim;
             tap.transition = Selectable.Transition.None;
             tap.onClick.AddListener(() => window.gameObject.SetActive(false));
-            var card = Panel("Card", window, new Vector2(.15f, .10f), new Vector2(.85f, .90f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            var card = Panel("Card", window, new Vector2(.15f, .10f), new Vector2(.85f, .90f), UiFactory.ModalInk);
             Frame(card.transform, GoldDim, 3f);
             Label("Title", card.transform, new Vector2(0.05f, 0.86f), new Vector2(0.95f, 0.98f), title, 40, Gold);
             card.raycastTarget = true;
@@ -485,7 +501,7 @@ namespace BiRyeoDo.Game.UI
             var window = Rect("ConfirmWindow", parent, Vector2.zero, Vector2.one);
             var dim = window.gameObject.AddComponent<Image>();
             dim.color = new Color(0f, 0f, 0f, 0.78f);   // blocks taps on what is underneath
-            var card = Panel("Card", window, new Vector2(.20f, .22f), new Vector2(.80f, .78f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            var card = Panel("Card", window, new Vector2(.20f, .22f), new Vector2(.80f, .78f), UiFactory.ModalInk);
             Frame(card.transform, Red, 3f);
             card.raycastTarget = true;
             Label("Title", card.transform, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.96f), title, 40, Red);
@@ -547,7 +563,7 @@ namespace BiRyeoDo.Game.UI
             btn.colors = colors;
             if (onClick != null) btn.onClick.AddListener(onClick);
             btn.onClick.AddListener(() => Systems.SoundManager.Sfx("ui_click"));
-            if (bg.a > 0.05f) Frame(img.transform, GoldDim, 2f);
+            if (bg.a > 0.05f) Frame(img.transform, bg == Red ? Gold : GoldDim, 2f);
             Label("Label", img.transform, new Vector2(.05f, .08f), new Vector2(.95f, .92f), label, Mathf.Max(30, fontSize), PaperText);
             return btn;
         }

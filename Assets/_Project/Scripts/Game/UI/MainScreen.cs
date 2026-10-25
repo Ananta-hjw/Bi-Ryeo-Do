@@ -65,10 +65,7 @@ namespace BiRyeoDo.Game.UI
             {
                 var panel = UiFactory.Rect("Panel_" + TabNames[i], content, Vector2.zero, Vector2.one);
                 panels[i] = panel.gameObject;
-                var scenery = UiFactory.Panel("TabScenery", panel, Vector2.zero, Vector2.one, Color.white);
-                scenery.sprite = SceneryArt.Menu(TabSceneryKeys[i]);
-                BackgroundCover.Apply(scenery);
-                UiFactory.Panel("SceneryDim", panel, Vector2.zero, Vector2.one, new Color(.01f, .025f, .025f, .50f));
+                UiFactory.MenuBackdrop(panel, TabSceneryKeys[i]);
                 if (i != (int)TabRouter.Tab.World)
                 {
                     panel.gameObject.AddComponent<Image>().color = UiFactory.Parchment;
@@ -177,8 +174,8 @@ namespace BiRyeoDo.Game.UI
             var bar = UiFactory.Rect("BackBar", panel, new Vector2(0f, 1f), Vector2.one);
             bar.offsetMin = Vector2.zero;
             bar.offsetMax = new Vector2(0f, BackBarHeight);
-            UiFactory.Panel("BackBarBg", bar, Vector2.zero, Vector2.one, UiFactory.Ink);
-            UiFactory.Panel("BackBarRule", bar, Vector2.zero, new Vector2(1f, .03f), UiFactory.GoldDim);
+            UiFactory.Panel("BackBarBg", bar, Vector2.zero, Vector2.one, UiFactory.HeaderInk);
+            UiFactory.Panel("BackBarRule", bar, Vector2.zero, new Vector2(1f, .018f), UiFactory.Gold);
             var back = UiFactory.Button("Back", bar, new Vector2(0f, .5f), new Vector2(0f, .5f), "", Color.clear, GoBack, 28);
             var rect = (RectTransform)back.transform;
             rect.pivot = new Vector2(0f, .5f);
@@ -186,11 +183,19 @@ namespace BiRyeoDo.Game.UI
             rect.sizeDelta = new Vector2(BackBarHeight * 1.3f, BackBarHeight - 8f);
             var arrow = UiFactory.Glyph("back", back.transform, new Vector2(.12f, .1f), new Vector2(.88f, .9f), UiFactory.Gold);
             arrow.raycastTarget = false;
-            float titleLeft = 16f + BackBarHeight * 1.3f + 12f, titleWidth = 150f;
+            int tabIndex = System.Array.IndexOf(TabNames, title);
+            string iconKey = tabIndex >= 0 ? TabSceneryKeys[tabIndex] : title;
+            if (iconKey == "companions") iconKey = "companion";
+            float iconLeft = 16f + BackBarHeight * 1.3f + 12f;
+            var icon = UiFactory.Glyph(iconKey, bar, new Vector2(0f, .5f), new Vector2(0f, .5f), UiFactory.Gold);
+            icon.rectTransform.pivot = new Vector2(0f, .5f);
+            icon.rectTransform.anchoredPosition = new Vector2(iconLeft, 0f);
+            icon.rectTransform.sizeDelta = new Vector2(64f, 64f);
+            float titleLeft = iconLeft + 80f, titleWidth = 150f;
             var name = UiFactory.Label("Title", bar, new Vector2(0f, 0f), new Vector2(0f, 1f), title, 36, UiFactory.Gold, TextAnchor.MiddleLeft);
             name.rectTransform.offsetMin = new Vector2(titleLeft, 0f);
             name.rectTransform.offsetMax = new Vector2(titleLeft + titleWidth, 0f);
-            // The screen's own header (icon, info, ? and header buttons) is drawn here instead of in a band of its own (UiFactory.TabHeader).
+            // Each page adds live information and controls here; the common icon and name stay above.
             var info = UiFactory.Rect("Info", bar, Vector2.zero, Vector2.one);
             info.offsetMin = new Vector2(titleLeft + titleWidth + 16f, 6f);
             info.offsetMax = new Vector2(-16f, -6f);
@@ -265,7 +270,7 @@ namespace BiRyeoDo.Game.UI
             _realmModal = rt.gameObject;
             var dim = rt.gameObject.AddComponent<Image>();
             dim.color = new Color(0f, 0f, 0f, 0.7f);   // blocks everything underneath
-            var card = UiFactory.Panel("Card", rt, new Vector2(0.05f, 0.17f), new Vector2(0.95f, 0.83f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            var card = UiFactory.Panel("Card", rt, new Vector2(0.05f, 0.17f), new Vector2(0.95f, 0.83f), UiFactory.ModalInk);
             UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
             _realmTitle = UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.82f), new Vector2(0.95f, 0.97f), "", 46, UiFactory.Gold);
             _realmBody = UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.24f), new Vector2(0.94f, 0.82f), "", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 36));

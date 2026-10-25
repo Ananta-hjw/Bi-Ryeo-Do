@@ -27,7 +27,7 @@ namespace BiRyeoDo.Game.UI
             var dim = rect.gameObject.AddComponent<Image>();
             dim.color = new Color(0f, 0f, 0f, 0.72f);   // blocks taps on whatever is underneath
 
-            var card = UiFactory.Panel("Card", rect, new Vector2(.12f, .10f), new Vector2(.88f, .90f), new Color(0.05f, 0.07f, 0.11f, 0.98f));
+            var card = UiFactory.Panel("Card", rect, new Vector2(.12f, .10f), new Vector2(.88f, .90f), UiFactory.ModalInk);
             UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
             _title = UiFactory.ScrollBody(UiFactory.Label("Title", card.transform, new Vector2(.045f, .56f), new Vector2(.29f, .94f), "", 38, UiFactory.Gold), 38);
             UiFactory.Panel("Line", card.transform, new Vector2(.31f, .08f), new Vector2(.312f, .94f), UiFactory.GoldDim);

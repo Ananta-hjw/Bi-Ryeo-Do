@@ -57,7 +57,7 @@ namespace BiRyeoDo.Game.UI
                 var grade = (ItemGrade)g;
                 int col = g % 3, gradeRow = g / 3;
                 float x0 = 0.02f + col * 0.325f, y1 = gradeRow == 0 ? 0.94f : 0.48f;
-                var chip = UiFactory.Panel("Chip" + g, odds.transform, new Vector2(x0, y1 - 0.42f), new Vector2(x0 + 0.31f, y1), new Color(0.04f, 0.05f, 0.08f, 0.9f));
+                var chip = UiFactory.Panel("Chip" + g, odds.transform, new Vector2(x0, y1 - 0.42f), new Vector2(x0 + 0.31f, y1), UiFactory.Ink);
                 chip.raycastTarget = true;
                 var openPool = chip.gameObject.AddComponent<Button>();
                 openPool.targetGraphic = chip;
@@ -149,7 +149,6 @@ namespace BiRyeoDo.Game.UI
                     row.pivot = new Vector2(.5f, 1f);
                     row.sizeDelta = new Vector2(0f, rowHeight);
                     row.anchoredPosition = new Vector2(0f, -gap - rowIndex * (rowHeight + gap));
-                    ReadingList.Register(row, rowHeight, gap);
                 }
                 var item = pool[i];
                 float left = i % 5 * .202f;
@@ -160,14 +159,14 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Frame(cell, UiFactory.GradeColor(grade), 2f);
                 var icon = UiFactory.TopIcon(cell, 104f, 16f);
                 ItemArt.Apply(icon, UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, "", 40, UiFactory.Gold), item);
-                UiFactory.Body(UiFactory.Label("Name", cell, new Vector2(.05f, .38f), new Vector2(.95f, .59f), item.Name, 22, UiFactory.PaperText, TextAnchor.MiddleCenter));
-                UiFactory.Body(UiFactory.Label("Effect", cell, new Vector2(.05f, .12f), new Vector2(.95f, .36f), item.IsGear ? UiFactory.GearEffectText(item) : item.Description, 22, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal));
+                UiFactory.Label("Name", cell, new Vector2(.05f, .38f), new Vector2(.95f, .59f), item.Name, 22, UiFactory.PaperText, TextAnchor.MiddleCenter);
+                UiFactory.Label("Effect", cell, new Vector2(.05f, .12f), new Vector2(.95f, .36f), item.IsGear ? UiFactory.GearEffectText(item) : BagScreen.ConsumableSummary(item, " · "), 20, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal);
                 UiFactory.Label("Set", cell, new Vector2(.05f, .015f), new Vector2(.95f, .11f), item.IsGear ? "세트: " + (Gear.SetOf(item.Id)?.Name ?? "없음") : "소모품", 20, UiFactory.Gold, TextAnchor.MiddleLeft);
             }
             UiFactory.BackButton(card.transform, new Vector2(.30f, .015f), new Vector2(.70f, .14f), ClosePool);
             Canvas.ForceUpdateCanvases();
-            var layout = content.GetComponent<ReadingList>();
-            if (layout != null) layout.Reflow();
+            // Fixed rows keep long names and descriptions from stretching every card.
+            content.sizeDelta = new Vector2(0f, gap + ((pool.Count + 4) / 5) * (rowHeight + gap));
         }
 
         private void ClosePool() { if (_poolRoot != null) _poolRoot.gameObject.SetActive(false); }
@@ -194,7 +193,7 @@ namespace BiRyeoDo.Game.UI
         private void Refresh()
         {
             var save = GameManager.Instance.Save;
-            _header.text = "뽑기 · " + save.Doo.ToString("N0") + "은자";
+            UiFactory.SetTabHeader(_header, "뽑기", save.Doo.ToString("N0") + "은자");
             for (int i = 0; i < 3; i++)
             {
                 int n = _sizes[i];

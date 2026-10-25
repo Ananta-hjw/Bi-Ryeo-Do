@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using BiRyeoDo.Core;
 using BiRyeoDo.Game.UI;
+using BiRyeoDo.Game.Systems;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UI;
@@ -172,6 +173,55 @@ namespace BiRyeoDo.Tests.UI
             var skip = story.Find("Skip").GetComponent<Button>();
             Assert.IsNotNull(skip);
             Assert.IsFalse(Intersects(Anchors((RectTransform)skip.transform), Anchors((RectTransform)story.Find("Text"))));
+        }
+
+        [Test]
+        public void CombatPortraitsUseSdEvenWhenAStandingPortraitExists()
+        {
+            Build(1920f);
+            var ids = new List<string> { Inventory.Hero };
+            var names = new List<string> { StoryLine.Protagonist };
+            foreach (var companion in EarlyGameContent.Companions) { ids.Add(companion.Id); names.Add(companion.Name); }
+            for (int i = 0; i < ids.Count; i++)
+            {
+                var unit = new Combatant(ids[i], names[i], Team.Player, default(CombatStats), new SkillSpec[0]);
+                var sprite = (Sprite)Invoke("UnitPortrait", unit);
+                Assert.AreSame(ArtLibrary.SdFigure(ids[i]), sprite);
+                Assert.AreNotSame(ArtLibrary.CharacterPortrait(names[i]), sprite);
+            }
+        }
+
+        [TestCase(1440f)]
+        [TestCase(1920f)]
+        [TestCase(2400f)]
+        public void DialogueUsesLobbyStandingArtWithoutCoveringChapterOrOtherSpeaker(float width)
+        {
+            Build(width);
+            var names = new List<string> { StoryLine.Protagonist };
+            foreach (var companion in EarlyGameContent.Companions) names.Add(companion.Name);
+            var story = _canvas.transform.Find("Story");
+            foreach (string name in names)
+            {
+                for (int side = 0; side < 2; side++)
+                {
+                    Invoke("ShowPortrait", side, name, side == 0);
+                    var window = (RectTransform)story.Find("Portrait" + side);
+                    var image = window.Find("StandingArt").GetComponent<Image>();
+                    Assert.AreSame(ArtLibrary.LobbyPortrait(name), image.sprite);
+                    Assert.AreSame(ArtLibrary.StandingPortrait(name), image.sprite);
+                    Assert.IsNotNull(window.GetComponent<RectMask2D>());
+                    Assert.IsFalse(image.raycastTarget);
+                    Assert.Less(window.anchorMax.y, ((RectTransform)story.Find("Skip")).anchorMin.y);
+                    Assert.Less(image.rectTransform.anchorMin.y, 0f);
+                    if (side == 0) Assert.LessOrEqual(window.anchorMax.x, .5f);
+                    else Assert.GreaterOrEqual(window.anchorMin.x, .5f);
+                }
+            }
+            Assert.IsNotNull(ArtLibrary.Player());
+            Assert.IsNotNull(ArtLibrary.Chibi("player"));
+            Assert.AreNotSame(ArtLibrary.Player(), ArtLibrary.StandingPortrait(StoryLine.Protagonist));
+            Invoke("ShowPortrait", 1, null, false);
+            Assert.IsNull(story.Find("Portrait1/StandingArt").GetComponent<Image>().sprite);
         }
 
         [TestCase(1440f)]

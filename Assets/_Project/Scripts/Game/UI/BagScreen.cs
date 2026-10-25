@@ -138,7 +138,7 @@ namespace BiRyeoDo.Game.UI
 
             bool gear = item.IsGear;
             int enh = gear ? Gear.Stars(save, item.Id) : 0;
-            var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, UiFactory.ModalInk);
             UiFactory.Frame(card.transform, UiFactory.GradeColor(item.Grade), 3f);
             var big = UiFactory.Panel("Picture", card.transform, new Vector2(0.66f, 0.82f), new Vector2(0.96f, 0.985f), Color.white);
             UiFactory.Frame(big.transform, UiFactory.GradeColor(item.Grade), 2f);
@@ -316,7 +316,7 @@ namespace BiRyeoDo.Game.UI
             _detailId = scroll.Id;
             LandscapeMenu.Clear(_detail);
             _detail.gameObject.SetActive(true);
-            var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, UiFactory.ModalInk);
             UiFactory.Frame(card.transform, UiFactory.GradeColor(scroll.Grade), 3f);
             UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.91f), new Vector2(0.95f, 0.99f), UiFactory.GradedName(scroll), 40, UiFactory.PaperText, TextAnchor.MiddleLeft);
             UiFactory.ScrollBody(UiFactory.Label("Hint", card.transform, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.91f), Inventory.Count(save, scroll.Id) > 0 ? "숙련을 +" + scroll.MasteryUses + "회(필살기 +" + Mastery.ScrollUses(scroll, PickUltimate()) + "회) 올릴 무공을 하나 고르세요. (보유 " + Inventory.Count(save, scroll.Id) + "개)" : "수련서를 모두 사용했습니다. 무공의 현재 숙련을 확인할 수 있습니다.", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal), 30);
@@ -430,7 +430,7 @@ namespace BiRyeoDo.Game.UI
             for (int i = _notice.childCount - 1; i >= 0; i--) Destroy(_notice.GetChild(i).gameObject);
             _notice.gameObject.SetActive(true);
             _notice.SetAsLastSibling();
-            var card = UiFactory.Panel("Card", _notice, new Vector2(0.05f, 0.15f), new Vector2(0.95f, 0.85f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            var card = UiFactory.Panel("Card", _notice, new Vector2(0.05f, 0.15f), new Vector2(0.95f, 0.85f), UiFactory.ModalInk);
             UiFactory.Frame(card.transform, accent, 3f);
             UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.70f), new Vector2(0.95f, 0.95f), title, 40, accent);
             UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(0.06f, 0.30f), new Vector2(0.94f, 0.70f), body, 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 36));
@@ -556,7 +556,7 @@ namespace BiRyeoDo.Game.UI
         {
             if (!_built) return;
             var save = GameManager.Instance.Save;
-            _header.text = "행낭 · " + save.Doo.ToString("N0") + "은자";
+            UiFactory.SetTabHeader(_header, "행낭", save.Doo.ToString("N0") + "은자");
             _hint.text = !string.IsNullOrEmpty(_flash) ? _flash : "";
             _flash = null;
 

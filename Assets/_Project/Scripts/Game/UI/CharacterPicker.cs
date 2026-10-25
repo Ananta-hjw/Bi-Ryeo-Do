@@ -43,7 +43,7 @@ namespace BiRyeoDo.Game.UI
                     }, 28);
                 UiFactory.Frame(button.transform, owner == selected ? UiFactory.Gold : UiFactory.GoldDim, 2f);
                 var portrait = UiFactory.Panel("Portrait", button.transform, new Vector2(.03f, .08f), new Vector2(.36f, .92f), Color.white);
-                portrait.sprite = ArtLibrary.Portrait(name); portrait.preserveAspect = true;
+                portrait.sprite = ArtLibrary.SdFigure(owner); portrait.preserveAspect = true;
                 if (portrait.sprite == null)
                 {
                     portrait.color = Color.clear;

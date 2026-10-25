@@ -43,7 +43,7 @@ namespace BiRyeoDo.Game.UI
         {
             if (_iconKey == Key) return;
             _iconKey = Key;
-            _icon = ArtLibrary.Icon(Key);
+            _icon = Key.StartsWith("line_") || Key == "lobby_frame" ? null : ArtLibrary.Icon(Key);
         }
 
         private void DrawIcon(VertexHelper mesh)
@@ -72,6 +72,7 @@ namespace BiRyeoDo.Game.UI
             ResolveIcon();
             if (_icon != null) { DrawIcon(mesh); return; }
             if (Key == "frame") { Frame(mesh); return; }
+            if (Key == "lobby_frame") { LobbyFrame(mesh); return; }
             if (Key == "stance")
             {
                 for (int i = 0; i < 48; i++)
@@ -83,7 +84,7 @@ namespace BiRyeoDo.Game.UI
                 }
                 return;
             }
-            string key = Key.Replace("tab_", "");
+            string key = Key.Replace("tab_", "").Replace("line_", "");
             switch (key)
             {
                 case "icon_rim":
@@ -124,6 +125,11 @@ namespace BiRyeoDo.Game.UI
                 case "arts": case "promotion":
                     Path(mesh, .34f,.3f, .55f,.82f, .69f,.93f, .7f,.74f, .46f,.26f);
                     Line(mesh,.23f,.36f,.59f,.2f); Line(mesh,.4f,.26f,.31f,.08f); Line(mesh,.23f,.13f,.37f,.06f);
+                    break;
+                case "challenge":
+                    Path(mesh, .18f,.13f, .74f,.86f, .83f,.91f, .80f,.77f, .25f,.09f);
+                    Path(mesh, .82f,.13f, .26f,.86f, .17f,.91f, .20f,.77f, .75f,.09f);
+                    Line(mesh,.09f,.28f,.34f,.08f); Line(mesh,.66f,.08f,.91f,.28f);
                     break;
                 case "tower":
                     for (int i = 0; i < 3; i++)
@@ -211,6 +217,26 @@ namespace BiRyeoDo.Game.UI
                 Segment(mesh,new Vector2(x,y),new Vector2(x,y+(y==bottom?cut:-cut)),Stroke,color);
             }
         }
+        private void LobbyFrame(VertexHelper mesh)
+        {
+            Frame(mesh);
+            float inset = Stroke * 2f;
+            float left = _bounds.xMin + inset, right = _bounds.xMax - inset;
+            float bottom = _bounds.yMin + inset, top = _bounds.yMax - inset;
+            Segment(mesh, new Vector2(left, top), new Vector2(right, top), 1f, color);
+            Segment(mesh, new Vector2(left, bottom), new Vector2(right, bottom), 1f, color);
+            Segment(mesh, new Vector2(left, bottom), new Vector2(left, top), 1f, color);
+            Segment(mesh, new Vector2(right, bottom), new Vector2(right, top), 1f, color);
+            foreach (float x in new[] { left, right }) foreach (float y in new[] { bottom, top })
+            {
+                float dx = x == left ? 1f : -1f, dy = y == bottom ? 1f : -1f;
+                var corner = new Vector2(x, y);
+                float reach = Mathf.Min(23f, _size * .18f);
+                Segment(mesh, corner + new Vector2(dx * reach * .22f, dy * reach), corner + new Vector2(dx * reach * .4f, dy * reach * .4f), Stroke, color);
+                Segment(mesh, corner + new Vector2(dx * reach * .4f, dy * reach * .4f), corner + new Vector2(dx * reach, dy * reach * .22f), Stroke, color);
+            }
+        }
+
         private static void Segment(VertexHelper mesh, Vector2 start, Vector2 end, float width, Color tint)
         {
             var direction = end - start;

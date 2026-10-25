@@ -31,7 +31,7 @@ namespace BiRyeoDo.Game.UI
             _built = true;
             _openStatus = openStatus;
 
-            UiFactory.TabHeader(root, "record", "기록", .97f);
+            UiFactory.SetTabHeader(UiFactory.TabHeader(root, "record", "", .97f), "기록");
 
             var workspace = UiFactory.Rect("Workspace", root, new Vector2(.27f, .025f), new Vector2(.98f, .855f));
             UiFactory.Panel("Background", workspace, Vector2.zero, Vector2.one, UiFactory.Ink);

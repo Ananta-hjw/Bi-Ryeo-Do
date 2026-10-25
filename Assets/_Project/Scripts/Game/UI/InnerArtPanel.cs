@@ -41,7 +41,8 @@ namespace BiRyeoDo.Game.UI
             // Same layout as the 무공 page: the list on the left, the inspector on the right.
             var list = UiFactory.Rect("List", Root, Vector2.zero, new Vector2(.645f, 1f));
             int slots = InnerArts.SlotCount(save);
-            var header = UiFactory.TabHeader(list, "arts", "심법 · 장착 " + save.EquippedInner.Count + "/" + slots, .97f);
+            var header = UiFactory.TabHeader(list, "arts", "", .97f);
+            UiFactory.SetTabHeader(header, "심법", "장착 " + save.EquippedInner.Count + "/" + slots);
             list.offsetMax = Vector2.zero;
             float bodyTop = header.transform.IsChildOf(list) ? .84f : .99f;
             UiFactory.HelpButton(list, () => { if (HelpPanel.Instance != null) HelpPanel.Instance.Show("inner"); });
@@ -124,7 +125,7 @@ namespace BiRyeoDo.Game.UI
             }
             bool unlocked = InnerArts.IsUnlocked(save, a), learned = InnerArts.IsLearned(save, a.Id), equipped = InnerArts.IsEquipped(save, a.Id);
             int level = InnerArts.Level(save, a.Id);
-            var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, UiFactory.ModalInk);
             UiFactory.Frame(card.transform, equipped ? UiFactory.Gold : UiFactory.GoldDim, 3f);
             var big = UiFactory.Panel("Picture", card.transform, new Vector2(0.66f, 0.84f), new Vector2(0.96f, 0.985f), unlocked ? Color.white : new Color(.45f, .45f, .48f));
             big.sprite = ArtLibrary.InnerArt(a.Id);

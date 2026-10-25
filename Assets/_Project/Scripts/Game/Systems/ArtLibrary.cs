@@ -32,17 +32,83 @@ namespace BiRyeoDo.Game.Systems
         public static Sprite Art(string artId) { return string.IsNullOrEmpty(artId) ? null : ReadableIconLibrary.Find("Art", artId) ?? Load("Arts/" + artId); }
         /// <summary>Individual passive-method icon, shared with the martial-arts workspace.</summary>
         public static Sprite InnerArt(string id) { return ReadableIconLibrary.Find("Inner", id); }
-        /// <summary>Small chibi figure used only on the battle field: <c>Battle/&lt;id&gt;.png</c> (player, companion id or enemy ArtKey), drawn facing right. Null when missing, and the battle falls back to the large portrait.</summary>
+        /// <summary>SD figure source: <c>Battle/&lt;id&gt;.png</c>, used on the field, combat summaries and compact character pickers.</summary>
         public static Sprite Chibi(string id) { return string.IsNullOrEmpty(id) ? null : Load("Battle/" + id); }
-        /// <summary>Stand-in battle figure for a character with neither a <c>Battle/</c> nor a <c>Characters/</c> picture: <c>Battle/default_assassin.png</c> for bandits and assassins, <c>default_woman.png</c> for the women listed in <c>Genders</c>, else <c>default_man.png</c> (all under <c>Battle/</c>). Null when that file is missing too.</summary>
+        /// <summary>Stand-in SD figure when a dedicated <c>Battle/</c> picture is missing: <c>Battle/default_assassin.png</c> for bandits and assassins, <c>default_woman.png</c> for the women listed in <c>Genders</c>, else <c>default_man.png</c> (all under <c>Battle/</c>). Null when that file is missing too.</summary>
         public static Sprite DefaultChibi(string artKey) { return Load("Battle/" + BiRyeoDo.Core.Genders.DefaultFigure(artKey)); }
         public static Sprite Player() { return Load("Characters/player"); }
         /// <summary>Party member portrait: <c>Characters/&lt;id&gt;.png</c> (e.g. hyo_ryong.png).</summary>
         public static Sprite Companion(string companionId) { return Load("Characters/" + companionId); }
 
+        /// <summary>Stable filename for a character name or ID; enemy art keys may differ from their battle IDs.</summary>
+        private static string CharacterKey(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return null;
+            if (name == BiRyeoDo.Core.StoryLine.Protagonist) return "player";
+            foreach (var companion in BiRyeoDo.Core.EarlyGameContent.Companions)
+                if (companion.Name == name || companion.Id == name) return companion.Id;
+            var cast = BiRyeoDo.Core.StoryCast.Find(name);
+            if (cast != null) return cast.Id;
+            foreach (var enemy in BiRyeoDo.Core.EarlyGameContent.Enemies)
+                if (enemy.Name == name || enemy.Id == name) return enemy.ArtKey;
+            return name;
+        }
+
+        /// <summary>All compact/combat character contexts stay in Battle/, including the fallback.</summary>
+        public static Sprite SdFigure(string nameOrId)
+        {
+            if (string.IsNullOrEmpty(nameOrId)) return null;
+            var exact = Chibi(nameOrId);
+            if (exact != null) return exact;
+            string key = CharacterKey(nameOrId);
+            return Chibi(key) ?? DefaultChibi(key);
+        }
+
+        /// <summary>Original non-combat art. Any character can be converted by adding Standing/&lt;id&gt;.png.</summary>
+        public static Sprite StandingPortrait(string name)
+        {
+            string key = CharacterKey(name);
+            return key == null ? null : Load("Standing/" + key);
+        }
+
+        /// <summary>Default presentation rule outside SD contexts: Standing first, then Characters.</summary>
+        public static Sprite CharacterPortrait(string name)
+        {
+            string key = CharacterKey(name);
+            return key == null ? null : StandingPortrait(name) ?? Portrait(name) ?? Load("Characters/" + key);
+        }
+
+        public static Sprite LobbyPortrait(string name) { return CharacterPortrait(name); }
+
+        /// <summary>The lobby and dialogue share standing originals; unconverted portraits retain soft edges.</summary>
+        public static Sprite DialoguePortrait(string name)
+        {
+            return StandingPortrait(name) ?? Feathered(CharacterPortrait(name));
+        }
+
+        /// <summary>Six painted lobby tiles, sliced at runtime without importing a sprite sheet.</summary>
+        public static Sprite LobbyCard(string key)
+        {
+            string[] keys = { "companion", "equipment", "arts", "gacha", "bag", "record" };
+            int index = System.Array.IndexOf(keys, key);
+            if (index < 0) return Icon(key);
+            string cacheKey = "LobbyCard/" + key;
+            Sprite sprite;
+            if (Cache.TryGetValue(cacheKey, out sprite)) return sprite;
+            var atlas = Resources.Load<Texture2D>("Art/Lobby/menu_cards");
+            if (atlas == null) return Icon(key);
+            float width = atlas.width / 3f, height = atlas.height / 2f;
+            // A small inset keeps neighbouring tile pixels outside bilinear sampling.
+            sprite = Sprite.Create(atlas, new Rect(index % 3 * width + 3f, (1 - index / 3) * height + 3f,
+                width - 6f, height - 6f), new Vector2(.5f, .5f), 100f);
+            Cache[cacheKey] = sprite;
+            return sprite;
+        }
+
         /// <summary>Portrait by character name: the protagonist, a companion, or an enemy/NPC whose name matches (e.g. 나예린 → the 빙백봉 art).</summary>
         public static Sprite Portrait(string name)
         {
+            if (string.IsNullOrEmpty(name)) return null;
             if (name == BiRyeoDo.Core.StoryLine.Protagonist) return Player();
             foreach (var c in BiRyeoDo.Core.EarlyGameContent.Companions) if (c.Name == name) return Companion(c.Id);
             var cast = BiRyeoDo.Core.StoryCast.Find(name);

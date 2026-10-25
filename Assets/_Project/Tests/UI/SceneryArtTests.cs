@@ -23,6 +23,59 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsNull(Resources.Load<Texture2D>("Art/Backgrounds/stage_01"));
         }
 
+        [TestCase("world")]
+        [TestCase("companions")]
+        [TestCase("equipment")]
+        [TestCase("arts")]
+        [TestCase("gacha")]
+        [TestCase("bag")]
+        [TestCase("record")]
+        public void MenuPaintingsAndGoldFramesLeaveInputAndContentUnobstructed(string key)
+        {
+            var go = new GameObject("MenuTest", typeof(RectTransform));
+            try
+            {
+                var root = go.GetComponent<RectTransform>();
+                UiFactory.MenuBackdrop(root, key);
+                UiFactory.Frame(root, UiFactory.Gold);
+                var art = root.Find("MenuScenery").GetComponent<Image>();
+                Assert.AreSame(SceneryArt.Menu(key), art.sprite);
+                Assert.IsNotNull(art.GetComponent<BackgroundCover>());
+                foreach (var graphic in root.GetComponentsInChildren<Graphic>()) Assert.IsFalse(graphic.raycastTarget);
+                Assert.IsEmpty(root.GetComponentsInChildren<Button>());
+                Assert.Greater(UiFactory.Ink.a, .9f, "Text panels must remain readable above paintings");
+                Assert.Less(root.Find("MenuWash").GetComponent<Image>().color.a, .3f);
+            }
+            finally { Object.DestroyImmediate(go); }
+        }
+
+        [TestCase("ShopOverlay", "companions")]
+        [TestCase("CodexOverlay", "record")]
+        [TestCase("DailyOverlay", "arts")]
+        [TestCase("PartyOverlay", "world")]
+        public void SecondaryMenusResolveTheSamePaintingFamily(string name, string expected)
+        {
+            Assert.AreEqual(expected, SceneryArt.PanelKey(name));
+            Assert.IsNotNull(SceneryArt.Menu(SceneryArt.PanelKey(name)));
+        }
+
+        [Test]
+        public void PresentationPortraitsPreferStandingAndFallBackToCharacters()
+        {
+            Assert.AreSame(ArtLibrary.StandingPortrait(StoryLine.Protagonist), ArtLibrary.CharacterPortrait(StoryLine.Protagonist));
+            foreach (var companion in EarlyGameContent.Companions)
+            {
+                Assert.AreSame(ArtLibrary.StandingPortrait(companion.Name), ArtLibrary.CharacterPortrait(companion.Name));
+                Assert.AreSame(ArtLibrary.CharacterPortrait(companion.Name), ArtLibrary.CharacterPortrait(companion.Id));
+            }
+            var enemy = EarlyGameContent.Enemies.First(e => ArtLibrary.StandingPortrait(e.Name) == null && ArtLibrary.Portrait(e.Name) != null);
+            Assert.AreSame(ArtLibrary.Portrait(enemy.Name), ArtLibrary.CharacterPortrait(enemy.Name));
+            Assert.IsNull(ArtLibrary.CharacterPortrait(null));
+            Assert.IsNull(ArtLibrary.CharacterPortrait("missing_portrait_for_test"));
+            Assert.IsNotNull(ArtLibrary.SdFigure("missing_sd_for_test"));
+            Assert.AreNotSame(ArtLibrary.CharacterPortrait(StoryLine.Protagonist), ArtLibrary.SdFigure(Inventory.Hero));
+        }
+
         [Test]
         public void EveryJourneyPageLoadsADistinctMapPainting()
         {

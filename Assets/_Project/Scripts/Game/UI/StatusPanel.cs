@@ -37,7 +37,7 @@ namespace BiRyeoDo.Game.UI
             // Header: portrait + name, level, rank, exp
             var head = Block(230f);
             var pic = UiFactory.Panel("Pic", head, new Vector2(0.02f, 0.06f), new Vector2(0.20f, 0.94f), ArtLibrary.TintFor("비류연"));
-            var sprite = ArtLibrary.Player();
+            var sprite = ArtLibrary.CharacterPortrait("비류연");
             if (sprite != null) { pic.sprite = sprite; pic.color = Color.white; pic.preserveAspect = true; }
             else UiFactory.Body(UiFactory.Label("Glyph", pic.transform, Vector2.zero, Vector2.one, "비", 56, UiFactory.PaperText));
             long need = Progression.ExpToNext(save.Level);
@@ -226,7 +226,7 @@ namespace BiRyeoDo.Game.UI
                 nameLabel.rectTransform.offsetMin = nameLabel.rectTransform.offsetMax = Vector2.zero;
                 nameLabel.color = selected ? UiFactory.Gold : UiFactory.PaperText;
                 var picture = UiFactory.Panel("Portrait", button.transform, new Vector2(.22f, .33f), new Vector2(.78f, .97f), Color.white);
-                picture.sprite = ArtLibrary.Portrait(name);
+                picture.sprite = ArtLibrary.SdFigure(id);
                 picture.preserveAspect = true;
                 if (picture.sprite == null)
                 {

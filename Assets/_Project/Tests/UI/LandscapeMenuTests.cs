@@ -78,6 +78,32 @@ namespace BiRyeoDo.Tests.UI
             Assert.GreaterOrEqual(Bounds((RectTransform)button.transform).height, 94f, path + " is too short to tap comfortably");
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void CharacterChoosersUseSdWhileCompanionProfilesUseStanding(bool equipment)
+        {
+            Component screen;
+            if (equipment)
+            {
+                var view = Root.gameObject.AddComponent<EquipmentScreen>();
+                view.Build(Root); screen = view;
+                Assert.AreSame(ArtLibrary.SdFigure(Inventory.Hero), Root.Find("Workspace/Character/BattleFigure").GetComponent<Image>().sprite);
+            }
+            else
+            {
+                var view = Root.gameObject.AddComponent<CompanionScreen>();
+                view.Build(Root, () => { }); screen = view;
+                Assert.AreSame(ArtLibrary.CharacterPortrait(StoryLine.Protagonist), Root.Find("Identity/Portrait").GetComponent<Image>().sprite);
+            }
+            Invoke(screen, "OpenCharacterPicker");
+            var picker = Root.Find("CharacterPicker");
+            var portraits = picker.GetComponentsInChildren<Image>().Where(image => image.name == "Portrait").ToArray();
+            var owners = new[] { Inventory.Hero }.Concat(EarlyGameContent.Companions.Where(c => c.JoinStage <= _save.HighestUnlockedStage).Select(c => c.Id)).ToArray();
+            CollectionAssert.AreEquivalent(owners.Select(ArtLibrary.SdFigure), portraits.Select(image => image.sprite));
+            Assert.AreEqual(owners.Length, portraits.Length);
+            foreach (var portrait in portraits) Assert.IsTrue(portrait.preserveAspect);
+        }
+
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
@@ -119,7 +145,7 @@ namespace BiRyeoDo.Tests.UI
                 {
                     root.Find("Page1").GetComponent<Button>().onClick.Invoke();
                     Canvas.ForceUpdateCanvases();
-                    Assert.That(Bounds((RectTransform)root.Find("InnerArtPage/HeaderBand")).height,
+                    Assert.That(Bounds((RectTransform)root.Find("InnerArtPage/List/HeaderBand")).height,
                         Is.EqualTo(band.height).Within(.1f));
                 }
             }
@@ -330,6 +356,46 @@ namespace BiRyeoDo.Tests.UI
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
+        public void LobbyUsesTheStandingHeroWithoutChangingBattleArtOrCoveringMenus(float width)
+        {
+            Root.sizeDelta = new Vector2(width, 960f);
+            var routes = UiFactory.Rect("Routes", Root, Vector2.zero, Vector2.one);
+            var world = routes.gameObject.AddComponent<WorldScreen>();
+            world.Build(routes, stage => { }, offer => { }, () => { });
+            routes.gameObject.SetActive(false);
+            var homeRoot = UiFactory.Rect("Home", Root, Vector2.zero, Vector2.one);
+            var home = homeRoot.gameObject.AddComponent<LandscapeHome>();
+            home.Build(homeRoot, world, menu => { }, tab => { });
+            Invoke(home, "ShowLobbyLine", Lobby.Pick(_save, 0), _save);
+            Canvas.ForceUpdateCanvases();
+            var viewport = homeRoot.Find("CharacterViewport");
+            var portrait = viewport.Find("Character").GetComponent<Image>();
+            Assert.IsNotNull(viewport.GetComponent<RectMask2D>());
+            Assert.IsNotNull(portrait.sprite);
+            Assert.AreSame(ArtLibrary.LobbyPortrait(StoryLine.Protagonist), portrait.sprite);
+            Assert.AreNotSame(ArtLibrary.Player(), portrait.sprite);
+            Assert.AreSame(ArtLibrary.Player(), ArtLibrary.Portrait(StoryLine.Protagonist));
+            Assert.IsNotNull(ArtLibrary.Chibi("player"));
+            Assert.LessOrEqual(Bounds((RectTransform)viewport).xMax, Bounds((RectTransform)homeRoot.Find("Journey")).xMin);
+            Assert.Greater(Bounds((RectTransform)viewport).xMin, Bounds((RectTransform)homeRoot.Find("PartyMenu")).xMax);
+            Assert.Less(Bounds((RectTransform)viewport).yMax, Bounds((RectTransform)homeRoot.Find("Header/Masthead")).yMin);
+            foreach (var companion in EarlyGameContent.Companions)
+            {
+                var basic = ArtLibrary.Portrait(companion.Name);
+                Assert.IsNotNull(ArtLibrary.LobbyPortrait(companion.Name));
+                Assert.AreNotSame(basic, ArtLibrary.LobbyPortrait(companion.Name));
+                Invoke(home, "ShowLobbyLine", new LobbyLine { Speaker = companion.Name, Text = "…" }, _save);
+                Assert.AreSame(ArtLibrary.LobbyPortrait(companion.Name), portrait.sprite);
+                Assert.AreSame(basic, ArtLibrary.Portrait(companion.Name));
+                Assert.IsNotNull(ArtLibrary.Chibi(companion.Id));
+                Assert.That(((RectTransform)viewport).anchorMin.y, Is.EqualTo(.005f));
+                Assert.Less(portrait.rectTransform.anchorMin.y, 0f);
+            }
+        }
+
+        [TestCase(1440f)]
+        [TestCase(1920f)]
+        [TestCase(2400f)]
         public void WholeJourneyCardOpensTheFeaturedRouteWithoutASeparateGoButton(float width)
         {
             Root.sizeDelta = new Vector2(width, 960f);
@@ -354,7 +420,7 @@ namespace BiRyeoDo.Tests.UI
             world.Refresh(); home.Refresh();
             journey.GetComponent<Button>().onClick.Invoke();
             Assert.AreEqual(WorldScreen.Menu.Featured, opened);
-            StringAssert.Contains("출전", journey.Find("Action").GetComponent<Text>().text);
+            StringAssert.Contains("여정 선택", journey.Find("Action").GetComponent<Text>().text);
             _save.ProgressStage = world.FeaturedStage.Number; _save.ProgressNext = 1;
             home.Refresh();
             StringAssert.Contains("이어하기", journey.Find("Action").GetComponent<Text>().text);
@@ -428,9 +494,16 @@ namespace BiRyeoDo.Tests.UI
             for (int i = 0; i < cards.Length; i++)
             {
                 var card = homeRoot.Find("Home_" + cards[i]);
-                Assert.GreaterOrEqual(Bounds((RectTransform)card).height, 275f);
-                Assert.GreaterOrEqual(Bounds((RectTransform)card).width, width * .17f);
+                Assert.GreaterOrEqual(Bounds((RectTransform)card).height, 200f);
+                Assert.GreaterOrEqual(Bounds((RectTransform)card).width, width * .135f);
                 Assert.GreaterOrEqual(card.Find("Title").GetComponent<Text>().fontSize, 42);
+                var illustration = card.Find("Illustration").GetComponent<Image>();
+                Assert.IsNotNull(illustration.sprite);
+                Assert.IsFalse(illustration.raycastTarget);
+                Assert.IsNotNull(illustration.GetComponent<BackgroundCover>());
+                Assert.That(illustration.sprite.rect.width, Is.EqualTo(illustration.sprite.texture.width / 3f - 6f));
+                Assert.That(illustration.sprite.rect.height, Is.EqualTo(illustration.sprite.texture.height / 2f - 6f));
+                Assert.AreSame(illustration, card.GetComponent<Button>().targetGraphic);
                 card.GetComponent<Button>().onClick.Invoke();
                 Assert.AreEqual(routes[i], tab);
             }
@@ -461,6 +534,10 @@ namespace BiRyeoDo.Tests.UI
             Assert.That(bar.yMin, Is.EqualTo(Bounds(panel).yMax).Within(.5f), "the bar sits right above the panel");
             Assert.That(bar.width, Is.EqualTo(width).Within(.5f));
             Assert.AreEqual("back", panel.Find("BackBar/Back").GetComponentInChildren<WuxiaGlyph>().Key);
+            var icon = panel.Find("BackBar/Glyph_companion");
+            Assert.IsNotNull(icon);
+            Assert.Less(Bounds((RectTransform)panel.Find("BackBar/Back")).xMax, Bounds((RectTransform)icon).xMin);
+            Assert.Less(Bounds((RectTransform)icon).xMax, Bounds((RectTransform)panel.Find("BackBar/Title")).xMin);
             Assert.Less(Bounds((RectTransform)panel.Find("BackBar/Back")).xMax, Bounds((RectTransform)panel.Find("BackBar/Title")).xMin + 1f);
             Assert.IsNull(typeof(MainScreen).GetMethod("BuildTabBar", BindingFlags.Instance | BindingFlags.NonPublic), "there is no bottom tab bar any more");
         }
@@ -475,7 +552,8 @@ namespace BiRyeoDo.Tests.UI
             {
                 var panel = UiFactory.Rect("Panel_" + kind, Root, Vector2.zero, Vector2.one);
                 panel.offsetMax = new Vector2(0f, -104f);
-                Invoke(main, "BuildBackBar", panel, kind);
+                string tabName = kind == "bag" ? "행낭" : kind == "gacha" ? "뽑기" : kind == "record" ? "기록" : "무공";
+                Invoke(main, "BuildBackBar", panel, tabName);
                 var root = UiFactory.Rect("Screen", panel, Vector2.zero, Vector2.one);
                 if (kind == "bag") root.gameObject.AddComponent<BagScreen>().Build(root);
                 else if (kind == "gacha") root.gameObject.AddComponent<GachaScreen>().Build(root);
@@ -490,6 +568,12 @@ namespace BiRyeoDo.Tests.UI
                 var host = info.GetChild(0);
                 var bar = Bounds((RectTransform)panel.Find("BackBar"));
                 var header = Bounds((RectTransform)host.Find("Header"));
+                Assert.AreEqual(tabName, panel.Find("BackBar/Title").GetComponent<Text>().text);
+                Assert.IsNotNull(panel.Find("BackBar/Glyph_" + kind));
+                Assert.IsNull(host.Find("Glyph_" + kind), "the page must not add a second tab icon");
+                StringAssert.DoesNotContain(tabName, host.Find("Header").GetComponent<Text>().text);
+                if (kind == "arts") StringAssert.Contains("장착", host.Find("Header").GetComponent<Text>().text);
+                if (kind == "bag" || kind == "gacha") StringAssert.Contains("은자", host.Find("Header").GetComponent<Text>().text);
                 Assert.That(header.center.y, Is.EqualTo(bar.center.y).Within(1f), kind);
                 if (kind != "record")
                 {
@@ -955,10 +1039,13 @@ namespace BiRyeoDo.Tests.UI
                 {
                     var row = content.GetChild(rowIndex);
                     Assert.AreEqual(Math.Min(5, pool.Count - rowIndex * 5), row.childCount);
+                    Assert.That(((RectTransform)row).rect.height, Is.EqualTo(320f).Within(.1f));
+                    Assert.IsNull(content.GetComponent<ReadingList>(), "preview descriptions must not resize the card rows");
                     float previousRight = float.MinValue;
                     foreach (RectTransform cell in row)
                     {
                         var area = Bounds(cell);
+                        Assert.That(area.height, Is.EqualTo(320f).Within(.1f));
                         Assert.Greater(area.xMin, previousRight);
                         previousRight = area.xMax;
                         var icon = cell.Find("Icon").GetComponent<Image>();

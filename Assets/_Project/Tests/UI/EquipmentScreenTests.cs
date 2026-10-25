@@ -61,6 +61,33 @@ namespace BiRyeoDo.Tests.UI
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
+        public void SelectionShowsUnlockThenEnhancementCostsToTheRightOfItsDescription(float width)
+        {
+            _canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(width, 960f);
+            var item = Gacha.Pool(ItemGrade.Legendary).First(i => i.Kind == ItemKind.Weapon);
+            Inventory.Add(_save, item.Id, 1);
+            Assert.IsTrue(Inventory.EquipFor(_save, Inventory.Hero, item.Id, out string error), error);
+            _screen.Refresh(); Click("Workspace/Character/WearSlot0");
+            var selection = Root.Find("Workspace/Inventory/Selection");
+            var costs = selection.Find("Costs/TextViewport/Text").GetComponent<Text>();
+            StringAssert.Contains("등급 개방", costs.text);
+            StringAssert.Contains(Gear.GradeUnlockCost(_save, Inventory.Hero, 0, item.Grade).ToString("N0") + "은자", costs.text);
+            Assert.Less(Bounds((RectTransform)selection.Find("EffectsViewport")).xMax,
+                Bounds((RectTransform)selection.Find("Costs")).xMin);
+            Assert.Greater(Bounds((RectTransform)selection.Find("Costs")).yMin,
+                Bounds((RectTransform)selection.Find("Enhance")).yMax);
+            Assert.IsTrue(Gear.UnlockSlotGrade(_save, Inventory.Hero, 0, out error), error);
+            _screen.Refresh(); Canvas.ForceUpdateCanvases();
+            costs = Root.Find("Workspace/Inventory/Selection/Costs/TextViewport/Text").GetComponent<Text>();
+            StringAssert.Contains("강화 +1", costs.text);
+            StringAssert.Contains("하급 영석", costs.text);
+            StringAssert.Contains("/3개", costs.text);
+            StringAssert.Contains("/59", costs.text);
+        }
+
+        [TestCase(1440f)]
+        [TestCase(1920f)]
+        [TestCase(2400f)]
         public void RecommendationsStayAboveTheFigureAndWearerLabelsNameOtherPeople(float width)
         {
             _canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(width, 960f);

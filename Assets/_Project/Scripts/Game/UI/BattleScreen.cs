@@ -76,6 +76,7 @@ namespace BiRyeoDo.Game.UI
         private Text _panelTitle, _panelText;
         private GameObject _panelNext, _panelRetry, _panelBack;
         private readonly Image[] _portrait = new Image[2];
+        private readonly RectTransform[] _portraitWindows = new RectTransform[2];
         private readonly Text[] _portraitGlyph = new Text[2];
         private Text _nameTag;
         private RectTransform _panelTextRect;
@@ -172,7 +173,7 @@ namespace BiRyeoDo.Game.UI
             _panel = host.gameObject;
             var rect = UiFactory.Rect("Card", host.transform, new Vector2(.12f, .08f), new Vector2(.88f, .92f));
             var bg = rect.gameObject.AddComponent<Image>();
-            bg.color = new Color(0.05f, 0.07f, 0.11f, 0.97f);
+            bg.color = UiFactory.ModalInk;
             UiFactory.Frame(rect, UiFactory.Gold, 3f);
             UiFactory.Panel("TitleLine", rect, new Vector2(0.06f, 0.895f), new Vector2(0.94f, 0.899f), UiFactory.GoldDim);
             _panelTitle = UiFactory.Label("Title", rect, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.99f), "", 38, UiFactory.Gold);
@@ -215,8 +216,8 @@ namespace BiRyeoDo.Game.UI
             BackgroundCover.Apply(_storyBackdrop);
             _storyBackdrop.raycastTarget = false;
             _storyBackdrop.transform.SetAsFirstSibling();
-            UiFactory.Panel("StoryDim", _storyBackdrop.transform, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.35f)).raycastTarget = false;
-            UiFactory.Panel("ChapterBand", rect, new Vector2(0f, 0.915f), Vector2.one, new Color(0.02f, 0.03f, 0.05f, 0.85f)).raycastTarget = false;
+            UiFactory.Panel("StoryDim", _storyBackdrop.transform, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.20f)).raycastTarget = false;
+            UiFactory.Panel("ChapterBand", rect, new Vector2(0f, 0.915f), Vector2.one, UiFactory.HeaderInk).raycastTarget = false;
 
             _storyTitle = UiFactory.Label("Chapter", rect, new Vector2(0.04f, 0.925f), new Vector2(0.72f, 0.985f), "", 34, UiFactory.Gold, TextAnchor.MiddleLeft);
             UiFactory.Panel("ChapterLine", rect, new Vector2(0.04f, 0.922f), new Vector2(0.72f, 0.925f), UiFactory.GoldDim);
@@ -225,7 +226,10 @@ namespace BiRyeoDo.Game.UI
             // Portraits (left = protagonist, right = whoever else is talking)
             for (int side = 0; side < 2; side++)
             {
-                var holder = UiFactory.Panel("Portrait" + side, rect, Vector2.zero, Vector2.one, new Color(1f, 1f, 1f, 0f));
+                var window = UiFactory.Rect("Portrait" + side, rect, Vector2.zero, Vector2.one);
+                window.gameObject.AddComponent<RectMask2D>();
+                _portraitWindows[side] = window;
+                var holder = UiFactory.Panel("StandingArt", window, Vector2.zero, Vector2.one, new Color(1f, 1f, 1f, 0f));
                 holder.preserveAspect = true;
                 _portrait[side] = holder;
                 _portraitGlyph[side] = UiFactory.Label("Glyph", holder.transform, Vector2.zero, Vector2.one, "", 220, UiFactory.PaperText);
@@ -233,7 +237,7 @@ namespace BiRyeoDo.Game.UI
             }
 
             // Dialogue box
-            var box = UiFactory.Panel("Box", rect, new Vector2(.055f, .035f), new Vector2(.945f, .37f), new Color(0.04f, 0.06f, 0.10f, 0.92f));
+            var box = UiFactory.Panel("Box", rect, new Vector2(.055f, .035f), new Vector2(.945f, .37f), UiFactory.Ink);
             UiFactory.Frame(box.transform, UiFactory.Gold, 3f);
             _storyText = UiFactory.Label("Text", rect, new Vector2(.085f, .11f), new Vector2(.915f, .31f), "", 36, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal);
             UiFactory.Body(_storyText, 1.3f);
@@ -241,7 +245,7 @@ namespace BiRyeoDo.Game.UI
             _storyProgress = UiFactory.Label("ReadingProgress", rect, new Vector2(.085f, .045f), new Vector2(.915f, .09f), "", 28, UiFactory.Dim, TextAnchor.MiddleRight, FontStyle.Normal);
 
             // Name plate sits on the top edge of the box; moves to the right for the other speaker.
-            var plate = UiFactory.Panel("NamePlate", rect, new Vector2(.07f, .34f), new Vector2(.32f, .405f), new Color(0.20f, 0.16f, 0.07f, 0.97f));
+            var plate = UiFactory.Panel("NamePlate", rect, new Vector2(.07f, .34f), new Vector2(.32f, .405f), UiFactory.HeaderInk);
             UiFactory.Frame(plate.transform, UiFactory.Gold, 3f);
             _namePlate = plate.rectTransform;
             _nameTag = UiFactory.Label("Name", plate.transform, new Vector2(0.04f, 0f), new Vector2(0.96f, 1f), "", 34, UiFactory.Gold);
@@ -250,9 +254,9 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <summary>Full-height artwork area when a portrait image exists; a smaller placeholder block otherwise.</summary>
-        private void PlacePortrait(int side, bool hasSprite)
+        private void PlacePortrait(int side, bool hasSprite, bool standing = false)
         {
-            var rt = _portrait[side].rectTransform;
+            var rt = _portraitWindows[side];
             if (hasSprite)
             {
                 // Two halves with a small gap so the speakers never overlap (the speaking one is drawn 3% larger)
@@ -266,9 +270,11 @@ namespace BiRyeoDo.Game.UI
             }
             rt.offsetMin = Vector2.zero;
             rt.offsetMax = Vector2.zero;
+            // Enlarge standing art to upper-body scale while clipping its lower body behind the dialogue.
+            LandscapeMenu.Place(_portrait[side].rectTransform, 0f, standing ? -.48f : 0f, 1f, 1f);
         }
 
-        private static Sprite PortraitFor(string name) { return ArtLibrary.Feathered(ArtLibrary.Portrait(name)); }   // soft edges so full-bleed pictures blend into the backdrop
+        private static Sprite PortraitFor(string name) { return ArtLibrary.DialoguePortrait(name); }   // standing originals are shared with the lobby; existing NPC portraits remain available
 
         private static Color PortraitTint(string name) { return ArtLibrary.TintFor(name); }
 
@@ -285,7 +291,7 @@ namespace BiRyeoDo.Game.UI
             }
             var sprite = PortraitFor(name);
             img.sprite = sprite;
-            PlacePortrait(side, sprite != null);
+            PlacePortrait(side, sprite != null, ArtLibrary.StandingPortrait(name) != null);
             float a = speaking ? 1f : 0.45f;
             img.rectTransform.localScale = Vector3.one * (speaking ? 1.03f : 0.96f);
             if (sprite != null) { img.color = new Color(speaking ? 1f : 0.6f, speaking ? 1f : 0.6f, speaking ? 1f : 0.7f, 1f); glyph.text = ""; }
@@ -327,7 +333,7 @@ namespace BiRyeoDo.Game.UI
             var rect = UiFactory.Rect("Pick", root, Vector2.zero, Vector2.one);
             _pickRoot = rect.gameObject;
             rect.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.78f);   // blocks taps underneath
-            var card = UiFactory.Panel("Card", rect, new Vector2(.12f, .08f), new Vector2(.88f, .92f), new Color(0.05f, 0.07f, 0.11f, 0.98f));
+            var card = UiFactory.Panel("Card", rect, new Vector2(.12f, .08f), new Vector2(.88f, .92f), UiFactory.ModalInk);
             UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
             _pickTitle = UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.99f), "", 38, UiFactory.Gold);
             for (int i = 0; i < 5; i++)
@@ -1618,7 +1624,7 @@ namespace BiRyeoDo.Game.UI
             close.transition = Selectable.Transition.None;
             // A quick second tap meant for the tip must not land on the command or card underneath it.
             close.onClick.AddListener(() => { _tipRoot.SetActive(false); StartCoroutine(GuardTaps(0.3f)); });
-            var card = UiFactory.Panel("Card", rt, new Vector2(0.04f, 0.12f), new Vector2(0.96f, 0.87f), new Color(0.05f, 0.07f, 0.11f, 0.98f));
+            var card = UiFactory.Panel("Card", rt, new Vector2(0.04f, 0.12f), new Vector2(0.96f, 0.87f), UiFactory.ModalInk);
             card.raycastTarget = true;
             var cardTap = card.gameObject.AddComponent<Button>();
             cardTap.targetGraphic = card;
@@ -1812,7 +1818,7 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <summary>A unit's battle picture: <c>Battle/&lt;id&gt;.png</c>, else the stand-in figure (default_assassin / default_woman / default_man, <see cref="Genders.DefaultFigure"/>). Never the <c>Characters/</c> portrait.</summary>
-        private static Sprite BattleFigure(string artKey) { return ArtLibrary.Chibi(artKey) ?? ArtLibrary.DefaultChibi(artKey); }
+        private static Sprite BattleFigure(string artKey) { return ArtLibrary.SdFigure(artKey); }
 
         private void SetCommandsVisible(bool visible)
         {

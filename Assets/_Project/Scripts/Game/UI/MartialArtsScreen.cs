@@ -156,7 +156,7 @@ namespace BiRyeoDo.Game.UI
             var spec = learned ? Mastery.Apply(save, art) : art.ToSpec();
             bool hidden = !learned && !unlocked;   // a locked art shows only ??? and how it opens, like 심법
 
-            var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, UiFactory.ModalInk);
             UiFactory.Frame(card.transform, ultimate ? UiFactory.Gold : UiFactory.GoldDim, 3f);
             var big = UiFactory.Panel("Picture", card.transform, new Vector2(0.66f, 0.84f), new Vector2(0.96f, 0.985f), IconColor(art));
             var picture = ArtLibrary.Art(art.Id);
@@ -448,7 +448,7 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             Canvas.ForceUpdateCanvases();
             RefreshSlots(save);
-            _header.text = "무공 · 장착 " + Progression.EquippedCount(save, false) + "/" + Progression.MaxEquippedArts + " · 필살 " + Progression.EquippedCount(save, true) + "/" + Progression.MaxEquippedUltimates + " · " + save.Doo.ToString("N0") + "은자";
+            UiFactory.SetTabHeader(_header, "무공", "장착 " + Progression.EquippedCount(save, false) + "/" + Progression.MaxEquippedArts + " · 필살 " + Progression.EquippedCount(save, true) + "/" + Progression.MaxEquippedUltimates + " · " + save.Doo.ToString("N0") + "은자");
 
             foreach (var r in _rows)
             {

@@ -25,7 +25,7 @@ namespace BiRyeoDo.Game.UI
         {
             _openArts = openArts;
             _openInner = openInner ?? openArts;
-            UiFactory.Panel("Background", root, Vector2.zero, Vector2.one, new Color(.035f, .065f, .067f, .42f));
+            UiFactory.Panel("Background", root, Vector2.zero, Vector2.one, new Color(.02f, .045f, .03f, .10f));
             _identity = UiFactory.Rect("Identity", root, new Vector2(.02f, .04f), new Vector2(.255f, .965f));
             _tabs = UiFactory.Rect("Pages", root, new Vector2(.275f, .865f), new Vector2(.98f, .965f));
             _page = UiFactory.Rect("Page", root, new Vector2(.275f, .085f), new Vector2(.98f, .85f));
@@ -120,7 +120,7 @@ namespace BiRyeoDo.Game.UI
         private static void Portrait(Transform parent, string name, float x, float y, float right, float top)
         {
             var picture = UiFactory.Panel("Portrait", parent, new Vector2(x, y), new Vector2(right, top), Color.white);
-            picture.sprite = ArtLibrary.Portrait(name); picture.preserveAspect = true;
+            picture.sprite = ArtLibrary.CharacterPortrait(name); picture.preserveAspect = true;
             if (picture.sprite == null) { picture.color = Color.clear; Text(picture.transform, "Glyph", 0f, 0f, 1f, 1f, name.Substring(0, 1), 50, UiFactory.Gold); }
         }
 
