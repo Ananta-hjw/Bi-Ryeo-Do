@@ -352,13 +352,19 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsNotNull(ArtLibrary.Chibi("player"));
             Assert.LessOrEqual(Bounds((RectTransform)viewport).xMax, Bounds((RectTransform)homeRoot.Find("Journey")).xMin);
             Assert.Greater(Bounds((RectTransform)viewport).xMin, Bounds((RectTransform)homeRoot.Find("PartyMenu")).xMax);
-            Assert.Less(Bounds((RectTransform)viewport).yMax, Bounds((RectTransform)homeRoot.Find("Masthead")).yMin);
-            var companion = EarlyGameContent.Companions.First();
-            Assert.AreSame(ArtLibrary.Portrait(companion.Name), ArtLibrary.LobbyPortrait(companion.Name));
-            Invoke(home, "ShowLobbyLine", new LobbyLine { Speaker = companion.Name, Text = "…" }, _save);
-            Assert.That(((RectTransform)viewport).anchorMin.y, Is.EqualTo(.16f));
-            Assert.That(portrait.rectTransform.anchorMin, Is.EqualTo(Vector2.zero));
-            Assert.That(portrait.rectTransform.anchorMax, Is.EqualTo(Vector2.one));
+            Assert.Less(Bounds((RectTransform)viewport).yMax, Bounds((RectTransform)homeRoot.Find("Header/Masthead")).yMin);
+            foreach (var companion in EarlyGameContent.Companions)
+            {
+                var basic = ArtLibrary.Portrait(companion.Name);
+                Assert.IsNotNull(ArtLibrary.LobbyPortrait(companion.Name));
+                Assert.AreNotSame(basic, ArtLibrary.LobbyPortrait(companion.Name));
+                Invoke(home, "ShowLobbyLine", new LobbyLine { Speaker = companion.Name, Text = "…" }, _save);
+                Assert.AreSame(ArtLibrary.LobbyPortrait(companion.Name), portrait.sprite);
+                Assert.AreSame(basic, ArtLibrary.Portrait(companion.Name));
+                Assert.IsNotNull(ArtLibrary.Chibi(companion.Id));
+                Assert.That(((RectTransform)viewport).anchorMin.y, Is.EqualTo(.005f));
+                Assert.Less(portrait.rectTransform.anchorMin.y, 0f);
+            }
         }
 
         [TestCase(1440f)]
@@ -388,7 +394,7 @@ namespace BiRyeoDo.Tests.UI
             world.Refresh(); home.Refresh();
             journey.GetComponent<Button>().onClick.Invoke();
             Assert.AreEqual(WorldScreen.Menu.Featured, opened);
-            StringAssert.Contains("출전", journey.Find("Action").GetComponent<Text>().text);
+            StringAssert.Contains("여정 선택", journey.Find("Action").GetComponent<Text>().text);
             _save.ProgressStage = world.FeaturedStage.Number; _save.ProgressNext = 1;
             home.Refresh();
             StringAssert.Contains("이어하기", journey.Find("Action").GetComponent<Text>().text);
@@ -462,9 +468,16 @@ namespace BiRyeoDo.Tests.UI
             for (int i = 0; i < cards.Length; i++)
             {
                 var card = homeRoot.Find("Home_" + cards[i]);
-                Assert.GreaterOrEqual(Bounds((RectTransform)card).height, 275f);
-                Assert.GreaterOrEqual(Bounds((RectTransform)card).width, width * .17f);
+                Assert.GreaterOrEqual(Bounds((RectTransform)card).height, 200f);
+                Assert.GreaterOrEqual(Bounds((RectTransform)card).width, width * .135f);
                 Assert.GreaterOrEqual(card.Find("Title").GetComponent<Text>().fontSize, 42);
+                var illustration = card.Find("Illustration").GetComponent<Image>();
+                Assert.IsNotNull(illustration.sprite);
+                Assert.IsFalse(illustration.raycastTarget);
+                Assert.IsNotNull(illustration.GetComponent<BackgroundCover>());
+                Assert.That(illustration.sprite.rect.width, Is.EqualTo(illustration.sprite.texture.width / 3f - 6f));
+                Assert.That(illustration.sprite.rect.height, Is.EqualTo(illustration.sprite.texture.height / 2f - 6f));
+                Assert.AreSame(illustration, card.GetComponent<Button>().targetGraphic);
                 card.GetComponent<Button>().onClick.Invoke();
                 Assert.AreEqual(routes[i], tab);
             }

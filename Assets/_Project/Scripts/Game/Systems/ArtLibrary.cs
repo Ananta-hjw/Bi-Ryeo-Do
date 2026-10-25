@@ -40,11 +40,32 @@ namespace BiRyeoDo.Game.Systems
         /// <summary>Party member portrait: <c>Characters/&lt;id&gt;.png</c> (e.g. hyo_ryong.png).</summary>
         public static Sprite Companion(string companionId) { return Load("Characters/" + companionId); }
 
-        /// <summary>Main-lobby standing art for the protagonist; other speakers retain their existing portraits.</summary>
+        /// <summary>Main-lobby standing art; ordinary portraits and combat sprites remain separate.</summary>
         public static Sprite LobbyPortrait(string name)
         {
-            return name == BiRyeoDo.Core.StoryLine.Protagonist
-                ? Load("Characters/player_lobby") ?? Portrait(name) : Portrait(name);
+            if (name == BiRyeoDo.Core.StoryLine.Protagonist) return Load("Characters/player_lobby") ?? Portrait(name);
+            foreach (var companion in BiRyeoDo.Core.EarlyGameContent.Companions)
+                if (companion.Name == name) return Load("Characters/" + companion.Id + "_lobby") ?? Portrait(name);
+            return Portrait(name);
+        }
+
+        /// <summary>Six painted lobby tiles, sliced at runtime without importing a sprite sheet.</summary>
+        public static Sprite LobbyCard(string key)
+        {
+            string[] keys = { "companion", "equipment", "arts", "gacha", "bag", "record" };
+            int index = System.Array.IndexOf(keys, key);
+            if (index < 0) return Icon(key);
+            string cacheKey = "LobbyCard/" + key;
+            Sprite sprite;
+            if (Cache.TryGetValue(cacheKey, out sprite)) return sprite;
+            var atlas = Resources.Load<Texture2D>("Art/Lobby/menu_cards");
+            if (atlas == null) return Icon(key);
+            float width = atlas.width / 3f, height = atlas.height / 2f;
+            // A small inset keeps neighbouring tile pixels outside bilinear sampling.
+            sprite = Sprite.Create(atlas, new Rect(index % 3 * width + 3f, (1 - index / 3) * height + 3f,
+                width - 6f, height - 6f), new Vector2(.5f, .5f), 100f);
+            Cache[cacheKey] = sprite;
+            return sprite;
         }
 
         /// <summary>Portrait by character name: the protagonist, a companion, or an enemy/NPC whose name matches (e.g. 나예린 → the 빙백봉 art).</summary>

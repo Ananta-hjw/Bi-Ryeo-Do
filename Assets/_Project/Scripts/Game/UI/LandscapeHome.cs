@@ -37,62 +37,65 @@ namespace BiRyeoDo.Game.UI
             _world = world; _openMenu = openMenu; _select = select;
             _scenery = UiFactory.Panel("Scenery", root, Vector2.zero, Vector2.one, Color.white);
             BackgroundCover.Apply(_scenery);
-            UiFactory.Panel("Wash", root, Vector2.zero, Vector2.one, new Color(.02f, .07f, .075f, .40f));
-            UiFactory.Glyph("halo", root, new Vector2(-.08f, .10f), new Vector2(.45f, .95f), new Color(.75f, .66f, .43f, .14f));
+            UiFactory.Panel("Wash", root, Vector2.zero, Vector2.one, new Color(.02f, .05f, .045f, .10f));
             // Same height as the other screens' back bar (MainScreen.BackBarHeight)
-            var header = UiFactory.Panel("Header", root, new Vector2(0f, 1f), Vector2.one, UiFactory.Ink);
+            var header = UiFactory.Panel("Header", root, new Vector2(0f, 1f), Vector2.one, new Color(.025f, .045f, .04f, .76f));
             header.rectTransform.offsetMin = new Vector2(0f, -104f);
-            _identity = HomeText("Identity", header.transform, .03f, .01f, .30f, .98f, "", 30, UiFactory.Gold);
-            _experience = UiFactory.MakeBar("Experience", header.transform, new Vector2(.03f, .02f), new Vector2(.30f, .09f), Color.black, UiFactory.Jade);
-            UiFactory.Button("Status", header.transform, new Vector2(.02f, .04f), new Vector2(.32f, .96f), "", Color.clear, () => _select(TabRouter.Tab.Companions), 28);
-            _doo = HomeText("Doo", header.transform, .44f, .01f, .90f, .98f, "", 42, UiFactory.Gold, TextAnchor.MiddleRight);
+            HomeText("Masthead", header.transform, .035f, .06f, .175f, .98f, "비뢰도", 62, UiFactory.Gold);
+            _identity = HomeText("Identity", header.transform, .185f, .10f, .57f, .94f, "", 30, UiFactory.Gold);
+            UiFactory.Panel("GoldRule", header.transform, Vector2.zero, new Vector2(1f, .018f), UiFactory.Gold).raycastTarget = false;
+            _experience = UiFactory.MakeBar("Experience", header.transform, new Vector2(.185f, .06f), new Vector2(.43f, .08f), Color.black, UiFactory.Jade);
+            UiFactory.Button("Status", header.transform, new Vector2(.18f, .10f), new Vector2(.57f, .94f), "", Color.clear, () => _select(TabRouter.Tab.Companions), 28);
+            UiFactory.Glyph("line_coin", header.transform, new Vector2(.645f, .17f), new Vector2(.69f, .83f), UiFactory.Gold);
+            _doo = HomeText("Doo", header.transform, .68f, .01f, .91f, .98f, "", 42, UiFactory.Gold, TextAnchor.MiddleRight);
             var settings = UiFactory.Button("Settings", header.transform, new Vector2(1f, .5f), new Vector2(1f, .5f), "", Color.clear, () => _openMenu(WorldScreen.Menu.Settings), 28);
             var settingsRect = (RectTransform)settings.transform;
             settingsRect.pivot = new Vector2(1f, .5f);
             settingsRect.anchoredPosition = new Vector2(-16f, 0f);
             settingsRect.sizeDelta = new Vector2(96f, 96f);
-            UiFactory.Glyph("settings", settings.transform, new Vector2(.1f, .1f), new Vector2(.9f, .9f), UiFactory.Gold).raycastTarget = false;   // 설정: a gold cog
+            UiFactory.Glyph("line_settings", settings.transform, new Vector2(.1f, .1f), new Vector2(.9f, .9f), UiFactory.Gold).raycastTarget = false;   // 설정: a gold cog
 
-            HomeText("Masthead", root, .035f, .805f, .40f, .885f, "비 뢰 도", 58, UiFactory.PaperText);
-            _portraitViewport = UiFactory.Rect("CharacterViewport", root, new Vector2(.115f, .16f), new Vector2(.43f, .79f));
+            _portraitViewport = UiFactory.Rect("CharacterViewport", root, new Vector2(.112f, .005f), new Vector2(.525f, .89f));
             _portraitViewport.gameObject.AddComponent<RectMask2D>();
             _portrait = UiFactory.Panel("Character", _portraitViewport, Vector2.zero, Vector2.one, Color.white);
             _portrait.preserveAspect = true;
             _portraitFade = _portrait.gameObject.AddComponent<CanvasGroup>();
             _portraitGlyph = UiFactory.Label("Fallback", _portrait.transform, Vector2.zero, Vector2.one, "", 150, UiFactory.Gold);
-            UiFactory.Button("CharacterTalk", root, new Vector2(.12f, .27f), new Vector2(.42f, .79f), "", Color.clear, () => { _lobbyStep++; _lobbyTimer = 0f; RefreshLobby(); }, 24);
-            var identity = UiFactory.Panel("CharacterIdentity", root, new Vector2(.125f, .13f), new Vector2(.415f, .27f), new Color(.035f, .08f, .085f, .92f));
+            UiFactory.Button("CharacterTalk", root, new Vector2(.115f, .17f), new Vector2(.52f, .88f), "", Color.clear, () => { _lobbyStep++; _lobbyTimer = 0f; RefreshLobby(); }, 24);
+            var identity = UiFactory.Panel("CharacterIdentity", root, new Vector2(.115f, .105f), new Vector2(.49f, .165f), new Color(.025f, .055f, .045f, .72f));
             _identityFade = identity.gameObject.AddComponent<CanvasGroup>();
-            UiFactory.Panel("Seal", identity.transform, Vector2.zero, new Vector2(.012f, 1f), UiFactory.Red);
-            _name = HomeText("Name", identity.transform, .04f, .44f, .97f, .98f, "", 44, UiFactory.PaperText);
-            _realm = HomeText("Realm", identity.transform, .04f, .04f, .97f, .44f, "", 28, UiFactory.Gold);
-            var quote = UiFactory.Panel("Dialogue", root, new Vector2(.125f, .018f), new Vector2(.415f, .117f), UiFactory.Ink);
-            UiFactory.Frame(quote.transform, UiFactory.GoldDim, 1f);
-            _quoteFade = quote.gameObject.AddComponent<CanvasGroup>();
-            _quote = UiFactory.ScrollBody(UiFactory.Label("Quote", quote.transform, new Vector2(.025f, .04f), new Vector2(.98f, .96f), "", 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 28);
+            UiFactory.Panel("Rule", identity.transform, Vector2.zero, new Vector2(1f, .018f), UiFactory.Gold).raycastTarget = false;
+            _name = HomeText("Name", identity.transform, .04f, .04f, .51f, .96f, "", 36, UiFactory.PaperText);
+            _realm = HomeText("Realm", identity.transform, .54f, .04f, .96f, .96f, "", 24, UiFactory.Gold);
+            var quote = UiFactory.Panel("Dialogue", root, new Vector2(.115f, .015f), new Vector2(.49f, .105f), new Color(.025f, .055f, .045f, .72f));
 
-            HomeText("MenuTitle", root, .435f, .80f, .79f, .885f, "강호를 걷는 길", 40, UiFactory.Gold);
-            var featured = UiFactory.Button("Journey", root, new Vector2(.435f, .635f), new Vector2(.985f, .775f), "", UiFactory.InkSoft, () =>
+            _quoteFade = quote.gameObject.AddComponent<CanvasGroup>();
+            _quote = UiFactory.ScrollBody(HomeText("Quote", quote.transform, .02f, .04f, .98f, .96f, "", 26, UiFactory.PaperText), 26);
+
+            HomeText("MenuTitle", root, .535f, .755f, .965f, .855f, "강호를 걷는 길", 52, UiFactory.Gold, TextAnchor.MiddleCenter);
+            UiFactory.Panel("TitleRule", root, new Vector2(.56f, .765f), new Vector2(.94f, .767f), UiFactory.Gold).raycastTarget = false;
+            var featured = UiFactory.Button("Journey", root, new Vector2(.535f, .545f), new Vector2(.97f, .745f), "", UiFactory.InkSoft, () =>
             {
                 _openMenu(WorldScreen.Menu.Featured);
             }, 32);
-            _journeyArt = UiFactory.Panel("Art", featured.transform, Vector2.zero, Vector2.one, new Color(.55f, .65f, .60f, .16f));
+            _journeyArt = UiFactory.Panel("Art", featured.transform, Vector2.zero, Vector2.one, Color.white);
             BackgroundCover.Apply(_journeyArt);
             _journeyArt.raycastTarget = false;
-            UiFactory.Frame(featured.transform, UiFactory.Gold, 2f);
-            HomeText("Kicker", featured.transform, .035f, .75f, .96f, .98f, "다음 여정", 26, UiFactory.Gold);
-            _featuredTitle = HomeText("Stage", featured.transform, .035f, .39f, .96f, .75f, "", 36, UiFactory.PaperText);
-            _featuredDetail = HomeText("Detail", featured.transform, .035f, .04f, .70f, .39f, "", 26, UiFactory.Dim);
-            _featuredAction = HomeText("Action", featured.transform, .73f, .04f, .965f, .39f, "", 28, UiFactory.Gold, TextAnchor.MiddleRight);
+            UiFactory.Panel("Shade", featured.transform, Vector2.zero, Vector2.one, new Color(.015f, .035f, .025f, .40f)).raycastTarget = false;
+            LobbyFrame(featured.transform);
+            HomeText("Kicker", featured.transform, .04f, .61f, .96f, .87f, "다음 여정", 26, UiFactory.Gold);
+            _featuredTitle = HomeText("Stage", featured.transform, .04f, .23f, .96f, .61f, "", 36, UiFactory.PaperText);
+            _featuredDetail = HomeText("Detail", featured.transform, .04f, .035f, .70f, .23f, "", 21, UiFactory.Dim);
+            _featuredAction = HomeText("Action", featured.transform, .72f, .025f, .965f, .28f, "", 28, UiFactory.Gold, TextAnchor.MiddleRight);
 
             // Six screens in two rows of three; this is the only way into them now that there is no bottom tab bar.
             Text unused;
-            HomeCard(root, .435f, .612f, .325f, .615f, "협객", "상태 · 인연 · 수련", "companion", () => _select(TabRouter.Tab.Companions), out unused);
-            HomeCard(root, .622f, .798f, .325f, .615f, "장비", "착용 · 강화 · 세트", "equipment", () => _select(TabRouter.Tab.Equipment), out unused);
-            _arts = HomeCard(root, .808f, .985f, .325f, .615f, "무공", "무공 · 심법", "arts", () => _select(TabRouter.Tab.MartialArts), out _artsBadge);
-            HomeCard(root, .435f, .612f, .015f, .305f, "뽑기", "장비 · 영약 뽑기", "gacha", () => _select(TabRouter.Tab.Gacha), out unused);
-            HomeCard(root, .622f, .798f, .015f, .305f, "행낭", "돌파 · 분해 · 합성", "bag", () => _select(TabRouter.Tab.Bag), out unused);
-            HomeCard(root, .808f, .985f, .015f, .305f, "기록", "도감 · 추억 · 세력", "record", () => _select(TabRouter.Tab.Record), out _recordBadge);
+            HomeCard(root, .535f, .672f, .305f, .525f, "협객", "companion", () => _select(TabRouter.Tab.Companions), out unused);
+            HomeCard(root, .684f, .821f, .305f, .525f, "장비", "equipment", () => _select(TabRouter.Tab.Equipment), out unused);
+            _arts = HomeCard(root, .833f, .97f, .305f, .525f, "무공", "arts", () => _select(TabRouter.Tab.MartialArts), out _artsBadge);
+            HomeCard(root, .535f, .672f, .065f, .285f, "뽑기", "gacha", () => _select(TabRouter.Tab.Gacha), out unused);
+            HomeCard(root, .684f, .821f, .065f, .285f, "행낭", "bag", () => _select(TabRouter.Tab.Bag), out unused);
+            HomeCard(root, .833f, .97f, .065f, .285f, "기록", "record", () => _select(TabRouter.Tab.Record), out _recordBadge);
 
             BuildSideMenus(root);
             _built = true;
@@ -101,17 +104,32 @@ namespace BiRyeoDo.Game.UI
 
         private static Text HomeText(string name, Transform parent, float x0, float y0, float x1, float y1, string text, int size, Color color, TextAnchor align = TextAnchor.MiddleLeft)
         {
-            return UiFactory.Body(UiFactory.Label(name, parent, new Vector2(x0, y0), new Vector2(x1, y1), text, size, color, align, FontStyle.Normal), 1.15f);
+            var label = UiFactory.Body(UiFactory.Label(name, parent, new Vector2(x0, y0), new Vector2(x1, y1), text, size, color, align, FontStyle.Normal), 1.15f);
+            if (name == "Masthead" || name == "MenuTitle" || name == "Name") UiFactory.Heading(label);
+            return label;
         }
 
-        private static Text HomeCard(RectTransform root, float x0, float x1, float y0, float y1, string title, string detail, string icon, Action action, out Text badge)
+        private static Text HomeCard(RectTransform root, float x0, float x1, float y0, float y1, string title, string icon, Action action, out Text badge)
         {
             var button = UiFactory.Button("Home_" + title, root, new Vector2(x0, y0), new Vector2(x1, y1), "", UiFactory.Ink, () => action(), 30);
-            UiFactory.Frame(button.transform, UiFactory.GoldDim, 2f);
-            UiFactory.Glyph(icon, button.transform, new Vector2(.05f, .48f), new Vector2(.36f, .93f), UiFactory.Gold);
-            HomeText("Title", button.transform, .40f, .48f, .96f, .94f, title, 42, UiFactory.Gold);
+            var art = UiFactory.Panel("Illustration", button.transform, new Vector2(.012f, .015f), new Vector2(.988f, .985f), Color.white);
+            art.sprite = ArtLibrary.LobbyCard(icon);
+            BackgroundCover.Apply(art);
+            art.raycastTarget = false;
+            button.targetGraphic = art;
+            UiFactory.Panel("CaptionShade", button.transform, new Vector2(.015f, .015f), new Vector2(.985f, .40f), new Color(.015f, .035f, .025f, .64f)).raycastTarget = false;
+            LobbyFrame(button.transform);
+            HomeText("Title", button.transform, .06f, .14f, .94f, .42f, title, 44, UiFactory.Gold, TextAnchor.MiddleCenter);
             badge = Badge(button.transform);
-            return HomeText("Detail", button.transform, .06f, .08f, .95f, .41f, detail, 26, UiFactory.PaperText);
+            // Keep discovery information available without repeating a second caption on every tile.
+            var subtitle = HomeText("Detail", button.transform, .04f, .015f, .96f, .10f, "", 18, UiFactory.PaperText, TextAnchor.MiddleCenter);
+            return subtitle;
+        }
+
+        private static void LobbyFrame(Transform parent)
+        {
+            var frame = UiFactory.Glyph("lobby_frame", parent, Vector2.zero, Vector2.one, UiFactory.Gold);
+            frame.Stroke = 2f;
         }
 
         private void BuildSideMenus(RectTransform root)
@@ -137,16 +155,17 @@ namespace BiRyeoDo.Game.UI
             _missionsButton = missions.GetComponent<Image>();
             _missionsBadge = Badge(missions.transform);
             LandscapeMenu.Place((RectTransform)_missionsBadge.transform.parent, .64f, .71f, .99f, .99f);
-            _challengeButton = SideButton(root, "ChallengeMenu", "도전", "tower", .45f, () => ToggleFlyout(false)).GetComponent<Image>();
+            _challengeButton = SideButton(root, "ChallengeMenu", "도전", "challenge", .45f, () => ToggleFlyout(false)).GetComponent<Image>();
             SideButton(root, "PartyMenu", "파티 편성", "party", .26f, () => OpenSideMenu(WorldScreen.Menu.Party));
-            SideButton(root, "ShopMenu", "객잔", "coin", .07f, () => OpenSideMenu(WorldScreen.Menu.Shop));
+            SideButton(root, "ShopMenu", "객잔", "tower", .07f, () => OpenSideMenu(WorldScreen.Menu.Shop));
             CloseFlyouts();
         }
 
         private static Button SideButton(RectTransform root, string name, string title, string icon, float bottom, UnityEngine.Events.UnityAction action)
         {
             var button = UiFactory.Button(name, root, new Vector2(.015f, bottom), new Vector2(.11f, bottom + .15f), "", Color.clear, action, 28);
-            UiFactory.Glyph(icon, button.transform, new Vector2(.23f, .38f), new Vector2(.77f, .96f), UiFactory.Gold);
+            UiFactory.Glyph("line_icon_rim", button.transform, new Vector2(.16f, .33f), new Vector2(.84f, .99f), UiFactory.Gold);
+            UiFactory.Glyph("line_" + icon, button.transform, new Vector2(.30f, .46f), new Vector2(.70f, .86f), UiFactory.Gold);
             UiFactory.Label("Title", button.transform, new Vector2(.015f, .015f), new Vector2(.985f, .35f), title, 28, UiFactory.PaperText);
             return button;
         }
@@ -227,18 +246,18 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             if (!ReferenceEquals(save, _shownSave)) { _shownSave = save; _world.Refresh(); _lobbyStep = 0; }
             _identity.text = "비류연  Lv." + save.Level + " · " + Promotion.RankName(Promotion.EffectiveRank(save));
-            _doo.text = save.Doo.ToString("N0") + "은자";
+            _doo.text = save.Doo.ToString("N0") + " 은자";
             _experience.SetPct((float)save.Exp / Math.Max(1L, Progression.ExpToNext(save.Level)));
             var stage = _world.FeaturedStage;
             if (stage != null)
             {
                 _featuredTitle.text = stage.Number.ToString("00") + " · " + stage.Name;
                 _featuredDetail.text = "권장 Lv." + stage.RecommendedPlayerLevel + " · 전투 " + stage.Encounters.Length + "회";
-                _featuredAction.text = (!Promotion.StageAllowed(save, stage.Number) ? "승급 필요" : StageProgress.Has(save, stage.Number) ? "이어하기" : save.ClearedStage >= stage.Number ? "재도전" : "출전") + "  ›";
+                _featuredAction.text = (!Promotion.StageAllowed(save, stage.Number) ? "승급 필요" : StageProgress.Has(save, stage.Number) ? "이어하기" : save.ClearedStage >= stage.Number ? "재도전" : "여정 선택") + "  ›";
                 _journeyArt.sprite = ArtLibrary.Background(stage.Number) ?? ArtLibrary.Background(1);
             }
             int arts = Discovery.Count(save);
-            _arts.text = arts > 0 ? "새 무공·심법 " + arts + "개" : "무공 · 심법";
+            _arts.text = arts > 0 ? "새 무공·심법 " + arts + "개" : "";
             SetQuickCount(_artsBadge, arts);
             SetQuickCount(_recordBadge, RecordUpdates.Count(save));
             SetQuickCount(_quest, Quests.Open(save).Count);
@@ -273,13 +292,13 @@ namespace BiRyeoDo.Game.UI
             _name.text = scene.Speaker;
             _quote.text = scene.Text;
             var picture = ArtLibrary.LobbyPortrait(scene.Speaker);
-            bool standing = scene.Speaker == StoryLine.Protagonist && picture != null && picture != ArtLibrary.Player();
+            bool standing = picture != null && picture != ArtLibrary.Portrait(scene.Speaker);
             _portrait.sprite = standing ? picture : ArtLibrary.Feathered(picture);
             // Crop the lower body inside the left column so the face reads at lobby size.
-            // The menu rail, journey card, title, nameplate and speech remain outside this crop.
-            LandscapeMenu.Place(_portraitViewport, .115f, standing ? .005f : .16f, standing ? .432f : .43f, standing ? .80f : .79f);
+            // The menu rail and journey stay clear; the nameplate and speech are layered above the portrait.
+            LandscapeMenu.Place(_portraitViewport, .112f, standing ? .005f : .16f, .525f, .89f);
             _portrait.rectTransform.pivot = new Vector2(.5f, standing ? 1f : .5f);
-            LandscapeMenu.Place(_portrait.rectTransform, standing ? -.12f : 0f, standing ? -.48f : 0f, standing ? 1.12f : 1f, 1f);
+            LandscapeMenu.Place(_portrait.rectTransform, standing ? -.08f : 0f, standing ? -.43f : 0f, standing ? 1.08f : 1f, 1f);
             _portrait.color = _portrait.sprite != null ? Color.white : Color.clear;
             _portraitGlyph.text = _portrait.sprite == null ? scene.Speaker.Substring(0, 1) : "";
             _realm.text = scene.Speaker == StoryLine.Protagonist ? Realm.Label(Realm.StepOf(Realm.Power(InnerArts.HeroStatsBeforeRealm(save)))) : "";

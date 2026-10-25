@@ -219,4 +219,12 @@
 | 나예린 | `Characters/na_yerin_lobby.png` | 검은 장발, 희푸른 옷, 가는 검 |
 | 임성진 | `Characters/im_seongjin_lobby.png` | 다부진 체격, 긴 철곤 |
 
-이 추가분은 제작된 입화 원본을 리소스로 보관한다. 현재 `ArtLibrary.LobbyPortrait`의 새 입화 연결 대상은 비류연이며, 동료 표시 경로는 기존 초상화를 사용한다.
+메인의 `ArtLibrary.LobbyPortrait`는 비류연과 동료 5명의 새 입화를 사용한다. 기존 초상화(`Portrait`)와 전투 SD(`Chibi`) 경로는 유지한다. 합류 여부와 대사는 기존 `Lobby.Pick`을 따른다.
+
+
+## 금색 산수화 메인 화면
+
+- `LandscapeHome`: 산수 배경, 왼쪽 큰 입화·투명 대사창, 상단 로고·저장 정보, 원형 금선 메뉴, 오른쪽 여정 카드와 그림 메뉴 6개로 구성한다. 여정 카드는 항상 기존 여정도로 연결한다.
+- `Art/Lobby/menu_cards.png`: 3열×2행 아틀라스. 윗줄 협객·장비·무공, 아랫줄 뽑기·행낭·기록. 텍스트·테두리 없이 제작한 그림에 실제 UI 글자·알림·버튼을 겹친다. `ArtLibrary.LobbyCard`가 각 셀을 3px 안쪽으로 잘라 인접 그림이 섞이지 않게 한다.
+- 금색 원형 아이콘과 모서리 장식은 `WuxiaGlyph` 벡터로 그린다. `line_` 키는 메인 전용 금선 표현이며 다른 화면의 그림 아이콘은 그대로 유지한다.
+- Unity가 없는 환경에서는 UI 및 회귀 테스트 코드를 컴파일한다. 최종 그림 배치·입화 경계·Android 터치는 Unity Play mode/기기에서 확인해야 한다.
