@@ -25,7 +25,7 @@ namespace BiRyeoDo.Game.UI
         private readonly Text _pageTitle, _pageNumber, _totalStars, _stageTitle, _stageKind, _level, _fights, _stars, _reward, _condition;
         private readonly Button _previous, _next, _go;
         private readonly Text _goText;
-        private readonly Image _preview;
+        private readonly Image _preview, _background;
         private readonly Image[] _difficulty = new Image[StageStars.DifficultyCount];
         private readonly List<Node> _visible = new List<Node>();
         private int _page = -1, _selected;
@@ -45,10 +45,8 @@ namespace BiRyeoDo.Game.UI
         public StageMapPanel(RectTransform root, Action<StageData> onStage, Action onChange, Action onStars, Action onInn)
         {
             _onStage = onStage; _onChange = onChange;
-            var background = UiFactory.Panel("MapPainting", root, Vector2.zero, Vector2.one, Color.white);
-            background.sprite = ArtLibrary.Environment("world_journey_map");
-            if (background.sprite == null) background.color = new Color(.66f, .65f, .46f);
-            BackgroundCover.Apply(background);
+            _background = UiFactory.Panel("MapPainting", root, Vector2.zero, Vector2.one, Color.white);
+            BackgroundCover.Apply(_background);
             UiFactory.Panel("MapWash", root, Vector2.zero, Vector2.one, new Color(.14f, .21f, .18f, .10f)).raycastTarget = false;
             var header = UiFactory.Panel("MapHeader", root, new Vector2(0, .89f), Vector2.one, UiFactory.Ink);
             UiFactory.Panel("Rule", header.transform, Vector2.zero, new Vector2(1, .015f), UiFactory.GoldDim);
@@ -193,6 +191,8 @@ namespace BiRyeoDo.Game.UI
         public void Refresh(SaveData save)
         {
             if (_page < 0) { Open(save); return; }
+            _background.sprite = SceneryArt.Journey(_page);
+            _background.color = _background.sprite != null ? Color.white : new Color(.66f, .65f, .46f);
             _totalStars.text = "스테이지 · 모은 별 " + StageStars.Total(save);
             int picked = Mathf.Clamp(save.Difficulty, 0, StageStars.DifficultyCount - 1);
             for (int i = 0; i < _difficulty.Length; i++) _difficulty[i].color = i == picked ? UiFactory.Red : UiFactory.InkSoft;

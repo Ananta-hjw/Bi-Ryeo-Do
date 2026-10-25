@@ -41,12 +41,14 @@ namespace BiRyeoDo.Game.UI
             // Same layout as the 무공 page: the list on the left, the inspector on the right.
             var list = UiFactory.Rect("List", Root, Vector2.zero, new Vector2(.645f, 1f));
             int slots = InnerArts.SlotCount(save);
-            UiFactory.TabHeader(list, "arts", "심법 · 장착 " + save.EquippedInner.Count + "/" + slots, .97f);
+            var header = UiFactory.TabHeader(list, "arts", "심법 · 장착 " + save.EquippedInner.Count + "/" + slots, .97f);
+            list.offsetMax = Vector2.zero;
+            float bodyTop = header.transform.IsChildOf(list) ? .84f : .99f;
             UiFactory.HelpButton(list, () => { if (HelpPanel.Instance != null) HelpPanel.Instance.Show("inner"); });
             string slotNote = slots >= 4 ? "모든 칸이 열렸습니다" : "다음 칸: " + (save.ClearedStage < 10 ? "스테이지 10 돌파" : save.ClearedStage < 20 ? "스테이지 20 돌파" : "어려움 스테이지 " + InnerArts.FourthSlotStage + " 돌파");
-            UiFactory.ScrollBody(UiFactory.Label("Hint", list, new Vector2(0.05f, .755f), new Vector2(0.95f, .84f), toast ?? ("은자 " + save.Doo.ToString("N0") + "  ·  심득석 " + InnerArts.Stones(save) + "  ·  " + slotNote), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            UiFactory.ScrollBody(UiFactory.Label("Hint", list, new Vector2(0.05f, bodyTop - .085f), new Vector2(0.95f, bodyTop), toast ?? ("은자 " + save.Doo.ToString("N0") + "  ·  심득석 " + InnerArts.Stones(save) + "  ·  " + slotNote), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
-            var content = CodexPanel.Scroller(list, Embedded ? .02f : .10f, .745f);
+            var content = CodexPanel.Scroller(list, .02f, bodyTop - .095f);
             _scroll = content.parent.GetComponent<ScrollRect>();
             const float icon = 100f;
             var grid = new ReadingGrid(content, 3, 340f);   // three cards per row

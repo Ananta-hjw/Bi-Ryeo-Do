@@ -6,13 +6,13 @@ namespace BiRyeoDo.Core
     /// <summary>
     /// 분해 and 합성. A spare copy of a piece of gear (일반 to 전설; 신화 and 초월 gear cannot be dismantled) can be dismantled into materials of the same grade and slot
     /// (일반 7-12, 고급 6-11, 희귀 5-10, 영웅 3-8, 전설 1-6, with odds 10/20/30/20/10/10% across the six counts); enough materials of one grade and slot fuse into a random piece
-    /// of the next grade in that slot (일반 50, 고급 40, 희귀 30, 영웅 20, 전설 10). Also grants the matching enhancement material, 1-5 at 20% each. Neither costs 두.
+    /// of the next grade in that slot (일반 70, 고급 60, 희귀 50, 영웅 30, 전설 20). Also grants matching enhancement materials, uniformly from 1 up to 7/6/5/4/3 by grade. Neither costs 두.
     /// </summary>
     public static class Salvage
     {
         public static readonly int[] CountOdds = { 10, 20, 30, 20, 10, 10 };   // percent for the lowest count .. lowest + 5
         public static readonly int[] MinCount = { 7, 6, 5, 3, 1 };             // lowest count per grade (일반 7-12, 고급 6-11, 희귀 5-10, 영웅 3-8, 전설 1-6)
-        public static readonly int[] FuseNeed = { 50, 40, 30, 20, 10 };         // 일반 .. 전설 -> next grade
+        public static readonly int[] FuseNeed = { 70, 60, 50, 30, 20 };         // 일반 .. 전설 -> next grade
 
         private static readonly ItemKind[] Kinds = { ItemKind.Weapon, ItemKind.Armor, ItemKind.Pants, ItemKind.Boots, ItemKind.Accessory };
         private static readonly string[] KindKeys = { "weapon", "armor", "pants", "boots", "accessory" };
@@ -114,7 +114,7 @@ namespace BiRyeoDo.Core
             int n = RollCount(item.Grade, rng);
             Inventory.Remove(save, id, 1);
             Inventory.Add(save, mat.Id, n);
-            enhancement = new ItemStack(EnhancementMaterialFor(item).Id, RollEnhancementCount(rng));
+            enhancement = new ItemStack(EnhancementMaterialFor(item).Id, RollEnhancementCount(item.Grade, rng));
             Inventory.Add(save, enhancement.Id, enhancement.Count);
             return new ItemStack(mat.Id, n);
         }
@@ -124,8 +124,15 @@ namespace BiRyeoDo.Core
             return item != null && item.IsGear && item.Grade <= ItemGrade.Legendary ? Gear.Materials[(int)item.Grade] : null;
         }
 
-        /// <summary>One through five enhancement materials, with 20% probability for each count.</summary>
-        public static int RollEnhancementCount(IRandom rng) { return 1 + Math.Min(4, (int)(rng.NextDouble() * 5)); }
+        /// <summary>Maximum enhancement materials per dismantled item: 일반 through 전설 give up to 7/6/5/4/3.</summary>
+        public static int MaxEnhancementCount(ItemGrade grade) { return 7 - Math.Max(0, Math.Min((int)ItemGrade.Legendary, (int)grade)); }
+
+        /// <summary>Uniformly picks one through the grade's maximum, independently of crafting-material yield.</summary>
+        public static int RollEnhancementCount(ItemGrade grade, IRandom rng)
+        {
+            int max = MaxEnhancementCount(grade);
+            return 1 + Math.Min(max - 1, (int)(rng.NextDouble() * max));
+        }
 
         public static bool CanFuse(SaveData save, ItemData material) { return IsFusable(material) && Inventory.Count(save, material.Id) >= Need(material); }
 
@@ -210,7 +217,7 @@ namespace BiRyeoDo.Core
                 var enhancement = EnhancementMaterialFor(e.Item);
                 if (!map.ContainsKey(enhancement.Id)) { map[enhancement.Id] = new[] { 0, 0 }; order.Add(enhancement); }
                 map[enhancement.Id][0] += e.Count;
-                map[enhancement.Id][1] += 5 * e.Count;
+                map[enhancement.Id][1] += MaxEnhancementCount(e.Item.Grade) * e.Count;
             }
             var result = new List<KeyValuePair<ItemData, int[]>>();
             foreach (var mat in order) result.Add(new KeyValuePair<ItemData, int[]>(mat, map[mat.Id]));

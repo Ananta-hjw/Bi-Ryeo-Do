@@ -45,7 +45,7 @@ namespace BiRyeoDo.Tests
             Assert.IsTrue(Gear.Enhance(save, "iron_sword", out error), error);
             Assert.AreEqual(1, Gear.Level(save, "iron_sword"));
             Assert.AreEqual(1, Inventory.Count(save, "iron_sword"));
-            Assert.AreEqual(29, Inventory.Count(save, Gear.StoneId));
+            Assert.AreEqual(27, Inventory.Count(save, Gear.StoneId));
             Assert.AreEqual(before - Gear.DooCost(1), save.Doo);
             for (int i = 1; i < 10; i++) Assert.IsTrue(Gear.Enhance(save, "iron_sword", out error), error);
             Assert.AreEqual(10, Gear.Level(save, "iron_sword"));
@@ -154,7 +154,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void FusingSpendsTheNeededMaterialsForARandomPieceOfTheNextGrade()
         {
-            Assert.AreEqual(new[] { 50, 40, 30, 20, 10 }, Salvage.FuseNeed);
+            Assert.AreEqual(new[] { 70, 60, 50, 30, 20 }, Salvage.FuseNeed);
             var save = new SaveData();
             string err;
             foreach (var grade in new[] { ItemGrade.Normal, ItemGrade.Fine, ItemGrade.Rare, ItemGrade.Epic, ItemGrade.Legendary })
@@ -183,7 +183,7 @@ namespace BiRyeoDo.Tests
             var save = new SaveData();
             string weaponN = Salvage.IdOf(ItemKind.Weapon, ItemGrade.Normal), bootsN = Salvage.IdOf(ItemKind.Boots, ItemGrade.Normal);
             string weaponF = Salvage.IdOf(ItemKind.Weapon, ItemGrade.Fine), armorN = Salvage.IdOf(ItemKind.Armor, ItemGrade.Normal);
-            Inventory.Add(save, weaponN, 137);   // 2 fusions, 37 left
+            Inventory.Add(save, weaponN, 177);   // 2 fusions, 37 left
             Inventory.Add(save, bootsN, 50);     // slot not ticked
             Inventory.Add(save, weaponF, 80);    // grade not ticked
             Inventory.Add(save, armorN, 49);     // not enough for one
@@ -193,9 +193,9 @@ namespace BiRyeoDo.Tests
             var plan = Salvage.BulkFusePlan(save, grades, slots);
             Assert.AreEqual(1, plan.Count);
             Assert.AreEqual(weaponN, plan[0].Material.Id);
-            Assert.AreEqual(137, plan[0].Have);
+            Assert.AreEqual(177, plan[0].Have);
             Assert.AreEqual(2, plan[0].Times);
-            Assert.AreEqual(100, plan[0].Spent);
+            Assert.AreEqual(140, plan[0].Spent);
             Assert.AreEqual(37, plan[0].Left);
 
             var made = Salvage.FuseBulk(save, plan, new SeededRandom(3));
@@ -353,13 +353,13 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(7 * 3, yield[0].Value[0]);
             Assert.AreEqual(12 * 3, yield[0].Value[1]);
             Assert.AreEqual(Gear.StoneId, yield[1].Key.Id);
-            CollectionAssert.AreEqual(new[] { 3, 15 }, yield[1].Value);
+            CollectionAssert.AreEqual(new[] { 3, 21 }, yield[1].Value);
 
             var gained = Salvage.DismantleBulk(save, plan, new SeededRandom(3));
             Assert.AreEqual(1, Inventory.Count(save, "iron_sword"));
             Assert.AreEqual(2, gained.Count);
             Assert.That(gained[0].Count, Is.InRange(21, 36));
-            Assert.That(gained[1].Count, Is.InRange(3, 15));
+            Assert.That(gained[1].Count, Is.InRange(3, 21));
             Assert.AreEqual(gained[1].Count, Inventory.Count(save, Gear.StoneId));
             Assert.AreEqual(gained[0].Count, Inventory.Count(save, gained[0].Id));
             Assert.AreEqual(5, Inventory.Count(save, "taegeuk_jade"));

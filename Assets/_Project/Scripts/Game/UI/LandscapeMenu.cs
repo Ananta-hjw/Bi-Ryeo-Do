@@ -27,6 +27,9 @@ namespace BiRyeoDo.Game.UI
 
         public static void Inspector(RectTransform card)
         {
+            bool hasClose = card.Find("Close") != null;
+            float actionBottom = hasClose ? .20f : .03f;
+            float actionTop = hasClose ? .34f : .17f;
             foreach (Transform child in card)
             {
                 var rect = child as RectTransform;
@@ -44,19 +47,19 @@ namespace BiRyeoDo.Game.UI
                         break;
                     case "KindIcon": child.gameObject.SetActive(false); break;
                     case "BodyViewport":
-                        Place(rect, .025f, .36f, .975f, .70f);
+                        Place(rect, .025f, actionTop + .02f, .975f, .70f);
                         child.GetComponentInChildren<Text>().fontSize = 28;
                         break;
                     case "Breakthrough":
-                    case "Main": Place(rect, .04f, .20f, .49f, .34f); break;
+                    case "Main": Place(rect, .04f, actionBottom, .49f, actionTop); break;
                     case "Dismantle":
-                    case "Variant": Place(rect, .51f, .20f, .96f, .34f); break;
+                    case "Variant": Place(rect, .51f, actionBottom, .96f, actionTop); break;
                     case "Read":
                     case "Fuse":
                     case "FuseMaterial":
-                    case "Sell": Place(rect, .04f, .20f, .96f, .34f); break;
-                    case "CountBar": Place(rect, .04f, .22f, .49f, .32f); break;
-                    case "FuseMaterialHalf": Place(rect, .51f, .20f, .96f, .34f); break;
+                    case "Sell": Place(rect, .04f, actionBottom, .96f, actionTop); break;
+                    case "CountBar": Place(rect, .04f, actionBottom + .02f, .49f, actionTop - .02f); break;
+                    case "FuseMaterialHalf": Place(rect, .51f, actionBottom, .96f, actionTop); break;
                     case "Close": Place(rect, .25f, .025f, .75f, .17f); break;
                 }
             }

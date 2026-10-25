@@ -175,6 +175,7 @@ namespace BiRyeoDo.Tests.UI
             {
                 map.Select(EarlyGameContent.Stages[page * StageMapPanel.StagesPerPage].Number, _save);
                 Canvas.ForceUpdateCanvases();
+                Assert.AreSame(SceneryArt.Journey(page), Root.Find("StageOverlay/MapPainting").GetComponent<Image>().sprite);
                 var nodes = Root.Find("StageOverlay/Viewport/Nodes").Cast<Transform>()
                     .Where(child => child.name.StartsWith("Stage")).ToArray();
                 Assert.AreEqual(System.Math.Min(6, EarlyGameContent.Stages.Length - page * 6), nodes.Length);
@@ -199,6 +200,32 @@ namespace BiRyeoDo.Tests.UI
                 ComfortableButton("StageOverlay/StageDetail/Go");
             }
             Assert.AreEqual(EarlyGameContent.Stages.Length, seen.Count);
+        }
+
+        [TestCase(false, false)]
+        [TestCase(true, false)]
+        [TestCase(false, true)]
+        public void FeaturedEntryAlwaysShowsTheMapBeforePreparation(bool resume, bool gated)
+        {
+            _save.ClearedStage = 11;
+            _save.SwordRank = gated ? 1 : Promotion.GateRank;
+            _save.Difficulty = 1;
+            int started = 0;
+            var world = _canvas.AddComponent<WorldScreen>();
+            world.Build(Root, stage => started++, offer => { }, () => { });
+            if (resume)
+            {
+                _save.ProgressStage = world.FeaturedStage.Number;
+                _save.ProgressNext = 1;
+                _save.ProgressDifficulty = 0;
+            }
+            world.OpenMenu(WorldScreen.Menu.Featured);
+            Assert.IsTrue(Root.Find("StageOverlay").gameObject.activeSelf);
+            Assert.IsFalse(Root.Find("PrepOverlay").gameObject.activeSelf);
+            Assert.AreEqual(0, started);
+            Assert.AreEqual(0, _save.Difficulty);
+            var map = (StageMapPanel)typeof(WorldScreen).GetField("_stageMap", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(world);
+            Assert.AreEqual(world.FeaturedStage.Number, map.SelectedStage);
         }
 
         [Test]
@@ -284,8 +311,7 @@ namespace BiRyeoDo.Tests.UI
             var recordRoot = UiFactory.Rect("Record", Root, Vector2.zero, Vector2.one);
             recordRoot.gameObject.AddComponent<RecordScreen>().Build(recordRoot, (title, lines, done) => { });
             recordRoot.Find("MenuViewport/Viewport/Content/Menu_faction").GetComponent<Button>().onClick.Invoke();
-            string faction = "Record/Workspace/FactionOverlay/";
-            ComfortableButton(faction + "Back");   // 세력 평판 only: the 객잔 is its own panel now, so there are no tabs
+            Assert.IsNull(recordRoot.Find("Workspace/FactionOverlay/Back"));
             var factionRoot = recordRoot.Find("Workspace/FactionOverlay");
             Assert.IsNull(factionRoot.Find("Tab0"));
             Assert.Less(Bounds((RectTransform)factionRoot.Find("Viewport")).yMax,
@@ -321,7 +347,7 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsNull(journey.Find("Go"));
             Assert.AreEqual(1, journey.GetComponentsInChildren<Button>(true).Length);
             Assert.Greater(Bounds(journey).yMin, Bounds((RectTransform)homeRoot.Find("Home_협객")).yMax);
-            Assert.Less(Bounds(journey).yMax, Bounds((RectTransform)homeRoot.Find("StageList")).yMin);
+            Assert.IsNull(homeRoot.Find("StageList"));
             Assert.Greater(Bounds((RectTransform)homeRoot.Find("Home_협객")).yMin, Bounds((RectTransform)homeRoot.Find("Home_행낭")).yMax);
 
             _save.SwordRank = Promotion.GateRank;
@@ -335,7 +361,7 @@ namespace BiRyeoDo.Tests.UI
             _save.SwordRank = 1;
             home.Refresh();
             journey.GetComponent<Button>().onClick.Invoke();
-            Assert.AreEqual(WorldScreen.Menu.Promotion, opened);
+            Assert.AreEqual(WorldScreen.Menu.Featured, opened);
             StringAssert.Contains("승급 필요", journey.Find("Action").GetComponent<Text>().text);
         }
 
@@ -355,7 +381,7 @@ namespace BiRyeoDo.Tests.UI
             TabRouter.Tab? tab = null;
             home.Build(homeRoot, world, menu => opened = menu, selected => tab = selected);
             Canvas.ForceUpdateCanvases();
-            ComfortableButton("Home/StageList"); ComfortableButton("Home/Header/Settings");
+            Assert.IsNull(homeRoot.Find("StageList")); ComfortableButton("Home/Header/Settings");
             foreach (var name in new[] { "MissionsMenu", "ChallengeMenu", "PartyMenu", "ShopMenu" }) ComfortableButton("Home/" + name);
             var layer = homeRoot.Find("FlyoutLayer");
             Assert.IsFalse(layer.gameObject.activeSelf);
@@ -474,10 +500,12 @@ namespace BiRyeoDo.Tests.UI
                 if (kind == "bag") Assert.IsNotNull(host.Find("BulkDismantleButton"));
                 if (kind == "arts")
                 {
-                    // The 무공/심법 page buttons now sit right under the top bar, above the art list
+                    // Navigation stays below both the list and the inspector.
                     var pageButton = Bounds((RectTransform)root.Find("Page0"));
-                    Assert.Less(pageButton.yMax, bar.yMin + 1f);
-                    Assert.Less(Bounds((RectTransform)page.Find("Viewport")).yMax, pageButton.yMin + 1f);
+                    Assert.GreaterOrEqual(pageButton.height, 72f);
+                    Assert.Greater(Bounds((RectTransform)page.Find("Viewport")).yMin, pageButton.yMax);
+                    Assert.LessOrEqual(Bounds((RectTransform)page).yMax, bar.yMin + 1f);
+                    Assert.Greater(Bounds((RectTransform)root.Find("ArtDetail")).yMin, pageButton.yMax);
                 }
             }
         }
@@ -647,16 +675,18 @@ namespace BiRyeoDo.Tests.UI
             }
         }
 
-        [Test]
-        public void TappingAnEquippedSlotTakesThatArtOff()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TappingAnEquippedSlotTakesThatArtOff(bool ultimate)
         {
-            var art = EarlyGameContent.Arts.First(a => a.OwnerId == null && !Progression.IsUltimate(a));
+            var art = EarlyGameContent.Arts.First(a => a.OwnerId == null && Progression.IsUltimate(a) == ultimate);
             if (!_save.LearnedArts.Contains(art.Id)) _save.LearnedArts.Add(art.Id);
             _save.EquippedArts.Clear(); _save.EquippedArts.Add(art.Id);
             var arts = _canvas.AddComponent<MartialArtsScreen>(); arts.Build(Root);
             Invoke(arts, "Refresh");
-            var slot = _canvas.transform.Find("ArtsPage/SlotBar/Slot0");
+            var slot = _canvas.transform.Find("ArtsPage/SlotBar/Slot" + (ultimate ? Progression.MaxEquippedArts : 0));
             Assert.IsNotNull(slot.Find("Unequip"));
+            Assert.IsTrue(slot.GetComponent<Button>().targetGraphic.raycastTarget, "the equipped slot must receive pointer input");
             slot.GetComponent<Button>().onClick.Invoke();
             Assert.IsFalse(_save.EquippedArts.Contains(art.Id));
             Assert.IsTrue(_save.LearnedArts.Contains(art.Id), "unequipping keeps the art learned");
@@ -770,6 +800,19 @@ namespace BiRyeoDo.Tests.UI
             Separate("MenuViewport", "Workspace");
             Assert.IsNull(_canvas.transform.Find("MenuViewport/Viewport/Content/Menu_party"));
             Assert.IsFalse(openedCharacters);
+            foreach (var route in new[]
+            {
+                new[] { "codex", "CodexOverlay" }, new[] { "achievement", "AchievementOverlay" },
+                new[] { "story", "StoryLogOverlay" }, new[] { "memories", "MemoryOverlay" },
+                new[] { "faction", "FactionOverlay" }, new[] { "ritual", "RitualOverlay" }
+            })
+            {
+                Root.Find("MenuViewport/Viewport/Content/Menu_" + route[0]).GetComponent<Button>().onClick.Invoke();
+                var page = Root.Find("Workspace/" + route[1]);
+                Assert.IsTrue(page.gameObject.activeSelf);
+                Assert.IsNull(page.Find("Back"), route[1]);
+                Assert.That(((RectTransform)page.Find("Viewport")).anchorMin.y, Is.EqualTo(.02f).Within(.001f));
+            }
         }
 
         [TestCase(1440f, 0)]

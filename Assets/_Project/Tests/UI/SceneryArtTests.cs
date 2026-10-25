@@ -23,6 +23,16 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsNull(Resources.Load<Texture2D>("Art/Backgrounds/stage_01"));
         }
 
+        [Test]
+        public void EveryJourneyPageLoadsADistinctMapPainting()
+        {
+            var paintings = Enumerable.Range(0, 6).Select(SceneryArt.Journey).ToArray();
+            foreach (var painting in paintings) Assert.IsNotNull(painting);
+            Assert.AreEqual(6, paintings.Distinct().Count());
+            Assert.AreEqual(SceneryArt.JourneyKey(0), SceneryArt.JourneyKey(-1));
+            Assert.AreEqual(SceneryArt.JourneyKey(5), SceneryArt.JourneyKey(6));
+        }
+
         [TestCase(1, "battle_forest")]
         [TestCase(2, "battle_manor")]
         [TestCase(7, "battle_cave")]

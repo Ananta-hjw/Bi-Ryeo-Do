@@ -29,7 +29,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.ScrollBody(UiFactory.Label("Hint", Root, new Vector2(0.05f, 0.845f), new Vector2(0.95f, 0.92f),
                 toast ?? ("원작의 장면을 다시 봅니다. 처음 볼 때 은자와 (합류 후) 인연 +" + Memories.BondPerMemory + "." + (next != null ? "  추억 " + next.Count + "개를 보면 특별 보상." : "")), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
-            var content = CodexPanel.Scroller(Root, .16f, 0.84f);
+            var content = CodexPanel.Scroller(Root, .02f, 0.84f);
             var grid = new ReadingGrid(content, 3, 270f);
             // Stable ordering keeps story order inside each availability group.
             var memories = Memories.All.OrderBy(m => Memories.IsSeen(save, m.Id) ? 2 : Memories.IsUnlocked(save, m) ? 0 : 1).ToArray();
