@@ -78,6 +78,32 @@ namespace BiRyeoDo.Tests.UI
             Assert.GreaterOrEqual(Bounds((RectTransform)button.transform).height, 94f, path + " is too short to tap comfortably");
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void CharacterChoosersUseSdWhileCompanionProfilesUseStanding(bool equipment)
+        {
+            Component screen;
+            if (equipment)
+            {
+                var view = Root.gameObject.AddComponent<EquipmentScreen>();
+                view.Build(Root); screen = view;
+                Assert.AreSame(ArtLibrary.SdFigure(Inventory.Hero), Root.Find("Workspace/Character/BattleFigure").GetComponent<Image>().sprite);
+            }
+            else
+            {
+                var view = Root.gameObject.AddComponent<CompanionScreen>();
+                view.Build(Root, () => { }); screen = view;
+                Assert.AreSame(ArtLibrary.CharacterPortrait(StoryLine.Protagonist), Root.Find("Identity/Portrait").GetComponent<Image>().sprite);
+            }
+            Invoke(screen, "OpenCharacterPicker");
+            var picker = Root.Find("CharacterPicker");
+            var portraits = picker.GetComponentsInChildren<Image>().Where(image => image.name == "Portrait").ToArray();
+            var owners = new[] { Inventory.Hero }.Concat(EarlyGameContent.Companions.Where(c => c.JoinStage <= _save.HighestUnlockedStage).Select(c => c.Id)).ToArray();
+            CollectionAssert.AreEquivalent(owners.Select(ArtLibrary.SdFigure), portraits.Select(image => image.sprite));
+            Assert.AreEqual(owners.Length, portraits.Length);
+            foreach (var portrait in portraits) Assert.IsTrue(portrait.preserveAspect);
+        }
+
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]

@@ -231,8 +231,9 @@ namespace BiRyeoDo.Game.UI
             {
                 float dx = x == left ? 1f : -1f, dy = y == bottom ? 1f : -1f;
                 var corner = new Vector2(x, y);
-                Segment(mesh, corner + new Vector2(dx * 5f, dy * 23f), corner + new Vector2(dx * 9f, dy * 9f), Stroke, color);
-                Segment(mesh, corner + new Vector2(dx * 9f, dy * 9f), corner + new Vector2(dx * 23f, dy * 5f), Stroke, color);
+                float reach = Mathf.Min(23f, _size * .18f);
+                Segment(mesh, corner + new Vector2(dx * reach * .22f, dy * reach), corner + new Vector2(dx * reach * .4f, dy * reach * .4f), Stroke, color);
+                Segment(mesh, corner + new Vector2(dx * reach * .4f, dy * reach * .4f), corner + new Vector2(dx * reach, dy * reach * .22f), Stroke, color);
             }
         }
 

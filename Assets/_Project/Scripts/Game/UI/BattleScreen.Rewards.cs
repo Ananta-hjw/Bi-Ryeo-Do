@@ -215,7 +215,7 @@ namespace BiRyeoDo.Game.UI
             var row = RewardRow(content, index++, fielded ? 400f : 220f);
             var portrait = UiFactory.Panel("Portrait", row, new Vector2(.03f, fielded ? .68f : .30f), new Vector2(.18f, .96f), Color.white);
             portrait.preserveAspect = true;
-            portrait.sprite = ArtLibrary.Portrait(name) ?? BattleFigure(id);
+            portrait.sprite = BattleFigure(id);
             if (portrait.sprite == null)
             {
                 portrait.color = Color.clear;
@@ -284,7 +284,7 @@ namespace BiRyeoDo.Game.UI
             var row = RewardRow(content, index, 210f);
             var portrait = UiFactory.Panel("Portrait", row, new Vector2(.03f, .24f), new Vector2(.17f, .94f), Color.white);
             portrait.preserveAspect = true;
-            portrait.sprite = ArtLibrary.Portrait(unit.Name) ?? BattleFigure(unit.Id);
+            portrait.sprite = BattleFigure(unit.Id);
             if (portrait.sprite == null)
             {
                 portrait.color = Color.clear;

@@ -155,17 +155,16 @@ namespace BiRyeoDo.Game.UI
             _missionsButton = missions.GetComponent<Image>();
             _missionsBadge = Badge(missions.transform);
             LandscapeMenu.Place((RectTransform)_missionsBadge.transform.parent, .64f, .71f, .99f, .99f);
-            _challengeButton = SideButton(root, "ChallengeMenu", "도전", "challenge", .45f, () => ToggleFlyout(false)).GetComponent<Image>();
+            _challengeButton = SideButton(root, "ChallengeMenu", "도전", "tower", .45f, () => ToggleFlyout(false)).GetComponent<Image>();
             SideButton(root, "PartyMenu", "파티 편성", "party", .26f, () => OpenSideMenu(WorldScreen.Menu.Party));
-            SideButton(root, "ShopMenu", "객잔", "tower", .07f, () => OpenSideMenu(WorldScreen.Menu.Shop));
+            SideButton(root, "ShopMenu", "객잔", "coin", .07f, () => OpenSideMenu(WorldScreen.Menu.Shop));
             CloseFlyouts();
         }
 
         private static Button SideButton(RectTransform root, string name, string title, string icon, float bottom, UnityEngine.Events.UnityAction action)
         {
             var button = UiFactory.Button(name, root, new Vector2(.015f, bottom), new Vector2(.11f, bottom + .15f), "", Color.clear, action, 28);
-            UiFactory.Glyph("line_icon_rim", button.transform, new Vector2(.16f, .33f), new Vector2(.84f, .99f), UiFactory.Gold);
-            UiFactory.Glyph("line_" + icon, button.transform, new Vector2(.30f, .46f), new Vector2(.70f, .86f), UiFactory.Gold);
+            UiFactory.Glyph(icon, button.transform, new Vector2(.23f, .38f), new Vector2(.77f, .96f), UiFactory.Gold);
             UiFactory.Label("Title", button.transform, new Vector2(.015f, .015f), new Vector2(.985f, .35f), title, 28, UiFactory.PaperText);
             return button;
         }

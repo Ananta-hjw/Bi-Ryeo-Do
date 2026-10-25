@@ -57,7 +57,7 @@ namespace BiRyeoDo.Game.UI
                 var grade = (ItemGrade)g;
                 int col = g % 3, gradeRow = g / 3;
                 float x0 = 0.02f + col * 0.325f, y1 = gradeRow == 0 ? 0.94f : 0.48f;
-                var chip = UiFactory.Panel("Chip" + g, odds.transform, new Vector2(x0, y1 - 0.42f), new Vector2(x0 + 0.31f, y1), new Color(0.04f, 0.05f, 0.08f, 0.9f));
+                var chip = UiFactory.Panel("Chip" + g, odds.transform, new Vector2(x0, y1 - 0.42f), new Vector2(x0 + 0.31f, y1), UiFactory.Ink);
                 chip.raycastTarget = true;
                 var openPool = chip.gameObject.AddComponent<Button>();
                 openPool.targetGraphic = chip;

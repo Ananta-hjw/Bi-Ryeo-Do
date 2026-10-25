@@ -43,7 +43,7 @@ namespace BiRyeoDo.Game.UI
         {
             LandscapeMenu.Clear(_root);
             var save = GameManager.Instance.Save;
-            var card = UiFactory.Panel("Card", _root, new Vector2(0.03f, 0.03f), new Vector2(0.97f, 0.97f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            var card = UiFactory.Panel("Card", _root, new Vector2(0.03f, 0.03f), new Vector2(0.97f, 0.97f), UiFactory.ModalInk);
             UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
             UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.93f), new Vector2(0.95f, 0.99f), "일괄 분해", 42, UiFactory.Gold);
 

@@ -119,7 +119,7 @@ namespace BiRyeoDo.Game.UI
             if (old != null) UnityEngine.Object.Destroy(old.gameObject);
             var layer = UiFactory.Rect("GoodDetail", Root, Vector2.zero, Vector2.one);
             layer.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, .78f);   // blocks the shelf underneath
-            var card = UiFactory.Panel("Card", layer, new Vector2(.25f, .08f), new Vector2(.75f, .92f), new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            var card = UiFactory.Panel("Card", layer, new Vector2(.25f, .08f), new Vector2(.75f, .92f), UiFactory.ModalInk);
             UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
             bool open = Shop.IsOpen(save, g), sold = Shop.SoldOut(save, g), afford = save.Doo >= g.Price;
             var icon = UiFactory.Panel("Icon", card.transform, new Vector2(.06f, .64f), new Vector2(.36f, .96f), Color.white);

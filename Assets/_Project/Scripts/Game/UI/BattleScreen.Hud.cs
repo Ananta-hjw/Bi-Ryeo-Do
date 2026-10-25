@@ -204,7 +204,7 @@ namespace BiRyeoDo.Game.UI
         {
             var card = CardOf(unit.Id);
             string key = card != null ? card.Data.ArtKey : unit.Id;
-            return ArtLibrary.Portrait(unit.Name) ?? ArtLibrary.Enemy(key) ?? BattleFigure(key);
+            return BattleFigure(key);
         }
 
         private void InspectTurnUnit(int index)

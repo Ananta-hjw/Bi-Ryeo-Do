@@ -24,7 +24,7 @@ namespace BiRyeoDo.Game.UI
         public void Build(RectTransform root)
         {
             if (_built) return;
-            UiFactory.Panel("Background", root, Vector2.zero, Vector2.one, new Color(.035f, .065f, .067f, .42f));
+            UiFactory.Panel("Background", root, Vector2.zero, Vector2.one, new Color(.02f, .045f, .03f, .10f));
             _workspace = UiFactory.Rect("Workspace", root, new Vector2(.02f, .03f), new Vector2(.98f, .97f));
             _modal = UiFactory.Rect("EquipmentInfo", root, Vector2.zero, Vector2.one);
             _modal.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, .85f);
@@ -100,7 +100,7 @@ namespace BiRyeoDo.Game.UI
             Action(left, "Recommend", .29f, .755f, .71f, .83f, "추천 장비", EquipRecommended);
             var figure = UiFactory.Panel("BattleFigure", left, new Vector2(.235f, .14f), new Vector2(.765f, .74f), Color.white);
             // Use only files under Art/Battle, including the battle fallback when a figure is missing.
-            figure.sprite = ArtLibrary.Chibi(_owner) ?? ArtLibrary.DefaultChibi(_owner);
+            figure.sprite = ArtLibrary.SdFigure(_owner);
             figure.preserveAspect = true;
             if (figure.sprite == null) { figure.color = Color.clear; Label(figure.transform, "Fallback", 0f, 0f, 1f, 1f, OwnerName, 34); }
             for (int slot = 0; slot < 6; slot++)

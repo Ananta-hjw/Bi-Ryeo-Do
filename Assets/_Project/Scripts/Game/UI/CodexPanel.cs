@@ -25,7 +25,7 @@ namespace BiRyeoDo.Game.UI
             _onChange = onChange;
             foreach (var r in new[] { codexRoot, achRoot })
             {
-                r.gameObject.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.09f, 0.98f);
+                r.gameObject.AddComponent<Image>().color = UiFactory.ModalInk;
                 r.gameObject.SetActive(false);
             }
         }
@@ -33,6 +33,7 @@ namespace BiRyeoDo.Game.UI
         internal static void Clear(RectTransform rt)
         {
             LandscapeMenu.Clear(rt);
+            UiFactory.MenuBackdrop(rt, BiRyeoDo.Game.Systems.SceneryArt.PanelKey(rt.name));
             UiFactory.Frame(rt, UiFactory.GoldDim, 3f);
         }
 
@@ -104,7 +105,9 @@ namespace BiRyeoDo.Game.UI
                     bool seen = Codex.HasEnemy(save, e.Id);
                     var card = grid.Add("Enemy" + n++);
                     var icon = UiFactory.Panel("Icon", card, new Vector2(.04f, .57f), new Vector2(.25f, .94f), UiFactory.InkSoft);
-                    UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, seen ? e.Name.Substring(0, 1) : "?", 44, UiFactory.PaperText);
+                    var glyph = UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, seen ? e.Name.Substring(0, 1) : "?", 44, UiFactory.PaperText);
+                    var portrait = seen ? ArtLibrary.CharacterPortrait(e.ArtKey) : null;
+                    if (portrait != null) { icon.sprite = portrait; icon.color = Color.white; icon.preserveAspect = true; glyph.text = ""; }
                     UiFactory.Label("Name", card, new Vector2(.29f, .57f), new Vector2(.96f, .95f), seen ? e.Name : "???", 30, seen ? UiFactory.PaperText : UiFactory.Dim, TextAnchor.MiddleLeft);
                     UiFactory.Label("Info", card, new Vector2(.04f, .10f), new Vector2(.96f, .53f), seen ? "Lv." + e.DisplayLevel + (e.IsBoss ? " · 우두머리" : "") + (Realm.HasRealm(e) ? "\n경지 " + Realm.ForEnemy(e) : "") : "아직 쓰러뜨리지 못했습니다", 28, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 }

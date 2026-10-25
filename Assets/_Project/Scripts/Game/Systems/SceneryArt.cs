@@ -38,6 +38,17 @@ namespace BiRyeoDo.Game.Systems
             }
         }
 
+        /// <summary>Decorative settings for secondary menus; no story or reward rules depend on this mapping.</summary>
+        public static string PanelKey(string name)
+        {
+            if (name.Contains("Shop") || name.Contains("Faction") || name.Contains("Companion")) return "companions";
+            if (name.Contains("Codex") || name.Contains("Ach") || name.Contains("Story") || name.Contains("Memory") || name.Contains("Ritual")) return "record";
+            if (name.Contains("Inner") || name.Contains("Art") || name.Contains("Tower") || name.Contains("Daily") || name.Contains("Promotion")) return "arts";
+            if (name.Contains("Gear") || name.Contains("Equipment")) return "equipment";
+            if (name.Contains("Gacha")) return "gacha";
+            return "world";
+        }
+
         /// <summary>Six decorative journey regions, one for each six-stage map page.</summary>
         public static string JourneyKey(int page)
         {

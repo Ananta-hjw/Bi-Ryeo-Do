@@ -125,7 +125,7 @@ namespace BiRyeoDo.Game.UI
             }
             bool unlocked = InnerArts.IsUnlocked(save, a), learned = InnerArts.IsLearned(save, a.Id), equipped = InnerArts.IsEquipped(save, a.Id);
             int level = InnerArts.Level(save, a.Id);
-            var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, new Color(0.05f, 0.07f, 0.11f, 0.99f));
+            var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, UiFactory.ModalInk);
             UiFactory.Frame(card.transform, equipped ? UiFactory.Gold : UiFactory.GoldDim, 3f);
             var big = UiFactory.Panel("Picture", card.transform, new Vector2(0.66f, 0.84f), new Vector2(0.96f, 0.985f), unlocked ? Color.white : new Color(.45f, .45f, .48f));
             big.sprite = ArtLibrary.InnerArt(a.Id);
