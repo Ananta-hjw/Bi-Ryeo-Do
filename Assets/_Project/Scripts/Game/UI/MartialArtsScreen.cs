@@ -448,7 +448,7 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             Canvas.ForceUpdateCanvases();
             RefreshSlots(save);
-            _header.text = "무공 · 장착 " + Progression.EquippedCount(save, false) + "/" + Progression.MaxEquippedArts + " · 필살 " + Progression.EquippedCount(save, true) + "/" + Progression.MaxEquippedUltimates + " · " + save.Doo.ToString("N0") + "은자";
+            UiFactory.SetTabHeader(_header, "무공", "장착 " + Progression.EquippedCount(save, false) + "/" + Progression.MaxEquippedArts + " · 필살 " + Progression.EquippedCount(save, true) + "/" + Progression.MaxEquippedUltimates + " · " + save.Doo.ToString("N0") + "은자");
 
             foreach (var r in _rows)
             {

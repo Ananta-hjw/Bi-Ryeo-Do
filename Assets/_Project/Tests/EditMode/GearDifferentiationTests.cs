@@ -10,7 +10,7 @@ namespace BiRyeoDo.Tests
         public void EveryEquipmentHasDistinctBaseEffectsAndDisplayedEffects()
         {
             var gear = EarlyGameContent.Items.Where(item => item.IsGear).ToArray();
-            Assert.AreEqual(229, gear.Length);
+            Assert.AreEqual(391, gear.Length);
             var duplicates = gear.GroupBy(item => (item.HpPct, item.QiPct, item.AtkPct, item.DefPct,
                 item.SpeedAdd, item.CritAdd, item.CritDmgAdd)).Where(group => group.Count() > 1);
             Assert.IsEmpty(duplicates.Select(group => string.Join(", ", group.Select(item => item.Id))));

@@ -153,7 +153,7 @@ namespace BiRyeoDo.Game.UI
             var current = Gear.ItemInSlot(Save, _owner, _slot);
             if (!items.Any(item => item.Id == _selectedId)) _selectedId = current?.Id ?? items.FirstOrDefault(item => item.Kind == Gear.KindForSlot(_slot))?.Id;
             var selected = items.FirstOrDefault(item => item.Id == _selectedId);
-            Label(right, "Hint", .02f, .80f, .98f, .87f, SlotNames[_slot] + " · 보유 " + items.Count + "종 · " + (_feedback ?? SelectionHint(selected, items.Count)), 22, UiFactory.Gold);
+            Label(right, "Hint", .02f, .80f, .98f, .87f, SlotNames[_slot] + " · 보유 " + items.Count + "종 · " + (_feedback ?? "선택한 장비의 효과와 비용을 아래에서 확인할 수 있습니다."), 22, UiFactory.Gold);
             var content = CodexPanel.Scroller(right, .35f, .79f);
             RectTransform row = null;
             for (int i = 0; i < items.Count; i++)
@@ -219,14 +219,41 @@ namespace BiRyeoDo.Game.UI
             bool worn = item != null && Gear.ItemInSlot(Save, _owner, _slot)?.Id == item.Id;
             bool otherSlot = item != null && !worn && Inventory.GearOf(Save, _owner).Contains(item.Id);
             bool available = item != null && !worn && !otherSlot && Inventory.Free(Save, item.Id) > 0;
-            Label(panel, "Name", .025f, .75f, .975f, .98f, item == null ? "장비를 선택해 주세요" : UiFactory.GradedName(item) + " · " + Gear.StarsText(Save, item.Id), 28, UiFactory.Gold);
+            Label(panel, "Name", .025f, .75f, .635f, .98f, item == null ? "장비를 선택해 주세요" : UiFactory.GradedName(item) + " · " + Gear.StarsText(Save, item.Id), 28, UiFactory.Gold);
             var others = Inventory.WearerNames(Save, item?.Id, _owner);
-            UiFactory.ScrollBody(Label(panel, "State", .025f, .54f, .975f, .74f, item == null ? "선택한 장비의 조작 버튼이 여기에 표시됩니다."
+            UiFactory.ScrollBody(Label(panel, "State", .025f, .54f, .635f, .74f, item == null ? "선택한 장비의 조작 버튼이 여기에 표시됩니다."
                 : SlotNames[_slot] + " · " + (worn ? "착용 중" : otherSlot ? "다른 장신구 칸에 착용 중" : available ? "장착 가능" : string.Join(" · ", others.Select(name => "\"" + name + "\"")) + " 장착 중")
                   + " · 적용 +" + Gear.AppliedSlotLevel(Save, _owner, _slot, item) + " / 상한 +" + Gear.Cap(Save, item.Id), 24), 24);
-            UiFactory.ScrollBody(Label(panel, "Effects", .025f, .35f, .975f, .53f,
+            UiFactory.ScrollBody(Label(panel, "Effects", .025f, .35f, .635f, .53f,
                 item == null ? "" : UiFactory.GearEffectText(item, Gear.AppliedSlotLevel(Save, _owner, _slot, item), Gear.Stars(Save, item.Id))
                     + " · 세트: " + (Gear.SetOf(item.Id)?.Name ?? "없음"), 22), 22);
+            var costPanel = UiFactory.Panel("Costs", panel, new Vector2(.66f, .35f), new Vector2(.985f, .98f), UiFactory.InkSoft).rectTransform;
+            UiFactory.Frame(costPanel, UiFactory.GoldDim, 2f);
+            string costText;
+            bool affordable = true;
+            if (item == null) costText = "개방 · 강화 비용\n장비를 선택해 주세요.";
+            else if (!Gear.IsGradeUnlocked(Save, _owner, _slot, item.Grade))
+            {
+                long unlock = Gear.GradeUnlockCost(Save, _owner, _slot, item.Grade);
+                affordable = Save.Doo >= unlock;
+                costText = Grades.NameOf(item.Grade) + " 등급 개방\n필요 " + unlock.ToString("N0") + "은자\n보유 " + Save.Doo.ToString("N0") + "은자";
+            }
+            else
+            {
+                int next = Gear.SlotLevel(Save, _owner, _slot) + 1;
+                if (next > Gear.MaxLevel) costText = "최대 강화 +" + Gear.MaxLevel;
+                else if (next > Gear.Cap(Save, item.Id)) costText = "강화 상한 +" + Gear.Cap(Save, item.Id) + "\n한계돌파가 필요합니다.";
+                else
+                {
+                    var material = Gear.MaterialForLevel(next);
+                    int need = Gear.StoneCost(next), have = Inventory.Count(Save, material.Id);
+                    long silver = Gear.DooCost(next);
+                    affordable = have >= need && Save.Doo >= silver;
+                    costText = "강화 +" + next + " (보유/필요)\n" + material.Name + " " + have.ToString("N0") + "/" + need + "개\n은자 " + Save.Doo.ToString("N0") + "/" + silver.ToString("N0");
+                }
+            }
+            if (item != null && !worn) costText += "\n장착 후 진행할 수 있습니다.";
+            UiFactory.ScrollBody(Label(costPanel, "Text", .05f, .04f, .95f, .96f, costText, 22, affordable ? UiFactory.Gold : new Color(1f, .55f, .45f)), 22);
             Action(panel, "Equip", .015f, .025f, .245f, .33f, "장착", () =>
             {
                 string error;

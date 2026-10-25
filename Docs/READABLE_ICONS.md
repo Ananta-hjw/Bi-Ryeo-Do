@@ -1,6 +1,6 @@
 # Readable Icon Art
 
-The painted wuxia icon set covers all 31 martial arts, 20 inner methods and 281 items currently returned by Core content, plus menu/command icons and eight item-kind defaults. Equipment grade remains a separate UI frame; the object silhouette, material and effects identify the item itself. Existing portrait, battle figure and background art is unchanged.
+The painted wuxia icon set covers all 31 martial arts, 20 inner methods and 443 items currently returned by Core content, plus menu/command icons and eight item-kind defaults. Equipment grade remains a separate UI frame; the object silhouette, material and effects identify the item itself. Existing portrait, battle figure and background art is unchanged.
 
 ## Assets and mapping
 
@@ -11,7 +11,7 @@ The painted wuxia icon set covers all 31 martial arts, 20 inner methods and 281 
 - `special.png`: 4×2 sheet for two mythic weapons/accessories and all six polishing materials. Spirit crystals, silver ingots, ancient black ingots and the celestial meteor have distinct silhouettes.
 - `details.png`: 4×2 sheet correcting selected item silhouettes, including the five-element saber, thunder wine flask, bear-gall medicine and thunder pendant.
 - `equipment_repair.png`: 4×2 sheet with distinct star/comet, vermilion slash and jade vortex mythical weapons, plus corrected cloth robe, straw sandals, straw greaves, iron fan and leather leg wraps.
-- `jin_biroedo.png`: transparent full-size transcendent icon, paired angular silver daggers without chains, white/violet lightning and a gold energy halo.
+- `jin_biroedo.png`: transparent full-size transcendent icon, crossed angular silver daggers without chains, restrained white/violet lightning and a small central flash (selected candidate 3).
 
 `cell` is zero-based, counted left to right and top to bottom. `columns` and `rows` describe the slicing grid for that entry. The same sheet may contain rows with different column counts and nonuniform pixel sizes; do not assume a single grid for the entire image. All item/default regions now use measured normalized rectangles; `cell` identifies the illustration only. See the boundary correction below. Normalized `x`, `y`, `width`, `height` describe the measured region; `y` is measured from the top. These measured overrides and the remapped final sheet account for the generated art's actual layout. Do not regenerate ordering from array positions alone.
 
@@ -21,7 +21,7 @@ The loader insets each region by three pixels to exclude grid seams. Sheet dimen
 
 Lists, inspectors, gacha and battle commands all use `ArtLibrary`. Inner-method cards use `ArtLibrary.InnerArt`. `WuxiaGlyph` renders painted symbols for mapped keys while preserving vector frames, stance markers and decorative halos. Changing its key invalidates both geometry and texture binding.
 
-`ReadableIconTests` covers content coverage, distinct item regions, valid sprite bounds, shared lookup results, fallback items and dynamic glyph texture changes. Run these tests in Unity EditMode. Cloud validation checks all 385 mappings, image bounds and metadata, and compiles UI/test sources; it does not execute Unity rendering or touch input.
+`ReadableIconTests` covers content coverage, distinct item regions, valid sprite bounds, shared lookup results, fallback items and dynamic glyph texture changes. Run these tests in Unity EditMode. Cloud validation checks all 547 mappings, image bounds and metadata, and compiles UI/test sources; it does not execute Unity rendering or touch input.
 
 The PNG sheets were created with image generation and their ID mappings were inspected and corrected against the existing content. To add an item, assign a distinct, visually verified region and add the catalog entry; keep the legacy fallback for future content without painted art.
 
@@ -39,7 +39,7 @@ The three non-Biroe mythic weapons use separate effects: 성락검 has platinum/
 
 `ITEM_ICON_AUDIT.csv` records every item's name, kind and resolved pixel rectangle (after the loader's three-pixel inset, with Y measured from the top). `corrected` marks mappings changed since the previous release (74 after the subsequent icon and aura updates); `verified` marks the remaining items. PNG artwork was inspected visually; automated checks verify all 385 catalog bounds, complete item coverage and zero overlapping item regions. These geometry checks complement, rather than replace, visual item identification.
 
-Gacha grade previews now show five item cards per measured scrolling row, including a 104-pixel icon, name, effects and set. The grade and probability remain in the header. The close button stays outside the scrolling area. Pull results also use five columns, while gacha probabilities are unchanged.
+Gacha grade previews now show five item cards per fixed-height scrolling row, including a 104-pixel icon, name, effects and set. The grade and probability remain in the header. The close button stays outside the scrolling area. Pull results also use five columns, while gacha probabilities are unchanged.
 
 Regression coverage adds known-cell assertions for shifted armor, nine-column accessories, normal weapons, the mythic orb and the replacement atlas. The grade-preview test covers all grades at 1440/1920/2400-pixel widths, row counts, card separation, icon/name separation and no inventory/currency changes. Unity UI tests require the Editor; cloud validation compiles their source only.
 
@@ -121,3 +121,11 @@ python3 Tools/audit_icon_regions.py --write
 `--write` refreshes normalized catalog rectangles and `ITEM_ICON_AUDIT.csv`; it never modifies PNGs. The loader keeps its existing three-pixel filtering inset. A new/replaced illustration sheet must have its divider layout inspected rather than inferred solely from the item count.
 
 Validation: 385 catalog mappings pass geometry checks, including 313 measured regions and 281 distinct item regions. Browser-rendered source-region previews of all 281 items were inspected for neighboring fragments. UI regression sources pin 24 representative item rectangles and seven status-symbol rectangles, and check pairwise item-region separation. Game/UI and UI-test C# sources compile successfully. These cloud previews verify source slicing; Unity shader execution and device rendering still require Editor/device verification.
+
+## Balanced equipment catalog expansion
+
+Added 162 dedicated icons in six transparent `gear_expansion_<grade>.png` sheets. Every normal-through-mythic slot now has 20/17/15/12/8/6 equipment definitions. The new sheets use individually measured transparent row/column gutters in `ICON_SHEET_LAYOUTS.json`; mappings and all 443 item audit rows are kept together. This does not replace any previous art or change the special Biroe/transcendent icons. See [the complete item list](EQUIPMENT_CATALOG_EXPANSION.md). Grade preview cards use concise effect summaries and fixed heights.
+
+## Selected Jin Biroedo icon (candidate 3)
+
+The user selected the crossed-blade candidate for 飛雷刀. `Readable/jin_biroedo.png` and the legacy `Items/jin_biroedo.png` now use that same transparent 1254×1254 image: two crossed silver/black knives, fine gold accents and white-violet lightning around the blades, without chains or the previous large gold halo. The existing catalog ID, full-image region and import GUIDs are retained. Item stats and the Biroe blade icon are unchanged.

@@ -119,7 +119,7 @@ namespace BiRyeoDo.Tests.UI
                 {
                     root.Find("Page1").GetComponent<Button>().onClick.Invoke();
                     Canvas.ForceUpdateCanvases();
-                    Assert.That(Bounds((RectTransform)root.Find("InnerArtPage/HeaderBand")).height,
+                    Assert.That(Bounds((RectTransform)root.Find("InnerArtPage/List/HeaderBand")).height,
                         Is.EqualTo(band.height).Within(.1f));
                 }
             }
@@ -461,6 +461,10 @@ namespace BiRyeoDo.Tests.UI
             Assert.That(bar.yMin, Is.EqualTo(Bounds(panel).yMax).Within(.5f), "the bar sits right above the panel");
             Assert.That(bar.width, Is.EqualTo(width).Within(.5f));
             Assert.AreEqual("back", panel.Find("BackBar/Back").GetComponentInChildren<WuxiaGlyph>().Key);
+            var icon = panel.Find("BackBar/Glyph_companion");
+            Assert.IsNotNull(icon);
+            Assert.Less(Bounds((RectTransform)panel.Find("BackBar/Back")).xMax, Bounds((RectTransform)icon).xMin);
+            Assert.Less(Bounds((RectTransform)icon).xMax, Bounds((RectTransform)panel.Find("BackBar/Title")).xMin);
             Assert.Less(Bounds((RectTransform)panel.Find("BackBar/Back")).xMax, Bounds((RectTransform)panel.Find("BackBar/Title")).xMin + 1f);
             Assert.IsNull(typeof(MainScreen).GetMethod("BuildTabBar", BindingFlags.Instance | BindingFlags.NonPublic), "there is no bottom tab bar any more");
         }
@@ -475,7 +479,8 @@ namespace BiRyeoDo.Tests.UI
             {
                 var panel = UiFactory.Rect("Panel_" + kind, Root, Vector2.zero, Vector2.one);
                 panel.offsetMax = new Vector2(0f, -104f);
-                Invoke(main, "BuildBackBar", panel, kind);
+                string tabName = kind == "bag" ? "행낭" : kind == "gacha" ? "뽑기" : kind == "record" ? "기록" : "무공";
+                Invoke(main, "BuildBackBar", panel, tabName);
                 var root = UiFactory.Rect("Screen", panel, Vector2.zero, Vector2.one);
                 if (kind == "bag") root.gameObject.AddComponent<BagScreen>().Build(root);
                 else if (kind == "gacha") root.gameObject.AddComponent<GachaScreen>().Build(root);
@@ -490,6 +495,12 @@ namespace BiRyeoDo.Tests.UI
                 var host = info.GetChild(0);
                 var bar = Bounds((RectTransform)panel.Find("BackBar"));
                 var header = Bounds((RectTransform)host.Find("Header"));
+                Assert.AreEqual(tabName, panel.Find("BackBar/Title").GetComponent<Text>().text);
+                Assert.IsNotNull(panel.Find("BackBar/Glyph_" + kind));
+                Assert.IsNull(host.Find("Glyph_" + kind), "the page must not add a second tab icon");
+                StringAssert.DoesNotContain(tabName, host.Find("Header").GetComponent<Text>().text);
+                if (kind == "arts") StringAssert.Contains("장착", host.Find("Header").GetComponent<Text>().text);
+                if (kind == "bag" || kind == "gacha") StringAssert.Contains("은자", host.Find("Header").GetComponent<Text>().text);
                 Assert.That(header.center.y, Is.EqualTo(bar.center.y).Within(1f), kind);
                 if (kind != "record")
                 {
@@ -955,10 +966,13 @@ namespace BiRyeoDo.Tests.UI
                 {
                     var row = content.GetChild(rowIndex);
                     Assert.AreEqual(Math.Min(5, pool.Count - rowIndex * 5), row.childCount);
+                    Assert.That(((RectTransform)row).rect.height, Is.EqualTo(320f).Within(.1f));
+                    Assert.IsNull(content.GetComponent<ReadingList>(), "preview descriptions must not resize the card rows");
                     float previousRight = float.MinValue;
                     foreach (RectTransform cell in row)
                     {
                         var area = Bounds(cell);
+                        Assert.That(area.height, Is.EqualTo(320f).Within(.1f));
                         Assert.Greater(area.xMin, previousRight);
                         previousRight = area.xMax;
                         var icon = cell.Find("Icon").GetComponent<Image>();

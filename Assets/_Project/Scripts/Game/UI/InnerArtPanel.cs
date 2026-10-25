@@ -41,7 +41,8 @@ namespace BiRyeoDo.Game.UI
             // Same layout as the 무공 page: the list on the left, the inspector on the right.
             var list = UiFactory.Rect("List", Root, Vector2.zero, new Vector2(.645f, 1f));
             int slots = InnerArts.SlotCount(save);
-            var header = UiFactory.TabHeader(list, "arts", "심법 · 장착 " + save.EquippedInner.Count + "/" + slots, .97f);
+            var header = UiFactory.TabHeader(list, "arts", "", .97f);
+            UiFactory.SetTabHeader(header, "심법", "장착 " + save.EquippedInner.Count + "/" + slots);
             list.offsetMax = Vector2.zero;
             float bodyTop = header.transform.IsChildOf(list) ? .84f : .99f;
             UiFactory.HelpButton(list, () => { if (HelpPanel.Instance != null) HelpPanel.Instance.Show("inner"); });

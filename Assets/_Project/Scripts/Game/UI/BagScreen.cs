@@ -556,7 +556,7 @@ namespace BiRyeoDo.Game.UI
         {
             if (!_built) return;
             var save = GameManager.Instance.Save;
-            _header.text = "행낭 · " + save.Doo.ToString("N0") + "은자";
+            UiFactory.SetTabHeader(_header, "행낭", save.Doo.ToString("N0") + "은자");
             _hint.text = !string.IsNullOrEmpty(_flash) ? _flash : "";
             _flash = null;
 

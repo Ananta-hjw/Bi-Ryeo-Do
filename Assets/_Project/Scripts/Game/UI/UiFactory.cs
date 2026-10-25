@@ -342,7 +342,7 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <summary>
-        /// The page header: icon and info line, plus the ? and header buttons placed with <see cref="HelpButton"/> / <see cref="CenterInHeader"/>.
+        /// The page header: a standalone icon/name or live information in the common back bar, plus controls placed with <see cref="HelpButton"/> / <see cref="CenterInHeader"/>.
         /// Inside a screen with a top bar it is drawn in that bar and the page grows upward by the old band's height, so nothing is left in its place;
         /// elsewhere (pop-ups, tests) it is the old band at the top of the page.
         /// </summary>
@@ -353,12 +353,8 @@ namespace BiRyeoDo.Game.UI
             {
                 var page = (RectTransform)parent;
                 page.offsetMax = new Vector2(page.offsetMax.x, page.offsetMax.y + TabHeaderMargin + TabHeaderHeight);
-                var mark = Glyph(icon, host, new Vector2(0f, .5f), new Vector2(0f, .5f), Gold);
-                mark.rectTransform.pivot = new Vector2(0f, .5f);
-                mark.rectTransform.sizeDelta = new Vector2(64f, 64f);
-                mark.Stroke = 3f;
                 var info = Label("Header", host, new Vector2(0f, .08f), new Vector2(titleRight, .92f), title, 36, Gold, TextAnchor.MiddleLeft);
-                info.rectTransform.offsetMin = new Vector2(80f, 0f);
+                info.rectTransform.offsetMin = Vector2.zero;
                 return info;
             }
             var band = TopLane("HeaderBand", parent);
@@ -373,6 +369,13 @@ namespace BiRyeoDo.Game.UI
             var text = Label("Header", band, new Vector2(0f, .10f), new Vector2(titleRight, .90f), title, 40, Gold, TextAnchor.MiddleLeft);
             text.rectTransform.offsetMin = new Vector2(128f, 0f);
             return text;
+        }
+
+        /// <summary>The common back bar owns the icon and tab name; page headers only add their live information.</summary>
+        public static void SetTabHeader(Text header, string tabName, string information = "")
+        {
+            header.text = HeaderSlotFor(header.transform) != null ? information
+                : tabName + (string.IsNullOrEmpty(information) ? "" : " · " + information);
         }
 
         public static void CenterInHeader(RectTransform rect, float height)

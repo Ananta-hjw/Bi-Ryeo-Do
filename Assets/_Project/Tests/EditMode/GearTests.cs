@@ -255,6 +255,21 @@ namespace BiRyeoDo.Tests
             Assert.Greater(after, before);
         }
 
+        [TestCase(ItemGrade.Normal, 20)]
+        [TestCase(ItemGrade.Fine, 17)]
+        [TestCase(ItemGrade.Rare, 15)]
+        [TestCase(ItemGrade.Epic, 12)]
+        [TestCase(ItemGrade.Legendary, 8)]
+        [TestCase(ItemGrade.Mythic, 6)]
+        public void EverySlotHasTheRequestedNumberOfPullableItems(ItemGrade grade, int target)
+        {
+            foreach (var kind in new[] { ItemKind.Weapon, ItemKind.Armor, ItemKind.Pants, ItemKind.Boots, ItemKind.Accessory })
+                Assert.AreEqual(target, Gacha.Pool(grade).Count(i => i.Kind == kind), grade + " " + kind);
+            Assert.AreEqual(target * 5, Gacha.Pool(grade).Count(i => i.IsGear));
+            Assert.AreEqual(162, GearCatalogExpansion.All.Length);
+            Assert.AreEqual(1, EarlyGameContent.Items.Count(i => i.IsGear && i.Grade == ItemGrade.Transcendent));
+        }
+
         [Test]
         public void TheCatalogHasTheRequestedNumberOfPiecesPerGrade()
         {

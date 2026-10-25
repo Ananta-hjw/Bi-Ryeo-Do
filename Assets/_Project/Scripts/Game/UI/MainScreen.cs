@@ -186,11 +186,19 @@ namespace BiRyeoDo.Game.UI
             rect.sizeDelta = new Vector2(BackBarHeight * 1.3f, BackBarHeight - 8f);
             var arrow = UiFactory.Glyph("back", back.transform, new Vector2(.12f, .1f), new Vector2(.88f, .9f), UiFactory.Gold);
             arrow.raycastTarget = false;
-            float titleLeft = 16f + BackBarHeight * 1.3f + 12f, titleWidth = 150f;
+            int tabIndex = System.Array.IndexOf(TabNames, title);
+            string iconKey = tabIndex >= 0 ? TabSceneryKeys[tabIndex] : title;
+            if (iconKey == "companions") iconKey = "companion";
+            float iconLeft = 16f + BackBarHeight * 1.3f + 12f;
+            var icon = UiFactory.Glyph(iconKey, bar, new Vector2(0f, .5f), new Vector2(0f, .5f), UiFactory.Gold);
+            icon.rectTransform.pivot = new Vector2(0f, .5f);
+            icon.rectTransform.anchoredPosition = new Vector2(iconLeft, 0f);
+            icon.rectTransform.sizeDelta = new Vector2(64f, 64f);
+            float titleLeft = iconLeft + 80f, titleWidth = 150f;
             var name = UiFactory.Label("Title", bar, new Vector2(0f, 0f), new Vector2(0f, 1f), title, 36, UiFactory.Gold, TextAnchor.MiddleLeft);
             name.rectTransform.offsetMin = new Vector2(titleLeft, 0f);
             name.rectTransform.offsetMax = new Vector2(titleLeft + titleWidth, 0f);
-            // The screen's own header (icon, info, ? and header buttons) is drawn here instead of in a band of its own (UiFactory.TabHeader).
+            // Each page adds live information and controls here; the common icon and name stay above.
             var info = UiFactory.Rect("Info", bar, Vector2.zero, Vector2.one);
             info.offsetMin = new Vector2(titleLeft + titleWidth + 16f, 6f);
             info.offsetMax = new Vector2(-16f, -6f);
