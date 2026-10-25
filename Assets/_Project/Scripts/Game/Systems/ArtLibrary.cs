@@ -51,6 +51,9 @@ namespace BiRyeoDo.Game.Systems
             if (cast != null) return cast.Id;
             foreach (var enemy in BiRyeoDo.Core.EarlyGameContent.Enemies)
                 if (enemy.Name == name || enemy.Id == name) return enemy.ArtKey;
+            // Dialogue often uses a short title (e.g. 염도) rather than the enemy's complete name.
+            foreach (var enemy in BiRyeoDo.Core.EarlyGameContent.Enemies)
+                if (name.Length >= 2 && enemy.Name.Contains(name)) return enemy.ArtKey;
             return name;
         }
 
