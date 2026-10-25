@@ -217,9 +217,9 @@ namespace BiRyeoDo.Tests.UI
                     else Assert.GreaterOrEqual(window.anchorMin.x, .5f);
                 }
             }
-            Assert.IsNotNull(ArtLibrary.Player());
+            Assert.IsNotNull(ArtLibrary.StandingPortrait(StoryLine.Protagonist));
             Assert.IsNotNull(ArtLibrary.Chibi("player"));
-            Assert.AreNotSame(ArtLibrary.Player(), ArtLibrary.StandingPortrait(StoryLine.Protagonist));
+            Assert.AreNotSame(ArtLibrary.Chibi("player"), ArtLibrary.StandingPortrait(StoryLine.Protagonist));
             Invoke("ShowPortrait", 1, null, false);
             Assert.IsNull(story.Find("Portrait1/StandingArt").GetComponent<Image>().sprite);
         }

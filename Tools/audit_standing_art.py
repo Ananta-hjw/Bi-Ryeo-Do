@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only audit of standing portrait coverage, PNGs and Unity metadata."""
+"""Read-only audit of the standing portrait PNGs and their Unity metadata."""
 import hashlib
 import re
 from pathlib import Path
@@ -10,16 +10,11 @@ ART = ROOT / 'Assets/_Project/Resources/Art'
 
 
 def main():
-    missing = []
     errors = []
     guids = set()
     hashes = {}
-    originals = sorted((ART / 'Characters').glob('*.png'))
-    for original in originals:
-        target = ART / 'Standing' / original.name
-        if not target.is_file():
-            missing.append(original.stem)
-            continue
+    targets = sorted((ART / 'Standing').glob('*.png'))
+    for target in targets:
         with Image.open(target) as image:
             if image.size != (1024, 1536) or image.mode != 'RGBA':
                 errors.append(f'{target.name}: expected 1024x1536 RGBA, got {image.size} {image.mode}')
@@ -35,12 +30,10 @@ def main():
         if digest in hashes:
             errors.append(f'{target.name}: identical to {hashes[digest]}')
         hashes[digest] = target.name
-    print(f'Characters: {len(originals)}; matching Standing: {len(originals) - len(missing)}; missing: {len(missing)}')
-    for item in missing:
-        print('MISSING:', item)
+    print(f'Standing: {len(targets)}; errors: {len(errors)}')
     for error in errors:
         print('ERROR:', error)
-    return bool(missing or errors)
+    return bool(errors)
 
 
 if __name__ == '__main__':

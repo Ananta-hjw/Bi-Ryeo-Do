@@ -291,8 +291,8 @@ namespace BiRyeoDo.Game.UI
             _name.text = scene.Speaker;
             _quote.text = scene.Text;
             var picture = ArtLibrary.LobbyPortrait(scene.Speaker);
-            bool standing = picture != null && picture != ArtLibrary.Portrait(scene.Speaker);
-            _portrait.sprite = standing ? picture : ArtLibrary.Feathered(picture);
+            bool standing = picture != null;
+            _portrait.sprite = picture;
             // Crop the lower body inside the left column so the face reads at lobby size.
             // The menu rail and journey stay clear; the nameplate and speech are layered above the portrait.
             LandscapeMenu.Place(_portraitViewport, .112f, standing ? .005f : .16f, .525f, .89f);

@@ -60,7 +60,7 @@ namespace BiRyeoDo.Tests.UI
         }
 
         [Test]
-        public void PresentationPortraitsPreferStandingAndFallBackToCharacters()
+        public void PresentationPortraitsUseStandingArt()
         {
             Assert.AreSame(ArtLibrary.StandingPortrait(StoryLine.Protagonist), ArtLibrary.CharacterPortrait(StoryLine.Protagonist));
             foreach (var companion in EarlyGameContent.Companions)
@@ -68,20 +68,8 @@ namespace BiRyeoDo.Tests.UI
                 Assert.AreSame(ArtLibrary.StandingPortrait(companion.Name), ArtLibrary.CharacterPortrait(companion.Name));
                 Assert.AreSame(ArtLibrary.CharacterPortrait(companion.Name), ArtLibrary.CharacterPortrait(companion.Id));
             }
-            // A synthetic legacy-only asset keeps the fallback test valid as the real catalog fills up.
-            const string key = "legacy_only_portrait_test";
-            var cache = (System.Collections.Generic.Dictionary<string, Sprite>)typeof(ArtLibrary)
-                .GetField("Cache", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetValue(null);
-            var texture = new Texture2D(2, 2);
-            var legacy = Sprite.Create(texture, new Rect(0f, 0f, 2f, 2f), Vector2.one * .5f);
-            cache["Characters/" + key] = legacy;
-            cache["Standing/" + key] = null;
-            try { Assert.AreSame(legacy, ArtLibrary.CharacterPortrait(key)); }
-            finally
-            {
-                cache.Remove("Characters/" + key); cache.Remove("Standing/" + key);
-                Object.DestroyImmediate(legacy); Object.DestroyImmediate(texture);
-            }
+            foreach (var enemy in EarlyGameContent.Enemies)
+                Assert.AreSame(ArtLibrary.StandingPortrait(enemy.ArtKey), ArtLibrary.CharacterPortrait(enemy.ArtKey));
             Assert.IsNull(ArtLibrary.CharacterPortrait(null));
             Assert.IsNull(ArtLibrary.CharacterPortrait("missing_portrait_for_test"));
             Assert.IsNotNull(ArtLibrary.SdFigure("missing_sd_for_test"));

@@ -2,7 +2,7 @@
 
 경로: `Assets/_Project/Resources/Art/Standing/`
 
-기존 비류연·동료 5명을 보존하고 `Characters`에만 있던 51개를 추가했다. 인물 45명(집단은 대표 1명), 야수 3종, 기관 소품 3종이다. 새 파일은 1024×1536 RGBA PNG이며 개별 Unity 메타데이터를 갖는다.
+기존 비류연·동료 5명을 보존하고 옛 `Characters` 폴더에만 있던 51개를 추가했다(이후 `Characters` 폴더와 그 코드는 삭제했다). 인물 45명(집단은 대표 1명), 야수 3종, 기관 소품 3종이다. 새 파일은 1024×1536 RGBA PNG이며 개별 Unity 메타데이터를 갖는다.
 
 원작 확인 외형은 `ART_LOOKS.md`·`Story/CHARACTERS.md` 및 관련 권 분석을 참고했다. 자세·의상 장식·조명은 게임용 창작 표현이다. SD는 변경하지 않는다.
 
@@ -62,6 +62,6 @@
 
 기존 파일: `player`, `hyo_ryong`, `jang_hong`, `yun_junho`, `na_yerin`, `im_seongjin`.
 
-검증(Pillow 필요): `python3 Tools/audit_standing_art.py`로 Characters 대비 누락, 크기·RGBA·알파, 이미지 중복 및 메타데이터 GUID를 확인한다.
+검증(Pillow 필요): `python3 Tools/audit_standing_art.py`로 크기·RGBA·알파, 이미지 중복 및 메타데이터 GUID를 확인한다.
 
-입화 연결: 일반 화면은 Standing 우선, 없으면 Characters를 사용한다. 짧은 화자명(염도·빙검·구창·검후)도 같은 원본을 찾는다. 인물 변경 목록·전투·성장/회복·장비 화면 인물은 기존 SD 규칙을 유지한다.
+입화 연결: 일반 화면은 Standing만 사용한다(없으면 이름 첫 글자 색 블록). 짧은 화자명(염도·빙검·구창·검후)도 같은 원본을 찾는다. 인물 변경 목록·전투·성장/회복·장비 화면 인물은 기존 SD 규칙을 유지한다.

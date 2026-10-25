@@ -274,7 +274,7 @@ namespace BiRyeoDo.Game.UI
             LandscapeMenu.Place(_portrait[side].rectTransform, 0f, standing ? -.48f : 0f, 1f, 1f);
         }
 
-        private static Sprite PortraitFor(string name) { return ArtLibrary.DialoguePortrait(name); }   // standing originals are shared with the lobby; existing NPC portraits remain available
+        private static Sprite PortraitFor(string name) { return ArtLibrary.DialoguePortrait(name); }   // standing art, shared with the lobby
 
         private static Color PortraitTint(string name) { return ArtLibrary.TintFor(name); }
 
@@ -1817,7 +1817,7 @@ namespace BiRyeoDo.Game.UI
             ShowTip(unit.Name + " — 스킬", string.Join("\n\n", lines), BattleFigure(unit.Id));
         }
 
-        /// <summary>A unit's battle picture: <c>Battle/&lt;id&gt;.png</c>, else the stand-in figure (default_assassin / default_woman / default_man, <see cref="Genders.DefaultFigure"/>). Never the <c>Characters/</c> portrait.</summary>
+        /// <summary>A unit's battle picture: <c>Battle/&lt;id&gt;.png</c>, else the stand-in figure (default_assassin / default_woman / default_man, <see cref="Genders.DefaultFigure"/>). Never the <c>Standing/</c> art.</summary>
         private static Sprite BattleFigure(string artKey) { return ArtLibrary.SdFigure(artKey); }
 
         private void SetCommandsVisible(bool visible)

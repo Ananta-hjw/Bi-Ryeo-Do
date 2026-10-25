@@ -273,7 +273,7 @@ namespace BiRyeoDo.Game.UI
             _lobbyBg.sprite = bg;
             _lobbyBg.color = bg != null ? Color.white : new Color(0.10f, 0.13f, 0.20f, 1f);
 
-            var sprite = ArtLibrary.DialoguePortrait(scene.Speaker);   // soft edges so the picture blends into the stage background
+            var sprite = ArtLibrary.DialoguePortrait(scene.Speaker);
             var rt = _lobbyPortrait.rectTransform;
             if (sprite != null)
             {
@@ -748,7 +748,7 @@ namespace BiRyeoDo.Game.UI
                     bool selected = here != null && here == _placeSelected;
                     var tint = here == null ? new Color(0.28f, 0.50f, 0.85f, 0.25f) : selected ? UiFactory.Gold : UiFactory.Ink;
                     int cc = col, rr = row;
-                    // Formation is a management view: use standing art, then a Characters portrait.
+                    // Formation is a management view: use the standing art.
                     var figure = here == null ? null : ArtLibrary.CharacterPortrait(here == Formation.HeroId ? "비류연" : here);
                     var tile = UiFactory.Button("Tile" + col + rr, parent, new Vector2(x0 + 0.004f, y1 - ch + 0.003f), new Vector2(x0 + cw - 0.004f, y1 - 0.003f), here == null || figure != null ? "" : names[here], tint, () => OnPlacementTile(ids, cc, rr, redraw, st), 26);
                     if (figure != null)

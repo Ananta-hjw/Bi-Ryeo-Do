@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace BiRyeoDo.Core
 {
-    /// <summary>Characters who only appear in story scenes (neither a companion nor an enemy). Each gets a portrait file Characters/&lt;Id&gt;.png.</summary>
+    /// <summary>Characters who only appear in story scenes (neither a companion nor an enemy). Each gets a standing picture Standing/&lt;Id&gt;.png.</summary>
     public static class StoryCast
     {
         public class Entry

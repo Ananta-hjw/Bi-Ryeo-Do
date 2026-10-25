@@ -373,20 +373,15 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsNotNull(viewport.GetComponent<RectMask2D>());
             Assert.IsNotNull(portrait.sprite);
             Assert.AreSame(ArtLibrary.LobbyPortrait(StoryLine.Protagonist), portrait.sprite);
-            Assert.AreNotSame(ArtLibrary.Player(), portrait.sprite);
-            Assert.AreSame(ArtLibrary.Player(), ArtLibrary.Portrait(StoryLine.Protagonist));
             Assert.IsNotNull(ArtLibrary.Chibi("player"));
             Assert.LessOrEqual(Bounds((RectTransform)viewport).xMax, Bounds((RectTransform)homeRoot.Find("Journey")).xMin);
             Assert.Greater(Bounds((RectTransform)viewport).xMin, Bounds((RectTransform)homeRoot.Find("PartyMenu")).xMax);
             Assert.Less(Bounds((RectTransform)viewport).yMax, Bounds((RectTransform)homeRoot.Find("Header/Masthead")).yMin);
             foreach (var companion in EarlyGameContent.Companions)
             {
-                var basic = ArtLibrary.Portrait(companion.Name);
                 Assert.IsNotNull(ArtLibrary.LobbyPortrait(companion.Name));
-                Assert.AreNotSame(basic, ArtLibrary.LobbyPortrait(companion.Name));
                 Invoke(home, "ShowLobbyLine", new LobbyLine { Speaker = companion.Name, Text = "…" }, _save);
                 Assert.AreSame(ArtLibrary.LobbyPortrait(companion.Name), portrait.sprite);
-                Assert.AreSame(basic, ArtLibrary.Portrait(companion.Name));
                 Assert.IsNotNull(ArtLibrary.Chibi(companion.Id));
                 Assert.That(((RectTransform)viewport).anchorMin.y, Is.EqualTo(.005f));
                 Assert.Less(portrait.rectTransform.anchorMin.y, 0f);
