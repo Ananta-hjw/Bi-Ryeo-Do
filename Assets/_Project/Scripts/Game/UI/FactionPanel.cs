@@ -28,7 +28,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.99f), (_shop ? "객잔 · " + save.Doo.ToString("N0") + "은자" : "세력 평판"), 40, UiFactory.Gold);
             UiFactory.ScrollBody(UiFactory.Label("Toast", Root, new Vector2(0.05f, .80f), new Vector2(0.95f, .89f), toast ?? (_shop ? "세력 평판이 오르면 그 세력의 선반이 열립니다. 평판은 기록 탭 「세력 평판」에서 봅니다." : "그 세력의 스테이지에서 전투를 이기면 평판이 쌓입니다 (일반 +1, 어려움 +2, 극악 +3)"), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
-            var content = CodexPanel.Scroller(Root, .16f, .79f);
+            var content = CodexPanel.Scroller(Root, .02f, .79f);
             _scroll = content.parent.GetComponent<ScrollRect>();
             if (_shop) DrawShop(content, save);
             else DrawReputation(content, save);

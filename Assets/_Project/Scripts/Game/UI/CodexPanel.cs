@@ -13,6 +13,7 @@ namespace BiRyeoDo.Game.UI
         private readonly RectTransform _codexRoot, _achRoot;
         private readonly Action _onChange;
         private RectTransform _detail;
+        public bool Embedded;
         private int _tab;                       // 0 enemies, 1 items, 2 arts
         private static readonly string[] TabNames = { "적", "물품", "무공" };
         internal const float RowH = 220f, RowGap = 16f;   // tall enough for two stacked, easy-to-hit buttons
@@ -92,7 +93,7 @@ namespace BiRyeoDo.Game.UI
             }
 
             string summary;
-            var content = Scroller(_codexRoot, .16f, .69f);
+            var content = Scroller(_codexRoot, .02f, .69f);
             var grid = new ReadingGrid(content, 3, 290f);
             int n = 0;
             if (_tab == 0)
@@ -160,7 +161,7 @@ namespace BiRyeoDo.Game.UI
                 }
             }
             UiFactory.Label("Summary", _codexRoot, new Vector2(0.05f, .70f), new Vector2(0.95f, .78f), summary, 30, UiFactory.Gold);
-            UiFactory.BackCorner(_codexRoot, () => { _codexRoot.gameObject.SetActive(false); _onChange(); });
+            if (!Embedded) UiFactory.BackCorner(_codexRoot, () => { _codexRoot.gameObject.SetActive(false); _onChange(); });
         }
 
         // ------------------------------------------------------------------ 업적
@@ -180,7 +181,7 @@ namespace BiRyeoDo.Game.UI
             var list = new List<AchievementData>(Achievements.All);
             // Ready first, then in progress, then taken.
             list.Sort((a, b) => Rank(save, a).CompareTo(Rank(save, b)));
-            var content = Scroller(_achRoot, .16f, .78f);
+            var content = Scroller(_achRoot, .02f, .78f);
             var grid = new ReadingGrid(content, 2, 310f);
             for (int i = 0; i < list.Count; i++)
             {
@@ -195,7 +196,7 @@ namespace BiRyeoDo.Game.UI
                 var btn = UiFactory.Button("Claim", band, new Vector2(.04f, .04f), new Vector2(.96f, .25f), claimed ? "수령 완료" : can ? "수령" : "진행 중", can ? UiFactory.Red : UiFactory.InkSoft, () => Claim(id), 28);
                 btn.interactable = can;
             }
-            UiFactory.BackCorner(_achRoot, () => { _achRoot.gameObject.SetActive(false); _onChange(); });
+            if (!Embedded) UiFactory.BackCorner(_achRoot, () => { _achRoot.gameObject.SetActive(false); _onChange(); });
         }
 
         private void ShowDetail(string title, string body)

@@ -333,9 +333,11 @@ namespace BiRyeoDo.Game.UI
 
         private void OnFeaturedPressed()
         {
-            // The featured stage is the next 일반 story stage (its card shows 일반 info), so it always starts on 일반,
-            // whatever difficulty the stage list was left on (a 어려움 pick there used to make this button do nothing).
-            if (_featStage != null) OnStagePressed(_featStage, _onStartRef, false, 0);
+            // Always inspect the journey map before preparation, including resumes and promotion-gated stages.
+            // The lobby advertises the next normal story stage, so start the map on that difficulty.
+            GameManager.Instance.Save.Difficulty = 0;
+            OpenStageOverlay();
+            if (_featStage != null) _stageMap.Select(_featStage.Number, GameManager.Instance.Save);
         }
 
         private static RectTransform NewRow(RectTransform content, int index, float h, float gap, Color color)
@@ -367,7 +369,7 @@ namespace BiRyeoDo.Game.UI
             if (targets.Count == 0)
                 UiFactory.Label("Max", _promoOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "이미 최고 경지의 검룡입니다.", 40, UiFactory.PaperText);
 
-            var offers = CodexPanel.Scroller(_promoOverlay, .16f, .835f);
+            var offers = CodexPanel.Scroller(_promoOverlay, .02f, .835f);
             var offerGrid = new ReadingGrid(offers, 3, 320f);
             int offerIndex = 0;
             foreach (int target in targets)
@@ -501,7 +503,7 @@ namespace BiRyeoDo.Game.UI
             foreach (var c in EarlyGameContent.SelectCompanionsFor(Math.Max(1, save.HighestUnlockedStage), save)) partyNow.Add(c.Name);
             UiFactory.Label("Party", _questOverlay, new Vector2(0.05f, 0.80f), new Vector2(0.95f, 0.85f),
                 partyNow.Count > 0 ? "함께 싸울 동료: " + string.Join(", ", partyNow) : "함께 싸울 동료가 없습니다 (비류연 혼자 나갑니다)", 30, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal);
-            var questList = CodexPanel.Scroller(_questOverlay, .16f, 0.80f);
+            var questList = CodexPanel.Scroller(_questOverlay, .02f, 0.80f);
             int shown = 0;
             var questGrid = new ReadingGrid(questList, 2, 300f);
             // Open quests first, finished ones at the end (each group keeps the board's order)
@@ -626,7 +628,7 @@ namespace BiRyeoDo.Game.UI
             {
                 UiFactory.Label("None", _fortuneOverlay, new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.7f), "지금은 마주칠 인연이 없습니다. 스테이지를 돌파하면 새로운 기연이 찾아옵니다.", 34, UiFactory.PaperText);
             }
-            var fortuneList = CodexPanel.Scroller(_fortuneOverlay, .16f, 0.90f);
+            var fortuneList = CodexPanel.Scroller(_fortuneOverlay, .02f, 0.90f);
             var fortuneGrid = new ReadingGrid(fortuneList, 3, 240f);
             for (int i = 0; i < open.Count; i++)
             {

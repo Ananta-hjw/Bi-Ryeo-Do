@@ -32,7 +32,7 @@ namespace BiRyeoDo.Game.UI
             Root.gameObject.SetActive(true);
         }
 
-        /// <summary>The 닫기 button at the bottom; closing refreshes the 강호 tab.</summary>
+        /// <summary>Top-left back navigation for standalone overlays; embedded pages use their parent menu.</summary>
         protected void AddClose()
         {
             if (Embedded) return;

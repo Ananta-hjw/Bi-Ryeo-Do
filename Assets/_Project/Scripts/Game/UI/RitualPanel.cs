@@ -35,8 +35,8 @@ namespace BiRyeoDo.Game.UI
 
             var sword = EarlyGameContent.FindItem(Ritual.RewardId);
             var conditions = Ritual.Conditions(save);
-            var content = CodexPanel.Scroller(Root, .16f, .79f);
-            LandscapeMenu.Place((RectTransform)content.parent, .02f, .16f, .65f, .79f);
+            var content = CodexPanel.Scroller(Root, .02f, .79f);
+            LandscapeMenu.Place((RectTransform)content.parent, .02f, .02f, .65f, .79f);
             var grid = new ReadingGrid(content, 2, 240f);
             for (int i = 0; i < conditions.Count; i++)
             {
@@ -53,17 +53,17 @@ namespace BiRyeoDo.Game.UI
             ItemArt.Apply(rewardIcon, rewardGlyph, sword);
             UiFactory.Body(UiFactory.Label("Reward", Root, new Vector2(.68f, .48f), new Vector2(.97f, .60f),
                 "보상  " + UiFactory.GradedName(sword) + " · 5성", 32, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal));
-            UiFactory.ScrollBody(UiFactory.Label("RewardEffects", Root, new Vector2(.67f, .32f), new Vector2(.98f, .47f),
+            UiFactory.ScrollBody(UiFactory.Label("RewardEffects", Root, new Vector2(.67f, .21f), new Vector2(.98f, .47f),
                 UiFactory.GearEffectText(sword, 0, Gear.MaxStars), 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 30);
 
             if (save.RitualDone)
             {
-                UiFactory.Button("Done", Root, new Vector2(.68f, .17f), new Vector2(.97f, .30f), "전승의식 완료", UiFactory.InkSoft, null, 34).interactable = false;
+                UiFactory.Button("Done", Root, new Vector2(.68f, .03f), new Vector2(.97f, .19f), "전승의식 완료", UiFactory.InkSoft, null, 34).interactable = false;
             }
             else
             {
                 bool can = Ritual.CanComplete(save);
-                var btn = UiFactory.Button("Start", Root, new Vector2(.68f, .17f), new Vector2(.97f, .30f), can ? "전승의식 시작" : "조건 " + Ritual.DoneCount(save) + "/" + conditions.Count, can ? UiFactory.Gold : UiFactory.InkSoft, Perform, 34);
+                var btn = UiFactory.Button("Start", Root, new Vector2(.68f, .03f), new Vector2(.97f, .19f), can ? "전승의식 시작" : "조건 " + Ritual.DoneCount(save) + "/" + conditions.Count, can ? UiFactory.Gold : UiFactory.InkSoft, Perform, 34);
                 btn.interactable = can;
             }
             AddClose();

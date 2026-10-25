@@ -27,7 +27,7 @@ namespace BiRyeoDo.Game.UI
                 + (save.RetiredStoryStars > 0 ? "\n개편 전 획득 별 " + save.RetiredStoryStars + "개 포함" : ""), 28, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal), 28);
             var all = UiFactory.Button("ClaimAll", Root, new Vector2(.77f, .81f), new Vector2(.97f, .91f), "모두 받기", ready > 0 ? UiFactory.Red : UiFactory.InkSoft, ClaimAll, 28);
             all.interactable = ready > 0;
-            var content = CodexPanel.Scroller(Root, .16f, .79f);
+            var content = CodexPanel.Scroller(Root, .02f, .79f);
             var grid = new ReadingGrid(content, 3, 300f);
             // Ready to open first, then the ones still needing stars, then the ones already taken
             var order = new List<int>();

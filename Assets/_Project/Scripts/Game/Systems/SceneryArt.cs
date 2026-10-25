@@ -38,6 +38,14 @@ namespace BiRyeoDo.Game.Systems
             }
         }
 
+        /// <summary>Six decorative journey regions, one for each six-stage map page.</summary>
+        public static string JourneyKey(int page)
+        {
+            return "world_journey_" + (Mathf.Clamp(page, 0, 5) + 1).ToString("00");
+        }
+
+        public static Sprite Journey(int page) { return ArtLibrary.Environment(JourneyKey(page)); }
+
         public static Sprite Menu(string key) { return ArtLibrary.Environment(MenuKey(key)); }
     }
 }

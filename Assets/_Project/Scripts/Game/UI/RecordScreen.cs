@@ -39,18 +39,18 @@ namespace BiRyeoDo.Game.UI
             UiFactory.ScrollBody(UiFactory.Label("Hint", workspace, new Vector2(.08f, .30f), new Vector2(.92f, .70f), "왼쪽에서 기록을 선택해 주세요.\n상태는 협객, 장비 관리는 장비 탭에서 이어집니다.", 32, UiFactory.Dim), 32);
             var menu = UiFactory.Rect("MenuViewport", root, new Vector2(.02f, .025f), new Vector2(.25f, .855f));
             var content = CodexPanel.Scroller(menu, 0f, 1f);
-            _codexE = Tile(content, 0, "도감", "codex", () => { CloseOverlays(); _codex.OpenCodex(); });
-            _achE = Tile(content, 1, "업적", "achievement", () => { CloseOverlays(); _codex.OpenAchievements(); });
-            _storyE = Tile(content, 2, "이야기 줄거리", "story", () => { CloseOverlays(); _storyLog.Open(); });
-            _memoryE = Tile(content, 3, "나예린 추억", "memories", () => { CloseOverlays(); _memories.Open(); });
-            _factionE = Tile(content, 4, "세력 평판", "faction", () => { CloseOverlays(); _factions.Open(); });
-            _ritualE = Tile(content, 5, "전승의식", "ritual", () => { CloseOverlays(); _ritual.Open(); });
+            _codexE = Tile(content, 0, "도감", "codex", () => { CloseOverlays(); _codex.OpenCodex(); Refresh(); });
+            _achE = Tile(content, 1, "업적", "achievement", () => { CloseOverlays(); _codex.OpenAchievements(); Refresh(); });
+            _storyE = Tile(content, 2, "이야기 줄거리", "story", () => { CloseOverlays(); _storyLog.Open(); Refresh(); });
+            _memoryE = Tile(content, 3, "나예린 추억", "memories", () => { CloseOverlays(); _memories.Open(); Refresh(); });
+            _factionE = Tile(content, 4, "세력 평판", "faction", () => { CloseOverlays(); _factions.Open(); Refresh(); });
+            _ritualE = Tile(content, 5, "전승의식", "ritual", () => { CloseOverlays(); _ritual.Open(); Refresh(); });
             _menuLayout = content.GetComponent<ReadingList>();
-            _codex = new CodexPanel(UiFactory.Rect("CodexOverlay", workspace, Vector2.zero, Vector2.one), UiFactory.Rect("AchievementOverlay", workspace, Vector2.zero, Vector2.one), Refresh);
-            _storyLog = new StoryLogPanel(UiFactory.Rect("StoryLogOverlay", workspace, Vector2.zero, Vector2.one), Refresh, onStory);
-            _memories = new MemoryPanel(UiFactory.Rect("MemoryOverlay", workspace, Vector2.zero, Vector2.one), Refresh, onStory);
-            _factions = new FactionPanel(UiFactory.Rect("FactionOverlay", workspace, Vector2.zero, Vector2.one), Refresh);
-            _ritual = new RitualPanel(UiFactory.Rect("RitualOverlay", workspace, Vector2.zero, Vector2.one), Refresh, onStory);
+            _codex = new CodexPanel(UiFactory.Rect("CodexOverlay", workspace, Vector2.zero, Vector2.one), UiFactory.Rect("AchievementOverlay", workspace, Vector2.zero, Vector2.one), Refresh) { Embedded = true };
+            _storyLog = new StoryLogPanel(UiFactory.Rect("StoryLogOverlay", workspace, Vector2.zero, Vector2.one), Refresh, onStory) { Embedded = true };
+            _memories = new MemoryPanel(UiFactory.Rect("MemoryOverlay", workspace, Vector2.zero, Vector2.one), Refresh, onStory) { Embedded = true };
+            _factions = new FactionPanel(UiFactory.Rect("FactionOverlay", workspace, Vector2.zero, Vector2.one), Refresh) { Embedded = true };
+            _ritual = new RitualPanel(UiFactory.Rect("RitualOverlay", workspace, Vector2.zero, Vector2.one), Refresh, onStory) { Embedded = true };
             Refresh();
         }
 

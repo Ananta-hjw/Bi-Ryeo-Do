@@ -37,12 +37,12 @@ namespace BiRyeoDo.Game.UI
             if (_built) return;
             _built = true;
 
-            // Page switcher on top; the page below is either the art list or an embedded panel.
+            // Keep page navigation at the bottom, outside the list and inspector.
             for (int p = 0; p < PageNames.Length; p++)
             {
                 int page = p;
                 float x0 = 0.04f + p * .47f;
-                var btn = UiFactory.Button("Page" + p, tab, new Vector2(x0, .895f), new Vector2(x0 + .45f, .995f), PageNames[p], UiFactory.InkSoft, () => ShowPage(page), 30);
+                var btn = UiFactory.Button("Page" + p, tab, new Vector2(x0, .015f), new Vector2(x0 + .45f, .115f), PageNames[p], UiFactory.InkSoft, () => ShowPage(page), 30);
                 _pageTabs[p] = btn.GetComponent<Image>();
                 if (p < 2)
                 {
@@ -52,19 +52,21 @@ namespace BiRyeoDo.Game.UI
                     _pageDots[p].SetActive(false);
                 }
             }
-            var root = UiFactory.Rect("ArtsPage", tab, Vector2.zero, new Vector2(.645f, .88f));
+            var root = UiFactory.Rect("ArtsPage", tab, new Vector2(0f, .13f), new Vector2(.645f, .985f));
             _artsRoot = root;
-            _inner = new InnerArtPanel(UiFactory.Rect("InnerArtPage", tab, Vector2.zero, new Vector2(1f, .88f)), Refresh) { Embedded = true };
+            _inner = new InnerArtPanel(UiFactory.Rect("InnerArtPage", tab, new Vector2(0f, .13f), new Vector2(1f, .985f)), Refresh) { Embedded = true };
 
             _header = UiFactory.TabHeader(root, "arts");
+            root.offsetMax = Vector2.zero;   // The workspace already reaches the screen header.
+            float bodyTop = _header.transform.IsChildOf(root) ? .84f : .99f;
             UiFactory.HelpButton(root, () => { if (HelpPanel.Instance != null) HelpPanel.Instance.Show("mastery"); });   // right next to the 두 figure: the full 숙련·변초 help
-            _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, .755f), new Vector2(0.95f, .84f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            _hint = UiFactory.ScrollBody(UiFactory.Label("Hint", root, new Vector2(0.05f, bodyTop - .19f), new Vector2(0.95f, bodyTop - .135f), "", 28, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             // What is equipped right now: four art slots and the 필살기 slot.
-            _slotBar = UiFactory.Rect("SlotBar", root, new Vector2(.04f, .625f), new Vector2(.96f, .745f));
+            _slotBar = UiFactory.Rect("SlotBar", root, new Vector2(.04f, bodyTop - .13f), new Vector2(.96f, bodyTop));
 
             // The list scrolls: the protagonist has far more arts than fit on one screen.
-            var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, .615f));
+            var viewport = UiFactory.Rect("Viewport", root, Vector2.zero, new Vector2(1f, bodyTop - .20f));
             viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
             viewport.gameObject.AddComponent<RectMask2D>();
             var content = UiFactory.Rect("Content", viewport, new Vector2(0f, 1f), new Vector2(1f, 1f));
@@ -116,10 +118,10 @@ namespace BiRyeoDo.Game.UI
                 row.ButtonLabel = row.Button.GetComponentInChildren<Text>();
                 _rows.Add(row);
             }
-            var placeholder = UiFactory.Panel("InspectorPlaceholder", root.parent, new Vector2(.66f, .02f), new Vector2(.985f, .88f), UiFactory.Ink);
+            var placeholder = UiFactory.Panel("InspectorPlaceholder", root.parent, new Vector2(.66f, .13f), new Vector2(.985f, .985f), UiFactory.Ink);
             UiFactory.Frame(placeholder.transform, UiFactory.GoldDim, 2f);
             UiFactory.ScrollBody(UiFactory.Label("Hint", placeholder.transform, new Vector2(.06f, .30f), new Vector2(.94f, .70f), "무공을 선택하면 효과·숙련 단계·변초를 확인할 수 있습니다.", 30, UiFactory.Dim), 30);
-            _detail = UiFactory.Rect("ArtDetail", tab, new Vector2(.66f, .02f), new Vector2(.985f, .88f));
+            _detail = UiFactory.Rect("ArtDetail", tab, new Vector2(.66f, .13f), new Vector2(.985f, .985f));
             _detail.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.78f);   // dims and blocks the list underneath
             _detail.gameObject.SetActive(false);
             ShowPage(0, false);
@@ -387,7 +389,7 @@ namespace BiRyeoDo.Game.UI
             if (spec.Cooldown > 0) add2("재사용 " + spec.Cooldown + "턴", ChipCooldown);
         }
 
-        /// <summary>The equipped arts as four slots plus the 필살기 slot; tapping a filled slot opens that art.</summary>
+        /// <summary>The equipped arts as four slots plus the 필살기 slot; tapping a filled slot unequips that art.</summary>
         private void RefreshSlots(SaveData save)
         {
             LandscapeMenu.Clear(_slotBar);
@@ -409,6 +411,7 @@ namespace BiRyeoDo.Game.UI
                     // Tapping an equipped slot takes that art off (the ✕ in the corner says so)
                     var tap = slot.gameObject.AddComponent<Button>();
                     tap.targetGraphic = slot;
+                    slot.raycastTarget = true;
                     tap.transition = Selectable.Transition.None;
                     var target = art;
                     tap.onClick.AddListener(() => Unequip(target));

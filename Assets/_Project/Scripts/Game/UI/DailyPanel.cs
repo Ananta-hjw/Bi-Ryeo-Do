@@ -25,7 +25,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Label("Streak", Root, new Vector2(0.05f, 0.855f), new Vector2(0.95f, 0.92f),
                 "연속 수련 " + save.DailyStreak + "일" + (next > 0 ? "  ·  " + next + "일째 보상까지 " + (next - save.DailyStreak) + "일" : ""), 28, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
-            var content = CodexPanel.Scroller(Root, .27f, .80f);
+            var content = CodexPanel.Scroller(Root, .12f, .80f);
             var grid = new ReadingGrid(content, 3, 280f);
             // Ready to claim first, then still in progress, then already claimed (the claim keeps the mission's own index)
             var order = new List<int>();
@@ -52,7 +52,7 @@ namespace BiRyeoDo.Game.UI
                 btn.interactable = done && !claimed;
             }
             string bonus = Daily.AllClaimed(save) ? "오늘의 여섯 임무를 모두 끝냈습니다!" : "모두 수령 시: " + Daily.AllClearDoo(save).ToString("N0") + "은자 · 웅담 2개 · 심득석 1개 · 연속 수련 +1일";
-            UiFactory.ScrollBody(UiFactory.Label("Bonus", Root, new Vector2(.04f, .15f), new Vector2(.96f, .26f), bonus, 28, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal), 28);
+            UiFactory.ScrollBody(UiFactory.Label("Bonus", Root, new Vector2(.04f, .02f), new Vector2(.96f, .11f), bonus, 28, UiFactory.Gold, TextAnchor.MiddleCenter, FontStyle.Normal), 28);
             UiFactory.Label("Toast", Root, new Vector2(.04f, .80f), new Vector2(.96f, .85f), toast ?? "임무는 매일 0시에 바뀝니다 (기기 시간 기준)", 26, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
             UiFactory.HelpButton(Root, () => { if (HelpPanel.Instance != null) HelpPanel.Instance.Show("daily"); });
             AddClose();

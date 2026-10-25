@@ -71,8 +71,7 @@ namespace BiRyeoDo.Game.UI
             HomeText("MenuTitle", root, .435f, .80f, .79f, .885f, "강호를 걷는 길", 40, UiFactory.Gold);
             var featured = UiFactory.Button("Journey", root, new Vector2(.435f, .635f), new Vector2(.985f, .775f), "", UiFactory.InkSoft, () =>
             {
-                var stage = _world.FeaturedStage;
-                _openMenu(stage != null && !Promotion.StageAllowed(GameManager.Instance.Save, stage.Number) ? WorldScreen.Menu.Promotion : WorldScreen.Menu.Featured);
+                _openMenu(WorldScreen.Menu.Featured);
             }, 32);
             _journeyArt = UiFactory.Panel("Art", featured.transform, Vector2.zero, Vector2.one, new Color(.55f, .65f, .60f, .16f));
             BackgroundCover.Apply(_journeyArt);
@@ -92,8 +91,6 @@ namespace BiRyeoDo.Game.UI
             HomeCard(root, .622f, .798f, .015f, .305f, "행낭", "돌파 · 분해 · 합성", "bag", () => _select(TabRouter.Tab.Bag), out unused);
             HomeCard(root, .808f, .985f, .015f, .305f, "기록", "도감 · 추억 · 세력", "record", () => _select(TabRouter.Tab.Record), out _recordBadge);
 
-            // The full stage list remains available independently of the featured stage.
-            UiFactory.Button("StageList", root, new Vector2(.81f, .787f), new Vector2(.975f, .885f), "스테이지 목록", UiFactory.InkSoft, () => _openMenu(WorldScreen.Menu.Stages), 26);
             BuildSideMenus(root);
             _built = true;
             Refresh();
