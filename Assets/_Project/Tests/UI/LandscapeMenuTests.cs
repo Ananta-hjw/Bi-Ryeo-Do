@@ -93,7 +93,7 @@ namespace BiRyeoDo.Tests.UI
             {
                 var view = Root.gameObject.AddComponent<CompanionScreen>();
                 view.Build(Root, () => { }); screen = view;
-                Assert.AreSame(ArtLibrary.CharacterPortrait(StoryLine.Protagonist), Root.Find("Identity/Portrait").GetComponent<Image>().sprite);
+                Assert.AreSame(ArtLibrary.CharacterPortrait(StoryLine.Protagonist), Root.Find("Identity/Portrait").GetComponentInChildren<Image>().sprite);
             }
             Invoke(screen, "OpenCharacterPicker");
             var picker = Root.Find("CharacterPicker");

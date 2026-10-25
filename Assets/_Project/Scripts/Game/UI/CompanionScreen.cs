@@ -117,8 +117,22 @@ namespace BiRyeoDo.Game.UI
             });
         }
 
+        /// <summary>Share of a full-length standing picture, from its top, that the profile shows: head to about mid-thigh.</summary>
+        private const float StandingCrop = .63f;
+
         private static void Portrait(Transform parent, string name, float x, float y, float right, float top)
         {
+            var standing = ArtLibrary.StandingPortrait(name);
+            if (standing != null)
+            {
+                // Mask the frame and stretch the picture so its top StandingCrop fills the frame's height; the legs fall below the mask.
+                // The rect is kept wider than the picture so preserveAspect fits it by height and centres it.
+                var frame = UiFactory.Rect("Portrait", parent, new Vector2(x, y), new Vector2(right, top));
+                frame.gameObject.AddComponent<RectMask2D>();
+                var crop = UiFactory.Panel("Picture", frame, new Vector2(-.5f, 1f - 1f / StandingCrop), new Vector2(1.5f, 1f), Color.white);
+                crop.sprite = standing; crop.preserveAspect = true; crop.raycastTarget = false;
+                return;
+            }
             var picture = UiFactory.Panel("Portrait", parent, new Vector2(x, y), new Vector2(right, top), Color.white);
             picture.sprite = ArtLibrary.CharacterPortrait(name); picture.preserveAspect = true;
             if (picture.sprite == null) { picture.color = Color.clear; Text(picture.transform, "Glyph", 0f, 0f, 1f, 1f, name.Substring(0, 1), 50, UiFactory.Gold); }
