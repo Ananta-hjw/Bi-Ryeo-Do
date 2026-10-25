@@ -223,33 +223,81 @@ namespace BiRyeoDo.Tests
             public double NextDouble() { return Value; }
         }
 
-        [TestCase(ItemGrade.Normal, "하급 영석")]
-        [TestCase(ItemGrade.Fine, "중급 영석")]
-        [TestCase(ItemGrade.Rare, "고급 영석")]
-        [TestCase(ItemGrade.Epic, "상급 현철")]
-        [TestCase(ItemGrade.Legendary, "만년 현철")]
-        public void DismantlingGrantsTheMatchingMaterialWithFiveEqualProbabilityBuckets(ItemGrade grade, string name)
+        [TestCase(ItemGrade.Normal, "하급 영석", 7)]
+        [TestCase(ItemGrade.Fine, "중급 영석", 6)]
+        [TestCase(ItemGrade.Rare, "고급 영석", 5)]
+        [TestCase(ItemGrade.Epic, "상급 현철", 4)]
+        [TestCase(ItemGrade.Legendary, "만년 현철", 3)]
+        public void DismantlingGrantsTheMatchingMaterialWithGradeSpecificEqualProbabilityBuckets(ItemGrade grade, string name, int max)
         {
             var save = new SaveData();
             var rng = new MaterialRandom();
-            var seen = new int[5];
+            var seen = new int[max];
             string id = Weapon(grade), error;
             int total = 0;
-            for (int roll = 0; roll < 100; roll++)
+            for (int roll = 0; roll < max * 20; roll++)
             {
-                rng.Value = roll / 100.0;
+                rng.Value = (roll + .5) / (max * 20);
                 Inventory.Add(save, id, 1);
                 ItemStack enhancement;
                 var crafting = Salvage.Dismantle(save, id, rng, out enhancement, out error);
                 Assert.IsNotNull(crafting, error);
                 Assert.AreEqual(name, EarlyGameContent.FindItem(enhancement.Id).Name);
-                Assert.That(enhancement.Count, Is.InRange(1, 5));
+                Assert.That(enhancement.Count, Is.InRange(1, Salvage.MaxEnhancementCount(EarlyGameContent.FindItem(id).Grade)));
                 seen[enhancement.Count - 1]++;
                 total += enhancement.Count;
             }
-            CollectionAssert.AreEqual(new[] { 20, 20, 20, 20, 20 }, seen);
+            CollectionAssert.AreEqual(Enumerable.Repeat(20, max).ToArray(), seen);
             Assert.AreEqual(total, Inventory.Count(save, Salvage.EnhancementMaterialFor(EarlyGameContent.FindItem(id)).Id));
             Assert.AreEqual(0, Inventory.Count(save, id));
+        }
+
+        [TestCase(ItemGrade.Normal, 7)]
+        [TestCase(ItemGrade.Fine, 6)]
+        [TestCase(ItemGrade.Rare, 5)]
+        [TestCase(ItemGrade.Epic, 4)]
+        [TestCase(ItemGrade.Legendary, 3)]
+        public void BulkDismantlePreviewAndActualYieldAgreeAtBothGradeSpecificExtremes(ItemGrade grade, int max)
+        {
+            foreach (double roll in new[] { 0.0, .999999999 })
+            {
+                var save = new SaveData();
+                string id = Weapon(grade);
+                Inventory.Add(save, id, 3);
+                var plan = Salvage.BulkPlan(save, new[] { true, true, true, true, true }, new[] { true, true, true, true, true }, true);
+                var material = Salvage.EnhancementMaterialFor(EarlyGameContent.FindItem(id));
+                var preview = Salvage.BulkYield(plan).Single(e => e.Key.Id == material.Id);
+                CollectionAssert.AreEqual(new[] { 3, 3 * max }, preview.Value);
+                var gained = Salvage.DismantleBulk(save, plan, new MaterialRandom { Value = roll });
+                int expected = roll == 0.0 ? 3 : 3 * max;
+                Assert.AreEqual(expected, gained.Single(e => e.Id == material.Id).Count);
+                Assert.AreEqual(expected, Inventory.Count(save, material.Id));
+            }
+        }
+
+        [TestCase(1, 3)]
+        [TestCase(10, 3)]
+        [TestCase(11, 3)]
+        [TestCase(20, 3)]
+        [TestCase(21, 5)]
+        [TestCase(30, 5)]
+        [TestCase(31, 5)]
+        [TestCase(40, 5)]
+        [TestCase(41, 5)]
+        [TestCase(50, 5)]
+        [TestCase(51, 6)]
+        [TestCase(60, 6)]
+        [TestCase(61, 7)]
+        [TestCase(70, 7)]
+        [TestCase(71, 8)]
+        [TestCase(80, 8)]
+        [TestCase(81, 9)]
+        [TestCase(90, 9)]
+        [TestCase(91, 10)]
+        [TestCase(100, 10)]
+        public void EnhancementMaterialAmountsMatchEachTargetLevelBoundary(int target, int expected)
+        {
+            Assert.AreEqual(expected, Gear.StoneCost(target));
         }
 
         [TestCase(0)]
@@ -417,7 +465,7 @@ namespace BiRyeoDo.Tests
                 if (star < 5) Assert.IsTrue(Gear.Breakthrough(save, "iron_sword", out error), error);
             }
             Assert.AreEqual(100, Gear.LevelFor(save, Inventory.Hero, "iron_sword"));
-            Assert.AreEqual(550, totalStones);
+            Assert.AreEqual(610, totalStones);
             Assert.AreEqual(299175, totalDoo);
             Assert.AreEqual(100000000 - totalDoo, save.Doo);
             Assert.AreEqual(600000 - totalStones, Gear.Materials.Sum(m => Inventory.Count(save, m.Id)));
@@ -538,7 +586,7 @@ namespace BiRyeoDo.Tests
             int before = Inventory.Count(save, Gear.StoneId);
             ItemStack enhancement;
             Assert.IsNotNull(Salvage.Dismantle(save, "iron_sword", new SeededRandom(4), out enhancement, out error), error);
-            Assert.That(enhancement.Count, Is.InRange(1, 5));
+            Assert.That(enhancement.Count, Is.InRange(1, 7));
             Assert.AreEqual(before + enhancement.Count, Inventory.Count(save, Gear.StoneId));
             Assert.AreEqual(1, Gear.SlotLevel(save, Inventory.Hero, 0));
         }

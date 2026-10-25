@@ -28,6 +28,11 @@ All lore lives in `Story/` (see `Story/README.md`). The user provides the origin
 - First time in the editor: open the folder as a Unity project, then run menu **BiRyeoDo ▸ Setup Project** (`Scripts/Editor/ProjectSetup.cs`). It applies Android player settings and creates/registers `Scenes/Boot.unity` (GameManager + a UI object with `TabRouter` + `MainScreen`). Content needs no assets: it is plain data in `Core/EarlyGameContent.cs`. **BiRyeoDo ▸ Build Android APK** (also used by CI) runs the setup first.
 - Unity creates `.meta` files on first import; commit them together with their assets. `Library/`, `Temp/`, `Builds/` are gitignored.
 
+## Current equipment material costs
+
+- 장비 합성(`Salvage.FuseNeed`): 일반~전설 재료 70/60/50/30/20개 → 한 등급 높은 같은 부위 장비. 분해 시 강화 재료는 일반~전설 각각 1~7/1~6/1~5/1~4/1~3개 균등 추첨이며, `MaxEnhancementCount`를 상세·일괄 분해 예상량에도 사용한다.
+- 강화(`Gear.StoneCost`): 목표 +1~20 하급 영석 3개/회, +21~40 중급 영석 5개/회. +41 이상은 기존 10단계마다 5~10개. +0→100 총 610개. 강화 재료 3:1 합성 및 은자 비용은 동일하다.
+
 ## Commands
 
 Unity-free logic tests (works in the container; `dotnet-sdk-8.0` via `apt-get update && apt-get install -y dotnet-sdk-8.0`). Compile Core + tests with a throwaway csproj outside the repo:

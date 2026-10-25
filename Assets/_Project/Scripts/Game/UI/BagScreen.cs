@@ -171,7 +171,7 @@ namespace BiRyeoDo.Game.UI
                 string traits = UiFactory.GearTraitsText(item, enh);
                 if (traits.Length > 0) lines.Add("돌파 추가 능력치 (강화·기본 효과 보너스 미적용)\n" + traits);
                 var matInfo = Salvage.MaterialFor(item);
-                if (matInfo != null) lines.Add("분해: " + matInfo.Name + " " + Salvage.MinCount[(int)item.Grade] + "~" + Salvage.MaxCount(item.Grade) + "개 (" + Grades.NameOf(item.Grade) + " " + Salvage.SlotLabel(item.Kind) + " 재료)\n" + Salvage.EnhancementMaterialFor(item).Name + " 1~5개 (각 20%)");
+                if (matInfo != null) lines.Add("분해: " + matInfo.Name + " " + Salvage.MinCount[(int)item.Grade] + "~" + Salvage.MaxCount(item.Grade) + "개 (" + Grades.NameOf(item.Grade) + " " + Salvage.SlotLabel(item.Kind) + " 재료)\n" + Salvage.EnhancementMaterialFor(item).Name + " 1~" + Salvage.MaxEnhancementCount(item.Grade) + "개 (균등 확률)");
                 var set = Gear.SetOf(item.Id);
                 lines.Add(set != null ? Gear.SetDetail(set, save.EquippedGear, save) : "세트 없음");
             }

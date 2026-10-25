@@ -366,7 +366,11 @@ namespace BiRyeoDo.Core
             return true;
         }
 
-        public static int StoneCost(int nextLevel) { return 1 + (Math.Max(1, Math.Min(MaxLevel, nextLevel)) - 1) / 10; }
+        public static int StoneCost(int nextLevel)
+        {
+            int n = Math.Max(1, Math.Min(MaxLevel, nextLevel));
+            return n <= 20 ? 3 : n <= 40 ? 5 : 1 + (n - 1) / 10;
+        }
         /// <summary>은자 for the next enhancement step n: 50 + 8n + 0.75n² (rounded), about 299,000 from +0 to +100.</summary>
         public static long DooCost(int nextLevel) { long n = Math.Max(1, Math.Min(MaxLevel, nextLevel)); return (long)Math.Round(50 + 8 * n + 0.75 * n * n, MidpointRounding.AwayFromZero); }
         public static bool CanEnhanceSlot(SaveData save, string owner, int index)
