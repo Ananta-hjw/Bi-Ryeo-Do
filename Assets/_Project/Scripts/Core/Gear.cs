@@ -54,16 +54,16 @@ namespace BiRyeoDo.Core
             new GearSet { Id = "galewind", Name = "질풍", Items = new[] { "windcut_sword", "silk_battle_robe", "gale_pants", "wind_boots", "gale_feather" },
                 Tiers = new[] { T(2, speed: 2), T(3, crit: 0.03f), T(4, atk: 0.04f, speed: 3), T(5, atk: 0.05f, crit: 0.03f, speed: 3) } },
             new GearSet { Id = "frost", Name = "한빙", Items = new[] { "frost_sword", "blackturtle_cloak", "frost_pants", "frost_boots", "snowlotus_charm", "moonlight_pendant" },
-                Tiers = new[] { T(2, def: 0.04f), T(3, crit: 0.03f), T(4, atk: 0.05f, qi: 0.10f), T(5, def: 0.06f, crit: 0.03f), T(6, atk: 0.06f, def: 0.06f, qi: 0.12f) } },
+                Tiers = new[] { T(2, def: 0.04f), T(3, crit: 0.03f), T(4, atk: 0.05f, qi: 0.05f), T(5, def: 0.06f, crit: 0.03f), T(6, atk: 0.06f, def: 0.06f, qi: 0.06f) } },
             new GearSet { Id = "flame", Name = "적염", Items = new[] { "crimson_saber", "crimson_longcoat", "flame_pants", "flame_boots", "phoenix_feather", "bloodjade_bracelet" },
                 Tiers = new[] { T(2, atk: 0.04f), T(3, hp: 0.05f), T(4, atk: 0.06f, crit: 0.03f), T(5, hp: 0.06f, speed: 2), T(6, atk: 0.10f, crit: 0.05f, hp: 0.06f) } },
             new GearSet { Id = "thunder", Name = "뇌전", Items = new[] { "thunder_dagger", "thunder_robe", "thunder_pants", "thunder_boots", "thunder_beads", "thunder_crown" },
-                Tiers = new[] { T(2, crit: 0.03f), T(3, atk: 0.06f, speed: 2), T(4, atk: 0.06f, crit: 0.03f), T(5, qi: 0.10f, speed: 3), T(6, atk: 0.10f, crit: 0.06f, speed: 3) } },
+                Tiers = new[] { T(2, crit: 0.03f), T(3, atk: 0.06f, speed: 2), T(4, atk: 0.06f, crit: 0.03f), T(5, qi: 0.05f, speed: 3), T(6, atk: 0.10f, crit: 0.06f, speed: 3) } },
             new GearSet { Id = "dragon", Name = "용", Items = new[] { "dragonfang_sword", "dragonscale_armor", "dragon_greaves", "dragon_boots", "dragon_pearl" },
-                Tiers = new[] { T(2, hp: 0.05f), T(3, atk: 0.06f, def: 0.06f), T(4, atk: 0.06f, def: 0.06f, hp: 0.06f), T(5, atk: 0.10f, def: 0.10f, hp: 0.08f, qi: 0.10f) } },
+                Tiers = new[] { T(2, hp: 0.05f), T(3, atk: 0.06f, def: 0.06f), T(4, atk: 0.06f, def: 0.06f, hp: 0.06f), T(5, atk: 0.10f, def: 0.10f, hp: 0.08f, qi: 0.05f) } },
             // The strongest set in the game: six pieces, every tier above the other sets' (the Transcendent 진비뢰도 counts as the weapon piece too).
             new GearSet { Id = "biroe", Name = "비뢰", Items = new[] { "biroe_blade", "jin_biroedo", "biroe_robe", "biroe_pants", "biroe_boots", "roegeum", "mukrin_talisman" },
-                Tiers = new[] { T(2, atk: 0.05f, crit: 0.03f), T(3, atk: 0.08f, speed: 3), T(4, atk: 0.08f, def: 0.08f, hp: 0.08f, crit: 0.03f), T(5, atk: 0.10f, crit: 0.04f, speed: 4, qi: 0.10f), T(6, atk: 0.15f, def: 0.10f, hp: 0.10f, crit: 0.05f, speed: 5, qi: 0.15f) } },
+                Tiers = new[] { T(2, atk: 0.05f, crit: 0.03f), T(3, atk: 0.08f, speed: 3), T(4, atk: 0.08f, def: 0.08f, hp: 0.08f, crit: 0.03f), T(5, atk: 0.10f, crit: 0.04f, speed: 4, qi: 0.05f), T(6, atk: 0.15f, def: 0.10f, hp: 0.10f, crit: 0.05f, speed: 5, qi: 0.075f) } },
             new GearSet { Id = "emperor", Name = "제왕", Items = new[] { "heaven_cutter", "emperor_robe", "emperor_pants", "emperor_boots", "taegeuk_jade", "emperor_seal" },
                 Tiers = new[] { T(2, atk: 0.05f, hp: 0.05f), T(3, atk: 0.06f, def: 0.06f), T(4, hp: 0.08f, def: 0.08f), T(5, atk: 0.08f, crit: 0.03f, speed: 3), T(6, atk: 0.12f, def: 0.10f, hp: 0.10f) } },
         };
@@ -109,7 +109,7 @@ namespace BiRyeoDo.Core
         {
             var parts = new List<string>();
             if (t.HpPct != 0f) parts.Add("체력 +" + Math.Round(t.HpPct * 100f) + "%");
-            if (t.QiPct != 0f) parts.Add("내공 +" + Math.Round(t.QiPct * 100f) + "%");
+            if (t.QiPct != 0f) parts.Add("내공 +" + (t.QiPct * 100f).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + "%");
             if (t.AtkPct != 0f) parts.Add("공격 +" + Math.Round(t.AtkPct * 100f) + "%");
             if (t.DefPct != 0f) parts.Add("방어 +" + Math.Round(t.DefPct * 100f) + "%");
             if (t.SpeedAdd != 0) parts.Add("속도 +" + t.SpeedAdd);

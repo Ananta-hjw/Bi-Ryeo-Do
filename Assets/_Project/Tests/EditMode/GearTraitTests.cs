@@ -77,7 +77,7 @@ namespace BiRyeoDo.Tests
                         : trait.Kind == GearTraitKind.CritDamage ? critDamage
                         : trait.Kind == GearTraitKind.Speed ? speed
                         : trait.Kind == GearTraitKind.StartSpirit ? spirit : percent;
-                    float expected = baseline * (i + 1) * (trait.Kind == GearTraitKind.Crit ? 1f : boosts[i]);
+                    float expected = baseline * (i + 1) * (trait.Kind == GearTraitKind.Crit ? 1f : boosts[i]) * (trait.Kind == GearTraitKind.Qi ? Gear.QiTraitScale : 1f);
                     if (trait.Kind == GearTraitKind.Speed || trait.Kind == GearTraitKind.StartSpirit)
                         expected = (float)Math.Round(expected, MidpointRounding.AwayFromZero);
                     Assert.AreEqual(expected, trait.Value, .00001f, item.Id + ": " + trait.Kind);
@@ -88,9 +88,9 @@ namespace BiRyeoDo.Tests
         [TestCase(0, 0f, 0f, 0f)]
         [TestCase(1, .196f, 0f, 0f)]
         [TestCase(2, .196f, 0f, 0f)]
-        [TestCase(3, .196f, .224f, 0f)]
-        [TestCase(4, .196f, .224f, 0f)]
-        [TestCase(5, .196f, .224f, .42f)]
+        [TestCase(3, .196f, .112f, 0f)]
+        [TestCase(4, .196f, .112f, 0f)]
+        [TestCase(5, .196f, .112f, .42f)]
         public void MilestonesUnlockCumulativelyOnlyAtTheirRequestedStar(int stars, float critDamage, float qi, float defense)
         {
             var effects = Gear.EffectsFor(EarlyGameContent.FindItem("crimson_saber"), 0, stars);
@@ -106,7 +106,7 @@ namespace BiRyeoDo.Tests
             var fresh = Gear.EffectsFor(item, 0, 5);
             var enhanced = Gear.EffectsFor(item, 100, 5);
             Assert.AreEqual(.32f, fresh.CritDmgAdd, .00001f);
-            Assert.AreEqual(.36f, fresh.QiPct, .00001f);
+            Assert.AreEqual(.18f, fresh.QiPct, .00001f);   // 내공 traits are halved
             Assert.AreEqual(.69f, fresh.DefPct, .00001f);
             Assert.AreEqual(fresh.CritDmgAdd, Gear.EffectsFor(item, 0, 1).CritDmgAdd);
             Assert.AreEqual(fresh.CritDmgAdd, enhanced.CritDmgAdd);
@@ -191,7 +191,7 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(item.CritAdd * ((1.5f + (Gear.Multiplier(level) - 1f) * .10f) / 1.3f), effects.CritAdd, .00001f);
             Assert.AreEqual(item.CritDmgAdd * current, effects.CritDmgAdd, .00001f);
             Assert.AreEqual(.70f * (Gear.Multiplier(level) + 1f) / 2f, effects.DefPct, .00001f);
-            Assert.AreEqual(.50f * (Gear.Multiplier(level) + 1f) / 2f, effects.QiPct, .00001f);
+            Assert.AreEqual(.25f * (Gear.Multiplier(level) + 1f) / 2f, effects.QiPct, .00001f);
             Assert.AreEqual(0, effects.StartSpirit);
         }
 
@@ -201,11 +201,11 @@ namespace BiRyeoDo.Tests
             var item = EarlyGameContent.FindItem(Ritual.RewardId);
             var fresh = Gear.EffectsFor(item);
             var enhanced = Gear.EffectsFor(item, 100);
-            Assert.AreEqual(.50f, fresh.QiPct, .00001f);
+            Assert.AreEqual(.25f, fresh.QiPct, .00001f);
             Assert.AreEqual(.70f, fresh.DefPct, .00001f);
-            Assert.AreEqual(2.225f, enhanced.QiPct, .00001f);
+            Assert.AreEqual(1.1125f, enhanced.QiPct, .00001f);
             Assert.AreEqual(3.115f, enhanced.DefPct, .00001f);
-            StringAssert.Contains("내공 +222.5%", StatusSheet.EffectText(item, 100));
+            StringAssert.Contains("내공 +111.2", StatusSheet.EffectText(item, 100));
             StringAssert.Contains("방어 +311.5%", StatusSheet.EffectText(item, 100));
             Assert.IsEmpty(Gear.BreakthroughTraits(item), "these are base effects, not fixed breakthrough traits");
         }
@@ -254,7 +254,7 @@ namespace BiRyeoDo.Tests
             var stats = new CombatStats { MaxHp = 1000, MaxQi = 100, Attack = 100, Defense = 100, Speed = 100, CritDamage = 1.5f };
             var hero = Inventory.ApplyGear(stats, Inventory.GearOf(save, Inventory.Hero), Gear.LevelsFor(save, Inventory.Hero));
             var companion = Inventory.ApplyGear(stats, Inventory.GearOf(save, "hyo_ryong"), Gear.LevelsFor(save, "hyo_ryong"));
-            Assert.AreEqual(122, hero.MaxQi);
+            Assert.AreEqual(111, hero.MaxQi);
             Assert.AreEqual(hero.MaxQi, companion.MaxQi);
             Assert.AreEqual(1.696f, companion.CritDamage, .00001f);
             Inventory.Add(save, "iron_sword", 1);

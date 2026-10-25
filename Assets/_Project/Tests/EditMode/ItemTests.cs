@@ -115,7 +115,7 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(125, s.Speed);    // +30.769 -6, rounded after summing
             Assert.AreEqual(.01f + .30f * 1.5f / 1.3f, s.CritRate, 0.0001f);
             Assert.AreEqual(1462, s.MaxHp);   // current five-star +46.154%
-            Assert.AreEqual(150, s.MaxQi);
+            Assert.AreEqual(125, s.MaxQi);   // 진비뢰도 내공 +25% (halved)
             Assert.AreEqual(1.5f + .50f * 2f / 1.3f, s.CritDamage, 0.0001f);
         }
 

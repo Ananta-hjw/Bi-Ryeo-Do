@@ -103,6 +103,9 @@ namespace BiRyeoDo.Core
             }
         }
 
+        /// <summary>내공 breakthrough traits are worth half the other percent traits.</summary>
+        public const float QiTraitScale = 0.5f;
+
         public static GearTrait[] BreakthroughTraits(ItemData item)
         {
             if (item == null || !item.IsGear || item.Grade < ItemGrade.Epic || item.Id == Ritual.RewardId) return new GearTrait[0];
@@ -125,6 +128,7 @@ namespace BiRyeoDo.Core
                 value *= TraitStrength[i];
                 // Apply the new grade/milestone boost to existing traits, except critical chance.
                 if (kind != GearTraitKind.Crit && boosts != null) value *= boosts[i];
+                if (kind == GearTraitKind.Qi) value *= QiTraitScale;   // 내공 from gear is halved everywhere (base effects, these traits and set bonuses)
                 if (kind == GearTraitKind.Speed || kind == GearTraitKind.StartSpirit) value = (float)Math.Round(value, MidpointRounding.AwayFromZero);
                 result[i] = new GearTrait { Stars = TraitStars[i], Kind = kind, Value = value };
             }
