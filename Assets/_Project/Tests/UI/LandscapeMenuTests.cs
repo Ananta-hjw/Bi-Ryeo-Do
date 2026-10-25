@@ -330,6 +330,40 @@ namespace BiRyeoDo.Tests.UI
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
+        public void LobbyUsesTheStandingHeroWithoutChangingBattleArtOrCoveringMenus(float width)
+        {
+            Root.sizeDelta = new Vector2(width, 960f);
+            var routes = UiFactory.Rect("Routes", Root, Vector2.zero, Vector2.one);
+            var world = routes.gameObject.AddComponent<WorldScreen>();
+            world.Build(routes, stage => { }, offer => { }, () => { });
+            routes.gameObject.SetActive(false);
+            var homeRoot = UiFactory.Rect("Home", Root, Vector2.zero, Vector2.one);
+            var home = homeRoot.gameObject.AddComponent<LandscapeHome>();
+            home.Build(homeRoot, world, menu => { }, tab => { });
+            Invoke(home, "ShowLobbyLine", Lobby.Pick(_save, 0), _save);
+            Canvas.ForceUpdateCanvases();
+            var viewport = homeRoot.Find("CharacterViewport");
+            var portrait = viewport.Find("Character").GetComponent<Image>();
+            Assert.IsNotNull(viewport.GetComponent<RectMask2D>());
+            Assert.IsNotNull(portrait.sprite);
+            Assert.AreSame(ArtLibrary.LobbyPortrait(StoryLine.Protagonist), portrait.sprite);
+            Assert.AreNotSame(ArtLibrary.Player(), portrait.sprite);
+            Assert.AreSame(ArtLibrary.Player(), ArtLibrary.Portrait(StoryLine.Protagonist));
+            Assert.IsNotNull(ArtLibrary.Chibi("player"));
+            Assert.LessOrEqual(Bounds((RectTransform)viewport).xMax, Bounds((RectTransform)homeRoot.Find("Journey")).xMin);
+            Assert.Greater(Bounds((RectTransform)viewport).xMin, Bounds((RectTransform)homeRoot.Find("PartyMenu")).xMax);
+            Assert.Less(Bounds((RectTransform)viewport).yMax, Bounds((RectTransform)homeRoot.Find("Masthead")).yMin);
+            var companion = EarlyGameContent.Companions.First();
+            Assert.AreSame(ArtLibrary.Portrait(companion.Name), ArtLibrary.LobbyPortrait(companion.Name));
+            Invoke(home, "ShowLobbyLine", new LobbyLine { Speaker = companion.Name, Text = "…" }, _save);
+            Assert.That(((RectTransform)viewport).anchorMin.y, Is.EqualTo(.16f));
+            Assert.That(portrait.rectTransform.anchorMin, Is.EqualTo(Vector2.zero));
+            Assert.That(portrait.rectTransform.anchorMax, Is.EqualTo(Vector2.one));
+        }
+
+        [TestCase(1440f)]
+        [TestCase(1920f)]
+        [TestCase(2400f)]
         public void WholeJourneyCardOpensTheFeaturedRouteWithoutASeparateGoButton(float width)
         {
             Root.sizeDelta = new Vector2(width, 960f);

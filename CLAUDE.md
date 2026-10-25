@@ -126,3 +126,5 @@ Key flow:
 - 뽑기 등급 미리보기(`GachaScreen.OpenPool`)는 5열·높이 320 고정 카드다. 긴 설명 대신 장비 효과/소모품 효과 요약과 세트 이름만 보여주며 `ReadingList` 자동 높이 확장은 사용하지 않는다. 장비 탭 선택창의 설명 오른쪽 `Costs`에는 선택 장비의 등급 개방 은자 또는 다음 강화 재료·은자의 보유/필요 수량을 보여준다.
 
 - 장비 수량: `GearCatalogExpansion.All`이 162종을 보충하여 무기·상의·하의·신발·장신구 각각 일반 20/고급 17/희귀 15/영웅 12/전설 8/신화 6종이다. 초월 진비뢰도 포함 총 391종. 신규 아이콘은 `Readable/gear_expansion_*.png`와 catalog의 개별 측정 영역을 사용한다. `Docs/EQUIPMENT_CATALOG_EXPANSION.md`에 전체 신규 이름·효과가 있다.
+
+- 메인 비류연 입화: `Characters/player_lobby.png`는 선택한 신규 입화이며 `ArtLibrary.LobbyPortrait`/`LandscapeHome`에서만 사용한다. 왼쪽 `CharacterViewport`에서 하체를 잘라 얼굴·상체를 크게 표시하며 메뉴 영역으로 그림이 넘치지 않도록 마스킹한다. 다른 인물은 원래 초상과 크기로 되돌리고, 전투 SD·공용 player 초상·대화 화면 경로는 유지한다.

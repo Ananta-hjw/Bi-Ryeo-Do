@@ -18,6 +18,7 @@ namespace BiRyeoDo.Game.UI
         private RectTransform _flyoutLayer, _missionsFlyout, _challengeFlyout;
         private Image _missionsButton, _challengeButton;
         private Image _portrait, _scenery, _journeyArt;
+        private RectTransform _portraitViewport;
         private Text _portraitGlyph;
         private UiFactory.Bar _experience;
         private bool _built;
@@ -53,7 +54,9 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Glyph("settings", settings.transform, new Vector2(.1f, .1f), new Vector2(.9f, .9f), UiFactory.Gold).raycastTarget = false;   // 설정: a gold cog
 
             HomeText("Masthead", root, .035f, .805f, .40f, .885f, "비 뢰 도", 58, UiFactory.PaperText);
-            _portrait = UiFactory.Panel("Character", root, new Vector2(.115f, .16f), new Vector2(.43f, .79f), Color.white);
+            _portraitViewport = UiFactory.Rect("CharacterViewport", root, new Vector2(.115f, .16f), new Vector2(.43f, .79f));
+            _portraitViewport.gameObject.AddComponent<RectMask2D>();
+            _portrait = UiFactory.Panel("Character", _portraitViewport, Vector2.zero, Vector2.one, Color.white);
             _portrait.preserveAspect = true;
             _portraitFade = _portrait.gameObject.AddComponent<CanvasGroup>();
             _portraitGlyph = UiFactory.Label("Fallback", _portrait.transform, Vector2.zero, Vector2.one, "", 150, UiFactory.Gold);
@@ -269,7 +272,14 @@ namespace BiRyeoDo.Game.UI
         {
             _name.text = scene.Speaker;
             _quote.text = scene.Text;
-            _portrait.sprite = ArtLibrary.Feathered(ArtLibrary.Portrait(scene.Speaker));
+            var picture = ArtLibrary.LobbyPortrait(scene.Speaker);
+            bool standing = scene.Speaker == StoryLine.Protagonist && picture != null && picture != ArtLibrary.Player();
+            _portrait.sprite = standing ? picture : ArtLibrary.Feathered(picture);
+            // Crop the lower body inside the left column so the face reads at lobby size.
+            // The menu rail, journey card, title, nameplate and speech remain outside this crop.
+            LandscapeMenu.Place(_portraitViewport, .115f, standing ? .005f : .16f, standing ? .432f : .43f, standing ? .80f : .79f);
+            _portrait.rectTransform.pivot = new Vector2(.5f, standing ? 1f : .5f);
+            LandscapeMenu.Place(_portrait.rectTransform, standing ? -.12f : 0f, standing ? -.48f : 0f, standing ? 1.12f : 1f, 1f);
             _portrait.color = _portrait.sprite != null ? Color.white : Color.clear;
             _portraitGlyph.text = _portrait.sprite == null ? scene.Speaker.Substring(0, 1) : "";
             _realm.text = scene.Speaker == StoryLine.Protagonist ? Realm.Label(Realm.StepOf(Realm.Power(InnerArts.HeroStatsBeforeRealm(save)))) : "";

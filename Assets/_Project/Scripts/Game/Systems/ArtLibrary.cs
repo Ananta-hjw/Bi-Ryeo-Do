@@ -40,6 +40,13 @@ namespace BiRyeoDo.Game.Systems
         /// <summary>Party member portrait: <c>Characters/&lt;id&gt;.png</c> (e.g. hyo_ryong.png).</summary>
         public static Sprite Companion(string companionId) { return Load("Characters/" + companionId); }
 
+        /// <summary>Main-lobby standing art for the protagonist; other speakers retain their existing portraits.</summary>
+        public static Sprite LobbyPortrait(string name)
+        {
+            return name == BiRyeoDo.Core.StoryLine.Protagonist
+                ? Load("Characters/player_lobby") ?? Portrait(name) : Portrait(name);
+        }
+
         /// <summary>Portrait by character name: the protagonist, a companion, or an enemy/NPC whose name matches (e.g. 나예린 → the 빙백봉 art).</summary>
         public static Sprite Portrait(string name)
         {
