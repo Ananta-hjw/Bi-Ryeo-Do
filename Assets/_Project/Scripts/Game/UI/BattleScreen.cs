@@ -1026,7 +1026,8 @@ namespace BiRyeoDo.Game.UI
                 {
                     p.FigureGlyph = UiFactory.Label("Glyph", p.Root, new Vector2(0.04f, 0.32f), new Vector2(0.96f, 0.90f), FirstGlyph(unit.Name), 110, i == 0 ? UiFactory.Gold : UiFactory.PaperText);
                 }
-                p.Name = UiFactory.Label("Name", p.Root, new Vector2(0.03f, 0.845f), new Vector2(0.97f, 0.995f), ShortName(unit.Name), 24, UiFactory.Gold);
+                // The name sits inside the HP bar (left, the number on the right) so it never covers the figure's face.
+                p.Name = UiFactory.Label("Name", p.Root, new Vector2(0.06f, 0.20f), new Vector2(0.60f, 0.35f), BoardName(unit.Name), 21, UiFactory.Gold, TextAnchor.MiddleLeft);
                 p.Status = UiFactory.Label("Status", p.Root, new Vector2(0.05f, 0.52f), new Vector2(0.95f, 0.80f), "", 22, UiFactory.PaperText);
                 // HP is the primary number; Qi and Spirit stay as meters (exact values are in the acting-member HUD and details).
                 var gaugeBack = new Color(0f, 0f, 0f, 0.75f);
@@ -1037,11 +1038,12 @@ namespace BiRyeoDo.Game.UI
                 p.QiText = GaugeText("QiText", p.Root, 0.110f, 0.200f);
                 p.SpiritText = GaugeText("SpiritText", p.Root, 0.015f, 0.105f);
                 p.QiText.gameObject.SetActive(false); p.SpiritText.gameObject.SetActive(false);
-                FixedLabelHeight(p.Name, 1f, 32f);
-                OutlineCommandText(p.Name);   // readable where the head of the figure reaches the name
-                p.Name.rectTransform.anchoredPosition = new Vector2(0f, -16f);
+                FixedLabelHeight(p.Name, .275f, 28f);
+                OutlineCommandText(p.Name);   // readable on both the fill and the empty part of the bar
                 FixedLabelHeight(p.Status, .66f, 30f);
                 FixedLabelHeight(p.HpText, .275f, 28f);
+                RightAlignHp(p.HpText);
+                p.Name.transform.SetAsLastSibling();
                 p.ActionBadge = BuildActionBadge(p.Root);
                 var panelUnit = unit;
                 var catchImg = p.Root.gameObject.AddComponent<Image>();
@@ -1125,8 +1127,8 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Glyph("stance", card.Root, new Vector2(.12f, .355f), new Vector2(.88f, .40f), new Color(.66f, .30f, .21f, .55f));
                 card.Frame = UiFactory.Panel("Marker", card.Root, new Vector2(0.10f, 0.303f), new Vector2(0.90f, 0.319f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks the target
                 var rank = data.Rank;
-                card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.03f, 0.845f), new Vector2(0.97f, 0.995f), (rank == EnemyRank.Elite ? "◆ " : "") + ShortName(data.Name), 24,
-                    rank == EnemyRank.Boss ? UiFactory.Gold : rank == EnemyRank.Elite ? new Color(0.62f, 0.82f, 1f, 1f) : UiFactory.PaperText);
+                card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.06f, 0.23f), new Vector2(0.60f, 0.37f), (rank == EnemyRank.Elite ? "◆ " : "") + BoardName(data.Name), 21,
+                    rank == EnemyRank.Boss ? UiFactory.Gold : rank == EnemyRank.Elite ? new Color(0.62f, 0.82f, 1f, 1f) : UiFactory.PaperText, TextAnchor.MiddleLeft);
                 var art = BattleFigure(data.ArtKey);
                 if (art != null)
                 {
@@ -1153,15 +1155,15 @@ namespace BiRyeoDo.Game.UI
                 card.IntentBack = UiFactory.Panel("IntentBack", card.Root, new Vector2(.01f, 0f), new Vector2(.99f, .145f), HudInk);
                 card.Intent = UiFactory.Label("Intent", card.Root, new Vector2(0.02f, 0.0f), new Vector2(0.98f, 0.145f), "", 21, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
-                FixedLabelHeight(card.Name, 1f, 32f);
-                card.Name.rectTransform.anchoredPosition = new Vector2(0f, -16f);
+                FixedLabelHeight(card.Name, .30f, 28f);
                 FixedLabelHeight(card.Realm, .74f, 24f);
                 FixedLabelHeight(card.Badge, .58f, 28f);
                 FixedLabelHeight(card.HpText, .30f, 28f);
+                RightAlignHp(card.HpText);
                 FixedLabelHeight(card.Intent, 0f, 26f);
                 card.Intent.rectTransform.anchoredPosition = new Vector2(0f, 13f);
                 card.ActionBadge = BuildActionBadge(card.Root);
-                card.Name.transform.SetAsLastSibling();   // the name is drawn over the figure, which can reach the top of the cell
+                card.Name.transform.SetAsLastSibling();   // the name is drawn inside the HP bar, below the figure's feet
                 OutlineCommandText(card.Name);
 
                 // Tap to attack (only while an attack is being aimed)
@@ -1318,7 +1320,7 @@ namespace BiRyeoDo.Game.UI
                 c.ActionBadge.transform.parent.gameObject.SetActive(false);   // no "행동 중" badge: the ▶ name and red frame mark the acting enemy
                 c.ActionBadge.text = "";
                 c.ActionBadge.color = ThreatRed;
-                c.Name.text = (acting ? "▶ " : "") + (c.Data.Rank == EnemyRank.Elite ? "◆ " : "") + u.Name;
+                c.Name.text = (acting ? "▶ " : "") + (c.Data.Rank == EnemyRank.Elite ? "◆ " : "") + BoardName(u.Name);
                 bool aimOk = Hittable(u), aimNo = Aiming && !dead && !aimOk;
                 c.Frame.color = aimOk ? UiFactory.Gold : aimNo ? new Color(0.75f, 0.15f, 0.15f, 1f) : new Color(0f, 0f, 0f, 0f);
                 c.TargetFrame.color = acting ? ThreatRed : aimOk ? UiFactory.Gold : Color.clear;
@@ -1384,7 +1386,7 @@ namespace BiRyeoDo.Game.UI
                 // Whose turn: a bright green ▶ and a white name; everyone else keeps the plain gold name.
                 p.Name.color = !u.IsAlive ? new Color(0.5f, 0.5f, 0.5f, 1f) : current ? Color.white : UiFactory.Gold;
                 p.ActionBadge.transform.parent.gameObject.SetActive(false);   // the turn shows as ▶ before the name and the gold frame, not a 내 차례 tag over the figure
-                p.Name.text = (current ? "<color=#5CFF9D>▶</color> " : "") + u.Name;
+                p.Name.text = (current ? "<color=#5CFF9D>▶</color> " : "") + BoardName(u.Name);
                 p.Frame.color = current ? TurnGreen : new Color(0f, 0f, 0f, 0f);   // green = acting member (gold stays for aimed targets)
                 p.ActiveFrame.color = current ? TurnGreen : Color.clear;
                 p.Status.color = incoming ? ThreatRed : afflicted.Length > 0 ? StatusColor : UiFactory.PaperText;
@@ -1421,6 +1423,23 @@ namespace BiRyeoDo.Game.UI
                 _turnPortraits[i].gameObject.SetActive(pic != null);
                 _turnGlyphs[i].text = pic == null ? FirstGlyph(order[i].Name) : "";
             }
+        }
+
+        /// <summary>Name written inside a board HP bar: the whole name when short, else its last word (at most five letters) so the HP number keeps room.</summary>
+        private static string BoardName(string name)
+        {
+            if (name.Length <= 5) return name;
+            int space = name.LastIndexOf(' ');
+            string last = space >= 0 ? name.Substring(space + 1) : name;
+            return last.Length > 5 ? last.Substring(0, 5) : last;
+        }
+
+        /// <summary>Moves a board HP number to the right half of its bar, leaving the left for the name.</summary>
+        private static void RightAlignHp(Text hp)
+        {
+            hp.alignment = TextAnchor.MiddleRight;
+            hp.rectTransform.anchorMin = new Vector2(.40f, hp.rectTransform.anchorMin.y);
+            hp.rectTransform.anchorMax = new Vector2(.94f, hp.rectTransform.anchorMax.y);
         }
 
         private static string ShortName(string name)
