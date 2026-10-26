@@ -247,7 +247,8 @@
 | 전투 인물·행동 순서·현재 행동자·적/아군 정보·길게 누르기 | 같은 `SdFigure` |
 | 레벨 업·성장 확인·휴식 회복 | 같은 `SdFigure` |
 | 장비 화면 중앙 인물 | 같은 `SdFigure` |
-| 메인·대화·협객 프로필·상태창 프로필·도감·파티 편성 등 나머지 | `CharacterPortrait`: Standing (없으면 이름 글자 블록) |
+| 파티 편성·출전 준비의 배치 칸 | 같은 `SdFigure` |
+| 메인·대화·협객 프로필·상태창 프로필·도감 등 나머지 | `CharacterPortrait`: Standing (없으면 이름 글자 블록) |
 
 `Standing/<id>.png`를 추가하면 해당 인물의 일반 화면에서 자동으로 사용한다. 비류연은 `player.png`, 동료는 동료 ID, 스토리 인물은 `StoryCast` ID, 적은 `ArtKey`를 쓴다. 기존 파일명·Unity `.meta`를 유지하면 된다. SD 대상에는 Standing 이미지를 대체 이미지로 섞지 않는다.
 

@@ -748,8 +748,8 @@ namespace BiRyeoDo.Game.UI
                     bool selected = here != null && here == _placeSelected;
                     var tint = here == null ? new Color(0.28f, 0.50f, 0.85f, 0.25f) : selected ? UiFactory.Gold : UiFactory.Ink;
                     int cc = col, rr = row;
-                    // Formation is a management view: use the standing art.
-                    var figure = here == null ? null : ArtLibrary.CharacterPortrait(here == Formation.HeroId ? "비류연" : here);
+                    // Placement tiles show the SD battle figure, the same picture the fight uses.
+                    var figure = here == null ? null : ArtLibrary.SdFigure(here);
                     var tile = UiFactory.Button("Tile" + col + rr, parent, new Vector2(x0 + 0.004f, y1 - ch + 0.003f), new Vector2(x0 + cw - 0.004f, y1 - 0.003f), here == null || figure != null ? "" : names[here], tint, () => OnPlacementTile(ids, cc, rr, redraw, st), 26);
                     if (figure != null)
                     {
