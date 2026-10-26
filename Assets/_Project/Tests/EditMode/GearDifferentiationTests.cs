@@ -78,7 +78,7 @@ namespace BiRyeoDo.Tests
         [TestCase("gen_boo_rar07", 11.000000d)]
         [TestCase("gen_boo_rar05", 15.000000d)]
         [TestCase("gen_boo_rar06", 15.000000d)]
-        [TestCase("gen_arm_epi01", 18.000000d)]
+        [TestCase("gen_arm_epi01", 23.400000d)]   // 18 before the 영웅 x1.3 grade scale
         public void RedistributionPreservesThePreviousWeightedBudget(string id, double expected)
         {
             var item = EarlyGameContent.FindItem(id);

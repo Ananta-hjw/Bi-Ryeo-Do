@@ -310,9 +310,10 @@ namespace BiRyeoDo.Core
         public static float Multiplier(int level, int stars = 0)
         {
             int n = Math.Max(0, Math.Min(MaxLevel, level));
-            return 1f + Math.Min(n, 20) * .03f + Math.Max(0, Math.Min(n, 30) - 20) * .04f
-                + Math.Max(0, Math.Min(n, 50) - 30) * .05f + Math.Max(0, Math.Min(n, 70) - 50) * .07f
-                + Math.Max(0, Math.Min(n, 90) - 70) * .10f + Math.Max(0, n - 90) * .15f + StarBonus(stars);
+            // Per level: +1~20 2%, +21~30 3%, +31~50 4%, +51~70 5%, +71~90 7%, +91~100 10% (x5.90 at +100).
+            return 1f + Math.Min(n, 20) * .02f + Math.Max(0, Math.Min(n, 30) - 20) * .03f
+                + Math.Max(0, Math.Min(n, 50) - 30) * .04f + Math.Max(0, Math.Min(n, 70) - 50) * .05f
+                + Math.Max(0, Math.Min(n, 90) - 70) * .07f + Math.Max(0, n - 90) * .10f + StarBonus(stars);
         }
 
         /// <summary>Transcendent definitions already describe their innate five-star effects.</summary>

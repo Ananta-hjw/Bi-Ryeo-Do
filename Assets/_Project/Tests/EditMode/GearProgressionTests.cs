@@ -194,7 +194,7 @@ namespace BiRyeoDo.Tests
             Gear.EnsureProgression(save);
             Assert.AreEqual(ItemGrade.Normal, Gear.UnlockedGrade(save, Inventory.Hero, 4));
             Assert.AreEqual(ItemGrade.Legendary, Gear.UnlockedGrade(save, Inventory.Hero, 5));
-            Assert.AreEqual(4, Gear.LevelFor(save, Inventory.Hero, id));
+            Assert.AreEqual(5, Gear.LevelFor(save, Inventory.Hero, id));   // old +1 (10%) -> new +5 (x1.10)
         }
 
         [TestCase(1, 0)]
@@ -383,19 +383,19 @@ namespace BiRyeoDo.Tests
         }
 
         [TestCase(0, 1f)]
-        [TestCase(1, 1.03f)]
-        [TestCase(20, 1.6f)]
-        [TestCase(21, 1.64f)]
-        [TestCase(30, 2f)]
-        [TestCase(31, 2.05f)]
-        [TestCase(50, 3f)]
-        [TestCase(51, 3.07f)]
-        [TestCase(70, 4.4f)]
-        [TestCase(71, 4.5f)]
-        [TestCase(90, 6.4f)]
-        [TestCase(91, 6.55f)]
-        [TestCase(100, 7.9f)]
-        [TestCase(101, 7.9f)]
+        [TestCase(1, 1.02f)]
+        [TestCase(20, 1.4f)]
+        [TestCase(21, 1.43f)]
+        [TestCase(30, 1.7f)]
+        [TestCase(31, 1.74f)]
+        [TestCase(50, 2.5f)]
+        [TestCase(51, 2.55f)]
+        [TestCase(70, 3.5f)]
+        [TestCase(71, 3.57f)]
+        [TestCase(90, 4.9f)]
+        [TestCase(91, 5f)]
+        [TestCase(100, 5.9f)]
+        [TestCase(101, 5.9f)]
         [TestCase(-1, 1f)]
         public void EnhancementUsesRequestedPiecewiseBaseBonus(int level, float expected)
         {
@@ -421,7 +421,7 @@ namespace BiRyeoDo.Tests
             }
             Assert.IsFalse(Gear.Breakthrough(save, "iron_sword", out error));
             Assert.AreEqual(2, Inventory.Count(save, "iron_sword"));
-            Assert.AreEqual(8.9f, Gear.Multiplier(100, 5), .0001f);
+            Assert.AreEqual(6.9f, Gear.Multiplier(100, 5), .0001f);
         }
 
         [Test]
@@ -470,7 +470,7 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(100000000 - totalDoo, save.Doo);
             Assert.AreEqual(600000 - totalStones, Gear.Materials.Sum(m => Inventory.Count(save, m.Id)));
             var actual = Inventory.ApplyGear(new CombatStats { MaxHp = 1000, MaxQi = 100, Attack = 1000, Defense = 100, Speed = 100 }, save.EquippedGear, Gear.LevelsFor(save, Inventory.Hero));
-            Assert.AreEqual(1356, actual.Attack, "4% base weapon x 8.9 contributes 35.6%");
+            Assert.AreEqual(1276, actual.Attack, "4% base weapon x 6.9 contributes 27.6%");
         }
 
         [Test]
@@ -554,7 +554,7 @@ namespace BiRyeoDo.Tests
             save.CompanionGear = null;
             Gear.EnsureProgression(save);
             Assert.AreEqual(5, Gear.Stars(save, "iron_sword"));
-            Assert.AreEqual(30, Gear.SlotLevel(save, Inventory.Hero, 0));
+            Assert.AreEqual(38, Gear.SlotLevel(save, Inventory.Hero, 0));   // old +10 (100%) -> new +38 (x2.02)
             Assert.AreEqual(6, Inventory.Count(save, "iron_sword"));
             Assert.IsEmpty(save.GearLevels);
             Gear.EnsureProgression(save);
@@ -570,7 +570,7 @@ namespace BiRyeoDo.Tests
             Inventory.GearOf(save, "hyo_ryong").Add("iron_sword");
             save.GearLevels.Add(new GearLevel { Id = "iron_sword", Level = 3 });
             Gear.EnsureProgression(save);
-            Assert.AreEqual(10, Gear.SlotLevel(save, "hyo_ryong", 0));
+            Assert.AreEqual(15, Gear.SlotLevel(save, "hyo_ryong", 0));   // old +3 (30%) -> new +15 (x1.30)
             Assert.AreEqual(0, Gear.SlotLevel(save, Inventory.Hero, 0));
             Assert.AreEqual(3, Gear.Stars(save, "iron_sword"));
         }
