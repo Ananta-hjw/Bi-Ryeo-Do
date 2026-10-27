@@ -59,6 +59,47 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsNotNull(SceneryArt.Menu(SceneryArt.PanelKey(name)));
         }
 
+        [TestCase("world")]
+        [TestCase("arts")]
+        [TestCase("record")]
+        public void ExposedLabelsAndBackArrowStayLegibleWithoutAddingPanels(string key)
+        {
+            var go = new GameObject("SceneryReadability", typeof(RectTransform));
+            try
+            {
+                var root = go.GetComponent<RectTransform>();
+                UiFactory.MenuBackdrop(root, key);
+                int images = root.GetComponentsInChildren<Image>().Length;
+                var title = UiFactory.Label("Title", root, Vector2.zero, Vector2.one, "일일 수련 임무", 44, UiFactory.Gold);
+                var detail = UiFactory.Label("Description", root, Vector2.zero, Vector2.one, "임무 안내", 28, UiFactory.Dim);
+                var back = UiFactory.BackCorner(root, () => { });
+                var arrow = back.GetComponentInChildren<WuxiaGlyph>();
+                Assert.IsNotNull(title.GetComponent<Outline>());
+                Assert.IsNotNull(detail.GetComponent<Outline>());
+                Assert.AreEqual(UiFactory.PaperText, detail.color);
+                Assert.Greater(title.color.r, UiFactory.Gold.r);
+                Assert.Greater(arrow.Stroke, 2f);
+                Assert.IsNotNull(arrow.GetComponent<Outline>());
+                Assert.AreEqual(0f, back.GetComponent<Image>().color.a);
+                Assert.AreEqual(images + 1, root.GetComponentsInChildren<Image>().Length, "Only the transparent back hit area is added");
+                Assert.IsFalse(arrow.raycastTarget);
+                bool pressed = false;
+                back.onClick.AddListener(() => pressed = true);
+                back.onClick.Invoke();
+                Assert.IsTrue(pressed);
+
+                // Transparent layout wrappers still expose the painting; opaque cards do not.
+                var wrapper = UiFactory.Rect("Layout", root, Vector2.zero, Vector2.one);
+                var wrapped = UiFactory.Label("Hint", wrapper, Vector2.zero, Vector2.one, "안내", 28, UiFactory.Gold);
+                Assert.IsNotNull(wrapped.GetComponent<Outline>());
+                var card = UiFactory.Panel("Card", wrapper, Vector2.zero, Vector2.one, UiFactory.Ink);
+                var reward = UiFactory.Label("Reward", card.transform, Vector2.zero, Vector2.one, "보상", 28, UiFactory.Gold);
+                Assert.IsNull(reward.GetComponent<Outline>());
+                Assert.AreEqual(UiFactory.Gold, reward.color);
+            }
+            finally { Object.DestroyImmediate(go); }
+        }
+
         [Test]
         public void PresentationPortraitsUseStandingArt()
         {

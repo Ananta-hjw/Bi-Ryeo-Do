@@ -255,6 +255,38 @@ namespace BiRyeoDo.Tests.UI
             finally { while (stack.Count > 0) (stack.Pop() as IDisposable)?.Dispose(); }
         }
 
+        [UnityEngine.TestTools.UnityTest]
+        public IEnumerator DefeatClearsIntentAndMovesOnlyTheFigure()
+        {
+            Build(1920f);
+            var root = UiFactory.Rect("DefeatedEnemy", _canvas.transform, Vector2.zero, Vector2.one);
+            var art = UiFactory.Panel("Art", root, Vector2.zero, Vector2.one, Color.white);
+            var intentBack = UiFactory.Panel("IntentBack", root, Vector2.zero, Vector2.one, Color.black);
+            var intent = UiFactory.Label("Intent", root, Vector2.zero, Vector2.one, "다음: 전조", 21, Color.white);
+            var badge = UiFactory.Label("Badge", root, Vector2.zero, Vector2.one, "내상", 20, Color.white);
+            var cardType = typeof(BattleScreen).GetNestedType("EnemyCard", BindingFlags.NonPublic);
+            var card = Activator.CreateInstance(cardType, true);
+            cardType.GetField("Root").SetValue(card, root);
+            cardType.GetField("Art").SetValue(card, art);
+            cardType.GetField("IntentBack").SetValue(card, intentBack);
+            cardType.GetField("Intent").SetValue(card, intent);
+            cardType.GetField("Badge").SetValue(card, badge);
+            Vector2 cellPosition = root.anchoredPosition;
+            Vector2 figurePosition = art.rectTransform.anchoredPosition;
+            var collapse = (IEnumerator)Invoke("Collapse", card);
+            while (collapse.MoveNext())
+            {
+                Assert.AreEqual(cellPosition, root.anchoredPosition);
+                Assert.IsEmpty(intent.text);
+                Assert.IsFalse(intent.gameObject.activeSelf);
+                Assert.IsFalse(intentBack.gameObject.activeSelf);
+                Assert.IsEmpty(badge.text);
+                yield return null;
+            }
+            Assert.AreEqual(cellPosition, root.anchoredPosition);
+            Assert.AreEqual(figurePosition + new Vector2(0f, -40f), art.rectTransform.anchoredPosition);
+        }
+
         [Test]
         public void FigureRefitsAfterResizeAndKeepsEnemyFacing()
         {
@@ -266,14 +298,17 @@ namespace BiRyeoDo.Tests.UI
                 var cell = root.GetComponent<RectTransform>();
                 var image = UiFactory.Panel("Art", cell, new Vector2(.5f, .38f), new Vector2(.5f, .38f), Color.white);
                 image.sprite = sprite;
+                image.rectTransform.pivot = new Vector2(.5f, 0f);
+                image.rectTransform.anchoredPosition = Vector2.zero;
                 image.rectTransform.localScale = new Vector3(-1f, 1f, 1f);
                 var fit = image.gameObject.AddComponent<BattleFigureFit>();
                 foreach (var size in new[] { new Vector2(240f, 220f), new Vector2(80f, 400f) })
                 {
                     cell.sizeDelta = size; fit.Fit();
                     Assert.LessOrEqual(image.rectTransform.rect.width, size.x * .96f + .01f);
-                    Assert.LessOrEqual(image.rectTransform.rect.height, size.y * .52f + .01f);
+                    Assert.LessOrEqual(image.rectTransform.rect.height, size.y * .60f + .01f);
                     Assert.That(image.rectTransform.rect.width / image.rectTransform.rect.height, Is.EqualTo(.5f).Within(.001f));
+                    Assert.LessOrEqual(size.y * .38f + image.rectTransform.rect.height, size.y);
                     Assert.AreEqual(-1f, image.rectTransform.localScale.x);
                 }
             }

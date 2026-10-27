@@ -1027,7 +1027,7 @@ namespace BiRyeoDo.Game.UI
                     p.FigureGlyph = UiFactory.Label("Glyph", p.Root, new Vector2(0.04f, 0.32f), new Vector2(0.96f, 0.90f), FirstGlyph(unit.Name), 110, i == 0 ? UiFactory.Gold : UiFactory.PaperText);
                 }
                 // The name sits inside the HP bar (left, the number on the right) so it never covers the figure's face.
-                p.Name = UiFactory.Label("Name", p.Root, new Vector2(0.06f, 0.20f), new Vector2(0.60f, 0.35f), BoardName(unit.Name), 21, UiFactory.Gold, TextAnchor.MiddleLeft);
+                p.Name = UiFactory.Label("Name", p.Root, new Vector2(0.06f, 0.20f), new Vector2(0.40f, 0.35f), BoardName(unit.Name), 21, UiFactory.Gold, TextAnchor.MiddleLeft);
                 p.Status = UiFactory.Label("Status", p.Root, new Vector2(0.05f, 0.52f), new Vector2(0.95f, 0.80f), "", 22, UiFactory.PaperText);
                 // HP is the primary number; Qi and Spirit stay as meters (exact values are in the acting-member HUD and details).
                 var gaugeBack = new Color(0f, 0f, 0f, 0.75f);
@@ -1127,7 +1127,7 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Glyph("stance", card.Root, new Vector2(.12f, .355f), new Vector2(.88f, .40f), new Color(.66f, .30f, .21f, .55f));
                 card.Frame = UiFactory.Panel("Marker", card.Root, new Vector2(0.10f, 0.303f), new Vector2(0.90f, 0.319f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks the target
                 var rank = data.Rank;
-                card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.06f, 0.23f), new Vector2(0.60f, 0.37f), (rank == EnemyRank.Elite ? "◆ " : "") + BoardName(data.Name), 21,
+                card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.06f, 0.23f), new Vector2(0.40f, 0.37f), (rank == EnemyRank.Elite ? "◆ " : "") + BoardName(data.Name), 21,
                     rank == EnemyRank.Boss ? UiFactory.Gold : rank == EnemyRank.Elite ? new Color(0.62f, 0.82f, 1f, 1f) : UiFactory.PaperText, TextAnchor.MiddleLeft);
                 var art = BattleFigure(data.ArtKey);
                 if (art != null)
@@ -1329,7 +1329,9 @@ namespace BiRyeoDo.Game.UI
                 c.Badge.color = aimOk ? UiFactory.Gold : aimNo ? new Color(1f, 0.45f, 0.45f, 1f) : StatusColor;
                 if (c.Art != null) SetAlpha(c.Art, dead ? 0.25f : aimNo ? 0.35f : 1f);
                 if (dead) c.Glyph.color = new Color(1f, 1f, 1f, 0.2f);
-                if (dead) { c.Intent.text = "쓰러졌다"; continue; }
+                c.Intent.gameObject.SetActive(!dead);
+                c.IntentBack.gameObject.SetActive(!dead);
+                if (dead) { c.Intent.text = ""; continue; }
                 if (u.Stunned) { c.Intent.text = "행동 불능"; c.Intent.color = GuardBlue; continue; }
                 var move = u.PeekMove();
                 if (u.AwakeningStrike != null)
@@ -2113,7 +2115,7 @@ namespace BiRyeoDo.Game.UI
                                     sufferCard.ShownHp = ev.TargetHpAfter;
                                     sufferCard.Hp.SetPct(sufferCard.Unit.Stats.MaxHp > 0 ? (float)ev.TargetHpAfter / sufferCard.Unit.Stats.MaxHp : 0f);
                                     sufferCard.HpText.text = ev.TargetHpAfter + " / " + sufferCard.Unit.Stats.MaxHp;
-                                    if (ev.TargetDefeated) { StartCoroutine(Collapse(sufferCard)); sufferCard.Intent.text = ev.Retreated ? "물러났다" : "쓰러졌다"; }
+                                    if (ev.TargetDefeated) { StartCoroutine(Collapse(sufferCard)); }
                                 }
                             }
                             RefreshCards();
@@ -2209,7 +2211,7 @@ namespace BiRyeoDo.Game.UI
             card.Spirit.SetPct(card.Unit.Spirit / (float)InteractiveBattle.MaxSpirit);
             card.SpiritText.text = card.Unit.Spirit + " / " + InteractiveBattle.MaxSpirit;
             StartCoroutine(Shake(card.Root, ev.IsCrit ? 22f : 14f));
-            if (ev.TargetDefeated) { StartCoroutine(Collapse(card)); card.Intent.text = ev.Retreated ? "물러났다" : "쓰러졌다"; if (ev.Retreated) _log.text = ev.Message; }
+            if (ev.TargetDefeated) { StartCoroutine(Collapse(card)); if (ev.Retreated) _log.text = ev.Message; }
             RefreshParty();
             if (approach && finishMotion && _basicMotion.IsActive)
             {
@@ -2466,16 +2468,24 @@ namespace BiRyeoDo.Game.UI
         {
             SoundManager.Sfx("enemy_down");
             float d = 0.45f / Pace;
-            Vector2 origin = card.Root.anchoredPosition;
+            card.Intent.text = "";
+            card.Intent.gameObject.SetActive(false);
+            card.IntentBack.gameObject.SetActive(false);
+            card.Badge.text = "";
+            // Move only the figure; the cell HUD must never sink into the next row.
+            var figure = EnemyFigure(card);
+            if (figure == null) yield break;
+            var rect = figure.rectTransform;
+            Vector2 origin = rect.anchoredPosition;
             for (float e = 0f; e < d; e += Time.deltaTime)
             {
-                if (card.Root == null) yield break;
+                if (rect == null) yield break;
                 float k = e / d;
-                card.Root.anchoredPosition = origin + new Vector2(Mathf.Sin(k * 40f) * 10f * (1f - k), -40f * k);
+                rect.anchoredPosition = origin + new Vector2(Mathf.Sin(k * 40f) * 10f * (1f - k), -40f * k);
                 if (card.Art != null) SetAlpha(card.Art, Mathf.Lerp(1f, 0.25f, k));
                 yield return null;
             }
-            if (card.Root != null) card.Root.anchoredPosition = origin + new Vector2(0f, -40f);
+            if (rect != null) rect.anchoredPosition = origin + new Vector2(0f, -40f);
             if (card.Art != null) SetAlpha(card.Art, 0.25f);
         }
 
