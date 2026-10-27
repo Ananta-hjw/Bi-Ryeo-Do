@@ -5,7 +5,7 @@ namespace BiRyeoDo.Core
     /// <summary>Preserve cleared stages, earned stars and boss-clear records when the early story fight lists change.</summary>
     public static class StoryContentMigration
     {
-        public const int CurrentRevision = 3;
+        public const int CurrentRevision = 6;
         public static void Apply(SaveData save)
         {
             if (save == null || save.StoryContentRevision >= CurrentRevision) return;
@@ -69,6 +69,36 @@ namespace BiRyeoDo.Core
                 }
                 if (save.ProgressStage == 14 || save.ProgressStage == 15 || save.ProgressStage == 17
                     || save.ProgressStage == 18 || save.ProgressStage == 19) StageProgress.Clear(save);
+            }
+            if (save.StoryContentRevision < 4)
+            {
+                // Prior final-arc credit stays final; new deck/camp/separate-disguise fights remain unplayed.
+                int[] chapter14 = { 0, 1, 3, 4, 6, 7, 9, 10 };
+                foreach (var star in save.StageStars)
+                    if (star.Stage == 14 && star.Fight >= 0 && star.Fight < chapter14.Length)
+                        star.Fight = chapter14[star.Fight];
+                if (save.ProgressStage == 14) StageProgress.Clear(save);
+            }
+            if (save.StoryContentRevision < 5)
+            {
+                foreach (var star in save.StageStars)
+                {
+                    if (star.Stage == 15 && star.Fight == 3) star.Fight = 4;
+                    else if (star.Stage == 18 && star.Fight == 2) star.Fight = 3;
+                    else if (star.Stage == 19 && star.Fight >= 3) star.Fight += 2;
+                }
+                if (save.ProgressStage == 15 || save.ProgressStage == 18 || save.ProgressStage == 19)
+                    StageProgress.Clear(save);
+            }
+            if (save.StoryContentRevision < 6)
+            {
+                foreach (var star in save.StageStars)
+                {
+                    if (star.Stage == 22) star.Fight += 3;
+                    else if (star.Stage >= 23 && star.Stage <= 25 && star.Fight == 2) star.Fight = 3;
+                }
+                // Stage 21 keeps chapter completion credit despite the reordered nonlethal confrontation.
+                if (save.ProgressStage >= 21 && save.ProgressStage <= 25) StageProgress.Clear(save);
             }
             save.StoryContentRevision = CurrentRevision;
         }

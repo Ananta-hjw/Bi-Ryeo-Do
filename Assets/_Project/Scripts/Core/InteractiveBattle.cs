@@ -396,7 +396,7 @@ namespace BiRyeoDo.Core
                 Turn = Turn, ActorId = actor.Id, TargetId = t.Id, SkillId = skill.Id, Kind = EventKind.Attack,
                 Damage = dmg, IsCrit = crit, HitIndex = h, HitCount = hits, Harmony = _harmonyBoost, AllEnemies = skill.AllEnemies, Ranged = skill.Ranged
             };
-            if (t.IsAlive && t.RetreatHpPct > 0f && t.Hp <= t.Stats.MaxHp * t.RetreatHpPct)
+            if (t.RetreatHpPct > 0f && t.Hp <= t.Stats.MaxHp * t.RetreatHpPct)
             {
                 // Story boss: it escapes rather than dying. The fight ends as a win but nobody is slain.
                 t.Hp = 0;
@@ -489,7 +489,7 @@ namespace BiRyeoDo.Core
             unit.Hp = Math.Max(0, unit.Hp - dmg);
             var ev = new BattleEvent { Turn = Turn, ActorId = unit.Id, TargetId = unit.Id, SkillId = "status", Kind = EventKind.Status, Status = kind, Damage = dmg, Message = unit.Name + ": " + Statuses.Name(kind) + " -" + dmg };
             if (unit.Hp == 0 && unit.Team == Team.Player) TryRescue(unit, ev);
-            if (unit.IsAlive && unit.RetreatHpPct > 0f && unit.Hp <= unit.Stats.MaxHp * unit.RetreatHpPct)
+            if (unit.RetreatHpPct > 0f && unit.Hp <= unit.Stats.MaxHp * unit.RetreatHpPct)
             {
                 unit.Hp = 0;
                 ev.Retreated = true;

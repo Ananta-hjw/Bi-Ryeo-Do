@@ -28,14 +28,33 @@ namespace BiRyeoDo.Core
                 Trial = TrialRule.Deadline("신속 소탕", "8행동 안에 모두 쓰러뜨리세요.", 8), RewardDoo = 4050, ItemId = "okruju" },
             new QuestData { Id = "q_hoajang", Edge = 1.084f, Name = "호아장 수련생 단속", Brief = "소란을 피우는 수련생들을 짧은 시간에 제압해 달라는 의뢰.", RefStage = 6, Encounter = 1,
                 Trial = TrialRule.Deadline("신속 제압", "7행동 안에 모두 쓰러뜨리세요.", 7), RewardDoo = 5850 },
+            // Optional rehearsals: these do not invent a second canonical incident or re-stage a death.
+            new QuestData { Id = "q_baekhyang_exit", Name = "백향관 경계 복기", Brief = "지난 잠입의 경계 돌파를 안전한 모의 수련으로 되짚습니다. 원작의 독한녀와 실제로 싸운 사건이 아닙니다.", RefStage = 10, Encounter = 1,
+                Trial = TrialRule.Survive("탈출 동선", "적 8행동을 견디며 퇴로를 확보하세요.", 8), RewardDoo = 7200, ItemId = "bear_gall" },
+            new QuestData { Id = "q_promotion_guard", Name = "승급 비무 방어 수련", Brief = "단대풍전의 예고 공격을 복기합니다. 새 승급이나 검룡위를 지급하는 시험이 아닙니다.", RefStage = 11, Encounter = 3,
+                Trial = TrialRule.Survive("검세 읽기", "적 10행동을 견디세요.", 10), RewardDoo = 8100, ItemId = "okruju" },
+            new QuestData { Id = "q_river_cover", Name = "장강 표선 엄호 복기", Brief = "물속에서 동료를 보호했던 움직임을 모의 수련으로 재현합니다. 추가 암살 사건이 아닙니다.", RefStage = 14, Encounter = 1,
+                Trial = TrialRule.Survive("동료 엄호", "적 12행동을 견디세요.", 12), RewardDoo = 10800, ItemId = "ginseng" },
             new QuestData { Id = "q_sadae", Edge = 1.10f, Name = "철각비마대 척후 격퇴", Brief = "정찰병이 길을 열기 전에 막아야 한다.", RefStage = 15, Encounter = 1,
                 Trial = TrialRule.Deadline("척후 격퇴", "27행동 안에 모두 쓰러뜨리세요.", 27), RewardDoo = 12600, ItemId = "ginseng" },
+            new QuestData { Id = "q_market_screen", Name = "저잣거리 엄호 복기", Brief = "민간인과 자객을 가려내던 호위의 공방을 모의 수련으로 복기합니다. 새 청부 사건은 아닙니다.", RefStage = 16, Encounter = 0,
+                Trial = TrialRule.Survive("호위의 시야", "적 12행동을 견디며 동료를 엄호하세요.", 12), RewardDoo = 13500, ItemId = "okruju" },
             new QuestData { Id = "q_baegin", Edge = 1.10f, Name = "저잣거리 자객 소탕", Brief = "백인 자객들이 사람 많은 거리에 숨어 있다. 소란이 커지기 전에 끝내라.", RefStage = 16, Encounter = 0,
                 Trial = TrialRule.Deadline("속전속결", "37행동 안에 모두 쓰러뜨리세요.", 37), RewardDoo = 13500 },
+            new QuestData { Id = "q_rope_rehearsal", Name = "절제된 쌍검 수련", Brief = "효룡과의 수련에서 힘을 아끼던 공방을 복기합니다. 실제 줄의 절단·낙하를 판정하는 새 시험은 아닙니다.", RefStage = 18, Encounter = 1,
+                Trial = TrialRule.Survive("힘의 절제", "적 8행동을 견디세요.", 8), RewardDoo = 15000, ItemId = "bear_gall" },
+            new QuestData { Id = "q_illusion_breath", Name = "환상 뒤의 집중 수련", Brief = "환마동에서 현실의 감각을 되찾던 집중을 안전한 모의 수련으로 복기합니다. 다른 이의 상처를 공개하는 과제가 아닙니다.", RefStage = 19, Encounter = 4,
+                Trial = TrialRule.Survive("호흡과 감각", "적 10행동을 견디며 호흡을 유지하세요.", 10), RewardDoo = 16200, ItemId = "ginseng" },
             new QuestData { Id = "q_viper", Edge = 1.10f, Name = "동굴 독사 퇴치", Brief = "독사 떼가 몰려온다. 쓰러지지 않고 버텨낼 수 있겠는가.", RefStage = 20, Encounter = 0,
                 Trial = TrialRule.Survive("독사굴 버티기", "적의 공격을 18번 견디세요.", 18), RewardDoo = 17100, ItemId = "ginseng" },
-            new QuestData { Id = "q_hyeolma", Edge = 1.10f, Name = "혈마대 잔당 추격", Brief = "달아나는 혈마대 잔당이 합류하기 전에 따라잡아야 한다.", RefStage = 22, Encounter = 0,
+            new QuestData { Id = "q_witness_cover", Name = "생존자 호위 복기", Brief = "이송학을 지키던 윤준호의 공방을 모의 수련으로 복기합니다. 숲의 사건을 다시 벌이거나 새 자백을 얻는 의뢰가 아닙니다.", RefStage = 22, Encounter = 1,
+                Trial = TrialRule.Survive("생존자 엄호", "적 12행동을 견디며 동료를 보호하세요.", 12), RewardDoo = 18900, ItemId = "bear_gall" },
+            new QuestData { Id = "q_hyeolma", Edge = 1.10f, Name = "혈마대 잔당 추격", Brief = "달아나는 혈마대 잔당이 합류하기 전에 따라잡아야 한다.", RefStage = 22, Encounter = 3,
                 Trial = TrialRule.Deadline("추격전", "68행동 안에 모두 쓰러뜨리세요.", 68), RewardDoo = 18900 },
+            new QuestData { Id = "q_flute_cover", Name = "지사진 대응 수련", Brief = "부적만으로 막을 수 없던 지사진을 모의 수련으로 복기합니다. 이미 익힌 무공과 방어로 대응할 수 있습니다.", RefStage = 23, Encounter = 3,
+                Trial = TrialRule.Survive("진의 틈 읽기", "적 10행동을 견디세요.", 10), RewardDoo = 19800, ItemId = "ginseng" },
+            new QuestData { Id = "q_hwapyeong_exit", Name = "화평장 퇴로 복기", Brief = "구출한 동료의 퇴로를 지키던 공방을 모의 수련으로 재현합니다. 은설란이 다시 납치되는 사건이 아닙니다.", RefStage = 25, Encounter = 2,
+                Trial = TrialRule.Survive("퇴로의 엄호", "적 12행동을 견디세요.", 12), RewardDoo = 22500, ItemId = "okruju" },
             new QuestData { Id = "q_salgwi", Edge = 1.10f, Name = "살귀대 정찰조 제압", Brief = "정찰조가 신호를 보내기 전에 소리 없이 제압하라.", RefStage = 26, Encounter = 0,
                 Trial = TrialRule.Deadline("소리 없는 제압", "68행동 안에 모두 쓰러뜨리세요.", 68), RewardDoo = 24300, ItemId = "ilgeup_yeongdan" },
             new QuestData { Id = "q_salryong", Edge = 1.10f, Name = "살룡대 잔당 추적", Brief = "불탄 은장 근처에 복면 무리가 아직 남아 있다는 소문. 흩어지기 전에 따라잡아 달라는 의뢰.", RefStage = 31, Encounter = 0,
@@ -59,7 +78,7 @@ namespace BiRyeoDo.Core
         {
             var q = Find(questId);
             if (q == null) return enemy;
-            if (q.RefStage >= 15)
+            if (q.RefStage >= 14)
             {
                 bool survive = q.Trial != null && q.Trial.Kind == TrialKind.Survive;
                 enemy = StageStars.ScaleEnemy(enemy, q.RefStage, 0, survive);
@@ -103,7 +122,8 @@ namespace BiRyeoDo.Core
         /// <summary>Marks the quest done and hands out the item reward; returns a one-line note.</summary>
         public static string Complete(SaveData save, QuestData q)
         {
-            if (!save.DoneQuests.Contains(q.Id)) save.DoneQuests.Add(q.Id);
+            if (save.DoneQuests.Contains(q.Id)) return "";
+            save.DoneQuests.Add(q.Id);
             Daily.Record(save, DailyEvent.QuestDone);
             string note = "";
             foreach (var f in Factions.ForStage(q.RefStage))

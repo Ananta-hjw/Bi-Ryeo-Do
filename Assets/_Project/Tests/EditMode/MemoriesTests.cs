@@ -34,9 +34,9 @@ namespace BiRyeoDo.Tests
         public void MemoriesOpenWithStageProgress()
         {
             var save = new SaveData { ClearedStage = 11 };
-            Assert.AreEqual(0, Memories.UnseenCount(save));
+            Assert.AreEqual(1, Memories.UnseenCount(save));
             save.ClearedStage = 14;
-            Assert.AreEqual(3, Memories.UnseenCount(save));
+            Assert.AreEqual(7, Memories.UnseenCount(save));
             save.ClearedStage = EarlyGameContent.Stages.Max(s => s.Number);
             Assert.AreEqual(Memories.All.Length, Memories.UnseenCount(save));
         }

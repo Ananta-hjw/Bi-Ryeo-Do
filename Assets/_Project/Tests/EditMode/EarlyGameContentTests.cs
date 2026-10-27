@@ -25,7 +25,7 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void StagesReferenceExistingEnemiesAndEndWithABoss()
+        public void StagesReferenceExistingEnemiesAndKeepTheirAuthoredBossOrTrialEndpoints()
         {
             var numbers = new HashSet<int>();
             foreach (var s in EarlyGameContent.Stages)
@@ -46,7 +46,10 @@ namespace BiRyeoDo.Tests
                         Assert.IsNotNull(e, id);
                         if (e.IsBoss) hasBoss = true;
                     }
-                    Assert.AreEqual(i == s.Encounters.Length - 1, hasBoss, s.Name + " encounter " + i);
+                    bool expectedBoss = s.Number == 21 ? i >= 1 : s.Number == 24 ? i == 2 : i == s.Encounters.Length - 1;
+                    Assert.AreEqual(expectedBoss, hasBoss, s.Name + " encounter " + i);
+                    if (i == s.Encounters.Length - 1 && !hasBoss)
+                        Assert.AreEqual(TrialKind.Survive, s.TrialFor(i).Kind, s.Name);
                 }
             }
         }
@@ -111,7 +114,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void StageRewardsKeepPaceWithTheRecommendedLevels()
         {
-            // clearing every stage once, in order: each stage pays, the player arrives within a level of its (rounded) recommendation, and stage 30 ends one above its own
+            // Expanded chapters pay additional XP shares. A first-clear route stays above the recommendation and finishes two levels above the last stage.
             var save = new SaveData { Level = 1 };
             foreach (var s in EarlyGameContent.Stages)
             {
@@ -122,7 +125,7 @@ namespace BiRyeoDo.Tests
                 Assert.Greater(exp, 0, s.Name + " pays no exp");
                 Progression.AddExp(save, exp);
             }
-            Assert.AreEqual(EarlyGameContent.Stages.Last().RecommendedPlayerLevel + 1, save.Level);
+            Assert.AreEqual(EarlyGameContent.Stages.Last().RecommendedPlayerLevel + 2, save.Level);
         }
 
         [Test]
