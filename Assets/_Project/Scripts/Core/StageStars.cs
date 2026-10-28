@@ -290,6 +290,19 @@ namespace BiRyeoDo.Core
             return ScaleEnemy(enemy, stage, 0, survive).Scaled(HardHpFix(stage, difficulty), HardAtkFix(stage, difficulty), 1f, LevelAdd(stage, difficulty));
         }
 
+        /// <summary>
+        /// A story stage's enemy: <see cref="ScaleEnemy"/> for the difficulty, then dressed in <see cref="GearLoadout.ForEnemies"/> (real gear a little below
+        /// what a player is expected to wear). Beasts, traps and objects (<see cref="Realm.HasRealm"/>) wear nothing, nor do the enemies of a 시험 other than
+        /// 버티기 (제한 행동·생명줄·합심: their limits were set for the bare enemy); the solo 일반 stages 1-6 have no enemy gear.
+        /// </summary>
+        public static EnemyData StoryEnemy(EnemyData enemy, int stage, int difficulty, TrialRule trial = null)
+        {
+            bool survive = trial != null && trial.Kind == TrialKind.Survive;
+            var scaled = ScaleEnemy(enemy, stage, difficulty, survive);
+            var gear = GearLoadout.ForEnemies(stage, difficulty);
+            return gear == null || !Realm.HasRealm(enemy) || (trial != null && !survive) ? scaled : scaled.WithGear(gear);
+        }
+
         public static string TagFor(int difficulty) { return difficulty <= 0 ? "" : "[" + DifficultyNames[Math.Min(DifficultyCount - 1, difficulty)] + "] "; }
 
         public static int Count(int mask)

@@ -76,6 +76,44 @@ namespace BiRyeoDo.Tests.UI
         }
 
         [TestCase(1440f, 960f)]
+        [TestCase(2400f, 1080f)]
+        public void InfoWindowShowsWornGearSlotsThatOpenTheItemDetail(float width, float height)
+        {
+            Build(width, height);
+            var stage = EarlyGameContent.FindStage(30);
+            string id = stage.Encounters[0][0];
+            var enemy = stage.EnemyFor(id).CreateCombatant(id);
+            Assert.IsNotNull(enemy.Gear);
+            var gear = typeof(BattleScreen).GetMethod("EnemyGear", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new object[] { enemy });
+            MethodInfo show = null;
+            foreach (var m in typeof(BattleScreen).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic))
+                if (m.Name == "ShowTip" && m.GetParameters().Length == 4) show = m;
+            show.Invoke(_screen, new object[] { enemy.Name, "본문", null, gear });
+            Canvas.ForceUpdateCanvases();
+            var strip = (RectTransform)_canvas.transform.Find("Tip/Card/Gear");
+            Assert.IsTrue(strip.gameObject.activeInHierarchy);
+            Assert.AreEqual(6, strip.childCount);
+            var title = (RectTransform)_canvas.transform.Find("Tip/Card/Title");
+            for (int i = 0; i < 6; i++)
+            {
+                var slot = (RectTransform)strip.Find("Slot" + i);
+                Assert.That(slot.rect.width, Is.EqualTo(slot.rect.height).Within(.1f), "slots are square");
+                Assert.Less(slot.position.y, title.position.y);
+            }
+            var first = strip.Find("Slot0");
+            Assert.IsNotNull(first.Find("Icon"));
+            StringAssert.StartsWith("+", first.Find("Level").GetComponent<Text>().text);
+            first.GetComponent<Button>().onClick.Invoke();
+            var detail = _canvas.transform.Find("GearDetail");
+            Assert.IsTrue(detail.gameObject.activeSelf);
+            StringAssert.Contains("강화 +" + enemy.Gear[0].Level, detail.Find("Card/Info").GetComponent<Text>().text);
+            detail.Find("Card/Close").GetComponent<Button>().onClick.Invoke();
+            Assert.IsFalse(detail.gameObject.activeSelf);
+            show.Invoke(_screen, new object[] { "x", "y", null, null });
+            Assert.IsFalse(strip.gameObject.activeSelf, "a unit without gear hides the strip");
+        }
+
+        [TestCase(1440f, 960f)]
         [TestCase(1920f, 1080f)]
         [TestCase(2400f, 1080f)]
         public void BattleUsesWideFieldAndFloatingCircularCommands(float width, float height)

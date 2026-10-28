@@ -109,8 +109,9 @@ namespace BiRyeoDo.Core
         {
             if (st.IsTower) return ForTowerFloor(st.TowerFloor);
             int diff = st.IsQuest ? 0 : st.Difficulty;
-            double byLevel = HeroPowerAtCurve(st.RecommendedLevel + StageStars.LevelAdd(st.Number, diff)
-                + Progression.CurvePerPlayerLevel * StageStars.NormalEdgeLevels(st.Number));
+            double curve = st.RecommendedLevel + StageStars.LevelAdd(st.Number, diff) + Progression.CurvePerPlayerLevel * StageStars.NormalEdgeLevels(st.Number);
+            // story stages expect the gear their enemies are hardened for (quests keep the gearless figure)
+            double byLevel = st.IsQuest ? HeroPowerAtCurve(curve) : Realm.Power(ExpectedGear.Apply(Progression.HeroStatsAtCurve(curve), st.Number, diff));
             return diff == 0 ? byLevel : Math.Max(byLevel, VersusStrongest * StrongestEnemy(st));
         }
 

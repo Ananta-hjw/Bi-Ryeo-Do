@@ -65,6 +65,8 @@ namespace BiRyeoDo.Core
                 enemy = StageStars.ScaleEnemy(enemy, q.RefStage, 0, survive);
                 if (survive) enemy = enemy.Scaled(1.25f, 1f);
             }
+            var gear = Realm.HasRealm(enemy) ? GearLoadout.ForEnemies(q.RefStage, 0) : null;
+            if (gear != null) enemy = enemy.WithGear(gear);   // the gear of the reference stage's enemies (none before 일반 7)
             if (q.Edge <= 1f) return enemy;
             return enemy.Scaled((float)Math.Pow(q.Edge, 0.7), (float)Math.Pow(q.Edge, 0.3));
         }

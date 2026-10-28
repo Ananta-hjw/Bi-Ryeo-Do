@@ -16,16 +16,16 @@ namespace BiRyeoDo.Core
     /// </summary>
     public static class Gacha
     {
-        public const int TenPullCount = 10, FiftyPullCount = 50;
+        public const int TwentyPullCount = 20, FiftyPullCount = 50;
 
-        /// <summary>Fixed prices (they do not grow with progress): 1 pull 500, 10 pulls 4,500, 50 pulls 20,000 두.</summary>
-        public const long SingleCost = 500, TenCost = 4500, FiftyCost = 20000;
+        /// <summary>Fixed prices (they do not grow with progress): 1 pull 800, 20 pulls 15,000, 50 pulls 35,000 두.</summary>
+        public const long SingleCost = 800, TwentyCost = 15000, FiftyCost = 35000;
 
-        /// <summary>Price of a pull of the given size; other sizes cost 500 each.</summary>
+        /// <summary>Price of a pull of the given size; other sizes cost 800 each.</summary>
         public static long CostFor(int count)
         {
             if (count == FiftyPullCount) return FiftyCost;
-            if (count == TenPullCount) return TenCost;
+            if (count == TwentyPullCount) return TwentyCost;
             return SingleCost * count;
         }
 

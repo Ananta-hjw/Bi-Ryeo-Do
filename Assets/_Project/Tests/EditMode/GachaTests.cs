@@ -56,7 +56,7 @@ namespace BiRyeoDo.Tests
         {
             var save = new SaveData { ClearedStage = 4, Doo = 100000 };
             long cost = Gacha.CostFor(1);
-            Assert.AreEqual(500, cost);
+            Assert.AreEqual(800, cost);
             var r = Gacha.Pull(save, 1, new SeededRandom(1));
             Assert.AreEqual(1, r.Count);
             Assert.AreEqual(100000 - cost, save.Doo);
@@ -66,19 +66,19 @@ namespace BiRyeoDo.Tests
         [Test]
         public void PricesAreFixedAndBulkIsCheaper()
         {
-            Assert.AreEqual(500, Gacha.CostFor(1));
-            Assert.AreEqual(4500, Gacha.CostFor(10));
-            Assert.AreEqual(20000, Gacha.CostFor(50));
-            Assert.Less(Gacha.CostFor(10), Gacha.CostFor(1) * 10);
-            Assert.Less(Gacha.CostFor(50), Gacha.CostFor(10) * 5);
+            Assert.AreEqual(800, Gacha.CostFor(1));
+            Assert.AreEqual(15000, Gacha.CostFor(20));
+            Assert.AreEqual(35000, Gacha.CostFor(50));
+            Assert.Less(Gacha.CostFor(20), Gacha.CostFor(1) * 20);
+            Assert.Less(Gacha.CostFor(50) / 50.0, Gacha.CostFor(20) / 20.0);
             // progress does not change the price
-            Assert.AreEqual(Gacha.CostFor(10), Gacha.CostFor(10));
+            Assert.AreEqual(Gacha.CostFor(20), Gacha.CostFor(20));
         }
 
         [Test]
         public void BulkPullsChargeTheFixedPriceAndReturnEveryResult()
         {
-            foreach (int n in new[] { 10, 50 })
+            foreach (int n in new[] { 20, 50 })
             {
                 var save = new SaveData { ClearedStage = 30, Doo = 1000000 };
                 long before = save.Doo;

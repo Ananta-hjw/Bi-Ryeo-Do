@@ -192,7 +192,7 @@ namespace BiRyeoDo.Tests
             {
                 var scaledStage = stage.WithDifficulty(difficulty);
                 var actual = scaledStage.EnemyFor(id);
-                var shared = StageStars.ScaleEnemy(raw, number, difficulty);
+                var shared = StageStars.StoryEnemy(raw, number, difficulty);
                 Assert.AreEqual(shared.HpMul, actual.HpMul);
                 Assert.AreEqual(shared.AtkMul, actual.AtkMul);
                 Assert.AreEqual(shared.BuildStats().MaxHp, actual.BuildStats().MaxHp);

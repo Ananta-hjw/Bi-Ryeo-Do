@@ -66,6 +66,16 @@ namespace BiRyeoDo.Core
         public int SpeedAdd;
         public int Range = 1;       // how many tiles away its attacks reach
         public EnemyMove[] Moves;
+        /// <summary>Gear the enemy wears (story stages, <see cref="GearLoadout.ForEnemies"/>), applied like a player's; null = none.</summary>
+        public List<GearLevel> Gear;
+
+        /// <summary>A copy wearing <paramref name="gear"/>.</summary>
+        public EnemyData WithGear(List<GearLevel> gear)
+        {
+            var c = (EnemyData)MemberwiseClone();
+            c.Gear = gear;
+            return c;
+        }
 
         /// <summary>
         /// 보스 = <see cref="IsBoss"/>. 정예 = a fighter with a real script (3+ moves) who is not a trap, beast-less object or the like (<see cref="Realm.HasRealm"/>).
@@ -113,7 +123,7 @@ namespace BiRyeoDo.Core
             // the fight values are attack x AtkUnit and defense x DefUnit, exactly what they were before.
             double s = Math.Sqrt((double)attack / (defense * DisplayRatio));
             int shownAttack = Math.Max(1, (int)Math.Round(attack / s)), shownDefense = Math.Max(1, (int)Math.Round(defense * s));
-            return new CombatStats
+            var stats = new CombatStats
             {
                 MaxHp = (int)Math.Round(b.MaxHp * HpMul),
                 MaxQi = QiPool,
@@ -125,6 +135,8 @@ namespace BiRyeoDo.Core
                 CritRate = IsBoss ? 0.06f : 0.02f,
                 CritDamage = 1.5f
             };
+            if (Gear != null && Gear.Count > 0) stats = Inventory.ApplyGear(stats, GearLoadout.Ids(Gear), Gear);
+            return stats;
         }
 
         /// <summary>Shown attack / defense of every enemy (about what the protagonist's own curve gives: 1.4).</summary>
@@ -139,6 +151,7 @@ namespace BiRyeoDo.Core
             c.Range = Range;
             c.Moves = Moves != null && Moves.Length > 0 ? new List<EnemyMove>(Moves) : new List<EnemyMove> { EnemyMove.Plain };
             c.Phases = BossPhases.For(this);
+            c.Gear = Gear;
             return c;
         }
 
@@ -178,6 +191,12 @@ namespace BiRyeoDo.Core
         {
             var stats = StatsBeforeGear(level, bondLevel, trainLevel);
             if (gear != null) stats = Inventory.ApplyGear(stats, gear, gearLevels);
+            return CreateCombatant(level, trainLevel, stats);
+        }
+
+        /// <summary>The companion with the given stats before the 경지 bonus (gear already applied) and its arts at this level and training.</summary>
+        public Combatant CreateCombatant(int level, int trainLevel, CombatStats stats)
+        {
             var skills = new List<SkillSpec>();
             foreach (var a in EarlyGameContent.Arts)
             {
@@ -227,7 +246,7 @@ namespace BiRyeoDo.Core
         {
             var enemy = EarlyGameContent.FindEnemy(id);
             if (enemy == null || IsTower) return enemy;
-            return IsQuest ? Quests.Scale(QuestId, enemy) : StageStars.ScaleEnemy(enemy, Number, Difficulty, trial != null && trial.Kind == TrialKind.Survive);
+            return IsQuest ? Quests.Scale(QuestId, enemy) : StageStars.StoryEnemy(enemy, Number, Difficulty, trial);
         }
 
         public StageData WithDifficulty(int difficulty)

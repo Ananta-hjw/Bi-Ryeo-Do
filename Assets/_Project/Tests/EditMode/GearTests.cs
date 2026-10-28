@@ -211,7 +211,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void ADuplicatePullStaysInTheBagAsASpare()
         {
-            var save = new SaveData { Doo = 100000 };
+            var save = new SaveData { Doo = 400 * Gacha.SingleCost };
             var item = Gacha.Pool(ItemGrade.Normal).First(i => i.IsGear);
             Inventory.Add(save, item.Id, 1);
             long doo = save.Doo;

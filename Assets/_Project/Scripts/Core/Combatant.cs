@@ -44,6 +44,7 @@ namespace BiRyeoDo.Core
         public int MoveIndex;              // enemy script position
         public List<EnemyMove> Moves;      // enemy attack script, cycled in order
         public List<BossPhase> Phases;     // story bosses: 단계 전환 still to come, in order (see BossPhases)
+        public List<GearLevel> Gear;       // enemies: what they wear (shown in the info window); party members read their save instead
         public int PhaseIndex;             // how many phases have begun
         public EnemyMove AwakeningStrike;   // phase strike that runs once before the unchanged normal script
         internal readonly Dictionary<string, int> Cooldowns = new Dictionary<string, int>();

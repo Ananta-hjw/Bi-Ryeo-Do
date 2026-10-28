@@ -230,7 +230,10 @@ namespace BiRyeoDo.Core
         // ------------------------------------------------------------------ planned arrangement (combat forecasts, see FormationPlanner)
 
         /// <summary>The protagonist as he fights: equipped arts (four ordinary + one 비기), stats and 심법 perks.</summary>
-        public static Combatant BuildHero(SaveData save)
+        public static Combatant BuildHero(SaveData save) { return BuildHero(save, InnerArts.HeroStatsBeforeRealm(save)); }
+
+        /// <summary>The protagonist with the given stats before the 경지 bonus (the balance bot passes its expected gear here), and the save's arts and 심법 perks.</summary>
+        public static Combatant BuildHero(SaveData save, CombatStats statsBeforeRealm)
         {
             var skills = new List<SkillSpec>();
             foreach (var id in save.EquippedArts)
@@ -242,7 +245,7 @@ namespace BiRyeoDo.Core
                 foreach (var s in skills) if ((s.SpiritCost > 0) == ultimate) have++;
                 if (have < (ultimate ? Progression.MaxEquippedUltimates : Progression.MaxEquippedArts)) skills.Add(Mastery.Apply(save, art));
             }
-            var hero = new Combatant(HeroId, "비류연", Team.Player, InnerArts.HeroStatsBeforeRealm(save), skills, true);
+            var hero = new Combatant(HeroId, "비류연", Team.Player, statsBeforeRealm, skills, true);
             InnerArts.ApplyPerks(hero, save.EquippedInner, save.InnerLevels);
             return hero;
         }

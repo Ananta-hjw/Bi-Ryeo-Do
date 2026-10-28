@@ -1655,12 +1655,16 @@ namespace BiRyeoDo.Game.UI
             _tipBody = UiFactory.ScrollBody(UiFactory.Label("Body", card.transform, new Vector2(0.06f, .18f), new Vector2(0.94f, 0.74f), "", 28, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 36);
             _tipBody.lineSpacing = 1.25f;
             UiFactory.BackButton(card.transform, new Vector2(.30f, .02f), new Vector2(.70f, .16f), () => { _tipRoot.SetActive(false); StartCoroutine(GuardTaps(.3f)); });
+            BuildTipGear(card.transform);
             _tipRoot.SetActive(false);
         }
 
         private Image _tipIcon;
 
-        private void ShowTip(string title, string body, Sprite icon = null)
+        private void ShowTip(string title, string body, Sprite icon = null) { ShowTip(title, body, icon, null); }
+
+        /// <summary>The info card; <paramref name="gear"/> (six slots) adds the worn-gear strip under the title.</summary>
+        private void ShowTip(string title, string body, Sprite icon, List<WornPiece> gear)
         {
             if (_tipRoot == null) return;
             _tipTitle.text = title;
@@ -1670,7 +1674,8 @@ namespace BiRyeoDo.Game.UI
             _tipIcon.gameObject.SetActive(icon != null);
             // With a picture the title and the first lines make room for it on the right.
             _tipTitle.rectTransform.anchorMax = new Vector2(icon != null ? 0.74f : 0.95f, _tipTitle.rectTransform.anchorMax.y);
-            UiFactory.ReadingViewport(_tipBody).anchorMax = new Vector2(0.94f, icon != null ? 0.76f : 0.85f);
+            UiFactory.ReadingViewport(_tipBody).anchorMax = new Vector2(0.94f, gear != null ? 0.85f : icon != null ? 0.76f : 0.85f);
+            SetTipGear(gear);
             _tipRoot.transform.SetAsLastSibling();
             _tipRoot.SetActive(true);
             SoundManager.Sfx("ui_click");
@@ -1781,7 +1786,9 @@ namespace BiRyeoDo.Game.UI
             var moveStatus = new List<string>();
             foreach (var m in card.Unit.Moves ?? new List<EnemyMove>()) if (m.Inflict != StatusKind.None && !moveStatus.Contains(m.Name + "(" + Statuses.Name(m.Inflict) + ")")) moveStatus.Add(m.Name + "(" + Statuses.Name(m.Inflict) + ")");
             if (moveStatus.Count > 0) lines.Add("상태 이상을 거는 기술: " + string.Join(", ", moveStatus));
-            ShowTip(card.Data.Name, string.Join("\n\n", lines), BattleFigure(card.Data.ArtKey));
+            var worn = EnemyGear(card.Unit);
+            if (worn == null && Realm.HasRealm(card.Data)) lines.Add("장비 없음");
+            ShowTip(card.Data.Name, string.Join("\n\n", lines), BattleFigure(card.Data.ArtKey), worn);
         }
 
         /// <summary>"걸린 상태 이상" with each one's rule and turns left ("" when none).</summary>
@@ -1821,7 +1828,7 @@ namespace BiRyeoDo.Game.UI
                 var pending = CompanionGrowth.PendingArtLines(companionData, CompanionGrowth.LevelOf(GameManager.Instance.Save, unit.Id));
                 if (pending.Count > 0) lines.Add("앞으로 배울 무공: " + string.Join(", ", pending));
             }
-            ShowTip(unit.Name, string.Join("\n\n", lines), BattleFigure(hero ? "player" : unit.Id));
+            ShowTip(unit.Name, string.Join("\n\n", lines), BattleFigure(hero ? "player" : unit.Id), AllyGear(unit));
         }
 
         /// <summary>Long press on a party member's panel: every skill they have.</summary>

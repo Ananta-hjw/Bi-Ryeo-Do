@@ -960,16 +960,17 @@ namespace BiRyeoDo.Tests.UI
         [TestCase(1440f)]
         [TestCase(1920f)]
         [TestCase(2400f)]
-        public void GachaResultsShowFivePerRowForSingleTenAndFiftyWithoutChangingTheSave(float width)
+        public void GachaResultsShowTwentyFivePerRowAndTheFullListOnDemandWithoutChangingTheSave(float width)
         {
             Root.sizeDelta = new Vector2(width, 960f);
             var screen = _canvas.AddComponent<GachaScreen>(); screen.Build(Root);
             long doo = _save.Doo;
             int pulls = _save.GachaPulls;
             var content = _canvas.transform.Find("Viewport/Content");
-            foreach (int count in new[] { 1, 10, 50, 1 })
+            foreach (int full in new[] { 1, 20, 50, 1 })
             {
-                var results = Enumerable.Range(0, count).Select(i => new PullResult
+                int count = Math.Min(full, GachaScreen.ShownResults);
+                var results = Enumerable.Range(0, full).Select(i => new PullResult
                 {
                     Item = Gacha.Pool((ItemGrade)(i % Grades.Rates.Length))[0], Duplicate = i % 2 == 0
                 }).ToList();
@@ -1004,6 +1005,16 @@ namespace BiRyeoDo.Tests.UI
                     Canvas.ForceUpdateCanvases(); layout.Reflow(true);
                     Assert.That(((RectTransform)content).sizeDelta.y, Is.EqualTo(height).Within(.5f));
                 }
+                // 「전체 보기」 lists every pulled item, not just the twenty on the tab.
+                var all = Root.Find("AllResults").GetComponent<Button>();
+                Assert.IsTrue(all.gameObject.activeSelf);
+                StringAssert.Contains("(" + full + ")", all.GetComponentInChildren<Text>().text);
+                all.onClick.Invoke();
+                var page = Root.Find("GachaPool/AllResultsCard");
+                Assert.IsTrue(page.gameObject.activeInHierarchy);
+                Assert.AreEqual(full, page.GetComponentsInChildren<RectTransform>().Count(rt => rt.name.StartsWith("Result")));
+                page.Find("Close").GetComponent<Button>().onClick.Invoke();
+                Assert.IsFalse(page.gameObject.activeInHierarchy);
             }
             Assert.AreEqual(doo, _save.Doo); Assert.AreEqual(pulls, _save.GachaPulls);
         }

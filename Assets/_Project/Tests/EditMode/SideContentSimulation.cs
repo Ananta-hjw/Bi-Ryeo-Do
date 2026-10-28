@@ -20,6 +20,7 @@ namespace BiRyeoDo.Tests
         {
             var save = BalanceSimulation.Starter(story, level);
             if (!trainingGear) return save;
+            BalanceSimulation.UseRealGear(save);
             var owners = new[] { Inventory.Hero }.Concat(EarlyGameContent.SelectCompanionsFor(story, save).Select(c => c.Id)).ToArray();
             foreach (string id in Gear.Sets[0].Items) Inventory.Add(save, id, owners.Length);
             foreach (string owner in owners)

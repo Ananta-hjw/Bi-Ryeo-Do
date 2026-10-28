@@ -117,7 +117,9 @@ namespace BiRyeoDo.Core
                 AtkMul = AtkMulFor(floor, t.IsBoss),
                 DefMul = 1f, SpeedAdd = 0, Moves = t.IsBoss ? BossPatterns[(floor / BossEvery) % BossPatterns.Length] : NormalMoves
             };
-            return StageStars.ScaleEnemy(enemy, ReferenceStage(floor), 0).Scaled((float)hpFactor, 1f);
+            var scaled = StageStars.ScaleEnemy(enemy, ReferenceStage(floor), 0).Scaled((float)hpFactor, 1f);
+            var gear = Realm.HasRealm(t) ? GearLoadout.ForEnemiesAt(RecommendedPlayerLevel(floor)) : null;   // dressed for the floor's player level
+            return gear == null ? scaled : scaled.WithGear(gear);
         }
 
         /// <summary>The (deterministic) enemies of a floor, registered so battle code can look them up by id.</summary>

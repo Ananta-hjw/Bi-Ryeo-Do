@@ -44,19 +44,19 @@ namespace BiRyeoDo.Tests
             for (int n = 0; n < 4; n++) Assert.GreaterOrEqual(wins[n], (int)(reached[n] * 0.9));
         }
 
-        [TestCase(24, 137, 215)]
-        [TestCase(25, 123, 193)]
-        [TestCase(26, 130, 246)]   // shorter since 일반 8+ enemy attack/defense x0.8
-        [TestCase(27, 85, 131)]
-        [TestCase(28, 124, 194)]
-        [TestCase(29, 160, 256)]
-        [TestCase(30, 165, 259)]
-        [TestCase(31, 96, 150)]
-        [TestCase(32, 63, 99)]
-        [TestCase(33, 136, 214)]
-        [TestCase(34, 110, 173)]
-        [TestCase(35, 127, 198)]
-        [TestCase(36, 70, 110)]
+        [TestCase(24, 82, 130)]   // re-measured with the bot and the story enemies both in gear (GearLoadout): 0.8 - 1.25 x the measured length
+        [TestCase(25, 85, 134)]
+        [TestCase(26, 83, 130)]
+        [TestCase(27, 89, 140)]
+        [TestCase(28, 78, 124)]
+        [TestCase(29, 124, 195)]
+        [TestCase(30, 102, 160)]
+        [TestCase(31, 60, 96)]
+        [TestCase(32, 57, 91)]
+        [TestCase(33, 108, 171)]
+        [TestCase(34, 81, 128)]
+        [TestCase(35, 108, 171)]
+        [TestCase(36, 61, 96)]
         public void LateNormalStagesKeepPressureWithoutLongHpSlogs(int number, int minActions, int maxActions)   // ranges re-measured after the 일반 상향 (HP and attack both raised: longer fights are fine, slogs are not)
         {
             var stage = EarlyGameContent.FindStage(number);
@@ -139,7 +139,8 @@ namespace BiRyeoDo.Tests
             Assert.GreaterOrEqual(runs.Count(r => r.Won), 17, "the bot at the target level should win about as often as on 일반");
             double ratio = runs.Where(r => r.Won).Average(r => r.Actions) / baseRuns.Where(r => r.Won).Average(r => r.Actions);
             TestContext.Out.WriteLine(number + "/" + difficulty + ": lv" + level + ", length x" + ratio.ToString("F2"));
-            Assert.That(ratio, Is.InRange(0.8, 1.6), "fights must not become slogs");
+            // Both sides wear gear now (GearLoadout); the harder difficulties' gear differs more from 일반 at the two ends, so the band is wider.
+            Assert.That(ratio, Is.InRange(0.5, 2.0), "fights must not become slogs");
         }
 
         [Test]
@@ -148,12 +149,19 @@ namespace BiRyeoDo.Tests
             var stage = EarlyGameContent.FindStage(26);
             var id = stage.Encounters[0][0];
             var raw = EarlyGameContent.FindEnemy(id);
-            Assert.AreEqual(raw.HpMul * StageStars.NormalHpBoost(26) * 0.85f * StageStars.NormalHpTrim(26), stage.EnemyFor(id).HpMul, 0.001f);   // 일반 only: boosted, then the late-stage shortening and the HP trim
+            var normal = StageStars.ScaleEnemy(raw, 26, 0);
+            Assert.AreEqual(raw.HpMul * StageStars.NormalHpBoost(26) * 0.85f * StageStars.NormalHpTrim(26), normal.HpMul, 0.001f);   // 일반 only: boosted, then the late-stage shortening and the HP trim
+            var story = stage.EnemyFor(id);
+            Assert.AreEqual(normal.HpMul, story.HpMul, 0.001f);   // story stages: the same multipliers, plus the stage's enemy gear
+            Assert.AreSame(GearLoadout.ForEnemies(26, 0), story.Gear);
+            Assert.AreEqual(Inventory.ApplyGear(normal.BuildStatsBeforeRealm(), GearLoadout.Ids(story.Gear), story.Gear).MaxHp, story.BuildStatsBeforeRealm().MaxHp);
             var survivalEnemy = EarlyGameContent.FindEnemy("geomhu_ioksang");
-            Assert.AreSame(survivalEnemy, EarlyGameContent.FindStage(29).EnemyFor(survivalEnemy.Id));
+            Assert.AreSame(survivalEnemy, StageStars.ScaleEnemy(survivalEnemy, 29, 0));
+            Assert.AreEqual(survivalEnemy.HpMul, EarlyGameContent.FindStage(29).EnemyFor(survivalEnemy.Id).HpMul, 0.001f);   // a 버티기-only enemy keeps its multipliers
             var hard = stage.WithDifficulty(1).EnemyFor(id);
-            Assert.AreEqual(stage.EnemyFor(id).HpMul * StageStars.HardHpFix(26, 1), hard.HpMul, 0.001f);   // 어려움 = the 일반 enemy of the stage, raised by level, with the fight-length fix
-            Assert.AreEqual(stage.EnemyFor(id).Level + StageStars.LevelAdd(26, 1), hard.Level);
+            Assert.AreEqual(normal.HpMul * StageStars.HardHpFix(26, 1), hard.HpMul, 0.001f);   // 어려움 = the 일반 enemy of the stage, raised by level, with the fight-length fix and its own gear
+            Assert.AreSame(GearLoadout.ForEnemies(26, 1), hard.Gear);
+            Assert.AreEqual(normal.Level + StageStars.LevelAdd(26, 1), hard.Level);
             var quest = Quests.ToStage(Quests.Find("q_salgwi"));
             id = quest.Encounters[0][0];
             var q = Quests.Find(quest.QuestId);

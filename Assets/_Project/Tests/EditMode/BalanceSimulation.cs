@@ -28,9 +28,19 @@ namespace BiRyeoDo.Tests
         /// <summary>The level the bot plays a stage at: the recommended level plus <see cref="EdgeLevels"/>.</summary>
         public static int BotLevel(StageData stage) { return stage.RecommendedPlayerLevel + EdgeLevels(stage.Number); }
 
+        // Saves made by Starter play story stages in GearLoadout.ForParty instead of their real (start-kit) gear.
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<SaveData, object> Prepared = new System.Runtime.CompilerServices.ConditionalWeakTable<SaveData, object>();
+
+        /// <summary>True when <see cref="Party"/> dresses this save's party in <see cref="GearLoadout.ForParty"/> on story stages.</summary>
+        public static bool WearsExpectedGear(SaveData save) { return Prepared.TryGetValue(save, out _); }
+
+        /// <summary>From now on this save fights in the gear it really wears (a test that dresses it itself).</summary>
+        public static void UseRealGear(SaveData save) { Prepared.Remove(save); }
+
         public static SaveData Starter(int stage, int level)
         {
             var save = new SaveData { Level = level, ClearedStage = stage - 1, SwordRank = stage >= Promotion.GateStage ? Promotion.GateRank : 1 };
+            Prepared.Add(save, null);
             Inventory.EnsureStartKit(save);
             foreach (var skill in SimpleBot.BestLoadout(stage))
             {
@@ -40,13 +50,32 @@ namespace BiRyeoDo.Tests
             return save;
         }
 
+        /// <summary>
+        /// The party for a stage. A <see cref="Starter"/> save wears <see cref="GearLoadout.ForParty"/> (real gear replacing its start kit) from 일반 7 on:
+        /// a story stage's, a quest's reference stage's, or the tower floor's player level (<see cref="GearLoadout.ForPartyAt"/>).
+        /// Any other save (or one handed to <see cref="UseRealGear"/>) fights in the gear it really wears.
+        /// </summary>
         public static List<Combatant> Party(SaveData save, StageData stage)
         {
-            var party = new List<Combatant> { Formation.BuildHero(save) };
+            var gear = !WearsExpectedGear(save) || stage.Number < 1 ? null
+                : stage.IsTower ? GearLoadout.ForPartyAt(Tower.RecommendedPlayerLevel(stage.TowerFloor))
+                : GearLoadout.ForParty(stage.Number, stage.IsQuest ? 0 : stage.Difficulty);   // a quest is fought at its reference stage
+            var ids = gear == null ? null : new List<string>(GearLoadout.Ids(gear));
+            var party = new List<Combatant> { gear != null ? Formation.BuildHero(save, Inventory.ApplyGear(BareHeroStats(save), ids, gear)) : Formation.BuildHero(save) };
             foreach (var c in EarlyGameContent.SelectCompanionsFor(Roster.PartyStage(stage, save), save))
-                party.Add(CompanionGrowth.Create(save, c));
+            {
+                if (gear == null) { party.Add(CompanionGrowth.Create(save, c)); continue; }
+                int level = CompanionGrowth.LevelOf(save, c.Id), train = CompanionTraining.LevelOf(save, c.Id);
+                party.Add(c.CreateCombatant(level, train, Inventory.ApplyGear(c.StatsBeforeGear(level, Bonds.Level(save, c.Id), train), ids, gear)));
+            }
             Formation.Apply(party, save, stage);
             return party;
+        }
+
+        /// <summary>The protagonist's stats before the 경지 bonus with nothing worn (심법 and 검룡위 still count).</summary>
+        public static CombatStats BareHeroStats(SaveData save)
+        {
+            return InnerArts.Apply(Promotion.ApplyRankBonus(Progression.HeroStatsFor(save.Level), Promotion.EffectiveRank(save)), save.EquippedInner, save.InnerLevels);
         }
 
         public static Result Play(StageData stage, SaveData save, int seed, bool progression = false)

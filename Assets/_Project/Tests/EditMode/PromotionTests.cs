@@ -109,11 +109,11 @@ namespace BiRyeoDo.Tests
             Assert.Less(NotLostRate(2, 1, 20), 0.5, "bare bot, normal rank 2");
             Assert.GreaterOrEqual(NotLostRate(2, 1, 20, 1.5f), 0.8, "starter build, normal rank 2");
             Assert.Less(NotLostRate(5, 1, 20, 1.5f), 0.5, "starter build, normal rank 5");
-            // ...a character with about 2.4x the bot's power (decent gear, 심법, rank bonus) handles the middle ranks...
-            Assert.GreaterOrEqual(NotLostRate(6, 1, 20, 2.4f), 0.8, "built, normal rank 6");
+            // ...a character with about 3x the bot's power (decent gear, 심법, rank bonus; duelists wear gear too) handles the middle ranks...
+            Assert.GreaterOrEqual(NotLostRate(6, 1, 20, 3f), 0.8, "built, normal rank 6");
             // ...and the top still needs a fully built one.
-            Assert.Less(NotLostRate(10, 1, 20, 2.4f), 0.5, "built, normal rank 10");
-            Assert.Less(NotLostRate(10, 2, 20, 2.4f), 0.5, "built, strong rank 10");
+            Assert.Less(NotLostRate(10, 1, 20, 3f), 0.5, "built, normal rank 10");
+            Assert.Less(NotLostRate(10, 2, 20, 3f), 0.5, "built, strong rank 10");
         }
 
         [Test]
