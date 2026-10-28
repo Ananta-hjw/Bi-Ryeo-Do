@@ -313,6 +313,7 @@ namespace BiRyeoDo.Game.UI
             _onClose = onClose;
             CancelBasicMotion();
             StopAllCoroutines();
+            ClearUltimateCutIn();
             HideFightRewards();
             ApplySavedSpeed();
             StartCoroutine(RunStage(stage));
@@ -664,6 +665,7 @@ namespace BiRyeoDo.Game.UI
             _onClose = onClose;
             CancelBasicMotion();
             StopAllCoroutines();
+            ClearUltimateCutIn();
             HideFightRewards();
             StartCoroutine(RunStoryOnly(title, lines));
         }
@@ -693,6 +695,7 @@ namespace BiRyeoDo.Game.UI
             _onClose = onClose;
             CancelBasicMotion();
             StopAllCoroutines();
+            ClearUltimateCutIn();
             HideFightRewards();
             StartCoroutine(RunPromotion(offer));
         }
@@ -2034,7 +2037,7 @@ namespace BiRyeoDo.Game.UI
                         if (ev.Joint && _cutInKey != "joint")
                         {
                             _cutInKey = "joint";
-                            yield return SkillCutIn(_jointName, true);
+                            yield return SkillCutIn(_jointName, true, "player");
                         }
                         else if (byParty && ev.HitIndex == 0 && !ev.Joint)
                         {
@@ -2043,7 +2046,7 @@ namespace BiRyeoDo.Game.UI
                             {
                                 _cutInKey = key;
                                 var spec = actorPanel.Unit.Skills.Find(x => x.Id == ev.SkillId);
-                                if (spec != null && spec.Id != "basic") yield return SkillCutIn(spec.Name, spec.SpiritCost >= 100);
+                                if (spec != null && spec.Id != "basic") yield return SkillCutIn(spec.Name, spec.SpiritCost >= 100, actorPanel.Unit.Id);
                             }
                         }
                         bool finishMotion = EndsAttackSequence(events, eventIndex);
@@ -2197,7 +2200,9 @@ namespace BiRyeoDo.Game.UI
                 if (_fled) { CancelBasicMotion(); yield break; }
             }
             else if (!approach && !ev.Ranged && striker != null && ev.HitIndex == 0) StartCoroutine(Lunge(striker.Root, new Vector2(130f, 0f)));
-            SlashFx(card.Center, ev.HitIndex, ev.IsCrit, striker != null && striker.Unit.Skills.Find(x => x.Id == ev.SkillId) is SkillSpec sp && sp.SpiritCost >= 100);
+            bool ultimateHit = striker != null && striker.Unit.Skills.Find(x => x.Id == ev.SkillId) is SkillSpec sp && sp.SpiritCost >= 100;
+            SlashFx(card.Center, ev.HitIndex, ev.IsCrit, ultimateHit);
+            if (ultimateHit) UltimateImpact(card.Center);
             if (ev.IsCrit)
             {
                 StartCoroutine(Punch(1.06f));
@@ -2486,17 +2491,16 @@ namespace BiRyeoDo.Game.UI
             if (card.Art != null) SetAlpha(card.Art, 0.25f);
         }
 
-        /// <summary>Skill-name flash before the strike; 비기 get a full-width gold cut-in with a dark flash.</summary>
-        private IEnumerator SkillCutIn(string skillName, bool ultimate)
+        /// <summary>Skill-name flash before the strike; 비기 (and joint attacks) get the full-screen `UltimateCutIn`.</summary>
+        private IEnumerator SkillCutIn(string skillName, bool ultimate, string artKey = null)
         {
-            SoundManager.Sfx(ultimate ? "ultimate" : "skill");
-            if (ultimate) SoundManager.Haptic(120);
-            _banner.fontSize = ultimate ? 96 : 72;
-            _banner.color = ultimate ? UiFactory.Gold : UiFactory.PaperText;
-            _banner.text = ultimate ? "\u300e " + skillName + " \u300f" : skillName;
-            _bannerBg.color = new Color(0f, 0f, 0f, ultimate ? 0.85f : 0.55f);
-            if (ultimate) StartCoroutine(Punch(1.12f));
-            yield return new WaitForSeconds(Wait(ultimate ? 0.75f : 0.35f));
+            if (ultimate) { yield return UltimateCutIn(skillName, artKey); yield break; }
+            SoundManager.Sfx("skill");
+            _banner.fontSize = 72;
+            _banner.color = UiFactory.PaperText;
+            _banner.text = skillName;
+            _bannerBg.color = new Color(0f, 0f, 0f, 0.55f);
+            yield return new WaitForSeconds(Wait(0.35f));
             _banner.text = "";
             _banner.fontSize = 64;
             _banner.color = UiFactory.Gold;
