@@ -62,10 +62,11 @@ namespace BiRyeoDo.Tests
         public void MilestonesChangeTheSkills()
         {
             var c = EarlyGameContent.FindCompanion("hyo_ryong");
-            var baseSkills = c.CreateCombatant(30).Skills;
-            var l3 = c.CreateCombatant(30, 0, 3).Skills;
-            var l6 = c.CreateCombatant(30, 0, 6).Skills;
-            var l10 = c.CreateCombatant(30, 0, 10).Skills;
+            // level 16: before 효룡's later arts, so 쌍검 연격 is still the main art
+            var baseSkills = c.CreateCombatant(16).Skills;
+            var l3 = c.CreateCombatant(16, 0, 3).Skills;
+            var l6 = c.CreateCombatant(16, 0, 6).Skills;
+            var l10 = c.CreateCombatant(16, 0, 10).Skills;
             var twin = baseSkills.First(s => s.Id == "xr_twin");
             Assert.AreEqual(twin.Power * 1.1f, l3.First(s => s.Id == "xr_twin").Power, 0.001f);
             Assert.Less(l6.First(s => s.Id == "xr_twin").QiCost, twin.QiCost);       // main art cheaper
@@ -98,6 +99,18 @@ namespace BiRyeoDo.Tests
             var before = int.Parse(StatusSheet.Ally(c, 30, 0, 0)[0].Value.Replace(",", ""));
             var after = int.Parse(StatusSheet.Ally(c, 30, 0, 10)[0].Value.Replace(",", ""));
             Assert.Greater(after, before);
+        }
+    
+        [Test]
+        public void AnArtThatReplacesTheAwakenedOneKeepsTheAwakening()
+        {
+            var c = EarlyGameContent.FindCompanion("hyo_ryong");
+            var plain = c.CreateCombatant(40).Skills;
+            var awakened = c.CreateCombatant(40, 0, 10).Skills;
+            Assert.IsFalse(plain.Any(s => s.Id == "xr_twin"), "무쌍십자검 took over 쌍검 연격");
+            Assert.AreEqual(plain.First(s => s.Id == "xr_sipja").Hits + 1, awakened.First(s => s.Id == "xr_sipja").Hits);
+            Assert.IsTrue(CompanionTraining.Succeeds("xr_sipja", "xr_twin"));
+            Assert.IsFalse(CompanionTraining.Succeeds("xr_bijo", "xr_twin"));
         }
     }
 }

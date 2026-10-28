@@ -29,12 +29,13 @@ public class UnlockLadderTests
     [Test]
     public void LearningStepsAreSpreadOutAndOrderedByPower()
     {
-        // the ladder: 일반 stage N = N, 어려움 stage N = 30 + N
+        // the ladder: 일반 stage N = N, 어려움 stage N = 36 + N, 극악 stage N = 72 + N
         var steps = EarlyGameContent.Arts.Where(a => a.OwnerId == null && a.LearnCost > 0)
-            .Select(a => a.UnlockDiff * 30 + a.UnlockStage).OrderBy(x => x).ToList();
+            .Select(a => a.UnlockDiff * 36 + a.UnlockStage).OrderBy(x => x).ToList();
         Assert.GreaterOrEqual(steps.Distinct().Count(), steps.Count - 1);   // nearly every art has its own step
-        Assert.AreEqual(60, steps.Last());
+        Assert.AreEqual(108, steps.Last());   // 쌍룡귀천: 극악 36
         for (int i = 1; i < steps.Count; i++) Assert.LessOrEqual(steps[i] - steps[i - 1], 12, "gap before step " + steps[i]);
+        // 심법 still end on 어려움 30 (here 어려움 stage N = 30 + N)
         var inner = InnerArts.All.Select(a => a.UnlockDiff * 30 + a.UnlockStage).OrderBy(x => x).ToList();
         Assert.AreEqual(60, inner.Last());
         for (int i = 1; i < inner.Count; i++) Assert.LessOrEqual(inner[i] - inner[i - 1], 12);

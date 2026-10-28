@@ -59,10 +59,20 @@ namespace BiRyeoDo.Tests
             {
                 CollectionAssert.Contains(stages, c.JoinStage, c.Id);
                 var arts = EarlyGameContent.Arts.Where(a => a.OwnerId == c.Id).ToList();
-                Assert.IsTrue(arts.Count >= 2 && arts.Count <= Progression.MaxEquippedArts, c.Id);
-                var unit = c.CreateCombatant(50);   // high enough for every level-gated art
+                Assert.GreaterOrEqual(arts.Count, 2, c.Id);
+                var unit = c.CreateCombatant(100);   // high enough for every level-gated art
                 Assert.AreEqual(Team.Player, unit.Team);
-                Assert.IsTrue(unit.Skills.Count > arts.Count, "basic attack plus arts");
+                var known = unit.Skills.Where(s => s.Id != "basic").ToList();
+                // at most five ordinary arts (four buttons + the 합공 button a companion never uses) and one 기세 100 필살기
+                Assert.LessOrEqual(known.Count(s => s.SpiritCost == 0), Progression.MaxEquippedArts + 1, c.Id);
+                Assert.AreEqual(1, known.Count(s => s.SpiritCost > 0), c.Id);
+                // a replaced art is gone, and every art names a real older art of the same companion
+                foreach (var a in arts.Where(a => a.Replaces != null))
+                {
+                    Assert.IsTrue(arts.Any(o => o.Id == a.Replaces && o.OwnerLevel < a.OwnerLevel), a.Id);
+                    Assert.IsFalse(known.Any(s => s.Id == a.Replaces), a.Replaces);
+                }
+                Assert.IsTrue(unit.Skills.Any(s => s.Id == "basic"), "basic attack plus arts");
             }
         }
 
@@ -93,7 +103,10 @@ namespace BiRyeoDo.Tests
         [Test]
         public void ProtagonistArtsExcludeCompanionArts()
         {
-            Assert.IsTrue(EarlyGameContent.Arts.Where(a => a.OwnerId == null).All(a => a.Effect != SkillEffect.Stun && a.Effect != SkillEffect.HealAlly));
+            // Healing stays with 윤준호; binding arts (점혈-like Stun) appear for the protagonist only from the 극악 ladder (26권 이후).
+            var hero = EarlyGameContent.Arts.Where(a => a.OwnerId == null).ToList();
+            Assert.IsTrue(hero.All(a => a.Effect != SkillEffect.HealAlly && a.Effect != SkillEffect.Cleanse));
+            Assert.IsTrue(hero.Where(a => a.Effect == SkillEffect.Stun).All(a => a.UnlockDiff == 2));
         }
 
         [Test]

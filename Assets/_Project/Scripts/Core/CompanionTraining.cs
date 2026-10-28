@@ -102,6 +102,19 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>Applies the level 3 / 6 / 10 changes to a companion's skills (their ids are the art ids).</summary>
+        /// <summary>True when <paramref name="artId"/> took over <paramref name="olderId"/> through a chain of <see cref="ArtData.Replaces"/>.</summary>
+        public static bool Succeeds(string artId, string olderId)
+        {
+            for (int guard = 0; guard < 8; guard++)
+            {
+                var art = EarlyGameContent.FindArt(artId);
+                if (art == null || string.IsNullOrEmpty(art.Replaces)) return false;
+                if (art.Replaces == olderId) return true;
+                artId = art.Replaces;
+            }
+            return false;
+        }
+
         public static void ApplyToSkills(string companionId, List<SkillSpec> skills, int level)
         {
             if (level >= ArtBoostLevel)
@@ -116,7 +129,7 @@ namespace BiRyeoDo.Core
                 float best = 0f;
                 foreach (var s in skills)
                 {
-                    if (s.Effect != SkillEffect.None || s.Id == "basic") continue;
+                    if (s.Effect != SkillEffect.None || s.Id == "basic" || s.SpiritCost > 0) continue;
                     float value = s.Power * Math.Max(1, s.Hits);
                     if (value > best) { best = value; main = s; }
                 }
@@ -131,7 +144,7 @@ namespace BiRyeoDo.Core
                 foreach (var a in list)
                     foreach (var s in skills)
                     {
-                        if (s.Id != a.ArtId) continue;
+                        if (s.Id != a.ArtId && !Succeeds(s.Id, a.ArtId)) continue;   // an art that replaced the awakened one keeps its 각성
                         s.Power *= a.PowerMul;
                         s.Hits = Math.Max(1, s.Hits) + a.HitsAdd;
                         s.Cooldown = Math.Max(0, s.Cooldown + a.CooldownAdd);

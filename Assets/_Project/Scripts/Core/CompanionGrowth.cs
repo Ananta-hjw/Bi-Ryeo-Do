@@ -61,8 +61,15 @@ namespace BiRyeoDo.Core
         {
             var lines = new List<string>();
             foreach (var a in EarlyGameContent.Arts)
-                if (a.OwnerId == c.Id && a.OwnerLevel > before && a.OwnerLevel <= after) lines.Add(c.Name + "  " + a.Name + " 습득!");
+                if (a.OwnerId == c.Id && a.OwnerLevel > before && a.OwnerLevel <= after) lines.Add(c.Name + "  " + a.Name + " 습득!" + ReplaceNote(a));
             return lines;
+        }
+
+        /// <summary>" · 백혼검뢰천검식 대신" when the art takes over an older one of the same line.</summary>
+        public static string ReplaceNote(ArtData art)
+        {
+            var old = art == null || string.IsNullOrEmpty(art.Replaces) ? null : EarlyGameContent.FindArt(art.Replaces);
+            return old == null ? "" : " · " + old.Name + " 대신";
         }
 
         /// <summary>The arts a companion will still learn at a higher level, as "자하청심결 (Lv.15)".</summary>
@@ -70,7 +77,7 @@ namespace BiRyeoDo.Core
         {
             var lines = new List<string>();
             foreach (var a in EarlyGameContent.Arts)
-                if (a.OwnerId == c.Id && a.OwnerLevel > level) lines.Add(a.Name + " (Lv." + a.OwnerLevel + ")");
+                if (a.OwnerId == c.Id && a.OwnerLevel > level) lines.Add(a.Name + " (Lv." + a.OwnerLevel + ")" + ReplaceNote(a));
             return lines;
         }
 

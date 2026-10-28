@@ -128,10 +128,10 @@ namespace BiRyeoDo.Tests
             Assert.IsTrue(yun.CreateCombatant(15).Skills.Any(s => s.Effect == SkillEffect.Cleanse), "learned at level 15");
             Assert.IsTrue(yun.CreateCombatant(14).Skills.Any(s => s.Effect == SkillEffect.HealAlly), "the other arts are known from joining");
             CollectionAssert.AreEqual(new[] { "윤준호  자하청심결 습득!" }, CompanionGrowth.NewArtLines(yun, 14, 15));
-            CollectionAssert.AreEqual(new[] { "윤준호  자하청심결 습득!" }, CompanionGrowth.NewArtLines(yun, 10, 20), "a jump over the level still learns it");
+            CollectionAssert.AreEqual(new[] { "윤준호  자하청심결 습득!", "윤준호  칠매검 습득! · 화산의 검 대신" }, CompanionGrowth.NewArtLines(yun, 10, 20), "a jump over the level still learns it");
             Assert.IsEmpty(CompanionGrowth.NewArtLines(yun, 15, 20));
-            CollectionAssert.AreEqual(new[] { "자하청심결 (Lv.15)" }, CompanionGrowth.PendingArtLines(yun, 10));
-            Assert.IsEmpty(CompanionGrowth.PendingArtLines(yun, 15));
+            CollectionAssert.Contains(CompanionGrowth.PendingArtLines(yun, 10), "자하청심결 (Lv.15)");
+            CollectionAssert.DoesNotContain(CompanionGrowth.PendingArtLines(yun, 15), "자하청심결 (Lv.15)");
         }
 
         [Test]

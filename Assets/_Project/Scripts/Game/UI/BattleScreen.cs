@@ -1520,9 +1520,11 @@ namespace BiRyeoDo.Game.UI
 
             SetCommand(0, "공격", SkillSpec.ReachText(1), true, ArtLibrary.Icon("cmd_attack"));
             var arts = ArtsOf(me);
-            for (int i = 0; i < Progression.MaxEquippedArts; i++)
+            // A companion may know a fifth art; it takes the 합공 button, which only the protagonist uses.
+            int artSlots = me.Id == "player" ? Progression.MaxEquippedArts : Progression.MaxEquippedArts + 1;
+            for (int i = 0; i < artSlots; i++)
             {
-                int slot = 1 + i;
+                int slot = i < Progression.MaxEquippedArts ? 1 + i : 8;
                 if (i >= arts.Count) { _commands[slot].Root.SetActive(false); continue; }
                 var s = arts[i];
                 int cd = me.CooldownLeft(s);
@@ -1550,7 +1552,8 @@ namespace BiRyeoDo.Game.UI
                 bool ready = _battle.CanUse(ult) && _battle.CanReach(ult);
                 SetCommand(9, ult.Name, ready ? "기세 " + ult.SpiritCost : "기세 " + Mathf.Min(me.Spirit, ult.SpiritCost) + "/" + ult.SpiritCost, ready, ArtLibrary.Art(ult.Id) ?? ArtLibrary.Icon("ultimate_slot"));
             }
-            if (_jointPartners.Count == 0) _commands[8].Root.SetActive(false);
+            if (me.Id != "player") { }   // slot 8 already holds the companion's fifth art (or is hidden)
+            else if (_jointPartners.Count == 0) _commands[8].Root.SetActive(false);
             else SetCommand(8, "합공", me.Spirit >= InteractiveBattle.JointSpiritCost ? "기세 " + InteractiveBattle.JointSpiritCost : "기세 부족", me.Spirit >= InteractiveBattle.JointSpiritCost, ArtLibrary.Icon("cmd_joint"));
         }
 
@@ -1745,6 +1748,11 @@ namespace BiRyeoDo.Game.UI
             else if (slot == 5) ShowTip("방어", "다음 차례까지 받는 피해가 크게 줄어듭니다(피해 60% 감소). 기세가 조금 오릅니다.", ArtLibrary.Icon("cmd_guard"));
             else if (slot == 6) ShowTip("운기", "내공 +" + InteractiveBattle.MeditateQiFor(me.Stats.MaxQi) + "(40과 최대 내공의 20% 중 큰 값)과 체력을 조금 회복하고, 걸린 상태 이상을 풉니다.", ArtLibrary.Icon("cmd_meditate"));
             else if (slot == 7) ShowTip("아이템", "행낭의 소모품을 씁니다. 가장 다친 동료의 체력이 회복됩니다.", ArtLibrary.Icon("cmd_item"));
+            else if (slot == 8 && me.Id != "player")
+            {
+                var arts = ArtsOf(me);
+                if (arts.Count > Progression.MaxEquippedArts) ShowTip(arts[Progression.MaxEquippedArts].Name, SkillBody(arts[Progression.MaxEquippedArts]), ArtLibrary.Art(arts[Progression.MaxEquippedArts].Id));
+            }
             else if (slot == 8 && _jointPartners.Count > 0)
             {
                 if (_jointPartners.Count == 1) ShowJointTip(_jointPartners[0]);
@@ -1908,6 +1916,12 @@ namespace BiRyeoDo.Game.UI
                 var ultimateSkill = UltimateOf(me);
                 if (ultimateSkill == null || !_battle.CanUse(ultimateSkill)) return;
                 chosen = ultimateSkill;
+            }
+            else if (slot == 8 && me.Id != "player")
+            {
+                var arts = ArtsOf(me);   // a companion's fifth art
+                if (arts.Count <= Progression.MaxEquippedArts || !_battle.CanUse(arts[Progression.MaxEquippedArts])) return;
+                chosen = arts[Progression.MaxEquippedArts];
             }
             else if (slot == 8)
             {

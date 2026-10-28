@@ -19,6 +19,7 @@ namespace BiRyeoDo.Core
         public long LearnCost;
         public string OwnerId;   // null = a martial art the protagonist can learn; otherwise a companion's fixed art
         public int OwnerLevel;   // companion arts: the companion's own level at which the art is learned (0 = known from joining)
+        public string Replaces;  // companion arts: the older art of the same line this one takes over once learned (its 수련 각성 carries over)
 
         /// <summary>
         /// How far the art reaches: an explicit <see cref="Range"/>, otherwise 3 for area arts and 비기, 1 for everything else (the front line only)
@@ -198,9 +199,13 @@ namespace BiRyeoDo.Core
         public Combatant CreateCombatant(int level, int trainLevel, CombatStats stats)
         {
             var skills = new List<SkillSpec>();
+            var replaced = new HashSet<string>();
+            foreach (var a in EarlyGameContent.Arts)
+                if (a.OwnerId == Id && a.OwnerLevel <= level && !string.IsNullOrEmpty(a.Replaces)) replaced.Add(a.Replaces);
             foreach (var a in EarlyGameContent.Arts)
             {
                 if (a.OwnerId != Id || a.OwnerLevel > level) continue;   // some arts are only learned at a level
+                if (replaced.Contains(a.Id)) continue;   // a newer art of the same line took over
                 var spec = a.ToSpec();
                 spec.Power *= ArtPowerFactor;
                 spec.HealPct *= ArtPowerFactor;
@@ -288,6 +293,37 @@ namespace BiRyeoDo.Core
             // Learned in volumes 13-16
             new ArtData { Id = "jikji_jilju", Name = "직지질주", Description = "봉황무의 오의. 절벽을 평지처럼 달리며 적을 세 번 벤다.", Power = 3.6f, Hits = 3, QiCost = 278, Cooldown = 4, LearnCost = 34000, UnlockStage = 24, UnlockDiff = 1 },
             new ArtData { Id = "pungsin", Name = "풍신(風神)", Description = "비기. 열 자루 비뢰도와 뇌령사가 나선을 그리며 용권풍이 되어 적 전체를 휩쓴다.", Power = 12.35f, AllEnemies = true, SpiritCost = 100, LearnCost = 44000, UnlockStage = 30, UnlockDiff = 1 },
+            // Volumes 17-29 (names from the original text; 연비 is 비류연 in disguise, 21권). 19권 opens on 일반 33, 21-23권 on 어려움, 23-29권 on 극악.
+            new ArtData { Id = "jeokjunghwa", Name = "변역의 장 적중화", Description = "비뢰도 상급오의. 상대의 느린 손을 세 번 앞질러 친다.", Power = 3.0f, Hits = 3, QiCost = 160, Cooldown = 4, LearnCost = 18000, UnlockStage = 33 },
+            new ArtData { Id = "palhwa_nanmu", Name = "초절기교의 장 팔화난무", Description = "비뢰도 오의. 여덟 송이 꽃이 흩날리듯 여덟 번 몰아친다.", Power = 1.25f, Hits = 8, QiCost = 150, Cooldown = 4, LearnCost = 20000, UnlockStage = 2, UnlockDiff = 1 },
+            new ArtData { Id = "ssangseom_ilgyeokroe", Ranged = true, Range = 4, Name = "검뢰사살의 장 충각 쌍섬일격뢰", Description = "비도 두 자루에 모든 힘을 모아 한 점에 꽂는다.", Inflict = StatusKind.Bleed, InflictChance = 0.5f, Power = 5.5f, Hits = 2, QiCost = 180, Cooldown = 4, LearnCost = 26000, UnlockStage = 8, UnlockDiff = 1 },
+            new ArtData { Id = "yeomyeong_cheonan", Name = "영사심결 오의 여명천안", Description = "눈이 황금빛으로 물들며 모든 수가 보인다. 다음 차례까지 모든 공격을 피한다.", Effect = SkillEffect.Evade, QiCost = 120, Cooldown = 3, LearnCost = 28000, UnlockStage = 15, UnlockDiff = 1 },
+            new ArtData { Id = "sanmak", Name = "산막", Description = "연비의 즉흥 우산 막. 일행 모두를 방어 태세로 만든다.", Effect = SkillEffect.GuardParty, QiCost = 140, Cooldown = 4, LearnCost = 30000, UnlockStage = 21, UnlockDiff = 1 },
+            new ArtData { Id = "paego_makpaego", Name = "삼복구타산 궁극 말살기 패고패고막패고", Description = "우산으로 쉬지 않고 열두 번 패고 또 팬다.", Power = 1.0f, Hits = 12, QiCost = 270, Cooldown = 4, LearnCost = 36000, UnlockStage = 27, UnlockDiff = 1 },
+            new ArtData { Id = "seomjeon_ilsi", Name = "봉황무 오의 섬전일시", Description = "흙파도를 정면으로 가르고 번개처럼 파고드는 일격.", Power = 12.5f, QiCost = 300, Cooldown = 4, LearnCost = 40000, UnlockStage = 33, UnlockDiff = 1 },
+            new ArtData { Id = "cheonji_mugyeon", Name = "삼복구타봉법 말복 천지무견", Description = "천하무구를 고쳐 만든 봉법. 하늘도 땅도 보이지 않게 여섯 번 내려친다.", Power = 2.2f, Hits = 6, QiCost = 310, Cooldown = 4, LearnCost = 42000, UnlockStage = 36, UnlockDiff = 1 },
+            new ArtData { Id = "hyeoncheon_hoecheon", Name = "현천은린 회천", Description = "현천은린을 돌려 막아 내며 둘레의 적을 두 번 벤다.", Inflict = StatusKind.Bleed, InflictChance = 0.3f, Power = 2.4f, Hits = 2, AllEnemies = true, QiCost = 230, Cooldown = 4, LearnCost = 46000, UnlockStage = 2, UnlockDiff = 2 },
+            new ArtData { Id = "hyeoncheon_powol", Name = "현천은린 오의 현천포월", Description = "비기. 수백 줄기 검은 번개가 달을 감싸듯 적 전체를 덮친다.", Power = 14.0f, AllEnemies = true, SpiritCost = 100, LearnCost = 48000, UnlockStage = 4, UnlockDiff = 2 },
+            new ArtData { Id = "hyeoncheon_secheom", Ranged = true, Range = 4, Name = "현천은린 세침", Description = "우산살에 숨긴 가는 침을 여덟 번 쏜다.", Inflict = StatusKind.Bleed, InflictChance = 0.4f, Power = 0.9f, Hits = 8, QiCost = 160, Cooldown = 3, LearnCost = 44000, UnlockStage = 6, UnlockDiff = 2 },
+            new ArtData { Id = "hoejeop", Ranged = true, Range = 4, Name = "회접", Description = "손으로 펴 만든 쇠 원반을 나비처럼 날린다.", Power = 6.5f, QiCost = 150, Cooldown = 2, LearnCost = 46000, UnlockStage = 8, UnlockDiff = 2 },
+            new ArtData { Id = "mukroesal", Name = "무명검 오의 묵뢰살", Description = "검은 번개를 두른 일격. 심도 천외일도를 꺾은 오의.", Power = 15.0f, QiCost = 330, Cooldown = 4, LearnCost = 50000, UnlockStage = 10, UnlockDiff = 2 },
+            new ArtData { Id = "samboku_jungbok", Name = "삼복구타권법 중복", Description = "아구창창 주구장창. 아홉 번 쉬지 않고 두들긴다.", Power = 1.4f, Hits = 9, QiCost = 260, Cooldown = 3, LearnCost = 52000, UnlockStage = 12, UnlockDiff = 2 },
+            new ArtData { Id = "jumang_pobak", Range = 4, Name = "괴뢰의 장 주망포박", Description = "뇌령사로 그물을 쳐 상대를 묶는다. 기를 모으는 중이면 끊는다.", Power = 2.0f, Effect = SkillEffect.Stun, QiCost = 200, Cooldown = 4, LearnCost = 52000, UnlockStage = 13, UnlockDiff = 2 },
+            new ArtData { Id = "gyeokgongjang", Ranged = true, Range = 4, Name = "격공장", Description = "허공을 격해 떨어진 적을 치는 장력.", Power = 7.5f, QiCost = 170, Cooldown = 2, LearnCost = 54000, UnlockStage = 14, UnlockDiff = 2 },
+            new ArtData { Id = "nakroe_yeong", Name = "그림자 숨기기의 장 낙뢰영", Description = "봉황무 오의. 그림자 속으로 몸을 숨겨 다음 차례까지 모든 공격을 피한다.", Effect = SkillEffect.Evade, QiCost = 160, Cooldown = 3, LearnCost = 54000, UnlockStage = 15, UnlockDiff = 2 },
+            new ArtData { Id = "noeseom_ilsi", Name = "일점집중의 장 뇌섬일시", Description = "모든 힘을 한 점에 모아 갑옷 속까지 꿰뚫는다.", Power = 16.5f, QiCost = 350, Cooldown = 4, LearnCost = 58000, UnlockStage = 17, UnlockDiff = 2 },
+            new ArtData { Id = "ujunggeo_buljeom", Name = "봉황무 비전극상오의 우중거 불점의", Description = "빗속을 걸어도 옷이 젖지 않는다. 다음 차례까지 모든 공격을 피한다.", Effect = SkillEffect.Evade, QiCost = 180, Cooldown = 2, LearnCost = 58000, UnlockStage = 18, UnlockDiff = 2 },
+            new ArtData { Id = "simroe_yeolpa", Name = "단심무형의 장 심뢰열파", Description = "마음을 베는 검기를 사방으로 퍼뜨려 적 전체의 마음을 흔든다.", Inflict = StatusKind.InnerWound, InflictChance = 0.5f, Power = 5.5f, AllEnemies = true, QiCost = 320, Cooldown = 4, LearnCost = 60000, UnlockStage = 19, UnlockDiff = 2 },
+            new ArtData { Id = "palseom_noegwang", Name = "환영분신의 장 팔섬 뇌광굉타", Description = "여덟 분신이 한꺼번에 뇌광을 내리친다.", Power = 2.1f, Hits = 8, QiCost = 360, Cooldown = 4, LearnCost = 62000, UnlockStage = 21, UnlockDiff = 2 },
+            new ArtData { Id = "pyeonsu_pungsin", Range = 4, Name = "편수 풍신", Description = "비기. 한 손으로 다섯 자루 비뢰도를 풀어 물기둥째 적 전체를 쓸어 버린다.", Power = 15.0f, AllEnemies = true, SpiritCost = 100, LearnCost = 66000, UnlockStage = 22, UnlockDiff = 2 },
+            new ArtData { Id = "simroe_cheonhyeongin", Name = "심뢰 극 천형인", Description = "비기. 단심무형의 장의 끝. 하늘의 형벌을 새기는 일격.", Power = 26.0f, SpiritCost = 100, LearnCost = 70000, UnlockStage = 24, UnlockDiff = 2 },
+            new ArtData { Id = "noejeol_daneum", Range = 4, Name = "벽력단절의 장 뇌절단음", Description = "비뢰도 비전 오의. 소리까지 끊어 내는 벽력으로 상대를 굳힌다. 기를 모으는 중이면 끊는다.", Power = 6.0f, Effect = SkillEffect.Stun, QiCost = 280, Cooldown = 4, LearnCost = 70000, UnlockStage = 25, UnlockDiff = 2 },
+            new ArtData { Id = "noemangok", Name = "뇌망옥", Description = "뇌전의 그물 감옥이 적 전체를 일순 얼어붙게 한다.", Inflict = StatusKind.Chill, InflictChance = 0.6f, Power = 4.5f, AllEnemies = true, QiCost = 330, Cooldown = 4, LearnCost = 72000, UnlockStage = 26, UnlockDiff = 2 },
+            new ArtData { Id = "samnyeon_guta", Name = "돌아온 말복 천지무견 삼년구타", Description = "삼 년 치를 한 번에 몰아 열두 번 두들긴다.", Power = 1.6f, Hits = 12, QiCost = 400, Cooldown = 4, LearnCost = 76000, UnlockStage = 28, UnlockDiff = 2 },
+            new ArtData { Id = "sineunsul_yeongsik", Name = "신은술 영식", Description = "그림자를 먹는 술법을 고쳐 만든 은신. 다음 차례까지 모든 공격을 피한다.", Effect = SkillEffect.Evade, QiCost = 200, Cooldown = 2, LearnCost = 78000, UnlockStage = 30, UnlockDiff = 2 },
+            new ArtData { Id = "umin_gunmu", Name = "괴뢰의 장 꼭두각시 춤 우민군무 불신지옥", Description = "적을 서로 이간해 꼭두각시처럼 춤추게 한다. 적 전체가 굳는다.", Power = 3.0f, AllEnemies = true, Effect = SkillEffect.Stun, QiCost = 380, Cooldown = 5, LearnCost = 80000, UnlockStage = 32, UnlockDiff = 2 },
+            new ArtData { Id = "hwaryong_nanryu", Name = "용권승천의 장 화룡난류", Description = "비기. 풍신에 불을 실어 화룡의 꼬리와 열풍진, 두 머리의 불길이 적 전체를 휩쓴다.", Inflict = StatusKind.Burn, InflictChance = 0.6f, Power = 17.0f, AllEnemies = true, SpiritCost = 100, LearnCost = 88000, UnlockStage = 34, UnlockDiff = 2 },
+            new ArtData { Id = "ssangryong_gwicheon", Name = "뇌화열풍인 쌍룡귀천", Description = "비기. 벽력의 장 심득 오의. 벼락과 화룡과 질풍이 두 마리 용이 되어 하늘로 돌아간다.", Power = 20.0f, AllEnemies = true, SpiritCost = 100, LearnCost = 100000, UnlockStage = 36, UnlockDiff = 2 },
             // Companions' fixed arts (names are descriptive unless the original text names the technique)
             new ArtData { Id = "xr_twin", Name = "쌍검 연격", Description = "쌍둥이 검으로 두 번 벤다.", Power = 1.5f, Hits = 2, QiCost = 18, Cooldown = 1, OwnerId = "hyo_ryong" },
             new ArtData { Id = "xr_barrier", Name = "태을천강벽", Description = "검막을 펼쳐 모두를 방어 태세로 만든다.", Effect = SkillEffect.GuardParty, QiCost = 30, Cooldown = 4, OwnerId = "hyo_ryong" },
@@ -303,6 +339,31 @@ namespace BiRyeoDo.Core
             new ArtData { Id = "ny_baekhon", Name = "백혼검뢰천검식", Description = "나예린의 공격 검법. 흰 검뢰가 한 줄기로 내리꽂힌다.", Power = 2.4f, QiCost = 16, Cooldown = 1, OwnerId = "na_yerin" },
             new ArtData { Id = "ny_hansang", Name = "한상옥령신검", Description = "얼음처럼 차가운 검기가 세 번 스친다.", Inflict = StatusKind.Chill, InflictChance = 0.6f, Power = 1.2f, Hits = 3, QiCost = 30, Cooldown = 3, OwnerId = "na_yerin" },
             new ArtData { Id = "ny_simahn", Range = 4, Name = "심안검", Description = "용안으로 허점을 읽고 마음의 눈으로 한 점을 꿰뚫는다.", Power = 5.4f, QiCost = 42, Cooldown = 4, OwnerId = "na_yerin" },
+            // Companion arts learned at later levels (25-29권 names; 원의 곤·나선곤·십이연격·무영 일격 are game names). A newer art of the same line replaces the older one.
+            new ArtData { Id = "xr_hyeolran", Name = "쌍검혈란", Description = "쌍검이 핏빛으로 흐드러져 적 전체를 두 번 벤다.", Inflict = StatusKind.Bleed, InflictChance = 0.3f, Power = 1.0f, Hits = 2, AllEnemies = true, QiCost = 90, Cooldown = 3, OwnerId = "hyo_ryong", OwnerLevel = 18 },
+            new ArtData { Id = "xr_ilgyeokbung", Name = "패왕권 일격붕", Description = "쌍검을 거두고 패왕권으로 한 번에 무너뜨린다.", Inflict = StatusKind.InnerWound, InflictChance = 0.5f, Power = 6.0f, QiCost = 180, Cooldown = 4, OwnerId = "hyo_ryong", OwnerLevel = 26 },
+            new ArtData { Id = "xr_sipja", Name = "무쌍십자검", Description = "을진무쌍검법. 두 자루가 십자로 엇갈려 벤다.", Inflict = StatusKind.Bleed, InflictChance = 0.4f, Power = 2.0f, Hits = 2, QiCost = 110, Cooldown = 1, OwnerId = "hyo_ryong", OwnerLevel = 36, Replaces = "xr_twin" },
+            new ArtData { Id = "xr_bijo", Ranged = true, Range = 4, Name = "비조쌍월인", Description = "효룡의 오의. 쌍검을 두 줄기 달처럼 던져 뒷줄까지 꿰뚫는다.", Inflict = StatusKind.Bleed, InflictChance = 0.6f, Power = 3.6f, Hits = 2, QiCost = 300, Cooldown = 4, OwnerId = "hyo_ryong", OwnerLevel = 48, Replaces = "xr_ilgyeokbung" },
+            new ArtData { Id = "xr_cheonoe", Name = "천외일도", Description = "비기. 쌍붕도 중천으로 혈류십이도에 없는 열세 번째 도를 벤다.", Power = 11.0f, SpiritCost = 100, OwnerId = "hyo_ryong", OwnerLevel = 60 },
+            new ArtData { Id = "jh_mukyeong", Range = 4, Name = "영사삭 묵영포박", Description = "그림자 같은 영사삭으로 뒷줄의 적까지 묶는다. 기를 모으는 중이면 끊는다.", Power = 1.0f, Effect = SkillEffect.Stun, QiCost = 100, Cooldown = 4, OwnerId = "jang_hong", OwnerLevel = 18 },
+            new ArtData { Id = "jh_sineun", Name = "신은술", Description = "무영대장의 그림자 술법. 다음 차례까지 모든 공격을 피한다.", Effect = SkillEffect.Evade, QiCost = 120, Cooldown = 3, OwnerId = "jang_hong", OwnerLevel = 32 },
+            new ArtData { Id = "jh_muyeong", Range = 4, Name = "무영 일격", Description = "비기. 그림자 속에서 나타나 단 한 번에 숨통을 끊는다.", Power = 11.0f, SpiritCost = 100, OwnerId = "jang_hong", OwnerLevel = 50 },
+            new ArtData { Id = "yj_chilmae", Name = "칠매검", Description = "칠매동에서 얻은 선조의 검보. 매화 일곱 송이처럼 일곱 번 찌른다.", Power = 0.45f, Hits = 7, QiCost = 40, Cooldown = 1, OwnerId = "yun_junho", OwnerLevel = 12, Replaces = "yj_slash" },
+            new ArtData { Id = "yj_maeyeom", Name = "매염토망", Description = "이십사수 매화검법 최강의 방어 초식. 일행 모두를 방어 태세로 만든다.", Effect = SkillEffect.GuardParty, QiCost = 130, Cooldown = 4, OwnerId = "yun_junho", OwnerLevel = 30 },
+            new ArtData { Id = "yj_maehwa", Name = "이십사수 매화검법", Description = "비기. 두드러기를 이겨 낸 매화검. 매화 향이 적 전체를 네 번 휘감는다.", Power = 1.6f, Hits = 4, AllEnemies = true, SpiritCost = 100, OwnerId = "yun_junho", OwnerLevel = 50 },
+            new ArtData { Id = "ny_biseol", Name = "비설보", Description = "검후가 전한 흩날리는 눈의 분신 보법. 다음 차례까지 모든 공격을 피한다.", Effect = SkillEffect.Evade, QiCost = 90, Cooldown = 3, OwnerId = "na_yerin", OwnerLevel = 20 },
+            new ArtData { Id = "ny_soan", Name = "소안검", Description = "웃는 눈처럼 가볍고 빠른 검.", Power = 3.0f, QiCost = 50, Cooldown = 1, OwnerId = "na_yerin", OwnerLevel = 24, Replaces = "ny_baekhon" },
+            new ArtData { Id = "ny_hyeollan", Name = "현란무답", Description = "한상옥령신검 비설보 오의. 눈보라 속 춤이 적 전체를 세 번 벤다.", Inflict = StatusKind.Chill, InflictChance = 0.3f, Power = 1.1f, Hits = 3, AllEnemies = true, QiCost = 170, Cooldown = 3, OwnerId = "na_yerin", OwnerLevel = 28 },
+            new ArtData { Id = "ny_geommak", Name = "검막", Description = "검으로 막을 쳐 일행 모두를 방어 태세로 만든다.", Effect = SkillEffect.GuardParty, QiCost = 160, Cooldown = 4, OwnerId = "na_yerin", OwnerLevel = 34, Replaces = "ny_biseol" },
+            new ArtData { Id = "ny_bihong", Name = "비홍검", Description = "붉은 기러기가 날듯 두 번 벤다.", Power = 2.0f, Hits = 2, QiCost = 90, Cooldown = 1, OwnerId = "na_yerin", OwnerLevel = 40, Replaces = "ny_soan" },
+            new ArtData { Id = "ny_hanbing", Name = "한빙섬옥", Description = "한상옥령신검 오의(통곡오의). 정교함과 빠름이 맞물린 네 번의 냉기.", Inflict = StatusKind.Chill, InflictChance = 1.0f, Power = 1.6f, Hits = 4, QiCost = 260, Cooldown = 3, OwnerId = "na_yerin", OwnerLevel = 46, Replaces = "ny_hansang" },
+            new ArtData { Id = "ny_nanik", Name = "빙백봉무 난익", Description = "한상옥령신검. 얼음 봉황의 날개가 적 전체를 세 번 휩쓴다.", Inflict = StatusKind.Chill, InflictChance = 0.4f, Power = 1.5f, Hits = 3, AllEnemies = true, QiCost = 300, Cooldown = 4, OwnerId = "na_yerin", OwnerLevel = 52, Replaces = "ny_hyeollan" },
+            new ArtData { Id = "ny_bihonggwanun", Range = 4, Name = "폭풍비상 비홍관운", Description = "검각 신법. 폭풍처럼 솟구쳐 구름을 꿰뚫는 일격.", Power = 8.5f, QiCost = 360, Cooldown = 4, OwnerId = "na_yerin", OwnerLevel = 58, Replaces = "ny_simahn" },
+            new ArtData { Id = "ny_haesang", Name = "해상비조천참절", Description = "비기. 검후의 비전오의. 천 마리 바닷새를 베듯 적 전체를 다섯 번 벤다.", Power = 1.6f, Hits = 5, AllEnemies = true, SpiritCost = 100, OwnerId = "na_yerin", OwnerLevel = 64 },
+            new ArtData { Id = "isj_bunggon", Range = 1, Name = "붕곤", Description = "아버지의 패도와 맞선 곤. 적의 앞줄 전체를 무너뜨린다.", Power = 2.2f, AllEnemies = true, QiCost = 160, Cooldown = 3, OwnerId = "im_seongjin", OwnerLevel = 26 },
+            new ArtData { Id = "isj_won", Name = "원(圓)의 곤", Description = "방어는 원. 곤을 크게 돌려 일행 모두를 방어 태세로 만든다.", Effect = SkillEffect.GuardParty, QiCost = 170, Cooldown = 4, OwnerId = "im_seongjin", OwnerLevel = 36 },
+            new ArtData { Id = "isj_naseon", Name = "나선곤", Description = "힘의 이동은 나선. 비틀어 넣은 곤이 두 번 파고든다.", Inflict = StatusKind.InnerWound, InflictChance = 0.5f, Power = 1.9f, Hits = 2, QiCost = 120, Cooldown = 1, OwnerId = "im_seongjin", OwnerLevel = 46, Replaces = "isj_gon" },
+            new ArtData { Id = "isj_sibi", Name = "진성십이곤 · 십이연격", Description = "비기. 진성십이곤 열두 초식을 쉬지 않고 몰아친다.", Power = 0.9f, Hits = 12, SpiritCost = 100, OwnerId = "im_seongjin", OwnerLevel = 60 },
         };
 
         public static readonly CompanionData[] Companions =
