@@ -67,6 +67,11 @@ namespace BiRyeoDo.Tests
         [TestCase(23, 8, 9)]
         [TestCase(24, 8, 9)]
         [TestCase(25, 8, 11)]
+        [TestCase(26, 8, 15)]
+        [TestCase(27, 7, 9)]
+        [TestCase(28, 10, 13)]
+        [TestCase(29, 12, 14)]
+        [TestCase(30, 8, 9)]
         public void NewFightsIncreaseTotalPayoutWithoutDilutingExistingFightShares(int number, int oldBudget, int newWeight)
         {
             var stage = EarlyGameContent.FindStage(number);

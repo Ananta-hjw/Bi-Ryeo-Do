@@ -8,6 +8,127 @@ namespace BiRyeoDo.Tests
 {
     public class StoryExpansionTests
     {
+        [TestCase(26, 3, 5, 0)]
+        [TestCase(27, 3, 6, 0)]
+        [TestCase(28, 4, 4, 1)]
+        [TestCase(29, 5, 6, 3)]
+        [TestCase(30, 3, 3, 1)]
+        public void RevisionSevenPreservesCompletionButLeavesNewTrialsUnclaimed(int number, int oldCount, int final, int unplayed)
+        {
+            var save = new SaveData { StoryContentRevision = 6, ClearedStage = 30, Level = 60, Doo = 12345, ProgressStage = number, ProgressNext = oldCount - 1 };
+            for (int diff = 0; diff < 3; diff++)
+                for (int fight = 0; fight < oldCount; fight++)
+                    save.StageStars.Add(new StarEntry { Stage = number, Fight = fight, Diff = diff, Mask = 7 });
+            // Other cleared chapters already have records; isolate the edited chapter from pre-star backfill.
+            for (int otherNumber = 26; otherNumber <= 30; otherNumber++)
+                if (otherNumber != number) save.StageStars.Add(new StarEntry { Stage = otherNumber, Fight = 0, Mask = 1 });
+            save.DoneQuests.Add("q_salgwi"); save.SeenMemories.Add("m_blood"); save.DoneFortunes.Add("f_eve");
+            int total = StageStars.Total(save);
+            StoryContentMigration.Apply(save);
+            Assert.AreEqual(total, StageStars.Total(save)); Assert.AreEqual(0, save.ProgressStage);
+            Assert.AreEqual(30, save.ClearedStage); Assert.AreEqual(60, save.Level); Assert.AreEqual(12345, save.Doo);
+            for (int diff = 0; diff < 3; diff++)
+            {
+                var stage = EarlyGameContent.FindStage(number).WithDifficulty(diff);
+                Assert.AreEqual(7, StageStars.MaskOf(save, number, final, diff));
+                Assert.AreEqual(0, StageStars.MaskOf(save, number, unplayed, diff));
+                Assert.IsTrue(StageStars.StageCleared(save, number, diff));
+                for (int fight = 0; fight < stage.Encounters.Length; fight++)
+                    CollectionAssert.AreEqual(GearDrops.Roll(number, diff, false, new SeededRandom(42)).Select(x => x.Id + ":" + x.Count),
+                        GearDrops.RollFight(save, stage, fight, new SeededRandom(42)).Select(x => x.Id + ":" + x.Count));
+            }
+            CollectionAssert.AreEqual(new[] { "q_salgwi" }, save.DoneQuests);
+            CollectionAssert.AreEqual(new[] { "m_blood" }, save.SeenMemories);
+            CollectionAssert.AreEqual(new[] { "f_eve" }, save.DoneFortunes);
+            StoryContentMigration.Apply(save); Assert.AreEqual(total, StageStars.Total(save));
+            var other = new SaveData { StoryContentRevision = 6, ProgressStage = 25, ProgressNext = 1 };
+            StoryContentMigration.Apply(other); Assert.AreEqual(25, other.ProgressStage);
+        }
+
+        [Test]
+        public void PreStarHwasanSaveBackfillsOnlyOriginalWinsWithoutClaimingInsertedFights()
+        {
+            var save = new SaveData { StoryContentRevision = 6, ClearedStage = 30, Level = 60, Doo = 12345 };
+            StoryContentMigration.Apply(save);
+            Assert.AreEqual(18, save.StageStars.Sum(x => StageStars.Count(x.Mask)));
+            var expected = new Dictionary<int, int[]> {
+                { 26, new[] { 3, 4, 5 } }, { 27, new[] { 2, 4, 6 } }, { 28, new[] { 0, 2, 3, 4 } },
+                { 29, new[] { 0, 1, 2, 4, 6 } }, { 30, new[] { 0, 2, 3 } } };
+            StageStars.Sync(save);
+            foreach (var pair in expected)
+            {
+                Assert.IsTrue(StageStars.StageCleared(save, pair.Key, 0));
+                for (int fight = 0; fight < StageStars.FightCount(pair.Key); fight++)
+                    Assert.AreEqual(pair.Value.Contains(fight) ? 1 : 0, StageStars.MaskOf(save, pair.Key, fight, 0), pair.Key + "/" + fight);
+                Assert.IsFalse(StageStars.StageCleared(save, pair.Key, 1));
+            }
+            int total = StageStars.Total(save);
+            StoryContentMigration.Apply(save); StageStars.Sync(save);
+            Assert.AreEqual(total, StageStars.Total(save));
+            Assert.AreEqual(12345, save.Doo); Assert.AreEqual(60, save.Level);
+        }
+
+        [Test]
+        public void HwasanExpansionUsesTheActualLeaderAndKeepsTrialsNonlethal()
+        {
+            var escape = EarlyGameContent.FindStage(26);
+            Assert.AreEqual(6, escape.Encounters.Length);
+            CollectionAssert.AreEqual(new[] { "salhon_sipgwi" }, escape.Encounters.Last());
+            Assert.AreEqual(TrialKind.Survive, escape.TrialFor(1).Kind);
+            CollectionAssert.AreEqual(escape.Encounters[3], Quests.ToStage(Quests.Find("q_salgwi")).Encounters[0]);
+            var seven = EarlyGameContent.FindStage(27);
+            Assert.AreEqual(7, seven.Encounters.Length);
+            Assert.IsTrue(seven.Encounters.All(x => x.Length == 1));
+            Assert.IsTrue(seven.Trials.All(t => t.Kind == TrialKind.Survive));
+            Assert.AreEqual(TrialKind.Deadline, EarlyGameContent.FindStage(28).TrialFor(0).Kind);
+            var trial = EarlyGameContent.FindStage(29);
+            Assert.AreEqual(TrialKind.Survive, trial.TrialFor(0).Kind);
+            Assert.AreEqual(TrialKind.Harmony, trial.TrialFor(2).Kind);
+            CollectionAssert.AreEqual(new[] { "mask_bitan" }, trial.Encounters[4]);
+            CollectionAssert.AreEqual(new[] { "mu_jeong" }, trial.Encounters[5]);
+            CollectionAssert.AreEqual(new[] { "witness_pursuer" }, trial.Encounters[6]);
+            var fire = EarlyGameContent.FindStage(30);
+            CollectionAssert.AreEqual(new[] { "bi_daegongja" }, fire.Encounters[1]);
+            Assert.AreEqual(TrialKind.Survive, fire.TrialFor(3).Kind);
+            Assert.IsFalse(GearDrops.IsBossFight(fire, 3));
+            foreach (var id in seven.Encounters.SelectMany(x => x).Concat(new[] { "bi_first_clash", "wiji_hyeolpok", "mu_jeong", "witness_pursuer" }))
+                Assert.Greater(EarlyGameContent.FindEnemy(id).RetreatHpPct, 0f, id);
+            Assert.AreEqual("천율패 기록", EarlyGameContent.FindItem("cheonyul_pae").Name);
+            Assert.IsTrue(Genders.IsFemale(EarlyGameContent.FindEnemy("gyook_public").ArtKey));
+        }
+
+        [TestCase(26, 0)]
+        [TestCase(26, 1)]
+        [TestCase(26, 2)]
+        [TestCase(27, 0)]
+        [TestCase(27, 1)]
+        [TestCase(27, 2)]
+        [TestCase(28, 0)]
+        [TestCase(28, 1)]
+        [TestCase(28, 2)]
+        [TestCase(29, 0)]
+        [TestCase(29, 1)]
+        [TestCase(29, 2)]
+        [TestCase(30, 0)]
+        [TestCase(30, 1)]
+        [TestCase(30, 2)]
+        public void HwasanExpansionIsClearableAtEachDifficultyPreparationLevel(int number, int difficulty)
+        {
+            var stage = EarlyGameContent.FindStage(number).WithDifficulty(difficulty);
+            int level = difficulty == 0 ? BalanceSimulation.BotLevel(stage) : (int)Math.Round(StageStars.TargetLevel(number, difficulty));
+            int count = difficulty == 0 ? 20 : 10;
+            var runs = Enumerable.Range(901, count).Select(seed => BalanceSimulation.Play(stage, BalanceSimulation.Starter(number, level), seed)).ToArray();
+            int wins = runs.Count(run => run.Won);
+            TestContext.Out.WriteLine(number + "/" + difficulty + ": " + wins + "/" + count + "; actions " + runs.Where(run => run.Won).Select(run => run.Actions).DefaultIfEmpty().Average());
+            TestContext.Out.WriteLine("failures " + string.Join(",", runs.Where(run => !run.Won).GroupBy(run => run.FailedFight).Select(group => group.Key + ":" + group.Count())));
+            Assert.GreaterOrEqual(wins, (int)Math.Ceiling(count * .85));
+            for (int fight = 0; fight < stage.Encounters.Length; fight++)
+            {
+                var actions = runs.Where(run => run.Won).Select(run => run.FightActions[fight]).OrderBy(x => x).ToArray();
+                TestContext.Out.WriteLine("fight " + fight + ": median " + actions[actions.Length / 2] + "; fast " + StageStars.FastLimit(number, fight, difficulty));
+            }
+        }
+
         [TestCase(21, 2, 2, -1)]
         [TestCase(22, 2, 5, 0)]
         [TestCase(23, 2, 3, 2)]
@@ -128,7 +249,7 @@ namespace BiRyeoDo.Tests
         [TestCase(2)]
         public void RevisedChaptersPayOnTheirOwnDifficultyAndReplayRate(int difficulty)
         {
-            foreach (int number in new[] { 15, 18, 19, 20, 21, 22, 23, 24, 25 })
+            foreach (int number in new[] { 15, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30 })
             {
                 var stage = EarlyGameContent.FindStage(number).WithDifficulty(difficulty);
                 Recommend.StageReward(new SaveData(), stage, out long exp, out long doo);

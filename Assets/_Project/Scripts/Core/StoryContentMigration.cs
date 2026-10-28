@@ -5,7 +5,7 @@ namespace BiRyeoDo.Core
     /// <summary>Preserve cleared stages, earned stars and boss-clear records when the early story fight lists change.</summary>
     public static class StoryContentMigration
     {
-        public const int CurrentRevision = 6;
+        public const int CurrentRevision = 7;
         public static void Apply(SaveData save)
         {
             if (save == null || save.StoryContentRevision >= CurrentRevision) return;
@@ -99,6 +99,29 @@ namespace BiRyeoDo.Core
                 }
                 // Stage 21 keeps chapter completion credit despite the reordered nonlethal confrontation.
                 if (save.ProgressStage >= 21 && save.ProgressStage <= 25) StageProgress.Clear(save);
+            }
+            if (save.StoryContentRevision < 7)
+            {
+                // Pre-star saves receive only the old fight credits before the lobby's legacy backfill runs.
+                int[] oldCounts = { 3, 3, 4, 5, 3 };
+                for (int number = 26; number <= 30 && number <= save.ClearedStage; number++)
+                {
+                    bool recorded = false;
+                    foreach (var star in save.StageStars)
+                        if (star.Stage == number && star.Diff == 0) { recorded = true; break; }
+                    if (recorded) continue;
+                    for (int fight = 0; fight < oldCounts[number - 26]; fight++)
+                        save.StageStars.Add(new StarEntry { Stage = number, Fight = fight, Diff = 0, Mask = 1 });
+                }
+                foreach (var star in save.StageStars)
+                {
+                    if (star.Stage == 26) star.Fight += 3;
+                    else if (star.Stage == 27) star.Fight = star.Fight == 2 ? 6 : star.Fight == 1 ? 4 : 2;
+                    else if (star.Stage == 28 && star.Fight >= 1) star.Fight += 1;
+                    else if (star.Stage == 29 && star.Fight >= 3) star.Fight = star.Fight == 3 ? 4 : 6;
+                    else if (star.Stage == 30 && star.Fight >= 1) star.Fight = star.Fight == 1 ? 2 : 3;
+                }
+                if (save.ProgressStage >= 26 && save.ProgressStage <= 30) StageProgress.Clear(save);
             }
             save.StoryContentRevision = CurrentRevision;
         }

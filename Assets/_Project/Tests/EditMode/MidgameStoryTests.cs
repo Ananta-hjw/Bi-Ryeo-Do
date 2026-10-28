@@ -20,6 +20,47 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void RescueAndTheActualWoundPrecedeThePublicClashAndPrivateOrders()
+        {
+            var escape = Replay(26);
+            Ordered(escape, "교대가 지키는 사람", "지킬 것이 있는 검", "휘선 뒤에서 바뀐 궤도", "걱정하는 사람이 여는 길", "현장 지휘자는 십귀", "만난 적 없는 사람들", "나예린|류연! 피가", "대호", "철침");
+            var seven = Replay(27);
+            Ordered(seven, "규칙이 허락한 도전", "깨어나기로 한 사람", "열 장의 경계", "돌아오는 흑응익", "여섯 창과 일곱째", "묵빛 채찍의 봉쇄", "등에 남은 상처", "앞의 겸기, 뒤의 추영", "드러난 은형", "바늘과 시선", "은설란|대공자!", "사적 알현", "대삼원칙", "추첨이 시작");
+            Assert.IsFalse(seven.Contains("피가……"));
+            Assert.AreEqual(26, Memories.Find("m_blood").UnlockStage);
+        }
+
+        [Test]
+        public void TheBatonAndWitnessStoryKeepPartialKnowledgeAndUnfinishedRecovery()
+        {
+            string text = Replay(28);
+            Ordered(text, "비전을 지키는 두 사람", "영혼의 자매", "은명이라는 임시 이름", "추첨 뒤의 아홉 사람", "넘어진 뒤에도 바통을", "밤길의 두 방해자", "공동 일위, 남은 증언", "거지 차림의 조사관", "저항하는 만근검익진", "명령이 버린 목숨", "한편 금요관");
+            StringAssert.Contains("왼눈을 강제로", text);
+            StringAssert.Contains("누구의 손이 준호를 넘어뜨렸는지", text);
+            StringAssert.Contains("애써 전하려던 말은 끝내 음절로 흩어졌다", text);
+        }
+
+        [Test]
+        public void RescueChoiceLeadsToCooperationThenTheWitnessMurderAndFalseAccusation()
+        {
+            string text = Replay(29);
+            Ordered(text, "잠행과 잘린 생명줄", "절이 아닌 박의 속성", "걱정은 화가 되어", "아홉 기류의 조화", "지연된 결과와 거점", "오 일째의 비탄", "미끼 인형과 진짜 증인", "원에서 나선, 한 점으로", "교옥은 장송곡", "기다리던 나예린");
+            StringAssert.Contains("살아 있었다", text);
+            StringAssert.Contains("피를 토한 복면인은 도주했다", text);
+            StringAssert.Contains("뇌령사의 박", text);
+        }
+
+        [Test]
+        public void TheFireEndsThroughSharedRescueRatherThanKillingBiOrCollectingThePrizeEarly()
+        {
+            string text = Replay(30);
+            Ordered(text, "실을 따라 만난 스승들", "주방으로 모인 단서", "최우수 조가 불린 뒤의 이의", "우승 발표와 염마뢰", "같지 않은 그림자", "불의 성벽", "남은 사람을 살리는 힘", "용권승룡", "피해는 사망 셋", "한때 은명이라 불린 남자", "청룡은장");
+            StringAssert.Contains("혼자 완벽히 해낼 자신이 없다", text);
+            StringAssert.Contains("현금 배당의 정산 장면은 없었다", text);
+            StringAssert.Contains("모용휘도 혁중의 제안을 받아들였지만", text);
+        }
+
+        [Test]
         public void HwasanJourneyMovesFromMediationToWitnessEscortAndTheValley()
         {
             Ordered(Replay(21), "장례 뒤의 물음", "거울 신호와 돌아올 힘", "구궁산의 청혼", "흑랑부의 빈틈", "임개를 구한 군자소요검", "노사들이 중재");
@@ -141,6 +182,11 @@ namespace BiRyeoDo.Tests
         [TestCase(23)]
         [TestCase(24)]
         [TestCase(25)]
+        [TestCase(26)]
+        [TestCase(27)]
+        [TestCase(28)]
+        [TestCase(29)]
+        [TestCase(30)]
         public void EveryFightHasAResumeSafeSceneThatDoesNotChangeProgressOrReplayForClears(int number)
         {
             var stage = EarlyGameContent.FindStage(number);
@@ -157,7 +203,7 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(9876, save.Doo);
             save.ClearedStage = number;
             Assert.IsNull(StoryEpisodes.BeforeFight(stage, 0, save));
-            Assert.AreEqual(number == 14 ? 11 : number == 15 ? 5 : number == 18 ? 4 : number == 19 ? 7 : number == 22 ? 6 : number >= 23 && number <= 25 ? 4 : 3, stage.Encounters.Length);
+            Assert.AreEqual(number == 14 ? 11 : number == 15 ? 5 : number == 18 ? 4 : number == 19 || number == 27 || number == 29 ? 7 : number == 22 || number == 26 ? 6 : number >= 23 && number <= 25 || number == 30 ? 4 : number == 28 ? 5 : 3, stage.Encounters.Length);
         }
     }
 }

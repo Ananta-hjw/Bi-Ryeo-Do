@@ -164,6 +164,18 @@ namespace BiRyeoDo.Core
                 new FortuneChoice { Label = "기록을 대조한 순서를 복기한다", Result = "확인할 수 있는 변화부터 좁히는 판단을 익혔습니다.", ExpLevels = .2 },
                 new FortuneChoice { Label = "잠입의 조용한 손놀림을 되짚는다", Result = "힘보다 정확함이 필요했던 순간을 기억했습니다.", MasteryUses = 4 },
             } },
+            new FortuneEvent { Id = "f_watch_agreement", Title = "잠을 위한 작은 합의", UnlockStage = 27, Text = new[] { "태양관의 이틀 밤 뒤 불침번을 정했다. 서로 잠들 수 있다는 첫 합의였지만 뒤의 분계선 다툼까지 지우지는 못했다.", "그날의 작은 타협을 돌아본다." }, Choices = new[] {
+                new FortuneChoice { Label = "교대하며 살핀 사람을 떠올린다", Result = "함께 쉬기 위해 맡은 몫을 생각했습니다.", BondPoints = 1 },
+                new FortuneChoice { Label = "경계와 휴식의 순서를 복기한다", Result = "다음 걸음을 위한 여력을 계산했습니다.", ExpLevels = .15 },
+            } },
+            new FortuneEvent { Id = "f_muyong_question", Title = "아직 답하지 못한 물음", UnlockStage = 28, Text = new[] { "혁 노야가 음양이기와 물극필반을 물었을 때 모용휘는 자기 한계를 떠올렸다.", "답을 대신 정해 주지 않고 이미 익힌 길부터 돌아본다." }, Choices = new[] {
+                new FortuneChoice { Label = "장착한 초식의 변화를 복기한다", Result = "다른 모양 속에서도 이어지는 움직임을 살폈습니다.", MasteryUses = 4 },
+                new FortuneChoice { Label = "서둘러 한계를 정하지 않고 호흡한다", Result = "지금의 질문을 남겨 두고 다음 수련을 준비했습니다.", ExpLevels = .15 },
+            } },
+            new FortuneEvent { Id = "f_baton_trust", Title = "바통을 놓지 않은 손", UnlockStage = 28, Text = new[] { "준호는 다친 뒤에도 바통을 가져왔다. 비류연은 늦지 않았다며 친구라 답했다.", "공동 일위라는 판정 뒤에도 그 신뢰는 남았다." }, Choices = new[] {
+                new FortuneChoice { Label = "친구가 견딘 길을 함께 돌아본다", Result = "순위보다 먼저 지킨 약속을 기억했습니다.", BondPoints = 1 },
+                new FortuneChoice { Label = "돌아올 힘을 남기는 달리기를 복기한다", Result = "기와 호흡을 아끼던 조언을 되짚었습니다.", ExpLevels = .2 },
+            } },
             new FortuneEvent { Id = "f_eve", Title = "결전 전야", UnlockStage = 28,
                 Text = new[] { "큰 싸움을 앞둔 밤, 아무도 쉽게 잠들지 못한다.", "마지막 준비를 어떻게 할까?" },
                 Choices = new[]
@@ -172,6 +184,14 @@ namespace BiRyeoDo.Core
                     new FortuneChoice { Label = "밤새 운기조식에 몰두한다", Result = "기운이 한계까지 차올랐다. 경험 +", ExpLevels = 1.3 },
                     new FortuneChoice { Label = "비상약을 챙겨 둔다", Result = "행낭 깊숙이 비장의 영단을 챙겼다.", ItemId = "ilgeup_yeongdan" },
                 } },
+            new FortuneEvent { Id = "f_camp_work", Title = "동굴에서 나눈 일", UnlockStage = 29, Text = new[] { "나예린이 찾은 동굴을 위장하고 물·식량·마른 장작을 마련했다. 우뢰매의 사냥과 길잡이도 도움이 됐다.", "생존은 혼자 잘 싸우는 일만으로 끝나지 않았다." }, Choices = new[] {
+                new FortuneChoice { Label = "거점 준비의 순서를 적는다", Result = "그동안 익힌 생활 기술을 다시 살폈습니다.", ExpLevels = .2 },
+                new FortuneChoice { Label = "힘을 아끼는 손놀림을 복기한다", Result = "장착 무공의 기본 움직임을 차분히 다듬었습니다.", MasteryUses = 4 },
+            } },
+            new FortuneEvent { Id = "f_shared_responsibility", Title = "나누어 질 몫", UnlockStage = 30, Text = new[] { "빙검의 자책 앞에서 염도는 자신에게도 책임질 몫이 있다 말했다.", "살아남은 이들의 회복과 전승은 그 뒤부터 시작이었다." }, Choices = new[] {
+                new FortuneChoice { Label = "곁의 동료를 살핀다", Result = "혼자 삼키지 않아도 될 마음을 나눴습니다.", BondPoints = 1 },
+                new FortuneChoice { Label = "다음에 지켜야 할 것을 기록한다", Result = "승패 뒤에 남은 책임을 돌아봤습니다.", ExpLevels = .2 },
+            } },
             new FortuneEvent { Id = "f_white_tiger", Title = "술동이 앞의 백호", UnlockStage = 31,
                 Text = new[] { "산길 모퉁이에서 커다란 하얀 호랑이가 빈 술동이 앞에 앉아 이쪽을 본다.", "황금빛 눈이 무언가를 기다리는 것 같다." },
                 Choices = new[]
