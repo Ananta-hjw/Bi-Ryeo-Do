@@ -147,10 +147,10 @@ namespace BiRyeoDo.Tests
         public void EquippedArtsChangeQiPrioritiesButMerelyLearningAnArtDoesNot()
         {
             var save = Save(); save.Level = 1;
-            Add(save, "cloth_robe", "gen_arm_fin04");
-            Assert.AreEqual("cloth_robe", EquipmentRecommendation.Suggest(save, Inventory.Hero)[1]);
+            Add(save, "chain_shirt", "gen_arm_fin04");   // gear 내공 is small now: a robe without it against one with +0.9%
+            Assert.AreEqual("chain_shirt", EquipmentRecommendation.Suggest(save, Inventory.Hero)[1]);
             save.LearnedArts.Add("goengroe");
-            Assert.AreEqual("cloth_robe", EquipmentRecommendation.Suggest(save, Inventory.Hero)[1]);
+            Assert.AreEqual("chain_shirt", EquipmentRecommendation.Suggest(save, Inventory.Hero)[1]);
             save.EquippedArts.Add("goengroe");
             Assert.AreEqual("gen_arm_fin04", EquipmentRecommendation.Suggest(save, Inventory.Hero)[1]);
         }

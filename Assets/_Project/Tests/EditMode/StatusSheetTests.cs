@@ -58,7 +58,7 @@ namespace BiRyeoDo.Tests
             StringAssert.DoesNotContain("<color=#8ECFFF>체력", colored);
             StringAssert.DoesNotContain("<color=#8ECFFF>치명타 +", colored);
             if (stars >= 1) StringAssert.Contains("<color=#8ECFFF>치명타 피해 +32%</color>", colored);
-            if (stars >= 3) StringAssert.Contains("<color=#8ECFFF>내공 +18%</color>", colored);
+            if (stars >= 3) StringAssert.Contains("<color=#8ECFFF>내공 +5.4%</color>", colored);
             if (stars >= 5) StringAssert.Contains("<color=#8ECFFF>방어 +69%</color>", colored);
         }
 

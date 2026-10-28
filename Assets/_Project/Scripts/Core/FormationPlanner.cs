@@ -63,7 +63,7 @@ namespace BiRyeoDo.Core
                 double weight = 0.0;
                 foreach (var skill in c.Skills)
                 {
-                    double resource = skill.QiCost <= c.Qi + InteractiveBattle.QiRegenPerTurn + c.QiRegenBonus ? 1.0 : .25;
+                    double resource = skill.QiCost <= c.Qi + InteractiveBattle.QiRegenFor(c.Stats.MaxQi) + c.QiRegenBonus ? 1.0 : .25;
                     double w = resource / (1 + Math.Max(skill.Cooldown, c.CooldownLeft(skill)));
                     if (skill.SpiritCost > c.Spirit) w *= .15;
                     weight += w;
@@ -361,7 +361,7 @@ namespace BiRyeoDo.Core
                     if (skill.AllEnemies) value += benefit;
                     if (pick == null || benefit > (skill.AllEnemies ? 0 : value)) { pick = enemy; if (!skill.AllEnemies) value = benefit; }
                 }
-                value /= 1 + .15 * skill.QiCost / Math.Max(1.0, actor.Qi + InteractiveBattle.QiRegenPerTurn);
+                value /= 1 + .15 * skill.QiCost / Math.Max(1.0, actor.Qi + InteractiveBattle.QiRegenFor(actor.Stats.MaxQi));
                 if (pick != null && value > score) { score = value; best = skill; target = pick; }
             }
             if (best != null)

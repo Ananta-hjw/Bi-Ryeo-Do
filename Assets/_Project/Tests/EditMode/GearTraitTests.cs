@@ -88,9 +88,9 @@ namespace BiRyeoDo.Tests
         [TestCase(0, 0f, 0f, 0f)]
         [TestCase(1, .196f, 0f, 0f)]
         [TestCase(2, .196f, 0f, 0f)]
-        [TestCase(3, .196f, .112f, 0f)]
-        [TestCase(4, .196f, .112f, 0f)]
-        [TestCase(5, .196f, .112f, .42f)]
+        [TestCase(3, .196f, .0336f, 0f)]
+        [TestCase(4, .196f, .0336f, 0f)]
+        [TestCase(5, .196f, .0336f, .42f)]
         public void MilestonesUnlockCumulativelyOnlyAtTheirRequestedStar(int stars, float critDamage, float qi, float defense)
         {
             var effects = Gear.EffectsFor(EarlyGameContent.FindItem("crimson_saber"), 0, stars);
@@ -106,7 +106,7 @@ namespace BiRyeoDo.Tests
             var fresh = Gear.EffectsFor(item, 0, 5);
             var enhanced = Gear.EffectsFor(item, 100, 5);
             Assert.AreEqual(.32f, fresh.CritDmgAdd, .00001f);
-            Assert.AreEqual(.18f, fresh.QiPct, .00001f);   // 내공 traits are halved
+            Assert.AreEqual(.054f, fresh.QiPct, .00001f);   // 내공 traits are scaled by QiTraitScale (0.15)
             Assert.AreEqual(.69f, fresh.DefPct, .00001f);
             Assert.AreEqual(fresh.CritDmgAdd, Gear.EffectsFor(item, 0, 1).CritDmgAdd);
             Assert.AreEqual(fresh.CritDmgAdd, enhanced.CritDmgAdd);
@@ -201,11 +201,11 @@ namespace BiRyeoDo.Tests
             var item = EarlyGameContent.FindItem(Ritual.RewardId);
             var fresh = Gear.EffectsFor(item);
             var enhanced = Gear.EffectsFor(item, 100);
-            Assert.AreEqual(.276f * 2f / 1.3f, fresh.QiPct, .00001f);   // +42.46% at five stars, no enhancement
+            Assert.AreEqual(.083f * 2f / 1.3f, fresh.QiPct, .00001f);   // +12.77% at five stars, no enhancement
             Assert.AreEqual(.774f * 2f / 1.3f, fresh.DefPct, .00001f);   // +119.08%
-            Assert.AreEqual(.276f * 6.9f / 1.3f, enhanced.QiPct, .00001f);
+            Assert.AreEqual(.083f * 6.9f / 1.3f, enhanced.QiPct, .00001f);
             Assert.AreEqual(.774f * 6.9f / 1.3f, enhanced.DefPct, .00001f);
-            StringAssert.Contains("내공 +146.5%", StatusSheet.EffectText(item, 100));
+            StringAssert.Contains("내공 +44.1%", StatusSheet.EffectText(item, 100));
             StringAssert.Contains("방어 +410.8%", StatusSheet.EffectText(item, 100));
             Assert.IsEmpty(Gear.BreakthroughTraits(item), "these are base effects, not fixed breakthrough traits");
         }
@@ -255,7 +255,7 @@ namespace BiRyeoDo.Tests
             var stats = new CombatStats { MaxHp = 1000, MaxQi = 100, Attack = 100, Defense = 100, Speed = 100, CritDamage = 1.5f };
             var hero = Inventory.ApplyGear(stats, Inventory.GearOf(save, Inventory.Hero), Gear.LevelsFor(save, Inventory.Hero));
             var companion = Inventory.ApplyGear(stats, Inventory.GearOf(save, "hyo_ryong"), Gear.LevelsFor(save, "hyo_ryong"));
-            Assert.AreEqual(111, hero.MaxQi);
+            Assert.AreEqual(103, hero.MaxQi);
             Assert.AreEqual(hero.MaxQi, companion.MaxQi);
             Assert.AreEqual(1.696f, companion.CritDamage, .00001f);
             Inventory.Add(save, "iron_sword", 1);

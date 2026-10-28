@@ -66,7 +66,7 @@ namespace BiRyeoDo.Core
                     double weight = 1.0 / (1 + Math.Max(0, skill.Cooldown));
                     ordinaryWeight += weight; cost += weight * skill.QiCost;
                 }
-                double coverage = Math.Min(1, (stats.MaxQi + turns * (InteractiveBattle.QiRegenPerTurn + Reference.QiRegenBonus))
+                double coverage = Math.Min(1, (stats.MaxQi + turns * (InteractiveBattle.QiRegenFor(stats.MaxQi) + Reference.QiRegenBonus))
                     / Math.Max(1, turns * cost / Math.Max(1, ordinaryWeight)));
                 double value = 0, weights = 0;
                 foreach (var skill in Reference.Skills)

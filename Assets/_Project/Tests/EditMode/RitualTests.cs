@@ -39,12 +39,12 @@ public class RitualTests
         Assert.AreEqual(.51f * 1.5f / 1.3f, actual.CritRate, .00001f);
         Assert.AreEqual(1.5f + .85f * 2f / 1.3f, actual.CritDamage, .00001f);
         Assert.AreEqual(219, actual.Defense);
-        Assert.AreEqual(142, actual.MaxQi);
+        Assert.AreEqual(113, actual.MaxQi);
         Assert.AreEqual(0, actual.StartSpirit);
         var effects = StatusSheet.EffectText(item, 0, Gear.MaxStars);
         StringAssert.Contains("체력 +78.5%", effects);
         StringAssert.Contains("공격 +313.8%", effects);
-        StringAssert.Contains("내공 +42.5%", effects);
+        StringAssert.Contains("내공 +12.8%", effects);
         StringAssert.Contains("방어 +119.1%", effects);
         StringAssert.Contains("속도 +52", effects);
         StringAssert.Contains("치명타 +58.8%", effects);

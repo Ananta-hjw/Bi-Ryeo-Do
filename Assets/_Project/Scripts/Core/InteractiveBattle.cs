@@ -47,6 +47,13 @@ namespace BiRyeoDo.Core
         public const int MaxTurns = 600;
         public const int MaxSpirit = 100;
         public const int QiRegenPerTurn = 6;
+        /// <summary>A party member regains the larger of <see cref="QiRegenPerTurn"/> and this share of max 내공 each turn (plus 심법 bonuses).</summary>
+        public const float QiRegenPct = 0.03f;
+        /// <summary>운기 restores the larger of <see cref="MeditateQi"/> and this share of max 내공.</summary>
+        public const float MeditateQiPct = 0.20f;
+
+        public static int QiRegenFor(int maxQi) { return Math.Max(QiRegenPerTurn, (int)Math.Round(maxQi * QiRegenPct)); }
+        public static int MeditateQiFor(int maxQi) { return Math.Max(MeditateQi, (int)Math.Round(maxQi * MeditateQiPct)); }
         public const int MeditateQi = 40;
         public const float MeditateHealPct = 0.08f;
         public const float GuardDamageFactor = 0.4f;
@@ -272,8 +279,9 @@ namespace BiRyeoDo.Core
                     {
                         int heal = (int)Math.Round(actor.Stats.MaxHp * MeditateHealPct);
                         actor.Hp = Math.Min(actor.Stats.MaxHp, actor.Hp + heal);
-                        actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + MeditateQi);
-                        events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = "meditate", Kind = EventKind.Meditate, Heal = heal, TargetHpAfter = actor.Hp, Message = "운기조식. 내공 +" + MeditateQi });
+                        int qi = MeditateQiFor(actor.Stats.MaxQi);
+                        actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + qi);
+                        events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = "meditate", Kind = EventKind.Meditate, Heal = heal, TargetHpAfter = actor.Hp, Message = "운기조식. 내공 +" + qi });
                         // 운기 also clears one 상태 이상, the one that hurts most
                         foreach (var k in Statuses.CurePriority)
                             if (actor.RemoveStatus(k)) { events.Add(Cured(actor, actor, k, actor.Name + "의 " + Statuses.Name(k) + "이(가) 풀렸다.")); break; }
@@ -558,7 +566,7 @@ namespace BiRyeoDo.Core
                 if (actor.Team == Team.Player)
                 {
                     actor.TickCooldowns();
-                    if (!wounded) actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + QiRegenPerTurn + actor.QiRegenBonus);
+                    if (!wounded) actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + QiRegenFor(actor.Stats.MaxQi) + actor.QiRegenBonus);
                     Current = actor;
                     return events;
                 }

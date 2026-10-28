@@ -83,9 +83,10 @@ namespace BiRyeoDo.Tests
         {
             var item = EarlyGameContent.FindItem(id);
             // A tuning guard, not a simulation of combat effectiveness.
-            double budget = (item.HpPct + item.QiPct * 2d + item.AtkPct + item.DefPct) * 100d   // 내공 was halved later; the guard keeps the earlier budget
+            // 내공 was halved and later cut to 30% (rounded to 0.001); the guard keeps the earlier budget, so it allows that rounding
+            double budget = (item.HpPct + item.QiPct * 2d / .3d + item.AtkPct + item.DefPct) * 100d
                 + item.SpeedAdd + item.CritAdd * 200d + item.CritDmgAdd * 25d;
-            Assert.AreEqual(expected, budget, .0001d, id);
+            Assert.AreEqual(expected, budget, item.QiPct > 0f ? .34d : .0001d, id);
         }
     }
 }

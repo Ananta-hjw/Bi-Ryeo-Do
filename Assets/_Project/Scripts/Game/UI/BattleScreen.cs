@@ -1531,7 +1531,7 @@ namespace BiRyeoDo.Game.UI
                 SetCommand(slot, s.Name, sub, ok, ArtLibrary.Art(s.Id));
             }
             SetCommand(5, "방어", "피해 -60%", true, ArtLibrary.Icon("cmd_guard"));
-            SetCommand(6, "운기", "내공 +" + InteractiveBattle.MeditateQi, true, ArtLibrary.Icon("cmd_meditate"));
+            SetCommand(6, "운기", "내공 +" + InteractiveBattle.MeditateQiFor(me.Stats.MaxQi), true, ArtLibrary.Icon("cmd_meditate"));
             SetCommand(7, "아이템", UsableItems().Count > 0 ? "" : "없음", UsableItems().Count > 0, ArtLibrary.Icon("cmd_item"));
 
             RefreshJointPartners();
@@ -1740,7 +1740,7 @@ namespace BiRyeoDo.Game.UI
                 else ShowTip("필살기 · " + ultimateSkill.Name, SkillBody(ultimateSkill) + "\n기세가 가득 차면 쓸 수 있습니다.", ArtLibrary.Art(ultimateSkill.Id) ?? ArtLibrary.Icon("ultimate_slot"));
             }
             else if (slot == 5) ShowTip("방어", "다음 차례까지 받는 피해가 크게 줄어듭니다(피해 60% 감소). 기세가 조금 오릅니다.", ArtLibrary.Icon("cmd_guard"));
-            else if (slot == 6) ShowTip("운기", "내공 +" + InteractiveBattle.MeditateQi + "과 체력을 조금 회복하고, 걸린 상태 이상을 풉니다.", ArtLibrary.Icon("cmd_meditate"));
+            else if (slot == 6) ShowTip("운기", "내공 +" + InteractiveBattle.MeditateQiFor(me.Stats.MaxQi) + "(40과 최대 내공의 20% 중 큰 값)과 체력을 조금 회복하고, 걸린 상태 이상을 풉니다.", ArtLibrary.Icon("cmd_meditate"));
             else if (slot == 7) ShowTip("아이템", "행낭의 소모품을 씁니다. 가장 다친 동료의 체력이 회복됩니다.", ArtLibrary.Icon("cmd_item"));
             else if (slot == 8 && _jointPartners.Count > 0)
             {
