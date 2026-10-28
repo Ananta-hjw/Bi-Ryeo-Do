@@ -290,6 +290,15 @@ namespace BiRyeoDo.Core
             return ScaleEnemy(enemy, stage, 0, survive).Scaled(HardHpFix(stage, difficulty), HardAtkFix(stage, difficulty), 1f, LevelAdd(stage, difficulty));
         }
 
+        /// <summary>The boss of every fifth story stage from 10 (10, 15, … 35) has HP, attack and defense x1.3 on every difficulty (story stages only; 의뢰·무한 비무대 clones are unchanged).</summary>
+        public const float MilestoneBossBoost = 1.3f;
+        public const int MilestoneEvery = 5, MilestoneFromStage = 10;
+
+        public static bool IsMilestoneBoss(EnemyData enemy, int stage)
+        {
+            return enemy != null && enemy.IsBoss && stage >= MilestoneFromStage && stage % MilestoneEvery == 0;
+        }
+
         /// <summary>
         /// A story stage's enemy: <see cref="ScaleEnemy"/> for the difficulty, then dressed in <see cref="GearLoadout.ForEnemies"/> (real gear a little below
         /// what a player is expected to wear). Beasts, traps and objects (<see cref="Realm.HasRealm"/>) wear nothing, nor do the enemies of a 시험 other than
@@ -299,6 +308,7 @@ namespace BiRyeoDo.Core
         {
             bool survive = trial != null && trial.Kind == TrialKind.Survive;
             var scaled = ScaleEnemy(enemy, stage, difficulty, survive);
+            if (IsMilestoneBoss(enemy, stage)) scaled = scaled.Scaled(MilestoneBossBoost, MilestoneBossBoost, MilestoneBossBoost);
             var gear = GearLoadout.ForEnemies(stage, difficulty);
             return gear == null || !Realm.HasRealm(enemy) || (trial != null && !survive) ? scaled : scaled.WithGear(gear);
         }
