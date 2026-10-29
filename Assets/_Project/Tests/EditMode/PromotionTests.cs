@@ -105,10 +105,11 @@ namespace BiRyeoDo.Tests
         [Test]
         public void DuelsAreHardAndNeedABuiltCharacter()
         {
-            // The bare bot (no gear, 심법 or rank bonus) cannot even win the first promotion; a starter build (1.5x) can, but not rank 5...
+            // The bare bot (no gear, 심법 or rank bonus) cannot even win the first promotion; a starter build (1.6x) can, but not rank 5.
+            // (1.6x since 여반장 left the stage-13 loadout; at 1.5x the bot now wins rank 2 about half the time.)
             Assert.Less(NotLostRate(2, 1, 20), 0.5, "bare bot, normal rank 2");
-            Assert.GreaterOrEqual(NotLostRate(2, 1, 20, 1.5f), 0.8, "starter build, normal rank 2");
-            Assert.Less(NotLostRate(5, 1, 20, 1.5f), 0.5, "starter build, normal rank 5");
+            Assert.GreaterOrEqual(NotLostRate(2, 1, 20, 1.6f), 0.8, "starter build, normal rank 2");
+            Assert.Less(NotLostRate(5, 1, 20, 1.6f), 0.5, "starter build, normal rank 5");
             // ...a character with about 3x the bot's power (decent gear, 심법, rank bonus; duelists wear gear too) handles the middle ranks...
             Assert.GreaterOrEqual(NotLostRate(6, 1, 20, 3f), 0.8, "built, normal rank 6");
             // ...and the top still needs a fully built one.
