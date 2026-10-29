@@ -236,6 +236,11 @@ namespace BiRyeoDo.Core
             {
                 H("내공합격") + "살아 있는 우리 편이 모두 한 번씩 공격하면, 다음 공격이 2.5배가 됩니다. (화면 위 「합격 2/4」)\n\n· 같은 사람이 두 번 공격해도 한 번\n· 합공은 둘 다 공격한 것으로 셈\n· 방어 · 운기 · 치유 · 회피 · 아이템은 끊김\n· 행동 수 제한도 있습니다."
             } },
+            new TutorialTopic { Id = "trial_technique", Title = "공방별 대응", Pages = new[]
+            {
+                H("이번 공방의 목표") + "시작 안내에 적힌 기술을 제한 행동 안에 사용하세요. 상대의 체력을 모두 깎는 시험이 아닙니다.\n\n예고 중 대응하라는 목표라면 적이 힘을 모을 때까지 방어·운기로 기다렸다가 지정된 기술을 사용하세요.",
+                H("상태와 기록") + "위쪽의 대응 횟수가 차면 공방을 마칩니다. 다른 기술이나 기본 공격으로 먼저 쓰러뜨리면 목표를 달성하지 못합니다.\n\n장면 전용 명령은 이 공방에서만 사용하며 기존 장비와 학습 무공은 유지됩니다."
+            } },
         };
 
         /// <summary>The help topic explaining a story trial's rule.</summary>
@@ -247,6 +252,7 @@ namespace BiRyeoDo.Core
                 case TrialKind.Lifeline: return "trial_lifeline";
                 case TrialKind.Survive: return "trial_survive";
                 case TrialKind.Harmony: return "trial_harmony";
+                case TrialKind.Technique: return "trial_technique";
             }
             return null;
         }

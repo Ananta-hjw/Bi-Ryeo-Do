@@ -37,7 +37,7 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void StoriesAreMostlyDialogueAndInterludesAreWellFormed()
+        public void LegacyStoriesKeepDialogueAndInterludesAreWellFormed()
         {
             int interludes = 0;
             foreach (var s in EarlyGameContent.Stages)
@@ -46,7 +46,8 @@ namespace BiRyeoDo.Tests
                 {
                     int talk = 0;
                     foreach (var l in lines) if (l.IndexOf('|') > 0) talk++;
-                    Assert.GreaterOrEqual(talk * 100, lines.Length * 70, "dialogue share in stage " + s.Number);
+                    // New reanalysis summaries use narration to avoid inventing canonical quotations.
+                    if (s.Number <= 36) Assert.GreaterOrEqual(talk * 100, lines.Length * 70, "dialogue share in stage " + s.Number);
                 }
                 var between = StoryBriefings.Interlude(s.Number);
                 if (between == null) continue;

@@ -11,7 +11,7 @@ namespace BiRyeoDo.Core
         // Art keys (companion ids and EnemyData.ArtKey) of women: 나예린, 검후 이옥상, 독한녀 십이선녀, 철옥잠 마하령, 은가면 여인 셋, 아미 제자 유란 (story); 추가연, 언가영, 사교검 백사영 (name).
         private static readonly HashSet<string> Women = new HashSet<string>
         {
-            "i_jinseol", "gyo_ok", "na_yerin", "geomhu_ioksang", "sunyeo", "ma_haryeong", "mask_gongpo", "mask_jeolmang", "mask_bitan",
+            "yunmi", "ye_cheong", "ryu_eungyeong", "mong_mu", "hwan_mu", "dokgo_ryeong", "jin_ryeong", "yeonbi", "young_yeonbi", "young_na_yerin", "ok_yugyeong", "i_jinseol", "gyo_ok", "na_yerin", "geomhu_ioksang", "sunyeo", "ma_haryeong", "mask_gongpo", "mask_jeolmang", "mask_bitan",
             "chu_gayeon", "eonga_yeong", "baek_sayeong", "yu_ran",
         };
 

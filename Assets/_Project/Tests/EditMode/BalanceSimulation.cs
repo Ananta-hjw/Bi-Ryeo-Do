@@ -58,6 +58,7 @@ namespace BiRyeoDo.Tests
             for (int k = 0; k < stage.Encounters.Length; k++)
             {
                 if (k > 0 && !Roster.SamePerspective(stage, k - 1, k)) party = Party(save, stage, k);
+                Roster.PrepareStoryEncounter(stage, k, party);
                 var enemies = stage.Encounters[k].Select((id, i) =>
                 {
                     var data = stage.EnemyFor(id, stage.TrialFor(k));

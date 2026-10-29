@@ -822,16 +822,18 @@ namespace BiRyeoDo.Game.UI
             bool snipers;
             var lines = EnemyBriefing(st, out snipers);
             var body = new System.Text.StringBuilder();
-            body.Append("적의 공격은 기본적으로 앞 줄부터 향합니다. 앞 줄에는 맞아도 버티는 인물을, 뒷줄에는 공격이 강한 인물을 세우세요.");
-            if (snipers) body.Append("\n뒷줄을 노리는 적이 있습니다. 이번에는 뒷줄에도 버틸 수 있는 인물을 두는 편이 좋습니다.");
+            bool fixedStory = Roster.StoryActorsFor(st, 0) != null;
+            bool pastStory = fixedStory && st.Number == 37;
+            body.Append(fixedStory ? "이야기에 따라 인물과 배치가 정해집니다. 상대의 예고를 읽고 방어·회피·무공을 선택해 주세요." : "적의 공격은 기본적으로 앞 줄부터 향합니다. 앞 줄에는 맞아도 버티는 인물을, 뒷줄에는 공격이 강한 인물을 세우세요.");
+            if (snipers && !fixedStory) body.Append("\n뒷줄을 노리는 적이 있습니다. 이번에는 뒷줄에도 버틸 수 있는 인물을 두는 편이 좋습니다.");
             UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Advice", _prepOverlay, new Vector2(0.05f, 0.775f), new Vector2(0.95f, 0.88f), body.ToString(), 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 32));
 
             Recommend.StageReward(save, st, out long rewardExp, out long rewardDoo);
             double need = Recommend.ForStage(st);
-            bool enough = Recommend.Meets(save, need);
+            bool enough = pastStory || Recommend.Meets(save, need);
             string payNote = Recommend.IsReplay(save, st) ? "  (이미 깬 곳이라 절반)" : "";
             UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Reward", _prepOverlay, new Vector2(0.05f, 0.645f), new Vector2(0.95f, 0.775f),
-                "예상 보상  경험 " + rewardExp.ToString("N0") + " · 은자 " + rewardDoo.ToString("N0") + payNote + "\n" + Recommend.Line(save, need), 30, enough ? UiFactory.PaperText : UiFactory.Red, TextAnchor.UpperLeft, FontStyle.Normal), 32), 1.15f);
+                "예상 보상  경험 " + rewardExp.ToString("N0") + " · 은자 " + rewardDoo.ToString("N0") + payNote + "\n" + (pastStory ? "회상 전투 · 당시의 고정 능력치와 무공을 사용합니다." : Recommend.Line(save, need)), 30, enough ? UiFactory.PaperText : UiFactory.Red, TextAnchor.UpperLeft, FontStyle.Normal), 32), 1.15f);
 
             var enemyText = new System.Text.StringBuilder("나올 적\n");
             foreach (var l in lines) enemyText.Append(l).Append('\n');
@@ -844,7 +846,7 @@ namespace BiRyeoDo.Game.UI
             string storyParty = Roster.StoryPartySummary(st);
             if (storyParty.Length > 0)
                 UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("StoryPerspective", formation, new Vector2(.03f, .03f), new Vector2(.97f, .97f),
-                    "이야기 시점\n\n" + storyParty + "\n\n사건 속 인물로 전투를 진행합니다. 동료는 기존 육성을, 임시 인물은 비류연의 육성 능력치를 사용합니다. 편성과 배치는 이야기에 따라 정해집니다.", 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 32));
+                    "이야기 시점\n\n" + storyParty + "\n\n사건 속 인물로 전투를 진행합니다. " + (pastStory ? "어린 시절 회상은 당시의 고정 능력치와 무공을 사용합니다. " : "동료는 기존 육성을, 임시 인물은 비류연의 육성 능력치를 사용합니다. ") + "편성과 배치는 이야기에 따라 정해집니다.", 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 32));
             else BuildFormationBlock(formation, new List<CompanionData>(active), () => OpenPrep(st, go), .18f, .72f, st);
             UiFactory.Button("Go", _prepOverlay, new Vector2(0.52f, .015f), new Vector2(0.95f, .12f), "출전", UiFactory.Red, () => { _prepOverlay.gameObject.SetActive(false); go(); }, 38);
             UiFactory.Button("Cancel", _prepOverlay, new Vector2(0.05f, .015f), new Vector2(0.48f, .12f), "취소", UiFactory.InkSoft, () => { _prepOverlay.gameObject.SetActive(false); _placeSelected = null; }, 34);

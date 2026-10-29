@@ -6,7 +6,8 @@ namespace BiRyeoDo.Core
         Survive,    // 검후 십초지적: win by enduring Limit enemy actions with someone still standing
         Deadline,   // 목요관 경공계주: defeat the enemies within Limit party actions
         Lifeline,   // 금요관: every charged enemy move that lands cuts a lifeline; Limit cuts lose
-        Harmony     // 수화관 내공합격: an unbroken chain of attacks by the whole party powers up the next hit; defeat the enemies within Limit party actions
+        Harmony,    // 수화관 내공합격: an unbroken chain of attacks by the whole party powers up the next hit; defeat the enemies within Limit party actions
+        Technique   // use an owned scene technique in the required window before the party-action limit
     }
 
     /// <summary>A special rule for one fight of a story trial (시험). The fight still runs on the normal engine.</summary>
@@ -15,6 +16,15 @@ namespace BiRyeoDo.Core
         public TrialKind Kind;
         public int Limit;
         public string Title, Brief;
+        public string TechniqueId;
+        public int TechniqueUses = 1;
+        public bool RequiresCharge;
+
+        public static TrialRule Technique(string title, string brief, string skillId, int partyActions = 20, bool requiresCharge = false, int uses = 1)
+        {
+            if (string.IsNullOrEmpty(skillId) || uses < 1 || partyActions < uses) throw new System.ArgumentException("Invalid technique objective");
+            return new TrialRule { Kind = TrialKind.Technique, Title = title, Brief = brief, TechniqueId = skillId, Limit = partyActions, RequiresCharge = requiresCharge, TechniqueUses = uses };
+        }
 
         public static TrialRule Survive(string title, string brief, int enemyActions) { return new TrialRule { Kind = TrialKind.Survive, Limit = enemyActions, Title = title, Brief = brief }; }
         public static TrialRule Deadline(string title, string brief, int partyActions) { return new TrialRule { Kind = TrialKind.Deadline, Limit = partyActions, Title = title, Brief = brief }; }

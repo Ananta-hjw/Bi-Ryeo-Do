@@ -244,6 +244,54 @@ namespace BiRyeoDo.Core
                 new FortuneChoice { Label = "동료가 직접 말할 때까지 기다린다", Result = "상대가 정할 마음의 자리를 남겨 두었습니다.", BondPoints = 2 },
                 new FortuneChoice { Label = "알 수 없는 이야기를 단정하지 않는다", Result = "확인한 사실과 전해 들은 말을 갈라 적었습니다.", ExpLevels = .25 },
             } },
+            new FortuneEvent { Id = "f_red_signal", Title = "붉은 수건의 뜻", UnlockStage = 37, Text = new[] { "붉은 수건은 다시 도움을 청할 수 있다는 약속이었다.", "계약에 걸린 세 가지 부탁은 아직 쓰이지 않았다." }, Choices = new[] {
+                new FortuneChoice { Label = "도움을 청한 용기를 기억한다", Result = "혼자가 아니어도 될 길을 기억했습니다.", BondPoints = 2 },
+                new FortuneChoice { Label = "약속을 지킬 준비를 한다", Result = "불러 줄 때 닿을 수 있도록 수련을 이어 갔습니다.", ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_guest_map", Title = "지도와 목적지", UnlockStage = 38, Text = new[] { "마천각의 지도에는 자유 구역과 안내가 필요한 곳, 비공개 구역이 나뉘어 있었다.", "지도와 지남철만 있어도 목적지가 없다면 길은 정해지지 않았다." }, Choices = new[] {
+                new FortuneChoice { Label = "갈 길과 필요한 도움을 정리한다", Result = "아는 길과 물어야 할 길을 구별했습니다.", ExpLevels = .2 },
+                new FortuneChoice { Label = "동료와 지도를 함께 살핀다", Result = "서로 놓친 방향을 짚어 주었습니다.", BondPoints = 2 },
+            } },
+            new FortuneEvent { Id = "f_samjae_question", Title = "가장 기본인 세 가지", UnlockStage = 39, Text = new[] { "혁중은 모용휘에게 천지인 삼재의 이치를 화두로 남겼다.", "익숙한 말에 답이 있다고 해서 건곤조화경을 이미 얻은 것은 아니었다." }, Choices = new[] {
+                new FortuneChoice { Label = "지금 익힌 무공의 기본을 돌아본다", Result = "한 번의 대답 대신 반복할 수련을 남겼습니다.", MasteryUses = 14 },
+                new FortuneChoice { Label = "함께 수련할 사람을 찾는다", Result = "배운 것을 나누며 생각을 정리했습니다.", BondPoints = 2 },
+            } },
+            new FortuneEvent { Id = "f_staked_name", Title = "스스로 밝힌 이름", UnlockStage = 39, Text = new[] { "나예린은 자기 얼굴과 이름을 밝혀 돈왕의 협상 조건을 바꿨다.", "오십만 냥은 아직 받지 못한 상금 약속이었다. 누군가는 그 이름을 다른 계산에 쓰려 했다." }, Choices = new[] {
+                new FortuneChoice { Label = "상금과 참가 조건을 구별해 적는다", Result = "아직 얻지 않은 보상을 가진 듯 여기지 않았습니다.", ExpLevels = .25 },
+                new FortuneChoice { Label = "협력하기로 한 마음을 기억한다", Result = "대신 정하지 않고 서로의 선택을 믿었습니다.", BondPoints = 2 },
+            } },
+            new FortuneEvent { Id = "f_unopened_door", Title = "도망치지 않을 준비", UnlockStage = 41, Text = new[] { "연비가 품은 달의 이슬은 사부의 방문을 열기 위한 준비였다.", "문을 열었다고 생명의 빚이나 다른 계약의 답이 끝난 것은 아니었다." }, Choices = new[] {
+                new FortuneChoice { Label = "마주한 뒤 할 말을 가다듬는다", Result = "미룬 대답 앞에서 호흡을 고르게 했습니다.", ExpLevels = .25 },
+                new FortuneChoice { Label = "곁에 남은 사람을 떠올린다", Result = "혼자 감당하려던 짐에도 함께 걸은 길이 남았습니다.", BondPoints = 2 },
+            } },
+            new FortuneEvent { Id = "f_unfamiliar_staff", Title = "익숙한 무기 너머", UnlockStage = 42, Text = new[] { "진비뢰도를 되찾지 못한 비류연은 정신봉으로 배 값을 받아 냈다.", "익숙한 도구를 쥐지 못해도 반복한 수련까지 사라진 것은 아니었다." }, Choices = new[] {
+                new FortuneChoice { Label = "사용자가 익힌 기본을 되짚는다", Result = "손에 든 것보다 오래 익힌 것을 돌아봤습니다.", MasteryUses = 16 },
+                new FortuneChoice { Label = "다른 공방의 길을 정리한다", Result = "한 가지 무기에만 매이지 않을 호흡을 골랐습니다.", ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_leave_nest", Title = "둥지를 떠날 뜻", UnlockStage = 43, Text = new[] { "나예린은 부모에게 큰절하며 자신이 정한 길을 말했다.", "허락을 구한 일은 소중한 관계를 끊거나 남에게 마음을 대신 정해 달라는 말이 아니었다." }, Choices = new[] {
+                new FortuneChoice { Label = "스스로 정한 길을 지켜본다", Result = "존중할 마음과 기다릴 자리를 남겼습니다.", BondPoints = 2 },
+                new FortuneChoice { Label = "길을 나설 준비를 돌아본다", Result = "선택 뒤에 필요한 수련을 이어 갔습니다.", ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_free_help", Title = "대가 없이 내민 손", UnlockStage = 44, Text = new[] { "류은경은 대가 없는 도움을 믿기 어려웠다. 용천명은 사연을 듣고 돕기로 했다.", "인정받을 길을 찾는 마음은 혼인 소동의 웃음만으로 끝나지 않았다." }, Choices = new[] {
+                new FortuneChoice { Label = "무시당한 말보다 자기 실력을 돌아본다", Result = "타인의 평가 밖에 남길 한 걸음을 찾았습니다.", ExpLevels = .25 },
+                new FortuneChoice { Label = "부탁과 협력을 나눈다", Result = "혼자 감당하지 않아도 될 몫을 나눴습니다.", BondPoints = 2 },
+            } },
+            new FortuneEvent { Id = "f_unfinished_memory", Title = "몸에 남은 시간", UnlockStage = 45, Text = new[] { "소안검과 한빙섬옥 앞에 영령의 몸이 반응했다.", "돌아온 짧은 호칭이 완전한 기억 회복을 보증하지는 않았다." }, Choices = new[] {
+                new FortuneChoice { Label = "돌아온 작은 반응을 기억한다", Result = "성급한 결론보다 남은 사람의 시간을 기다렸습니다.", BondPoints = 2 },
+                new FortuneChoice { Label = "함께 익힌 기본을 수련한다", Result = "오래된 호흡을 가볍게 여기지 않았습니다.", MasteryUses = 16 },
+            } },
+            new FortuneEvent { Id = "f_spared_witness", Title = "환호보다 남긴 목숨", UnlockStage = 46, Text = new[] { "연비는 관중이 원하는 처형을 거절했다. 이벽한은 살아서 사부를 다시 만났다.", "독무가 증언을 끊었어도 살아남은 사람과 우승의 성취까지 지워지지는 않았다." }, Choices = new[] {
+                new FortuneChoice { Label = "이긴 뒤 남길 책임을 정리한다", Result = "승부의 다음 걸음을 생각했습니다.", ExpLevels = .25 },
+                new FortuneChoice { Label = "아직 말하지 못한 사람을 기다린다", Result = "모르는 진실을 임의로 채우지 않았습니다.", BondPoints = 2 },
+            } },
+            new FortuneEvent { Id = "f_asked_help", Title = "무릎으로 청한 도움", UnlockStage = 47, Text = new[] { "비류연은 사부 앞에서 반드시 구할 사람이 있다 청했다.", "돌려줄 약속 아래 빌린 칼은 절반이었다. 사람을 찾을 몫은 동료들과 나눴다." }, Choices = new[] {
+                new FortuneChoice { Label = "맡겨야 할 일을 함께 정한다", Result = "자기 힘만으로 풀 수 없는 길을 나눴습니다.", BondPoints = 2 },
+                new FortuneChoice { Label = "돌아와 지킬 약속을 적는다", Result = "다급한 마음 뒤의 책임도 남겨 두었습니다.", ExpLevels = .25 },
+            } },
+            new FortuneEvent { Id = "f_hidden_hand", Title = "마지막에 숨긴 한 수", UnlockStage = 48, Text = new[] { "장홍은 흑도의 고수에게 숨긴 흑수가 있다고 했다.", "효룡의 강타와 비류연의 느린 접촉은 서로 다른 반응을 보였다. 갑옷의 모든 비밀이 풀린 것은 아니었다." }, Choices = new[] {
+                new FortuneChoice { Label = "실제로 본 조건부터 정리한다", Result = "아직 받지 않은 다섯 공격의 결말을 단정하지 않았습니다.", ExpLevels = .25 },
+                new FortuneChoice { Label = "상대의 전조를 읽는 수련을 한다", Result = "강함만으로 놓칠 수 있는 한 수를 돌아봤습니다.", MasteryUses = 16 },
+            } },
         };
 
         public static FortuneEvent Find(string id)

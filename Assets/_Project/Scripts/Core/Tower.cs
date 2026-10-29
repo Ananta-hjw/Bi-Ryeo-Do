@@ -46,7 +46,7 @@ namespace BiRyeoDo.Core
             _bosses = new List<EnemyData>();
             foreach (var e in EarlyGameContent.Enemies)
             {
-                if (e.Moves == null || e.Moves.Length == 0 || e.RetreatHpPct > 0f || e.HpMul > 10f) continue;   // skip trial-only enemies
+                if (e.StoryOnly || e.Moves == null || e.Moves.Length == 0 || e.RetreatHpPct > 0f || e.HpMul > 10f) continue;   // skip trial-only enemies
                 (e.IsBoss ? _bosses : _normals).Add(e);
             }
         }
@@ -73,12 +73,14 @@ namespace BiRyeoDo.Core
         public const float NormalHpMul = 1.7f, BossHpMul = 3.4f;
 
         /// <summary>Fixed story anchor for a floor; never follows the player's current save or equipment.</summary>
+        private const int BalanceReferenceCap = 41;   // Keep the tuned tower stable when later story chapters are appended.
+
         public static int ReferenceStage(int floor)
         {
             int result = UnlockStage, distance = int.MaxValue;
             foreach (var stage in EarlyGameContent.Stages)
             {
-                if (stage.Number < UnlockStage) continue;
+                if (stage.Number < UnlockStage || stage.Number > BalanceReferenceCap) continue;
                 int gap = Math.Abs(stage.RecommendedLevel - FloorLevel(floor));
                 if (gap < distance) { result = stage.Number; distance = gap; }
             }

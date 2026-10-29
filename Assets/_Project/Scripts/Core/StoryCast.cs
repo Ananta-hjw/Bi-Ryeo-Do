@@ -8,11 +8,29 @@ namespace BiRyeoDo.Core
         public class Entry
         {
             public readonly string Name, Id, Role;
-            public Entry(string name, string id, string role) { Name = name; Id = id; Role = role; }
+            public readonly string[] Aliases;
+            public Entry(string name, string id, string role, params string[] aliases) { Name = name; Id = id; Role = role; Aliases = aliases; }
+            public bool MatchesCombatName(string name)
+            {
+                if (name.Contains(Name)) return true;
+                foreach (var alias in Aliases) if (name.Contains(alias)) return true;
+                return false;
+            }
         }
 
         public static readonly IReadOnlyList<Entry> All = new List<Entry>
         {
+            new Entry("예청", "ye_cheong", "빙월선자, 나예린의 어머니"),
+            new Entry("류은경", "ryu_eungyeong", "세류보 장녀, 이약빙의 후계자"),
+            new Entry("몽무", "mong_mu", "몽환쌍무"),
+            new Entry("환무", "hwan_mu", "몽환쌍무"),
+            new Entry("두노이", "du_noi", "구이십안, 은퇴한 정보상"),
+            new Entry("연비", "yeonbi", "현의와 우산, 십 년을 잇는 이름"),
+            new Entry("린", "young_na_yerin", "십 년 전 사천의 소녀"),
+            new Entry("어린 연비", "young_yeonbi", "사천 천향루의 어린 무희"),
+            new Entry("소한산", "so_hansan", "사천 천향루 주인"),
+            new Entry("나일천", "na_ilcheon", "십 년 전 사천 부총령, 새로운 서천"),
+            new Entry("옥유경", "ok_yugyeong", "혈옥선자, 마천각 무교관"),
             new Entry("모용휘", "mo_yonghwi", "칠절신검, 하남 모용세가"),
             new Entry("금영호", "geum_yeongho", "금호상회 외동아들"),
             new Entry("노학", "no_hak", "개방 8결"),
@@ -58,7 +76,7 @@ namespace BiRyeoDo.Core
             new Entry("석류화", "seok_ryuhwa", "마천각 검희"),
             new Entry("도성", "do_seong", "천무삼성"),
             new Entry("검성", "geom_seong", "천무삼성, 모용휘의 조부"),
-            new Entry("독고령", "dokgo_ryeong", "독안봉"),
+            new Entry("독고령", "dokgo_ryeong", "독안봉", "영령"),
             new Entry("혁월린", "hyeok_wolrin", "초대 학관주, 염도·빙검의 사부"),
             new Entry("공손일취", "gongson_ilchwi", "검존, 원로원 원주"),
             new Entry("단목우", "danmok_u", "천기룡, 천무구룡"),
@@ -67,7 +85,11 @@ namespace BiRyeoDo.Core
 
         public static Entry Find(string name)
         {
-            foreach (var e in All) if (e.Name == name) return e;
+            foreach (var e in All)
+            {
+                if (e.Name == name) return e;
+                foreach (var alias in e.Aliases) if (alias == name) return e;
+            }
             return null;
         }
     }

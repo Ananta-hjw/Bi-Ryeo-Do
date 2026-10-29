@@ -24,13 +24,17 @@ namespace BiRyeoDo.Core
         }
 
         public static bool IsStoryActor(string id) { return id != null && id.StartsWith("story_", System.StringComparison.Ordinal); }
-        public static string StoryArtKey(string id) { return IsStoryActor(id) ? id.Substring(6) : id; }
+        public static string StoryArtKey(Combatant unit) { return unit.StoryArtId ?? StoryArtKey(unit.Id); }
+        public static string StoryArtKey(string id) { return StoryTournament.ArtKey(id) ?? (IsStoryActor(id) ? id.Substring(6) : id); }
 
         public static string StoryName(string id)
         {
             switch (id)
             {
                 case "player": return "비류연";
+                case "story_yeonbi": return "연비";
+                case "story_young_yeonbi": return "어린 연비";
+                case "story_ma_haryeong": return "마하령";
                 case "story_yu_jaeryong": return "유재룡";
                 case "story_jang_uyang": return "장우양";
                 case "story_jang_ugyeong": return "장우경";
@@ -42,7 +46,7 @@ namespace BiRyeoDo.Core
                 case "story_i_jinseol": return "이진설";
             }
             var companion = EarlyGameContent.FindCompanion(id);
-            return companion != null ? companion.Name : null;
+            return companion != null ? companion.Name : StoryTournament.ActorName(id);
         }
 
         public static string StoryPartySummary(StageData stage)
@@ -60,7 +64,7 @@ namespace BiRyeoDo.Core
             return string.Join("\n", lines);
         }
 
-        /// <summary>Temporary actors borrow the hero's prepared stats, not his arts or persistent identity. Real companions keep their own growth.</summary>
+        /// <summary>Present-day temporary actors borrow the hero's prepared stats; childhood flashbacks use fixed stats. Real companions keep their own growth.</summary>
         public static List<Combatant> CreateStoryParty(StageData stage, int encounter, SaveData save)
         {
             var ids = StoryActorsFor(stage, encounter);
@@ -79,17 +83,62 @@ namespace BiRyeoDo.Core
                 {
                     string name = StoryName(id);
                     if (!IsStoryActor(id) || name == null) throw new System.ArgumentException("Unknown story actor: " + id);
-                    result.Add(new Combatant(id, name, Team.Player, reference.Stats, StorySkills(id)));
+                    bool past = id == "story_young_yeonbi";
+                    var stats = past ? Progression.HeroStatsAtCurve(30 + StageStars.LevelAdd(stage.Number, stage.Difficulty)) : reference.Stats;
+                    result.Add(new Combatant(id, name, Team.Player, stats, StorySkills(id, encounter), past));
                 }
             }
+            if (stage.Number == 40 && encounter == 3)
+            {
+                var heroine = result.Find(member => member.Id == "na_yerin");
+                if (heroine != null)
+                {
+                    heroine.Skills.RemoveAll(skill => skill.Id == "ny_baekhon");
+                    heroine.Skills.Insert(1, new SkillSpec { Id = "scene_silver_snow", Name = "새 검기", Description = "비설보를 바탕으로 펼치는 미완의 검기. 이 공방에서만 사용합니다.", Power = 6f, AllEnemies = true, Range = 3, QiCost = 24, Cooldown = 1 });
+                }
+            }
+            StoryTournament.PrepareParty(stage, encounter, result);
             foreach (var member in result) member.StoryControlled = true;
             Formation.Apply(result, null);   // Fixed scenes never rewrite the saved regular-party formation.
             return result;
         }
 
-        private static IEnumerable<SkillSpec> StorySkills(string id)
+        /// <summary>A new technique in the same flashback changes commands without replacing the wounded body.</summary>
+        public static void PrepareStoryEncounter(StageData stage, int encounter, IEnumerable<Combatant> party)
+        {
+            if (StoryActorsFor(stage, encounter) == null) return;
+            StoryTournament.PrepareParty(stage, encounter, party);
+            foreach (var member in party)
+            {
+                if (member.Id != "story_young_yeonbi") continue;
+                member.Skills.RemoveAll(skill => skill.Id != "basic");
+                member.Skills.AddRange(StorySkills(member.Id, encounter));
+            }
+        }
+
+        private static IEnumerable<SkillSpec> StorySkills(string id, int encounter)
         {
             var arts = new List<SkillSpec>();
+            if (id == "story_young_yeonbi")
+            {
+                if (encounter == 0) arts.Add(new SkillSpec { Id = "scene_palhwa", Name = "팔화난무", Power = .7f, Hits = 4, QiCost = 16, Cooldown = 1 });
+                else arts.Add(new SkillSpec { Id = "scene_ssangseom", Name = "충각 쌍섬일격뢰", Power = 8f, QiCost = 24, Cooldown = 1 });
+                arts.Add(new SkillSpec { Id = "scene_young_evade", Name = "비늘의 틈 읽기", Effect = SkillEffect.Evade, Power = 0, QiCost = 12, Cooldown = 2 });
+                return arts;
+            }
+            if (id == "story_yeonbi")
+            {
+                arts.Add(new SkillSpec { Id = "scene_umbrella", Name = "현천은린 · 타격", Power = 2.5f, Hits = 2, QiCost = 18, Cooldown = 1 });
+                arts.Add(new SkillSpec { Id = "scene_sanmak", Name = "산막", Effect = SkillEffect.GuardParty, Power = 0, QiCost = 16, Cooldown = 2 });
+                arts.Add(new SkillSpec { Id = "scene_sambok", Name = "삼복구타산", Power = 1.8f, Hits = 4, QiCost = 24, Cooldown = 2 });
+                return arts;
+            }
+            if (id == "story_ma_haryeong")
+            {
+                arts.Add(new SkillSpec { Id = "scene_taesanbong", Name = "붕결 일도광 태산봉", Power = 7f, QiCost = 24, Cooldown = 1 });
+                arts.Add(new SkillSpec { Id = "scene_pyoru", Name = "표류무상도법", Power = 3f, QiCost = 16, Cooldown = 1 });
+                return arts;
+            }
             if (id == "story_yu_gyeongyeong")
             {
                 arts.Add(new SkillSpec { Id = "story_hide", Name = "몸을 숨긴다", Description = "동생을 감싸고 위험을 피합니다.", Effect = SkillEffect.Evade, Power = 0, QiCost = 12, Cooldown = 1 });

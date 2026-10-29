@@ -451,6 +451,7 @@ namespace BiRyeoDo.Game.UI
                     bool changePerspective = i > startIndex && !Roster.SamePerspective(stage, i - 1, i);
                     _storyEncounter = i;
                     if (changePerspective) BuildParty(stage);
+                    Roster.PrepareStoryEncounter(stage, i, _party);
                     _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + tag + stage.Name + "  (" + (i + 1) + "/" + stage.Encounters.Length + ")";
                     _lastFightNumber = i + 1;
                     var episodes = StoryEpisodes.BeforeFight(stage, i, save, singleFight);
@@ -898,11 +899,9 @@ namespace BiRyeoDo.Game.UI
                 SetCommandsInteractable(false);
                 var actor = _battle.Current;
                 var events = _battle.PlayerAct(_command);
-                if (_command.Kind == CommandKind.Skill && actor != null && actor.Id == "player" && _command.Skill != null && _command.Skill.Id != "basic")
+                if (_command.Kind == CommandKind.Skill && actor != null && _command.Skill != null && _command.Skill.Id != "basic")
                 {
-                    Daily.Record(GameManager.Instance.Save, DailyEvent.SkillUse);
-                    if (Progression.IsUltimate(_command.Skill)) Daily.Record(GameManager.Instance.Save, DailyEvent.UltimateUse);
-                    int rose = Mastery.RecordUse(GameManager.Instance.Save, _command.Skill.Id);
+                    int rose = Daily.RecordPlayerSkill(GameManager.Instance.Save, actor, _command.Skill);
                     GameManager.Instance.SaveNow();
                     if (rose >= 0) SoundManager.Sfx("levelup");
                     if (rose >= 0) _masteryNotice = _command.Skill.Name + " 숙련 " + Mastery.LevelNames[rose] + "!" + (rose == Mastery.VariantLevel ? "  변초 해금 (무공 탭)" : "");
@@ -1028,7 +1027,7 @@ namespace BiRyeoDo.Game.UI
                 p.ActiveFrame = UiFactory.Glyph("frame", p.Root, new Vector2(.015f, .005f), new Vector2(.985f, .995f), Color.clear);
                 UiFactory.Glyph("stance", p.Root, new Vector2(.12f, .355f), new Vector2(.88f, .40f), new Color(.39f, .62f, .55f, .55f));
                 p.Frame = UiFactory.Panel("Marker", p.Root, new Vector2(0.10f, 0.298f), new Vector2(0.90f, 0.314f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks whose turn it is
-                var sprite = BattleFigure(Roster.StoryArtKey(unit.Id));
+                var sprite = BattleFigure(Roster.StoryArtKey(unit));
                 if (sprite != null)
                 {
                     p.Art = FitArt(p.Root, sprite, cell, true);
@@ -1541,6 +1540,8 @@ namespace BiRyeoDo.Game.UI
                 string sub = cd > 0 ? "재사용 " + cd + "턴" : s.SpiritCost > 0 ? "기세 " + s.SpiritCost : s.QiCost > 0 ? "내공 " + s.QiCost : "";
                 if (cd == 0 && me.Qi < s.QiCost) sub = "내공 부족";
                 else if (!reach) sub = "닿지 않음";
+                if (ok && _battle.Trial != null && _battle.Trial.Kind == TrialKind.Technique && _battle.Trial.TechniqueId == s.Id)
+                    sub = _battle.TechniqueWindowOpen ? "목표 · 지금 대응" : "목표 · 예고 대기";
                 SetCommand(slot, s.Name, sub, ok, ArtLibrary.Art(s.Id));
             }
             SetCommand(5, "방어", "피해 -60%", true, ArtLibrary.Icon("cmd_guard"));
@@ -1816,7 +1817,7 @@ namespace BiRyeoDo.Game.UI
             var companion = hero ? null : EarlyGameContent.FindCompanion(unit.Id);
             int level = hero ? GameManager.Instance.Save.Level : CompanionGrowth.LevelOf(GameManager.Instance.Save, unit.Id);
             if (Roster.IsStoryActor(unit.Id))
-                lines.Add("이야기 시점 인물 · 비류연의 육성 능력치 적용\n종합 " + System.Math.Round(Realm.Power(unit.Stats)).ToString("N0"));
+                lines.Add((unit.Id == "story_young_yeonbi" ? "어린 시절 회상 · 고정 능력치 적용\n종합 " : "이야기 시점 인물 · 비류연의 육성 능력치 적용\n종합 ") + System.Math.Round(Realm.Power(unit.Stats)).ToString("N0"));
             else lines.Add("Lv." + level + "  ·  무공 경지 " + Realm.Label(unit.RealmStep) + "  (종합 " + System.Math.Round(unit.RealmPowerBeforeBonus).ToString("N0") + ")");
             lines.Add("체력 " + unit.Hp.ToString("N0") + " / " + s.MaxHp.ToString("N0") + "\n내공 " + unit.Qi.ToString("N0") + " / " + s.MaxQi.ToString("N0") + "\n기세 " + unit.Spirit + " / " + InteractiveBattle.MaxSpirit);
             lines.Add("공격력 " + s.Attack.ToString("N0") + "   방어력 " + s.Defense.ToString("N0") + "   속도 " + s.Speed.ToString("N0"));
@@ -1836,7 +1837,7 @@ namespace BiRyeoDo.Game.UI
                 var pending = CompanionGrowth.PendingArtLines(companionData, CompanionGrowth.LevelOf(GameManager.Instance.Save, unit.Id), GameManager.Instance.Save.ClearedStage);
                 if (pending.Count > 0) lines.Add("앞으로 배울 무공: " + string.Join(", ", pending));
             }
-            ShowTip(unit.Name, string.Join("\n\n", lines), BattleFigure(Roster.StoryArtKey(unit.Id)));
+            ShowTip(unit.Name, string.Join("\n\n", lines), BattleFigure(Roster.StoryArtKey(unit)));
         }
 
         /// <summary>Long press on a party member's panel: every skill they have.</summary>
@@ -1848,7 +1849,7 @@ namespace BiRyeoDo.Game.UI
             var companion = EarlyGameContent.FindCompanion(unit.Id);
             if (companion != null && !string.IsNullOrEmpty(companion.JointName))
                 lines.Add("합공: " + companion.JointName + " (인연 " + Bonds.LevelNames[Bonds.Level(GameManager.Instance.Save, companion.Id)] + ", " + Bonds.BonusText(Bonds.Level(GameManager.Instance.Save, companion.Id)) + ")");
-            ShowTip(unit.Name + " — 스킬", string.Join("\n\n", lines), BattleFigure(Roster.StoryArtKey(unit.Id)));
+            ShowTip(unit.Name + " — 스킬", string.Join("\n\n", lines), BattleFigure(Roster.StoryArtKey(unit)));
         }
 
         /// <summary>A unit's battle picture: <c>Battle/&lt;id&gt;.png</c>, else the stand-in figure (default_assassin / default_woman / default_man, <see cref="Genders.DefaultFigure"/>). Never the <c>Standing/</c> art.</summary>

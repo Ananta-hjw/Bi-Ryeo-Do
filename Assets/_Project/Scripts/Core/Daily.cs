@@ -144,6 +144,15 @@ namespace BiRyeoDo.Core
             save.DailyProgress[(int)ev] += amount;
         }
 
+        /// <summary>All controlled allies count toward daily skill goals; only the hero owns permanent art mastery.</summary>
+        public static int RecordPlayerSkill(SaveData save, Combatant actor, SkillSpec skill)
+        {
+            if (save == null || actor == null || actor.Team != Team.Player || skill == null || skill.Id == "basic") return -1;
+            Record(save, DailyEvent.SkillUse);
+            if (Progression.IsUltimate(skill)) Record(save, DailyEvent.UltimateUse);
+            return actor.Id == Inventory.Hero ? Mastery.RecordUse(save, skill.Id) : -1;
+        }
+
         public static int ProgressOf(SaveData save, DailyMission m)
         {
             Refresh(save);

@@ -138,6 +138,18 @@ namespace BiRyeoDo.Core
             new[] { 8, 35, 12 },   // 34
             new[] { 34, 5, 6, 10, 4 },   // 35
             new[] { 9, 5, 5, 8 },   // 36
+            new[] { 6, 5 },   // 37
+            new[] { 8, 16, 11 },   // 38
+            new[] { 8, 8, 12 },   // 39
+            new[] { 17, 18, 27, 7 },   // 40
+            new[] { 8 },   // 41
+            new[] { 7, 4, 4, 4 },   // 42
+            new[] { 7, 9, 3 },   // 43
+            new[] { 3, 13, 3, 11, 10 },   // 44
+            new[] { 18, 3, 3, 3 },   // 45
+            new[] { 14, 4, 10, 3, 4 },   // 46
+            new[] { 5, 21 },   // 47
+            new[] { 22, 17, 17, 3, 3 },   // 48
         };
 
         public static int FastLimit(int stage, int fight)
@@ -268,7 +280,7 @@ namespace BiRyeoDo.Core
             0.95f, 0.97f, 0.95f, 0.97f, 0.97f, 0.95f,                               // 31-36
         };
 
-        public static float NormalHpTrim(int stage) { return stage >= 1 && stage <= NormalHpTrimTable.Length ? NormalHpTrimTable[stage - 1] : 1f; }
+        public static float NormalHpTrim(int stage) { return stage >= 1 ? NormalHpTrimTable[Math.Min(stage, NormalHpTrimTable.Length) - 1] : 1f; }
 
         /// <summary>Stage 6's boss 호천상 keeps full HP: the bot (solo, at its level) lost far more often with a weaker boss there (87% → 41%), one level up it made no difference.</summary>
         public static float NormalHpTrim(int stage, EnemyData enemy) { return stage == 6 && enemy != null && enemy.IsBoss ? 1f : NormalHpTrim(stage); }
@@ -282,7 +294,7 @@ namespace BiRyeoDo.Core
                 if (enemy.HpMul > 10f) return enemy;   // survival-only enemies keep their stats
                 float soft = NormalStatEaseFor(stage);
                 float hp = NormalHpBoost(stage), atk = NormalAtkBoost(stage);
-                if (stage >= 24 && stage <= 36) { hp *= 0.85f; atk *= 1.25f; }
+                if (stage >= 24) { hp *= 0.85f; atk *= 1.25f; }
                 if (!survive) hp *= NormalHpTrim(stage, enemy);   // a 버티기 fight keeps its enemy's HP
                 return enemy.Scaled(hp, atk * soft, soft);
             }

@@ -78,6 +78,9 @@ namespace BiRyeoDo.Core
         public TrialRule Trial { get; set; }
         public int PartyActions { get; private set; }
         public int EnemyActions { get; private set; }
+        public int TechniqueUses { get; private set; }
+        public bool TechniqueSucceeded { get { return Trial != null && Trial.Kind == TrialKind.Technique && TechniqueUses >= Trial.TechniqueUses; } }
+        public bool TechniqueWindowOpen { get { if (Trial == null || !Trial.RequiresCharge) return true; foreach (var e in _enemies) if (e.IsAlive && e.Charging) return true; return false; } }
         public int LifelinesCut { get; private set; }
         /// <summary>수화관: how many of the living members have attacked in the current unbroken chain.</summary>
         public int Combo { get { int n = 0; foreach (var m in _party) if (m.IsAlive && _chain.Contains(m.Id)) n++; return n; } }
@@ -107,8 +110,8 @@ namespace BiRyeoDo.Core
         public bool AnyPartyAlive { get { foreach (var p in _party) if (p.IsAlive) return true; return false; } }
 
         public bool SurvivedTrial { get { return Trial != null && Trial.Kind == TrialKind.Survive && EnemyActions >= Trial.Limit; } }
-        public bool IsOver { get { return !AnyPartyAlive || !AnyEnemyAlive || TrialFailed || SurvivedTrial || Turn >= MaxTurns; } }
-        public bool PlayerWon { get { return AnyPartyAlive && !TrialFailed && (!AnyEnemyAlive || SurvivedTrial); } }
+        public bool IsOver { get { return !AnyPartyAlive || !AnyEnemyAlive || TrialFailed || SurvivedTrial || TechniqueSucceeded || Turn >= MaxTurns; } }
+        public bool PlayerWon { get { return AnyPartyAlive && !TrialFailed && (Trial != null && Trial.Kind == TrialKind.Technique ? TechniqueSucceeded : !AnyEnemyAlive || SurvivedTrial); } }
 
         /// <summary>One-line trial progress for the UI ("" for a normal fight).</summary>
         public string TrialStatus
@@ -119,6 +122,7 @@ namespace BiRyeoDo.Core
                 switch (Trial.Kind)
                 {
                     case TrialKind.Survive: return "버텨라 " + Math.Min(EnemyActions, Trial.Limit) + "/" + Trial.Limit;
+                    case TrialKind.Technique: return "대응 " + TechniqueUses + "/" + Trial.TechniqueUses + " · " + PartyActions + "/" + Trial.Limit + "행동";
                     case TrialKind.Deadline: return "제한 " + PartyActions + "/" + Trial.Limit + "행동";
                     case TrialKind.Lifeline:
                         {
@@ -140,6 +144,7 @@ namespace BiRyeoDo.Core
             get
             {
                 if (!TrialFailed || Trial == null) return "";
+                if (Trial.Kind == TrialKind.Technique) return "정해진 대응을 마치지 못했습니다.";
                 return Trial.Kind == TrialKind.Lifeline ? "생명줄이 끊어졌다!" : "제한 시간이 지났다!";
             }
         }
@@ -237,6 +242,8 @@ namespace BiRyeoDo.Core
             if (cmd.Kind == CommandKind.Skill && !CanReach(cmd.Skill)) throw new InvalidOperationException("Out of reach.");
             if (cmd.Kind == CommandKind.Joint && EnemiesInRange(cmd.Skill.Range).Count == 0) throw new InvalidOperationException("Out of reach.");
             var actor = Current;
+            bool technique = Trial != null && Trial.Kind == TrialKind.Technique && TechniqueWindowOpen
+                && cmd.Kind == CommandKind.Skill && cmd.Skill != null && cmd.Skill.Id == Trial.TechniqueId && actor.Skills.Contains(cmd.Skill);
             var events = new List<BattleEvent>();
             Current = null;
             PartyActions++;
@@ -310,6 +317,8 @@ namespace BiRyeoDo.Core
 
             for (int i = firstEvent; i < events.Count; i++) { events[i].ActorQiAfter = actor.Qi; events[i].ActorSpiritAfter = actor.Spirit; }
             CheckPhases(events);
+            if (technique) TechniqueUses++;
+            if (Trial != null && Trial.Kind == TrialKind.Technique && !TechniqueSucceeded && (PartyActions >= Trial.Limit || !AnyEnemyAlive)) TrialFailed = true;
             if (Trial != null && (Trial.Kind == TrialKind.Deadline || Trial.Kind == TrialKind.Harmony) && PartyActions >= Trial.Limit && AnyEnemyAlive) TrialFailed = true;
             if (IsOver) return events;
             events.AddRange(RunUntilParty());

@@ -6,6 +6,11 @@ namespace BiRyeoDo.Tests
 {
     public class QuestTests
     {
+        [TestCase("q_shell_rehearsal")] [TestCase("q_sister_form")] [TestCase("q_blood_cross")]
+        [TestCase("q_explosion_exit")] [TestCase("q_gate_lines")]
+        [TestCase("q_guest_parry")]
+        [TestCase("q_bridge_cover")]
+        [TestCase("q_rope_pattern")]
         [TestCase("q_ichon")]
         [TestCase("q_white_phoenix")]
         [TestCase("q_bait_cover")]
@@ -118,7 +123,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void FortunesAreWellFormed()
         {
-            Assert.AreEqual(38, Fortunes.All.Length);
+            Assert.AreEqual(50, Fortunes.All.Length);
             Assert.AreEqual(Fortunes.All.Length, Fortunes.All.Select(f => f.Id).Distinct().Count());
             int max = EarlyGameContent.Stages.Max(st => st.Number);
             foreach (var f in Fortunes.All)

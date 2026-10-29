@@ -15,6 +15,14 @@ namespace BiRyeoDo.Tests
             var skills = me.Skills.Where(s => s.Id != "basic" && b.CanUse(s)).ToList();
             var charging = alive.Where(e => e.AwakeningStrike != null || e.Charging).ToList();
 
+            if (b.Trial != null && b.Trial.Kind == TrialKind.Technique)
+            {
+                var required = skills.FirstOrDefault(s => s.Id == b.Trial.TechniqueId);
+                if (required != null && b.TechniqueWindowOpen && b.CanReach(required))
+                    return PlayerCommand.UseSkill(required, alive.FirstOrDefault());
+                return me.Qi < 30 ? PlayerCommand.Meditate() : PlayerCommand.Guard();
+            }
+
             if (charging.Count > 0)
             {
                 var stun = skills.FirstOrDefault(s => s.Effect == SkillEffect.Stun);

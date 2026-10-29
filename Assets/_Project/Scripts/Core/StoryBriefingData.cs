@@ -191,6 +191,18 @@ namespace BiRyeoDo.Core
             { 34, StoryMidgame.Briefings[34] },
             { 35, StoryMidgame.Briefings[35] },
             { 36, StoryMidgame.Briefings[36] },
+            { 37, StoryMidgame.Briefings[37] },
+            { 38, StoryMidgame.Briefings[38] },
+            { 39, StoryMidgame.Briefings[39] },
+            { 40, StoryMidgame.Briefings[40] },
+            { 41, StoryMidgame.Briefings[41] },
+            { 42, StoryTournament.Briefings[42] },
+            { 43, StoryTournament.Briefings[43] },
+            { 44, StoryTournament.Briefings[44] },
+            { 45, StoryTournament.Briefings[45] },
+            { 46, StoryTournament.Briefings[46] },
+            { 47, StoryTournament.Briefings[47] },
+            { 48, StoryTournament.Briefings[48] },
         };
 
         private static readonly Dictionary<int, string[]> After = new Dictionary<int, string[]>
@@ -354,6 +366,18 @@ namespace BiRyeoDo.Core
             { 34, StoryMidgame.Aftermaths[34] },
             { 35, StoryMidgame.Aftermaths[35] },
             { 36, StoryMidgame.Aftermaths[36] },
+            { 37, StoryMidgame.Aftermaths[37] },
+            { 38, StoryMidgame.Aftermaths[38] },
+            { 39, StoryMidgame.Aftermaths[39] },
+            { 40, StoryMidgame.Aftermaths[40] },
+            { 41, StoryMidgame.Aftermaths[41] },
+            { 42, StoryTournament.Aftermaths[42] },
+            { 43, StoryTournament.Aftermaths[43] },
+            { 44, StoryTournament.Aftermaths[44] },
+            { 45, StoryTournament.Aftermaths[45] },
+            { 46, StoryTournament.Aftermaths[46] },
+            { 47, StoryTournament.Aftermaths[47] },
+            { 48, StoryTournament.Aftermaths[48] },
         };
 
         private static readonly Dictionary<int, StoryScene> Between = new Dictionary<int, StoryScene>

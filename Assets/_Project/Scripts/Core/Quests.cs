@@ -81,6 +81,14 @@ namespace BiRyeoDo.Core
                 Trial = TrialRule.Survive("공방 복기", "적 12행동을 견디세요.", 12), RewardDoo = 34200, ItemId = "ginseng" },
             new QuestData { Id = "q_eogeom_review", Name = "분영검 대응 수련", Brief = "두 그림자의 검세를 읽던 순간을 모의 수련으로 복기합니다. 무제한 비무의 승패를 다시 정하지 않습니다.", RefStage = 36, Encounter = 1,
                 Trial = TrialRule.Survive("공방 복기", "적 8행동을 견디세요.", 8), RewardDoo = 36000, ItemId = "ilgeup_yeongdan" },
+            new QuestData { Id = "q_guest_parry", Name = "낯선 검로 대응 수련", Brief = "혈풍란을 피하던 움직임을 안전한 모의 수련으로 되짚습니다. 장홍의 과거를 캐묻는 의뢰가 아닙니다.", RefStage = 38, Encounter = 0, Trial = TrialRule.Survive("공세 복기", "적 10행동을 견디세요.", 10), RewardDoo = 37800, ItemId = "ginseng" },
+            new QuestData { Id = "q_bridge_cover", Name = "다리 위 화살 엄호 복기", Brief = "십면매복의 첫 화살비를 정규 동료들과 복기합니다. 새 장강십용사가 침입한 사건이 아닙니다.", RefStage = 40, Encounter = 0, Trial = TrialRule.Survive("공세 복기", "적 10행동을 견디세요.", 10), RewardDoo = 40500, ItemId = "okruju" },
+            new QuestData { Id = "q_rope_pattern", Name = "흑룡삭 진법 대응 수련", Brief = "끊어진 진법의 공격 방향을 모의 수련으로 복기합니다. 나예린의 이름 없는 검기를 영구 전수하지 않습니다.", RefStage = 40, Encounter = 3, Trial = TrialRule.Survive("공세 복기", "적 10행동을 견디세요.", 10), RewardDoo = 40500, ItemId = "ilgeup_yeongdan" },
+            new QuestData { Id = "q_shell_rehearsal", Name = "포격 전조 대응 복기", Brief = "정신봉 공방에서 읽었던 포격 전조를 정규 동료들과 복기합니다. 배 값을 다시 받는 결투가 아닙니다.", RefStage = 42, Encounter = 2, Trial = TrialRule.Survive("공방 복기", "적 10행동을 견디세요.", 10), RewardDoo = 42300, ItemId = "ginseng" },
+            new QuestData { Id = "q_sister_form", Name = "검로 기억 대응 수련", Brief = "사자매의 검로에 대응하던 움직임을 모의 수련으로 되짚습니다. 영령의 기억을 회복시키는 재전투가 아닙니다.", RefStage = 45, Encounter = 1, Trial = TrialRule.Survive("공방 복기", "적 10행동을 견디세요.", 10), RewardDoo = 45000, ItemId = "okruju" },
+            new QuestData { Id = "q_blood_cross", Name = "쌍도 교차 대응 복기", Brief = "혈십자의 예고를 읽던 공방을 복기합니다. 생존한 증인을 다시 처치하는 의뢰가 아닙니다.", RefStage = 46, Encounter = 2, Trial = TrialRule.Survive("공방 복기", "적 10행동을 견디세요.", 10), RewardDoo = 45900, ItemId = "ilgeup_yeongdan" },
+            new QuestData { Id = "q_explosion_exit", Name = "밀실 퇴로 복기", Brief = "폭염진의 압력 속에서 퇴로를 찾던 움직임을 모의 수련으로 재현합니다. 나예린을 다시 납치하는 사건이 아닙니다.", RefStage = 47, Encounter = 1, Trial = TrialRule.Survive("공방 복기", "적 8행동을 견디세요.", 8), RewardDoo = 46800, ItemId = "ginseng" },
+            new QuestData { Id = "q_gate_lines", Name = "철신관 입구 협공 복기", Brief = "철갑사패의 봉쇄에 대응하던 협공을 복기합니다. 락비오전 결말을 앞당기는 시험이 아닙니다.", RefStage = 48, Encounter = 2, Trial = TrialRule.Survive("공방 복기", "적 10행동을 견디세요.", 10), RewardDoo = 47700, ItemId = "ilgeup_yeongdan" },
         };
 
         public static QuestData Find(string id)

@@ -139,7 +139,7 @@ namespace BiRyeoDo.Core
         // Beasts, traps and objects have no 무공 경지.
         private static readonly HashSet<string> NotMartial = new HashSet<string>
         {
-            "tiger", "bear", "white_tiger", "trap_arrow", "trap_needle", "trap_log", "cave_viper", "mukrin_hyeolmang",
+            "unstable_black_lightning", "unsealed_current", "vent_traces", "horn_trap", "rebound_probe", "rebound_second", "baekgyo_scales", "baekgyo_opening", "sipmyeon_arrows", "sipmyeon_water", "heuksak_capture", "heuksak_break", "baekmu_ju", "tiger", "bear", "white_tiger", "trap_arrow", "trap_needle", "trap_log", "cave_viper", "mukrin_hyeolmang",
             "cheongryong_escape", "caravan_ambush", "ichon_training", "closed_room_threat", "cliff_rescue", "hwaryong_rescue", "bisa_snake", "cheonghong_ssanggaksa", "heuksaek_amhyeok", "hwaryong_hwayeom", "hwan_ying",
         };
 

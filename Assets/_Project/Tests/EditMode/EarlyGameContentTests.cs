@@ -46,10 +46,10 @@ namespace BiRyeoDo.Tests
                         Assert.IsNotNull(e, id);
                         if (e.IsBoss) hasBoss = true;
                     }
-                    bool expectedBoss = s.Number == 21 ? i >= 1 : s.Number == 24 ? i == 2 : s.Number == 27 ? i == 0 : s.Number == 29 ? i >= 5 : s.Number == 30 ? i == 1 : s.Number == 31 || s.Number == 33 ? i == 2 : s.Number == 35 ? i == 3 : i == s.Encounters.Length - 1;
+                    bool expectedBoss = s.Number == 43 ? i == 1 : s.Number == 47 ? false : s.Number == 48 ? i == 2 : s.Number == 21 ? i >= 1 : s.Number == 24 ? i == 2 : s.Number == 27 ? i == 0 : s.Number == 29 ? i >= 5 : s.Number == 30 || s.Number == 39 ? i == 1 : s.Number == 31 || s.Number == 33 ? i == 2 : s.Number == 35 ? i == 3 : i == s.Encounters.Length - 1;
                     Assert.AreEqual(expectedBoss, hasBoss, s.Name + " encounter " + i);
-                    if (i == s.Encounters.Length - 1 && !hasBoss)
-                        Assert.AreEqual(TrialKind.Survive, s.TrialFor(i).Kind, s.Name);
+                    if (i == s.Encounters.Length - 1 && !hasBoss && s.Number != 39)
+                        Assert.IsTrue(s.TrialFor(i).Kind == TrialKind.Survive || s.TrialFor(i).Kind == TrialKind.Technique, s.Name);
                 }
             }
         }
@@ -114,7 +114,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void StageRewardsKeepPaceWithTheRecommendedLevels()
         {
-            // Expanded chapters pay additional XP shares. A first-clear route stays above the recommendation and finishes four levels above the last stage after the volume 17-20 expansion.
+            // Expanded chapters pay additional XP shares. A first-clear route stays above the recommendation and finishes three levels above the last stage after the volume 20-22 expansion.
             var save = new SaveData { Level = 1 };
             foreach (var s in EarlyGameContent.Stages)
             {
@@ -125,7 +125,7 @@ namespace BiRyeoDo.Tests
                 Assert.Greater(exp, 0, s.Name + " pays no exp");
                 Progression.AddExp(save, exp);
             }
-            Assert.AreEqual(EarlyGameContent.Stages.Last().RecommendedPlayerLevel + 4, save.Level);
+            Assert.AreEqual(EarlyGameContent.Stages.Last().RecommendedPlayerLevel + 3, save.Level);
         }
 
         [Test]

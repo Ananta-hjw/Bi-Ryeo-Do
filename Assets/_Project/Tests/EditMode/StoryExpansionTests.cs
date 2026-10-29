@@ -8,6 +8,134 @@ namespace BiRyeoDo.Tests
 {
     public class StoryExpansionTests
     {
+        [TestCase(37, 0)] [TestCase(37, 1)] [TestCase(37, 2)]
+        [TestCase(38, 0)] [TestCase(38, 1)] [TestCase(38, 2)]
+        [TestCase(39, 0)] [TestCase(39, 1)] [TestCase(39, 2)]
+        [TestCase(40, 0)] [TestCase(40, 1)] [TestCase(40, 2)]
+        [TestCase(41, 0)] [TestCase(41, 1)] [TestCase(41, 2)]
+        public void DongjeongExpansionIsClearableAtEachDifficultyWithItsActualActors(int number, int difficulty)
+        {
+            var stage = EarlyGameContent.FindStage(number).WithDifficulty(difficulty);
+            int level = difficulty == 0 ? BalanceSimulation.BotLevel(stage) : (int)Math.Round(StageStars.TargetLevel(number, difficulty));
+            var runs = Enumerable.Range(901, 20).Select(seed => BalanceSimulation.Play(stage, BalanceSimulation.Starter(number, level), seed)).ToArray();
+            TestContext.Out.WriteLine(number + "/" + difficulty + ": " + runs.Count(x => x.Won) + "/20; actions " + runs.Where(x => x.Won).Select(x => x.Actions).DefaultIfEmpty().Average());
+            TestContext.Out.WriteLine("failures " + string.Join(",", runs.Where(x => !x.Won).GroupBy(x => x.FailedFight).Select(g => g.Key + ":" + g.Count())));
+            for (int fight = 0; fight < stage.Encounters.Length; fight++)
+            {
+                var actions = runs.Where(x => x.FightActions.Count > fight).Select(x => x.FightActions[fight]).OrderBy(x => x).ToArray();
+                if (actions.Length > 0) TestContext.Out.WriteLine("fight " + fight + ": median " + actions[actions.Length / 2] + "; fast " + StageStars.FastLimit(number, fight, difficulty));
+            }
+            Assert.GreaterOrEqual(runs.Count(x => x.Won), 17);
+        }
+
+        [TestCase(0)] [TestCase(1)] [TestCase(2)]
+        public void YoungYeonbiNeverBorrowsAdultLevelsGearOrArts(int difficulty)
+        {
+            var stage = EarlyGameContent.FindStage(37).WithDifficulty(difficulty);
+            var plain = BalanceSimulation.Starter(37, 40);
+            var grown = SideContentSimulation.Prepared(37, 80, true);
+            var first = Roster.CreateStoryParty(stage, 0, plain).Single();
+            var second = Roster.CreateStoryParty(stage, 0, grown).Single();
+            Assert.AreEqual(first.Stats.MaxHp, second.Stats.MaxHp); Assert.AreEqual(first.Stats.Attack, second.Stats.Attack);
+            Assert.AreEqual(first.Stats.Defense, second.Stats.Defense); Assert.AreEqual(first.Stats.Speed, second.Stats.Speed);
+            CollectionAssert.AreEqual(first.Skills.Select(x => x.Id), second.Skills.Select(x => x.Id));
+            Assert.IsFalse(first.Skills.Any(x => plain.EquippedArts.Contains(x.Id)));
+            Assert.IsTrue(first.Skills.Any(x => x.Id == "scene_palhwa"));
+            first.Hp = 123; first.Qi = 40; first.Spirit = 35;
+            Roster.PrepareStoryEncounter(stage, 1, new[] { first });
+            Assert.AreEqual(123, first.Hp); Assert.AreEqual(40, first.Qi); Assert.AreEqual(35, first.Spirit);
+            Assert.IsTrue(first.Skills.Any(x => x.Id == "scene_ssangseom"));
+            Assert.IsFalse(first.Skills.Any(x => x.Id == "scene_palhwa"));
+            var focused = Roster.CreateStoryParty(stage, 1, plain).Single();
+            Assert.IsTrue(focused.Skills.Any(x => x.Id == "scene_ssangseom"));
+            Assert.IsFalse(focused.Skills.Any(x => x.Id == "scene_palhwa"));
+            Assert.IsFalse(plain.CompanionLevels.Any(x => x.Id == first.Id));
+        }
+
+        [Test]
+        public void HerUnnamedSwordIsVisibleOnlyInTheActualRopeBreakthrough()
+        {
+            var save = BalanceSimulation.Starter(40, 44); var stage = EarlyGameContent.FindStage(40);
+            var earlier = Roster.CreateStoryParty(stage, 2, save).First(x => x.Id == "na_yerin");
+            Assert.IsFalse(earlier.Skills.Any(x => x.Id == "scene_silver_snow"));
+            var finisher = Roster.CreateStoryParty(stage, 3, save).Single();
+            Assert.AreEqual("na_yerin", finisher.Id);
+            Assert.IsTrue(finisher.Skills.Any(x => x.Id == "scene_silver_snow"));
+            Assert.LessOrEqual(finisher.Skills.Count(x => x.Id != "basic"), Progression.MaxEquippedArts);
+            Assert.IsFalse(CompanionGrowth.Create(save, EarlyGameContent.FindCompanion("na_yerin")).Skills.Any(x => x.Id == "scene_silver_snow"));
+            Assert.IsNull(Roster.CreateStoryParty(Quests.ToStage(Quests.Find("q_rope_pattern")), 0, save));
+            Assert.IsFalse(save.LearnedArts.Contains("scene_silver_snow"));
+            Assert.IsFalse(save.EquippedArts.Contains("scene_silver_snow"));
+        }
+
+        [Test]
+        public void NewJourneyPreservesOldCompletionResumeAndPendingRewards()
+        {
+            var save = new SaveData { StoryContentRevision = 8, ClearedStage = 36, ProgressStage = 36, ProgressNext = 2, Level = 40, Doo = 12345 };
+            for (int number = 1; number <= 36; number++) StageStars.Record(save, number, StageStars.FightCount(number) - 1, 0, 7);
+            save.DoneQuests.Add("q_hyeol"); save.SeenMemories.Add("m_hairpin"); save.DoneFortunes.Add("f_wager");
+            int stars = StageStars.Total(save);
+            StoryContentMigration.Apply(save); StageStars.Sync(save);
+            Assert.AreEqual(stars, StageStars.Total(save)); Assert.AreEqual(36, save.ClearedStage);
+            Assert.AreEqual(36, save.ProgressStage); Assert.AreEqual(2, save.ProgressNext);
+            Assert.AreEqual(12345, save.Doo); Assert.AreEqual(40, save.Level);
+            Assert.AreEqual(37, save.HighestUnlockedStage);
+            for (int number = 37; number <= 41; number++) Assert.IsFalse(StageStars.StageCleared(save, number, 0));
+            CollectionAssert.AreEqual(new[] { "q_hyeol" }, save.DoneQuests);
+            CollectionAssert.AreEqual(new[] { "m_hairpin" }, save.SeenMemories);
+            CollectionAssert.AreEqual(new[] { "f_wager" }, save.DoneFortunes);
+            Assert.AreEqual(13, EarlyGameContent.Stages.Skip(36).Take(5).Sum(x => x.Encounters.Length));
+        }
+
+        [Test]
+        public void DongjeongStorySeparatesPastKnowledgeAndUnpaidPromisesFromFutureResults()
+        {
+            string Replay(int number) { return string.Join(" ", StoryEpisodes.Replay(EarlyGameContent.FindStage(number))); }
+            var past = Replay(37); var leaders = Replay(38); var contract = Replay(39); var ambush = Replay(40); var door = Replay(41);
+            StringAssert.Contains("열한 살", past); StringAssert.Contains("나예린은 아직 그 사실을 몰랐다", past);
+            Assert.Less(past.IndexOf("회상 · 천향루"), past.IndexOf("회상 · 붉은 수건"));
+            StringAssert.Contains("독니", past); StringAssert.Contains("노사부", past);
+            StringAssert.Contains("한 번도 싸우지 않고 결승", leaders); StringAssert.Contains("기권", leaders);
+            StringAssert.Contains("독고령을 아직 찾지 못했다", leaders);
+            StringAssert.Contains("삼십만 냥", contract); StringAssert.Contains("오십만 냥에 합의", contract);
+            StringAssert.Contains("세 번째 참가자도 우승도 아직", contract);
+            Assert.IsFalse(contract.Contains("오만 냥의 빚"));
+            Assert.IsFalse(ambush.Contains("새 검기라는 정식 무공"));
+            StringAssert.Contains("해어화", ambush); StringAssert.Contains("나예린이 섰다", ambush);
+            StringAssert.Contains("타격각성 정신봉", door);
+            Assert.IsFalse(door.Contains("진비뢰도 열 자루를 돌려"));
+            Assert.IsFalse(door.Contains("천겁혈신이 사부였다"));
+            Assert.AreEqual(.2f, EarlyGameContent.FindEnemy("baekmu_ju").RetreatHpPct);
+        }
+
+        [Test]
+        public void DongjeongPartiesKeepTheirAuthoredRolesAndFitTheCommandBar()
+        {
+            var save = BalanceSimulation.Starter(41, 44);
+            var active = save.ActiveCompanions.ToArray();
+            for (int number = 37; number <= 41; number++)
+            {
+                var stage = EarlyGameContent.FindStage(number);
+                Assert.AreEqual(stage.Encounters.Length, stage.StoryActors.Length);
+                for (int fight = 0; fight < stage.Encounters.Length; fight++)
+                {
+                    var party = Roster.CreateStoryParty(stage, fight, save);
+                    CollectionAssert.AreEqual(stage.StoryActors[fight], party.Select(x => x.Id));
+                    Assert.AreEqual(party.Count, party.Select(x => x.Id).Distinct().Count());
+                    foreach (var member in party)
+                    {
+                        Assert.IsTrue(member.StoryControlled);
+                        Assert.LessOrEqual(member.Skills.Count(x => x.Id != "basic" && x.SpiritCost <= 0), Progression.MaxEquippedArts);
+                    }
+                }
+            }
+            CollectionAssert.AreEqual(active, save.ActiveCompanions);
+            Assert.IsTrue(save.CompanionLevels.All(x => EarlyGameContent.FindCompanion(x.Id) != null));
+            CollectionAssert.AreEqual(new[] { "jang_hong" }, EarlyGameContent.FindStage(38).StoryActors[0]);
+            CollectionAssert.AreEqual(new[] { "yun_junho" }, EarlyGameContent.FindStage(38).StoryActors[1]);
+            CollectionAssert.AreEqual(new[] { "story_ma_haryeong" }, EarlyGameContent.FindStage(38).StoryActors[2]);
+        }
+
         [TestCase(31, 0)] [TestCase(31, 1)] [TestCase(31, 2)]
         [TestCase(32, 0)] [TestCase(32, 1)] [TestCase(32, 2)]
         [TestCase(33, 0)] [TestCase(33, 1)] [TestCase(33, 2)]
@@ -215,9 +343,13 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(TrialKind.Survive, EarlyGameContent.FindStage(36).TrialFor(3).Kind);
         }
 
+        [TestCase("f_unfamiliar_staff")] [TestCase("f_leave_nest")] [TestCase("f_free_help")]
+        [TestCase("f_unfinished_memory")] [TestCase("f_spared_witness")] [TestCase("f_asked_help")] [TestCase("f_hidden_hand")]
+        [TestCase("f_red_signal")] [TestCase("f_guest_map")] [TestCase("f_samjae_question")]
+        [TestCase("f_staked_name")] [TestCase("f_unopened_door")]
         [TestCase("f_unanswered_commission")] [TestCase("f_sealed_legacy")] [TestCase("f_two_cases")]
         [TestCase("f_rebuild_credit")] [TestCase("f_own_choice")]
-        public void NamchangFortunesDoNotPayAgainOrUnlockBeforeTheirChapters(string id)
+        public void ReanalysisFortunesDoNotPayAgainOrUnlockBeforeTheirChapters(string id)
         {
             var fortune = Fortunes.Find(id);
             var save = new SaveData { Level = 35, ClearedStage = fortune.UnlockStage - 1 };
@@ -230,8 +362,12 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(exp, save.Exp); Assert.AreEqual(doo, save.Doo);
         }
 
+        [TestCase("m_refused_name")] [TestCase("m_wings_granted")] [TestCase("m_shared_ice")]
+        [TestCase("m_thanks_ryuyeon")] [TestCase("m_black_horn_trace")]
+        [TestCase("m_red_contract")] [TestCase("m_returned_hawk")] [TestCase("m_market_stroll")]
+        [TestCase("m_silver_step")] [TestCase("m_facing_fear")]
         [TestCase("m_after_fire")] [TestCase("m_asked_for_help")]
-        public void NamchangMemoriesPayOnlyAfterTheirStoryAndOnlyOnce(string id)
+        public void ReanalysisMemoriesPayOnlyAfterTheirStoryAndOnlyOnce(string id)
         {
             var memory = Memories.Find(id);
             var save = new SaveData { ClearedStage = memory.UnlockStage - 1 };
@@ -484,7 +620,7 @@ namespace BiRyeoDo.Tests
         [TestCase(2)]
         public void RevisedChaptersPayOnTheirOwnDifficultyAndReplayRate(int difficulty)
         {
-            foreach (int number in new[] { 15, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36 })
+            foreach (int number in new[] { 15, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41 })
             {
                 var stage = EarlyGameContent.FindStage(number).WithDifficulty(difficulty);
                 Recommend.StageReward(new SaveData(), stage, out long exp, out long doo);
@@ -633,7 +769,8 @@ namespace BiRyeoDo.Tests
             CollectionAssert.AreEqual(new[] { "dan_pyeong", "jo_yeonil", "jin_pae", "ilyeon", "eonga_yeong", "jeon_okgi" }, tournament.Encounters.SelectMany(x => x));
             Assert.IsTrue(tournament.Encounters.All(x => x.Length == 1));
             CollectionAssert.AreEqual(new[] { "dang_munceon" }, EarlyGameContent.FindStage(13).Encounters[0]);
-            Assert.AreEqual(36, EarlyGameContent.Stages.Length, "Persisted stage and unlock IDs remain stable");
+            Assert.AreEqual(48, EarlyGameContent.Stages.Length);
+            CollectionAssert.AreEqual(Enumerable.Range(1, 36), EarlyGameContent.Stages.Take(36).Select(x => x.Number));
         }
 
         [Test]
