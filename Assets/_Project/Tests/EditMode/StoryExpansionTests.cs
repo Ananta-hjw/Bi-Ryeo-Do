@@ -13,8 +13,10 @@ namespace BiRyeoDo.Tests
         {
             var escort = EarlyGameContent.FindStage(2);
             Assert.AreEqual(5, escort.Encounters.Length);
-            CollectionAssert.AreEqual(new[] { "deung_yeoun", "deung_yeoho" }, escort.Encounters[3]);
-            CollectionAssert.AreEqual(new[] { "jang_uyang" }, escort.Encounters[4]);
+            // 전투 인원 확장 adds 표사 followers behind the real opponents
+            CollectionAssert.AreEqual(new[] { "deung_yeoun", "deung_yeoho" }, escort.Encounters[3].Take(2));
+            Assert.AreEqual("jang_uyang", escort.Encounters[4][0]);
+            Assert.IsTrue(escort.Encounters[4].Skip(1).All(id => id == "biaosa"));
             var tournament = EarlyGameContent.FindStage(12);
             CollectionAssert.AreEqual(new[] { "dan_pyeong", "jo_yeonil", "jin_pae", "ilyeon", "eonga_yeong", "jeon_okgi" }, tournament.Encounters.SelectMany(x => x));
             Assert.IsTrue(tournament.Encounters.All(x => x.Length == 1));

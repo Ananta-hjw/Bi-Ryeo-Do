@@ -24,10 +24,14 @@ namespace BiRyeoDo.Core
                 if (!save.BenchedCompanions.Contains(c.Id) && !save.ActiveCompanions.Contains(c.Id)) save.BenchedCompanions.Add(c.Id);
         }
 
-        /// <summary>The stage number whose companions travel along: a story stage uses its own, quests and tower floors use everyone who has joined so far.</summary>
+        /// <summary>
+        /// The stage number whose companions travel along: a 일반 story stage uses its own; quests, tower floors and the 어려움 / 극악 stages
+        /// use everyone who has joined so far (on a harder difficulty the early solo stages are fought with the party the player already leads).
+        /// </summary>
         public static int PartyStage(StageData stage, SaveData save)
         {
-            return stage.IsQuest || stage.IsTower ? System.Math.Max(1, save.HighestUnlockedStage) : stage.Number;
+            if (stage.IsQuest || stage.IsTower) return System.Math.Max(1, save.HighestUnlockedStage);
+            return stage.Difficulty > 0 ? System.Math.Max(stage.Number, save.HighestUnlockedStage) : stage.Number;
         }
     }
 }

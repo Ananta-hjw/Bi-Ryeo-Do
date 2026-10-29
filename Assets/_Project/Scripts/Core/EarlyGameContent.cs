@@ -64,6 +64,8 @@ namespace BiRyeoDo.Core
         public int DisplayLevel { get { return Progression.PlayerLevelAt(Level); } }
         public bool IsBoss;
         public float RetreatHpPct;   // >0: story boss that escapes at this HP fraction instead of dying
+        /// <summary>A nameless follower (궁수, 도부수, 회원 ...) that fills out a story fight; never picked for the 무한 비무대 pool.</summary>
+        public bool IsMinion;
         public int Level;
         public float HpMul = 1f, AtkMul = 1f, DefMul = 1f;
         public int SpeedAdd;
@@ -230,6 +232,8 @@ namespace BiRyeoDo.Core
         public int Number;
         public string Name;
         public int RewardWeightBudget;   // original reward denominator; added fights pay extra instead of diluting existing rewards
+        /// <summary>The fights' line-ups before 전투 인원 확장: exp, 두 and drops follow these, so the followers added later pay nothing extra (null = <see cref="Encounters"/>).</summary>
+        public string[][] RewardEncounters;
         /// <summary>Optional story scenes shown before Intro, only while the stage has not been cleared yet (bridges the volumes' plot between fights).</summary>
         public StoryScene[] Prologue;
         public string[] Intro, Outro;
@@ -402,21 +406,33 @@ namespace BiRyeoDo.Core
             // Stage 3: 호골채 (1권)
             new EnemyData { Id = "hogol_bandit", Name = "호골채 산적", Level = 6, HpMul = 0.829f, AtkMul = 0.619f,
                 Moves = new[] { EnemyMove.Attack("휘두르기", 1.0f), EnemyMove.Attack("베기", 1.1f) } },
+            new EnemyData { Id = "hogol_archer", ArtId = "hogol_bandit", Name = "호골채 궁수", Level = 6, HpMul = 0.66f, AtkMul = 0.619f, IsMinion = true,
+                Moves = new[] { EnemyMove.Attack("활쏘기", 1.0f).FromDistance().Sniping(), EnemyMove.Attack("연사", 0.55f, 2).FromDistance().Sniping() } },
+            new EnemyData { Id = "hogol_axe", ArtId = "hogol_bandit", Name = "호골채 도부수", Level = 6, HpMul = 1.08f, AtkMul = 0.619f, IsMinion = true,
+                Moves = new[] { EnemyMove.Attack("도끼질", 1.0f), EnemyMove.Wind("도끼를 치켜든다"), EnemyMove.Attack("내려찍기", 2.2f) } },
             new EnemyData { Id = "paeho_jung_gwang", Name = "패호 중광", Level = 8, IsBoss = true, HpMul = 1.3f, AtkMul = 0.609f,
                 Moves = new[] { EnemyMove.Attack("내려치기", 1.1f), EnemyMove.Attack("연타", 0.7f, 3), EnemyMove.Wind("기합을 모은다"), EnemyMove.Attack("일격", 2.8f) } },
             // Stage 4: 용골채 (1권)
             new EnemyData { Id = "yonggol_bandit", Name = "용골채 산적", Level = 9, HpMul = 1.013f, AtkMul = 0.678f,
                 Moves = new[] { EnemyMove.Attack("휘두르기", 1.0f), EnemyMove.Attack("베기", 1.1f) } },
+            new EnemyData { Id = "yonggol_archer", ArtId = "yonggol_bandit", Name = "용골채 궁수", Level = 9, HpMul = 0.81f, AtkMul = 0.678f, IsMinion = true,
+                Moves = new[] { EnemyMove.Attack("활쏘기", 1.0f).FromDistance().Sniping(), EnemyMove.Attack("연사", 0.55f, 2).FromDistance().Sniping() } },
+            new EnemyData { Id = "yonggol_axe", ArtId = "yonggol_bandit", Name = "용골채 도부수", Level = 9, HpMul = 1.32f, AtkMul = 0.678f, IsMinion = true,
+                Moves = new[] { EnemyMove.Attack("도끼질", 1.0f), EnemyMove.Wind("도끼를 치켜든다"), EnemyMove.Attack("내려찍기", 2.2f) } },
             new EnemyData { Id = "paeryong_wooak", Name = "패룡 우악", Level = 11, IsBoss = true, HpMul = 2.153f, AtkMul = 0.758f,
                 Moves = new[] { EnemyMove.Attack("내려치기", 1.1f), EnemyMove.Attack("연타", 0.7f, 3), EnemyMove.Wind("기세를 끌어올린다"), EnemyMove.Attack("패룡격", 3.0f) } },
             // Stage 5: 윤하루 (2권)
             new EnemyData { Id = "jang_ugang", Name = "장우강", Level = 12, HpMul = 1.333f, AtkMul = 1.254f,
                 Moves = new[] { EnemyMove.Attack("청성검", 1.0f), EnemyMove.Attack("청성검", 1.2f), EnemyMove.Wind("검을 거둔다"), EnemyMove.Attack("찌르기", 2.2f) } },
+            new EnemyData { Id = "jungyang_pyosa", ArtId = "biaosa", Name = "중양표국 표사", Level = 12, HpMul = 1.2f, AtkMul = 0.75f, IsMinion = true,
+                Moves = new[] { EnemyMove.Attack("베기", 1.0f), EnemyMove.Attack("찌르기", 1.1f) } },
             new EnemyData { Id = "yeomdo", Name = "염도 곽영희", Level = 14, IsBoss = true, HpMul = 3.3f, AtkMul = 1.55f,
                 Moves = new[] { EnemyMove.Attack("진홍십칠염", 0.8f, 3), EnemyMove.Attack("검염기", 1.3f), EnemyMove.Wind("화령신공을 끌어올린다"), EnemyMove.Attack("화령염천도세", 3.2f) } },
             // Stage 6: 호아장 (2권)
             new EnemyData { Id = "hoajang_disciple", Name = "호아장 제자", Level = 15, HpMul = 1.383f, AtkMul = 0.821f,
                 Moves = new[] { EnemyMove.Attack("맹호비격검", 1.0f), EnemyMove.Attack("맹호비격검", 1.1f) } },
+            new EnemyData { Id = "hoajang_senior", ArtId = "hoajang_disciple", Name = "호아장 고참 제자", Level = 15, HpMul = 1.73f, AtkMul = 0.86f, IsMinion = true,
+                Moves = new[] { EnemyMove.Attack("맹호비격검", 1.0f), EnemyMove.Wind("검기를 모은다"), EnemyMove.Attack("맹호비격검", 2.2f) } },
             new EnemyData { Id = "ho_cheonsang", Name = "호아장주 호천상", Level = 17, IsBoss = true, HpMul = 2.195f, AtkMul = 0.825f,
                 Moves = new[] { EnemyMove.Attack("맹호비격검", 1.0f, 2), EnemyMove.Attack("맹호비격검", 1.3f), EnemyMove.Wind("검기를 모은다"), EnemyMove.Attack("맹호삼십육검", 3.0f) } },
             new EnemyData { Id = "deung_yeoun", Name = "쾌창 등여운", ArtId = "biaosa", Level = 5, HpMul = 0.78f, AtkMul = 0.38f,
@@ -463,6 +479,8 @@ namespace BiRyeoDo.Core
             // Stage 8: 천무식당 (3권)
             new EnemyData { Id = "jongri_hak", Name = "종리학", Level = 21, HpMul = 1.562f, AtkMul = 3.428f,
                 Moves = new[] { EnemyMove.Attack("매화검법", 0.8f, 2), EnemyMove.Attack("매화검법", 1.2f) } },
+            new EnemyData { Id = "hwasan_jeja", ArtId = "jongri_hak", Name = "화산파 제자", Level = 21, HpMul = 1.25f, AtkMul = 3.0f, IsMinion = true,
+                Moves = new[] { EnemyMove.Attack("매화검법", 0.8f, 2), EnemyMove.Attack("매화검법", 1.1f) } },
             new EnemyData { Id = "chu_gayeon", Name = "추가연", Level = 23, IsBoss = true, HpMul = 2.950f, AtkMul = 3.608f,
                 Moves = new[] { EnemyMove.Attack("매화검법", 0.8f, 3), EnemyMove.Attack("매화검법", 1.2f), EnemyMove.Wind("검을 모은다"), EnemyMove.Attack("매화만개", 3.0f) } },
             // Stage 9: 운향정 (3권)
@@ -470,6 +488,10 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("도", 1.1f), EnemyMove.Wind("도를 치켜든다"), EnemyMove.Attack("일도파쇄", 2.6f) } },
             new EnemyData { Id = "so_cheongun", Name = "청풍검 소천군", Level = 24, HpMul = 2.127f, AtkMul = 5.745f,
                 Moves = new[] { EnemyMove.Attack("청성검", 0.7f, 3), EnemyMove.Attack("청성검", 1.3f), EnemyMove.Wind("무형지기를 끌어올린다"), EnemyMove.Attack("검풍", 2.6f) } },
+            new EnemyData { Id = "dobaek_member", ArtId = "gu_chang", Name = "도백회 회원", Level = 23, HpMul = 1.56f, AtkMul = 4.6f, IsMinion = true,
+                Moves = new[] { EnemyMove.Attack("도", 1.0f), EnemyMove.Attack("도", 1.1f) } },
+            new EnemyData { Id = "geomhon_member", ArtId = "so_cheongun", Name = "검혼회 회원", Level = 23, HpMul = 1.49f, AtkMul = 4.6f, IsMinion = true,
+                Moves = new[] { EnemyMove.Attack("검", 0.7f, 2), EnemyMove.Attack("검", 1.1f) } },
             new EnemyData { Id = "wiji_cheon", Name = "선풍검룡 위지천", Level = 26, IsBoss = true, HpMul = 4.238f, AtkMul = 4.834f,
                 Moves = new[] { EnemyMove.Attack("절풍검기변", 0.7f, 3), EnemyMove.Attack("절풍검기변", 1.2f), EnemyMove.Wind("검강을 끌어올린다"), EnemyMove.Attack("천원삼절검격", 1.5f, 3) } },
             // Stage 10: 백향관 (4권)
@@ -499,12 +521,18 @@ namespace BiRyeoDo.Core
             // Additional volume 6-10 encounters; alternate ArtId values reuse existing battle figures.
             new EnemyData { Id = "maeng_yeonho", ArtId = "jongri_hak", Name = "청룡단주 맹연호", Level = 32, HpMul = 3.0f, AtkMul = 3.3f,
                 Moves = new[] { EnemyMove.Attack("매화검", 0.7f, 3), EnemyMove.Wind("매화만천의 검세를 펼친다"), EnemyMove.Attack("매화만천", 2.6f) } },
+            new EnemyData { Id = "cheongryong_member", ArtId = "jongri_hak", Name = "청룡단원", Level = 32, HpMul = 1.25f, AtkMul = 3.0f, IsMinion = true,
+                Moves = new[] { EnemyMove.Attack("검격", 0.7f, 2), EnemyMove.Attack("검격", 1.1f) } },
             new EnemyData { Id = "amryong_salsu", ArtId = "assassin", Name = "암룡대 수중 살수", Level = 32, HpMul = 1.25f, AtkMul = 3.0f,
                 Moves = new[] { EnemyMove.Attack("수중 비수", 0.75f, 2), EnemyMove.Attack("암습", 1.15f) } },
             new EnemyData { Id = "mak_jeok", ArtId = "paeho_jung_gwang", Name = "적웅산도 막적", Level = 32, HpMul = 3.1f, AtkMul = 3.2f, DefMul = 1.1f,
                 Moves = new[] { EnemyMove.Attack("산도", 1.0f), EnemyMove.Wind("도를 치켜든다"), EnemyMove.Attack("적웅산도", 2.5f) } },
+            new EnemyData { Id = "jeogung_bandit", ArtId = "hogol_bandit", Name = "적웅채 산적", Level = 32, HpMul = 1.3f, AtkMul = 3.0f, IsMinion = true,
+                Moves = new[] { EnemyMove.Attack("휘두르기", 1.0f), EnemyMove.Attack("베기", 1.1f) } },
             new EnemyData { Id = "heuk_sang", ArtId = "assassin", Name = "암혼비영대 흑상", Level = 33, HpMul = 3.1f, AtkMul = 3.45f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("암영검", 0.65f, 3), EnemyMove.Wind("그림자 속에서 검을 고른다"), EnemyMove.Attack("흑살도", 2.6f) } },
+            new EnemyData { Id = "amyeong_member", ArtId = "assassin", Name = "암영조 무사", Level = 33, HpMul = 1.3f, AtkMul = 3.1f, IsMinion = true,
+                Moves = new[] { EnemyMove.Attack("암영검", 0.65f, 2), EnemyMove.Attack("암습", 1.15f) } },
             new EnemyData { Id = "bikwae_ssangchang", ArtId = "sadae_jilpung", Name = "비쾌쌍창 선봉", Level = 34, HpMul = 1.15f, AtkMul = 3.0f, SpeedAdd = 6,
                 Moves = new[] { EnemyMove.Attack("선봉 돌격", 1.0f), EnemyMove.Attack("쌍창", 0.6f, 2) } },
             new EnemyData { Id = "pae_yugyeong", ArtId = "pae_hyeokseong", Name = "단옥도 팽유경", Level = 38, HpMul = 3.0f, AtkMul = 3.65f,
@@ -899,7 +927,8 @@ namespace BiRyeoDo.Core
                     "비류연|치료비를 빼먹으면 곤란하지. 제자 몸에 난 멍부터 세어 볼까?",
                     "보상금을 받아낸 뒤 합숙도 마무리에 접어들었다. 떠나기 전날 밤, 남궁상과 진령은 서로의 마음을 확인했다.",
                 },
-                Encounters = new[] { new[] { "biaosa" }, new[] { "biaosa", "biaosa" }, new[] { "gang_janghan" }, new[] { "deung_yeoun", "deung_yeoho" }, new[] { "jang_uyang" } } },
+                RewardEncounters = new[] { new[] { "biaosa" }, new[] { "biaosa", "biaosa" }, new[] { "gang_janghan" }, new[] { "deung_yeoun", "deung_yeoho" }, new[] { "jang_uyang" } },
+                Encounters = new[] { new[] { "biaosa", "biaosa", "biaosa" }, new[] { "biaosa", "biaosa", "biaosa", "biaosa" }, new[] { "gang_janghan", "biaosa", "biaosa" }, new[] { "deung_yeoun", "deung_yeoho", "biaosa" }, new[] { "jang_uyang", "biaosa", "biaosa" } } },
             new StageData { Number = 3, Name = "호골채 매복", RecommendedLevel = 7, DooTotal = 1600,
                 Intro = new[] {
                     "노사부는 사천에서 주작단과 이별했다. 제자들의 귀향 여비를 아끼려고 붙여 준 일자리는 중양표국의 남창행 표행 호위였다.",
@@ -913,7 +942,8 @@ namespace BiRyeoDo.Core
                     "노학|그런데 극비 표물을 어찌 알고 기다렸을까요. 단서가 없으니 답답하군요.",
                     "주작단은 표행을 정비해 다시 길을 나섰다. 노사부는 이 자리에 없었다.",
                 },
-                Encounters = new[] { new[] { "hogol_bandit", "hogol_bandit" }, new[] { "hogol_bandit", "hogol_bandit", "hogol_bandit" }, new[] { "paeho_jung_gwang", "hogol_bandit" } } },
+                RewardEncounters = new[] { new[] { "hogol_bandit", "hogol_bandit" }, new[] { "hogol_bandit", "hogol_bandit", "hogol_bandit" }, new[] { "paeho_jung_gwang", "hogol_bandit" } },
+                Encounters = new[] { new[] { "hogol_bandit", "hogol_bandit", "hogol_archer" }, new[] { "hogol_bandit", "hogol_bandit", "hogol_axe", "hogol_archer" }, new[] { "paeho_jung_gwang", "hogol_bandit", "hogol_bandit" } } },
             new StageData { Number = 4, Name = "용골채 매복", RecommendedLevel = 10, DooTotal = 2300,
                 Intro = new[] {
                     "주작단이 호위하는 표행 앞에 이번에는 용골채 천 명이 길을 막았다. 노사부 없이 치러야 할 두 번째 매복이었다.",
@@ -927,7 +957,8 @@ namespace BiRyeoDo.Core
                     "사천을 떠난 지 일곱 달 만에 주작단이 천무학관 정문으로 돌아왔다. 피로 물든 옷이 그동안의 일을 대신 말해 주었다.",
                     "그들이 돌아오기 전, 비류연은 이미 사천의 모옥에서 사부의 점심상을 차리고 있었다.",
                 },
-                Encounters = new[] { new[] { "yonggol_bandit", "yonggol_bandit" }, new[] { "yonggol_bandit", "yonggol_bandit", "yonggol_bandit" }, new[] { "paeryong_wooak", "yonggol_bandit" } } },
+                RewardEncounters = new[] { new[] { "yonggol_bandit", "yonggol_bandit" }, new[] { "yonggol_bandit", "yonggol_bandit", "yonggol_bandit" }, new[] { "paeryong_wooak", "yonggol_bandit" } },
+                Encounters = new[] { new[] { "yonggol_bandit", "yonggol_bandit", "yonggol_archer" }, new[] { "yonggol_bandit", "yonggol_bandit", "yonggol_axe", "yonggol_archer" }, new[] { "paeryong_wooak", "yonggol_bandit", "yonggol_bandit" } } },
             new StageData { Number = 5, Name = "주주 윤하루", RecommendedLevel = 13, DooTotal = 4700,
                 Prologue = new[]
                 {
@@ -958,7 +989,8 @@ namespace BiRyeoDo.Core
                     "염도|이 몸을 제자로 부려 먹겠다니…!",
                     "사천제일 도객은 뇌금 묵뢰를 짊어지고 비류연을 따라나섰다. 누가 스승인지 남들에게 설명하기는 곤란한 동행이었다.",
                 },
-                Encounters = new[] { new[] { "jang_ugang" }, new[] { "yeomdo" } } },
+                RewardEncounters = new[] { new[] { "jang_ugang" }, new[] { "yeomdo" } },
+                Encounters = new[] { new[] { "jang_ugang", "jungyang_pyosa", "jungyang_pyosa" }, new[] { "yeomdo" } } },
             new StageData { Number = 6, Name = "남창 호아장", RecommendedLevel = 16, DooTotal = 3000,
                 Prologue = new[]
                 {
@@ -983,7 +1015,8 @@ namespace BiRyeoDo.Core
                     "동문 사형제가 일검을 교환했다. 빙검이 나선 뒤 호아장은 끝내 승룡패를 넘겼다.",
                     "비류연은 추천패를 챙겼다. 두 고수 사이의 오래된 감정까지 풀린 것은 아니었다.",
                 },
-                Encounters = new[] { new[] { "hoajang_disciple", "hoajang_disciple" }, new[] { "hoajang_disciple", "hoajang_disciple", "hoajang_disciple" }, new[] { "ho_cheonsang", "hoajang_disciple" } } },
+                RewardEncounters = new[] { new[] { "hoajang_disciple", "hoajang_disciple" }, new[] { "hoajang_disciple", "hoajang_disciple", "hoajang_disciple" }, new[] { "ho_cheonsang", "hoajang_disciple" } },
+                Encounters = new[] { new[] { "hoajang_disciple", "hoajang_disciple", "hoajang_disciple" }, new[] { "hoajang_disciple", "hoajang_disciple", "hoajang_disciple", "hoajang_senior" }, new[] { "ho_cheonsang", "hoajang_disciple", "hoajang_disciple" } } },
             new StageData { Number = 7, RewardWeightBudget = 8, Name = "특별전형과 검혼관", RecommendedLevel = 19, DooTotal = 3500,
                 Intro = new[] {
                     "염도는 무사부로 영입되었다. 승룡패를 내민 비류연에게는 특별전형이 남아 있었다.",
@@ -1014,7 +1047,8 @@ namespace BiRyeoDo.Core
                     "장홍|못 배워서 막힌 게 아니라 너무 멀리 나아가서 막혔다는 것이군요.",
                     "윤준호의 수련은 이제 시작이었다. 이날의 처방으로 검법을 곧장 되찾은 것은 아니었다.",
                 },
-                Encounters = new[] { new[] { "jongri_hak" }, new[] { "jongri_hak", "jongri_hak" }, new[] { "chu_gayeon", "jongri_hak" } } },
+                RewardEncounters = new[] { new[] { "jongri_hak" }, new[] { "jongri_hak", "jongri_hak" }, new[] { "chu_gayeon", "jongri_hak" } },
+                Encounters = new[] { new[] { "jongri_hak", "hwasan_jeja", "hwasan_jeja" }, new[] { "jongri_hak", "jongri_hak", "hwasan_jeja" }, new[] { "chu_gayeon", "jongri_hak", "hwasan_jeja" } } },
             new StageData { Number = 9, Name = "천무학관 운향정", RecommendedLevel = 23, DooTotal = 4000,
                 Prologue = new[]
                 {
@@ -1049,7 +1083,8 @@ namespace BiRyeoDo.Core
                     "이후 학관 정문에는 석 달 과제를 마친 청룡단과 주작단이 반 각 차로 돌아왔다. 사천 합숙 뒤의 첫 귀환과는 다른 길에서 돌아온 참이었다.",
                     "비류연|(제자 녀석들, 돌아왔구나. 정신교육부터 다시 시켜야겠네.)",
                 },
-                Encounters = new[] { new[] { "gu_chang" }, new[] { "so_cheongun" }, new[] { "gu_chang", "so_cheongun" }, new[] { "wiji_cheon" } } },
+                RewardEncounters = new[] { new[] { "gu_chang" }, new[] { "so_cheongun" }, new[] { "gu_chang", "so_cheongun" }, new[] { "wiji_cheon" } },
+                Encounters = new[] { new[] { "gu_chang", "dobaek_member", "dobaek_member" }, new[] { "so_cheongun", "geomhon_member", "geomhon_member" }, new[] { "gu_chang", "so_cheongun", "dobaek_member", "geomhon_member" }, new[] { "wiji_cheon" } } },
             new StageData { Number = 10, Name = "백향관 침투", RecommendedLevel = 25, DooTotal = 4200,
                 Prologue = new[]
                 {
@@ -1093,7 +1128,8 @@ namespace BiRyeoDo.Core
                     "효룡|감시가 있을 겁니다. 당분간 연락을 끊으세요.",
                     "두 침입 사건은 겹쳐 보였지만, 비류연과 무흔일호가 함께 움직인 것은 아니었다.",
                 },
-                Encounters = new[] { new[] { "sunyeo" }, new[] { "sunyeo", "sunyeo" }, new[] { "na_yerin" } } },
+                RewardEncounters = new[] { new[] { "sunyeo" }, new[] { "sunyeo", "sunyeo" }, new[] { "na_yerin" } },
+                Encounters = new[] { new[] { "sunyeo", "sunyeo", "sunyeo" }, new[] { "sunyeo", "sunyeo", "sunyeo", "sunyeo" }, new[] { "na_yerin" } } },
             new StageData { Number = 11, RewardWeightBudget = 3, Name = "승급시험", RecommendedLevel = 27, DooTotal = 4600,
                 Prologue = new[]
                 {
@@ -1207,23 +1243,27 @@ namespace BiRyeoDo.Core
                 Prologue = StoryMidgame.Prologues[14],
                 Intro = StoryMidgame.Intros[14],
                 Outro = StoryMidgame.Outros[14],
-                Encounters = new[] { new[] { "maeng_yeonho" }, new[] { "amryong_salsu", "amryong_salsu", "amryong_salsu" }, new[] { "mak_jeok" }, new[] { "heuk_sang" }, new[] { "gal_hyobong" }, new[] { "chohon_gwigeom", "chohon_gwigeom", "myeongbu_jang" }, new[] { "gal_hyobong" }, new[] { "cheonsal", "jisal" } },
+                RewardEncounters = new[] { new[] { "maeng_yeonho" }, new[] { "amryong_salsu", "amryong_salsu", "amryong_salsu" }, new[] { "mak_jeok" }, new[] { "heuk_sang" }, new[] { "gal_hyobong" }, new[] { "chohon_gwigeom", "chohon_gwigeom", "myeongbu_jang" }, new[] { "gal_hyobong" }, new[] { "cheonsal", "jisal" } },
+                Encounters = new[] { new[] { "maeng_yeonho", "cheongryong_member", "cheongryong_member" }, new[] { "amryong_salsu", "amryong_salsu", "amryong_salsu", "amryong_salsu" }, new[] { "mak_jeok", "jeogung_bandit", "jeogung_bandit" }, new[] { "heuk_sang", "amyeong_member", "amyeong_member" }, new[] { "gal_hyobong" }, new[] { "chohon_gwigeom", "chohon_gwigeom", "myeongbu_jang" }, new[] { "gal_hyobong" }, new[] { "cheonsal", "jisal" } },
                 Trials = new[] { null, null, null, null, TrialRule.Survive("갈효봉의 첫 공방", "갈효봉의 공격 8행동을 버텨 주세요. 방어와 운기를 활용할 수 있습니다.", 8), null, null, null } },
             new StageData { Number = 15, RewardWeightBudget = 9, Name = "철각비마대", RecommendedLevel = 35, DooTotal = 7000,
                 Prologue = StoryMidgame.Prologues[15],
                 Intro = StoryMidgame.Intros[15],
                 Outro = StoryMidgame.Outros[15],
-                Encounters = new[] { new[] { "bikwae_ssangchang", "bikwae_ssangchang" }, new[] { "sadae_jilpung", "sadae_jilpung", "sadae_jilpung" }, new[] { "cheolbi_gyeok", "cheolbi_gyeok", "wi_musang" }, new[] { "gu_cheonhak" } } },
+                RewardEncounters = new[] { new[] { "bikwae_ssangchang", "bikwae_ssangchang" }, new[] { "sadae_jilpung", "sadae_jilpung", "sadae_jilpung" }, new[] { "cheolbi_gyeok", "cheolbi_gyeok", "wi_musang" }, new[] { "gu_cheonhak" } },
+                Encounters = new[] { new[] { "bikwae_ssangchang", "bikwae_ssangchang", "bikwae_ssangchang" }, new[] { "sadae_jilpung", "sadae_jilpung", "sadae_jilpung" }, new[] { "cheolbi_gyeok", "cheolbi_gyeok", "wi_musang" }, new[] { "gu_cheonhak", "sadae_jilpung", "sadae_jilpung" } } },
             new StageData { Number = 16, Name = "저잣거리 습격", RecommendedLevel = 37, DooTotal = 7500,
                 Prologue = StoryMidgame.Prologues[16],
                 Intro = StoryMidgame.Intros[16],
                 Outro = StoryMidgame.Outros[16],
-                Encounters = new[] { new[] { "baegin_jagaek", "baegin_jagaek", "baegin_jagaek" }, new[] { "ssanggwi", "baegin_jagaek" }, new[] { "baek_tanjeo" } } },
+                RewardEncounters = new[] { new[] { "baegin_jagaek", "baegin_jagaek", "baegin_jagaek" }, new[] { "ssanggwi", "baegin_jagaek" }, new[] { "baek_tanjeo" } },
+                Encounters = new[] { new[] { "baegin_jagaek", "baegin_jagaek", "baegin_jagaek" }, new[] { "ssanggwi", "baegin_jagaek", "baegin_jagaek" }, new[] { "baek_tanjeo", "baegin_jagaek", "baegin_jagaek" } } },
             new StageData { Number = 17, RewardWeightBudget = 7, Name = "마하령의 분노", RecommendedLevel = 39, DooTotal = 8000,
                 Prologue = StoryMidgame.Prologues[17],
                 Intro = StoryMidgame.Intros[17],
                 Outro = StoryMidgame.Outros[17],
-                Encounters = new[] { new[] { "pae_yugyeong" }, new[] { "sinung_daewon", "sinung_daewon", "sinung_daewon" }, new[] { "pae_hyeokseong" } } },
+                RewardEncounters = new[] { new[] { "pae_yugyeong" }, new[] { "sinung_daewon", "sinung_daewon", "sinung_daewon" }, new[] { "pae_hyeokseong" } },
+                Encounters = new[] { new[] { "pae_yugyeong", "sinung_daewon", "sinung_daewon" }, new[] { "sinung_daewon", "sinung_daewon", "sinung_daewon" }, new[] { "pae_hyeokseong", "sinung_daewon", "sinung_daewon" } } },
             new StageData { Number = 18, RewardWeightBudget = 4, Name = "태극의 인재", RecommendedLevel = 41, DooTotal = 8500,
                 Prologue = StoryMidgame.Prologues[18],
                 Intro = StoryMidgame.Intros[18],
@@ -1233,12 +1273,14 @@ namespace BiRyeoDo.Core
                 Prologue = StoryMidgame.Prologues[19],
                 Intro = StoryMidgame.Intros[19],
                 Outro = StoryMidgame.Outros[19],
-                Encounters = new[] { new[] { "hwan_ying", "hwan_ying", "hwan_ying" }, new[] { "hwan_geomseong" }, new[] { "hwan_gal_hyobong" }, new[] { "hwan_sukbu", "hwan_ying" }, new[] { "hwan_sabu" } } },
+                RewardEncounters = new[] { new[] { "hwan_ying", "hwan_ying", "hwan_ying" }, new[] { "hwan_geomseong" }, new[] { "hwan_gal_hyobong" }, new[] { "hwan_sukbu", "hwan_ying" }, new[] { "hwan_sabu" } },
+                Encounters = new[] { new[] { "hwan_ying", "hwan_ying", "hwan_ying" }, new[] { "hwan_geomseong", "hwan_ying", "hwan_ying" }, new[] { "hwan_gal_hyobong", "hwan_ying", "hwan_ying" }, new[] { "hwan_sukbu", "hwan_ying", "hwan_ying" }, new[] { "hwan_sabu" } } },
             new StageData { Number = 20, Name = "매몰 44일", RecommendedLevel = 45, DooTotal = 9500,
                 Prologue = StoryMidgame.Prologues[20],
                 Intro = StoryMidgame.Intros[20],
                 Outro = StoryMidgame.Outros[20],
-                Encounters = new[] { new[] { "cave_viper", "cave_viper", "cave_viper" }, new[] { "cave_viper", "cave_viper" }, new[] { "mukrin_hyeolmang" } } },
+                RewardEncounters = new[] { new[] { "cave_viper", "cave_viper", "cave_viper" }, new[] { "cave_viper", "cave_viper" }, new[] { "mukrin_hyeolmang" } },
+                Encounters = new[] { new[] { "cave_viper", "cave_viper", "cave_viper" }, new[] { "cave_viper", "cave_viper", "cave_viper" }, new[] { "mukrin_hyeolmang" } } },
             new StageData { Number = 21, Name = "흑랑채 청혼", RecommendedLevel = 47, DooTotal = 10000,
                 Prologue = new[]
                 {
@@ -1262,7 +1304,8 @@ namespace BiRyeoDo.Core
                     "그러나 학관 일행이 떠난 뒤 십이혈마대가 흑랑채를 몰살한다. 임개는 자폭했고 이송학은 도망친다.",
                     "십이혈마대는 학관 대표단을 범인으로 몰려 한다.",
                 },
-                Encounters = new[] { new[] { "heukrang_bandit", "heukrang_bandit", "heukrang_bandit" }, new[] { "lee_songhak", "heukrang_bandit" }, new[] { "im_gae" } } },
+                RewardEncounters = new[] { new[] { "heukrang_bandit", "heukrang_bandit", "heukrang_bandit" }, new[] { "lee_songhak", "heukrang_bandit" }, new[] { "im_gae" } },
+                Encounters = new[] { new[] { "heukrang_bandit", "heukrang_bandit", "heukrang_bandit" }, new[] { "lee_songhak", "heukrang_bandit", "heukrang_bandit" }, new[] { "im_gae", "heukrang_bandit", "heukrang_bandit" } } },
             new StageData { Number = 22, Name = "낙뢰곡 철쇄봉혼진", RecommendedLevel = 49, DooTotal = 10500,
                 Prologue = new[]
                 {
@@ -1292,7 +1335,8 @@ namespace BiRyeoDo.Core
                     "임성진|아버지와는 화해했다. 이제 내 곤으로 여러분 곁에 서겠다.",
                     "아버지와 화해한 임성진이 곤을 들고 일행의 곁에 선다. 굼뜨지만 묵직한 곤법이다. (동료 합류: 임성진 — 파티는 최대 셋이라 강호 탭의 \"파티 편성\"에서 동료 셋을 고른다.)",
                 },
-                Encounters = new[] { new[] { "hyeolma_dae", "hyeolma_dae", "hyeolma_dae" }, new[] { "hyeol_gung", "hyeolma_dae" }, new[] { "hyeol_swae" } } },
+                RewardEncounters = new[] { new[] { "hyeolma_dae", "hyeolma_dae", "hyeolma_dae" }, new[] { "hyeol_gung", "hyeolma_dae" }, new[] { "hyeol_swae" } },
+                Encounters = new[] { new[] { "hyeolma_dae", "hyeolma_dae", "hyeolma_dae" }, new[] { "hyeol_gung", "hyeolma_dae", "hyeolma_dae" }, new[] { "hyeol_swae", "hyeolma_dae", "hyeolma_dae" } } },
             new StageData { Number = 23, Name = "비사진", RecommendedLevel = 51, DooTotal = 11000,
                 Prologue = new[]
                 {
@@ -1318,7 +1362,8 @@ namespace BiRyeoDo.Core
                     "비류연|세 가지만 묻죠. 배후는? 근거지는? 목적은?",
                     "모사령|배후는 천겁령. 근거지는 당신들이 믿고 있는 거울의 그림자. 목적은 붉은 꽃이 만개한 화산이다.",
                 },
-                Encounters = new[] { new[] { "bisa_snake", "bisa_snake", "bisa_snake" }, new[] { "cheonghong_ssanggaksa", "bisa_snake" }, new[] { "mo_saryeong" } } },
+                RewardEncounters = new[] { new[] { "bisa_snake", "bisa_snake", "bisa_snake" }, new[] { "cheonghong_ssanggaksa", "bisa_snake" }, new[] { "mo_saryeong" } },
+                Encounters = new[] { new[] { "bisa_snake", "bisa_snake", "bisa_snake" }, new[] { "cheonghong_ssanggaksa", "bisa_snake", "bisa_snake" }, new[] { "mo_saryeong", "bisa_snake", "bisa_snake" } } },
             new StageData { Number = 24, Name = "비뢰쌍마", RecommendedLevel = 53, DooTotal = 12000,
                 Prologue = new[]
                 {
@@ -1381,7 +1426,8 @@ namespace BiRyeoDo.Core
                     "비류연|선수교체를 해도 될까요?",
                     "비류연이 모용휘 앞에 나타난다. (14권에서 계속)",
                 },
-                Encounters = new[] { new[] { "hwapyeong_soldier", "hwapyeong_soldier", "hwapyeong_soldier" }, new[] { "hwapyeong_soldier", "ssangsal_hapgyeok" }, new[] { "baek_son_gosu" } } },
+                RewardEncounters = new[] { new[] { "hwapyeong_soldier", "hwapyeong_soldier", "hwapyeong_soldier" }, new[] { "hwapyeong_soldier", "ssangsal_hapgyeok" }, new[] { "baek_son_gosu" } },
+                Encounters = new[] { new[] { "hwapyeong_soldier", "hwapyeong_soldier", "hwapyeong_soldier" }, new[] { "hwapyeong_soldier", "ssangsal_hapgyeok", "hwapyeong_soldier" }, new[] { "baek_son_gosu" } } },
             new StageData { Number = 26, Name = "살귀대", RecommendedLevel = 57, DooTotal = 13500,
                 Prologue = new[]
                 {
@@ -1412,7 +1458,8 @@ namespace BiRyeoDo.Core
                     "홍매곡 입구에서 율령자 세 사람과 위지천이 구출대를 막는다. 비류연은 은설란을 \"호환을 당한 조난자\"라 우기고, 빙검이 밤새 잡아 온 대호가 증거가 된다. 위지천의 고자질은 용서하지 않기로 한다.",
                     "사흘 뒤 불탄 화평장에서 정천맹 감찰조사관 안명후와 개코 왕견이 고순도의 위험한 물품 냄새를 맡는다.",
                 },
-                Encounters = new[] { new[] { "salgwi_daewon", "salgwi_daewon", "salgwi_daewon" }, new[] { "salgwi_daewon", "salgwi_daewon" }, new[] { "ho_yugwang" } } },
+                RewardEncounters = new[] { new[] { "salgwi_daewon", "salgwi_daewon", "salgwi_daewon" }, new[] { "salgwi_daewon", "salgwi_daewon" }, new[] { "ho_yugwang" } },
+                Encounters = new[] { new[] { "salgwi_daewon", "salgwi_daewon", "salgwi_daewon" }, new[] { "salgwi_daewon", "salgwi_daewon", "salgwi_daewon" }, new[] { "ho_yugwang", "salgwi_daewon", "salgwi_daewon" } } },
             new StageData { Number = 27, Name = "마천칠걸", RecommendedLevel = 59, DooTotal = 14000,
                 Prologue = new[]
                 {
@@ -1483,7 +1530,8 @@ namespace BiRyeoDo.Core
                     "안명후|음모… 화산… 위험… 용…",
                     "안명후는 그 말을 남기고 쓰러진다. 임덕성과 모경이 짐꾼을 자원한다.",
                 },
-                Encounters = new[] { new[] { "jongri_chu_night", "do_chuun_night" }, new[] { "mulsung_daewon", "mulsung_daewon", "mulsung_daewon" }, new[] { "mulsung_daewon", "i_gae_bujo" }, new[] { "sama_heun" } },
+                RewardEncounters = new[] { new[] { "jongri_chu_night", "do_chuun_night" }, new[] { "mulsung_daewon", "mulsung_daewon", "mulsung_daewon" }, new[] { "mulsung_daewon", "i_gae_bujo" }, new[] { "sama_heun" } },
+                Encounters = new[] { new[] { "jongri_chu_night", "do_chuun_night" }, new[] { "mulsung_daewon", "mulsung_daewon", "mulsung_daewon", "mulsung_daewon" }, new[] { "mulsung_daewon", "i_gae_bujo", "mulsung_daewon" }, new[] { "sama_heun", "mulsung_daewon", "mulsung_daewon" } },
                 Trials = new[]
                 {
                     TrialRule.Deadline("오행 제1관 목요관", "밤의 낙안봉. 종리추와 도추운이 길을 막는다. 대공자를 쫓으려면 30행동 안에 돌파하라!", 30)
@@ -1571,7 +1619,8 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
                     "용권풍이 불꽃을 하늘로 밀어 올려 모두 꺼뜨린다. 비류연은 쓰러져 나예린의 무릎에서 쉰다. 사망 3, 중상 13, 경상 25.",
                     "원문은 대공자 비가 \"한때 은명이라 불렸던 남자\"임을 밝히고, 비류연의 사부로 보이는 백염백발의 노인이 불타는 청룡은장에서 제자를 찾아 길을 나서며 1부가 끝난다.",
                 },
-                Encounters = new[] { new[] { "ma_chilgeol_jeoji", "ma_chilgeol_jeoji", "ma_chilgeol_jeoji" }, new[] { "hwaryong_hwayeom", "ma_chilgeol_jeoji" }, new[] { "bi_daegongja" } } },
+                RewardEncounters = new[] { new[] { "ma_chilgeol_jeoji", "ma_chilgeol_jeoji", "ma_chilgeol_jeoji" }, new[] { "hwaryong_hwayeom", "ma_chilgeol_jeoji" }, new[] { "bi_daegongja" } },
+                Encounters = new[] { new[] { "ma_chilgeol_jeoji", "ma_chilgeol_jeoji", "ma_chilgeol_jeoji" }, new[] { "hwaryong_hwayeom", "ma_chilgeol_jeoji", "ma_chilgeol_jeoji" }, new[] { "bi_daegongja" } } },
             // 2부 (17-18권). The 살룡대 fights (stage 31) and the 황금 완장 / training bouts (stage 32) are 게임 연출; the notes in the story text say so.
             new StageData { Number = 31, Name = "청룡은장의 밤", RecommendedLevel = 67, DooTotal = 16200,
                 Prologue = new[]
@@ -1740,7 +1789,8 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
                     "장우양이 두 사람을 손님으로 맞는다. 공손절휘는 모용휘를 이기려고 황금 완장만 노렸을 뿐, 사람을 죽인 적이 없다.",
                     "진소령은 공손절휘와 싸울 때 남궁상이 시간이 느려지는 감각에 들어갔다는 말을 듣고, 그것을 심안의 경지라 본다.",
                 },
-                Encounters = new[] { new[] { "jungwon_pyosa", "o_yeong", "o_gi" }, new[] { "yun_ijeong", "i_sigeon_jungwon" } } },
+                RewardEncounters = new[] { new[] { "jungwon_pyosa", "o_yeong", "o_gi" }, new[] { "yun_ijeong", "i_sigeon_jungwon" } },
+                Encounters = new[] { new[] { "jungwon_pyosa", "o_yeong", "o_gi" }, new[] { "yun_ijeong", "i_sigeon_jungwon", "jungwon_pyosa" } } },
             new StageData { Number = 35, Name = "전설의 포효", RecommendedLevel = 71, DooTotal = 17800,
                 Prologue = new[]
                 {
@@ -1849,8 +1899,14 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
         {
             if (!st.IsQuest && !st.IsTower && st.RewardWeightBudget > 0) return st.RewardWeightBudget;
             int w = 0;
-            foreach (var enc in st.Encounters) foreach (var id in enc) w += RewardWeight(id);
+            for (int k = 0; k < st.Encounters.Length; k++) foreach (var id in RewardIds(st, k)) w += RewardWeight(id);
             return w;
+        }
+
+        /// <summary>The enemies a fight pays exp, 두 and drops for: its line-up before 전투 인원 확장 (<see cref="StageData.RewardEncounters"/>), else its real one.</summary>
+        public static string[] RewardIds(StageData st, int fight)
+        {
+            return st.RewardEncounters != null && fight < st.RewardEncounters.Length ? st.RewardEncounters[fight] : st.Encounters[fight];
         }
 
         /// <summary>Baseline level cushion used to calculate first-clear experience.</summary>
@@ -1867,12 +1923,41 @@ new StageData { Number = 30, Name = "화룡멸겁대진", RecommendedLevel = 65,
         /// </summary>
         public static long ExpReward(StageData st, string enemyId)
         {
+            return (long)Math.Ceiling((double)StageExpSpan(st) * RewardWeight(enemyId) / RewardDenominator(st));
+        }
+
+        /// <summary>Exp between this stage's level and the next one's: the pool <see cref="ExpReward"/> shares out by weight.</summary>
+        private static long StageExpSpan(StageData st)
+        {
             var next = FindStage(st.Number + 1);
             // the last stage has no next one: it spans the usual two curve steps, so it pays like the others and still ends at its recommended level + 1
             double to = (next != null ? ExactPlayerLevel(next) : ExactPlayerLevel(st) + 2.0 / Progression.CurvePerPlayerLevel) + LevelHeadroom;
             double from = st.Number > 1 ? ExactPlayerLevel(st) + LevelHeadroom : st.RecommendedPlayerLevel;
-            long total = Math.Max(0L, CumulativeExpAt(to) - CumulativeExpAt(from));
-            return (long)Math.Ceiling((double)total * RewardWeight(enemyId) / RewardDenominator(st));
+            return Math.Max(0L, CumulativeExpAt(to) - CumulativeExpAt(from));
+        }
+
+        /// <summary>Each follower added by 전투 인원 확장 pays this share of an ordinary enemy's exp and 두, on top of the original line-up.</summary>
+        public const double FollowerRewardShare = 0.5;
+
+        /// <summary>How many more enemies a fight holds than its line-up before 전투 인원 확장 (0 for quests, tower floors and untouched fights).</summary>
+        public static int FollowerCount(StageData st, int fight)
+        {
+            if (st.RewardEncounters == null || fight < 0 || fight >= st.RewardEncounters.Length || fight >= st.Encounters.Length) return 0;
+            return Math.Max(0, st.Encounters[fight].Length - st.RewardEncounters[fight].Length);
+        }
+
+        /// <summary>Extra exp a fight pays for its added followers (<see cref="FollowerRewardShare"/> of an ordinary enemy each).</summary>
+        public static long FollowerExp(StageData st, int fight)
+        {
+            int n = FollowerCount(st, fight);
+            return n == 0 ? 0 : (long)Math.Ceiling(StageExpSpan(st) * FollowerRewardShare * n / RewardDenominator(st));
+        }
+
+        /// <summary>Extra 두 a fight pays for its added followers.</summary>
+        public static long FollowerDoo(StageData st, int fight)
+        {
+            int n = FollowerCount(st, fight);
+            return n == 0 ? 0 : (long)Math.Round(st.DooTotal * StageDooFactor * FollowerRewardShare * n / RewardDenominator(st));
         }
 
         /// <summary>Stage 두 payouts are raised by this factor on top of <see cref="StageData.DooTotal"/> (clears, replays and quests alike).</summary>

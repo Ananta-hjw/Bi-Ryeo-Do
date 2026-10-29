@@ -28,11 +28,13 @@ namespace BiRyeoDo.Core
             exp = 0; doo = 0;
             int diff = st.IsTower || st.IsQuest ? 0 : st.Difficulty;
             bool towerFirst = st.IsTower && st.TowerFloor > save.TowerBest;
-            foreach (var id in st.Encounters[fight])
+            foreach (var id in EarlyGameContent.RewardIds(st, fight))
             {
                 exp += EarlyGameContent.ExpReward(st, id);
                 doo += EarlyGameContent.DooReward(st, id);
             }
+            exp += EarlyGameContent.FollowerExp(st, fight);   // added followers pay a half share each
+            doo += EarlyGameContent.FollowerDoo(st, fight);
             if (st.IsQuest) exp = Quests.ExpReward(save);
             if (st.IsTower) { exp = towerFirst ? Tower.ExpReward(save, st.TowerFloor) : 0; if (!towerFirst) doo = 0; }
             if (diff > 0) { exp = (long)Math.Round(exp * StageStars.RewardFactor[diff]); doo = (long)Math.Round(doo * StageStars.RewardFactor[diff]); }

@@ -46,7 +46,7 @@ namespace BiRyeoDo.Core
             _bosses = new List<EnemyData>();
             foreach (var e in EarlyGameContent.Enemies)
             {
-                if (e.Moves == null || e.Moves.Length == 0 || e.RetreatHpPct > 0f || e.HpMul > 10f) continue;   // skip trial-only enemies
+                if (e.Moves == null || e.Moves.Length == 0 || e.RetreatHpPct > 0f || e.HpMul > 10f || e.IsMinion) continue;   // skip trial-only enemies and fight-filling followers (keeps the floors as they were)
                 (e.IsBoss ? _bosses : _normals).Add(e);
             }
         }

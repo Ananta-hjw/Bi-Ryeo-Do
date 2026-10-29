@@ -71,7 +71,7 @@ namespace BiRyeoDo.Tests
                 Assert.IsFalse(all.Any(line => StoryLine.Parse(line).IsProtagonist), "The master already parted with his disciples");
                 Assert.AreEqual(3, stage.Encounters.Length);
             }
-            CollectionAssert.AreEqual(new[] { "gu_chang" }, EarlyGameContent.FindStage(9).Encounters[0]);
+            Assert.AreEqual("gu_chang", EarlyGameContent.FindStage(9).Encounters[0][0]);   // with 도백회 followers since 전투 인원 확장
             CollectionAssert.AreEqual(new[] { "wiji_cheon" }, EarlyGameContent.FindStage(9).Encounters[3]);
         }
 

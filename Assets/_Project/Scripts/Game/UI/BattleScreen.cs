@@ -508,7 +508,7 @@ namespace BiRyeoDo.Game.UI
                         materialNames.Add(MaterialName(materialDrop.Id) + " " + materialDrop.Count + "개");
                     }
                     if (!stage.IsQuest && !stage.IsTower) materialLines.Add("전투 " + (i + 1) + ": " + (materialNames.Count > 0 ? string.Join(" · ", materialNames) : "없음"));
-                    if (!stage.IsQuest && !stage.IsTower) for (int roll = 0; roll < StageStars.DropRolls(diff); roll++) drops.AddRange(RollDrops(stage.Encounters[i]));
+                    if (!stage.IsQuest && !stage.IsTower) for (int roll = 0; roll < StageStars.DropRolls(diff); roll++) drops.AddRange(RollDrops(EarlyGameContent.RewardIds(stage, i)));
                     CompanionGrowth.EnsureRecords(save);   // before the protagonist levels, so old saves' companions start at the old level
                     // Capture presentation snapshots before experience changes anyone's level.
                     var levelsBefore = new Dictionary<string, int> { { Inventory.Hero, save.Level } };

@@ -38,7 +38,7 @@ namespace BiRyeoDo.Tests
                 for (int i = 0; i < s.Encounters.Length; i++)
                 {
                     var enc = s.Encounters[i];
-                    Assert.IsTrue(enc.Length >= 1 && enc.Length <= 3, s.Name);
+                    Assert.IsTrue(enc.Length >= 1 && enc.Length <= 4, s.Name);
                     bool hasBoss = false;
                     foreach (var id in enc)
                     {
@@ -131,7 +131,7 @@ namespace BiRyeoDo.Tests
                 Assert.GreaterOrEqual(save.Level, s.RecommendedPlayerLevel - 1, s.Name);
                 Assert.GreaterOrEqual(save.Level, (int)Math.Floor(EarlyGameContent.ExactPlayerLevel(s)), s.Name);
                 long exp = 0;
-                foreach (var enc in s.Encounters) foreach (var id in enc) exp += EarlyGameContent.ExpReward(s, id);
+                for (int k = 0; k < s.Encounters.Length; k++) foreach (var id in EarlyGameContent.RewardIds(s, k)) exp += EarlyGameContent.ExpReward(s, id);
                 Assert.Greater(exp, 0, s.Name + " pays no exp");
                 Progression.AddExp(save, exp);
             }

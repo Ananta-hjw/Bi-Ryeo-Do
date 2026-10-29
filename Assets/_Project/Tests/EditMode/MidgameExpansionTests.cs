@@ -51,7 +51,10 @@ namespace BiRyeoDo.Tests
         [Test]
         public void RealGuardsReplaceTheFictitiousMaharyeongDuelAndTheQuestKeepsItsScouts()
         {
-            CollectionAssert.AreEqual(new[] { "pae_yugyeong", "sinung_daewon", "sinung_daewon", "sinung_daewon", "pae_hyeokseong" }, EarlyGameContent.FindStage(17).Encounters.SelectMany(x => x));
+            CollectionAssert.AreEqual(new[] { "pae_yugyeong", "sinung_daewon", "sinung_daewon", "sinung_daewon", "pae_hyeokseong" }, EarlyGameContent.FindStage(17).RewardEncounters.SelectMany(x => x));
+            // 전투 인원 확장 adds 신응대 followers; the real guards still lead every fight
+            Assert.AreEqual("pae_yugyeong", EarlyGameContent.FindStage(17).Encounters[0][0]);
+            Assert.AreEqual("pae_hyeokseong", EarlyGameContent.FindStage(17).Encounters[2][0]);
             var quest = Quests.All.Single(q => q.Id == "q_sadae");
             CollectionAssert.AreEqual(new[] { "sadae_jilpung", "sadae_jilpung", "sadae_jilpung" }, Quests.ToStage(quest).Encounters[0]);
             Assert.AreEqual(TrialKind.Survive, EarlyGameContent.FindStage(14).TrialFor(4).Kind);

@@ -99,43 +99,43 @@ namespace BiRyeoDo.Core
         public static readonly float[] RewardFactor = { 1.0f, 1.5f, 2.2f };   // 두 and exp
         public static readonly string[] StarNames = { "돌파", "전원 생존", "신속" };
 
-        /// <summary>Party actions allowed for the 신속 star of each fight (index = stage - 1, then fight). About 90% of the balance bot's median, plus one; the bot plays the 일반 enemies with their HP boost (<see cref="NormalHpBoost"/>) at <c>BalanceSimulation.BotLevel</c>.</summary>
+        /// <summary>Party actions allowed for the 신속 star of each fight (index = stage - 1, then fight). About 90% of the balance bot's median, plus one; fights that gained followers (전투 인원 확장) were scaled by the bot's new median over its old one; the bot plays the 일반 enemies with their HP boost (<see cref="NormalHpBoost"/>) at <c>BalanceSimulation.BotLevel</c>.</summary>
         private static readonly int[][] FastLimits =
         {
             new[] { 4, 8, 7, 10 },   // 1
-            new[] { 3, 5, 7, 9, 10 },   // 2
-            new[] { 4, 5, 5 },   // 3
-            new[] { 5, 8, 7 },   // 4
-            new[] { 3, 10 },   // 5
-            new[] { 6, 7, 8 },   // 6
+            new[] { 9, 10, 11, 9, 18 },   // 2
+            new[] { 6, 9, 8 },   // 3
+            new[] { 8, 10, 10 },   // 4
+            new[] { 11, 10 },   // 5
+            new[] { 8, 12, 8 },   // 6
             new[] { 5, 5, 6, 6, 5, 9, 11, 10 },   // 7
-            new[] { 5, 10, 13 },   // 8
-            new[] { 7, 7, 15, 13 },   // 9
-            new[] { 8, 19, 18 },   // 10
+            new[] { 12, 13, 19 },   // 8
+            new[] { 19, 19, 27, 13 },   // 9
+            new[] { 22, 47, 18 },   // 10
             new[] { 9, 5, 5, 23 },   // 11
             new[] { 8, 7, 7, 8, 8, 19 },   // 12
             new[] { 12, 23, 27, 26 },   // 13
-            new[] { 11, 17, 11, 12, 18, 27, 17, 39 },   // 14
-            new[] { 12, 21, 30, 18 },   // 15
-            new[] { 29, 22, 24 },   // 16
-            new[] { 15, 41, 24 },   // 17
+            new[] { 21, 21, 18, 26, 18, 27, 17, 39 },   // 14
+            new[] { 16, 21, 30, 26 },   // 15
+            new[] { 29, 30, 50 },   // 16
+            new[] { 39, 41, 40 },   // 17
             new[] { 20, 16, 30 },   // 18
-            new[] { 34, 21, 20, 34, 55 },   // 19
-            new[] { 43, 26, 37 },   // 20
-            new[] { 57, 41, 43 },   // 21
-            new[] { 61, 48, 50 },   // 22
-            new[] { 46, 37, 56 },   // 23
+            new[] { 34, 33, 42, 36, 55 },   // 19
+            new[] { 43, 43, 37 },   // 20
+            new[] { 57, 60, 80 },   // 21
+            new[] { 61, 59, 83 },   // 22
+            new[] { 46, 47, 78 },   // 23
             new[] { 51, 56, 52 },   // 24
-            new[] { 49, 48, 45 },   // 25
-            new[] { 74, 50, 57 },   // 26
+            new[] { 49, 56, 45 },   // 25
+            new[] { 74, 80, 95 },   // 26
             new[] { 50, 61, 50 },   // 27
-            new[] { 28, 46, 34, 36 },   // 28
+            new[] { 28, 59, 51, 70 },   // 28
             new[] { 42, 45, 27, 15, 71 },   // 29
-            new[] { 80, 55, 54 },   // 30
+            new[] { 80, 99, 54 },   // 30
             new[] { 53, 55 },   // 31
             new[] { 28, 45 },   // 32
             new[] { 37, 52, 69 },   // 33
-            new[] { 56, 69 },   // 34
+            new[] { 56, 106 },   // 34
             new[] { 37, 47, 62 },   // 35
             new[] { 23, 58 },   // 36
         };
