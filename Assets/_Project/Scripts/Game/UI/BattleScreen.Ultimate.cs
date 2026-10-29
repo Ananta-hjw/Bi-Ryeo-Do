@@ -14,6 +14,8 @@ namespace BiRyeoDo.Game.UI
         private const float UltimateBandTilt = -7f;
         /// <summary>Standing art height as a share of the screen: about the upper two thirds (head to thigh) stays on screen.</summary>
         private const float UltimateStandingHeight = 1.45f;
+        /// <summary>Real seconds the whole cut-in lasts, whatever the battle speed (the held frame takes up the rest).</summary>
+        private const float UltimateLength = 3.5f;
         private RectTransform _ultimateLayer;
 
         /// <summary>Removes a cut-in left half-drawn when the overlay is reopened (its coroutine was stopped).</summary>
@@ -94,8 +96,11 @@ namespace BiRyeoDo.Game.UI
 
             var flash = Fill(layer, "Flash", Vector2.zero, Vector2.one, new Color(1f, 1f, 1f, 0.9f));
 
-            float total = 1.25f / Pace, enter = 0.12f / Pace, stamp = 0.34f / Pace, second = 0.62f / Pace, exit = 0.98f / Pace;
+            // The name and figure hold on screen before the closing slash so the whole cut-in lasts UltimateLength real seconds.
+            float hold = Mathf.Max(0f, UltimateLength - 1.25f / Pace);
+            float total = 1.25f / Pace + hold, enter = 0.12f / Pace, stamp = 0.34f / Pace, second = 0.62f / Pace, exit = 0.98f / Pace + hold;
             bool stamped = false, struck = false, cut = false;
+            float nextBolt = second + 0.5f / Pace;
             for (float e = 0f; e < total; e += Time.deltaTime)
             {
                 if (layer == null) yield break;
@@ -146,6 +151,12 @@ namespace BiRyeoDo.Game.UI
                 {
                     struck = true;
                     for (int i = 0; i < 2; i++) Bolt(layer, w, h, Random.Range(0.1f, 0.95f));
+                }
+                // Stray bolts keep the held frame alive.
+                if (struck && e >= nextBolt && e < exit - 0.2f / Pace)
+                {
+                    nextBolt += 0.5f / Pace;
+                    Bolt(layer, w, h, Random.Range(0.1f, 0.95f));
                 }
                 if (!cut && e >= exit)
                 {
