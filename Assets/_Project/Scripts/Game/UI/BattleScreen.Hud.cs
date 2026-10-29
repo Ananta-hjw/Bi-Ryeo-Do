@@ -292,8 +292,8 @@ namespace BiRyeoDo.Game.UI
             foreach (var c in _cards)
             {
                 if (c.ShownHp <= 0) continue;
-                if (focus == null || c.Unit.AwakeningStrike != null || c.Unit.Charging || (c.Unit.IsBoss && !focus.Unit.Charging)) focus = c;
-                if (c.Unit.Charging || c.Unit.AwakeningStrike != null) break;
+                // The first boss, else the first living enemy; a wind-up does not pull the panel to its enemy (that would reveal it).
+                if (focus == null || (c.Unit.IsBoss && !focus.Unit.IsBoss)) focus = c;
             }
             _focusedEnemy = focus;
             if (focus == null)
@@ -304,17 +304,16 @@ namespace BiRyeoDo.Game.UI
                 return;
             }
             var u = focus.Unit;
-            bool threat = u.Charging || u.AwakeningStrike != null;
-            _focusAccent.color = threat ? UiFactory.Red : UiFactory.InkSoft;
-            _focusTag.text = u.AwakeningStrike != null ? "각성" : threat ? "위험" : u.IsBoss ? "보스" : "敵";
+            _focusAccent.color = u.IsBoss ? UiFactory.Red : UiFactory.InkSoft;
+            _focusTag.text = u.IsBoss ? "보스" : "敵";
             _focusName.text = u.Name;
             _focusHealth.text = focus.ShownHp.ToString("N0") + " / " + u.Stats.MaxHp.ToString("N0");
             _focusHp.SetPct(focus.ShownHp / (float)System.Math.Max(1, u.Stats.MaxHp));
             string phase = u.Phases != null && u.Phases.Count > 0 ? "  ·  단계 " + (focus.ShownPhase + 1) + "/" + (u.Phases.Count + 1) : "";
-            _focusDetail.text = u.AwakeningStrike != null ? "다음: " + BossPhases.AwakeningName + " · 강타의 " + (u.PhaseIndex == 1 ? "70%" : "100%") + "\n방어·회피·점혈로 대비하세요."
-                : threat ? u.PeekMove().Name + (u.ChargeTarget != null ? " → " + u.ChargeTarget.Name : "") + "\n방어·회피·중단으로 대비하세요."
-                : (u.Stunned ? "행동 불능" : "다음: " + u.PeekMove().Name) + phase + (u.Statuses.Count > 0 ? "  ·  " + Statuses.Line(u) : "");
-            _focusDetail.color = threat ? ThreatRed : UiFactory.Dim;
+            // Only 행동 불능, the boss phase and 상태 이상: nothing about the next move or a coming big blow.
+            string state = (u.Stunned ? "행동 불능" : "") + phase + (u.Statuses.Count > 0 ? "  ·  " + Statuses.Line(u) : "");
+            _focusDetail.text = state.TrimStart(' ', '·');
+            _focusDetail.color = UiFactory.Dim;
             for (int i = 0; i < _phaseMarks.Count; i++)
             {
                 bool show = u.Phases != null && i < u.Phases.Count;

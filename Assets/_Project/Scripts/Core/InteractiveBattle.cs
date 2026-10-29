@@ -644,8 +644,8 @@ namespace BiRyeoDo.Core
                 enemy.MoveIndex++;
                 enemy.Charging = true;
                 enemy.ChargeTarget = FrontMember();
-                string who = enemy.ChargeTarget != null ? " → " + enemy.ChargeTarget.Name : "";
-                events.Add(new BattleEvent { Turn = Turn, ActorId = enemy.Id, TargetId = enemy.ChargeTarget != null ? enemy.ChargeTarget.Id : enemy.Id, SkillId = move.Name, Kind = EventKind.Charge, TargetHpAfter = enemy.Hp, Message = enemy.Name + "이(가) " + move.Name + "!" + who });
+                // The message names the wind-up but not its victim: who it is aimed at stays hidden from the player.
+                events.Add(new BattleEvent { Turn = Turn, ActorId = enemy.Id, TargetId = enemy.ChargeTarget != null ? enemy.ChargeTarget.Id : enemy.Id, SkillId = move.Name, Kind = EventKind.Charge, TargetHpAfter = enemy.Hp, Message = enemy.Name + "이(가) " + move.Name + "!" });
                 return;
             }
 
@@ -689,7 +689,7 @@ namespace BiRyeoDo.Core
                 var ev = new BattleEvent
                 {
                     Turn = Turn, ActorId = enemy.Id, TargetId = target.Id, SkillId = move.Name, Kind = EventKind.Attack,
-                    HitIndex = h, HitCount = hits, Ranged = move.Ranged, Awakening = awakening, Burst = burst && h == 0, Weakened = dry && h == 0
+                    HitIndex = h, HitCount = hits, Ranged = move.Ranged, Awakening = awakening, Heavy = heavy, Burst = burst && h == 0, Weakened = dry && h == 0
                 };
                 if (target.Evading && (target.EvadeChance >= 1f || _rng.NextDouble() < target.EvadeChance))
                 {

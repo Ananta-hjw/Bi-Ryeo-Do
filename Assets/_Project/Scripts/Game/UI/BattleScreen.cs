@@ -134,6 +134,7 @@ namespace BiRyeoDo.Game.UI
             // Effects layers (above everything except panels)
             _fx = UiFactory.Rect("Fx", root, Vector2.zero, Vector2.one);
             _flash = UiFactory.Panel("Flash", root, Vector2.zero, Vector2.one, new Color(0.8f, 0.1f, 0.1f, 0f));
+            BuildFeel(root);
             _bannerBg = UiFactory.Panel("BannerBg", root, new Vector2(FieldLeft, .45f), new Vector2(FieldRight, .57f), new Color(0f, 0f, 0f, 0f));
             _banner = UiFactory.Label("Banner", root, new Vector2(FieldLeft, .45f), new Vector2(FieldRight, .57f), "", 64, UiFactory.Gold);
 
@@ -314,6 +315,7 @@ namespace BiRyeoDo.Game.UI
             CancelBasicMotion();
             StopAllCoroutines();
             ClearUltimateCutIn();
+            ResetFeel();
             HideFightRewards();
             ApplySavedSpeed();
             StartCoroutine(RunStage(stage));
@@ -666,6 +668,7 @@ namespace BiRyeoDo.Game.UI
             CancelBasicMotion();
             StopAllCoroutines();
             ClearUltimateCutIn();
+            ResetFeel();
             HideFightRewards();
             StartCoroutine(RunStoryOnly(title, lines));
         }
@@ -696,6 +699,7 @@ namespace BiRyeoDo.Game.UI
             CancelBasicMotion();
             StopAllCoroutines();
             ClearUltimateCutIn();
+            ResetFeel();
             HideFightRewards();
             StartCoroutine(RunPromotion(offer));
         }
@@ -1110,6 +1114,8 @@ namespace BiRyeoDo.Game.UI
             CancelBasicMotion();
             foreach (var c in _cards) if (c.Root != null) Destroy(c.Root.gameObject);
             _cards.Clear();
+            ResetFeel();
+            if (_cardsRoot != null && _home.ContainsKey(_cardsRoot)) { _cardsRoot.anchoredPosition = _home[_cardsRoot]; _cardsRoot.localScale = Vector3.one; }
             _home.Clear();
         }
 
@@ -1173,6 +1179,9 @@ namespace BiRyeoDo.Game.UI
                 RightAlignHp(card.HpText);
                 FixedLabelHeight(card.Intent, 0f, 26f);
                 card.Intent.rectTransform.anchoredPosition = new Vector2(0f, 13f);
+                // The enemy's next move is not shown under its figure (it stays in the enemy info window).
+                card.IntentBack.gameObject.SetActive(false);
+                card.Intent.gameObject.SetActive(false);
                 card.ActionBadge = BuildActionBadge(card.Root);
                 card.Name.transform.SetAsLastSibling();   // the name is drawn inside the HP bar, below the figure's feet
                 OutlineCommandText(card.Name);
@@ -1387,12 +1396,8 @@ namespace BiRyeoDo.Game.UI
                 p.SpiritText.text = p.ShownSpirit + " / " + InteractiveBattle.MaxSpirit;
                 string stance = !u.IsAlive ? "쓰러짐" : _battle != null && _battle.IsGuarded(u) ? "방어" : u.Evading ? "회피" : "";
                 string afflicted = u.IsAlive ? Statuses.Line(u) : "";
-                bool incoming = false;
-                if (_battle != null && u.IsAlive)
-                    foreach (var enemy in _battle.Enemies)
-                        if (enemy.IsAlive && enemy.AwakeningStrike == null && enemy.Charging && enemy.ChargeTarget == u) { incoming = true; break; }
-                p.Status.text = incoming ? "강타 대상" + (afflicted.Length > 0 ? "\n" + afflicted : "")
-                    : stance + (stance.Length > 0 && afflicted.Length > 0 ? " · " : "") + afflicted;
+                // No 「강타 대상」 mark: the party is not told who a wind-up is aimed at.
+                p.Status.text = stance + (stance.Length > 0 && afflicted.Length > 0 ? " · " : "") + afflicted;
                 bool current = VisibleActor == u && p.ShownHp > 0;
                 // Whose turn: a bright green ▶ and a white name; everyone else keeps the plain gold name.
                 p.Name.color = !u.IsAlive ? new Color(0.5f, 0.5f, 0.5f, 1f) : current ? Color.white : UiFactory.Gold;
@@ -1400,7 +1405,7 @@ namespace BiRyeoDo.Game.UI
                 p.Name.text = (current ? "<color=#5CFF9D>▶</color> " : "") + BoardName(u.Name);
                 p.Frame.color = current ? TurnGreen : new Color(0f, 0f, 0f, 0f);   // green = acting member (gold stays for aimed targets)
                 p.ActiveFrame.color = current ? TurnGreen : Color.clear;
-                p.Status.color = incoming ? ThreatRed : afflicted.Length > 0 ? StatusColor : UiFactory.PaperText;
+                p.Status.color = afflicted.Length > 0 ? StatusColor : UiFactory.PaperText;
                 if (AimingAlly && u.IsAlive && !current)
                 {
                     p.Frame.color = UiFactory.Jade;
@@ -2225,14 +2230,13 @@ namespace BiRyeoDo.Game.UI
             bool ultimateHit = striker != null && striker.Unit.Skills.Find(x => x.Id == ev.SkillId) is SkillSpec sp && sp.SpiritCost >= 100;
             SlashFx(card.Center, ev.HitIndex, ev.IsCrit, ultimateHit);
             if (ultimateHit) UltimateImpact(card.Center);
-            if (ev.IsCrit)
-            {
-                StartCoroutine(Punch(1.06f));
-                if (!approach) yield return new WaitForSeconds(Wait(0.07f));
-            }
             SoundManager.Sfx(ev.IsCrit ? "hit_crit" : "hit");
-            if (ev.IsCrit) SoundManager.Haptic(40);
-            Float(card.Center + new Vector2(UnityEngine.Random.Range(-0.05f, 0.05f), 0.02f * ev.HitIndex), ev.Damage + (ev.IsCrit ? "!" : ""), ev.IsCrit ? UiFactory.Gold : UiFactory.PaperText, ev.IsCrit ? 84 : 64);
+            if (ev.IsCrit) yield return CritImpact(card);
+            int tier = DamageTier(ev.Damage, card.Unit.Stats.MaxHp);
+            DamageNumber(card.Center + new Vector2(UnityEngine.Random.Range(-0.03f, 0.03f), 0.02f * ev.HitIndex), ev.Damage.ToString("N0"),
+                ev.IsCrit ? CritColor : TierColors[tier], (int)(TierSizes[tier] * (ev.IsCrit ? 1.15f : 1f)), ev.IsCrit);
+            if (tier >= 3 && !ev.IsCrit) SoundManager.Haptic(50);
+            ComboHit(ev);
             if (ev.Harmony) Float(card.Center + new Vector2(0f, 0.08f), "합격!", UiFactory.Gold, 80);
             if (ev.Interrupted) Float(card.Center + new Vector2(0f, -0.07f), "차단!", UiFactory.Gold, 72);
             else if (ev.Stunned) Float(card.Center + new Vector2(0f, -0.07f), "굳음", GuardBlue, 60);
@@ -2242,7 +2246,9 @@ namespace BiRyeoDo.Game.UI
             card.HpText.text = ev.TargetHpAfter + " / " + card.Unit.Stats.MaxHp;
             card.Spirit.SetPct(card.Unit.Spirit / (float)InteractiveBattle.MaxSpirit);
             card.SpiritText.text = card.Unit.Spirit + " / " + InteractiveBattle.MaxSpirit;
-            StartCoroutine(Shake(card.Root, ev.IsCrit ? 22f : 14f));
+            StartCoroutine(Shake(card.Root, ev.IsCrit ? 26f : new[] { 10f, 14f, 20f, 28f }[tier]));
+            if (finishMotion) ComboEnd();
+            if (ev.TargetDefeated && !ev.Retreated && card.Unit.IsBoss) StartCoroutine(BossFinish());
             if (ev.TargetDefeated) { StartCoroutine(Collapse(card)); card.Intent.text = ev.Retreated ? "물러났다" : "쓰러졌다"; if (ev.Retreated) _log.text = ev.Message; }
             RefreshParty();
             if (approach && finishMotion && _basicMotion.IsActive)
@@ -2269,6 +2275,13 @@ namespace BiRyeoDo.Game.UI
             if (attacker != null && ev.HitIndex == 0 && ev.Burst) { Float(attacker.Center + new Vector2(0f, 0.06f), "기세 폭발!", UiFactory.Red, 70); SoundManager.Haptic(40); }
             if (attacker != null && ev.HitIndex == 0 && ev.Weakened) Float(attacker.Center + new Vector2(0f, 0.06f), "내공 부족", GuardBlue, 56);
             if (victim != null && !ev.Dodged) SlashFx(victim.Center, ev.HitIndex, ev.IsCrit, false, true);
+            if (victim != null && ev.Heavy && ev.HitIndex == 0 && (ev.Guarded || ev.Dodged))
+            {
+                // 간파: the telegraphed blow was read and met with a guard or a dodge.
+                Float(victim.Center + new Vector2(0f, 0.11f), "간파!", UiFactory.Gold, 84);
+                StartCoroutine(EdgePulse(_edgeFlash, .4f, .4f));
+                SoundManager.Haptic(30);
+            }
             if (victim != null)
             {
                 if (ev.Dodged)
@@ -2280,7 +2293,9 @@ namespace BiRyeoDo.Game.UI
                 {
                     SoundManager.Sfx(ev.Guarded ? "block" : "hit_taken");
                     if (!ev.Guarded) SoundManager.Haptic(ev.IsCrit ? 60 : 25);
-                    Float(victim.Center, "-" + ev.Damage + (ev.Guarded ? " 방어" : ev.IsCrit ? "!" : ""), ev.Guarded ? GuardBlue : UiFactory.Red, ev.IsCrit ? 84 : 66);
+                    int tier = DamageTier(ev.Damage, victim.Unit.Stats.MaxHp);
+                    DamageNumber(victim.Center, "-" + ev.Damage.ToString("N0") + (ev.Guarded ? " 방어" : ""), ev.Guarded ? GuardBlue : UiFactory.Red,
+                        (int)(TierSizes[tier] * (ev.IsCrit && !ev.Guarded ? 1.15f : 1f)), ev.IsCrit && !ev.Guarded);
                     victim.ShownHp = ev.TargetHpAfter;
                     victim.ShownSpirit = ev.TargetSpiritAfter;
                     victim.Hp.SetPct((float)ev.TargetHpAfter / Math.Max(1, victim.Unit.Stats.MaxHp));
