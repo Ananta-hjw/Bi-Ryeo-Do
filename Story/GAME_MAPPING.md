@@ -478,3 +478,29 @@ Game/UI 테스트 소스까지 Unity API 참조로 컴파일했으며, Unity Edi
 | 15권 화음현 멸성대 습격 | 멸성대 대원 / 28 | `mulsung_daewon.png` |
 | 15권 천참마검, 멸성대 조장 | 사마흔 / 28 | `sama_heun.png` |
 | 16권 위지천의 첫 계약자, 혈폭환 전달 | 수다쟁이 복면인 / 29 | `suda_bokmyeon.png` |
+
+### 전투 SD 보강 — 대공자와 살룡대·남창 인물 (2026-10-29)
+
+같은 ID의 Standing 그림을 외형·배색 기준으로 사용해 오른쪽을 바라보는 투명 배경 Battle SD 6종을 추가했다. 의상 세부와 전투 준비 자세는 게임 시각화이며 새 원작 설정을 추가하지 않는다. 이시건은 기존 재등장 데이터의 `ArtId = "i_sigeon"` 연결을 그대로 사용한다.
+
+| 원작 근거 | 전투 대상 / 스테이지 | 추가 파일 (`Assets/_Project/Resources/Art/Battle/`) |
+|---|---|---|
+| 16~17권 화산 사건의 대공자 비 | 대공자 비 / 30 | `bi_daegongja.png` |
+| 18권 청룡은장 습격, 살룡대 | 살룡대 복면 무사 / 31 | `salryong_daewon.png` |
+| 18권 살룡대 수석조장 | 혈표 / 31 | `hyeol_pyo.png` |
+| 18~19권 아미신녀의 제자 | 유란 / 32 | `yu_ran.png` |
+| 18권 점창 제자 | 유운비 / 32 | `yu_unbi.png` |
+| 18~19권 마천각 이공자·사신, 자운암풍 | 이시건 / 33·34·35 | `i_sigeon.png` |
+
+### 전투 SD 보강 — 남창 후반과 장우양·청흔 (2026-10-29)
+
+Standing의 외형·배색을 기준으로 오른쪽 방향 전투 SD 6종을 추가했다. 자세와 의상 세부는 게임 시각화다. 공손일취의 참조 그림은 `Standing/gongson_ilchwi.png`, 전투 파일은 적 ID에 맞춘 `Battle/geomjon_gongson.png`다. 장우양은 `gang_janghan` 공유 대신 `jang_uyang`, 청흔의 두 적 데이터(`cheong_heun_story`, `cheong_heun_mugeuk`)는 `ha_sein` 공유 대신 `cheong_heun`을 사용한다.
+
+| 원작 근거 | 전투 대상 / 스테이지 | 추가 파일 (`Assets/_Project/Resources/Art/Battle/`) |
+|---|---|---|
+| 18~20권 풍마도, 중원표국 대표두 | 윤이정 / 34 | `yun_ijeong.png` |
+| 20권 십삼혈의 우두머리, 혈왕살 | 일혈 / 35 | `il_hyeol.png` |
+| 4권 이후 검존·원로원 원주 | 공손일취 / 36 | `geomjon_gongson.png` |
+| 18권 이후 아미신녀, 비상련화 | 진소령 / 36 | `jin_soryeong.png` |
+| 1권 중양표국 국주, 십팔검 | 장우양 / 2 | `jang_uyang.png` |
+| 3권 이후 무당 삼절검, 삼정태극검혜 | 청흔 / 13·33 | `cheong_heun.png` |
