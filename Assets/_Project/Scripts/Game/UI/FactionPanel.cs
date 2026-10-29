@@ -21,12 +21,18 @@ namespace BiRyeoDo.Game.UI
         public void Open(string toast = null)
         {
             var save = GameManager.Instance.Save;
-            if (RecordUpdates.Acknowledge(save, RecordUpdates.FactionPage) && Application.isPlaying) GameManager.Instance.SaveNow();
+            if (!_shop)
+            {
+                // Remember this visit's 단계 rises before acknowledging, so the page can say what changed.
+                _rises.Clear();
+                foreach (var rise in RecordUpdates.FactionRises(save)) _rises[rise.Faction.Id] = rise;
+                if (RecordUpdates.Acknowledge(save, RecordUpdates.FactionPage) && Application.isPlaying) GameManager.Instance.SaveNow();
+            }
             Begin();
             if (!Tutorial.IsDone(save, "faction") && HelpPanel.Instance != null) HelpPanel.Instance.Show("faction", true);
 
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.99f), (_shop ? "객잔 · " + save.Doo.ToString("N0") + "은자" : "세력 평판"), 40, UiFactory.Gold);
-            UiFactory.ScrollBody(UiFactory.Label("Toast", Root, new Vector2(0.05f, .80f), new Vector2(0.95f, .89f), toast ?? (_shop ? "세력 평판이 오르면 그 세력의 선반이 열립니다. 평판은 기록 탭 「세력 평판」에서 봅니다." : "세력을 누르면 평판을 얻는 스테이지와 적용 중인 효과를 볼 수 있습니다."), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            UiFactory.ScrollBody(UiFactory.Label("Toast", Root, new Vector2(0.05f, .80f), new Vector2(0.95f, .89f), toast ?? (_shop ? "세력 평판이 오르면 그 세력의 선반이 열립니다. 평판은 기록 탭 「세력 평판」에서 봅니다." : RiseSummary() ?? "세력을 누르면 평판을 얻는 스테이지와 적용 중인 효과를 볼 수 있습니다."), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             var content = CodexPanel.Scroller(Root, .02f, .79f);
             _scroll = content.parent.GetComponent<ScrollRect>();
@@ -41,10 +47,36 @@ namespace BiRyeoDo.Game.UI
 
         private static string TierText(int tier) { return "<color=" + TierColors[tier] + ">" + Factions.TierNames[tier] + "</color>"; }
 
-        private static string PerkNow(SaveData save, FactionData f)
+        private static string PerkNow(SaveData save, FactionData f) { return PerkAt(f, Factions.Tier(save, f.Id)); }
+
+        private static string PerkAt(FactionData f, int tier)
         {
-            int tier = Factions.Tier(save, f.Id);
-            return tier >= 2 ? f.PerkText + " +" + Math.Round(Factions.PerkValue(save, f) * 100f) + (f.Perk == PerkKind.RestHeal ? "%p" : "%") : "없음 (우호부터)";
+            return tier >= 2 ? f.PerkText + " +" + Math.Round(f.PerkSteps[tier - 2] * 100f) + (f.Perk == PerkKind.RestHeal ? "%p" : "%") : "없음 (우호부터)";
+        }
+
+        /// <summary>단계 rises since the page was last opened, kept for this visit (the badge is acknowledged on open).</summary>
+        private readonly Dictionary<string, RecordUpdates.FactionRise> _rises = new Dictionary<string, RecordUpdates.FactionRise>();
+
+        /// <summary>"단계 상승: 무당파 안면 → 우호, …" for the top line, or null when nothing rose.</summary>
+        private string RiseSummary()
+        {
+            if (_rises.Count == 0) return null;
+            var parts = new List<string>();
+            foreach (var r in _rises.Values) parts.Add(r.Faction.Name + " " + TierText(r.From) + " → " + TierText(r.To));
+            return "<color=#FF8A7A>단계 상승</color>: " + string.Join(", ", parts) + "\n<size=26>세력을 누르면 무엇이 바뀌었는지 볼 수 있습니다.</size>";
+        }
+
+        /// <summary>What one rise changed: the 단계, the effect and the 객잔 goods it opened.</summary>
+        private static string RiseDetail(RecordUpdates.FactionRise r)
+        {
+            var lines = new List<string> { "단계 " + TierText(r.From) + " → " + TierText(r.To) };
+            string before = PerkAt(r.Faction, r.From), after = PerkAt(r.Faction, r.To);
+            if (before != after) lines.Add("효과 " + before + " → <color=#9ADB9F>" + after + "</color>");
+            var opened = new List<string>();
+            foreach (var g in Shop.Goods)
+                if (g.FactionId == r.Faction.Id && g.MinTier > r.From && g.MinTier <= r.To) opened.Add(Shop.NameOf(g));
+            if (opened.Count > 0) lines.Add("객잔 선반에 새로 열림: " + string.Join(", ", opened));
+            return string.Join("\n", lines);
         }
 
         /// <summary>One card per faction: name and its 단계 (only the 단계 is coloured), points and the effect in force; tapping opens the details.</summary>
@@ -59,6 +91,7 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Label("Name", band, new Vector2(0.04f, 0.62f), new Vector2(0.96f, 0.96f), f.Name + "  ·  " + TierText(tier), 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
                 UiFactory.Label("Info", band, new Vector2(0.04f, 0.30f), new Vector2(0.96f, 0.62f), "평판 " + points + (next >= 0 ? " (다음 단계까지 " + next + ")" : " (최고)") + "  ·  효과: " + PerkNow(save, f), 28, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
                 UiFactory.Label("Hint", band, new Vector2(0.04f, 0.04f), new Vector2(0.96f, 0.28f), "눌러서 상세 보기", 24, UiFactory.Gold, TextAnchor.MiddleLeft, FontStyle.Normal);
+                if (_rises.ContainsKey(f.Id)) RiseTag(band);
                 var faction = f;
                 var button = band.gameObject.AddComponent<Button>();
                 button.targetGraphic = band.GetComponent<Image>();
@@ -69,6 +102,14 @@ namespace BiRyeoDo.Game.UI
 
         private RectTransform _detail;
 
+        /// <summary>A red 「단계 상승」 ribbon on a faction whose 단계 rose since the page was last opened.</summary>
+        private static void RiseTag(RectTransform card)
+        {
+            var tag = UiFactory.Panel("Rise", card, new Vector2(.70f, .74f), new Vector2(.99f, .97f), new Color(.70f, .16f, .12f, .95f));
+            tag.raycastTarget = false;
+            UiFactory.Label("Text", tag.transform, Vector2.zero, Vector2.one, "단계 상승", 22, UiFactory.PaperText);
+        }
+
         /// <summary>Details of one faction: its 단계 ladder, the effect in force and at each 단계, where reputation comes from and the 객잔 shelf it opens.</summary>
         private void ShowFaction(FactionData f)
         {
@@ -76,6 +117,8 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             int tier = Factions.Tier(save, f.Id), points = Factions.Points(save, f.Id), next = Factions.ToNext(save, f.Id);
             var lines = new List<string>();
+            RecordUpdates.FactionRise rise;
+            if (_rises.TryGetValue(f.Id, out rise)) lines.Add("<color=#FF8A7A>새로 바뀐 점</color>\n" + RiseDetail(rise));
             if (!string.IsNullOrEmpty(f.Description)) lines.Add(f.Description);
             lines.Add("<color=#E8C860>현재 단계</color>\n" + TierText(tier) + "  ·  평판 " + points + (next >= 0 ? " (다음 「" + Factions.TierNames[tier + 1] + "」까지 " + next + ")" : " (최고 단계)"));
             var ladder = new List<string>();

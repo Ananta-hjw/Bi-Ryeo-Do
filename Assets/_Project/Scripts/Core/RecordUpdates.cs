@@ -42,6 +42,30 @@ namespace BiRyeoDo.Core
             return Keys(save, page).Distinct().Where(key => !read.Contains(key)).ToList();
         }
 
+        /// <summary>A faction whose 평판 단계 rose since the 세력 평판 page was last read: from the last read 단계 (0 if none) to the current one.</summary>
+        public struct FactionRise
+        {
+            public FactionData Faction;
+            public int From, To;
+        }
+
+        /// <summary>The unread 단계 rises, in faction order; call before <see cref="Acknowledge"/>.</summary>
+        public static List<FactionRise> FactionRises(SaveData save)
+        {
+            var read = new HashSet<string>(save.ReadRecordUpdates ?? new List<string>());
+            var rises = new List<FactionRise>();
+            foreach (var faction in Factions.All)
+            {
+                int tier = Factions.Tier(save, faction.Id);
+                if (tier <= 0 || read.Contains("faction:" + faction.Id + ":" + tier)) continue;
+                int from = 0;
+                for (int t = tier - 1; t > 0; t--)
+                    if (read.Contains("faction:" + faction.Id + ":" + t)) { from = t; break; }
+                rises.Add(new FactionRise { Faction = faction, From = from, To = tier });
+            }
+            return rises;
+        }
+
         public static bool Acknowledge(SaveData save, string page)
         {
             if (save.ReadRecordUpdates == null) save.ReadRecordUpdates = new List<string>();

@@ -35,8 +35,15 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(1, RecordUpdates.Unread(save, RecordUpdates.FactionPage));
             RecordUpdates.Acknowledge(save, RecordUpdates.FactionPage);
             Assert.AreEqual(0, RecordUpdates.Unread(save, RecordUpdates.FactionPage));
-            save.Reputation[0].Points = Factions.Thresholds[2];
+            save.Reputation[0].Points = Factions.Thresholds[3];
             Assert.AreEqual(1, RecordUpdates.Unread(save, RecordUpdates.FactionPage));
+            var rises = RecordUpdates.FactionRises(save);
+            Assert.AreEqual(1, rises.Count);
+            Assert.AreEqual(Factions.All[0].Id, rises[0].Faction.Id);
+            Assert.AreEqual(1, rises[0].From);
+            Assert.AreEqual(3, rises[0].To);
+            RecordUpdates.Acknowledge(save, RecordUpdates.FactionPage);
+            Assert.AreEqual(0, RecordUpdates.FactionRises(save).Count);
         }
 
         [Test]

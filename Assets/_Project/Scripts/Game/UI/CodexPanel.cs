@@ -98,7 +98,7 @@ namespace BiRyeoDo.Game.UI
                 int tab = t;
                 float x0 = 0.05f + t * 0.31f;
                 int fresh = t == 0 ? FreshCount("enemy:") : t == 1 ? FreshCount("item:") : 0;
-                var btn = UiFactory.Button("Tab" + t, _codexRoot, new Vector2(x0, .79f), new Vector2(x0 + 0.29f, 0.91f), TabNames[t] + (fresh > 0 ? "  <color=#FF8A7A>새 " + fresh + "</color>" : ""), t == _tab ? UiFactory.Red : UiFactory.InkSoft, () => { _tab = tab; OpenCodex(); }, 30);
+                var btn = UiFactory.Button("Tab" + t, _codexRoot, new Vector2(x0, .79f), new Vector2(x0 + 0.29f, 0.91f), TabNames[t] + (fresh > 0 ? "  <color=#FF8A7A>" + fresh + "</color>" : ""), t == _tab ? UiFactory.Red : UiFactory.InkSoft, () => { _tab = tab; OpenCodex(); }, 30);
             }
 
             string summary;
