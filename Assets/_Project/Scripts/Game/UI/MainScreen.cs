@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using BiRyeoDo.Core;
 using BiRyeoDo.Game.Systems;
 using UnityEngine;
@@ -238,8 +239,22 @@ namespace BiRyeoDo.Game.UI
                 return;
             }
 
-            // A companion's 경지 rose or it learned a new art (from its own level, gear, 인연 or 수련): one card for everyone at once.
+            // 무공 변화: an art grew into the next technique of its line (숙련 + stage + level).
             if (busy) return;
+            var forms = Mastery.PollNewForms(save);
+            if (forms.Count > 0)
+            {
+                GameManager.Instance.SaveNow();
+                _realmTitle.text = "무공 변화";
+                _realmBody.text = string.Join("\n", forms.Select(f => "<color=#E8C860>" + f + "</color>"))
+                    + "\n\n<color=#9AA3B2>같은 칸에서 바뀐 무공을 그대로 씁니다. 숙련도 이어집니다.</color>";
+                _realmModal.transform.SetAsLastSibling();
+                _realmModal.SetActive(true);
+                SoundManager.Sfx("levelup");
+                return;
+            }
+
+            // A companion's 경지 rose or it learned a new art (from its own level, gear, 인연 or 수련): one card for everyone at once.
             var rises = CompanionGrowth.PollRises(save);
             if (rises.Count == 0) return;
             GameManager.Instance.SaveNow();

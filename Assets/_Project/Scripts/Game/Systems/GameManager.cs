@@ -16,6 +16,7 @@ namespace BiRyeoDo.Game.Systems
             Instance = this;
             DontDestroyOnLoad(gameObject);
             Save = SaveService.Load();
+            Mastery.MigrateForms(Save);   // arts folded into a line's 무공 변화, or taken out
             EnsureStarterArt();
             Inventory.EnsureStartKit(Save);
             Discovery.Sync(Save);

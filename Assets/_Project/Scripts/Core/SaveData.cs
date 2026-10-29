@@ -52,6 +52,7 @@ namespace BiRyeoDo.Core
         public List<GearSlot> GearSlots = new List<GearSlot>();
         public List<string> ReadRecordUpdates = new List<string>();   // acknowledged codex, story and faction record updates
         public List<string> SeenArts = new List<string>();         // arts whose "new" red dot was already looked at (additive field)
+        public List<string> SeenForms = new List<string>();        // 무공 변화 forms already announced (additive field)
         public List<string> SeenInner = new List<string>();        // same for 심법 (additive field)
         public int RealmMax = -1;                                  // highest 무공 경지 step reached (-1 = not recorded yet, see Realm.PollRise)
         public bool DiscoveryInit;                                 // old saves are marked as seen once (see Discovery.Sync)

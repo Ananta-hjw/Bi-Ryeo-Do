@@ -6,12 +6,22 @@ namespace BiRyeoDo.Tests
 {
     public class MasteryTests
     {
+        /// <summary>A save past every 숙련 stage and level gate, so these tests see the use-count steps alone (the gates have their own tests).</summary>
+        internal static SaveData Opened()
+        {
+            var save = new SaveData { Level = 99, ClearedStage = 36 };
+            for (int d = 1; d <= 2; d++)
+                for (int s = 1; s <= 36; s++)
+                    for (int f = 0; f < StageStars.FightCount(s); f++) StageStars.Record(save, s, f, d, 1);
+            return save;
+        }
+
         private static ArtData Art(string id) { return EarlyGameContent.FindArt(id); }
 
         [Test]
         public void UsesRaiseLevelAtThresholds()
         {
-            var save = new SaveData();
+            var save = Opened();
             int rose = -1;
             for (int i = 0; i < 10; i++) rose = Mastery.RecordUse(save, "samcheopyeong");
             Assert.AreEqual(1, rose);
@@ -23,7 +33,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void PowerGrowsWithLevelAndVariantNeedsDaeseong()
         {
-            var save = new SaveData();
+            var save = Opened();
             var art = Mastery_AttackArtWithCost();
             float basePower = art.Power;
             for (int i = 0; i < 10; i++) Mastery.RecordUse(save, art.Id);
@@ -40,7 +50,7 @@ namespace BiRyeoDo.Tests
         public void VariantsReshapeTheSkill()
         {
             var art = Mastery_AttackArtWithCost();
-            var save = new SaveData();
+            var save = Opened();
             for (int i = 0; i < 50; i++) Mastery.RecordUse(save, art.Id);
             var plain = Mastery.Apply(save, art);
             Mastery.Find(save, art.Id).Variant = (int)ArtVariant.Flurry;
@@ -65,13 +75,13 @@ namespace BiRyeoDo.Tests
 
         private static ArtData Mastery_AttackArtWithCost()
         {
-            return EarlyGameContent.Arts.First(a => a.OwnerId == null && a.SpiritCost == 0 && a.Effect == SkillEffect.None && a.QiCost > 0);
+            return EarlyGameContent.Arts.First(a => a.OwnerId == null && a.SpiritCost == 0 && a.Effect == SkillEffect.None && a.QiCost > 0 && EarlyGameContent.FormsOf(a.Id).Count == 0);   // an art without 무공 변화, so only 숙련 changes it
         }
 
         [Test]
         public void VariantCostsUseExactIntegerRounding()
         {
-            var save = new SaveData();
+            var save = Opened();
             var art = new ArtData { Id = "t", Name = "t", Power = 2f, QiCost = 20, Cooldown = 2 };
             for (int i = 0; i < 50; i++) Mastery.RecordUse(save, art.Id);
             Mastery.Find(save, art.Id).Variant = (int)ArtVariant.Power;
@@ -89,7 +99,7 @@ namespace BiRyeoDo.Tests
             CollectionAssert.AreEqual(new[] { 0f, 0.03f, 0.07f, 0.15f, 0.30f }, Mastery.PowerBonus);
             Assert.AreEqual(3, Mastery.VariantLevel);
             Assert.AreEqual(4, Mastery.MasterLevel);
-            var save = new SaveData();
+            var save = Opened();
             for (int i = 0; i < 24; i++) Mastery.RecordUse(save, "samcheopyeong");
             Assert.AreEqual(1, Mastery.Level(save, "samcheopyeong"));
             Assert.AreEqual(1, Mastery.UsesToNext(save, "samcheopyeong"));
@@ -107,7 +117,7 @@ namespace BiRyeoDo.Tests
         public void MasterLevelCutsQiByTwentyPercent()
         {
             var art = new ArtData { Id = "t2", Name = "t2", Power = 2f, QiCost = 20, Cooldown = 2 };
-            var save = new SaveData();
+            var save = Opened();
             for (int i = 0; i < 79; i++) Mastery.RecordUse(save, art.Id);
             Assert.AreEqual(20, Mastery.Apply(save, art).QiCost);
             Mastery.RecordUse(save, art.Id);
@@ -121,7 +131,7 @@ namespace BiRyeoDo.Tests
         public void MasterLevelShortensTheCooldownByOne()
         {
             var art = EarlyGameContent.Arts.First(a => a.OwnerId == null && a.Cooldown >= 2 && a.SpiritCost == 0);
-            var save = new SaveData();
+            var save = Opened();
             for (int i = 0; i < 79; i++) Mastery.RecordUse(save, art.Id);
             Assert.AreEqual(art.Cooldown, Mastery.Apply(save, art).Cooldown);
             Mastery.RecordUse(save, art.Id);
@@ -135,7 +145,7 @@ namespace BiRyeoDo.Tests
         public void ScrollsAreRolledSeparatelyAtTenFiveTwoPercent()
         {
             CollectionAssert.AreEqual(new[] { 0.10f, 0.05f, 0.02f }, Mastery.ScrollChance);
-            var save = new SaveData();
+            var save = Opened();
             var rng = new SeededRandom(11);
             int[] found = new int[3];
             const int rolls = 20000;
@@ -158,7 +168,7 @@ namespace BiRyeoDo.Tests
             Assert.IsFalse(Mastery.ScrollCanDrop(2, 9, 1));
             Assert.IsTrue(Mastery.ScrollCanDrop(2, 10, 1));
             Assert.IsTrue(Mastery.ScrollCanDrop(2, 1, 2));
-            var save = new SaveData();
+            var save = Opened();
             var rng = new SeededRandom(3);
             for (int i = 0; i < 5000; i++) foreach (var s in Mastery.RollScrolls(save, rng, 5, 0)) Assert.AreEqual("art_scroll_5", s.Id);
         }
@@ -166,12 +176,12 @@ namespace BiRyeoDo.Tests
         [Test]
         public void ReadingAScrollRaisesOnlyTheChosenLearnedArt()
         {
-            var save = new SaveData();
+            var save = Opened();
             bool used;
             Inventory.Add(save, "art_scroll_10", 2);
             save.LearnedArts.Add("bunroesu");
             save.LearnedArts.Add("samcheopyeong");
-            StringAssert.Contains("배운 무공", Mastery.UseScroll(save, "art_scroll_10", "yeobanjang", out used));   // not learned
+            StringAssert.Contains("배운 무공", Mastery.UseScroll(save, "art_scroll_10", "roegwang_ryuhagok", out used));   // not learned
             Assert.IsFalse(used);
             Assert.AreEqual(2, Inventory.Count(save, "art_scroll_10"));
             CollectionAssert.AreEquivalent(new[] { "bunroesu", "samcheopyeong" }, Mastery.ScrollTargets(save).Select(a => a.Id));
@@ -205,7 +215,7 @@ namespace BiRyeoDo.Tests
         public void UltimatesGainFiveTenTwentyFortyPercentInsteadOfVariants()
         {
             var ult = EarlyGameContent.Arts.First(a => a.OwnerId == null && a.SpiritCost > 0 && a.Power > 0);
-            var save = new SaveData();
+            var save = Opened();
             float[] expect = { 1f, 1.05f, 1.10f, 1.20f, 1.40f };
             int[] uses = { 0, 2, 5, 10, 20 };
             for (int lv = 0; lv < 5; lv++)
@@ -224,7 +234,7 @@ namespace BiRyeoDo.Tests
             var normal = EarlyGameContent.Arts.First(a => a.OwnerId == null && a.SpiritCost == 0 && a.Power > 0);
             CollectionAssert.AreEqual(new[] { 0, 2, 5, 10, 20 }, Mastery.ThresholdsFor(ult));
             CollectionAssert.AreEqual(new[] { 0, 10, 25, 50, 80 }, Mastery.ThresholdsFor(normal));
-            var save = new SaveData();
+            var save = Opened();
             Assert.AreEqual(-1, Mastery.RecordUse(save, ult.Id));
             Assert.AreEqual(1, Mastery.RecordUse(save, ult.Id));     // the 2nd use reaches 소성
             Assert.AreEqual(3, Mastery.UsesToNext(save, ult.Id));    // 대성 at 5
@@ -251,7 +261,7 @@ namespace BiRyeoDo.Tests
         public void SamcheopyeongDodgeChanceFollowsMastery()
         {
             var art = EarlyGameContent.FindArt("samcheopyeong");
-            var save = new SaveData();
+            var save = Opened();
             float[] expect = { 0.50f, 0.65f, 0.80f, 0.90f, 1.00f };
             int[] uses = { 0, 10, 25, 50, 80 };
             for (int lv = 0; lv < 5; lv++)

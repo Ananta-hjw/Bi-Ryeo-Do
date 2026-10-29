@@ -85,7 +85,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void ArtLinesShowMasteryAndVariant()
         {
-            var save = new SaveData();
+            var save = MasteryTests.Opened();
             save.EquippedArts.Add("bunroesu");
             for (int i = 0; i < 50; i++) Mastery.RecordUse(save, "bunroesu");
             Mastery.Find(save, "bunroesu").Variant = (int)ArtVariant.Power;

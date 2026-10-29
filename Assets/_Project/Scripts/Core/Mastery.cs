@@ -52,9 +52,82 @@ namespace BiRyeoDo.Core
                     if (art.Cooldown > 0) parts.Add("재사용 -1턴");
                     if (art.QiCost > 0) parts.Add("내공 -" + Math.Round((1f - MasterQiFactor) * 100f) + "%");
                 }
-                lines.Add(LevelNames[i] + " (" + ThresholdsFor(art)[i] + "회)  " + (parts.Count > 0 ? string.Join(" · ", parts) : "기본"));
+                foreach (var f in EarlyGameContent.FormsOf(art.Id))
+                    if (f.FormTier == i) parts.Add("「" + f.Name + "」로 변화");
+                lines.Add(LevelNames[i] + " (" + ThresholdsFor(art)[i] + "회" + (i > 0 ? ", " + GateText(art, i) : "") + ")  " + (parts.Count > 0 ? string.Join(" · ", parts) : "기본"));
             }
             return lines;
+        }
+
+        /// <summary>
+        /// 무공 변화: the technique the art currently is. A form of the art's line (<see cref="EarlyGameContent.ArtForms"/>) counts once the art's 숙련 reached
+        /// the form's step, the form's stage is reached on its difficulty and 비류연 is at least the form's level; the latest such form wins.
+        /// </summary>
+        public static ArtData CurrentForm(SaveData save, ArtData art)
+        {
+            if (art == null || art.OwnerId != null) return art;
+            int level = Level(save, art.Id);
+            var shown = art;
+            foreach (var f in EarlyGameContent.FormsOf(art.Id))
+                if (FormReached(save, f, level)) shown = f;
+            return shown;
+        }
+
+        /// <summary>The art's (gated) 숙련 step has reached the form's step; the gate of that step already holds the form's stage.</summary>
+        public static bool FormReached(SaveData save, ArtData form, int masteryLevel) { return masteryLevel >= form.FormTier; }
+
+        /// <summary>"대성 · 어려움 스테이지 36 돌파 · Lv.36" — what a form needs.</summary>
+        public static string FormCondition(ArtData form)
+        {
+            return LevelNames[form.FormTier] + " · " + GateText(EarlyGameContent.FindArt(form.FormOf), form.FormTier);
+        }
+
+        /// <summary>
+        /// Forms reached since the last call, as "풍신 → 편수 풍신" (one per form, announced once, <see cref="SaveData.SeenForms"/>).
+        /// </summary>
+        public static List<string> PollNewForms(SaveData save)
+        {
+            var lines = new List<string>();
+            foreach (var id in save.LearnedArts)
+            {
+                var art = EarlyGameContent.FindArt(id);
+                if (art == null || art.OwnerId != null) continue;
+                var form = CurrentForm(save, art);
+                if (form == art || save.SeenForms.Contains(form.Id)) continue;
+                save.SeenForms.Add(form.Id);
+                lines.Add(art.Name + " → " + form.Name);
+            }
+            return lines;
+        }
+
+        /// <summary>Old saves: arts that became forms fold into their line's art (the higher 숙련 wins), and the removed arts are forgotten.</summary>
+        public static void MigrateForms(SaveData save)
+        {
+            foreach (var f in EarlyGameContent.ArtForms) Fold(save, f.Id, f.FormOf);
+            foreach (var id in RemovedArts) Fold(save, id, null);
+        }
+
+        /// <summary>Arts taken out of the game (2026-10 말): plain strikes and repeats of other arts.</summary>
+        public static readonly string[] RemovedArts =
+            { "yeobanjang", "cheonji_ibun", "jeokjunghwa", "palhwa_nanmu", "seomjeon_ilsi", "palseom_noegwang", "hyeoncheon_secheom", "hyeoncheon_hoecheon", "sanmak" };
+
+        private static void Fold(SaveData save, string oldId, string intoId)
+        {
+            bool learned = save.LearnedArts.Remove(oldId);
+            int slot = save.EquippedArts.IndexOf(oldId);
+            if (slot >= 0) save.EquippedArts.RemoveAt(slot);
+            save.SeenArts.Remove(oldId);
+            var old = Find(save, oldId);
+            if (old != null) save.ArtMastery.Remove(old);
+            if (intoId == null || !learned) return;
+            if (!save.LearnedArts.Contains(intoId)) save.LearnedArts.Add(intoId);
+            if (slot >= 0 && !save.EquippedArts.Contains(intoId)) save.EquippedArts.Insert(Math.Min(slot, save.EquippedArts.Count), intoId);
+            if (old != null)
+            {
+                var into = Find(save, intoId);
+                if (into == null) save.ArtMastery.Add(new ArtMasteryEntry { Id = intoId, Uses = old.Uses });
+                else into.Uses = Math.Max(into.Uses, old.Uses);
+            }
         }
 
         public static float PowerBonusOf(ArtData art, int level)
@@ -84,7 +157,7 @@ namespace BiRyeoDo.Core
         {
             int lv = Level(save, artId);
             var steps = ThresholdsFor(EarlyGameContent.FindArt(artId));
-            return lv >= steps.Length - 1 ? -1 : steps[lv + 1] - Uses(save, artId);
+            return lv >= steps.Length - 1 ? -1 : Math.Max(0, steps[lv + 1] - Uses(save, artId));   // 0: the uses are there, the step waits for its stage or level
         }
 
         /// <summary>One line listing every step for the 무공 tab: "소성 10회(위력 +3%) · 대성 25회(+7%) · 극성 50회(+15%, 변초) · 극의 80회(+30%, 재사용 -1턴, 내공 -20%)".</summary>
@@ -107,7 +180,74 @@ namespace BiRyeoDo.Core
         }
 
         public static int Uses(SaveData save, string artId) { var e = Find(save, artId); return e != null ? e.Uses : 0; }
-        public static int Level(SaveData save, string artId) { return LevelOf(EarlyGameContent.FindArt(artId), Uses(save, artId)); }
+        /// <summary>The 숙련 step the art has reached: its uses, held back while the step's stage and level gate (<see cref="TierGate"/>) is not met.</summary>
+        public static int Level(SaveData save, string artId)
+        {
+            var art = EarlyGameContent.FindArt(artId);
+            int level = LevelOf(art, Uses(save, artId));
+            if (art == null || art.OwnerId != null) return level;
+            while (level > 0 && !TierOpen(save, art, level)) level--;
+            return level;
+        }
+
+        /// <summary>The step the uses alone would give (shown next to a step that still waits for its stage or level).</summary>
+        public static int UsesLevel(SaveData save, string artId) { return LevelOf(EarlyGameContent.FindArt(artId), Uses(save, artId)); }
+
+        /// <summary>
+        /// 숙련 단계의 관문: each step after 입문 also needs a stage and 비류연's level. The step's stage lies further along the learning ladder than the
+        /// art's own (소성 +3, 대성 +8, 극성 +15, 극의 +24 stages, 일반 1-36 → 어려움 → 극악, capped at 극악 36); a step where the art turns into a form
+        /// (<see cref="EarlyGameContent.ArtForms"/>) uses the form's stage. The level is the player's expected level there (<see cref="ExpectedLevel"/>)
+        /// minus <see cref="TierLevelSlack"/>. Later steps never ask for less than earlier ones.
+        /// </summary>
+        public static readonly int[] TierStageOffset = { 0, 3, 8, 15, 24 };
+        public const int TierLevelSlack = 2;
+        private const int LadderStages = 36;
+
+        public struct Gate { public int Stage, Difficulty, Level; }
+
+        public static Gate TierGate(ArtData art, int tier)
+        {
+            int start = Math.Max(1, art.UnlockDiff * LadderStages + art.UnlockStage);
+            var forms = EarlyGameContent.FormsOf(art.Id);
+            int pos = start, level = 1;
+            for (int t = 1; t <= tier; t++)
+            {
+                ArtData form = null;
+                foreach (var f in forms) if (f.FormTier == t) form = f;
+                int p = form != null ? form.UnlockDiff * LadderStages + Math.Max(1, form.UnlockStage) : Math.Min(3 * LadderStages, start + TierStageOffset[t]);
+                int d = (p - 1) / LadderStages;
+                int lv = Math.Max(1, ExpectedLevel(p - d * LadderStages, d) - TierLevelSlack);
+                pos = Math.Max(pos, p);
+                level = Math.Max(level, lv);
+            }
+            int diff = (pos - 1) / LadderStages;
+            return new Gate { Stage = pos - diff * LadderStages, Difficulty = diff, Level = tier == 0 ? 1 : level };
+        }
+
+        /// <summary>
+        /// The level a player usually has on reaching a stage: 일반 = the stage's recommended level (28 at 36); 어려움 and 극악 add about ten levels each
+        /// across their 36 stages (어려움 36 ≈ 38, 극악 36 ≈ 48), the pace their experience rewards give.
+        /// </summary>
+        public static int ExpectedLevel(int stage, int difficulty)
+        {
+            stage = Math.Max(1, Math.Min(LadderStages, stage));
+            if (difficulty <= 0) { var s = EarlyGameContent.FindStage(stage); return s != null ? s.RecommendedPlayerLevel : stage; }
+            return 18 + 10 * difficulty + (int)Math.Round(10.0 * stage / LadderStages);
+        }
+
+        public static bool TierOpen(SaveData save, ArtData art, int tier)
+        {
+            if (tier <= 0) return true;
+            var g = TierGate(art, tier);
+            return StageStars.Reached(save, g.Stage, g.Difficulty) && save.Level >= g.Level;
+        }
+
+        /// <summary>"어려움 스테이지 5 돌파 · Lv.30"</summary>
+        public static string GateText(ArtData art, int tier)
+        {
+            var g = TierGate(art, tier);
+            return StageStars.ReachText(g.Stage, g.Difficulty) + " · Lv." + g.Level;
+        }
         public static ArtVariant VariantOf(SaveData save, string artId) { var e = Find(save, artId); return e != null ? (ArtVariant)e.Variant : ArtVariant.None; }
 
         // 무공 수련서: found after winning a fight (each rolled on its own), also sold by the 천무학관 shelf.
@@ -250,8 +390,9 @@ namespace BiRyeoDo.Core
         /// <summary>The battle skill for an art with the save's mastery and variant applied.</summary>
         public static SkillSpec Apply(SaveData save, ArtData art)
         {
-            var spec = art.ToSpec();
-            if (art.OwnerId != null) return spec;
+            if (art.OwnerId != null) return art.ToSpec();
+            var spec = CurrentForm(save, art).ToSpec();
+            spec.Id = art.Id;   // the line keeps its id: 숙련, cooldowns, icon and slot stay with the art
             int level = Level(save, art.Id);
             spec.Power *= 1f + PowerBonusOf(art, level);
             if (art.Effect == SkillEffect.Evade) spec.EvadeChance = EvadeChanceByLevel[level];

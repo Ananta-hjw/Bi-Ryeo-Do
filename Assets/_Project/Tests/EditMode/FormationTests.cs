@@ -256,7 +256,7 @@ public class FormationTests
         Assert.AreEqual(3, EarlyGameContent.FindArt("roegwang_ryuhagok").EffectiveRange, "area art");
         Assert.AreEqual(3, EarlyGameContent.FindArt("pungsin").EffectiveRange, "비기");
         Assert.AreEqual(1, EarlyGameContent.FindArt("jh_stun").EffectiveRange, "점혈");
-        Assert.AreEqual(1, EarlyGameContent.FindArt("yeobanjang").EffectiveRange, "ordinary arts reach the front line only");
+        Assert.AreEqual(1, EarlyGameContent.FindArt("cheongeun_roe").EffectiveRange, "ordinary arts reach the front line only");
         Assert.AreEqual(4, EarlyGameContent.FindArt("bi_roe_do").ToSpec().Range);
     }
 
