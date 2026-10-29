@@ -4,6 +4,8 @@ Shader "BiRyeoDo/UI/IconCutout"
     {
         [PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
         _Color ("Tint", Color) = (1,1,1,1)
+        _UniformSilhouette ("Uniform silhouette", Float) = 0
+        _RemoveCanvas ("Remove painted canvas", Float) = 1
         _StencilComp ("Stencil Comparison", Float) = 8
         _Stencil ("Stencil ID", Float) = 0
         _StencilOp ("Stencil Operation", Float) = 0
@@ -59,6 +61,8 @@ Shader "BiRyeoDo/UI/IconCutout"
             fixed4 _Color;
             fixed4 _TextureSampleAdd;
             float4 _ClipRect;
+            float _UniformSilhouette;
+            float _RemoveCanvas;
             v2f vert(appdata v)
             {
                 v2f o;
@@ -84,7 +88,10 @@ Shader "BiRyeoDo/UI/IconCutout"
                 float coolCanvas = smoothstep(.002, .012, max(keyColor.g, keyColor.b) - keyColor.r);
                 float canvasMask = (1.0 - smoothstep(.110, .170, distanceToCanvas)) * coolCanvas;
                 // Keep source alpha and luminous effects; never composite a solid backplate.
-                fixed4 color = fixed4(source.rgb, source.a * (1.0 - canvasMask)) * i.color;
+                // Locked goods share one ink value instead of multiplying unequal source brightness.
+                // Native transparent artwork and vector glyphs do not need canvas keying.
+                fixed4 color = fixed4(lerp(source.rgb, fixed3(1,1,1), _UniformSilhouette),
+                    source.a * (1.0 - canvasMask * _RemoveCanvas)) * i.color;
                 #ifdef UNITY_UI_CLIP_RECT
                 color.a *= UnityGet2DClipping(i.worldPosition.xy, _ClipRect);
                 #endif

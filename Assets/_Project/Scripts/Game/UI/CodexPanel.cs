@@ -103,7 +103,7 @@ namespace BiRyeoDo.Game.UI
 
             string summary;
             var content = Scroller(_codexRoot, .02f, .69f);
-            var grid = new ReadingGrid(content, 3, 290f);
+            var grid = new ReadingGrid(content, 3, 290f, paper: false);
             int n = 0;
             if (_tab == 0)
             {
@@ -233,7 +233,7 @@ namespace BiRyeoDo.Game.UI
             // Ready first, then in progress, then taken.
             list.Sort((a, b) => Rank(save, a).CompareTo(Rank(save, b)));
             var content = Scroller(_achRoot, .02f, .78f);
-            var grid = new ReadingGrid(content, 2, 310f);
+            var grid = new ReadingGrid(content, 2, 310f, paper: false);
             for (int i = 0; i < list.Count; i++)
             {
                 var a = list[i];

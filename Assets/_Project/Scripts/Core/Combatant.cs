@@ -10,7 +10,8 @@ namespace BiRyeoDo.Core
         public const int QiRegenPerTurn = 10;
 
         public readonly string Id;
-        public readonly string Name;
+        public string Name { get; internal set; }   // a story disguise changes presentation, never the growth Id
+        public string StoryArtId { get; internal set; }
         public readonly Team Team;
         public CombatStats Stats { get { return _stats; } }
         public readonly double RealmPowerBeforeBonus;
@@ -24,6 +25,7 @@ namespace BiRyeoDo.Core
         public int Gauge;
 
         // Interactive-battle state
+        public bool StoryControlled;   // fixed story perspective; non-hero leads cannot use hero-only commands
         public int Spirit;                 // 기세 0..100, builds by fighting; 비기 spend it
         // 심법 perks (protagonist only, see InnerArts)
         public int QiRegenBonus, SpiritDealtBonus, SpiritTakenBonus, StartSpirit;
@@ -57,9 +59,9 @@ namespace BiRyeoDo.Core
         {
             var copy = new Combatant(Id, Name, Team, _stats, null)
             {
-                _baseStats = _baseStats, Hp = Hp, Qi = Qi, Gauge = Gauge, Spirit = Spirit,
+                _baseStats = _baseStats, Hp = Hp, Qi = Qi, Gauge = Gauge, Spirit = Spirit, StoryControlled = StoryControlled,
                 QiRegenBonus = QiRegenBonus, SpiritDealtBonus = SpiritDealtBonus, SpiritTakenBonus = SpiritTakenBonus,
-                StartSpirit = StartSpirit, Lifesteal = Lifesteal, RescuerId = RescuerId, RescueUsed = RescueUsed,
+                StoryArtId = StoryArtId, StartSpirit = StartSpirit, Lifesteal = Lifesteal, RescuerId = RescuerId, RescueUsed = RescueUsed,
                 Col = Col, Row = Row, Range = Range, Guarding = Guarding, Evading = Evading, EvadeChance = EvadeChance,
                 Charging = Charging, Stunned = Stunned, Rank = Rank, IsBoss = IsBoss, RetreatHpPct = RetreatHpPct,
                 MoveIndex = MoveIndex, Moves = Moves, Phases = Phases, PhaseIndex = PhaseIndex, AwakeningStrike = AwakeningStrike

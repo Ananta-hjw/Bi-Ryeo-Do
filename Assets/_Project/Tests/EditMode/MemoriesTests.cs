@@ -15,7 +15,7 @@ namespace BiRyeoDo.Tests
             {
                 Assert.LessOrEqual(m.UnlockStage, max, m.Id);
                 Assert.GreaterOrEqual(m.Volume, 1, m.Id);
-                Assert.LessOrEqual(m.Volume, 20, m.Id);   // only volumes that have stages (Story/INDEX.md, GAME_MAPPING.md)
+                Assert.LessOrEqual(m.Volume, 29, m.Id);   // only volumes that have stages (Story/INDEX.md, GAME_MAPPING.md)
                 Assert.GreaterOrEqual(m.Lines.Length, 2, m.Id);
                 Assert.Greater(m.RewardDoo, 0, m.Id);
                 foreach (var raw in m.Lines)
@@ -34,9 +34,9 @@ namespace BiRyeoDo.Tests
         public void MemoriesOpenWithStageProgress()
         {
             var save = new SaveData { ClearedStage = 11 };
-            Assert.AreEqual(0, Memories.UnseenCount(save));
+            Assert.AreEqual(1, Memories.UnseenCount(save));
             save.ClearedStage = 14;
-            Assert.AreEqual(3, Memories.UnseenCount(save));
+            Assert.AreEqual(7, Memories.UnseenCount(save));
             save.ClearedStage = EarlyGameContent.Stages.Max(s => s.Number);
             Assert.AreEqual(Memories.All.Length, Memories.UnseenCount(save));
         }

@@ -15,11 +15,11 @@ namespace BiRyeoDo.Tests
             ((System.Collections.IDictionary)field.GetValue(null)).Clear();
         }
 
-        [TestCase(14, 8)]
-        [TestCase(15, 4)]
+        [TestCase(14, 11)]
+        [TestCase(15, 5)]
         [TestCase(17, 3)]
-        [TestCase(18, 3)]
-        [TestCase(19, 5)]
+        [TestCase(18, 4)]
+        [TestCase(19, 7)]
         public void MainStoryExpansionHasGrowthRewardsAndCorrectFinalOpponent(int number, int fights)
         {
             var stage = EarlyGameContent.FindStage(number);
@@ -33,7 +33,7 @@ namespace BiRyeoDo.Tests
                 Assert.Greater(StageStars.FastLimit(number, i), 0);
             }
             Assert.IsTrue(GearDrops.IsBossFight(stage, fights - 1));
-            Assert.AreEqual(36, EarlyGameContent.Stages.Length);
+            Assert.AreEqual(66, EarlyGameContent.Stages.Length);
             Recommend.StageReward(new SaveData(), stage, out long newExp, out long newDoo);
             var previous = WithoutAddedFights(stage);
             long oldExp, oldDoo;
@@ -51,20 +51,30 @@ namespace BiRyeoDo.Tests
         [Test]
         public void RealGuardsReplaceTheFictitiousMaharyeongDuelAndTheQuestKeepsItsScouts()
         {
-            CollectionAssert.AreEqual(new[] { "pae_yugyeong", "sinung_daewon", "sinung_daewon", "sinung_daewon", "pae_hyeokseong" }, EarlyGameContent.FindStage(17).RewardEncounters.SelectMany(x => x));
+            CollectionAssert.AreEqual(new[] { "pae_yugyeong", "sinung_daewon", "sinung_daewon", "sinung_daewon", "pae_hyeokseong" }, EarlyGameContent.FindStage(17).Encounters.SelectMany(x => x));
             // 전투 인원 확장 adds 신응대 followers; the real guards still lead every fight
             Assert.AreEqual("pae_yugyeong", EarlyGameContent.FindStage(17).Encounters[0][0]);
             Assert.AreEqual("pae_hyeokseong", EarlyGameContent.FindStage(17).Encounters[2][0]);
             var quest = Quests.All.Single(q => q.Id == "q_sadae");
             CollectionAssert.AreEqual(new[] { "sadae_jilpung", "sadae_jilpung", "sadae_jilpung" }, Quests.ToStage(quest).Encounters[0]);
-            Assert.AreEqual(TrialKind.Survive, EarlyGameContent.FindStage(14).TrialFor(4).Kind);
-            Assert.AreEqual(8, EarlyGameContent.FindStage(14).TrialFor(4).Limit);
+            Assert.AreEqual(TrialKind.Survive, EarlyGameContent.FindStage(14).TrialFor(6).Kind);
+            Assert.AreEqual(8, EarlyGameContent.FindStage(14).TrialFor(6).Limit);
         }
 
-        [TestCase(14, 10, 17)]
+        [TestCase(14, 10, 23)]
         [TestCase(15, 9, 11)]
-        [TestCase(18, 4, 5)]
-        [TestCase(19, 8, 10)]
+        [TestCase(18, 4, 6)]
+        [TestCase(19, 8, 12)]
+        [TestCase(21, 8, 9)]
+        [TestCase(22, 8, 14)]
+        [TestCase(23, 8, 9)]
+        [TestCase(24, 8, 9)]
+        [TestCase(25, 8, 11)]
+        [TestCase(26, 8, 15)]
+        [TestCase(27, 7, 9)]
+        [TestCase(28, 10, 13)]
+        [TestCase(29, 12, 14)]
+        [TestCase(30, 8, 9)]
         public void NewFightsIncreaseTotalPayoutWithoutDilutingExistingFightShares(int number, int oldBudget, int newWeight)
         {
             var stage = EarlyGameContent.FindStage(number);
@@ -93,7 +103,7 @@ namespace BiRyeoDo.Tests
             StoryContentMigration.Apply(save);
             Assert.AreEqual(stars, StageStars.Total(save));
             Assert.AreEqual(3, save.RetiredStoryStars);
-            Assert.AreEqual(7, StageStars.MaskOf(save, 14, 5, 0));
+            Assert.AreEqual(7, StageStars.MaskOf(save, 14, 7, 0));
             foreach (int stage in new[] { 14, 17, 18 }) Assert.IsTrue(StageStars.StageCleared(save, stage, 1));
             foreach (int stage in new[] { 15, 19 }) Assert.IsTrue(StageStars.StageCleared(save, stage, 2));
             Assert.AreEqual(0, StageStars.MaskOf(save, 14, 0, 0));
@@ -111,6 +121,11 @@ namespace BiRyeoDo.Tests
         [TestCase(17)]
         [TestCase(18)]
         [TestCase(19)]
+        [TestCase(21)]
+        [TestCase(22)]
+        [TestCase(23)]
+        [TestCase(24)]
+        [TestCase(25)]
         public void PreparedGrowthPartyCanClearExpandedStagesWithoutProgressionOrRandomGear(int number)
         {
             var stage = EarlyGameContent.FindStage(number);
@@ -128,10 +143,15 @@ namespace BiRyeoDo.Tests
         private static StageData WithoutAddedFights(StageData stage)
         {
             var copy = stage.WithDifficulty(0);
-            if (stage.Number == 14) { copy.Encounters = stage.Encounters.Skip(5).ToArray(); copy.Trials = null; }
+            if (stage.Number == 14)
+            {
+                // Preserve the original pre-volume-6 expansion fixture, independent of later insertions.
+                copy.Encounters = new[] { new[] { "chohon_gwigeom", "chohon_gwigeom", "myeongbu_jang" }, new[] { "gal_hyobong" }, new[] { "cheonsal", "jisal" } };
+                copy.Trials = null;
+            }
             else if (stage.Number == 15) copy.Encounters = stage.Encounters.Skip(1).ToArray();
-            else if (stage.Number == 18) copy.Encounters = new[] { stage.Encounters[0], stage.Encounters[2] };
-            else if (stage.Number == 19) copy.Encounters = new[] { stage.Encounters[0], stage.Encounters[3], stage.Encounters[4] };
+            else if (stage.Number == 18) copy.Encounters = new[] { stage.Encounters[0], stage.Encounters[3] };
+            else if (stage.Number == 19) copy.Encounters = new[] { stage.Encounters[0], stage.Encounters[5], stage.Encounters[6] };
             return copy;
         }
 

@@ -73,11 +73,15 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>The arts a companion will still learn at a higher level, as "자하청심결 (Lv.15)".</summary>
-        public static List<string> PendingArtLines(CompanionData c, int level)
+        public static List<string> PendingArtLines(CompanionData c, int level, int clearedStage = 0)
         {
             var lines = new List<string>();
             foreach (var a in EarlyGameContent.Arts)
-                if (a.OwnerId == c.Id && a.OwnerLevel > level) lines.Add(a.Name + " (Lv." + a.OwnerLevel + ")" + ReplaceNote(a));
+                if (a.OwnerId == c.Id)
+                {
+                    if (a.OwnerStage > clearedStage) lines.Add(a.Name + " (여정 " + a.OwnerStage + " 완료)");
+                    else if (a.OwnerLevel > level) lines.Add(a.Name + " (Lv." + a.OwnerLevel + ")" + ReplaceNote(a));
+                }
             return lines;
         }
 
@@ -135,7 +139,9 @@ namespace BiRyeoDo.Core
         /// <summary>The fighting unit for a companion with everything the save gives it: own level, 인연, 수련 and gear.</summary>
         public static Combatant Create(SaveData save, CompanionData c)
         {
-            return c.CreateCombatant(LevelOf(save, c.Id), Bonds.Level(save, c.Id), CompanionTraining.LevelOf(save, c.Id), Inventory.GearOf(save, c.Id), Gear.LevelsFor(save, c.Id));
+            var unit = c.CreateCombatant(LevelOf(save, c.Id), Bonds.Level(save, c.Id), CompanionTraining.LevelOf(save, c.Id), Inventory.GearOf(save, c.Id), Gear.LevelsFor(save, c.Id));
+            unit.Skills.RemoveAll(skill => { var art = EarlyGameContent.FindArt(skill.Id); return art != null && art.OwnerStage > save.ClearedStage; });
+            return unit;
         }
     }
 

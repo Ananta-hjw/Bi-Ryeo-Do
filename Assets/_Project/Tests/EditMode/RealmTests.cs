@@ -97,6 +97,11 @@ namespace BiRyeoDo.Tests
             }
             Assert.AreEqual("절정 완숙", Realm.ForEnemy(bi));   // 초절정 초입 only on 어려움 (일반 stages 7+ were eased)
             Assert.AreEqual("", Realm.ForEnemy(EarlyGameContent.FindEnemy("tiger")));
+            foreach (var hazard in new[] { "cliff_rescue", "hwaryong_rescue" })
+            {
+                Assert.IsFalse(Realm.HasRealm(EarlyGameContent.FindEnemy(hazard)), hazard);
+                Assert.AreEqual("", Realm.ForEnemy(EarlyGameContent.FindEnemy(hazard)), hazard);
+            }
             foreach (var id in new[] { "tiger", "white_tiger", "mukrin_hyeolmang", "cave_viper" }) Assert.IsNotNull(EarlyGameContent.FindEnemy(id), id);
         }
 

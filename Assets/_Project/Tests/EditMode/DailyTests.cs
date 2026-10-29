@@ -27,6 +27,27 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void StoryAndCompanionSkillsCountDailyGoalsWithoutCreatingHeroMastery()
+        {
+            var save = BalanceSimulation.Starter(40, 44);
+            var child = Roster.CreateStoryParty(EarlyGameContent.FindStage(37), 1, save).Single();
+            var focus = child.Skills.First(x => x.Id == "scene_ssangseom");
+            Assert.AreEqual(-1, Daily.RecordPlayerSkill(save, child, focus));
+            var heroine = CompanionGrowth.Create(save, EarlyGameContent.FindCompanion("na_yerin"));
+            Daily.RecordPlayerSkill(save, heroine, heroine.Skills.First(x => x.Id != "basic"));
+            Assert.AreEqual(2, Daily.ProgressOf(save, Daily.Find("skill20")));
+            Assert.IsEmpty(save.ArtMastery);
+            var hero = Formation.BuildHero(save); var skill = hero.Skills.First(x => x.Id != "basic");
+            Daily.RecordPlayerSkill(save, hero, skill);
+            Assert.AreEqual(3, Daily.ProgressOf(save, Daily.Find("skill20")));
+            Assert.AreEqual(1, Mastery.Uses(save, skill.Id));
+            Daily.RecordPlayerSkill(save, child, SkillSpec.BasicAttack());
+            var enemy = new Combatant("enemy", "적", Team.Enemy, child.Stats, null);
+            Daily.RecordPlayerSkill(save, enemy, focus);
+            Assert.AreEqual(3, Daily.ProgressOf(save, Daily.Find("skill20")));
+        }
+
+        [Test]
         public void PoolIsValidAndEveryTierHasMissions()
         {
             Assert.AreEqual(Daily.Pool.Length, Daily.Pool.Select(m => m.Id).Distinct().Count());

@@ -15,11 +15,19 @@ namespace BiRyeoDo.Game.Systems
             public string category = "", id = "", sheet = "";
             public int cell = 0, columns = 8, rows = 8;
             public float x = 0f, y = 0f, width = 0f, height = 0f;
+            public bool transparent = false;
         }
 
         private static Dictionary<string, Entry> _catalog;
         private static readonly Dictionary<string, Sprite> Sprites = new Dictionary<string, Sprite>();
         private static readonly Dictionary<string, Texture2D> Sheets = new Dictionary<string, Texture2D>();
+
+        public static bool HasTransparentCanvas(string category, string id)
+        {
+            EnsureCatalog();
+            Entry entry;
+            return id != null && _catalog.TryGetValue(category + "/" + id, out entry) && entry.transparent;
+        }
 
         public static Sprite Find(string category, string id)
         {

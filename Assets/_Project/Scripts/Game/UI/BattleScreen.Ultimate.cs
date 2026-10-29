@@ -193,18 +193,31 @@ namespace BiRyeoDo.Game.UI
 
         private IEnumerator FlashColor(Color color, float peak, float seconds)
         {
-            float d = seconds / Pace;
-            for (float e = 0f; e < d; e += Time.deltaTime)
+            if (peak >= _flashPeak) _flashTint = color;
+            _flashPeak = Mathf.Max(_flashPeak, peak);
+            float duration = seconds / Pace;
+            if (_flashRemaining > 0f)
             {
-                color.a = peak * (1f - e / d);
-                _flash.color = color;
+                _flashRemaining = Mathf.Max(_flashRemaining, duration);
+                _flashDuration = Mathf.Max(_flashDuration, duration);
+                yield break;
+            }
+            int generation = _impactGeneration;
+            _flashDuration = _flashRemaining = duration;
+            while (_flashRemaining > 0f && _flash != null)
+            {
+                if (generation != _impactGeneration) yield break;
+                var tint = _flashTint;
+                tint.a = _flashPeak * Mathf.Clamp01(_flashRemaining / _flashDuration);
+                _flash.color = tint;
+                _flashRemaining -= Time.deltaTime;
                 yield return null;
             }
-            color.a = 0f;
-            _flash.color = color;
+            if (generation != _impactGeneration || _flash == null) yield break;
+            SetAlpha(_flash, 0f);
+            _flashPeak = _flashRemaining = _flashDuration = 0f;
         }
 
-        /// <summary>A jagged gold lightning bolt from the top of the screen down to the band, built from short rotated bars plus a soft glow.</summary>
         private void Bolt(RectTransform parent, float w, float h, float x01)
         {
             var bolt = UiFactory.Rect("Bolt", parent, Vector2.zero, Vector2.one);

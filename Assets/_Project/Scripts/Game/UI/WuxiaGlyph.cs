@@ -29,6 +29,11 @@ namespace BiRyeoDo.Game.UI
         private string _iconKey;
         private Sprite _icon;
 
+        public bool UsesCutoutIcon
+        {
+            get { ResolveIcon(); return _icon != null && ArtLibrary.IsCutoutIcon(_icon); }
+        }
+
         public override Material defaultMaterial
         {
             get { ResolveIcon(); return _icon != null ? IconCutout.Material ?? base.defaultMaterial : base.defaultMaterial; }

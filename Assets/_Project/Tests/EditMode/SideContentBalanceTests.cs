@@ -90,15 +90,19 @@ namespace BiRyeoDo.Tests
         [TestCase(30)]
         [TestCase(35)]
         [TestCase(60)]
-        public void RespondingToBossTelegraphsPreservesMoreOfTheParty(int floor)
+        public void RespondingToBossTelegraphsReducesDamageWithoutIncreasingCasualties(int floor)
         {
             var save = SideContentSimulation.Prepared(Tower.ReferenceStage(floor) + 1, Tower.RecommendedPlayerLevel(floor));
             var stage = Tower.ToStage(save, floor);
             var careful = Enumerable.Range(901, 40).Select(seed => SideContentSimulation.Play(stage, save, seed)).ToArray();
             var reckless = Enumerable.Range(901, 40).Select(seed => SideContentSimulation.Play(stage, save, seed, false)).ToArray();
             Assert.GreaterOrEqual(careful.Count(r => r.Won), 34);
+            Assert.GreaterOrEqual(careful.Count(r => r.Won), reckless.Count(r => r.Won));
             TestContext.Out.WriteLine("tower " + floor + " incoming damage: " + careful.Average(r => r.DamageTaken) + " vs " + reckless.Average(r => r.DamageTaken));
             // In expected gear the party wins comfortably either way (ending HP is close, careless play ends sooner); guarding still saves real damage.
+            // Counter openings shorten fights and can remove the final healing turn. Raw final
+            // HP would reward prolonging a fight to heal; compare survival and exposure instead.
+            Assert.LessOrEqual(careful.Sum(r => r.Deaths), reckless.Sum(r => r.Deaths));
             Assert.Less(careful.Average(r => r.DamageTaken), reckless.Average(r => r.DamageTaken) * .95);
         }
 
@@ -152,6 +156,22 @@ namespace BiRyeoDo.Tests
                 Assert.Greater(next.EffDefense, previous.EffDefense);
                 previous = next;
             }
+        }
+
+        [Test]
+        public void CreaturesReceiveTheFloorBudgetWithoutDisplayingHumanEquipment()
+        {
+            var raw = EarlyGameContent.FindEnemy("mukrin_hyeolmang");
+            var profile = GearLoadout.ForEnemiesAt(Tower.RecommendedPlayerLevel(40));
+            Assert.IsNotNull(profile);
+            var creature = raw.WithNaturalBonus(profile);
+            var equipped = raw.WithGear(profile);
+            Assert.IsNull(creature.Gear);
+            Assert.AreEqual(raw.Id, creature.Id);
+            Assert.AreEqual(raw.ArtKey, creature.ArtKey);
+            Assert.AreEqual(equipped.BuildStats(), creature.BuildStats());
+            Assert.Greater(creature.BuildStats().MaxHp, raw.BuildStats().MaxHp);
+            Assert.IsNull(raw.Gear);
         }
     }
 }

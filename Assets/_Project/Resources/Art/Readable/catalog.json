@@ -562,42 +562,6 @@
     },
     {
       "category": "Item",
-      "id": "art_scroll_5",
-      "sheet": "items_0",
-      "cell": 4,
-      "columns": 8,
-      "rows": 8,
-      "x": 0.5,
-      "y": 0.0,
-      "width": 0.12440191387559808,
-      "height": 0.12041467304625199
-    },
-    {
-      "category": "Item",
-      "id": "art_scroll_10",
-      "sheet": "items_0",
-      "cell": 5,
-      "columns": 8,
-      "rows": 8,
-      "x": 0.6244019138755981,
-      "y": 0.0,
-      "width": 0.1251993620414673,
-      "height": 0.12041467304625199
-    },
-    {
-      "category": "Item",
-      "id": "art_scroll_20",
-      "sheet": "items_0",
-      "cell": 6,
-      "columns": 8,
-      "rows": 8,
-      "x": 0.7496012759170654,
-      "y": 0.0,
-      "width": 0.12440191387559808,
-      "height": 0.12041467304625199
-    },
-    {
-      "category": "Item",
       "id": "leather",
       "sheet": "items_0",
       "cell": 7,
@@ -6275,6 +6239,1533 @@
       "y": 0.7496012759170654,
       "width": 0.2503987240829346,
       "height": 0.2503987240829346
+    },
+    {
+      "category": "Art",
+      "id": "ny_biseol",
+      "sheet": "active_icons_01",
+      "cell": 11,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_ny_step",
+      "sheet": "active_icons_01",
+      "cell": 11,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_yerin_step",
+      "sheet": "active_icons_01",
+      "cell": 11,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_spear_read",
+      "sheet": "active_icons_01",
+      "cell": 11,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_palhwa",
+      "sheet": "active_icons_02",
+      "cell": 10,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_ssangseom",
+      "sheet": "active_icons_02",
+      "cell": 11,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_taesanbong",
+      "sheet": "active_icons_02",
+      "cell": 12,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_pyoru",
+      "sheet": "active_icons_02",
+      "cell": 13,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_ma_blade",
+      "sheet": "active_icons_02",
+      "cell": 13,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_staff",
+      "sheet": "active_icons_02",
+      "cell": 14,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_search_fist",
+      "sheet": "active_icons_02",
+      "cell": 15,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_jungbok",
+      "sheet": "active_icons_02",
+      "cell": 15,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_rescue_fist",
+      "sheet": "active_icons_02",
+      "cell": 15,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_fist_clash",
+      "sheet": "active_icons_02",
+      "cell": 15,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_fist",
+      "sheet": "active_icons_02",
+      "cell": 15,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_returned_fist",
+      "sheet": "active_icons_02",
+      "cell": 15,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_slow_fist",
+      "sheet": "active_icons_03",
+      "cell": 0,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_second_fist",
+      "sheet": "active_icons_03",
+      "cell": 0,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_air_push",
+      "sheet": "active_icons_03",
+      "cell": 1,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_needle_flash",
+      "sheet": "active_icons_03",
+      "cell": 2,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_eight_shadows",
+      "sheet": "active_icons_03",
+      "cell": 3,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_mind_wave",
+      "sheet": "active_icons_03",
+      "cell": 4,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_soul_scar",
+      "sheet": "active_icons_03",
+      "cell": 5,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_loaned_darts",
+      "sheet": "active_icons_03",
+      "cell": 6,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_five_sweep",
+      "sheet": "active_icons_03",
+      "cell": 6,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_sweep",
+      "sheet": "active_icons_03",
+      "cell": 6,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_dang_darts",
+      "sheet": "skills",
+      "cell": 4,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "scene_silver_whirl",
+      "sheet": "active_icons_03",
+      "cell": 7,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_clear_elements",
+      "sheet": "active_icons_03",
+      "cell": 7,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_umbrella_boat",
+      "sheet": "active_icons_03",
+      "cell": 8,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_water_funeral",
+      "sheet": "active_icons_03",
+      "cell": 9,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_umbrella",
+      "sheet": "active_icons_04",
+      "cell": 13,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_sambok",
+      "sheet": "active_icons_04",
+      "cell": 13,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_sanmak",
+      "sheet": "active_icons_04",
+      "cell": 14,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_left_umbrella",
+      "sheet": "active_icons_04",
+      "cell": 15,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_left_evade",
+      "sheet": "active_icons_05",
+      "cell": 0,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_umbrella_spear",
+      "sheet": "active_icons_05",
+      "cell": 1,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_shell_deflect",
+      "sheet": "active_icons_05",
+      "cell": 2,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_shell_cut",
+      "sheet": "active_icons_05",
+      "cell": 3,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_muzzle_stop",
+      "sheet": "active_icons_05",
+      "cell": 4,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_redirect",
+      "sheet": "active_icons_05",
+      "cell": 5,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Command",
+      "id": "scene_release_flow",
+      "sheet": "skills",
+      "cell": 53,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "scene_seonpung",
+      "sheet": "active_icons_05",
+      "cell": 6,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_wind_sword",
+      "sheet": "active_icons_05",
+      "cell": 6,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_suyak",
+      "sheet": "active_icons_05",
+      "cell": 7,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_geumgang",
+      "sheet": "active_icons_05",
+      "cell": 8,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_yong_finger",
+      "sheet": "active_icons_05",
+      "cell": 8,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_budong",
+      "sheet": "active_icons_05",
+      "cell": 9,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_yong_step",
+      "sheet": "active_icons_05",
+      "cell": 9,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_tanji",
+      "sheet": "active_icons_05",
+      "cell": 10,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_chilmae",
+      "sheet": "active_icons_05",
+      "cell": 11,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_yunmi_step",
+      "sheet": "active_icons_05",
+      "cell": 11,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "story_strike",
+      "sheet": "active_icons_04",
+      "cell": 9,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "story_sweep",
+      "sheet": "active_icons_04",
+      "cell": 9,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_baek_sword",
+      "sheet": "active_icons_04",
+      "cell": 9,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_baek_sword",
+      "sheet": "active_icons_04",
+      "cell": 9,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_gray",
+      "sheet": "active_icons_04",
+      "cell": 9,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_gate_gray",
+      "sheet": "active_icons_04",
+      "cell": 9,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_cheong_sword",
+      "sheet": "active_icons_04",
+      "cell": 9,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_yeong_sword",
+      "sheet": "active_icons_04",
+      "cell": 9,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_gongson_sword",
+      "sheet": "active_icons_04",
+      "cell": 9,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "story_footwork",
+      "sheet": "active_icons_01",
+      "cell": 12,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_half_step",
+      "sheet": "active_icons_01",
+      "cell": 12,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_rescue_step",
+      "sheet": "active_icons_01",
+      "cell": 12,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_step",
+      "sheet": "active_icons_01",
+      "cell": 12,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_search_step",
+      "sheet": "active_icons_01",
+      "cell": 12,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_namgung_step",
+      "sheet": "active_icons_01",
+      "cell": 12,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_ok_step",
+      "sheet": "active_icons_01",
+      "cell": 12,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_yeong_step",
+      "sheet": "active_icons_01",
+      "cell": 12,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_ma_step",
+      "sheet": "active_icons_01",
+      "cell": 12,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_rain_step",
+      "sheet": "active_icons_01",
+      "cell": 13,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_star_step",
+      "sheet": "active_icons_01",
+      "cell": 14,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_star_step",
+      "sheet": "active_icons_01",
+      "cell": 14,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_tao_step",
+      "sheet": "active_icons_01",
+      "cell": 15,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_cheong_step",
+      "sheet": "active_icons_01",
+      "cell": 15,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_coin_parry",
+      "sheet": "active_icons_02",
+      "cell": 0,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_bend_wind",
+      "sheet": "active_icons_02",
+      "cell": 0,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_wind_wall",
+      "sheet": "active_icons_02",
+      "cell": 1,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_gongson_support",
+      "sheet": "active_icons_02",
+      "cell": 2,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_gongson_step",
+      "sheet": "active_icons_02",
+      "cell": 3,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Command",
+      "id": "scene_confirm_charm",
+      "sheet": "items_4",
+      "cell": 33,
+      "columns": 8,
+      "rows": 8,
+      "x": 0.1251993620414673,
+      "y": 0.5,
+      "width": 0.12440191387559808,
+      "height": 0.1251993620414673
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_fire_step",
+      "sheet": "active_icons_02",
+      "cell": 4,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_fire_wall",
+      "sheet": "active_icons_02",
+      "cell": 4,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_ice_guard",
+      "sheet": "active_icons_02",
+      "cell": 5,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_cut_sound",
+      "sheet": "active_icons_02",
+      "cell": 6,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_silver_net",
+      "sheet": "active_icons_02",
+      "cell": 7,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_earth_wave",
+      "sheet": "active_icons_02",
+      "cell": 8,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_storm_wings",
+      "sheet": "active_icons_02",
+      "cell": 9,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_soan",
+      "sheet": "active_icons_03",
+      "cell": 15,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_hanbing",
+      "sheet": "active_icons_04",
+      "cell": 0,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_ice",
+      "sheet": "active_icons_04",
+      "cell": 0,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_haesang",
+      "sheet": "active_icons_04",
+      "cell": 1,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_sword",
+      "sheet": "active_icons_04",
+      "cell": 1,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_mukroesal",
+      "sheet": "active_icons_04",
+      "cell": 2,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_star_sword",
+      "sheet": "active_icons_04",
+      "cell": 3,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_galaxy",
+      "sheet": "active_icons_04",
+      "cell": 3,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_star_rain",
+      "sheet": "active_icons_04",
+      "cell": 4,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_gate_galaxy",
+      "sheet": "active_icons_04",
+      "cell": 4,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_stars_end",
+      "sheet": "active_icons_04",
+      "cell": 5,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_ice_union",
+      "sheet": "active_icons_04",
+      "cell": 6,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_blood_blade",
+      "sheet": "active_icons_04",
+      "cell": 7,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_taicheong",
+      "sheet": "active_icons_04",
+      "cell": 8,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_fire_dragon",
+      "sheet": "active_icons_04",
+      "cell": 11,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_flame",
+      "sheet": "active_icons_04",
+      "cell": 11,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_twin_dragons",
+      "sheet": "active_icons_04",
+      "cell": 12,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_golden_thread",
+      "sheet": "active_icons_03",
+      "cell": 11,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Command",
+      "id": "scene_read_needles",
+      "sheet": "menus",
+      "cell": 2,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Command",
+      "id": "scene_young_evade",
+      "sheet": "menus",
+      "cell": 2,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Command",
+      "id": "scene_release_needles",
+      "sheet": "items_4",
+      "cell": 54,
+      "columns": 8,
+      "rows": 8,
+      "x": 0.7488038277511961,
+      "y": 0.7496012759170654,
+      "width": 0.12440191387559808,
+      "height": 0.12440191387559808
+    },
+    {
+      "category": "Art",
+      "id": "scene_empty_nest",
+      "sheet": "active_icons_03",
+      "cell": 10,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Command",
+      "id": "scene_escape_hold_sword",
+      "sheet": "skills",
+      "cell": 52,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Command",
+      "id": "scene_escape_sister_smoke",
+      "sheet": "skills",
+      "cell": 54,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Command",
+      "id": "scene_escape_sect_threads",
+      "sheet": "items_4",
+      "cell": 33,
+      "columns": 8,
+      "rows": 8,
+      "x": 0.1251993620414673,
+      "y": 0.5,
+      "width": 0.12440191387559808,
+      "height": 0.1251993620414673
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_distrust",
+      "sheet": "active_icons_03",
+      "cell": 12,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Command",
+      "id": "scene_escape_red_flower",
+      "sheet": "items_4",
+      "cell": 33,
+      "columns": 8,
+      "rows": 8,
+      "x": 0.1251993620414673,
+      "y": 0.5,
+      "width": 0.12440191387559808,
+      "height": 0.1251993620414673
+    },
+    {
+      "category": "Command",
+      "id": "scene_escape_current",
+      "sheet": "items_4",
+      "cell": 37,
+      "columns": 8,
+      "rows": 8,
+      "x": 0.6244019138755981,
+      "y": 0.5,
+      "width": 0.12440191387559808,
+      "height": 0.1251993620414673
+    },
+    {
+      "category": "Command",
+      "id": "scene_escape_warning",
+      "sheet": "skills",
+      "cell": 58,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Command",
+      "id": "scene_escape_badge",
+      "sheet": "menus",
+      "cell": 1,
+      "columns": 4,
+      "rows": 2
+    },
+    {
+      "category": "Command",
+      "id": "scene_escape_seat",
+      "sheet": "items_4",
+      "cell": 37,
+      "columns": 8,
+      "rows": 8,
+      "x": 0.6244019138755981,
+      "y": 0.5,
+      "width": 0.12440191387559808,
+      "height": 0.1251993620414673
+    },
+    {
+      "category": "Command",
+      "id": "scene_escape_cover",
+      "sheet": "skills",
+      "cell": 58,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Command",
+      "id": "scene_open_door",
+      "sheet": "items_4",
+      "cell": 37,
+      "columns": 8,
+      "rows": 8,
+      "x": 0.6244019138755981,
+      "y": 0.5,
+      "width": 0.12440191387559808,
+      "height": 0.1251993620414673
+    },
+    {
+      "category": "Command",
+      "id": "scene_safe_27",
+      "sheet": "skills",
+      "cell": 52,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Command",
+      "id": "scene_fall_37",
+      "sheet": "skills",
+      "cell": 52,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Command",
+      "id": "scene_fall_47",
+      "sheet": "skills",
+      "cell": 52,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Command",
+      "id": "scene_sleep_fan",
+      "sheet": "skills",
+      "cell": 54,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Command",
+      "id": "scene_dang_smoke",
+      "sheet": "skills",
+      "cell": 54,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_flute_feint",
+      "sheet": "active_icons_01",
+      "cell": 8,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_dog_capture",
+      "sheet": "active_icons_01",
+      "cell": 9,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Command",
+      "id": "scene_escape_laughter",
+      "sheet": "skills",
+      "cell": 58,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "scene_return_yerin",
+      "sheet": "active_icons_01",
+      "cell": 10,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_free_father",
+      "sheet": "active_icons_01",
+      "cell": 10,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_three_swords",
+      "sheet": "active_icons_04",
+      "cell": 10,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_triple_roar",
+      "sheet": "story_perception",
+      "cell": 0,
+      "columns": 2,
+      "rows": 2,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "story_hide",
+      "sheet": "story_perception",
+      "cell": 1,
+      "columns": 2,
+      "rows": 2,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_shadow",
+      "sheet": "story_perception",
+      "cell": 1,
+      "columns": 2,
+      "rows": 2,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_sense_heat",
+      "sheet": "story_perception",
+      "cell": 2,
+      "columns": 2,
+      "rows": 2,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_baek_step",
+      "sheet": "story_perception",
+      "cell": 3,
+      "columns": 2,
+      "rows": 2,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_baek_step",
+      "sheet": "story_perception",
+      "cell": 3,
+      "columns": 2,
+      "rows": 2,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_roegwang",
+      "sheet": "active_icons_03",
+      "cell": 13,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_injured_sword",
+      "sheet": "active_icons_03",
+      "cell": 13,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_thunder",
+      "sheet": "active_icons_03",
+      "cell": 13,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_thunder_scar",
+      "sheet": "active_icons_03",
+      "cell": 13,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_gate_thunder",
+      "sheet": "active_icons_03",
+      "cell": 13,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_roegwang_step",
+      "sheet": "active_icons_03",
+      "cell": 14,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_sansan_step",
+      "sheet": "active_icons_03",
+      "cell": 14,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_namgung_step",
+      "sheet": "active_icons_03",
+      "cell": 14,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Command",
+      "id": "basic",
+      "sheet": "skills",
+      "cell": 51,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "scene_silver_snow",
+      "sheet": "skills",
+      "cell": 29,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_yerin_sword",
+      "sheet": "skills",
+      "cell": 29,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "scene_flying_twin",
+      "sheet": "skills",
+      "cell": 18,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "scene_roegwang_response",
+      "sheet": "skills",
+      "cell": 6,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "scene_thunder_shadow",
+      "sheet": "skills",
+      "cell": 15,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_snow_step",
+      "sheet": "skills",
+      "cell": 3,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_save_fire",
+      "sheet": "active_icons_01",
+      "cell": 11,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_save_ice",
+      "sheet": "active_icons_04",
+      "cell": 7,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Art",
+      "id": "scene_probe_step",
+      "sheet": "skills",
+      "cell": 53,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Art",
+      "id": "scene_wolf_stop",
+      "sheet": "skills",
+      "cell": 1,
+      "columns": 8,
+      "rows": 8
+    },
+    {
+      "category": "Command",
+      "id": "scene_trace",
+      "sheet": "items_4",
+      "cell": 33,
+      "columns": 8,
+      "rows": 8,
+      "x": 0.1251993620414673,
+      "y": 0.5,
+      "width": 0.12440191387559808,
+      "height": 0.1251993620414673
+    },
+    {
+      "category": "Command",
+      "id": "scene_escape_contacts",
+      "sheet": "items_4",
+      "cell": 33,
+      "columns": 8,
+      "rows": 8,
+      "x": 0.1251993620414673,
+      "y": 0.5,
+      "width": 0.12440191387559808,
+      "height": 0.1251993620414673
+    },
+    {
+      "category": "Command",
+      "id": "scene_escape_report",
+      "sheet": "items_4",
+      "cell": 46,
+      "columns": 8,
+      "rows": 8,
+      "x": 0.7488038277511961,
+      "y": 0.6251993620414673,
+      "width": 0.12440191387559808,
+      "height": 0.12440191387559808
+    },
+    {
+      "category": "Art",
+      "id": "scene_escape_shadow_bind",
+      "sheet": "active_icons_02",
+      "cell": 7,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Shop",
+      "id": "wud_train1",
+      "sheet": "active_icons_01",
+      "cell": 0,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Shop",
+      "id": "wud_train2",
+      "sheet": "active_icons_01",
+      "cell": 1,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Shop",
+      "id": "wud_train3",
+      "sheet": "active_icons_01",
+      "cell": 2,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Shop",
+      "id": "aca_scroll",
+      "sheet": "active_icons_01",
+      "cell": 3,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Shop",
+      "id": "aca_scroll2",
+      "sheet": "active_icons_01",
+      "cell": 4,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Item",
+      "id": "art_scroll_5",
+      "sheet": "active_icons_01",
+      "cell": 5,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Item",
+      "id": "art_scroll_10",
+      "sheet": "active_icons_01",
+      "cell": 6,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
+    },
+    {
+      "category": "Item",
+      "id": "art_scroll_20",
+      "sheet": "active_icons_01",
+      "cell": 7,
+      "columns": 4,
+      "rows": 4,
+      "transparent": true
     }
   ]
 }

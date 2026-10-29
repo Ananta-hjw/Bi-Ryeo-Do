@@ -26,6 +26,7 @@ namespace BiRyeoDo.Game.UI
         private static readonly Color CrisisRed = new Color(.85f, .05f, .05f, 1f);
 
         private Image _edgeFlash, _crisis;
+        private float _edgePeak, _edgeRemaining, _edgeDuration;
         private RectTransform _comboRoot;
         private CanvasGroup _comboGroup;
         private Text _comboCount, _comboSum;
@@ -77,11 +78,6 @@ namespace BiRyeoDo.Game.UI
             _comboFade = null;
         }
 
-        private void OnDisable()
-        {
-            if (_timeTouched) { Time.timeScale = 1f; _timeTouched = false; }
-        }
-
         private void LateUpdate()
         {
             if (_timeTouched) ApplyTimeScale();
@@ -129,15 +125,17 @@ namespace BiRyeoDo.Game.UI
         /// <summary>Critical hit on an enemy: zoom toward it, a white burst and gold edges, then the hit-stop; the zoom eases back afterwards.</summary>
         private IEnumerator CritImpact(EnemyCard card)
         {
-            Vector2 home = HomeOf(_cardsRoot);
-            Vector2 size = _cardsRoot.rect.size;
-            Vector2 focus = new Vector2((card.Center.x - .5f) * size.x, (card.Center.y - .5f) * size.y);
-            SetZoom(home, focus, CritZoom);
+            if (!_sequenceImpactPunched)
+            {
+                _sequenceImpactPunched = true;
+                Vector2 size = _cardsRoot.rect.size;
+                Vector2 focus = new Vector2((card.Center.x - .5f) * size.x, (card.Center.y - .5f) * size.y);
+                StartCoroutine(Punch(CritZoom, focus));
+            }
             Glow(card.Center, 520f);
             StartCoroutine(EdgePulse(_edgeFlash, .55f, .45f));
             SoundManager.Haptic(70);
             yield return HitStop();
-            StartCoroutine(ZoomBack(home, focus));
         }
 
         private void SetZoom(Vector2 home, Vector2 focus, float scale)
@@ -145,18 +143,6 @@ namespace BiRyeoDo.Game.UI
             // Scaling about the root's centre moves the focus point to focus x scale; shift it back so the target stays put.
             _cardsRoot.localScale = new Vector3(scale, scale, 1f);
             _cardsRoot.anchoredPosition = home + focus * (1f - scale);
-        }
-
-        private IEnumerator ZoomBack(Vector2 home, Vector2 focus)
-        {
-            float d = 0.26f / Pace;
-            for (float e = 0f; e < d; e += Time.deltaTime)
-            {
-                SetZoom(home, focus, Mathf.Lerp(CritZoom, 1f, 1f - (1f - e / d) * (1f - e / d)));
-                yield return null;
-            }
-            _cardsRoot.localScale = Vector3.one;
-            _cardsRoot.anchoredPosition = home;
         }
 
         /// <summary>A soft white burst at the hit point (a generated radial sprite, no art needed).</summary>
@@ -189,13 +175,26 @@ namespace BiRyeoDo.Game.UI
         private IEnumerator EdgePulse(Image edge, float peak, float seconds)
         {
             if (edge == null) yield break;
-            float d = seconds / Pace;
-            for (float e = 0f; e < d; e += Time.deltaTime)
+            _edgePeak = Mathf.Max(_edgePeak, peak);
+            float duration = seconds / Pace;
+            if (_edgeRemaining > 0f)
             {
-                SetAlpha(edge, peak * (1f - e / d));
+                _edgeRemaining = Mathf.Max(_edgeRemaining, duration);
+                _edgeDuration = Mathf.Max(_edgeDuration, duration);
+                yield break;
+            }
+            int generation = _impactGeneration;
+            _edgeDuration = _edgeRemaining = duration;
+            while (_edgeRemaining > 0f && edge != null)
+            {
+                if (generation != _impactGeneration) yield break;
+                SetAlpha(edge, _edgePeak * Mathf.Clamp01(_edgeRemaining / _edgeDuration));
+                _edgeRemaining -= Time.deltaTime;
                 yield return null;
             }
+            if (generation != _impactGeneration || edge == null) yield break;
             SetAlpha(edge, 0f);
+            _edgePeak = _edgeRemaining = _edgeDuration = 0f;
         }
 
         // ------------------------------------------------------------------ damage numbers
@@ -266,8 +265,8 @@ namespace BiRyeoDo.Game.UI
         private void ComboHit(BattleEvent ev)
         {
             if (ev.HitCount <= 1 || _comboRoot == null) return;
-            string key = ev.ActorId + "|" + ev.SkillId + "|" + ev.TargetId;
-            if (key != _comboKey || ev.HitIndex == 0) { _comboKey = key; _comboHits = 0; _comboDamage = 0; }
+            string key = ev.ActorId + "|" + ev.SkillId;
+            if (key != _comboKey || (ev.HitIndex == 0 && !ev.AllEnemies)) { _comboKey = key; _comboHits = 0; _comboDamage = 0; }
             _comboHits++;
             _comboDamage += ev.Damage;
             if (_comboHits < 2) return;

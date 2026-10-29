@@ -203,7 +203,7 @@ namespace BiRyeoDo.Game.UI
         private Sprite UnitPortrait(Combatant unit)
         {
             var card = CardOf(unit.Id);
-            string key = card != null ? card.Data.ArtKey : unit.Id;
+            string key = card != null ? card.Data.ArtKey : Roster.StoryArtKey(unit);
             return BattleFigure(key);
         }
 
@@ -285,7 +285,7 @@ namespace BiRyeoDo.Game.UI
             _actorGlyph.text = pic == null ? FirstGlyph(me.Name) : "";
         }
 
-        private void RefreshFocusHud()
+        private void RefreshFocusHud(EnemyCard preferred = null)
         {
             if (_focusName == null) return;
             EnemyCard focus = null;
@@ -295,6 +295,9 @@ namespace BiRyeoDo.Game.UI
                 // The first boss, else the first living enemy; a wind-up does not pull the panel to its enemy (that would reveal it).
                 if (focus == null || (c.Unit.IsBoss && !focus.Unit.IsBoss)) focus = c;
             }
+            var counterTarget = !_animating && _battle != null ? _battle.CounterTargetOf(_battle.Current) : null;
+            if (counterTarget != null) focus = CardOf(counterTarget.Id);
+            if (preferred != null) focus = preferred;
             _focusedEnemy = focus;
             if (focus == null)
             {
@@ -314,6 +317,12 @@ namespace BiRyeoDo.Game.UI
             string state = (u.Stunned ? "행동 불능" : "") + phase + (u.Statuses.Count > 0 ? "  ·  " + Statuses.Line(u) : "");
             _focusDetail.text = state.TrimStart(' ', '·');
             _focusDetail.color = UiFactory.Dim;
+            if (counterTarget == u)
+            {
+                _focusDetail.text = "반격 기회 · 이번 공격 피해 +25%\n다른 행동을 선택하면 기회가 사라집니다.";
+                _focusDetail.color = UiFactory.Gold;
+                _focusTag.text = "반격";
+            }
             for (int i = 0; i < _phaseMarks.Count; i++)
             {
                 bool show = u.Phases != null && i < u.Phases.Count;

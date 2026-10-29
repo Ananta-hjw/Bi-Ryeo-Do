@@ -89,6 +89,7 @@ namespace BiRyeoDo.Game.UI
 
         private InteractiveBattle _battle;
         private List<Combatant> _party = new List<Combatant>();
+        private int _storyEncounter;
         // Aiming: pressing an attack first lights up who can and cannot be hit; the attack is only used once a hittable enemy is tapped.
         private SkillSpec _aimSkill;
         private Combatant _aimPartner;   // set while aiming a 합공 (the ally who strikes with the protagonist)
@@ -316,6 +317,7 @@ namespace BiRyeoDo.Game.UI
             StopAllCoroutines();
             ClearUltimateCutIn();
             ResetFeel();
+            ResetImpactEffects();
             HideFightRewards();
             ApplySavedSpeed();
             StartCoroutine(RunStage(stage));
@@ -437,6 +439,7 @@ namespace BiRyeoDo.Game.UI
             while (again)
             {
                 again = false;
+                _storyEncounter = startIndex;
                 BuildParty(stage);
                 if (resume) { StageProgress.Restore(save, _party); RefreshParty(); }
                 long gainedExp = 0, gainedDoo = 0;
@@ -449,6 +452,10 @@ namespace BiRyeoDo.Game.UI
 
                 for (int i = startIndex; i < stage.Encounters.Length; i++)
                 {
+                    bool changePerspective = i > startIndex && !Roster.SamePerspective(stage, i - 1, i);
+                    _storyEncounter = i;
+                    if (changePerspective) BuildParty(stage);
+                    Roster.PrepareStoryEncounter(stage, i, _party);
                     _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + tag + stage.Name + "  (" + (i + 1) + "/" + stage.Encounters.Length + ")";
                     _lastFightNumber = i + 1;
                     var episodes = StoryEpisodes.BeforeFight(stage, i, save, singleFight);
@@ -522,8 +529,9 @@ namespace BiRyeoDo.Game.UI
                     var leveled = new List<string>();
                     var levelLines = new List<string>();
                     if (levels > 0) { leveled.Add("player"); levelLines.Add("비류연  Lv." + (save.Level - levels) + " → Lv." + save.Level + "  (체력·내공 가득)"); }
-                    for (int k = 1; k < _party.Count; k++)
+                    for (int k = 0; k < _party.Count; k++)
                     {
+                        if (EarlyGameContent.FindCompanion(_party[k].Id) == null) continue;
                         int before = CompanionGrowth.LevelOf(save, _party[k].Id);
                         int gained = CompanionGrowth.AddExp(save, _party[k].Id, exp);
                         if (gained > 0)
@@ -540,6 +548,8 @@ namespace BiRyeoDo.Game.UI
                         foreach (var m in _party) fielded.Add(m.Id);
                         levelLines.AddRange(CompanionGrowth.ShareWithBench(save, fielded, exp));
                     }
+                    if (levels > 0)
+                        foreach (var member in _party) if (Roster.IsStoryActor(member.Id)) leveled.Add(member.Id);
                     save.Doo += doo;
                     gainedExp += exp; gainedDoo += doo;
                     GameManager.Instance.SaveNow();
@@ -564,7 +574,8 @@ namespace BiRyeoDo.Game.UI
                         yield return ShowHub(stage, i, rewardMask, rewardNewStars);
                         if (_leave)
                         {
-                            StageProgress.Store(save, stage.Number, i + 1, _party, diff);
+                            var continuation = Roster.SamePerspective(stage, i, i + 1) ? _party : CreateParty(stage, i + 1);
+                            StageProgress.Store(save, stage.Number, i + 1, continuation, diff);
                             GameManager.Instance.SaveNow();
                             _fled = true; cleared = false; break;
                         }
@@ -648,7 +659,7 @@ namespace BiRyeoDo.Game.UI
             var notes = new List<string>();
             foreach (var m in _party)
             {
-                if (m.Id == "player") continue;
+                if (EarlyGameContent.FindCompanion(m.Id) == null) continue;
                 int rose = Bonds.Add(save, m.Id, points);
                 if (rose >= 0) notes.Add(m.Name + "와(과)의 인연: " + Bonds.LevelNames[rose] + (rose == 1 ? " — 합공 가능!" : ""));
             }
@@ -669,6 +680,7 @@ namespace BiRyeoDo.Game.UI
             StopAllCoroutines();
             ClearUltimateCutIn();
             ResetFeel();
+            ResetImpactEffects();
             HideFightRewards();
             StartCoroutine(RunStoryOnly(title, lines));
         }
@@ -700,6 +712,7 @@ namespace BiRyeoDo.Game.UI
             StopAllCoroutines();
             ClearUltimateCutIn();
             ResetFeel();
+            ResetImpactEffects();
             HideFightRewards();
             StartCoroutine(RunPromotion(offer));
         }
@@ -896,13 +909,9 @@ namespace BiRyeoDo.Game.UI
                 SetCommandsInteractable(false);
                 var actor = _battle.Current;
                 var events = _battle.PlayerAct(_command);
-                if (_command.Kind == CommandKind.Skill && actor != null && actor.Id == "player" && _command.Skill != null && _command.Skill.Id != "basic")
+                if (_command.Kind == CommandKind.Skill && actor != null && _command.Skill != null && _command.Skill.Id != "basic")
                 {
-                    Daily.Record(GameManager.Instance.Save, DailyEvent.SkillUse);
-                    if (Progression.IsUltimate(_command.Skill)) Daily.Record(GameManager.Instance.Save, DailyEvent.UltimateUse);
-                    // A step reached shows as a short line over 비류연; the details (and steps waiting for their gate) come in the
-                    // 「무공 숙련」 report after the battle (Mastery.PollReport, MainScreen).
-                    int rose = Mastery.RecordUse(GameManager.Instance.Save, _command.Skill.Id);
+                    int rose = Daily.RecordPlayerSkill(GameManager.Instance.Save, actor, _command.Skill);
                     GameManager.Instance.SaveNow();
                     if (rose >= 0)
                     {
@@ -957,9 +966,11 @@ namespace BiRyeoDo.Game.UI
             return null;
         }
 
-        private List<Combatant> CreateParty(StageData stage)
+        private List<Combatant> CreateParty(StageData stage, int encounter = -1)
         {
             var save = GameManager.Instance.Save;
+            var storyParty = Roster.CreateStoryParty(stage, encounter < 0 ? _storyEncounter : encounter, save);
+            if (storyParty != null) return storyParty;
             var hero = Formation.BuildHero(save);   // equipped arts (four + one 비기), stats and 심법 perks
             var party = new List<Combatant> { hero };
             foreach (var c in EarlyGameContent.SelectCompanionsFor(Roster.PartyStage(stage, save), save))
@@ -1033,7 +1044,7 @@ namespace BiRyeoDo.Game.UI
                 p.ActiveFrame = UiFactory.Glyph("frame", p.Root, new Vector2(.015f, .005f), new Vector2(.985f, .995f), Color.clear);
                 UiFactory.Glyph("stance", p.Root, new Vector2(.12f, .355f), new Vector2(.88f, .40f), new Color(.39f, .62f, .55f, .55f));
                 p.Frame = UiFactory.Panel("Marker", p.Root, new Vector2(0.10f, 0.298f), new Vector2(0.90f, 0.314f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks whose turn it is
-                var sprite = BattleFigure(i == 0 ? "player" : unit.Id);
+                var sprite = BattleFigure(Roster.StoryArtKey(unit));
                 if (sprite != null)
                 {
                     p.Art = FitArt(p.Root, sprite, cell, true);
@@ -1043,7 +1054,7 @@ namespace BiRyeoDo.Game.UI
                     p.FigureGlyph = UiFactory.Label("Glyph", p.Root, new Vector2(0.04f, 0.32f), new Vector2(0.96f, 0.90f), FirstGlyph(unit.Name), 110, i == 0 ? UiFactory.Gold : UiFactory.PaperText);
                 }
                 // The name sits inside the HP bar (left, the number on the right) so it never covers the figure's face.
-                p.Name = UiFactory.Label("Name", p.Root, new Vector2(0.06f, 0.20f), new Vector2(0.60f, 0.35f), BoardName(unit.Name), 21, UiFactory.Gold, TextAnchor.MiddleLeft);
+                p.Name = UiFactory.Label("Name", p.Root, new Vector2(0.06f, 0.20f), new Vector2(0.40f, 0.35f), BoardName(unit.Name), 21, UiFactory.Gold, TextAnchor.MiddleLeft);
                 p.Status = UiFactory.Label("Status", p.Root, new Vector2(0.05f, 0.52f), new Vector2(0.95f, 0.80f), "", 22, UiFactory.PaperText);
                 // HP is the primary number; Qi and Spirit stay as meters (exact values are in the acting-member HUD and details).
                 var gaugeBack = new Color(0f, 0f, 0f, 0.75f);
@@ -1113,6 +1124,7 @@ namespace BiRyeoDo.Game.UI
         private void ClearCards()
         {
             CancelBasicMotion();
+            ResetImpactEffects();
             foreach (var c in _cards) if (c.Root != null) Destroy(c.Root.gameObject);
             _cards.Clear();
             ResetFeel();
@@ -1123,6 +1135,7 @@ namespace BiRyeoDo.Game.UI
         private void ClearPanels()
         {
             CancelBasicMotion();
+            ResetImpactEffects();
             foreach (var p in _panels) if (p.Root != null) Destroy(p.Root.gameObject);
             _panels.Clear();
             _home.Clear();
@@ -1145,7 +1158,7 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Glyph("stance", card.Root, new Vector2(.12f, .355f), new Vector2(.88f, .40f), new Color(.66f, .30f, .21f, .55f));
                 card.Frame = UiFactory.Panel("Marker", card.Root, new Vector2(0.10f, 0.303f), new Vector2(0.90f, 0.319f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks the target
                 var rank = data.Rank;
-                card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.06f, 0.23f), new Vector2(0.60f, 0.37f), (rank == EnemyRank.Elite ? "◆ " : "") + BoardName(data.Name), 21,
+                card.Name = UiFactory.Label("Name", card.Root, new Vector2(0.06f, 0.23f), new Vector2(0.40f, 0.37f), (rank == EnemyRank.Elite ? "◆ " : "") + BoardName(data.Name), 21,
                     rank == EnemyRank.Boss ? UiFactory.Gold : rank == EnemyRank.Elite ? new Color(0.62f, 0.82f, 1f, 1f) : UiFactory.PaperText, TextAnchor.MiddleLeft);
                 var art = BattleFigure(data.ArtKey);
                 if (art != null)
@@ -1350,8 +1363,11 @@ namespace BiRyeoDo.Game.UI
                 c.Badge.color = aimOk ? UiFactory.Gold : aimNo ? new Color(1f, 0.45f, 0.45f, 1f) : StatusColor;
                 if (c.Art != null) SetAlpha(c.Art, dead ? 0.25f : aimNo ? 0.35f : 1f);
                 if (dead) c.Glyph.color = new Color(1f, 1f, 1f, 0.2f);
-                if (dead) { c.Intent.text = "쓰러졌다"; continue; }
-                if (u.Stunned) { c.Intent.text = "행동 불능"; c.Intent.color = GuardBlue; continue; }
+                bool counterReady = !dead && !_animating && _battle != null && _battle.CounterTargetOf(_battle.Current) == u;
+                c.Intent.gameObject.SetActive(counterReady);
+                c.IntentBack.gameObject.SetActive(false);
+                if (dead) { c.Intent.text = ""; continue; }
+                if (u.Stunned) { c.Intent.text = counterReady ? "행동 불능 · 반격 +25%" : "행동 불능"; c.Intent.color = counterReady ? UiFactory.Gold : GuardBlue; continue; }
                 var move = u.PeekMove();
                 if (u.AwakeningStrike != null)
                 {
@@ -1377,6 +1393,11 @@ namespace BiRyeoDo.Game.UI
                 {
                     c.Intent.text = u.AwakeningStrike != null ? "각성 · 폭발" : "기세 가득 · 위험";
                     c.Intent.color = ThreatRed;
+                }
+                if (counterReady)
+                {
+                    c.Intent.text = "반격 +25%";
+                    c.Intent.color = UiFactory.Gold;
                 }
             }
             RefreshBoard();
@@ -1547,7 +1568,9 @@ namespace BiRyeoDo.Game.UI
                 string sub = cd > 0 ? "재사용 " + cd + "턴" : s.SpiritCost > 0 ? "기세 " + s.SpiritCost : s.QiCost > 0 ? "내공 " + s.QiCost : "";
                 if (cd == 0 && me.Qi < s.QiCost) sub = "내공 부족";
                 else if (!reach) sub = "닿지 않음";
-                SetCommand(slot, s.Name, sub, ok, ArtLibrary.Art(s.Id));
+                if (ok && _battle.Trial != null && _battle.Trial.Kind == TrialKind.Technique && _battle.RequiredTechniqueId == s.Id)
+                    sub = _battle.TechniqueWindowOpen ? "목표 · 지금 대응" : "목표 · 예고 대기";
+                SetCommand(slot, s.Name, sub, ok, ArtLibrary.Command(s.Id));
             }
             SetCommand(5, "방어", "피해 -60%", true, ArtLibrary.Icon("cmd_guard"));
             SetCommand(6, "운기", "내공 +" + InteractiveBattle.MeditateQiFor(me.Stats.MaxQi), true, ArtLibrary.Icon("cmd_meditate"));
@@ -1564,7 +1587,7 @@ namespace BiRyeoDo.Game.UI
             else
             {
                 bool ready = _battle.CanUse(ult) && _battle.CanReach(ult);
-                SetCommand(9, ult.Name, ready ? "기세 " + ult.SpiritCost : "기세 " + Mathf.Min(me.Spirit, ult.SpiritCost) + "/" + ult.SpiritCost, ready, ArtLibrary.Art(ult.Id) ?? ArtLibrary.Icon("ultimate_slot"));
+                SetCommand(9, ult.Name, ready ? "기세 " + ult.SpiritCost : "기세 " + Mathf.Min(me.Spirit, ult.SpiritCost) + "/" + ult.SpiritCost, ready, ArtLibrary.Command(ult.Id) ?? ArtLibrary.Icon("ultimate_slot"));
             }
             if (me.Id != "player") { }   // slot 8 already holds the companion's fifth art (or is hidden)
             else if (_jointPartners.Count == 0) _commands[8].Root.SetActive(false);
@@ -1576,7 +1599,7 @@ namespace BiRyeoDo.Game.UI
         {
             _jointPartners.Clear();
             var me = _battle.Current;
-            if (me == null || me != _battle.Player) return;
+            if (me == null || me != _battle.Player || me.Id != Inventory.Hero) return;
             var save = GameManager.Instance.Save;
             foreach (var m in _battle.Party)
             {
@@ -1726,7 +1749,10 @@ namespace BiRyeoDo.Game.UI
         {
             string desc = s.Id == "basic" ? "기본 공격." : s.Description;
             string status = s.Inflict != StatusKind.None && s.InflictChance > 0f ? "\n" + Statuses.Describe(s.Inflict) : "";
-            return SkillDetails(s) + (string.IsNullOrEmpty(desc) ? "" : "\n" + desc) + status;
+            string response = s.Effect == SkillEffect.Stun ? "\n준비 중인 큰 기술을 끊으면 다음 자기 행동에서 그 적에게 반격 피해 +25%를 얻습니다."
+                : s.Effect == SkillEffect.Evade ? "\n예고된 큰 기술을 모두 피하면 다음 자기 행동에서 그 적에게 반격 피해 +25%를 얻습니다."
+                : s.Effect == SkillEffect.GuardParty ? "\n예고된 큰 기술을 방어해 살아남은 아군은 다음 자기 행동에서 그 적에게 반격 피해 +25%를 얻습니다." : "";
+            return SkillDetails(s) + (string.IsNullOrEmpty(desc) ? "" : "\n" + desc) + status + response;
         }
 
         private static string SkillBlock(SkillSpec s) { return s.Name + "\n" + SkillBody(s); }
@@ -1751,15 +1777,15 @@ namespace BiRyeoDo.Game.UI
             else if (slot >= 1 && slot <= Progression.MaxEquippedArts)
             {
                 var arts = ArtsOf(me);
-                if (slot - 1 < arts.Count) ShowTip(arts[slot - 1].Name, SkillBody(arts[slot - 1]), ArtLibrary.Art(arts[slot - 1].Id));
+                if (slot - 1 < arts.Count) ShowTip(arts[slot - 1].Name, SkillBody(arts[slot - 1]), ArtLibrary.Command(arts[slot - 1].Id));
             }
             else if (slot == 9)
             {
                 var ultimateSkill = UltimateOf(me);
                 if (ultimateSkill == null) ShowTip("필살기 슬롯", "장착한 비기가 없습니다. 무공 탭에서 배운 비기를 장착하면 여기에서 쓸 수 있습니다. 기세가 가득 차면 쓸 수 있는 필살기 한 자리입니다.", ArtLibrary.Icon("ultimate_slot"));
-                else ShowTip("필살기 · " + ultimateSkill.Name, SkillBody(ultimateSkill) + "\n기세가 가득 차면 쓸 수 있습니다.", ArtLibrary.Art(ultimateSkill.Id) ?? ArtLibrary.Icon("ultimate_slot"));
+                else ShowTip("필살기 · " + ultimateSkill.Name, SkillBody(ultimateSkill) + "\n기세가 가득 차면 쓸 수 있습니다.", ArtLibrary.Command(ultimateSkill.Id) ?? ArtLibrary.Icon("ultimate_slot"));
             }
-            else if (slot == 5) ShowTip("방어", "다음 차례까지 받는 피해가 크게 줄어듭니다(피해 60% 감소). 기세가 조금 오릅니다.", ArtLibrary.Icon("cmd_guard"));
+            else if (slot == 5) ShowTip("방어", "다음 차례까지 받는 피해가 크게 줄어듭니다(피해 60% 감소). 기세가 조금 오릅니다.\n예고된 큰 기술을 방어해 살아남으면 다음 자기 행동에서 그 적에게 반격 피해 +25%를 얻습니다. 다른 행동을 선택하면 기회가 사라집니다.", ArtLibrary.Icon("cmd_guard"));
             else if (slot == 6) ShowTip("운기", "내공 +" + InteractiveBattle.MeditateQiFor(me.Stats.MaxQi) + "(40과 최대 내공의 20% 중 큰 값)과 체력을 조금 회복하고, 걸린 상태 이상을 풉니다.", ArtLibrary.Icon("cmd_meditate"));
             else if (slot == 7) ShowTip("아이템", "행낭의 소모품을 씁니다. 가장 다친 동료의 체력이 회복됩니다.", ArtLibrary.Icon("cmd_item"));
             else if (slot == 8 && me.Id != "player")
@@ -1834,7 +1860,9 @@ namespace BiRyeoDo.Game.UI
             bool hero = unit.Id == "player";
             var companion = hero ? null : EarlyGameContent.FindCompanion(unit.Id);
             int level = hero ? GameManager.Instance.Save.Level : CompanionGrowth.LevelOf(GameManager.Instance.Save, unit.Id);
-            lines.Add("Lv." + level + "  ·  무공 경지 " + Realm.Label(unit.RealmStep) + "  (종합 " + System.Math.Round(unit.RealmPowerBeforeBonus).ToString("N0") + ")");
+            if (Roster.IsStoryActor(unit.Id))
+                lines.Add((unit.Id == "story_young_yeonbi" ? "어린 시절 회상 · 고정 능력치 적용\n종합 " : "이야기 시점 인물 · 비류연의 육성 능력치 적용\n종합 ") + System.Math.Round(Realm.Power(unit.Stats)).ToString("N0"));
+            else lines.Add("Lv." + level + "  ·  무공 경지 " + Realm.Label(unit.RealmStep) + "  (종합 " + System.Math.Round(unit.RealmPowerBeforeBonus).ToString("N0") + ")");
             lines.Add("체력 " + unit.Hp.ToString("N0") + " / " + s.MaxHp.ToString("N0") + "\n내공 " + unit.Qi.ToString("N0") + " / " + s.MaxQi.ToString("N0") + "\n기세 " + unit.Spirit + " / " + InteractiveBattle.MaxSpirit);
             lines.Add("공격력 " + s.Attack.ToString("N0") + "   방어력 " + s.Defense.ToString("N0") + "   속도 " + s.Speed.ToString("N0"));
             if (companion != null && !string.IsNullOrEmpty(companion.JointName))
@@ -1850,10 +1878,10 @@ namespace BiRyeoDo.Game.UI
             var companionData = EarlyGameContent.FindCompanion(unit.Id);
             if (companionData != null)
             {
-                var pending = CompanionGrowth.PendingArtLines(companionData, CompanionGrowth.LevelOf(GameManager.Instance.Save, unit.Id));
+                var pending = CompanionGrowth.PendingArtLines(companionData, CompanionGrowth.LevelOf(GameManager.Instance.Save, unit.Id), GameManager.Instance.Save.ClearedStage);
                 if (pending.Count > 0) lines.Add("앞으로 배울 무공: " + string.Join(", ", pending));
             }
-            ShowTip(unit.Name, string.Join("\n\n", lines), BattleFigure(hero ? "player" : unit.Id), AllyGear(unit));
+            ShowTip(unit.Name, string.Join("\n\n", lines), BattleFigure(Roster.StoryArtKey(unit)), AllyGear(unit));
         }
 
         /// <summary>Long press on a party member's panel: every skill they have.</summary>
@@ -1865,7 +1893,7 @@ namespace BiRyeoDo.Game.UI
             var companion = EarlyGameContent.FindCompanion(unit.Id);
             if (companion != null && !string.IsNullOrEmpty(companion.JointName))
                 lines.Add("합공: " + companion.JointName + " (인연 " + Bonds.LevelNames[Bonds.Level(GameManager.Instance.Save, companion.Id)] + ", " + Bonds.BonusText(Bonds.Level(GameManager.Instance.Save, companion.Id)) + ")");
-            ShowTip(unit.Name + " — 스킬", string.Join("\n\n", lines), BattleFigure(unit.Id));
+            ShowTip(unit.Name + " — 스킬", string.Join("\n\n", lines), BattleFigure(Roster.StoryArtKey(unit)));
         }
 
         /// <summary>A unit's battle picture: <c>Battle/&lt;id&gt;.png</c>, else the stand-in figure (default_assassin / default_woman / default_man, <see cref="Genders.DefaultFigure"/>). Never the <c>Standing/</c> art.</summary>
@@ -2030,6 +2058,7 @@ namespace BiRyeoDo.Game.UI
             finally
             {
                 CancelBasicMotion();
+                ResetImpactEffects();
                 _animating = false;
                 _hudActor = null; _actorAction = null;
             }
@@ -2047,6 +2076,7 @@ namespace BiRyeoDo.Game.UI
         private IEnumerator PlayEventsInner(List<BattleEvent> events)
         {
             _cutInKey = "";
+            _sequenceImpactPunched = false;
             for (int eventIndex = 0; eventIndex < events.Count; eventIndex++)
             {
                 var ev = events[eventIndex];
@@ -2066,6 +2096,7 @@ namespace BiRyeoDo.Game.UI
                         {
                             _cutInKey = "joint";
                             yield return SkillCutIn(_jointName, true, "player");
+                            _sequenceImpactPunched = true;
                         }
                         else if (byParty && ev.HitIndex == 0 && !ev.Joint)
                         {
@@ -2074,12 +2105,31 @@ namespace BiRyeoDo.Game.UI
                             {
                                 _cutInKey = key;
                                 var spec = actorPanel.Unit.Skills.Find(x => x.Id == ev.SkillId);
-                                if (spec != null && spec.Id != "basic") yield return SkillCutIn(spec.Name, spec.SpiritCost >= 100, actorPanel.Unit.Id);
+                                if (spec != null && spec.Id != "basic")
+                                {
+                                    yield return SkillCutIn(spec.Name, spec.SpiritCost >= 100, Roster.StoryArtKey(actorPanel.Unit));
+                                    if (spec.SpiritCost >= 100) _sequenceImpactPunched = true;
+                                }
                             }
                         }
                         bool finishMotion = EndsAttackSequence(events, eventIndex);
-                        if (byParty) yield return PartyHit(ev, finishMotion);
+                        bool finishStrike = EndsSkillSequence(events, eventIndex);
+                        if (byParty) yield return PartyHit(ev, finishMotion, finishStrike);
                         else yield return EnemyHit(ev, finishMotion);
+                        if (ev.CounterReady)
+                        {
+                            if (!byParty)
+                            {
+                                StartCoroutine(EdgePulse(_edgeFlash, .4f, .4f));
+                                SoundManager.Haptic(30);
+                            }
+                            _log.text = ev.Interrupted ? actorName + "의 파훼! 다음 행동에서 " + NameOf(ev.TargetId) + "에게 반격하면 피해 +25%"
+                                : NameOf(ev.TargetId) + "의 대응 성공! 다음 행동에서 " + actorName + "에게 반격하면 피해 +25%";
+                            ResponseNotice(ev.Interrupted ? ev.TargetId : ev.ActorId,
+                                (ev.Interrupted ? actorName + "의 파훼!" : NameOf(ev.TargetId) + "의 대응 성공!") + "\n반격 기회 · 다음 행동에서 이 적에게 피해 +25%");
+                            yield return new WaitForSeconds(Wait(.28f));
+                        }
+                        if (finishStrike) _sequenceImpactPunched = false;
                         break;
                     case EventKind.Guard:
                         SoundManager.Sfx("guard");
@@ -2119,6 +2169,7 @@ namespace BiRyeoDo.Game.UI
                         SoundManager.Sfx("dodge");
                         _log.text = ev.Message;
                         if (actorPanel != null) Float(actorPanel.Center, "회피 태세", new Color(0.7f, 0.9f, 1f), 52);
+                        if (actorPanel != null) FootworkFx(actorPanel);
                         RefreshParty();
                         yield return new WaitForSeconds(Wait(SmallDelay));
                         break;
@@ -2151,7 +2202,7 @@ namespace BiRyeoDo.Game.UI
                                     sufferCard.ShownHp = ev.TargetHpAfter;
                                     sufferCard.Hp.SetPct(sufferCard.Unit.Stats.MaxHp > 0 ? (float)ev.TargetHpAfter / sufferCard.Unit.Stats.MaxHp : 0f);
                                     sufferCard.HpText.text = ev.TargetHpAfter + " / " + sufferCard.Unit.Stats.MaxHp;
-                                    if (ev.TargetDefeated) { StartCoroutine(Collapse(sufferCard)); sufferCard.Intent.text = ev.Retreated ? "물러났다" : "쓰러졌다"; }
+                                    if (ev.TargetDefeated) { StartCoroutine(Collapse(sufferCard)); }
                                 }
                             }
                             RefreshCards();
@@ -2215,7 +2266,7 @@ namespace BiRyeoDo.Game.UI
             return ev.SkillId;
         }
 
-        private IEnumerator PartyHit(BattleEvent ev, bool finishMotion)
+        private IEnumerator PartyHit(BattleEvent ev, bool finishMotion, bool finishStrike)
         {
             var card = CardOf(ev.TargetId);
             if (card == null) yield break;
@@ -2228,29 +2279,42 @@ namespace BiRyeoDo.Game.UI
                 if (_fled) { CancelBasicMotion(); yield break; }
             }
             else if (!approach && !ev.Ranged && striker != null && ev.HitIndex == 0) StartCoroutine(Lunge(striker.Root, new Vector2(130f, 0f)));
-            bool ultimateHit = striker != null && striker.Unit.Skills.Find(x => x.Id == ev.SkillId) is SkillSpec sp && sp.SpiritCost >= 100;
-            SlashFx(card.Center, ev.HitIndex, ev.IsCrit, ultimateHit);
-            if (ultimateHit) UltimateImpact(card.Center);
+            var spec = striker != null ? striker.Unit.Skills.Find(x => x.Id == ev.SkillId) : null;
+            var style = StyleOf(spec, ev);
+            bool ultimate = spec != null && spec.SpiritCost >= 100;
+            bool finale = ev.HitCount > 1 && (finishStrike || ev.HitIndex == ev.HitCount - 1 || ev.TargetDefeated);
+            if (style == StrikeStyle.Projectile && striker != null)
+                yield return ProjectileFx(striker.Center, card.Center, ev.IsCrit || finale || ultimate);
+            else if (style == StrikeStyle.Footwork && striker != null && ev.HitIndex == 0) FootworkFx(striker);
+            SlashFx(card.Center, ev.HitIndex, ev.IsCrit, ultimate, false, style, finale);
             SoundManager.Sfx(ev.IsCrit ? "hit_crit" : "hit");
             if (ev.IsCrit) yield return CritImpact(card);
+            else if (finale && !_sequenceImpactPunched)
+            {
+                _sequenceImpactPunched = true;
+                StartCoroutine(Punch(1.035f));
+            }
+            if (ultimate && finishStrike) UltimateImpact(card.Center);
             int tier = DamageTier(ev.Damage, card.Unit.Stats.MaxHp);
             DamageNumber(card.Center + new Vector2(UnityEngine.Random.Range(-0.03f, 0.03f), 0.02f * ev.HitIndex), ev.Damage.ToString("N0"),
                 ev.IsCrit ? CritColor : TierColors[tier], (int)(TierSizes[tier] * (ev.IsCrit ? 1.15f : 1f)), ev.IsCrit);
             if (tier >= 3 && !ev.IsCrit) SoundManager.Haptic(50);
             ComboHit(ev);
-            if (ev.Harmony) Float(card.Center + new Vector2(0f, 0.08f), "합격!", UiFactory.Gold, 80);
-            if (ev.Interrupted) Float(card.Center + new Vector2(0f, -0.07f), "차단!", UiFactory.Gold, 72);
+            if (ev.Counter) _log.text = NameOf(ev.ActorId) + "의 반격! 피해 +25%" + (ev.Harmony ? " · 내공합격" : "");
+            else if (ev.Harmony) _log.text = NameOf(ev.ActorId) + "의 내공합격!";
+            if (ev.Interrupted) _log.text = NameOf(ev.ActorId) + "의 파훼!";
             else if (ev.Stunned) Float(card.Center + new Vector2(0f, -0.07f), "굳음", GuardBlue, 60);
             card.ShownHp = ev.TargetHpAfter;
             RefreshFocusHud();
+            if (ev.Counter) ResponseNotice(ev.TargetId, NameOf(ev.ActorId) + "의 반격! 피해 +25%" + (ev.Harmony ? " · 내공합격" : ""));
             card.Hp.SetPct(card.Unit.Stats.MaxHp > 0 ? (float)ev.TargetHpAfter / card.Unit.Stats.MaxHp : 0f);
             card.HpText.text = ev.TargetHpAfter + " / " + card.Unit.Stats.MaxHp;
             card.Spirit.SetPct(card.Unit.Spirit / (float)InteractiveBattle.MaxSpirit);
             card.SpiritText.text = card.Unit.Spirit + " / " + InteractiveBattle.MaxSpirit;
-            StartCoroutine(Shake(card.Root, ev.IsCrit ? 26f : new[] { 10f, 14f, 20f, 28f }[tier]));
-            if (finishMotion) ComboEnd();
+            StartCoroutine(Shake(card.Root, Mathf.Max(ev.IsCrit ? 26f : finale ? 18f : 0f, new[] { 10f, 14f, 20f, 28f }[tier])));
+            if (finishStrike) ComboEnd();
             if (ev.TargetDefeated && !ev.Retreated && card.Unit.IsBoss) StartCoroutine(BossFinish());
-            if (ev.TargetDefeated) { StartCoroutine(Collapse(card)); card.Intent.text = ev.Retreated ? "물러났다" : "쓰러졌다"; if (ev.Retreated) _log.text = ev.Message; }
+            if (ev.TargetDefeated) { StartCoroutine(Collapse(card)); if (ev.Retreated) _log.text = ev.Message; }
             RefreshParty();
             if (approach && finishMotion && _basicMotion.IsActive)
             {
@@ -2275,13 +2339,13 @@ namespace BiRyeoDo.Game.UI
             else if (!approach && !ev.Ranged && attacker != null && ev.HitIndex == 0) StartCoroutine(Lunge(attacker.Root, new Vector2(-130f, 0f)));
             if (attacker != null && ev.HitIndex == 0 && ev.Burst) { Float(attacker.Center + new Vector2(0f, 0.06f), "기세 폭발!", UiFactory.Red, 70); SoundManager.Haptic(40); }
             if (attacker != null && ev.HitIndex == 0 && ev.Weakened) Float(attacker.Center + new Vector2(0f, 0.06f), "내공 부족", GuardBlue, 56);
-            if (victim != null && !ev.Dodged) SlashFx(victim.Center, ev.HitIndex, ev.IsCrit, false, true);
-            if (victim != null && ev.Heavy && ev.HitIndex == 0 && (ev.Guarded || ev.Dodged))
+            bool finale = ev.HitCount > 1 && (finishMotion || ev.HitIndex == ev.HitCount - 1);
+            var style = StyleOf(null, ev);
+            if (victim != null && !ev.Dodged)
             {
-                // 간파: the telegraphed blow was read and met with a guard or a dodge.
-                Float(victim.Center + new Vector2(0f, 0.11f), "간파!", UiFactory.Gold, 84);
-                StartCoroutine(EdgePulse(_edgeFlash, .4f, .4f));
-                SoundManager.Haptic(30);
+                if (style == StrikeStyle.Projectile && attacker != null)
+                    yield return ProjectileFx(attacker.Center, victim.Center, ev.IsCrit || finale, true);
+                SlashFx(victim.Center, ev.HitIndex, ev.IsCrit, false, true, style, finale);
             }
             if (victim != null)
             {
@@ -2289,6 +2353,7 @@ namespace BiRyeoDo.Game.UI
                 {
                     SoundManager.Sfx("dodge");
                     Float(victim.Center, "회피!", new Color(0.7f, 0.9f, 1f), 70);
+                    if (ev.HitIndex == 0) FootworkFx(victim);
                 }
                 else
                 {
@@ -2301,7 +2366,7 @@ namespace BiRyeoDo.Game.UI
                     victim.ShownSpirit = ev.TargetSpiritAfter;
                     victim.Hp.SetPct((float)ev.TargetHpAfter / Math.Max(1, victim.Unit.Stats.MaxHp));
                     victim.HpText.text = ev.TargetHpAfter + " / " + victim.Unit.Stats.MaxHp;
-                    StartCoroutine(Shake(victim.Root, ev.Guarded ? 6f : 16f));
+                    StartCoroutine(Shake(victim.Root, ev.Guarded ? 6f : ev.IsCrit ? 22f : finale ? 18f : 16f));
                     StartCoroutine(Flash(ev.Guarded ? 0.12f : 0.30f));
                     if (ev.TargetDefeated) victim.Status.text = "쓰러짐";
                     if (ev.Rescued)
@@ -2334,6 +2399,21 @@ namespace BiRyeoDo.Game.UI
                 if (hit.Kind != EventKind.Attack) continue;
                 return hit.ActorId != current.ActorId || hit.SkillId != current.SkillId
                     || hit.TargetId != current.TargetId || hit.HitIndex <= current.HitIndex;
+            }
+            return true;
+        }
+
+        // Area hits can change targets without ending the art; a joint attack includes both actors.
+        private static bool EndsSkillSequence(List<BattleEvent> events, int index)
+        {
+            var current = events[index];
+            for (int next = index + 1; next < events.Count; next++)
+            {
+                var hit = events[next];
+                if (hit.Kind != EventKind.Attack) continue;
+                if (current.Joint && hit.Joint && current.SkillId == hit.SkillId) return false;
+                return hit.ActorId != current.ActorId || hit.SkillId != current.SkillId
+                    || hit.HitIndex < current.HitIndex || (hit.HitIndex == current.HitIndex && (!hit.AllEnemies || hit.TargetId == current.TargetId));
             }
             return true;
         }
@@ -2398,24 +2478,33 @@ namespace BiRyeoDo.Game.UI
         private IEnumerator Shake(RectTransform rt, float amount)
         {
             if (rt == null) yield break;
-            Vector2 origin = HomeOf(rt);
-            for (int i = 0; i < 6; i++)
+            ImpactShake active;
+            if (_impactShakes.TryGetValue(rt, out active))
             {
-                if (rt == null) yield break;
-                rt.anchoredPosition = origin + new Vector2(UnityEngine.Random.Range(-amount, amount), UnityEngine.Random.Range(-amount, amount) * 0.5f);
-                yield return new WaitForSeconds(0.02f / Pace);
+                active.Amount = Mathf.Max(active.Amount, amount);
+                active.Remaining = Mathf.Max(active.Remaining, .12f / Pace);
+                yield break;
+            }
+            active = new ImpactShake { Amount = amount, Remaining = .12f / Pace };
+            _impactShakes[rt] = active;
+            Vector2 origin = HomeOf(rt);
+            while (active.Remaining > 0f)
+            {
+                if (rt == null) break;
+                ImpactShake current;
+                if (!_impactShakes.TryGetValue(rt, out current) || current != active) yield break;
+                float strength = active.Amount * Mathf.Clamp01(active.Remaining / (.12f / Pace));
+                rt.anchoredPosition = origin + new Vector2(UnityEngine.Random.Range(-strength, strength), UnityEngine.Random.Range(-strength, strength) * 0.5f);
+                active.Remaining -= Time.deltaTime;
+                yield return null;
             }
             if (rt != null) rt.anchoredPosition = origin;
+            _impactShakes.Remove(rt);
         }
 
         private IEnumerator Flash(float peak)
         {
-            for (float e = 0f; e < 0.25f; e += Time.deltaTime)
-            {
-                var c = _flash.color; c.a = peak * (1f - e / 0.25f); _flash.color = c;
-                yield return null;
-            }
-            var end = _flash.color; end.a = 0f; _flash.color = end;
+            yield return FlashColor(new Color(.8f, .1f, .1f), peak, .25f);
         }
 
         // ------------------------------------------------------------------ strike effects
@@ -2441,21 +2530,23 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <summary>Slashing streaks plus a spark burst at the hit point; drawn from plain rectangles so no art is needed.</summary>
-        private void SlashFx(Vector2 at, int hitIndex, bool crit, bool ultimate, bool enemySide = false)
+        private void SlashFx(Vector2 at, int hitIndex, bool crit, bool ultimate, bool enemySide = false, StrikeStyle style = StrikeStyle.Blade, bool finale = false)
         {
             Color main = enemySide ? new Color(1f, 0.45f, 0.35f) : ultimate ? UiFactory.Gold : crit ? new Color(1f, 0.92f, 0.6f) : new Color(0.95f, 0.97f, 1f);
             float baseAngle = (hitIndex % 2 == 0 ? -35f : 35f) + UnityEngine.Random.Range(-12f, 12f);
-            int streaks = ultimate ? 3 : crit ? 2 : 1;
-            for (int i = 0; i < streaks; i++)
+            bool strong = crit || finale || ultimate;
+            int streaks = ultimate ? 3 : strong ? 2 : 1;
+            if (style == StrikeStyle.Impact || style == StrikeStyle.Footwork) ImpactRing(at, main, strong);
+            for (int i = 0; i < (style == StrikeStyle.Blade ? streaks : 0); i++)
             {
                 var rt = UiFactory.Rect("Slash", _fx, at, at);
-                rt.sizeDelta = new Vector2(ultimate ? 560f : 400f, crit ? 16f : 10f);
+                rt.sizeDelta = new Vector2(ultimate ? 560f : strong ? 460f : 400f, strong ? 16f : 10f);
                 rt.localRotation = Quaternion.Euler(0f, 0f, baseAngle + i * 22f);
                 var img = rt.gameObject.AddComponent<Image>();
                 img.color = main; img.raycastTarget = false;
-                StartCoroutine(StreakAnim(rt, img));
+                StartCoroutine(StreakAnim(rt, img, strong ? .28f : .22f));
             }
-            for (int i = 0; i < (crit ? 8 : 4); i++)
+            for (int i = 0; i < (strong ? 8 : 4); i++)
             {
                 var rt = UiFactory.Rect("Spark", _fx, at, at);
                 rt.sizeDelta = new Vector2(UnityEngine.Random.Range(14f, 30f), 6f);
@@ -2467,9 +2558,9 @@ namespace BiRyeoDo.Game.UI
             }
         }
 
-        private IEnumerator StreakAnim(RectTransform rt, Image img)
+        private IEnumerator StreakAnim(RectTransform rt, Image img, float seconds = .22f)
         {
-            float d = 0.22f / Pace;
+            float d = seconds / Pace;
             for (float e = 0f; e < d; e += Time.deltaTime)
             {
                 if (rt == null) yield break;
@@ -2498,17 +2589,27 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <summary>Brief zoom of the enemy field on a critical hit.</summary>
-        private IEnumerator Punch(float scale)
+        private IEnumerator Punch(float scale, Vector2? focus = null)
         {
-            float d = 0.18f / Pace;
-            for (float e = 0f; e < d; e += Time.deltaTime)
+            if (scale >= _punchPeak) _punchFocus = focus ?? Vector2.zero;
+            _punchPeak = Mathf.Max(_punchPeak, scale);
+            if (_punchRemaining > 0f) yield break;
+            Vector2 home = HomeOf(_cardsRoot);
+            float d = (focus.HasValue ? .26f : .18f) / Pace;
+            int generation = _impactGeneration;
+            _punchRemaining = d;
+            while (_punchRemaining > 0f && _cardsRoot != null)
             {
-                float k = e / d;
-                float s = 1f + (scale - 1f) * (1f - k);
-                _cardsRoot.localScale = new Vector3(s, s, 1f);
+                if (generation != _impactGeneration) yield break;
+                float s = 1f + (_punchPeak - 1f) * Mathf.Clamp01(_punchRemaining / d);
+                SetZoom(home, _punchFocus, s);
+                _punchRemaining -= Time.deltaTime;
                 yield return null;
             }
-            _cardsRoot.localScale = Vector3.one;
+            if (generation != _impactGeneration) yield break;
+            if (_cardsRoot != null) SetZoom(home, Vector2.zero, 1f);
+            _punchPeak = 1f;
+            _punchRemaining = 0f;
         }
 
         /// <summary>Defeated enemy staggers, sinks and fades instead of just dimming.</summary>
@@ -2516,16 +2617,24 @@ namespace BiRyeoDo.Game.UI
         {
             SoundManager.Sfx("enemy_down");
             float d = 0.45f / Pace;
-            Vector2 origin = card.Root.anchoredPosition;
+            card.Intent.text = "";
+            card.Intent.gameObject.SetActive(false);
+            card.IntentBack.gameObject.SetActive(false);
+            card.Badge.text = "";
+            // Move only the figure; the cell HUD must never sink into the next row.
+            var figure = EnemyFigure(card);
+            if (figure == null) yield break;
+            var rect = figure.rectTransform;
+            Vector2 origin = rect.anchoredPosition;
             for (float e = 0f; e < d; e += Time.deltaTime)
             {
-                if (card.Root == null) yield break;
+                if (rect == null) yield break;
                 float k = e / d;
-                card.Root.anchoredPosition = origin + new Vector2(Mathf.Sin(k * 40f) * 10f * (1f - k), -40f * k);
+                rect.anchoredPosition = origin + new Vector2(Mathf.Sin(k * 40f) * 10f * (1f - k), -40f * k);
                 if (card.Art != null) SetAlpha(card.Art, Mathf.Lerp(1f, 0.25f, k));
                 yield return null;
             }
-            if (card.Root != null) card.Root.anchoredPosition = origin + new Vector2(0f, -40f);
+            if (rect != null) rect.anchoredPosition = origin + new Vector2(0f, -40f);
             if (card.Art != null) SetAlpha(card.Art, 0.25f);
         }
 

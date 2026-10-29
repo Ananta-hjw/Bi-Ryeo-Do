@@ -24,11 +24,24 @@ namespace BiRyeoDo.Game.Systems
         public static Sprite Item(BiRyeoDo.Core.ItemData item)
         {
             if (item == null) return null;
-            return Cutout(ReadableIconLibrary.Find("Item", item.Id) ?? Load("Items/" + item.Id)
+            var individual = ReadableIconLibrary.Find("Item", item.Id);
+            if (individual != null) return ReadableIconLibrary.HasTransparentCanvas("Item", item.Id) ? individual : Cutout(individual);
+            return Cutout(Load("Items/" + item.Id)
                 ?? ReadableIconLibrary.Find("DefaultItem", item.Kind.ToString()) ?? Load("Items/_" + item.Kind.ToString().ToLowerInvariant()));
+        }
+        public static Sprite ShopGood(BiRyeoDo.Core.ShopGood good)
+        {
+            return good == null ? null : ReadableIconLibrary.Find("Shop", good.Id);
         }
         /// <summary>Individually mapped martial-art picture first; legacy fallback: <c>Arts/&lt;art id&gt;.png</c> (also the skill id in battle); null when missing.</summary>
         public static Sprite Art(string artId) { return string.IsNullOrEmpty(artId) ? null : ReadableIconLibrary.Find("Art", artId) ?? Load("Arts/" + artId); }
+        /// <summary>Progress actions reuse existing command icons; battle techniques retain their individual art.</summary>
+        public static Sprite Command(string skillId)
+        {
+            if (string.IsNullOrEmpty(skillId)) return null;
+            var command = ReadableIconLibrary.Find("Command", skillId);
+            return command != null ? Cutout(command) : Art(skillId);
+        }
         /// <summary>Individual passive-method icon, shared with the martial-arts workspace.</summary>
         public static Sprite InnerArt(string id) { return ReadableIconLibrary.Find("Inner", id); }
         /// <summary>SD figure source: <c>Battle/&lt;id&gt;.png</c>, used on the field, combat summaries and compact character pickers.</summary>

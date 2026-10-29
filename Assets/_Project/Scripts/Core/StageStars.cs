@@ -111,33 +111,63 @@ namespace BiRyeoDo.Core
             new[] { 5, 5, 6, 6, 5, 9, 11, 10 },   // 7
             new[] { 12, 13, 19 },   // 8
             new[] { 19, 19, 27, 13 },   // 9
-            new[] { 22, 47, 18 },   // 10
+            new[] { 10, 12, 18 },   // 10
             new[] { 9, 5, 5, 23 },   // 11
             new[] { 8, 7, 7, 8, 8, 19 },   // 12
             new[] { 12, 23, 27, 26 },   // 13
-            new[] { 21, 21, 18, 26, 18, 27, 17, 39 },   // 14
-            new[] { 16, 21, 30, 26 },   // 15
-            new[] { 29, 30, 50 },   // 16
-            new[] { 39, 41, 40 },   // 17
-            new[] { 20, 16, 30 },   // 18
-            new[] { 34, 33, 42, 36, 55 },   // 19
-            new[] { 43, 43, 37 },   // 20
-            new[] { 57, 60, 80 },   // 21
-            new[] { 61, 59, 83 },   // 22
-            new[] { 46, 47, 78 },   // 23
-            new[] { 51, 56, 52 },   // 24
-            new[] { 49, 56, 45 },   // 25
-            new[] { 74, 80, 95 },   // 26
-            new[] { 50, 61, 50 },   // 27
-            new[] { 28, 59, 51, 70 },   // 28
-            new[] { 42, 45, 27, 15, 71 },   // 29
-            new[] { 80, 99, 54 },   // 30
-            new[] { 53, 55 },   // 31
-            new[] { 28, 45 },   // 32
-            new[] { 37, 52, 69 },   // 33
-            new[] { 56, 106 },   // 34
-            new[] { 37, 47, 62 },   // 35
-            new[] { 23, 58 },   // 36
+            new[] { 11, 17, 14, 11, 12, 22, 18, 22, 22, 16, 39 },   // 14
+            new[] { 12, 21, 14, 8, 18 },   // 15
+            new[] { 29, 22, 24 },   // 16
+            new[] { 15, 10, 24 },   // 17
+            new[] { 10, 16, 25, 30 },   // 18
+            new[] { 34, 21, 20, 21, 24, 18, 55 },   // 19
+            new[] { 43, 26, 37 },   // 20
+            new[] { 57, 43, 22 },   // 21
+            new[] { 30, 61, 42, 61, 48, 50 },   // 22
+            new[] { 46, 37, 22, 48 },   // 23
+            new[] { 51, 56, 52, 28 },   // 24
+            new[] { 11, 55, 38, 38 },   // 25
+            new[] { 45, 28, 45, 66, 11, 45 },   // 26
+            new[] { 28, 18, 18, 18, 18, 18, 18 },   // 27
+            new[] { 28, 22, 46, 34, 36 },   // 28
+            new[] { 38, 55, 27, 30, 28, 28, 32 },   // 29
+            new[] { 80, 55, 50, 38 },   // 30
+            new[] { 3, 7, 8, 4 },   // 31
+            new[] { 11, 14, 5, 11 },   // 32
+            new[] { 8, 8, 20, 5 },   // 33
+            new[] { 8, 35, 12 },   // 34
+            new[] { 34, 5, 6, 10, 4 },   // 35
+            new[] { 9, 5, 5, 8 },   // 36
+            new[] { 6, 5 },   // 37
+            new[] { 8, 16, 11 },   // 38
+            new[] { 8, 8, 12 },   // 39
+            new[] { 17, 18, 27, 7 },   // 40
+            new[] { 8 },   // 41
+            new[] { 7, 4, 4, 4 },   // 42
+            new[] { 7, 9, 3 },   // 43
+            new[] { 3, 13, 3, 11, 10 },   // 44
+            new[] { 18, 3, 3, 3 },   // 45
+            new[] { 14, 4, 10, 3, 4 },   // 46
+            new[] { 5, 21 },   // 47
+            new[] { 22, 17, 17, 3, 3 },   // 48
+            new[] { 8, 3, 4, 4, 4, 3, 4 },   // 49
+            new[] { 25, 7, 3, 4 },   // 50
+            new[] { 29, 17, 4, 4 },   // 51
+            new[] { 27, 3 },   // 52
+            new[] { 4, 3, 4 },   // 53
+            new[] { 29, 6, 8, 7, 4 },   // 54
+            new[] { 3, 3, 4, 4, 10 },   // 55
+            new[] { 5, 7, 36, 4, 4 },   // 56
+            new[] { 3, 4 },   // 57
+            new[] { 3, 3, 5 },   // 58
+            new[] { 6, 6, 3 },   // 59
+            new[] { 21, 7, 6, 5 },   // 60
+            new[] { 4, 4, 4, 11 },   // 61
+            new[] { 3, 15, 11, 7 },   // 62
+            new[] { 7, 8, 9, 11 },   // 63
+            new[] { 4, 4, 4, 4 },   // 64
+            new[] { 3, 7, 6, 11 },   // 65
+            new[] { 7, 4, 4, 4, 25 },   // 66
         };
 
         public static int FastLimit(int stage, int fight)
@@ -268,7 +298,7 @@ namespace BiRyeoDo.Core
             0.95f, 0.97f, 0.95f, 0.97f, 0.97f, 0.95f,                               // 31-36
         };
 
-        public static float NormalHpTrim(int stage) { return stage >= 1 && stage <= NormalHpTrimTable.Length ? NormalHpTrimTable[stage - 1] : 1f; }
+        public static float NormalHpTrim(int stage) { return stage >= 1 ? NormalHpTrimTable[Math.Min(stage, NormalHpTrimTable.Length) - 1] : 1f; }
 
         /// <summary>Stage 6's boss 호천상 keeps full HP: the bot (solo, at its level) lost far more often with a weaker boss there (87% → 41%), one level up it made no difference.</summary>
         public static float NormalHpTrim(int stage, EnemyData enemy) { return stage == 6 && enemy != null && enemy.IsBoss ? 1f : NormalHpTrim(stage); }
@@ -282,7 +312,7 @@ namespace BiRyeoDo.Core
                 if (enemy.HpMul > 10f) return enemy;   // survival-only enemies keep their stats
                 float soft = NormalStatEaseFor(stage);
                 float hp = NormalHpBoost(stage), atk = NormalAtkBoost(stage);
-                if (stage >= 24 && stage <= 36) { hp *= 0.85f; atk *= 1.25f; }
+                if (stage >= 24) { hp *= 0.85f; atk *= 1.25f; }
                 if (!survive) hp *= NormalHpTrim(stage, enemy);   // a 버티기 fight keeps its enemy's HP
                 return enemy.Scaled(hp, atk * soft, soft);
             }

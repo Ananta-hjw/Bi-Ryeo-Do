@@ -139,8 +139,8 @@ namespace BiRyeoDo.Core
         // Beasts, traps and objects have no 무공 경지.
         private static readonly HashSet<string> NotMartial = new HashSet<string>
         {
-            "tiger", "bear", "white_tiger", "trap_arrow", "trap_needle", "trap_log", "cave_viper", "mukrin_hyeolmang",
-            "bisa_snake", "cheonghong_ssanggaksa", "heuksaek_amhyeok", "hwaryong_hwayeom", "hwan_ying",
+            "departing_ferry", "hubei_escort", "south_checkpoint", "ruined_contacts", "last_report", "inn_encirclement", "south_gate_bars", "tracking_scent", "three_sects", "distrust_corridor", "sealed_hint", "dae_nan_current", "rescue_exit", "stone_grid", "sealed_meridians", "three_currents", "armored_wolf", "changranga", "last_needles", "lake_crossing", "unstable_black_lightning", "unsealed_current", "vent_traces", "horn_trap", "rebound_probe", "rebound_second", "baekgyo_scales", "baekgyo_opening", "sipmyeon_arrows", "sipmyeon_water", "heuksak_capture", "heuksak_break", "baekmu_ju", "tiger", "bear", "white_tiger", "trap_arrow", "trap_needle", "trap_log", "cave_viper", "mukrin_hyeolmang",
+            "cheongryong_escape", "caravan_ambush", "ichon_training", "closed_room_threat", "cliff_rescue", "hwaryong_rescue", "bisa_snake", "cheonghong_ssanggaksa", "heuksaek_amhyeok", "hwaryong_hwayeom", "hwan_ying",
         };
 
         public static bool HasRealm(EnemyData enemy) { return enemy != null && !NotMartial.Contains(enemy.Id); }

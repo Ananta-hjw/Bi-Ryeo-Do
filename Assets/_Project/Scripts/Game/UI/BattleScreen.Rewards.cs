@@ -192,6 +192,12 @@ namespace BiRyeoDo.Game.UI
                 AddLevelGrowth(content, ref index, unit.Id, unit.Name, before, after, previous, unit.Stats, true);
                 members++; gains += after - before;
             }
+            int heroBefore;
+            if (!fielded.Contains(Inventory.Hero) && levelsBefore.TryGetValue(Inventory.Hero, out heroBefore) && save.Level > heroBefore)
+            {
+                AddLevelGrowth(content, ref index, Inventory.Hero, "비류연", heroBefore, save.Level, default(CombatStats), default(CombatStats), false);
+                members++; gains += save.Level - heroBefore;
+            }
             foreach (var companion in EarlyGameContent.Companions)
             {
                 int before;
@@ -225,7 +231,7 @@ namespace BiRyeoDo.Game.UI
             RewardText("Levels", row, new Vector2(.22f, fielded ? .66f : .32f), new Vector2(.96f, fielded ? .84f : .70f),
                 "Lv." + before + "  →  Lv." + after, 42, UiFactory.Gold);
             RewardText("Recovery", row, new Vector2(.04f, fielded ? .53f : .04f), new Vector2(.96f, fielded ? .66f : .29f),
-                fielded ? "출전 · 체력·내공 완전 회복" : "대기 · 공유 경험치로 레벨 상승", 26, fielded ? HpGreen : UiFactory.Dim);
+                fielded ? "출전 · 체력·내공 완전 회복" : id == Inventory.Hero ? "여정 보상 · 육성 경험치로 레벨 상승" : "대기 · 공유 경험치로 레벨 상승", 26, fielded ? HpGreen : UiFactory.Dim);
             if (fielded)
             {
                 string[] labels = { "최대 체력", "최대 내공", "공격력", "방어력", "속도" };

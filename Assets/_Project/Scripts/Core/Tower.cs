@@ -46,7 +46,7 @@ namespace BiRyeoDo.Core
             _bosses = new List<EnemyData>();
             foreach (var e in EarlyGameContent.Enemies)
             {
-                if (e.Moves == null || e.Moves.Length == 0 || e.RetreatHpPct > 0f || e.HpMul > 10f || e.IsMinion) continue;   // skip trial-only enemies and fight-filling followers (keeps the floors as they were)
+                if (e.StoryOnly || e.Moves == null || e.Moves.Length == 0 || e.RetreatHpPct > 0f || e.HpMul > 10f || e.IsMinion) continue;   // skip trial-only enemies and fight-filling followers (keeps the floors as they were)
                 (e.IsBoss ? _bosses : _normals).Add(e);
             }
         }
@@ -73,12 +73,14 @@ namespace BiRyeoDo.Core
         public const float NormalHpMul = 1.7f, BossHpMul = 3.4f;
 
         /// <summary>Fixed story anchor for a floor; never follows the player's current save or equipment.</summary>
+        private const int BalanceReferenceCap = 41;   // Keep the tuned tower stable when later story chapters are appended.
+
         public static int ReferenceStage(int floor)
         {
             int result = UnlockStage, distance = int.MaxValue;
             foreach (var stage in EarlyGameContent.Stages)
             {
-                if (stage.Number < UnlockStage) continue;
+                if (stage.Number < UnlockStage || stage.Number > BalanceReferenceCap) continue;
                 int gap = Math.Abs(stage.RecommendedLevel - FloorLevel(floor));
                 if (gap < distance) { result = stage.Number; distance = gap; }
             }
@@ -118,8 +120,12 @@ namespace BiRyeoDo.Core
                 DefMul = 1f, SpeedAdd = 0, Moves = t.IsBoss ? BossPatterns[(floor / BossEvery) % BossPatterns.Length] : NormalMoves
             };
             var scaled = StageStars.ScaleEnemy(enemy, ReferenceStage(floor), 0).Scaled((float)hpFactor, 1f);
-            var gear = Realm.HasRealm(t) ? GearLoadout.ForEnemiesAt(RecommendedPlayerLevel(floor)) : null;   // dressed for the floor's player level
-            return gear == null ? scaled : scaled.WithGear(gear);
+            var gear = GearLoadout.ForEnemiesAt(RecommendedPlayerLevel(floor));   // fixed by the floor's player level
+            if (gear == null) return scaled;
+            if (Realm.HasRealm(t)) return scaled.WithGear(gear);
+            // Keep the floor's combat budget when a creature replaces a human opponent;
+            // its equivalent bonuses are innate, so it never displays human equipment.
+            return scaled.WithNaturalBonus(gear);
         }
 
         /// <summary>The (deterministic) enemies of a floor, registered so battle code can look them up by id.</summary>

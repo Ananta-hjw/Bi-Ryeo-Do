@@ -47,10 +47,11 @@ namespace BiRyeoDo.Tests
             Assert.IsTrue(hits.All(e => e.AllEnemies == area));
         }
 
-        [Test]
-        public void StoryBossRetreatsAtThresholdInsteadOfDying()
+        [TestCase(100)]
+        [TestCase(100000)]
+        public void StoryBossRetreatsAtThresholdInsteadOfDying(int attack)
         {
-            var p = Player(Stats(100000, 100, 0, 100));
+            var p = Player(Stats(100000, attack, 0, 100));
             var e = Enemy("boss", Stats(1000, 1, 0, 1));
             e.RetreatHpPct = 0.3f;
             var b = Start(p, e);

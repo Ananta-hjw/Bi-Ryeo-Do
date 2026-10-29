@@ -18,6 +18,25 @@ namespace BiRyeoDo.Game.UI
         public static readonly Color Dim = new Color(.73f, .78f, .73f, 1f);
         public static readonly Color Jade = new Color(.39f, .62f, .55f, 1f);
 
+        // Warm paper for reading lists; keep the background painting visible between cards.
+        public static readonly Color ListPaper = new Color(.94f, .90f, .79f, 1f);
+        public static readonly Color PaperBorder = new Color(.57f, .46f, .29f, .65f);
+        private static readonly Color PaperButton = new Color(.83f, .78f, .65f, 1f);
+        private static readonly Color PaperInk = new Color(.15f, .20f, .17f, 1f);
+        private static readonly Color PaperMuted = new Color(.35f, .38f, .32f, 1f);
+        private static readonly Color PaperAccent = new Color(.44f, .30f, .12f, 1f);
+
+        private static bool IsOverPaper(Transform parent)
+        {
+            for (var current = parent; current != null; current = current.parent)
+            {
+                var image = current.GetComponent<Image>();
+                if (image == null || image.color.a < .5f) continue;
+                return image.color == ListPaper || image.color == PaperButton;
+            }
+            return false;
+        }
+
         public static readonly Color HeaderInk = new Color(.025f, .045f, .035f, .88f);
         public static readonly Color MenuWash = new Color(.02f, .045f, .03f, .24f);
         public static readonly Color ModalInk = new Color(.025f, .05f, .038f, .98f);
@@ -129,7 +148,38 @@ namespace BiRyeoDo.Game.UI
             glyph.Key = key;
             glyph.color = tint;
             glyph.raycastTarget = false;
+            if (key == "back")
+            {
+                glyph.Stroke = 3.5f;
+                if (IsOverScenery(parent))
+                {
+                    glyph.color = SceneryGold;
+                    SceneryOutline(glyph, 2f);
+                }
+            }
             return glyph;
+        }
+
+        private static readonly Color SceneryGold = new Color(1f, .90f, .64f, 1f);
+
+        /// <summary>Stops at opaque cards so scenery styling never changes their typography.</summary>
+        private static bool IsOverScenery(Transform parent)
+        {
+            for (var current = parent; current != null; current = current.parent)
+            {
+                if (current.Find("MenuScenery") != null) return true;
+                var surface = current.GetComponent<Image>();
+                if (surface != null && surface.color.a >= .5f) return false;
+            }
+            return false;
+        }
+
+        private static void SceneryOutline(Graphic graphic, float distance)
+        {
+            var outline = graphic.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(.015f, .025f, .02f, .95f);
+            outline.effectDistance = new Vector2(distance, -distance);
+            outline.useGraphicAlpha = true;
         }
 
         private static Font _displayFont;
@@ -220,6 +270,23 @@ namespace BiRyeoDo.Game.UI
             var shadow = t.gameObject.AddComponent<Shadow>();
             shadow.effectColor = new Color(0f, 0f, 0f, 0.45f);
             shadow.effectDistance = new Vector2(1f, -1f);
+            if (IsOverPaper(parent))
+            {
+                if (color == Gold || color == GoldDim) t.color = PaperAccent;
+                else if (color == Dim || color == InkSoft) t.color = PaperMuted;
+                else if (color == PaperText || color == Color.white) t.color = PaperInk;
+                else if (color == Jade) t.color = new Color(.15f, .36f, .27f, 1f);
+                shadow.enabled = false;
+            }
+            else if (IsOverScenery(parent))
+            {
+                // Keep semantic colours on cards; only exposed text needs the stronger scene treatment.
+                if (color == Gold || color == GoldDim) t.color = SceneryGold;
+                else if (color == Dim || color == InkSoft) t.color = PaperText;
+                SceneryOutline(t, 1.5f);
+                shadow.effectColor = new Color(.015f, .025f, .02f, .85f);
+                shadow.effectDistance = new Vector2(0f, -2f);
+            }
             return t;
         }
 
@@ -552,18 +619,19 @@ namespace BiRyeoDo.Game.UI
             var img = Rect(name, parent, min, max).gameObject.AddComponent<Image>();
             img.sprite = Gradient;
             img.type = Image.Type.Simple;
-            img.color = bg;
+            bool paper = IsOverPaper(parent) && (bg == InkSoft || bg == Ink);
+            img.color = paper ? PaperButton : bg;
             var btn = img.gameObject.AddComponent<Button>();
             btn.targetGraphic = img;
             var colors = btn.colors;
             colors.highlightedColor = new Color(1f, .96f, .86f, 1f);
             colors.pressedColor = new Color(.68f, .71f, .65f, 1f);
-            colors.disabledColor = new Color(.55f, .58f, .55f, .65f);
+            colors.disabledColor = paper ? new Color(.94f, .93f, .89f, 1f) : new Color(.55f, .58f, .55f, .65f);
             colors.fadeDuration = .12f;
             btn.colors = colors;
             if (onClick != null) btn.onClick.AddListener(onClick);
             btn.onClick.AddListener(() => Systems.SoundManager.Sfx("ui_click"));
-            if (bg.a > 0.05f) Frame(img.transform, bg == Red ? Gold : GoldDim, 2f);
+            if (bg.a > 0.05f) Frame(img.transform, paper ? PaperBorder : bg == Red ? Gold : GoldDim, 2f);
             Label("Label", img.transform, new Vector2(.05f, .08f), new Vector2(.95f, .92f), label, Mathf.Max(30, fontSize), PaperText);
             return btn;
         }
@@ -582,6 +650,13 @@ namespace BiRyeoDo.Game.UI
 
         public static Bar MakeBar(string name, Transform parent, Vector2 min, Vector2 max, Color back, Color fill)
         {
+            if (IsOverPaper(parent))
+            {
+                back = PaperButton;
+                if (fill == Gold) fill = PaperAccent;
+                else if (fill == Jade) fill = new Color(.15f, .36f, .27f, 1f);
+                else if (fill.b > fill.r && fill.b > fill.g) fill = new Color(.22f, .43f, .56f, 1f);
+            }
             var bg = Panel(name, parent, min, max, back);
             var fillImg = Panel("Fill", bg.transform, Vector2.zero, Vector2.one, fill);
             fillImg.sprite = Gradient;

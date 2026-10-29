@@ -6,6 +6,44 @@ namespace BiRyeoDo.Tests
 {
     public class QuestTests
     {
+        [TestCase("q_shell_rehearsal")] [TestCase("q_sister_form")] [TestCase("q_blood_cross")]
+        [TestCase("q_explosion_exit")] [TestCase("q_gate_lines")]
+        [TestCase("q_number_space")] [TestCase("q_bending_wind")] [TestCase("q_watch_circle")] [TestCase("q_wolf_cooperation")] [TestCase("q_departure")]
+        [TestCase("q_guest_parry")]
+        [TestCase("q_bridge_cover")]
+        [TestCase("q_rope_pattern")]
+        [TestCase("q_ichon")]
+        [TestCase("q_white_phoenix")]
+        [TestCase("q_bait_cover")]
+        [TestCase("q_eogeom_review")]
+        [TestCase("q_baekhyang_exit")]
+        [TestCase("q_promotion_guard")]
+        [TestCase("q_river_cover")]
+        [TestCase("q_sura_escort")]
+        [TestCase("q_baton_route")]
+        [TestCase("q_witness_exit")]
+        [TestCase("q_fire_gather")]
+        [TestCase("q_witness_cover")]
+        [TestCase("q_flute_cover")]
+        [TestCase("q_hwapyeong_exit")]
+        [TestCase("q_market_screen")]
+        [TestCase("q_rope_rehearsal")]
+        [TestCase("q_illusion_breath")]
+        [TestCase("q_twins_cover")] [TestCase("q_shadow_deception")] [TestCase("q_chorus_break")] [TestCase("q_spear_read")] [TestCase("q_current_guard")] [TestCase("q_father_carry")]
+        public void ReanalysisRehearsalRewardsArePaidOnlyOnce(string id)
+        {
+            var quest = Quests.Find(id);
+            var save = new SaveData { ClearedStage = quest.RefStage };
+            Assert.IsTrue(Quests.Open(save).Contains(quest));
+            Quests.Complete(save, quest);
+            int count = Inventory.Count(save, quest.ItemId);
+            Assert.AreEqual(1, count);
+            Assert.IsFalse(Quests.Open(save).Contains(quest));
+            Assert.AreEqual("", Quests.Complete(save, quest));
+            Assert.AreEqual(count, Inventory.Count(save, quest.ItemId));
+            Assert.AreEqual(1, save.DoneQuests.Count(x => x == id));
+        }
+
         [Test]
         public void EveryQuestReferencesARealEncounterAndHasATwist()
         {
@@ -87,7 +125,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void FortunesAreWellFormed()
         {
-            Assert.AreEqual(16, Fortunes.All.Length);
+            Assert.AreEqual(67, Fortunes.All.Length);
             Assert.AreEqual(Fortunes.All.Length, Fortunes.All.Select(f => f.Id).Distinct().Count());
             int max = EarlyGameContent.Stages.Max(st => st.Number);
             foreach (var f in Fortunes.All)

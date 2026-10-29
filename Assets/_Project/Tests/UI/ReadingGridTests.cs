@@ -128,6 +128,32 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsEmpty(_save.DailyClaimed);
         }
         [Test]
+        public void PaperCardsKeepTextAndCompletedActionsReadable()
+        {
+            var content = UiFactory.Rect("Content", Root, Vector2.zero, Vector2.one);
+            var card = new ReadingGrid(content, 3).Add("Mission");
+            Assert.AreEqual(UiFactory.ListPaper, card.GetComponent<Image>().color);
+            var name = UiFactory.Label("Name", card, Vector2.zero, Vector2.one, "전투 승리", 30, UiFactory.PaperText);
+            var reward = UiFactory.Label("Reward", card, Vector2.zero, Vector2.one, "보상", 28, UiFactory.Gold);
+            var action = UiFactory.Button("Claim", card, Vector2.zero, Vector2.one, "수령 완료", UiFactory.InkSoft, null, 28);
+            action.interactable = false;
+            var bar = UiFactory.MakeBar("Progress", card, Vector2.zero, Vector2.one, Color.black, UiFactory.Gold);
+            bar.SetPct(.75f);
+            Assert.Less(name.color.grayscale, .3f);
+            Assert.Less(reward.color.grayscale, .4f);
+            Assert.IsFalse(name.GetComponent<Shadow>().enabled);
+            Assert.IsNull(name.GetComponent<Outline>());
+            Assert.Greater(action.GetComponent<Image>().color.grayscale, .7f);
+            Assert.Less(action.GetComponentInChildren<Text>().color.grayscale, .3f);
+            Assert.AreEqual(1f, action.colors.disabledColor.a);
+            Assert.Greater(bar.Root.GetComponent<Image>().color.grayscale, .7f);
+            Assert.Less(bar.Fill.GetComponent<Image>().color.grayscale, .4f);
+            Assert.AreEqual(.75f, bar.Fill.anchorMax.x);
+            var dark = new ReadingGrid(content, 3, paper: false).Add("Catalog");
+            Assert.AreEqual(UiFactory.Ink, dark.GetComponent<Image>().color);
+        }
+
+        [Test]
         public void CompactCodexCardKeepsTheFullDescriptionInItsDetailWindow()
         {
             var item = EarlyGameContent.FindItem("frost_sword");

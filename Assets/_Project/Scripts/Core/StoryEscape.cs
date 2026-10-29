@@ -1,0 +1,683 @@
+using System.Collections.Generic;
+
+namespace BiRyeoDo.Core
+{
+    /// <summary>Volumes 28-29: tracked rescuers, separated perspectives and the rescue beyond the river.</summary>
+    public static class StoryEscape
+    {
+        public static string ActorName(string id)
+        {
+            switch (id)
+            {
+                case "story_biry_escape": return "비류연";
+                case "story_yeom_do": return "염도";
+                case "story_bing_geom": return "빙검";
+                case "story_cheong_heun": return "청흔";
+                case "story_yeongryeong": return "영령";
+                default: return null;
+            }
+        }
+        public static string ArtKey(string id)
+        {
+            switch (id)
+            {
+                case "story_biry_escape": return "player";
+                case "story_yeom_do": return "yeomdo";
+                case "story_bing_geom": return "gwan_cheolsu";
+                case "story_yeongryeong": return "dokgo_ryeong";
+                default: return null;
+            }
+        }
+        private static SkillSpec Hit(string id, string name, float power, int hits = 1)
+        {
+            return new SkillSpec { Id = id, Name = name, Description = "이 공방에서 사용하는 이야기 전용 기술입니다.", Power = power, Hits = hits, QiCost = 16, Cooldown = 1, Range = 3 };
+        }
+        private static SkillSpec Avoid(string id, string name)
+        {
+            return new SkillSpec { Id = id, Name = name, Description = "흐름을 읽고 이번 장면의 목표에 대응합니다.", Effect = SkillEffect.Evade, Power = 0, QiCost = 0, Cooldown = 0 };
+        }
+        public static void PrepareParty(StageData stage, int encounter, IEnumerable<Combatant> party)
+        {
+            if (stage == null || stage.IsQuest || stage.IsTower || stage.Number < 58 || stage.Number > 66) return;
+            foreach (var member in party)
+            {
+                List<SkillSpec> skills = null;
+                switch (member.Id)
+                {
+                    case "story_biry_escape": skills = new List<SkillSpec> { Hit("scene_escape_fist", "삼복구타권법", 3f, 2), new SkillSpec { Id = "scene_escape_sweep", Name = "비뢰도 · 제압", Power = 4f, AllEnemies = true, Range = 3, QiCost = 24, Cooldown = 1 }, Avoid("scene_escape_step", "봉황무") }; break;
+                    case "jang_hong": skills = new List<SkillSpec> { Hit("scene_escape_gray", "잿빛 검강", 3f, 2), Avoid("scene_escape_shadow", "신은술") }; break;
+                    case "story_mo_yonghwi": skills = new List<SkillSpec> { Hit("scene_escape_galaxy", "은하일섬", 3f, 2), Avoid("scene_escape_star_step", "유성보") }; break;
+                    case "story_namgung_sang": skills = new List<SkillSpec> { Hit("scene_escape_thunder", "뇌전검", 3f, 2), Avoid("scene_escape_namgung_step", "뇌광산란") }; break;
+                    case "story_yeom_do": skills = new List<SkillSpec> { Hit("scene_escape_flame", "진홍십칠염", 4f, 2), Avoid("scene_escape_fire_step", "홍련지벽") }; break;
+                    case "story_bing_geom": skills = new List<SkillSpec> { Hit("scene_escape_ice", "빙령수류검", 4f, 2), Avoid("scene_escape_snow_step", "설풍보") }; break;
+                    case "story_baek_muyeong": skills = new List<SkillSpec> { Hit("scene_escape_baek_sword", "형산의 검", 3f, 2), Avoid("scene_escape_baek_step", "흐름 읽기") }; break;
+                    case "story_cheong_heun": skills = new List<SkillSpec> { Hit("scene_escape_cheong_sword", "삼절검", 3f, 2), Avoid("scene_escape_cheong_step", "태극의 보법") }; break;
+                    case "story_yong_cheongmyeong": skills = new List<SkillSpec> { Hit("scene_escape_yong_finger", "금강복마지", 4f, 2), Avoid("scene_escape_yong_step", "부동명왕보") }; break;
+                    case "story_ma_haryeong": skills = new List<SkillSpec> { Hit("scene_escape_ma_blade", "표류무상도법", 4f, 2), Avoid("scene_escape_ma_step", "유가신공") }; break;
+                    case "story_yeongryeong": skills = new List<SkillSpec> { Hit("scene_escape_yeong_sword", "몸이 기억하는 검로", 3f, 2), Avoid("scene_escape_yeong_step", "틈을 잡는 보법") }; break;
+                    case "na_yerin": skills = new List<SkillSpec> { Hit("scene_escape_yerin_sword", "한상옥령신검", 3f, 2), Avoid("scene_escape_yerin_step", "비설보") }; break;
+                }
+                if (stage.Number == 58 && encounter == 0 && member.Id == "na_yerin") skills.Add(Avoid("scene_escape_seat", "배에 오른다"));
+                if (stage.Number == 58 && encounter == 1 && member.Id == "story_biry_escape") skills.Add(Avoid("scene_escape_badge", "연화검패를 내민다"));
+                if (stage.Number == 58 && encounter == 2 && member.Id == "story_biry_escape") skills.Add(Avoid("scene_escape_cover", "표사의 예로 답한다"));
+                if (stage.Number == 59 && encounter == 0 && member.Id == "jang_hong") skills.Add(Avoid("scene_escape_contacts", "거점의 흔적을 읽는다"));
+                if (stage.Number == 59 && encounter == 1 && member.Id == "jang_hong") skills.Add(Avoid("scene_escape_report", "상현의 보고를 기록한다"));
+                if (stage.Number == 59 && encounter == 2 && member.Id == "na_yerin") skills.Add(Avoid("scene_escape_warning", "조용히 일행을 깨운다"));
+                if (stage.Number == 60 && encounter == 1 && member.Id == "story_yeom_do") skills.Add(Avoid("scene_escape_fire_wall", "홍련지벽 · 맡은 공세 대응"));
+                if (stage.Number == 60 && encounter == 1 && member.Id == "story_bing_geom") skills.Add(Avoid("scene_escape_ice_guard", "빙령지순 · 맡은 공세 대응"));
+                if (stage.Number == 60 && encounter == 2 && member.Id == "story_bing_geom") skills.Add(Hit("scene_escape_save_fire", "설풍보 · 염도 구원", 0.2f, 1));
+                if (stage.Number == 60 && encounter == 3 && member.Id == "story_yeom_do") skills.Add(Hit("scene_escape_save_ice", "비도 화륜참 · 빙검 구원", 0.2f, 1));
+                if (stage.Number == 61 && encounter == 0 && member.Id == "story_biry_escape") skills.Add(Hit("scene_escape_cut_sound", "뇌절단음", 0.2f, 1));
+                if (stage.Number == 61 && encounter == 1 && member.Id == "story_biry_escape") skills.Add(Avoid("scene_escape_silver_net", "천라은망지세 뇌망옥"));
+                if (stage.Number == 61 && encounter == 2 && member.Id == "story_biry_escape") skills.Add(Hit("scene_escape_returned_fist", "돌아온 말복 삼년구타", 5f, 1));
+                if (stage.Number == 61 && encounter == 3 && member.Id == "story_namgung_sang") skills.Add(Hit("scene_escape_gate_thunder", "뇌궁섬뢰", 0.2f, 1));
+                if (stage.Number == 61 && encounter == 3 && member.Id == "jang_hong") skills.Add(Hit("scene_escape_gate_gray", "잿빛 검강 · 연환", 0.2f, 1));
+                if (stage.Number == 61 && encounter == 3 && member.Id == "story_mo_yonghwi") skills.Add(Hit("scene_escape_gate_galaxy", "은하만상", 0.2f, 1));
+                if (stage.Number == 62 && encounter == 0 && member.Id == "story_biry_escape") skills.Add(Avoid("scene_escape_laughter", "웃음으로 긴장을 감춘다"));
+                if (stage.Number == 62 && encounter == 2 && member.Id == "jang_hong") skills.Add(Avoid("scene_escape_shadow_bind", "차음막 · 영사삭 묵영포박"));
+                if (stage.Number == 62 && encounter == 3 && member.Id == "story_biry_escape") skills.Add(Hit("scene_escape_dog_capture", "변장 뒤의 몽둥이", 2f, 1));
+                if (stage.Number == 63 && encounter == 0 && member.Id == "story_baek_muyeong") skills.Add(Avoid("scene_escape_flute_feint", "옥소로 시선을 끈다"));
+                if (stage.Number == 63 && encounter == 1 && member.Id == "story_cheong_heun") skills.Add(Hit("scene_escape_three_swords", "삼검교연 삼검귀일", 0.2f, 1));
+                if (stage.Number == 63 && encounter == 2 && member.Id == "story_yong_cheongmyeong") skills.Add(Hit("scene_escape_triple_roar", "삼존불영삼재 · 삼중 사자후", 0.2f, 1));
+                if (stage.Number == 63 && encounter == 3 && member.Id == "story_ma_haryeong") skills.Add(Hit("scene_escape_earth_wave", "지진각 · 대지의 파도", 0.3f, 1));
+                if (stage.Number == 64 && encounter == 0 && member.Id == "na_yerin") skills.Add(Avoid("scene_escape_spear_read", "용안 · 비설보"));
+                if (stage.Number == 64 && encounter == 1 && member.Id == "na_yerin") skills.Add(Hit("scene_escape_storm_wings", "폭풍비상 비홍관운", 6f, 1));
+                if (stage.Number == 64 && encounter == 2 && member.Id == "na_yerin") skills.Add(Avoid("scene_escape_hold_sword", "검을 놓지 않는 의지"));
+                if (stage.Number == 64 && encounter == 3 && member.Id == "story_yeongryeong") skills.Add(Avoid("scene_escape_sister_smoke", "향신료 연막 · 예린과 이탈"));
+                if (stage.Number == 65 && encounter == 0 && member.Id == "story_biry_escape") skills.Add(Avoid("scene_escape_sect_threads", "뇌령사를 세 문파에 건다"));
+                if (stage.Number == 65 && encounter == 1 && member.Id == "story_biry_escape") skills.Add(Avoid("scene_escape_distrust", "우민군무 불신지옥"));
+                if (stage.Number == 65 && encounter == 2 && member.Id == "jang_hong") skills.Add(Avoid("scene_escape_red_flower", "암시 봉인 · 붉은 남천"));
+                if (stage.Number == 65 && encounter == 3 && member.Id == "jang_hong") skills.Add(Avoid("scene_escape_current", "급류 아래로 선행 진입"));
+                if (stage.Number == 66 && encounter == 0 && member.Id == "story_biry_escape") skills.Add(Hit("scene_escape_clear_elements", "풍신 질풍", 0.2f, 1));
+                if (stage.Number == 66 && encounter == 1 && member.Id == "story_biry_escape") skills.Add(Hit("scene_escape_free_father", "뇌령사 · 나백천 구출", 0.2f, 1));
+                if (stage.Number == 66 && encounter == 2 && member.Id == "story_biry_escape") skills.Add(Hit("scene_escape_fire_dragon", "화룡난류", 0.5f, 1));
+                if (stage.Number == 66 && encounter == 3 && member.Id == "story_biry_escape") skills.Add(Hit("scene_escape_twin_dragons", "뇌화열풍인 쌍룡귀천", 0.7f, 1));
+                if (skills == null) continue;
+                member.Skills.RemoveAll(skill => skill.Id != "basic");
+                member.Skills.AddRange(skills);
+            }
+        }
+
+        public static readonly Dictionary<int, StoryScene[]> Prologues = new Dictionary<int, StoryScene[]>
+        {
+            { 58, new[] {
+                    new StoryScene { Title = "교차 장면 · 그치지 않는 비", Lines = new[] {
+                        "폭우 속의 나백천은 다시 터진 상처를 누를 힘도 없었다. 아내와 딸의 얼굴을 떠올린 뒤 의식이 흐려졌다.",
+                        "가슴에 일곱 별을 이은 성좌 문양을 단 일곱 사람이 그를 둘러쌌다. 이 장면의 위치와 추적자의 얼굴은 아직 구출대가 얻은 정보가 아니었다.",
+                    } },
+                    new StoryScene { Title = "강호란도 · 돌아온 모녀", Lines = new[] {
+                        "비류연은 아직 나예린의 무릎에서 잠들어 있었다. 당문혜를 잃은 배 안의 침묵은 섬에 닿아서도 쉽게 걷히지 않았다.",
+                        "남궁상은 당삼을 막지 못한 책임을 자책했다. 진령이 곁을 지켰고, 나예린은 예청과 다시 만났다.",
+                        "예청은 비류연에게 남편을 구해 달라 정식으로 부탁했다. 그는 예린의 아버지이기 때문에 값을 매기지 않고 받았다.",
+                    } },
+                    new StoryScene { Title = "남겨진 사람들의 다음 길", Lines = new[] {
+                        "예청은 무사 귀환 뒤 교제 승낙을 생각해 보겠다 했지만 딸을 데려가지는 말라 했다. 비류연은 나예린 스스로 정할 일이라 답했다.",
+                        "혁중은 쌍검을 부러뜨린 효룡에게 본래 형에게 주려던 쌍붕도 중천을 건넸다. 천외일도를 얻으라는 과제와 가족의 슬픔이 함께 남았다.",
+                        "혁중은 아들을 죽인 보이지 않는 손을 안다고 했지만 이름은 밝히지 않았다. 효룡은 처음 안긴 조부의 품에서 그를 대신해 울었다.",
+                        "오른팔을 잃은 노학에게 비류연은 개방의 역린좌와 한 손 좌수검을 이야기했다. 노학은 다시 일어설 수련의 길을 택했다.",
+                    } },
+                    new StoryScene { Title = "선발 · 다시 잃지 않기 위하여", Lines = new[] {
+                        "주작단 대부분은 돌아갔다. 남궁상·진령·금영호는 남았고 류은경도 끝까지 곁에 섰다. 금영호의 집안은 그 지역에 기반이 있었다.",
+                        "효룡에게는 계승한 쌍도를 익힐 길이 남았다. 노학의 새 결심도 이미 완성한 검술은 아니었다.",
+                        "출항할 배를 향해 절벽 위에서 한 사람이 뛰었다. 내려오라고 정한 다른 이의 판단보다 나예린 자신의 뜻이 먼저였다.",
+                    } }
+                } },
+            { 59, new[] {
+                    new StoryScene { Title = "무한의 밤 · 소수의 조사조", Lines = new[] {
+                        "장홍·비류연·모용휘·남궁상이 밤의 연락망을 돌았다. 나머지 일행은 신용산객잔에 머물렀다.",
+                        "태원잡화점에 이어 다관·포목점·푸줏간까지 연락이 끊겼다. 우연히 빈 가게가 이어진 모양은 아니었다.",
+                        "흔적을 지우는 작업은 뿌리까지 뽑는 식근에 가까웠다.",
+                    } },
+                    new StoryScene { Title = "마지막 거점의 자리", Lines = new[] {
+                        "장홍이 아는 거점은 다섯이었다. 네 곳의 소식이 끊긴 뒤에도 구출대가 있는 객잔만 남아 있었다.",
+                        "말끔한 침묵보다 일부러 남겨 둔 연락망이 더 위험할 수 있었다.",
+                        "다른 곳의 나예린은 잠든 사람들 사이에서 익숙하지 않은 기류를 느끼고 있었다.",
+                    } },
+                    new StoryScene { Title = "서로 모르는 두 판단", Lines = new[] {
+                        "밖에서는 장홍이 마지막 보고를 찾았다. 안에서는 나예린이 영령과 진령을 깨울 생각을 굳혔다.",
+                        "두 갈래의 움직임은 같은 객잔의 위험을 향했다.",
+                    } }
+                } },
+            { 60, new[] {
+                    new StoryScene { Title = "일행을 먼저 보내는 두 사람", Lines = new[] {
+                        "나예린의 확신으로 총관 담환까지 깨어 있었다. 염도와 빙검은 술잔을 내려놓고 밖의 발소리를 들었다.",
+                        "다른 이들이 비밀 통로로 빠질 시간을 두 사람이 맡았다.",
+                        "염도는 영령에게 나예린을 지키라 일렀고 진령에게는 대사형이 죽게 하지는 않을 것이라 전했다.",
+                    } },
+                    new StoryScene { Title = "드러난 위장", Lines = new[] {
+                        "순찰단의 선두에 손광이 나섰다. 갈효혜는 이미 표행 때부터 두 노사를 알아보았다고 했다.",
+                        "걸음걸이와 기세는 옷만 바꾼다고 사라지지 않았다. 즉각 충돌하지 않고 들어온 일과 감시를 지운 일은 달랐다.",
+                        "효린과 효진이 불꽃의 합격진을 준비했다.",
+                    } },
+                    new StoryScene { Title = "조화가 필요한 자리", Lines = new[] {
+                        "염도와 빙검은 오래 다투며 살아왔다. 힘을 합치자는 말에도 먼저 거부감이 섰다.",
+                        "이번에는 서로를 구할 판단과 맡은 공세를 지킬 약속이 필요했다.",
+                    } }
+                } },
+            { 61, new[] {
+                    new StoryScene { Title = "숨어 본 전력의 차이", Lines = new[] {
+                        "비류연과 모용휘는 두 노사의 패배를 지켜보았다. 무화의 검 앞에 무엇을 더 낼 수 있는지 장담하기 어려웠다.",
+                        "포로는 살아 있었다. 지금 맞서 모두 잃기보다 나백천을 찾을 길과 다시 구할 가능성을 남겨야 했다.",
+                        "비류연은 후퇴를 택했고 모용휘는 작전상 후퇴라 불러 달라 했다.",
+                    } },
+                    new StoryScene { Title = "남문 앞의 노졸", Lines = new[] {
+                        "남궁상·장홍·모용휘가 비류연과 함께 남문에 이르렀다. 흑견이 음파와 검은 포승줄로 길을 막았다.",
+                        "이탈할 성문이 눈앞이었다. 먼저 소리를 끊고 호신강기와 줄을 넘어야 했다.",
+                        "서로 다른 세 검이 문을 열 차례도 남아 있었다.",
+                    } },
+                    new StoryScene { Title = "갈라진 길의 약속", Lines = new[] {
+                        "비밀 통로로 간 일행은 아직 다른 길에 있었다.",
+                        "여기서 지킬 목적은 성문 밖으로 나가 수색을 계속하는 것이었다.",
+                    } }
+                } },
+            { 62, new[] {
+                    new StoryScene { Title = "남문 밖 · 웃음과 알림 방울", Lines = new[] {
+                        "장홍의 알림 방울이 추격을 알렸다. 남궁상은 진령과 두 노사의 일을 걱정했다.",
+                        "비류연이 웃게 하자 사방에서 웃음이 번졌다. 긴장의 냄새가 사라진 것을 흑견은 오히려 의심했다.",
+                        "그 멈칫한 시간을 구출대가 먼저 잡았다.",
+                    } },
+                    new StoryScene { Title = "복장을 바꾸는 네 사람", Lines = new[] {
+                        "장홍·모용휘·남궁상은 제삼대를 작은 무리로 갈라 제압했다. 비류연이 품속의 물품을 살폈다.",
+                        "제이조의 백구는 점혈을 풀고 휘파람으로 알리려 했다. 그 소리가 닿을 곳에는 다른 준비가 필요했다.",
+                        "적이 쫓는 길을 역으로 읽을 단서와 복장이 모였다.",
+                    } },
+                    new StoryScene { Title = "북쪽 하늘의 다른 시선", Lines = new[] {
+                        "다른 장소에서 자하삼기와 술을 마시던 자색 옷의 사내가 검은 불꽃 일곱 무리를 보았다.",
+                        "흑사자패와 쌍도를 지닌 갈중하가 잠적을 끝낼 생각을 굳혔다. 구출대는 아직 그 결정을 모른 채 추격을 떼려 했다.",
+                    } }
+                } },
+            { 63, new[] {
+                    new StoryScene { Title = "비밀 통로 · 문이라고 생긴 것", Lines = new[] {
+                        "담환은 통로의 곁문을 가리켰다. 문 모양을 본떠 묻은 돌벽 뒤에는 열 길 넘는 돌과 흙이 있었다.",
+                        "함부로 두드리면 붕괴할 수 있었다. 일행은 담환의 안내대로 끝까지 나가야 했다.",
+                        "그 끝에서는 무음탄주가 기다렸다.",
+                    } },
+                    new StoryScene { Title = "합주 앞의 총회주", Lines = new[] {
+                        "용천명이 총회주의 지휘를 마하령에게 넘겼다. 청흔과 백무영의 인정이 완성된 것은 아니어도 지금은 결정을 따라야 했다.",
+                        "마하령은 좁은 통로와 높은 곳의 두려움을 안고 역할을 나눴다.",
+                        "백무영의 옥소, 청흔의 세 검, 용천명의 사자후가 하나씩 길을 열 수 있었다.",
+                    } },
+                    new StoryScene { Title = "앞을 여는 사람과 뒤에 남을 사람", Lines = new[] {
+                        "최고조 직전의 합주를 끊어야 포위망을 흔들 수 있었다.",
+                        "나예린은 마하령과 후위를 맡을 약속을 해 두었다. 옥유경과 무명도 이탈할 틈을 살폈다.",
+                    } }
+                } },
+            { 64, new[] {
+                    new StoryScene { Title = "후위를 택한 나예린", Lines = new[] {
+                        "다른 이들이 빠져나갈 동안 나예린은 홀로 남았다. 효효가 십 초면 끝내겠다며 은금 속에서 은창을 꺼냈다.",
+                        "용안에는 창 초식이 보였다. 그러나 보이는 것과 모든 공세를 넘어서는 것은 같지 않았다.",
+                        "비설보로 흐름을 읽으며 폭풍 속에서 배운 날갯짓을 떠올려야 했다.",
+                    } },
+                    new StoryScene { Title = "돌아가는 영령", Lines = new[] {
+                        "나예린이 없다는 것을 알아챈 영령은 불안해졌다. 사매라 부른 자신의 말에도 놀랐다.",
+                        "진령의 부탁에 꿈자리 때문이라 둘러댄 뒤, 영령은 떠난 길을 되돌아갔다.",
+                        "기억의 답을 얻지 못한 채라도 돌아갈 사람을 고를 수 있었다.",
+                    } },
+                    new StoryScene { Title = "옥소와 은창 사이", Lines = new[] {
+                        "효민은 피리로 공방의 한계를 바꿀 수 있었다. 효묘는 풀숲에서 다가오는 존재를 알아차렸다.",
+                        "나예린의 검과 영령의 선택이 아직 서로 만나기 전이었다.",
+                    } }
+                } },
+            { 65, new[] {
+                    new StoryScene { Title = "삼천 명이 막은 길", Lines = new[] {
+                        "비류연·장홍·모용휘·남궁상 앞에 천라지망이 펼쳐졌다. 수를 넷으로 나누어도 정면으로 싸울 길은 아니었다.",
+                        "흑선문·적선문·백선문은 같은 편에 섰으나 서로를 믿는 사이는 아니었다.",
+                        "비류연은 그들 사이에 뇌령사를 걸었다.",
+                    } },
+                    new StoryScene { Title = "구출대로 돌아가는 정보", Lines = new[] {
+                        "흑견대의 물품은 변장에만 쓰이지 않았다. 장홍 자신이 만든 무영대의 암시 봉인을 풀 단서도 있었다.",
+                        "숨긴 곳의 기억을 되찾으면 붉은 남천 꽃과 급류가 이어질 수 있었다.",
+                        "대난원은 지도 위에서 바로 가리킬 수 있는 표식이 아니었다.",
+                    } },
+                    new StoryScene { Title = "먼저 들어갈 사람", Lines = new[] {
+                        "장홍이 물 아래로 먼저 들어가고 뇌령사로 생존을 확인할 길을 생각했다.",
+                        "그 뒤에 나머지가 따라가야 했다. 나백천을 발견한 뒤에도 다친 몸을 확인할 시간이 필요했다.",
+                    } }
+                } },
+            { 66, new[] {
+                    new StoryScene { Title = "대난원 · 구한 사람의 상처", Lines = new[] {
+                        "나백천은 일행을 알아보았다. 안도의 시간이 지난 뒤에도 가슴의 비스듬한 상처에서 피가 멎지 않았다.",
+                        "그 흔적은 백이 년 전 천무봉에서 본 일격과 같았다. 그는 보지 못한 뒷부분까지 아는 척하지 않고 기억을 꺼냈다.",
+                        "혁월린과 갈중혁은 젊은 그에게 인의 열쇠를 지켜 달라 맡겼다.",
+                    } },
+                    new StoryScene { Title = "천무봉의 기억과 군림삼보", Lines = new[] {
+                        "위천무의 무음무흔무형 일격이 불꽃과 얼음의 방패를 지나갔다. 나백천은 환살에 빠져 그 뒤 싸움을 보지 못했다.",
+                        "멸겁삼관이 맡던 아홉 열쇠가 사라진 뒤 혁월린과 갈중혁이 각 네 개, 나백천이 인의 열쇠 하나를 지켰다. 맹주의 최우선 임무는 그 천붕금시를 지키는 것이었다.",
+                        "장문령부는 권위의 증표였고 강호조복혈안서는 장문인들이 피로 서명한 복종의 서약이었다. 군림삼보의 마지막 신무림기는 아직 텅 빈 책이었다.",
+                        "나백천은 청룡은장의 멸문도 열쇠를 노린 참극이었다고 밝혔다. 오래전 전달된 짐과 희생의 이유가 강호 전체의 비밀에 닿았다.",
+                        "그 설명을 마친 나백천을 데리고 밖으로 나가야 했다.",
+                    } },
+                    new StoryScene { Title = "별도 장면 · 첫 자물쇠", Lines = new[] {
+                        "빙은 가면의 사내가 백호 모양 황금 열쇠로 한철궤의 첫 자물쇠를 열었다. 열여덟 잠금 전체가 풀린 것은 아니었다.",
+                        "동가면으로 얼굴을 가린 사내는 임시 맹주 은천벽이었다. 위천무의 제자 역천과 북천이 그와 연결되었다.",
+                        "그 배후 장면과 다른 곳에서, 대난원 밖에는 사궁진과 신마가의 환영식이 준비되어 있었다.",
+                    } }
+                } },
+        };
+
+        public static readonly Dictionary<int, string[]> Intros = new Dictionary<int, string[]>
+        {
+            { 58, new[] {
+                    "동료를 잃은 뒤의 출발이었다. 남길 사람과 함께 갈 사람을 고르는 판단이 새 표행의 깃발로 이어졌다.",
+                    "나예린은 남의 허락만 기다리는 대신 직접 배에 올랐다.",
+                } },
+            { 59, new[] {
+                    "무너진 연락망을 읽는 일이 수색의 방향을 바꿨다. 객잔 안의 나예린도 같은 위험을 알아채려 했다.",
+                } },
+            { 60, new[] {
+                    "일행이 떠날 시간을 두 노사가 맡았다. 쌍둥이의 합격진은 서로의 조화가 없는 틈을 노렸다.",
+                } },
+            { 61, new[] {
+                    "포로가 살아 있는 동안 다시 구할 길을 남겨야 했다. 지금은 남문을 열고 나백천의 행방을 좇을 차례였다.",
+                } },
+            { 62, new[] {
+                    "소리와 냄새를 따라오는 적에게 다른 소리를 들려주었다. 추격의 방향이 바뀌는 순간이었다.",
+                } },
+            { 63, new[] {
+                    "마하령의 지휘가 네 사람의 능력을 엮었다. 합주를 끊어 사상자 없이 길을 여는 것이 목적이었다.",
+                } },
+            { 64, new[] {
+                    "비설보에 보이던 창끝 뒤에 더 거센 바람과 피리가 기다렸다. 영령은 돌아갈 길을 선택했다.",
+                } },
+            { 65, new[] {
+                    "삼천 명을 쓰러뜨리는 대신 그 사이의 불신으로 통로를 열어야 했다. 붉은 꽃의 기억이 물 아래로 이어졌다.",
+                } },
+            { 66, new[] {
+                    "나백천을 발견한 기쁨 뒤에 다시 그를 지킬 공방이 남았다. 불꽃과 얼음 속에서 이송할 길을 열어야 했다.",
+                } },
+        };
+
+        public static readonly Dictionary<int, string[]> Outros = new Dictionary<int, string[]>
+        {
+            { 58, new[] {
+                    "무화가 동행한 표행이라는 말로 남문이 열렸다. 신마가가 정체를 몰랐다는 증거는 아니었다. 구출대는 용산객잔으로 향했다.",
+                    "다른 곳의 흑천맹 대전에서 무화가 아들의 관을 열었다. 비탄과 사란의 환살이 번지는 가운데 효혜가 만류했다. 은설란은 모용휘와 적이 될 줄은 모른 채, 좋아했던 사람과도 싸울 수 있다는 경고를 듣고 출진을 청했다.",
+                    "나백천과 나 씨의 이름이 적힌 살생부 깃발이 올랐다. 피해를 응징한 힘과 가족을 잃은 분노가 이제 구출대가 가는 길을 향했다.",
+                } },
+            { 59, new[] {
+                    "밖의 조사와 안의 경고는 같은 포위를 확인했다. 일행은 담환의 비밀 통로로 움직였다.",
+                    "염도와 빙검은 객잔 앞에 남아 시간을 벌었다. 나예린의 용안은 모든 미래의 정답 대신 지금 행동할 확신을 주었다.",
+                    "상현의 최후 보고는 대난원과 천라지망을 잇는 단서가 되었다. 남겨 둔 다섯째 거점의 덫에서 벗어날 길은 아직 끝나지 않았다.",
+                } },
+            { 60, new[] {
+                    "빙검을 구한 화륜참 뒤 두 노사가 힘을 합쳤다. 빙폭우와 화륜람을 무화가 받아 냈고, 소매만 찢긴 채 도검을 돌려주었다.",
+                    "건곤일월합격진을 펼쳐 보라는 말 앞에 이십 년의 미완성과 사부의 기억이 남았다. 묵린현현의 한 검에 두 사람이 쓰러졌다. 사란이 마지막 손을 막았다.",
+                    "효홍이 용근삭으로 두 노사를 묶었다. 일행이 이탈할 시간은 벌었고 두 노사는 살아 있는 포로가 되었다. 비밀 통로 출구에는 이미 별도의 매복이 기다렸다.",
+                } },
+            { 61, new[] {
+                    "삼인연환이 성문을 부수었다. 네 사람은 남문을 빠져나가 나백천 수색을 이어갔다.",
+                    "뒤에 남은 흑견은 쓰러진 연기를 끝냈다. 호신강기를 뚫린 내상은 진짜였어도 추적 계획은 끝나지 않았다. 백구에게 흑견대를 부르라 했다.",
+                    "별도 장면에서 마천각주는 원로들의 추대로 임시 흑천맹주가 되었다. 흑천쌍룡인과 사자금패를 넘겨받고 칠성좌에 나백천 추적을, 제삼천 굉천에 정천맹 공격을 명했다.",
+                    "은존이 완성했다는 그것의 실체는 드러나지 않았다. 구출대의 이탈과 적의 권력 확보가 서로 다른 장소에서 함께 진행되었다.",
+                } },
+            { 62, new[] {
+                    "흑견이 몽둥이에 쓰러졌다. 얼굴을 본뜬 뒤 숨대롱을 남긴 구덩이에 잠시 가두었다. 추격대의 물품과 복장이 일행의 것이 되었지만 흑견의 죽음을 확인한 것은 아니었다.",
+                    "그는 무화의 명으로 처음부터 일부러 져 주고 길을 열어야 했던 사람이었다. 추격을 뒤집은 뒤에도 더 큰 감시는 남아 있었다.",
+                    "네 사람은 새로운 복장과 정보를 가지고 수색을 계속했다. 비밀 통로를 나간 동료들은 다른 포위와 싸우고 있었다.",
+                } },
+            { 63, new[] {
+                    "지진각이 흔든 틈으로 일행이 빠져나왔다. 맹견은 비껴 놓였고 사상자 없이 포위망을 벗어났다. 무명이나 옥유경이 전부 대신 해결한 길은 아니었다.",
+                    "청흔과 백무영이 마하령을 완전히 인정한 것은 아니어도 용천명의 위임과 네 역할의 연계가 길을 열었다.",
+                    "약속한 후위를 맡아 나예린이 홀로 남았다. 다른 이들이 간 자리와 그녀가 버틸 자리가 잠시 갈라졌다.",
+                } },
+            { 64, new[] {
+                    "연막이 걷힐 때 영령과 나예린은 빠져나왔다. 효묘는 일부러 붙잡혔고, 그 비명이 연기임을 알아챈 자매들은 효혜의 계획이 이어짐을 확인했다.",
+                    "영령의 사매라는 부름은 완전한 기억 복원이 아니었다. 효묘가 따라온 감정의 정체나 나뭇잎 조력자의 이름도 확인되지 않았다. 공손절휘가 임시 동행자의 감시를 맡았다.",
+                    "적의 다른 연락망에는 굉천의 무당 진군과 흑천쌍룡인 결재 소식이 닿았다. 포로인 염도와 빙검은 진심으로 힘을 합쳐 벗어나기로 합의했지만 아직 풀려나지는 못했다.",
+                    "효혜는 은천벽의 월권을 경계하며 잠적한 둘째를 불러올 때라 판단했다. 은설란에게 그를 마중할 일을 맡겼다. 임시 맹주의 자리와 다음 권력의 구상이 움직이고 있었다.",
+                } },
+            { 65, new[] {
+                    "급류 아래 동굴에서 중상 입은 나백천을 찾았다. 일행은 먼저 살아 있음을 확인하고 그의 상태를 살폈다.",
+                    "그를 찾아 헤맨 길이 눈앞의 사람으로 끝났다. 안도 뒤에도 가슴의 상처에서는 피가 멎지 않았다.",
+                    "나백천이 그 상처를 보며 백이 년 전 천무봉의 기억을 꺼냈다. 보지 못한 싸움의 끝과 위천무의 최종 생사는 여전히 남았다.",
+                } },
+            { 66, new[] {
+                    "장홍이 나백천을 업고 일행이 포위를 빠져나왔다. 화룡과 용권이 뇌신의 경계로 향하는 문을 열었어도 경지 전체를 완성한 것은 아니었다.",
+                    "타지 않은 서찰은 무당산에서 진실을 밝히겠다 약속했다. 신마가와 굉천은 무당을 향했고 염도·빙검은 여전히 포로였다. 사란이 단혜에게 전한 말의 내용은 드러나지 않았다.",
+                    "비류연은 실제로는 남쪽 무한으로 돌아갔다. 잡아야 할 호랑이가 있다는 말만 남겼고 신마가가 일부러 놓아주었는지는 확인되지 않았다.",
+                    "흑견은 부하들과 다시 시찰하고 있었다. 어떻게 풀려났는지는 드러나지 않았다. 구출대는 흑천맹 정문이 보이는 신 녹호객잔에 숨었다.",
+                    "삼층 끝 방의 나백천은 모용휘가 지켰다. 도련님과 호위, 집사로 변장한 세 사람의 술자리에 쌍도를 멘 갈중하가 합석했다. 둘째라 불린다는 소개에서 새로운 만남이 시작되었다.",
+                } },
+        };
+
+        public static readonly Dictionary<int, StoryScene[]> Episodes = new Dictionary<int, StoryScene[]>
+        {
+            { 5800, new[] {
+                    new StoryScene { Title = "절벽에서 출항선으로", Lines = new[] {
+                        "나예린이 배 위에 내려앉았다. 예청의 조건이나 비류연의 약속과 별개로 그녀가 직접 택한 자리였다. 비류연은 자기 곁의 자리를 내주었다.",
+                    } }
+                } },
+            { 5801, new[] {
+                    new StoryScene { Title = "무한 · 연화검패의 표행", Lines = new[] {
+                        "옥유경·영령·무명이 장소옥과 함께 붙었다. 예린은 영령 곁을 책임지겠다 했고, 비류연은 곁에서 지켜보는 편이 낫다 판단했다.",
+                        "강목의 검문을 피하기 위해 무림인인 채 표사로 들어갈 준비를 했다. 비류연은 장이하에게 연화검패를 내밀었다. 호북의 연쇄 피해 소문과 푸른 장인에 장홍의 얼굴이 굳었다.",
+                    } }
+                } },
+            { 5802, new[] {
+                    new StoryScene { Title = "산길의 관전 · 함께 가자는 제안", Lines = new[] {
+                        "형산십이검의 부러진 검과 도주한 곽현이 산길의 피해를 알렸다. 초운락과 채홍칠마를 응징한 사람은 무화·단혜·사란과 팔선자였다. 구출대는 그 실력을 지켜보았다.",
+                        "무화가 동행을 제안하자 표행은 거절하지 못했다. 여표사를 묻는 효혜에게 빙검은 성별보다 실력을 본다 둘러댔다. 비류연은 수레에서 굴러떨어지는 연기로 동문의 물음을 넘겼다.",
+                        "남문에서 흑견이 삿갓을 벗기려 했다. 무화가 동행한 사람이라 밝히는 틈에 당장 충돌하지 않고 통과해야 했다.",
+                    } }
+                } },
+            { 5900, new[] {
+                    new StoryScene { Title = "태원잡화점에서 푸줏간까지", Lines = new[] {
+                        "네 거점의 침묵과 파괴 흔적이 이어졌다. 장홍은 남아 있는 연락의 조각부터 읽어야 했다.",
+                    } }
+                } },
+            { 5901, new[] {
+                    new StoryScene { Title = "상현의 최후 보고", Lines = new[] {
+                        "푸줏간에서 숨겨진 상현을 찾았다. 무영 백이십칠호가 마지막으로 전할 말은 대난원과 천라지망, 부상 가능성과 칠성좌였다.",
+                    } }
+                } },
+            { 5902, new[] {
+                    new StoryScene { Title = "교차 시점 · 감이 아닌 확신", Lines = new[] {
+                        "상현은 보고 뒤 숨을 거뒀다. 다섯째 거점만 남은 이유를 짚은 네 사람이 서둘러 돌아갔다.",
+                        "객잔의 나예린은 영령과 진령을 깨워 조용히 무장시켰다. 모든 미래를 안 것은 아니어도 지금의 포위를 확신할 만큼 기류가 달라져 있었다.",
+                    } }
+                } },
+            { 6000, new[] {
+                    new StoryScene { Title = "순찰단과 남은 시간", Lines = new[] {
+                        "나머지는 담환이 안내하는 비밀 통로로 움직였다. 손광의 쾌영도가 두 노사 앞에 들어왔다. 염도와 빙검은 먼저 돌입한 순찰단을 제압할 차례였다.",
+                    } }
+                } },
+            { 6001, new[] {
+                    new StoryScene { Title = "이화합격진 · 맡은 상대", Lines = new[] {
+                        "손광이 물러난 뒤 효린과 효진이 불꽃의 합격진을 폈다. 처음에는 합공을 거부한 두 노사의 틈이 벌어졌다.",
+                        "각자 맡은 상대를 끝까지 상대하기로 합의했다. 서로 다른 공세를 두 사람이 나누어 받아야 했다.",
+                    } }
+                } },
+            { 6002, new[] {
+                    new StoryScene { Title = "박수 뒤의 검은 손", Lines = new[] {
+                        "두 사람이 기세를 되찾자 무화의 박수가 공방을 멎게 했다. 쌍둥이는 배움에 사례했고 무화가 나섰다.",
+                        "열풍홍련창의 불꽃이 검은 손에 뜯겼다. 염도의 머리 위에 흡성이 닿으려 할 때 빙검이 설풍보로 끼어들었다.",
+                    } }
+                } },
+            { 6003, new[] {
+                    new StoryScene { Title = "붙잡힌 검을 위한 화륜참", Lines = new[] {
+                        "염도를 구한 빙검의 설풍보와 빙령지순도 깨졌다. 검을 잡힌 손에서 진기가 빠져나갔다. 이번에는 염도가 비도 화륜참으로 길을 끊어야 했다.",
+                    } }
+                } },
+            { 6100, new[] {
+                    new StoryScene { Title = "흑견후의 음파", Lines = new[] {
+                        "남문을 막은 흑견이 소리를 부풀렸다. 비류연이 벽력단절의 장 뇌절단음으로 음파가 이어지는 길을 잘랐다.",
+                    } }
+                } },
+            { 6101, new[] {
+                    new StoryScene { Title = "소리 뒤의 검은 줄", Lines = new[] {
+                        "음파가 끊긴 틈에도 흑오박룡삭은 남아 있었다. 은망포천의 장 뇌망옥이 흑견의 움직임을 묶을 차례였다.",
+                    } }
+                } },
+            { 6102, new[] {
+                    new StoryScene { Title = "돌아온 말복", Lines = new[] {
+                        "뇌망옥이 만든 한순간을 맨주먹이 파고들었다. 삼년구타가 흑살호신강기를 뚫어 길을 열려 했다.",
+                    } }
+                } },
+            { 6103, new[] {
+                    new StoryScene { Title = "성문을 여는 세 검", Lines = new[] {
+                        "흑견이 쓰러졌다. 남궁상·장홍·모용휘가 서로의 공세를 이어 문을 열었다. 뇌궁섬뢰, 잿빛 검강, 은하만상이 삼인연환으로 이어졌다.",
+                    } }
+                } },
+            { 6200, new[] {
+                    new StoryScene { Title = "웃어라, 남궁상", Lines = new[] {
+                        "알림 방울 뒤에 추격의 발소리가 따라왔다. 숲을 울리는 웃음이 긴장의 냄새를 바꾸었다. 흑견이 함정을 의심하는 틈에 길을 바꿀 수 있었다.",
+                    } }
+                } },
+            { 6201, new[] {
+                    new StoryScene { Title = "흑견대 제삼대 · 복장을 얻을 틈", Lines = new[] {
+                        "최와와의 제삼대가 소리의 방향으로 갈렸다. 장홍·모용휘·남궁상이 마혈을 제압하고 비류연이 물품을 살폈다. 추격대를 모두 죽일 필요는 없었다.",
+                    } }
+                } },
+            { 6202, new[] {
+                    new StoryScene { Title = "휘파람 밖의 차음막", Lines = new[] {
+                        "백구가 점혈을 풀고 휘파람을 불었다. 장홍의 거짓 연기 뒤에서 모용휘와 남궁상이 이미 소리를 막았다. 이번에는 그림자로 움직임을 묶을 차례였다.",
+                    } }
+                } },
+            { 6203, new[] {
+                    new StoryScene { Title = "포승줄에 묶인 위장", Lines = new[] {
+                        "장홍이 인피면구로 부상병이 되어 흑견에게 붙들렸다. 쌍룡양박 안에서 묵영포박이 거꾸로 그림자를 묶었다. 흑견대 복장의 비류연이 몽둥이를 들었다.",
+                    } }
+                } },
+            { 6300, new[] {
+                    new StoryScene { Title = "옥소로 끄는 시선", Lines = new[] {
+                        "백무영이 옥소를 들어 시선을 끌었다. 마하령의 지휘 아래 첫 틈을 만드는 사람이 되었다.",
+                    } }
+                } },
+            { 6301, new[] {
+                    new StoryScene { Title = "삼검교연 삼검귀일", Lines = new[] {
+                        "청흔이 굉음을 터뜨려 합주를 끊었다. 끊긴 소리는 곧 다시 이어졌다. 일시 중단만으로는 모두 빠져나갈 시간이 부족했다.",
+                    } }
+                } },
+            { 6302, new[] {
+                    new StoryScene { Title = "합주 최고조 직전", Lines = new[] {
+                        "효민의 연주가 더 높아졌다. 용천명이 삼존불영삼재와 삼중 사자후로 절정에 닿기 전의 공진을 흔들었다.",
+                    } }
+                } },
+            { 6303, new[] {
+                    new StoryScene { Title = "대지의 파도", Lines = new[] {
+                        "합주가 흔들린 순간 마하령이 나무 위에서 만근추 지진각을 쏟았다. 맹견을 비껴 놓으며 흑견대 제이대의 포위를 열어 일행을 내보내려 했다.",
+                    } }
+                } },
+            { 6400, new[] {
+                    new StoryScene { Title = "보이는 창과 남은 한계", Lines = new[] {
+                        "효효의 구련창을 용안이 읽었다. 나예린은 비설보로 흘렸지만 은풍광영난무가 눈보라를 흩었다. 눈에 보이는 것만으로 끝날 공방은 아니었다.",
+                    } }
+                } },
+            { 6401, new[] {
+                    new StoryScene { Title = "폭풍비상 비홍관운", Lines = new[] {
+                        "남해 폭풍 속 사익비홍 시련에서 배운 날갯짓을 떠올렸다. 손위 사자와 함께 겪은 길을 검각의 신법으로 이었다.",
+                        "은아 질풍아를 뚫는 순간 어딘가에서 날아온 나뭇잎이 효효의 어깨를 꿰었다. 숨은 조력자가 누구인지는 드러나지 않았다.",
+                    } }
+                } },
+            { 6402, new[] {
+                    new StoryScene { Title = "검을 놓으라는 소리", Lines = new[] {
+                        "빙백봉무 난익 앞에 효민의 피리가 끼었다. 무혼초령음이 몸을 굳히고 검을 놓으라 명했다. 나예린은 납치 때 얻은 심득으로 검만큼은 놓지 않으려 했다.",
+                    } }
+                } },
+            { 6403, new[] {
+                    new StoryScene { Title = "영령이 돌아온 길", Lines = new[] {
+                        "의지는 명령을 버텼어도 몸은 움직이지 않았다. 돌아온 영령이 뛰쳐나온 효묘를 인질로 잡았다. 일곱 검은 공의 향신료 연막으로 예린과 함께 빠져나갈 틈을 만들었다.",
+                    } }
+                } },
+            { 6500, new[] {
+                    new StoryScene { Title = "흑저·나전·정오삼 사이", Lines = new[] {
+                        "흑선문·적선문·백선문의 관계와 검이 닿을 자리를 읽었다. 비류연은 그 사이에 실을 걸어 한 번의 오해가 번질 길을 준비했다.",
+                    } }
+                } },
+            { 6501, new[] {
+                    new StoryScene { Title = "우민군무 불신지옥", Lines = new[] {
+                        "뇌령사가 움직이자 나전의 검이 흑저를 베었다. 세 문파 사이의 싸움이 천라지망 안으로 번졌다. 비류연은 꼭두각시 춤의 틈으로 일행을 통과시켰다.",
+                    } }
+                } },
+            { 6502, new[] {
+                    new StoryScene { Title = "암시 봉인을 건 사람", Lines = new[] {
+                        "지나치게 쉬운 통과가 장홍에게 불안으로 남았다. 흑견대 물품과 자신의 암시 봉인을 대조하자 붉은 남천 꽃과 은신처의 기억이 이어졌다.",
+                    } }
+                } },
+            { 6503, new[] {
+                    new StoryScene { Title = "급류 아래의 길", Lines = new[] {
+                        "장홍이 먼저 물속으로 뛰었다. 비류연이 뇌령사로 생존을 확인한 뒤 나머지 세 사람이 따라갈 차례였다. 물 아래 동굴이 대난원이었다.",
+                    } }
+                } },
+            { 6600, new[] {
+                    new StoryScene { Title = "강 아래까지 닫힌 환영식", Lines = new[] {
+                        "나백천은 한철궤라 부른 천하군림궤 속에 장문령부와 천하군림지존신패, 강호조복혈안서, 빈 신무림기가 있음을 밝혔다. 강제로 열면 폭약과 강산이 내용을 파괴하도록 되어 있었다.",
+                        "밖에서는 천 명 넘는 궁수와 쇠그물이 강 아래까지 에워쌌다. 효혜가 만리향으로 따라왔다 밝혔다. 단혜의 운석낙하와 사란의 절대빙옥을 풍신 질풍으로 흩어야 했다.",
+                    } }
+                } },
+            { 6601, new[] {
+                    new StoryScene { Title = "되찾아야 할 사람", Lines = new[] {
+                        "불꽃과 얼음 사이 무화가 나백천의 목을 붙들었다. 모용휘와 남궁상의 검도 진기를 빼앗겼다. 비류연의 흰 뇌광이 현천벽을 뚫고 손목을 위협했다.",
+                    } }
+                } },
+            { 6602, new[] {
+                    new StoryScene { Title = "장인 흥정과 신풍협 인증", Lines = new[] {
+                        "뇌령사로 나백천을 되찾은 비류연이 장차 사위가 될 사람이라 자신을 밝혔다. 몸값으로 여덟 미녀를 요구한 말이 협상 시간을 만들었다.",
+                        "신풍협임을 증명하면 목숨만 살려 주겠다는 시험이 정해졌다. 딸들과 나백천까지 풀어 주는 약속은 아니었다. 기름 고랑의 불꽃 감옥이 조여 왔다.",
+                    } }
+                } },
+            { 6603, new[] {
+                    new StoryScene { Title = "얼음에 맞선 쌍두룡", Lines = new[] {
+                        "화룡난류가 삼매진화를 회전시켜 화룡을 일으켰다. 사란이 절대빙벽으로 막자 쌍두룡과 두 용권이 맞부딪쳤다. 뇌화열풍인 쌍룡귀천이 탈출할 길을 열려 했다.",
+                    } }
+                } },
+            { 6604, new[] {
+                    new StoryScene { Title = "혼절한 나백천을 업고", Lines = new[] {
+                        "벼락과 화룡, 질풍이 포위를 흔들었다. 비류연의 전음에 장홍이 혼절한 나백천을 업었다. 남궁상과 모용휘가 함께 빠져나갈 틈을 지켰다.",
+                    } }
+                } },
+        };
+
+        public static readonly Dictionary<int, string[]> Briefings = new Dictionary<int, string[]>
+        {
+            { 58, new[] {
+                    "비류연은 아직 나예린의 무릎에서 잠들어 있었다. 당문혜를 잃은 배 안의 침묵은 섬에 닿아서도 쉽게 걷히지 않았다.",
+                    "남궁상은 당삼을 막지 못한 책임을 자책했다. 진령이 곁을 지켰고, 나예린은 예청과 다시 만났다.",
+                    "예청은 비류연에게 남편을 구해 달라 정식으로 부탁했다. 그는 예린의 아버지이기 때문에 값을 매기지 않고 받았다.",
+                    "예청은 무사 귀환 뒤 교제 승낙을 생각해 보겠다 했지만 딸을 데려가지는 말라 했다. 비류연은 나예린 스스로 정할 일이라 답했다.",
+                    "혁중은 쌍검을 부러뜨린 효룡에게 본래 형에게 주려던 쌍붕도 중천을 건넸다. 천외일도를 얻으라는 과제와 가족의 슬픔이 함께 남았다.",
+                    "오른팔을 잃은 노학에게 비류연은 개방의 역린좌와 한 손 좌수검을 이야기했다. 노학은 다시 일어설 수련의 길을 택했다.",
+                    "주작단 대부분은 돌아갔다. 남궁상·진령·금영호는 남았고 류은경도 끝까지 곁에 섰다. 금영호의 집안은 그 지역에 기반이 있었다.",
+                    "효룡에게는 계승한 쌍도를 익힐 길이 남았다. 노학의 새 결심도 이미 완성한 검술은 아니었다.",
+                    "출항할 배를 향해 절벽 위에서 한 사람이 뛰었다. 내려오라고 정한 다른 이의 판단보다 나예린 자신의 뜻이 먼저였다.",
+                } },
+            { 59, new[] {
+                    "장홍·비류연·모용휘·남궁상이 밤의 연락망을 돌았다. 나머지 일행은 신용산객잔에 머물렀다.",
+                    "태원잡화점에 이어 다관·포목점·푸줏간까지 연락이 끊겼다. 우연히 빈 가게가 이어진 모양은 아니었다.",
+                    "흔적을 지우는 작업은 뿌리까지 뽑는 식근에 가까웠다.",
+                    "장홍이 아는 거점은 다섯이었다. 네 곳의 소식이 끊긴 뒤에도 구출대가 있는 객잔만 남아 있었다.",
+                    "말끔한 침묵보다 일부러 남겨 둔 연락망이 더 위험할 수 있었다.",
+                    "다른 곳의 나예린은 잠든 사람들 사이에서 익숙하지 않은 기류를 느끼고 있었다.",
+                    "밖에서는 장홍이 마지막 보고를 찾았다. 안에서는 나예린이 영령과 진령을 깨울 생각을 굳혔다.",
+                    "두 갈래의 움직임은 같은 객잔의 위험을 향했다.",
+                } },
+            { 60, new[] {
+                    "나예린의 확신으로 총관 담환까지 깨어 있었다. 염도와 빙검은 술잔을 내려놓고 밖의 발소리를 들었다.",
+                    "다른 이들이 비밀 통로로 빠질 시간을 두 사람이 맡았다.",
+                    "염도는 영령에게 나예린을 지키라 일렀고 진령에게는 대사형이 죽게 하지는 않을 것이라 전했다.",
+                    "순찰단의 선두에 손광이 나섰다. 갈효혜는 이미 표행 때부터 두 노사를 알아보았다고 했다.",
+                    "걸음걸이와 기세는 옷만 바꾼다고 사라지지 않았다. 즉각 충돌하지 않고 들어온 일과 감시를 지운 일은 달랐다.",
+                    "효린과 효진이 불꽃의 합격진을 준비했다.",
+                    "염도와 빙검은 오래 다투며 살아왔다. 힘을 합치자는 말에도 먼저 거부감이 섰다.",
+                    "이번에는 서로를 구할 판단과 맡은 공세를 지킬 약속이 필요했다.",
+                } },
+            { 61, new[] {
+                    "비류연과 모용휘는 두 노사의 패배를 지켜보았다. 무화의 검 앞에 무엇을 더 낼 수 있는지 장담하기 어려웠다.",
+                    "포로는 살아 있었다. 지금 맞서 모두 잃기보다 나백천을 찾을 길과 다시 구할 가능성을 남겨야 했다.",
+                    "비류연은 후퇴를 택했고 모용휘는 작전상 후퇴라 불러 달라 했다.",
+                    "남궁상·장홍·모용휘가 비류연과 함께 남문에 이르렀다. 흑견이 음파와 검은 포승줄로 길을 막았다.",
+                    "이탈할 성문이 눈앞이었다. 먼저 소리를 끊고 호신강기와 줄을 넘어야 했다.",
+                    "서로 다른 세 검이 문을 열 차례도 남아 있었다.",
+                    "비밀 통로로 간 일행은 아직 다른 길에 있었다.",
+                    "여기서 지킬 목적은 성문 밖으로 나가 수색을 계속하는 것이었다.",
+                } },
+            { 62, new[] {
+                    "장홍의 알림 방울이 추격을 알렸다. 남궁상은 진령과 두 노사의 일을 걱정했다.",
+                    "비류연이 웃게 하자 사방에서 웃음이 번졌다. 긴장의 냄새가 사라진 것을 흑견은 오히려 의심했다.",
+                    "그 멈칫한 시간을 구출대가 먼저 잡았다.",
+                    "장홍·모용휘·남궁상은 제삼대를 작은 무리로 갈라 제압했다. 비류연이 품속의 물품을 살폈다.",
+                    "제이조의 백구는 점혈을 풀고 휘파람으로 알리려 했다. 그 소리가 닿을 곳에는 다른 준비가 필요했다.",
+                    "적이 쫓는 길을 역으로 읽을 단서와 복장이 모였다.",
+                    "다른 장소에서 자하삼기와 술을 마시던 자색 옷의 사내가 검은 불꽃 일곱 무리를 보았다.",
+                    "흑사자패와 쌍도를 지닌 갈중하가 잠적을 끝낼 생각을 굳혔다. 구출대는 아직 그 결정을 모른 채 추격을 떼려 했다.",
+                } },
+            { 63, new[] {
+                    "담환은 통로의 곁문을 가리켰다. 문 모양을 본떠 묻은 돌벽 뒤에는 열 길 넘는 돌과 흙이 있었다.",
+                    "함부로 두드리면 붕괴할 수 있었다. 일행은 담환의 안내대로 끝까지 나가야 했다.",
+                    "그 끝에서는 무음탄주가 기다렸다.",
+                    "용천명이 총회주의 지휘를 마하령에게 넘겼다. 청흔과 백무영의 인정이 완성된 것은 아니어도 지금은 결정을 따라야 했다.",
+                    "마하령은 좁은 통로와 높은 곳의 두려움을 안고 역할을 나눴다.",
+                    "백무영의 옥소, 청흔의 세 검, 용천명의 사자후가 하나씩 길을 열 수 있었다.",
+                    "최고조 직전의 합주를 끊어야 포위망을 흔들 수 있었다.",
+                    "나예린은 마하령과 후위를 맡을 약속을 해 두었다. 옥유경과 무명도 이탈할 틈을 살폈다.",
+                } },
+            { 64, new[] {
+                    "다른 이들이 빠져나갈 동안 나예린은 홀로 남았다. 효효가 십 초면 끝내겠다며 은금 속에서 은창을 꺼냈다.",
+                    "용안에는 창 초식이 보였다. 그러나 보이는 것과 모든 공세를 넘어서는 것은 같지 않았다.",
+                    "비설보로 흐름을 읽으며 폭풍 속에서 배운 날갯짓을 떠올려야 했다.",
+                    "나예린이 없다는 것을 알아챈 영령은 불안해졌다. 사매라 부른 자신의 말에도 놀랐다.",
+                    "진령의 부탁에 꿈자리 때문이라 둘러댄 뒤, 영령은 떠난 길을 되돌아갔다.",
+                    "기억의 답을 얻지 못한 채라도 돌아갈 사람을 고를 수 있었다.",
+                    "효민은 피리로 공방의 한계를 바꿀 수 있었다. 효묘는 풀숲에서 다가오는 존재를 알아차렸다.",
+                    "나예린의 검과 영령의 선택이 아직 서로 만나기 전이었다.",
+                } },
+            { 65, new[] {
+                    "비류연·장홍·모용휘·남궁상 앞에 천라지망이 펼쳐졌다. 수를 넷으로 나누어도 정면으로 싸울 길은 아니었다.",
+                    "흑선문·적선문·백선문은 같은 편에 섰으나 서로를 믿는 사이는 아니었다.",
+                    "비류연은 그들 사이에 뇌령사를 걸었다.",
+                    "흑견대의 물품은 변장에만 쓰이지 않았다. 장홍 자신이 만든 무영대의 암시 봉인을 풀 단서도 있었다.",
+                    "숨긴 곳의 기억을 되찾으면 붉은 남천 꽃과 급류가 이어질 수 있었다.",
+                    "대난원은 지도 위에서 바로 가리킬 수 있는 표식이 아니었다.",
+                    "장홍이 물 아래로 먼저 들어가고 뇌령사로 생존을 확인할 길을 생각했다.",
+                    "그 뒤에 나머지가 따라가야 했다. 나백천을 발견한 뒤에도 다친 몸을 확인할 시간이 필요했다.",
+                } },
+            { 66, new[] {
+                    "나백천은 일행을 알아보았다. 안도의 시간이 지난 뒤에도 가슴의 비스듬한 상처에서 피가 멎지 않았다.",
+                    "그 흔적은 백이 년 전 천무봉에서 본 일격과 같았다. 그는 보지 못한 뒷부분까지 아는 척하지 않고 기억을 꺼냈다.",
+                    "혁월린과 갈중혁은 젊은 그에게 인의 열쇠를 지켜 달라 맡겼다.",
+                    "위천무의 무음무흔무형 일격이 불꽃과 얼음의 방패를 지나갔다. 나백천은 환살에 빠져 그 뒤 싸움을 보지 못했다.",
+                    "멸겁삼관이 맡던 아홉 열쇠가 사라진 뒤 혁월린과 갈중혁이 각 네 개, 나백천이 인의 열쇠 하나를 지켰다. 맹주의 최우선 임무는 그 천붕금시를 지키는 것이었다.",
+                    "장문령부는 권위의 증표였고 강호조복혈안서는 장문인들이 피로 서명한 복종의 서약이었다. 군림삼보의 마지막 신무림기는 아직 텅 빈 책이었다.",
+                    "나백천은 청룡은장의 멸문도 열쇠를 노린 참극이었다고 밝혔다. 오래전 전달된 짐과 희생의 이유가 강호 전체의 비밀에 닿았다.",
+                    "그 설명을 마친 나백천을 데리고 밖으로 나가야 했다.",
+                    "빙은 가면의 사내가 백호 모양 황금 열쇠로 한철궤의 첫 자물쇠를 열었다. 열여덟 잠금 전체가 풀린 것은 아니었다.",
+                    "동가면으로 얼굴을 가린 사내는 임시 맹주 은천벽이었다. 위천무의 제자 역천과 북천이 그와 연결되었다.",
+                    "그 배후 장면과 다른 곳에서, 대난원 밖에는 사궁진과 신마가의 환영식이 준비되어 있었다.",
+                } },
+        };
+
+        public static readonly Dictionary<int, string[]> Aftermaths = new Dictionary<int, string[]>
+        {
+            { 58, new[] {
+                    "무화가 동행한 표행이라는 말로 남문이 열렸다. 신마가가 정체를 몰랐다는 증거는 아니었다. 구출대는 용산객잔으로 향했다.",
+                    "다른 곳의 흑천맹 대전에서 무화가 아들의 관을 열었다. 비탄과 사란의 환살이 번지는 가운데 효혜가 만류했다. 은설란은 모용휘와 적이 될 줄은 모른 채, 좋아했던 사람과도 싸울 수 있다는 경고를 듣고 출진을 청했다.",
+                    "나백천과 나 씨의 이름이 적힌 살생부 깃발이 올랐다. 피해를 응징한 힘과 가족을 잃은 분노가 이제 구출대가 가는 길을 향했다.",
+                } },
+            { 59, new[] {
+                    "밖의 조사와 안의 경고는 같은 포위를 확인했다. 일행은 담환의 비밀 통로로 움직였다.",
+                    "염도와 빙검은 객잔 앞에 남아 시간을 벌었다. 나예린의 용안은 모든 미래의 정답 대신 지금 행동할 확신을 주었다.",
+                    "상현의 최후 보고는 대난원과 천라지망을 잇는 단서가 되었다. 남겨 둔 다섯째 거점의 덫에서 벗어날 길은 아직 끝나지 않았다.",
+                } },
+            { 60, new[] {
+                    "빙검을 구한 화륜참 뒤 두 노사가 힘을 합쳤다. 빙폭우와 화륜람을 무화가 받아 냈고, 소매만 찢긴 채 도검을 돌려주었다.",
+                    "건곤일월합격진을 펼쳐 보라는 말 앞에 이십 년의 미완성과 사부의 기억이 남았다. 묵린현현의 한 검에 두 사람이 쓰러졌다. 사란이 마지막 손을 막았다.",
+                    "효홍이 용근삭으로 두 노사를 묶었다. 일행이 이탈할 시간은 벌었고 두 노사는 살아 있는 포로가 되었다. 비밀 통로 출구에는 이미 별도의 매복이 기다렸다.",
+                } },
+            { 61, new[] {
+                    "삼인연환이 성문을 부수었다. 네 사람은 남문을 빠져나가 나백천 수색을 이어갔다.",
+                    "뒤에 남은 흑견은 쓰러진 연기를 끝냈다. 호신강기를 뚫린 내상은 진짜였어도 추적 계획은 끝나지 않았다. 백구에게 흑견대를 부르라 했다.",
+                    "별도 장면에서 마천각주는 원로들의 추대로 임시 흑천맹주가 되었다. 흑천쌍룡인과 사자금패를 넘겨받고 칠성좌에 나백천 추적을, 제삼천 굉천에 정천맹 공격을 명했다.",
+                    "은존이 완성했다는 그것의 실체는 드러나지 않았다. 구출대의 이탈과 적의 권력 확보가 서로 다른 장소에서 함께 진행되었다.",
+                } },
+            { 62, new[] {
+                    "흑견이 몽둥이에 쓰러졌다. 얼굴을 본뜬 뒤 숨대롱을 남긴 구덩이에 잠시 가두었다. 추격대의 물품과 복장이 일행의 것이 되었지만 흑견의 죽음을 확인한 것은 아니었다.",
+                    "그는 무화의 명으로 처음부터 일부러 져 주고 길을 열어야 했던 사람이었다. 추격을 뒤집은 뒤에도 더 큰 감시는 남아 있었다.",
+                    "네 사람은 새로운 복장과 정보를 가지고 수색을 계속했다. 비밀 통로를 나간 동료들은 다른 포위와 싸우고 있었다.",
+                } },
+            { 63, new[] {
+                    "지진각이 흔든 틈으로 일행이 빠져나왔다. 맹견은 비껴 놓였고 사상자 없이 포위망을 벗어났다. 무명이나 옥유경이 전부 대신 해결한 길은 아니었다.",
+                    "청흔과 백무영이 마하령을 완전히 인정한 것은 아니어도 용천명의 위임과 네 역할의 연계가 길을 열었다.",
+                    "약속한 후위를 맡아 나예린이 홀로 남았다. 다른 이들이 간 자리와 그녀가 버틸 자리가 잠시 갈라졌다.",
+                } },
+            { 64, new[] {
+                    "연막이 걷힐 때 영령과 나예린은 빠져나왔다. 효묘는 일부러 붙잡혔고, 그 비명이 연기임을 알아챈 자매들은 효혜의 계획이 이어짐을 확인했다.",
+                    "영령의 사매라는 부름은 완전한 기억 복원이 아니었다. 효묘가 따라온 감정의 정체나 나뭇잎 조력자의 이름도 확인되지 않았다. 공손절휘가 임시 동행자의 감시를 맡았다.",
+                    "적의 다른 연락망에는 굉천의 무당 진군과 흑천쌍룡인 결재 소식이 닿았다. 포로인 염도와 빙검은 진심으로 힘을 합쳐 벗어나기로 합의했지만 아직 풀려나지는 못했다.",
+                    "효혜는 은천벽의 월권을 경계하며 잠적한 둘째를 불러올 때라 판단했다. 은설란에게 그를 마중할 일을 맡겼다. 임시 맹주의 자리와 다음 권력의 구상이 움직이고 있었다.",
+                } },
+            { 65, new[] {
+                    "급류 아래 동굴에서 중상 입은 나백천을 찾았다. 일행은 먼저 살아 있음을 확인하고 그의 상태를 살폈다.",
+                    "그를 찾아 헤맨 길이 눈앞의 사람으로 끝났다. 안도 뒤에도 가슴의 상처에서는 피가 멎지 않았다.",
+                    "나백천이 그 상처를 보며 백이 년 전 천무봉의 기억을 꺼냈다. 보지 못한 싸움의 끝과 위천무의 최종 생사는 여전히 남았다.",
+                } },
+            { 66, new[] {
+                    "장홍이 나백천을 업고 일행이 포위를 빠져나왔다. 화룡과 용권이 뇌신의 경계로 향하는 문을 열었어도 경지 전체를 완성한 것은 아니었다.",
+                    "타지 않은 서찰은 무당산에서 진실을 밝히겠다 약속했다. 신마가와 굉천은 무당을 향했고 염도·빙검은 여전히 포로였다. 사란이 단혜에게 전한 말의 내용은 드러나지 않았다.",
+                    "비류연은 실제로는 남쪽 무한으로 돌아갔다. 잡아야 할 호랑이가 있다는 말만 남겼고 신마가가 일부러 놓아주었는지는 확인되지 않았다.",
+                    "흑견은 부하들과 다시 시찰하고 있었다. 어떻게 풀려났는지는 드러나지 않았다. 구출대는 흑천맹 정문이 보이는 신 녹호객잔에 숨었다.",
+                    "삼층 끝 방의 나백천은 모용휘가 지켰다. 도련님과 호위, 집사로 변장한 세 사람의 술자리에 쌍도를 멘 갈중하가 합석했다. 둘째라 불린다는 소개에서 새로운 만남이 시작되었다.",
+                } },
+        };
+
+    }
+}
