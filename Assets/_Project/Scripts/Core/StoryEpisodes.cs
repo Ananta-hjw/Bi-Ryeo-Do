@@ -352,7 +352,7 @@ namespace BiRyeoDo.Core
 
         private static bool TryScenes(int key, out StoryScene[] scenes)
         {
-            return StoryTournament.Episodes.TryGetValue(key, out scenes) || StoryMidgame.Episodes.TryGetValue(key, out scenes) || Before.TryGetValue(key, out scenes);
+            return StoryEscape.Episodes.TryGetValue(key, out scenes) || StoryRescue.Episodes.TryGetValue(key, out scenes) || StoryTournament.Episodes.TryGetValue(key, out scenes) || StoryMidgame.Episodes.TryGetValue(key, out scenes) || Before.TryGetValue(key, out scenes);
         }
 
         private static void Append(List<string> lines, StoryScene[] scenes)

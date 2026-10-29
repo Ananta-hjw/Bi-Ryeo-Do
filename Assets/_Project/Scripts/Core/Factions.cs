@@ -42,15 +42,15 @@ namespace BiRyeoDo.Core
         public static readonly FactionData[] All =
         {
             new FactionData { Id = "academy", Name = "천무학관", Description = "무림맹 산하의 학관. 수련과 시험이 이어진다.", PerkText = "경험치",
-                Stages = new[] { 2, 6, 7, 8, 9, 10, 11, 12, 13, 16, 17, 19, 20, 32, 33, 34, 36, 37, 38, 40, 41, 43, 44, 45, 46, 48 }, Perk = PerkKind.ExpPct, PerkSteps = new[] { 0.03f, 0.06f, 0.10f } },
+                Stages = new[] { 2, 6, 7, 8, 9, 10, 11, 12, 13, 16, 17, 19, 20, 32, 33, 34, 36, 37, 38, 40, 41, 43, 44, 45, 46, 48, 49, 50, 52, 53, 54, 55, 56, 59, 60, 61, 62, 63, 64, 65, 66 }, Perk = PerkKind.ExpPct, PerkSteps = new[] { 0.03f, 0.06f, 0.10f } },
             new FactionData { Id = "biaoguk", Name = "중양표국", Description = "표행을 맡는 표국. 길과 물자에 밝다.", PerkText = "얻는 은자",
-                Stages = new[] { 2, 3, 5, 22, 25, 31, 35, 39, 41, 42, 47 }, Perk = PerkKind.DooPct, PerkSteps = new[] { 0.03f, 0.06f, 0.10f } },
+                Stages = new[] { 2, 3, 5, 22, 25, 31, 35, 39, 41, 42, 47, 56, 57, 58, 65, 66 }, Perk = PerkKind.DooPct, PerkSteps = new[] { 0.03f, 0.06f, 0.10f } },
             new FactionData { Id = "wudang", Name = "무당파", Description = "태극의 문파. 호흡과 회복에 능하다.", PerkText = "전투 사이 정비 회복량",
-                Stages = new[] { 14, 15, 18 }, Perk = PerkKind.RestHeal, PerkSteps = new[] { 0.05f, 0.10f, 0.15f } },
+                Stages = new[] { 14, 15, 18, 51, 54, 55, 60, 63 }, Perk = PerkKind.RestHeal, PerkSteps = new[] { 0.05f, 0.10f, 0.15f } },
             new FactionData { Id = "greenwood", Name = "녹림", Description = "산채의 사람들. 산길과 노획품에 밝다.", PerkText = "아이템 드롭 확률",
                 Stages = new[] { 21, 22, 28 }, Perk = PerkKind.DropPct, PerkSteps = new[] { 0.10f, 0.20f, 0.35f } },
             new FactionData { Id = "huashan", Name = "화산파", Description = "매화의 문파. 합을 맞추는 검에 능하다.", PerkText = "합공 위력",
-                Stages = new[] { 8, 11, 23, 24, 25, 26, 27, 28, 29, 30, 44, 45 }, Perk = PerkKind.JointPower, PerkSteps = new[] { 0.05f, 0.10f, 0.15f } },
+                Stages = new[] { 8, 11, 23, 24, 25, 26, 27, 28, 29, 30, 44, 45, 64 }, Perk = PerkKind.JointPower, PerkSteps = new[] { 0.05f, 0.10f, 0.15f } },
         };
 
         public static FactionData Find(string id)

@@ -33,7 +33,7 @@ namespace BiRyeoDo.Tests
                 Assert.Greater(StageStars.FastLimit(number, i), 0);
             }
             Assert.IsTrue(GearDrops.IsBossFight(stage, fights - 1));
-            Assert.AreEqual(48, EarlyGameContent.Stages.Length);
+            Assert.AreEqual(66, EarlyGameContent.Stages.Length);
             Recommend.StageReward(new SaveData(), stage, out long newExp, out long newDoo);
             var previous = WithoutAddedFights(stage);
             long oldExp, oldDoo;

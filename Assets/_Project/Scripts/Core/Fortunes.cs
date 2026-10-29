@@ -292,6 +292,74 @@ namespace BiRyeoDo.Core
                 new FortuneChoice { Label = "실제로 본 조건부터 정리한다", Result = "아직 받지 않은 다섯 공격의 결말을 단정하지 않았습니다.", ExpLevels = .25 },
                 new FortuneChoice { Label = "상대의 전조를 읽는 수련을 한다", Result = "강함만으로 놓칠 수 있는 한 수를 돌아봤습니다.", MasteryUses = 16 },
             } },
+            new FortuneEvent { Id = "f_rule_and_reason", Title = "규칙을 세운 까닭", UnlockStage = 49, Text = new[] { "락비오는 갑옷과 규칙에 몸을 맡겼다. 그 집착 뒤에는 타 버린 법전과 지키지 못한 아버지가 있었다.", "목관으로 안내하겠다는 패배의 인정은 목숨을 거두는 결판과 달랐다." }, Choices = new[] {
+                new FortuneChoice { Label = "공방의 원리를 복기한다", Result = "결과를 만든 관찰과 판단을 수련으로 되짚었습니다.", MasteryUses = 18 },
+                new FortuneChoice { Label = "함께한 사람의 몫을 기억한다", Result = "혼자 만든 성취로 기록하지 않았습니다.", BondPoints = 2, ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_own_answer", Title = "배운 것을 자기 방식으로", UnlockStage = 50, Text = new[] { "모용휘는 눈을 감고 열기를 읽었다. 다른 이에게 배운 정과 반을 자기 검에 모았다.", "방법을 찾으라는 화두는 새 비급 하나를 받는 일보다 길었다." }, Choices = new[] {
+                new FortuneChoice { Label = "공방의 원리를 복기한다", Result = "결과를 만든 관찰과 판단을 수련으로 되짚었습니다.", MasteryUses = 18 },
+                new FortuneChoice { Label = "함께한 사람의 몫을 기억한다", Result = "혼자 만든 성취로 기록하지 않았습니다.", BondPoints = 2, ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_curved_wind", Title = "쳐내기에서 휘게 하기까지", UnlockStage = 51, Text = new[] { "동전을 쳐내던 방어는 강기전 앞에서 한계에 닿았다.", "현운은 회전하는 물과 바람의 원리로 그 흐름을 바꾸었다." }, Choices = new[] {
+                new FortuneChoice { Label = "공방의 원리를 복기한다", Result = "결과를 만든 관찰과 판단을 수련으로 되짚었습니다.", MasteryUses = 18 },
+                new FortuneChoice { Label = "함께한 사람의 몫을 기억한다", Result = "혼자 만든 성취로 기록하지 않았습니다.", BondPoints = 2, ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_unfinished_name", Title = "이름을 잃어도 고를 수 있는 것", UnlockStage = 52, Text = new[] { "영령은 기억이 맞는지 알 수 없었다. 그래도 납치 소식에 동요하고 함께 가겠다고 했다.", "불완전한 기억은 지금의 선택까지 무효로 만들지 않았다." }, Choices = new[] {
+                new FortuneChoice { Label = "공방의 원리를 복기한다", Result = "결과를 만든 관찰과 판단을 수련으로 되짚었습니다.", MasteryUses = 18 },
+                new FortuneChoice { Label = "함께한 사람의 몫을 기억한다", Result = "혼자 만든 성취로 기록하지 않았습니다.", BondPoints = 2, ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_empty_cup", Title = "비워서 품는 자리", UnlockStage = 53, Text = new[] { "원래 기운과 좌수룡, 약력은 서로 밀어냈다.", "비우는 가르침이 셋을 한 몸에 품는 길을 열었다. 효룡이 지킨 시간도 그 성취의 일부였다." }, Choices = new[] {
+                new FortuneChoice { Label = "공방의 원리를 복기한다", Result = "결과를 만든 관찰과 판단을 수련으로 되짚었습니다.", MasteryUses = 18 },
+                new FortuneChoice { Label = "함께한 사람의 몫을 기억한다", Result = "혼자 만든 성취로 기록하지 않았습니다.", BondPoints = 2, ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_trusted_back", Title = "등을 맡긴 걸음", UnlockStage = 54, Text = new[] { "공손절휘는 같은 무리에서 떨어지지 않겠다고 했다. 모용휘는 그의 가문 절학을 믿고 분신을 맡겼다.", "현운의 바람과 내공 지원, 검의 결정타는 서로의 역할을 지우지 않았다." }, Choices = new[] {
+                new FortuneChoice { Label = "공방의 원리를 복기한다", Result = "결과를 만든 관찰과 판단을 수련으로 되짚었습니다.", MasteryUses = 18 },
+                new FortuneChoice { Label = "함께한 사람의 몫을 기억한다", Result = "혼자 만든 성취로 기록하지 않았습니다.", BondPoints = 2, ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_life_pledge", Title = "혼자 떠넘길 수 없는 빚", UnlockStage = 55, Text = new[] { "현운은 산산을 살리기 위해 만독 시험에 자원했다.", "비류연은 죽지 말라고 다그쳤다. 치료받는 사람에게 마음의 빚을 남기지 않겠다는 약속이었다." }, Choices = new[] {
+                new FortuneChoice { Label = "공방의 원리를 복기한다", Result = "결과를 만든 관찰과 판단을 수련으로 되짚었습니다.", MasteryUses = 18 },
+                new FortuneChoice { Label = "함께한 사람의 몫을 기억한다", Result = "혼자 만든 성취로 기록하지 않았습니다.", BondPoints = 2, ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_captain_order", Title = "기다리지 않는 지휘", UnlockStage = 56, Text = new[] { "남궁상은 대장으로서 출항하라는 명령을 받았다.", "비류연을 기다리지 않고 배를 띄운 것은 맡은 사람들을 지키는 지휘였다." }, Choices = new[] {
+                new FortuneChoice { Label = "공방의 원리를 복기한다", Result = "결과를 만든 관찰과 판단을 수련으로 되짚었습니다.", MasteryUses = 18 },
+                new FortuneChoice { Label = "함께한 사람의 몫을 기억한다", Result = "혼자 만든 성취로 기록하지 않았습니다.", BondPoints = 2, ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_inherited_weight", Title = "계승한 무게", UnlockStage = 58, Text = new[] { "효룡이 받은 쌍붕도 중천에는 가족의 죽음과 천외일도의 과제가 함께 남았다.", "노학의 역린검도 지금 시작할 길이었다. 상실을 새 물건 하나로 덮을 수는 없었다." }, Choices = new[] {
+                new FortuneChoice { Label = "선택을 만든 원리를 복기한다", Result = "힘 외에 관찰과 판단이 연 길을 되짚었습니다.", MasteryUses = 20 },
+                new FortuneChoice { Label = "함께 움직인 사람의 몫을 기록한다", Result = "서로 맡아 준 역할을 기억했습니다.", BondPoints = 2, ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_fifth_contact", Title = "남겨 둔 한 곳", UnlockStage = 59, Text = new[] { "네 거점이 무너진 뒤 객잔만 남았다.", "밖의 보고와 안의 확신이 같은 위험을 가리켰다. 발견한 단서를 어떻게 행동으로 옮길지가 중요했다." }, Choices = new[] {
+                new FortuneChoice { Label = "선택을 만든 원리를 복기한다", Result = "힘 외에 관찰과 판단이 연 길을 되짚었습니다.", MasteryUses = 20 },
+                new FortuneChoice { Label = "함께 움직인 사람의 몫을 기록한다", Result = "서로 맡아 준 역할을 기억했습니다.", BondPoints = 2, ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_living_captives", Title = "남긴 시간과 살아 있는 사람", UnlockStage = 60, Text = new[] { "염도와 빙검은 서로를 구하며 일행이 떠날 시간을 만들었다.", "미완성의 조화와 사부의 기억 앞에 포로가 되었어도 그 시간을 번 일까지 사라지지는 않았다." }, Choices = new[] {
+                new FortuneChoice { Label = "선택을 만든 원리를 복기한다", Result = "힘 외에 관찰과 판단이 연 길을 되짚었습니다.", MasteryUses = 20 },
+                new FortuneChoice { Label = "함께 움직인 사람의 몫을 기록한다", Result = "서로 맡아 준 역할을 기억했습니다.", BondPoints = 2, ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_retreat_path", Title = "후퇴에 남긴 약속", UnlockStage = 61, Text = new[] { "구출대는 전력의 차이를 보았다. 포로가 살아 있기에 다시 구할 길을 남길 수 있었다.", "남문 이탈은 나백천 수색과 이후 구명을 위해 택한 판단이었다." }, Choices = new[] {
+                new FortuneChoice { Label = "선택을 만든 원리를 복기한다", Result = "힘 외에 관찰과 판단이 연 길을 되짚었습니다.", MasteryUses = 20 },
+                new FortuneChoice { Label = "함께 움직인 사람의 몫을 기록한다", Result = "서로 맡아 준 역할을 기억했습니다.", BondPoints = 2, ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_bent_hunt", Title = "쫓는 사람의 그림자", UnlockStage = 62, Text = new[] { "흑견대는 소리와 긴장의 냄새를 좇았다. 일행은 그 감각에 다른 소리를 들려주었다.", "복장과 정보가 바뀌어도 전체 감시가 사라졌다고 단정할 수는 없었다." }, Choices = new[] {
+                new FortuneChoice { Label = "선택을 만든 원리를 복기한다", Result = "힘 외에 관찰과 판단이 연 길을 되짚었습니다.", MasteryUses = 20 },
+                new FortuneChoice { Label = "함께 움직인 사람의 몫을 기록한다", Result = "서로 맡아 준 역할을 기억했습니다.", BondPoints = 2, ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_shared_command", Title = "일단 맡긴 지휘", UnlockStage = 63, Text = new[] { "용천명이 지휘를 넘겼다. 청흔과 백무영의 모든 의심이 풀린 것은 아니었다.", "지금 서로의 능력을 잇는 결정이 사상자 없는 이탈로 이어졌다." }, Choices = new[] {
+                new FortuneChoice { Label = "선택을 만든 원리를 복기한다", Result = "힘 외에 관찰과 판단이 연 길을 되짚었습니다.", MasteryUses = 20 },
+                new FortuneChoice { Label = "함께 움직인 사람의 몫을 기록한다", Result = "서로 맡아 준 역할을 기억했습니다.", BondPoints = 2, ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_returned_choice", Title = "돌아온다는 선택", UnlockStage = 64, Text = new[] { "영령은 사매라 부른 자신에게 놀랐다. 기억은 여전히 온전하지 않았다.", "그래도 돌아와야 할 사람을 선택하고 몸을 움직일 수 있었다." }, Choices = new[] {
+                new FortuneChoice { Label = "선택을 만든 원리를 복기한다", Result = "힘 외에 관찰과 판단이 연 길을 되짚었습니다.", MasteryUses = 20 },
+                new FortuneChoice { Label = "함께 움직인 사람의 몫을 기록한다", Result = "서로 맡아 준 역할을 기억했습니다.", BondPoints = 2, ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_red_flower_trace", Title = "꽃과 급류의 연결", UnlockStage = 65, Text = new[] { "장홍은 자신이 건 암시 봉인을 풀었다. 흑견대의 물품이 붉은 꽃과 급류의 기억을 잇는 단서였다.", "은신처는 힘으로 밀어 열 수 있는 문보다 전문 지식과 먼저 들어갈 사람의 신뢰를 필요로 했다." }, Choices = new[] {
+                new FortuneChoice { Label = "선택을 만든 원리를 복기한다", Result = "힘 외에 관찰과 판단이 연 길을 되짚었습니다.", MasteryUses = 20 },
+                new FortuneChoice { Label = "함께 움직인 사람의 몫을 기록한다", Result = "서로 맡아 준 역할을 기억했습니다.", BondPoints = 2, ExpLevels = .2 },
+            } },
+            new FortuneEvent { Id = "f_southern_invitation", Title = "초대장과 다른 발걸음", UnlockStage = 66, Text = new[] { "서찰은 무당산을 가리켰지만 구출대는 무한으로 돌아갔다.", "나백천은 청룡은장의 참극과 열쇠 수호의 책임을 밝혔다. 구출은 이루어졌어도 전쟁과 포로 문제는 남아 있었다." }, Choices = new[] {
+                new FortuneChoice { Label = "선택을 만든 원리를 복기한다", Result = "힘 외에 관찰과 판단이 연 길을 되짚었습니다.", MasteryUses = 20 },
+                new FortuneChoice { Label = "함께 움직인 사람의 몫을 기록한다", Result = "서로 맡아 준 역할을 기억했습니다.", BondPoints = 2, ExpLevels = .2 },
+            } },
         };
 
         public static FortuneEvent Find(string id)

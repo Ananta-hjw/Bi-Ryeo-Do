@@ -345,10 +345,12 @@ namespace BiRyeoDo.Tests
 
         [TestCase("f_unfamiliar_staff")] [TestCase("f_leave_nest")] [TestCase("f_free_help")]
         [TestCase("f_unfinished_memory")] [TestCase("f_spared_witness")] [TestCase("f_asked_help")] [TestCase("f_hidden_hand")]
+        [TestCase("f_rule_and_reason")] [TestCase("f_own_answer")] [TestCase("f_curved_wind")] [TestCase("f_unfinished_name")] [TestCase("f_empty_cup")] [TestCase("f_trusted_back")] [TestCase("f_life_pledge")] [TestCase("f_captain_order")]
         [TestCase("f_red_signal")] [TestCase("f_guest_map")] [TestCase("f_samjae_question")]
         [TestCase("f_staked_name")] [TestCase("f_unopened_door")]
         [TestCase("f_unanswered_commission")] [TestCase("f_sealed_legacy")] [TestCase("f_two_cases")]
         [TestCase("f_rebuild_credit")] [TestCase("f_own_choice")]
+        [TestCase("f_inherited_weight")] [TestCase("f_fifth_contact")] [TestCase("f_living_captives")] [TestCase("f_retreat_path")] [TestCase("f_bent_hunt")] [TestCase("f_shared_command")] [TestCase("f_returned_choice")] [TestCase("f_red_flower_trace")] [TestCase("f_southern_invitation")]
         public void ReanalysisFortunesDoNotPayAgainOrUnlockBeforeTheirChapters(string id)
         {
             var fortune = Fortunes.Find(id);
@@ -364,9 +366,11 @@ namespace BiRyeoDo.Tests
 
         [TestCase("m_refused_name")] [TestCase("m_wings_granted")] [TestCase("m_shared_ice")]
         [TestCase("m_thanks_ryuyeon")] [TestCase("m_black_horn_trace")]
+        [TestCase("m_opened_eyes")] [TestCase("m_self_return")] [TestCase("m_sister_hand")] [TestCase("m_trembling_hand")] [TestCase("m_stood_with_you")] [TestCase("m_umbrella_question")]
         [TestCase("m_red_contract")] [TestCase("m_returned_hawk")] [TestCase("m_market_stroll")]
         [TestCase("m_silver_step")] [TestCase("m_facing_fear")]
         [TestCase("m_after_fire")] [TestCase("m_asked_for_help")]
+        [TestCase("m_face_in_quiet")] [TestCase("m_chosen_seat")] [TestCase("m_sister_responsibility")] [TestCase("m_inn_certainty")] [TestCase("m_storm_wings")] [TestCase("m_returned_samae")]
         public void ReanalysisMemoriesPayOnlyAfterTheirStoryAndOnlyOnce(string id)
         {
             var memory = Memories.Find(id);
@@ -769,7 +773,7 @@ namespace BiRyeoDo.Tests
             CollectionAssert.AreEqual(new[] { "dan_pyeong", "jo_yeonil", "jin_pae", "ilyeon", "eonga_yeong", "jeon_okgi" }, tournament.Encounters.SelectMany(x => x));
             Assert.IsTrue(tournament.Encounters.All(x => x.Length == 1));
             CollectionAssert.AreEqual(new[] { "dang_munceon" }, EarlyGameContent.FindStage(13).Encounters[0]);
-            Assert.AreEqual(48, EarlyGameContent.Stages.Length);
+            Assert.AreEqual(66, EarlyGameContent.Stages.Length);
             CollectionAssert.AreEqual(Enumerable.Range(1, 36), EarlyGameContent.Stages.Take(36).Select(x => x.Number));
         }
 

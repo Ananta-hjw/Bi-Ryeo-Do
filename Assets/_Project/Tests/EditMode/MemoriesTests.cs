@@ -15,7 +15,7 @@ namespace BiRyeoDo.Tests
             {
                 Assert.LessOrEqual(m.UnlockStage, max, m.Id);
                 Assert.GreaterOrEqual(m.Volume, 1, m.Id);
-                Assert.LessOrEqual(m.Volume, 25, m.Id);   // only volumes that have stages (Story/INDEX.md, GAME_MAPPING.md)
+                Assert.LessOrEqual(m.Volume, 29, m.Id);   // only volumes that have stages (Story/INDEX.md, GAME_MAPPING.md)
                 Assert.GreaterOrEqual(m.Lines.Length, 2, m.Id);
                 Assert.Greater(m.RewardDoo, 0, m.Id);
                 foreach (var raw in m.Lines)

@@ -17,7 +17,7 @@ namespace BiRyeoDo.Tests
 
             if (b.Trial != null && b.Trial.Kind == TrialKind.Technique)
             {
-                var required = skills.FirstOrDefault(s => s.Id == b.Trial.TechniqueId);
+                var required = skills.FirstOrDefault(s => s.Id == b.RequiredTechniqueId);
                 if (required != null && b.TechniqueWindowOpen && b.CanReach(required))
                     return PlayerCommand.UseSkill(required, alive.FirstOrDefault());
                 return me.Qi < 30 ? PlayerCommand.Meditate() : PlayerCommand.Guard();

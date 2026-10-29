@@ -61,6 +61,10 @@ namespace BiRyeoDo.Tests
         [TestCase(40, 43, 80)] [TestCase(41, 4, 16)]
         [TestCase(42, 8, 40)] [TestCase(43, 8, 40)] [TestCase(44, 15, 70)]
         [TestCase(45, 8, 45)] [TestCase(46, 12, 60)] [TestCase(47, 15, 35)] [TestCase(48, 28, 70)]
+        [TestCase(49, 12, 30)] [TestCase(50, 18, 45)] [TestCase(51, 20, 55)] [TestCase(52, 12, 35)]
+        [TestCase(53, 4, 12)] [TestCase(54, 25, 65)] [TestCase(55, 10, 25)] [TestCase(56, 12, 50)] [TestCase(57, 2, 10)]
+        [TestCase(58, 3, 12)] [TestCase(59, 6, 18)] [TestCase(60, 18, 45)] [TestCase(61, 10, 25)]
+        [TestCase(62, 18, 40)] [TestCase(63, 20, 40)] [TestCase(64, 5, 16)] [TestCase(65, 12, 30)] [TestCase(66, 20, 45)]
         public void LateNormalStagesKeepPressureWithoutLongHpSlogs(int number, int minActions, int maxActions)   // Stages 31-36 measure solo and fixed-perspective defense objectives rather than the former full-party HP battles.
         {
             var stage = EarlyGameContent.FindStage(number);

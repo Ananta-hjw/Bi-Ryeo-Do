@@ -8,6 +8,7 @@ namespace BiRyeoDo.Tests
     {
         [TestCase("q_shell_rehearsal")] [TestCase("q_sister_form")] [TestCase("q_blood_cross")]
         [TestCase("q_explosion_exit")] [TestCase("q_gate_lines")]
+        [TestCase("q_number_space")] [TestCase("q_bending_wind")] [TestCase("q_watch_circle")] [TestCase("q_wolf_cooperation")] [TestCase("q_departure")]
         [TestCase("q_guest_parry")]
         [TestCase("q_bridge_cover")]
         [TestCase("q_rope_pattern")]
@@ -28,6 +29,7 @@ namespace BiRyeoDo.Tests
         [TestCase("q_market_screen")]
         [TestCase("q_rope_rehearsal")]
         [TestCase("q_illusion_breath")]
+        [TestCase("q_twins_cover")] [TestCase("q_shadow_deception")] [TestCase("q_chorus_break")] [TestCase("q_spear_read")] [TestCase("q_current_guard")] [TestCase("q_father_carry")]
         public void ReanalysisRehearsalRewardsArePaidOnlyOnce(string id)
         {
             var quest = Quests.Find(id);
@@ -123,7 +125,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void FortunesAreWellFormed()
         {
-            Assert.AreEqual(50, Fortunes.All.Length);
+            Assert.AreEqual(67, Fortunes.All.Length);
             Assert.AreEqual(Fortunes.All.Length, Fortunes.All.Select(f => f.Id).Distinct().Count());
             int max = EarlyGameContent.Stages.Max(st => st.Number);
             foreach (var f in Fortunes.All)

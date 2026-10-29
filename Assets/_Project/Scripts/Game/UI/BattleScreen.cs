@@ -1540,7 +1540,7 @@ namespace BiRyeoDo.Game.UI
                 string sub = cd > 0 ? "재사용 " + cd + "턴" : s.SpiritCost > 0 ? "기세 " + s.SpiritCost : s.QiCost > 0 ? "내공 " + s.QiCost : "";
                 if (cd == 0 && me.Qi < s.QiCost) sub = "내공 부족";
                 else if (!reach) sub = "닿지 않음";
-                if (ok && _battle.Trial != null && _battle.Trial.Kind == TrialKind.Technique && _battle.Trial.TechniqueId == s.Id)
+                if (ok && _battle.Trial != null && _battle.Trial.Kind == TrialKind.Technique && _battle.RequiredTechniqueId == s.Id)
                     sub = _battle.TechniqueWindowOpen ? "목표 · 지금 대응" : "목표 · 예고 대기";
                 SetCommand(slot, s.Name, sub, ok, ArtLibrary.Art(s.Id));
             }

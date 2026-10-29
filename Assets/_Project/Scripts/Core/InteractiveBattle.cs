@@ -80,7 +80,18 @@ namespace BiRyeoDo.Core
         public int EnemyActions { get; private set; }
         public int TechniqueUses { get; private set; }
         public bool TechniqueSucceeded { get { return Trial != null && Trial.Kind == TrialKind.Technique && TechniqueUses >= Trial.TechniqueUses; } }
-        public bool TechniqueWindowOpen { get { if (Trial == null || !Trial.RequiresCharge) return true; foreach (var e in _enemies) if (e.IsAlive && e.Charging) return true; return false; } }
+        public string RequiredTechniqueId { get { return Trial == null ? null : Trial.TechniqueSequence == null ? Trial.TechniqueId : Trial.TechniqueSequence[Math.Min(TechniqueUses, Trial.TechniqueSequence.Length - 1)]; } }
+        public bool TechniqueWindowOpen
+        {
+            get
+            {
+                if (Trial == null || !Trial.RequiresCharge) return true;
+                string cue = Trial.ResponseCues == null ? null : Trial.ResponseCues[Math.Min(TechniqueUses, Trial.ResponseCues.Length - 1)];
+                foreach (var e in _enemies)
+                    if (e.IsAlive && e.Charging && (cue == null || e.PeekMove().Name == cue)) return true;
+                return false;
+            }
+        }
         public int LifelinesCut { get; private set; }
         /// <summary>수화관: how many of the living members have attacked in the current unbroken chain.</summary>
         public int Combo { get { int n = 0; foreach (var m in _party) if (m.IsAlive && _chain.Contains(m.Id)) n++; return n; } }
@@ -243,7 +254,7 @@ namespace BiRyeoDo.Core
             if (cmd.Kind == CommandKind.Joint && EnemiesInRange(cmd.Skill.Range).Count == 0) throw new InvalidOperationException("Out of reach.");
             var actor = Current;
             bool technique = Trial != null && Trial.Kind == TrialKind.Technique && TechniqueWindowOpen
-                && cmd.Kind == CommandKind.Skill && cmd.Skill != null && cmd.Skill.Id == Trial.TechniqueId && actor.Skills.Contains(cmd.Skill);
+                && cmd.Kind == CommandKind.Skill && cmd.Skill != null && cmd.Skill.Id == RequiredTechniqueId && actor.Skills.Contains(cmd.Skill);
             var events = new List<BattleEvent>();
             Current = null;
             PartyActions++;

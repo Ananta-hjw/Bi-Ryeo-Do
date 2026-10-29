@@ -25,7 +25,7 @@ namespace BiRyeoDo.Core
 
         public static bool IsStoryActor(string id) { return id != null && id.StartsWith("story_", System.StringComparison.Ordinal); }
         public static string StoryArtKey(Combatant unit) { return unit.StoryArtId ?? StoryArtKey(unit.Id); }
-        public static string StoryArtKey(string id) { return StoryTournament.ArtKey(id) ?? (IsStoryActor(id) ? id.Substring(6) : id); }
+        public static string StoryArtKey(string id) { return StoryEscape.ArtKey(id) ?? StoryRescue.ArtKey(id) ?? StoryTournament.ArtKey(id) ?? (IsStoryActor(id) ? id.Substring(6) : id); }
 
         public static string StoryName(string id)
         {
@@ -46,7 +46,7 @@ namespace BiRyeoDo.Core
                 case "story_i_jinseol": return "이진설";
             }
             var companion = EarlyGameContent.FindCompanion(id);
-            return companion != null ? companion.Name : StoryTournament.ActorName(id);
+            return companion != null ? companion.Name : StoryEscape.ActorName(id) ?? StoryRescue.ActorName(id) ?? StoryTournament.ActorName(id);
         }
 
         public static string StoryPartySummary(StageData stage)
@@ -98,6 +98,8 @@ namespace BiRyeoDo.Core
                 }
             }
             StoryTournament.PrepareParty(stage, encounter, result);
+            StoryRescue.PrepareParty(stage, encounter, result);
+            StoryEscape.PrepareParty(stage, encounter, result);
             foreach (var member in result) member.StoryControlled = true;
             Formation.Apply(result, null);   // Fixed scenes never rewrite the saved regular-party formation.
             return result;
@@ -108,6 +110,8 @@ namespace BiRyeoDo.Core
         {
             if (StoryActorsFor(stage, encounter) == null) return;
             StoryTournament.PrepareParty(stage, encounter, party);
+            StoryRescue.PrepareParty(stage, encounter, party);
+            StoryEscape.PrepareParty(stage, encounter, party);
             foreach (var member in party)
             {
                 if (member.Id != "story_young_yeonbi") continue;
