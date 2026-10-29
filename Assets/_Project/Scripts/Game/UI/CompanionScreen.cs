@@ -213,7 +213,7 @@ namespace BiRyeoDo.Game.UI
                 && unit.Skills.Any(skill => skill.Id == art.Id)).ToList();
             var summary = UiFactory.Panel("ArtsSummary", _page, new Vector2(0f, .82f), Vector2.one, UiFactory.Ink).rectTransform;
             Text(summary, "Heading", .03f, .47f, hero ? .84f : .97f, .98f, (hero ? "장착 중인 무공" : "현재 사용 무공") + " · " + arts.Count + "개", 32, UiFactory.Gold);
-            Text(summary, "Note", .03f, .03f, hero ? .84f : .97f, .46f, hero ? "전투에 적용되는 효과와 소모 자원을 표시합니다." : "동료 무공은 레벨과 수련에 따라 자동으로 적용됩니다.", 24, UiFactory.Dim);
+            Text(summary, "Note", .03f, .03f, hero ? .84f : .97f, .46f, hero ? "전투에 적용되는 효과와 소모 자원을 표시합니다." : "동료 무공은 레벨·수련·여정 진행에 따라 적용됩니다.", 24, UiFactory.Dim);
             if (hero) SummaryButton(summary, "ArtsMenu", _openArts);
             // Two cards per row, using the whole page below the summary bar
             var list = List(_page, 0f, 0f, 1f, .80f, (arts.Count + 1) / 2, 300f);

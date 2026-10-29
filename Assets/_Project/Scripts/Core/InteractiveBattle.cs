@@ -170,6 +170,7 @@ namespace BiRyeoDo.Core
         /// <summary>합공: the protagonist (on their turn) strikes together with a living ally for 기세 <see cref="JointSpiritCost"/>; the ally loses their next action.</summary>
         public bool CanJoint(Combatant partner)
         {
+            if (Player.StoryControlled && Player.Id != Inventory.Hero) return false;
             return IsPlayerTurn && Current == _party[0] && partner != null && partner != Current && partner.IsAlive
                 && _party.Contains(partner) && Current.Spirit >= JointSpiritCost && AnyEnemyAlive;
         }

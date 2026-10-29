@@ -841,7 +841,11 @@ namespace BiRyeoDo.Game.UI
             LandscapeMenu.Place((RectTransform)_prepOverlay.Find("RewardViewport"), .025f, .45f, .48f, .61f);
             LandscapeMenu.Place((RectTransform)_prepOverlay.Find("EnemiesViewport"), .025f, .13f, .48f, .44f);
             var formation = UiFactory.Rect("Formation", _prepOverlay, new Vector2(.52f, .13f), new Vector2(.98f, .87f));
-            BuildFormationBlock(formation, new List<CompanionData>(active), () => OpenPrep(st, go), .18f, .72f, st);
+            string storyParty = Roster.StoryPartySummary(st);
+            if (storyParty.Length > 0)
+                UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("StoryPerspective", formation, new Vector2(.03f, .03f), new Vector2(.97f, .97f),
+                    "이야기 시점\n\n" + storyParty + "\n\n사건 속 인물로 전투를 진행합니다. 동료는 기존 육성을, 임시 인물은 비류연의 육성 능력치를 사용합니다. 편성과 배치는 이야기에 따라 정해집니다.", 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 32));
+            else BuildFormationBlock(formation, new List<CompanionData>(active), () => OpenPrep(st, go), .18f, .72f, st);
             UiFactory.Button("Go", _prepOverlay, new Vector2(0.52f, .015f), new Vector2(0.95f, .12f), "출전", UiFactory.Red, () => { _prepOverlay.gameObject.SetActive(false); go(); }, 38);
             UiFactory.Button("Cancel", _prepOverlay, new Vector2(0.05f, .015f), new Vector2(0.48f, .12f), "취소", UiFactory.InkSoft, () => { _prepOverlay.gameObject.SetActive(false); _placeSelected = null; }, 34);
         }
@@ -948,6 +952,7 @@ namespace BiRyeoDo.Game.UI
 
         private static string PartyText(StageData st)
         {
+            if (Roster.StoryPartySummary(st).Length > 0) return " · 이야기 시점 전투";
             var companions = EarlyGameContent.SelectCompanionsFor(Roster.PartyStage(st, GameManager.Instance.Save), GameManager.Instance.Save);
             if (companions.Count == 0) return "";
             var names = new List<string>();

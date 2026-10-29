@@ -224,6 +224,26 @@ namespace BiRyeoDo.Core
                     new FortuneChoice { Label = "판을 돕고 수수료를 받는다", Result = "장부를 맞춰 주었더니 삼인방이 수고비를 쥐여 주었다. 동료들과 나눠 먹었다.", Doo = 1560, BondPoints = 1 },
                     new FortuneChoice { Label = "비무만 집중해서 본다", Result = "이기어검의 분영을 눈에 새겼다. 장착 무공의 감이 잡혔다.", MasteryUses = 15 },
                 } },
+            new FortuneEvent { Id = "f_unanswered_commission", Title = "답을 정하지 않은 의뢰", UnlockStage = 31, Text = new[] { "혁중은 모용휘에게 우상이 된 조부의 세계를 넘어서라는 의뢰를 남겼다.", "목표의 말만으로 실행 결과와 대가까지 정해진 것은 아니었다." }, Choices = new[] {
+                new FortuneChoice { Label = "자신의 검이 향할 곳을 돌아본다", Result = "남의 명성보다 자기 선택을 먼저 보았습니다.", ExpLevels = .2 },
+                new FortuneChoice { Label = "함께 짊어질 책임을 묻는다", Result = "아직 답하지 않은 물음을 동료와 나눴습니다.", BondPoints = 2 },
+            } },
+            new FortuneEvent { Id = "f_sealed_legacy", Title = "열지 않은 유산", UnlockStage = 31, Text = new[] { "유재룡은 돈주머니와 봉한 짐, 옥패를 아이들에게 맡겼다. 황룡시 은행 금고 열쇠는 또 다른 단서였다.", "봉한 짐의 내용이나 금고 속 재산을 짐작만으로 자기 몫이라 할 수 없었다." }, Choices = new[] {
+                new FortuneChoice { Label = "맡겨진 것과 알지 못하는 것을 구분한다", Result = "기록을 정돈하며 판단을 가다듬었습니다.", ExpLevels = .2 },
+                new FortuneChoice { Label = "남겨진 아이들의 안전을 먼저 생각한다", Result = "사람을 지켜야 유산도 의미를 이었습니다.", BondPoints = 2 },
+            } },
+            new FortuneEvent { Id = "f_two_cases", Title = "닮은 상처, 다른 사건", UnlockStage = 33, Text = new[] { "민간인의 죽음과 황금 완장을 노린 비살상 습격은 피해자도 결과도 달랐다.", "비류연의 수법과 닮은 흔적만으로 독점적인 증거나 범인을 단정할 수 없었다." }, Choices = new[] {
+                new FortuneChoice { Label = "피해와 시간 기록을 나란히 놓는다", Result = "서로 다른 사건을 하나로 뭉뚱그리지 않았습니다.", ExpLevels = .25 },
+                new FortuneChoice { Label = "확인하지 못한 증언은 남겨 둔다", Result = "모르는 것을 아는 듯 말하지 않기로 했습니다.", MasteryUses = 12 },
+            } },
+            new FortuneEvent { Id = "f_rebuild_credit", Title = "태운 증서, 다시 쌓을 신용", UnlockStage = 35, Text = new[] { "사부는 예금증서를 태웠고, 은장은 무너졌다. 약속한 재건은 아직 이루어지지 않았다.", "봉한 짐은 유경경의 손에서 마 노인에게 전해졌다. 누구도 그 앞에서 내용물을 열지 않았다." }, Choices = new[] {
+                new FortuneChoice { Label = "물건보다 살아남은 사람을 기억한다", Result = "다시 일어설 날을 함께 기다리기로 했습니다.", BondPoints = 2 },
+                new FortuneChoice { Label = "당장 할 수 있는 수련부터 이어 간다", Result = "미완의 약속을 가볍게 여기지 않았습니다.", ExpLevels = .25 },
+            } },
+            new FortuneEvent { Id = "f_own_choice", Title = "스스로 정할 한 걸음", UnlockStage = 36, Text = new[] { "나예린은 도움을 청하고 직접 표국에 갔다. 실패했다고 여긴 선택에도 스스로 움직인 용기가 남았다.", "다른 곳의 영령에게는 은명이 관계와 기억을 통제하려 했다. 누군가 대신 정한 마음은 자신의 선택이 아니었다." }, Choices = new[] {
+                new FortuneChoice { Label = "동료가 직접 말할 때까지 기다린다", Result = "상대가 정할 마음의 자리를 남겨 두었습니다.", BondPoints = 2 },
+                new FortuneChoice { Label = "알 수 없는 이야기를 단정하지 않는다", Result = "확인한 사실과 전해 들은 말을 갈라 적었습니다.", ExpLevels = .25 },
+            } },
         };
 
         public static FortuneEvent Find(string id)

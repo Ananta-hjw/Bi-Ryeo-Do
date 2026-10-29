@@ -51,13 +51,13 @@ namespace BiRyeoDo.Tests
         [TestCase(28, 124, 194)]
         [TestCase(29, 160, 256)]
         [TestCase(30, 165, 259)]
-        [TestCase(31, 96, 150)]
-        [TestCase(32, 63, 99)]
-        [TestCase(33, 136, 214)]
-        [TestCase(34, 110, 173)]
-        [TestCase(35, 127, 198)]
-        [TestCase(36, 70, 110)]
-        public void LateNormalStagesKeepPressureWithoutLongHpSlogs(int number, int minActions, int maxActions)   // ranges re-measured after the 일반 상향 (HP and attack both raised: longer fights are fine, slogs are not)
+        [TestCase(31, 14, 25)]
+        [TestCase(32, 24, 44)]
+        [TestCase(33, 20, 45)]
+        [TestCase(34, 35, 65)]
+        [TestCase(35, 39, 65)]
+        [TestCase(36, 16, 30)]
+        public void LateNormalStagesKeepPressureWithoutLongHpSlogs(int number, int minActions, int maxActions)   // Stages 31-36 measure solo and fixed-perspective defense objectives rather than the former full-party HP battles.
         {
             var stage = EarlyGameContent.FindStage(number);
             var runs = Enumerable.Range(301, 100).Select(seed => BalanceSimulation.Play(stage,

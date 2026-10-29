@@ -89,6 +89,7 @@ namespace BiRyeoDo.Game.UI
 
         private InteractiveBattle _battle;
         private List<Combatant> _party = new List<Combatant>();
+        private int _storyEncounter;
         // Aiming: pressing an attack first lights up who can and cannot be hit; the attack is only used once a hittable enemy is tapped.
         private SkillSpec _aimSkill;
         private Combatant _aimPartner;   // set while aiming a 합공 (the ally who strikes with the protagonist)
@@ -434,6 +435,7 @@ namespace BiRyeoDo.Game.UI
             while (again)
             {
                 again = false;
+                _storyEncounter = startIndex;
                 BuildParty(stage);
                 if (resume) { StageProgress.Restore(save, _party); RefreshParty(); }
                 long gainedExp = 0, gainedDoo = 0;
@@ -446,6 +448,9 @@ namespace BiRyeoDo.Game.UI
 
                 for (int i = startIndex; i < stage.Encounters.Length; i++)
                 {
+                    bool changePerspective = i > startIndex && !Roster.SamePerspective(stage, i - 1, i);
+                    _storyEncounter = i;
+                    if (changePerspective) BuildParty(stage);
                     _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + tag + stage.Name + "  (" + (i + 1) + "/" + stage.Encounters.Length + ")";
                     _lastFightNumber = i + 1;
                     var episodes = StoryEpisodes.BeforeFight(stage, i, save, singleFight);
@@ -519,8 +524,9 @@ namespace BiRyeoDo.Game.UI
                     var leveled = new List<string>();
                     var levelLines = new List<string>();
                     if (levels > 0) { leveled.Add("player"); levelLines.Add("비류연  Lv." + (save.Level - levels) + " → Lv." + save.Level + "  (체력·내공 가득)"); }
-                    for (int k = 1; k < _party.Count; k++)
+                    for (int k = 0; k < _party.Count; k++)
                     {
+                        if (EarlyGameContent.FindCompanion(_party[k].Id) == null) continue;
                         int before = CompanionGrowth.LevelOf(save, _party[k].Id);
                         int gained = CompanionGrowth.AddExp(save, _party[k].Id, exp);
                         if (gained > 0)
@@ -537,6 +543,8 @@ namespace BiRyeoDo.Game.UI
                         foreach (var m in _party) fielded.Add(m.Id);
                         levelLines.AddRange(CompanionGrowth.ShareWithBench(save, fielded, exp));
                     }
+                    if (levels > 0)
+                        foreach (var member in _party) if (Roster.IsStoryActor(member.Id)) leveled.Add(member.Id);
                     save.Doo += doo;
                     gainedExp += exp; gainedDoo += doo;
                     GameManager.Instance.SaveNow();
@@ -561,7 +569,8 @@ namespace BiRyeoDo.Game.UI
                         yield return ShowHub(stage, i, rewardMask, rewardNewStars);
                         if (_leave)
                         {
-                            StageProgress.Store(save, stage.Number, i + 1, _party, diff);
+                            var continuation = Roster.SamePerspective(stage, i, i + 1) ? _party : CreateParty(stage, i + 1);
+                            StageProgress.Store(save, stage.Number, i + 1, continuation, diff);
                             GameManager.Instance.SaveNow();
                             _fled = true; cleared = false; break;
                         }
@@ -645,7 +654,7 @@ namespace BiRyeoDo.Game.UI
             var notes = new List<string>();
             foreach (var m in _party)
             {
-                if (m.Id == "player") continue;
+                if (EarlyGameContent.FindCompanion(m.Id) == null) continue;
                 int rose = Bonds.Add(save, m.Id, points);
                 if (rose >= 0) notes.Add(m.Name + "와(과)의 인연: " + Bonds.LevelNames[rose] + (rose == 1 ? " — 합공 가능!" : ""));
             }
@@ -941,9 +950,11 @@ namespace BiRyeoDo.Game.UI
             return null;
         }
 
-        private List<Combatant> CreateParty(StageData stage)
+        private List<Combatant> CreateParty(StageData stage, int encounter = -1)
         {
             var save = GameManager.Instance.Save;
+            var storyParty = Roster.CreateStoryParty(stage, encounter < 0 ? _storyEncounter : encounter, save);
+            if (storyParty != null) return storyParty;
             var hero = Formation.BuildHero(save);   // equipped arts (four + one 비기), stats and 심법 perks
             var party = new List<Combatant> { hero };
             foreach (var c in EarlyGameContent.SelectCompanionsFor(Roster.PartyStage(stage, save), save))
@@ -1017,7 +1028,7 @@ namespace BiRyeoDo.Game.UI
                 p.ActiveFrame = UiFactory.Glyph("frame", p.Root, new Vector2(.015f, .005f), new Vector2(.985f, .995f), Color.clear);
                 UiFactory.Glyph("stance", p.Root, new Vector2(.12f, .355f), new Vector2(.88f, .40f), new Color(.39f, .62f, .55f, .55f));
                 p.Frame = UiFactory.Panel("Marker", p.Root, new Vector2(0.10f, 0.298f), new Vector2(0.90f, 0.314f), new Color(0f, 0f, 0f, 0f));   // gold bar under the feet marks whose turn it is
-                var sprite = BattleFigure(i == 0 ? "player" : unit.Id);
+                var sprite = BattleFigure(Roster.StoryArtKey(unit.Id));
                 if (sprite != null)
                 {
                     p.Art = FitArt(p.Root, sprite, cell, true);
@@ -1558,7 +1569,7 @@ namespace BiRyeoDo.Game.UI
         {
             _jointPartners.Clear();
             var me = _battle.Current;
-            if (me == null || me != _battle.Player) return;
+            if (me == null || me != _battle.Player || me.Id != Inventory.Hero) return;
             var save = GameManager.Instance.Save;
             foreach (var m in _battle.Party)
             {
@@ -1804,7 +1815,9 @@ namespace BiRyeoDo.Game.UI
             bool hero = unit.Id == "player";
             var companion = hero ? null : EarlyGameContent.FindCompanion(unit.Id);
             int level = hero ? GameManager.Instance.Save.Level : CompanionGrowth.LevelOf(GameManager.Instance.Save, unit.Id);
-            lines.Add("Lv." + level + "  ·  무공 경지 " + Realm.Label(unit.RealmStep) + "  (종합 " + System.Math.Round(unit.RealmPowerBeforeBonus).ToString("N0") + ")");
+            if (Roster.IsStoryActor(unit.Id))
+                lines.Add("이야기 시점 인물 · 비류연의 육성 능력치 적용\n종합 " + System.Math.Round(Realm.Power(unit.Stats)).ToString("N0"));
+            else lines.Add("Lv." + level + "  ·  무공 경지 " + Realm.Label(unit.RealmStep) + "  (종합 " + System.Math.Round(unit.RealmPowerBeforeBonus).ToString("N0") + ")");
             lines.Add("체력 " + unit.Hp.ToString("N0") + " / " + s.MaxHp.ToString("N0") + "\n내공 " + unit.Qi.ToString("N0") + " / " + s.MaxQi.ToString("N0") + "\n기세 " + unit.Spirit + " / " + InteractiveBattle.MaxSpirit);
             lines.Add("공격력 " + s.Attack.ToString("N0") + "   방어력 " + s.Defense.ToString("N0") + "   속도 " + s.Speed.ToString("N0"));
             if (companion != null && !string.IsNullOrEmpty(companion.JointName))
@@ -1820,10 +1833,10 @@ namespace BiRyeoDo.Game.UI
             var companionData = EarlyGameContent.FindCompanion(unit.Id);
             if (companionData != null)
             {
-                var pending = CompanionGrowth.PendingArtLines(companionData, CompanionGrowth.LevelOf(GameManager.Instance.Save, unit.Id));
+                var pending = CompanionGrowth.PendingArtLines(companionData, CompanionGrowth.LevelOf(GameManager.Instance.Save, unit.Id), GameManager.Instance.Save.ClearedStage);
                 if (pending.Count > 0) lines.Add("앞으로 배울 무공: " + string.Join(", ", pending));
             }
-            ShowTip(unit.Name, string.Join("\n\n", lines), BattleFigure(hero ? "player" : unit.Id));
+            ShowTip(unit.Name, string.Join("\n\n", lines), BattleFigure(Roster.StoryArtKey(unit.Id)));
         }
 
         /// <summary>Long press on a party member's panel: every skill they have.</summary>
@@ -1835,7 +1848,7 @@ namespace BiRyeoDo.Game.UI
             var companion = EarlyGameContent.FindCompanion(unit.Id);
             if (companion != null && !string.IsNullOrEmpty(companion.JointName))
                 lines.Add("합공: " + companion.JointName + " (인연 " + Bonds.LevelNames[Bonds.Level(GameManager.Instance.Save, companion.Id)] + ", " + Bonds.BonusText(Bonds.Level(GameManager.Instance.Save, companion.Id)) + ")");
-            ShowTip(unit.Name + " — 스킬", string.Join("\n\n", lines), BattleFigure(unit.Id));
+            ShowTip(unit.Name + " — 스킬", string.Join("\n\n", lines), BattleFigure(Roster.StoryArtKey(unit.Id)));
         }
 
         /// <summary>A unit's battle picture: <c>Battle/&lt;id&gt;.png</c>, else the stand-in figure (default_assassin / default_woman / default_man, <see cref="Genders.DefaultFigure"/>). Never the <c>Standing/</c> art.</summary>

@@ -5,7 +5,7 @@ namespace BiRyeoDo.Core
     /// <summary>Preserve cleared stages, earned stars and boss-clear records when the early story fight lists change.</summary>
     public static class StoryContentMigration
     {
-        public const int CurrentRevision = 7;
+        public const int CurrentRevision = 8;
         public static void Apply(SaveData save)
         {
             if (save == null || save.StoryContentRevision >= CurrentRevision) return;
@@ -122,6 +122,24 @@ namespace BiRyeoDo.Core
                     else if (star.Stage == 30 && star.Fight >= 1) star.Fight = star.Fight == 1 ? 2 : 3;
                 }
                 if (save.ProgressStage >= 26 && save.ProgressStage <= 30) StageProgress.Clear(save);
+            }
+            if (save.StoryContentRevision < 8)
+            {
+                int[] oldCounts = { 2, 2, 3, 2, 3, 2 };
+                int[][] moves = { new[] { 0, 3 }, new[] { 1, 3 }, new[] { 0, 1, 3 }, new[] { 1, 2 }, new[] { 0, 2, 4 }, new[] { 0, 3 } };
+                for (int number = 31; number <= 36 && number <= save.ClearedStage; number++)
+                {
+                    bool recorded = false;
+                    foreach (var star in save.StageStars)
+                        if (star.Stage == number && star.Diff == 0) { recorded = true; break; }
+                    if (recorded) continue;
+                    for (int fight = 0; fight < oldCounts[number - 31]; fight++)
+                        save.StageStars.Add(new StarEntry { Stage = number, Fight = fight, Mask = 1 });
+                }
+                foreach (var star in save.StageStars)
+                    if (star.Stage >= 31 && star.Stage <= 36 && star.Fight >= 0 && star.Fight < moves[star.Stage - 31].Length)
+                        star.Fight = moves[star.Stage - 31][star.Fight];
+                if (save.ProgressStage >= 31 && save.ProgressStage <= 36) StageProgress.Clear(save);
             }
             save.StoryContentRevision = CurrentRevision;
         }

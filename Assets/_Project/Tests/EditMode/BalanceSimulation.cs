@@ -40,8 +40,10 @@ namespace BiRyeoDo.Tests
             return save;
         }
 
-        public static List<Combatant> Party(SaveData save, StageData stage)
+        public static List<Combatant> Party(SaveData save, StageData stage, int encounter = 0)
         {
+            var storyParty = Roster.CreateStoryParty(stage, encounter, save);
+            if (storyParty != null) return storyParty;
             var party = new List<Combatant> { Formation.BuildHero(save) };
             foreach (var c in EarlyGameContent.SelectCompanionsFor(Roster.PartyStage(stage, save), save))
                 party.Add(CompanionGrowth.Create(save, c));
@@ -55,6 +57,7 @@ namespace BiRyeoDo.Tests
             var result = new Result();
             for (int k = 0; k < stage.Encounters.Length; k++)
             {
+                if (k > 0 && !Roster.SamePerspective(stage, k - 1, k)) party = Party(save, stage, k);
                 var enemies = stage.Encounters[k].Select((id, i) =>
                 {
                     var data = stage.EnemyFor(id, stage.TrialFor(k));
@@ -79,12 +82,15 @@ namespace BiRyeoDo.Tests
                     CompanionGrowth.EnsureRecords(save);
                     var leveled = new HashSet<string>();
                     if (Progression.AddExp(save, exp) > 0) leveled.Add(Inventory.Hero);
-                    foreach (var m in party.Skip(1)) if (CompanionGrowth.AddExp(save, m.Id, exp) > 0) leveled.Add(m.Id);
+                    foreach (var m in party)
+                        if (EarlyGameContent.FindCompanion(m.Id) != null && CompanionGrowth.AddExp(save, m.Id, exp) > 0) leveled.Add(m.Id);
+                    if (leveled.Contains(Inventory.Hero))
+                        foreach (var m in party) if (Roster.IsStoryActor(m.Id)) leveled.Add(m.Id);
                     CompanionGrowth.ShareWithBench(save, party.Select(m => m.Id).ToList(), exp);
                     save.Doo += doo;
                     if (leveled.Count > 0)
                     {
-                        var fresh = Party(save, stage);
+                        var fresh = Party(save, stage, k);
                         foreach (var m in fresh)
                         {
                             var old = party.First(p => p.Id == m.Id);

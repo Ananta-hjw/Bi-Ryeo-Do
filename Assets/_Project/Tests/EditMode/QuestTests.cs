@@ -6,6 +6,10 @@ namespace BiRyeoDo.Tests
 {
     public class QuestTests
     {
+        [TestCase("q_ichon")]
+        [TestCase("q_white_phoenix")]
+        [TestCase("q_bait_cover")]
+        [TestCase("q_eogeom_review")]
         [TestCase("q_baekhyang_exit")]
         [TestCase("q_promotion_guard")]
         [TestCase("q_river_cover")]
@@ -114,7 +118,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void FortunesAreWellFormed()
         {
-            Assert.AreEqual(33, Fortunes.All.Length);
+            Assert.AreEqual(38, Fortunes.All.Length);
             Assert.AreEqual(Fortunes.All.Length, Fortunes.All.Select(f => f.Id).Distinct().Count());
             int max = EarlyGameContent.Stages.Max(st => st.Number);
             foreach (var f in Fortunes.All)

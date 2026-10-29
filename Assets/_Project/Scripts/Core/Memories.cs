@@ -191,6 +191,8 @@ namespace BiRyeoDo.Core
                 "나예린|연비!",
                 "십 년 동안 묻어 두었던 생명의 은인의 이름이었다.",
             } },
+            new MemoryData { Id = "m_after_fire", Title = "재생 뒤의 계절", Volume = 17, UnlockStage = 31, RewardDoo = 9700, Lines = new[] { "화재 뒤 계절이 바뀌어도 죽은 세 사람과 부상자들의 몫은 사라지지 않았다.", "비류연과 나예린은 다시 남창으로 향했다. 불사조라는 말은 상처를 모두 잊었다는 선언이 아니었다.", "나예린은 자기 마음을 아직 스스로 정할 수 있었다. 검후와의 내기에 걸린 공인의 약속이 그녀의 혼인 승낙을 대신하지 않았다." } },
+            new MemoryData { Id = "m_asked_for_help", Title = "혼자가 아니었던 첫걸음", Volume = 20, UnlockStage = 34, RewardDoo = 10900, Lines = new[] { "나예린은 비류연을 되찾겠다던 맹세 뒤 도움을 청했다. 함께 표국으로 간 사람은 이진설과 효룡이었다.", "빙령백봉의 검이 길을 열고 두 형제를 쓰러뜨렸지만, 윤이정과 이시건은 섬광을 남기고 도주했다.", "놓친 상대가 있어도 스스로 선택하고 동료에게 손을 내민 한 걸음은 남았다. 실패의 결론을 혼자 짊어질 필요는 없었다." } },
         };
 
         public static readonly MemoryMilestone[] Milestones =

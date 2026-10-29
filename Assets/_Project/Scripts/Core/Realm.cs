@@ -140,7 +140,7 @@ namespace BiRyeoDo.Core
         private static readonly HashSet<string> NotMartial = new HashSet<string>
         {
             "tiger", "bear", "white_tiger", "trap_arrow", "trap_needle", "trap_log", "cave_viper", "mukrin_hyeolmang",
-            "cliff_rescue", "hwaryong_rescue", "bisa_snake", "cheonghong_ssanggaksa", "heuksaek_amhyeok", "hwaryong_hwayeom", "hwan_ying",
+            "cheongryong_escape", "caravan_ambush", "ichon_training", "closed_room_threat", "cliff_rescue", "hwaryong_rescue", "bisa_snake", "cheonghong_ssanggaksa", "heuksaek_amhyeok", "hwaryong_hwayeom", "hwan_ying",
         };
 
         public static bool HasRealm(EnemyData enemy) { return enemy != null && !NotMartial.Contains(enemy.Id); }

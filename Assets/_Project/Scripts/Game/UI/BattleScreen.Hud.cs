@@ -203,7 +203,7 @@ namespace BiRyeoDo.Game.UI
         private Sprite UnitPortrait(Combatant unit)
         {
             var card = CardOf(unit.Id);
-            string key = card != null ? card.Data.ArtKey : unit.Id;
+            string key = card != null ? card.Data.ArtKey : Roster.StoryArtKey(unit.Id);
             return BattleFigure(key);
         }
 

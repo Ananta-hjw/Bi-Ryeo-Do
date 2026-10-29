@@ -187,6 +187,7 @@ namespace BiRyeoDo.Tests
         [TestCase(28)]
         [TestCase(29)]
         [TestCase(30)]
+        [TestCase(31)] [TestCase(32)] [TestCase(33)] [TestCase(34)] [TestCase(35)] [TestCase(36)]
         public void EveryFightHasAResumeSafeSceneThatDoesNotChangeProgressOrReplayForClears(int number)
         {
             var stage = EarlyGameContent.FindStage(number);
@@ -203,7 +204,7 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(9876, save.Doo);
             save.ClearedStage = number;
             Assert.IsNull(StoryEpisodes.BeforeFight(stage, 0, save));
-            Assert.AreEqual(number == 14 ? 11 : number == 15 ? 5 : number == 18 ? 4 : number == 19 || number == 27 || number == 29 ? 7 : number == 22 || number == 26 ? 6 : number >= 23 && number <= 25 || number == 30 ? 4 : number == 28 ? 5 : 3, stage.Encounters.Length);
+            Assert.AreEqual(number == 14 ? 11 : number == 15 ? 5 : number == 18 ? 4 : number == 19 || number == 27 || number == 29 ? 7 : number == 22 || number == 26 ? 6 : number >= 23 && number <= 25 || number == 30 ? 4 : number == 28 || number == 35 ? 5 : number >= 31 && number != 34 ? 4 : 3, stage.Encounters.Length);
         }
     }
 }
