@@ -30,6 +30,8 @@ namespace BiRyeoDo.Core
         public int Heal;             // HP restored (meditate heals the actor, Heal events heal TargetId)
         public bool Stunned;         // the hit stunned the target
         public bool Interrupted;     // the hit cancelled a charging move
+        public bool Counter;         // this hit uses a response opening (+25%, once per attack command)
+        public bool CounterReady;    // the recipient earned an opening; attack events name the defender, interrupts the actor
         public bool Harmony;         // 내공합격: this hit was powered up by an unbroken chain of attacks
         public bool Joint;           // part of a 합공 (joint attack)
         public bool Rescued;         // the target would have fallen but a bonded companion saved them (see Bonds.RescueLevel)

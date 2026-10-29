@@ -314,6 +314,7 @@ namespace BiRyeoDo.Game.UI
             _onClose = onClose;
             CancelBasicMotion();
             StopAllCoroutines();
+            ResetImpactEffects();
             HideFightRewards();
             ApplySavedSpeed();
             StartCoroutine(RunStage(stage));
@@ -674,6 +675,7 @@ namespace BiRyeoDo.Game.UI
             _onClose = onClose;
             CancelBasicMotion();
             StopAllCoroutines();
+            ResetImpactEffects();
             HideFightRewards();
             StartCoroutine(RunStoryOnly(title, lines));
         }
@@ -703,6 +705,7 @@ namespace BiRyeoDo.Game.UI
             _onClose = onClose;
             CancelBasicMotion();
             StopAllCoroutines();
+            ResetImpactEffects();
             HideFightRewards();
             StartCoroutine(RunPromotion(offer));
         }
@@ -1107,6 +1110,7 @@ namespace BiRyeoDo.Game.UI
         private void ClearCards()
         {
             CancelBasicMotion();
+            ResetImpactEffects();
             foreach (var c in _cards) if (c.Root != null) Destroy(c.Root.gameObject);
             _cards.Clear();
             _home.Clear();
@@ -1115,6 +1119,7 @@ namespace BiRyeoDo.Game.UI
         private void ClearPanels()
         {
             CancelBasicMotion();
+            ResetImpactEffects();
             foreach (var p in _panels) if (p.Root != null) Destroy(p.Root.gameObject);
             _panels.Clear();
             _home.Clear();
@@ -1342,7 +1347,8 @@ namespace BiRyeoDo.Game.UI
                 c.Intent.gameObject.SetActive(!dead);
                 c.IntentBack.gameObject.SetActive(!dead);
                 if (dead) { c.Intent.text = ""; continue; }
-                if (u.Stunned) { c.Intent.text = "행동 불능"; c.Intent.color = GuardBlue; continue; }
+                bool counterReady = !_animating && _battle != null && _battle.CounterTargetOf(_battle.Current) == u;
+                if (u.Stunned) { c.Intent.text = counterReady ? "행동 불능 · 반격 +25%" : "행동 불능"; c.Intent.color = counterReady ? UiFactory.Gold : GuardBlue; continue; }
                 var move = u.PeekMove();
                 if (u.AwakeningStrike != null)
                 {
@@ -1368,6 +1374,12 @@ namespace BiRyeoDo.Game.UI
                 {
                     c.Intent.text = u.AwakeningStrike != null ? "각성 · 폭발" : "기세 가득 · 위험";
                     c.Intent.color = ThreatRed;
+                }
+                if (counterReady)
+                {
+                    bool danger = u.Charging || u.AwakeningStrike != null || (u.UsesResources && u.Spirit >= InteractiveBattle.MaxSpirit);
+                    c.Intent.text = danger ? c.Intent.text + " · 반격" : "반격 +25%";
+                    c.Intent.color = danger ? ThreatRed : UiFactory.Gold;
                 }
             }
             RefreshBoard();
@@ -1715,7 +1727,10 @@ namespace BiRyeoDo.Game.UI
         {
             string desc = s.Id == "basic" ? "기본 공격." : s.Description;
             string status = s.Inflict != StatusKind.None && s.InflictChance > 0f ? "\n" + Statuses.Describe(s.Inflict) : "";
-            return SkillDetails(s) + (string.IsNullOrEmpty(desc) ? "" : "\n" + desc) + status;
+            string response = s.Effect == SkillEffect.Stun ? "\n준비 중인 큰 기술을 끊으면 다음 자기 행동에서 그 적에게 반격 피해 +25%를 얻습니다."
+                : s.Effect == SkillEffect.Evade ? "\n예고된 큰 기술을 모두 피하면 다음 자기 행동에서 그 적에게 반격 피해 +25%를 얻습니다."
+                : s.Effect == SkillEffect.GuardParty ? "\n예고된 큰 기술을 방어해 살아남은 아군은 다음 자기 행동에서 그 적에게 반격 피해 +25%를 얻습니다." : "";
+            return SkillDetails(s) + (string.IsNullOrEmpty(desc) ? "" : "\n" + desc) + status + response;
         }
 
         private static string SkillBlock(SkillSpec s) { return s.Name + "\n" + SkillBody(s); }
@@ -1748,7 +1763,7 @@ namespace BiRyeoDo.Game.UI
                 if (ultimateSkill == null) ShowTip("필살기 슬롯", "장착한 비기가 없습니다. 무공 탭에서 배운 비기를 장착하면 여기에서 쓸 수 있습니다. 기세가 가득 차면 쓸 수 있는 필살기 한 자리입니다.", ArtLibrary.Icon("ultimate_slot"));
                 else ShowTip("필살기 · " + ultimateSkill.Name, SkillBody(ultimateSkill) + "\n기세가 가득 차면 쓸 수 있습니다.", ArtLibrary.Command(ultimateSkill.Id) ?? ArtLibrary.Icon("ultimate_slot"));
             }
-            else if (slot == 5) ShowTip("방어", "다음 차례까지 받는 피해가 크게 줄어듭니다(피해 60% 감소). 기세가 조금 오릅니다.", ArtLibrary.Icon("cmd_guard"));
+            else if (slot == 5) ShowTip("방어", "다음 차례까지 받는 피해가 크게 줄어듭니다(피해 60% 감소). 기세가 조금 오릅니다.\n예고된 큰 기술을 방어해 살아남으면 다음 자기 행동에서 그 적에게 반격 피해 +25%를 얻습니다. 다른 행동을 선택하면 기회가 사라집니다.", ArtLibrary.Icon("cmd_guard"));
             else if (slot == 6) ShowTip("운기", "내공 +" + InteractiveBattle.MeditateQi + "과 체력을 조금 회복하고, 걸린 상태 이상을 풉니다.", ArtLibrary.Icon("cmd_meditate"));
             else if (slot == 7) ShowTip("아이템", "행낭의 소모품을 씁니다. 가장 다친 동료의 체력이 회복됩니다.", ArtLibrary.Icon("cmd_item"));
             else if (slot == 8 && _jointPartners.Count > 0)
@@ -2008,6 +2023,7 @@ namespace BiRyeoDo.Game.UI
             finally
             {
                 CancelBasicMotion();
+                ResetImpactEffects();
                 _animating = false;
                 _hudActor = null; _actorAction = null;
             }
@@ -2025,6 +2041,7 @@ namespace BiRyeoDo.Game.UI
         private IEnumerator PlayEventsInner(List<BattleEvent> events)
         {
             _cutInKey = "";
+            _sequenceImpactPunched = false;
             for (int eventIndex = 0; eventIndex < events.Count; eventIndex++)
             {
                 var ev = events[eventIndex];
@@ -2044,6 +2061,7 @@ namespace BiRyeoDo.Game.UI
                         {
                             _cutInKey = "joint";
                             yield return SkillCutIn(_jointName, true);
+                            _sequenceImpactPunched = true;
                         }
                         else if (byParty && ev.HitIndex == 0 && !ev.Joint)
                         {
@@ -2052,12 +2070,26 @@ namespace BiRyeoDo.Game.UI
                             {
                                 _cutInKey = key;
                                 var spec = actorPanel.Unit.Skills.Find(x => x.Id == ev.SkillId);
-                                if (spec != null && spec.Id != "basic") yield return SkillCutIn(spec.Name, spec.SpiritCost >= 100);
+                                if (spec != null && spec.Id != "basic")
+                                {
+                                    yield return SkillCutIn(spec.Name, spec.SpiritCost >= 100);
+                                    if (spec.SpiritCost >= 100) _sequenceImpactPunched = true;
+                                }
                             }
                         }
                         bool finishMotion = EndsAttackSequence(events, eventIndex);
-                        if (byParty) yield return PartyHit(ev, finishMotion);
+                        bool finishStrike = EndsSkillSequence(events, eventIndex);
+                        if (byParty) yield return PartyHit(ev, finishMotion, finishStrike);
                         else yield return EnemyHit(ev, finishMotion);
+                        if (ev.CounterReady)
+                        {
+                            _log.text = ev.Interrupted ? actorName + "의 파훼! 다음 행동에서 " + NameOf(ev.TargetId) + "에게 반격하면 피해 +25%"
+                                : NameOf(ev.TargetId) + "의 대응 성공! 다음 행동에서 " + actorName + "에게 반격하면 피해 +25%";
+                            ResponseNotice(ev.Interrupted ? ev.TargetId : ev.ActorId,
+                                (ev.Interrupted ? actorName + "의 파훼!" : NameOf(ev.TargetId) + "의 대응 성공!") + "\n반격 기회 · 다음 행동에서 이 적에게 피해 +25%");
+                            yield return new WaitForSeconds(Wait(.28f));
+                        }
+                        if (finishStrike) _sequenceImpactPunched = false;
                         break;
                     case EventKind.Guard:
                         SoundManager.Sfx("guard");
@@ -2097,6 +2129,7 @@ namespace BiRyeoDo.Game.UI
                         SoundManager.Sfx("dodge");
                         _log.text = ev.Message;
                         if (actorPanel != null) Float(actorPanel.Center, "회피 태세", new Color(0.7f, 0.9f, 1f), 52);
+                        if (actorPanel != null) FootworkFx(actorPanel);
                         RefreshParty();
                         yield return new WaitForSeconds(Wait(SmallDelay));
                         break;
@@ -2193,7 +2226,7 @@ namespace BiRyeoDo.Game.UI
             return ev.SkillId;
         }
 
-        private IEnumerator PartyHit(BattleEvent ev, bool finishMotion)
+        private IEnumerator PartyHit(BattleEvent ev, bool finishMotion, bool finishStrike)
         {
             var card = CardOf(ev.TargetId);
             if (card == null) yield break;
@@ -2206,25 +2239,34 @@ namespace BiRyeoDo.Game.UI
                 if (_fled) { CancelBasicMotion(); yield break; }
             }
             else if (!approach && !ev.Ranged && striker != null && ev.HitIndex == 0) StartCoroutine(Lunge(striker.Root, new Vector2(130f, 0f)));
-            SlashFx(card.Center, ev.HitIndex, ev.IsCrit, striker != null && striker.Unit.Skills.Find(x => x.Id == ev.SkillId) is SkillSpec sp && sp.SpiritCost >= 100);
-            if (ev.IsCrit)
+            var spec = striker != null ? striker.Unit.Skills.Find(x => x.Id == ev.SkillId) : null;
+            var style = StyleOf(spec, ev);
+            bool ultimate = spec != null && spec.SpiritCost >= 100;
+            bool finale = ev.HitCount > 1 && (finishStrike || ev.HitIndex == ev.HitCount - 1 || ev.TargetDefeated);
+            if (style == StrikeStyle.Projectile && striker != null)
+                yield return ProjectileFx(striker.Center, card.Center, ev.IsCrit || finale || ultimate);
+            else if (style == StrikeStyle.Footwork && striker != null && ev.HitIndex == 0) FootworkFx(striker);
+            SlashFx(card.Center, ev.HitIndex, ev.IsCrit, ultimate, false, style, finale);
+            if ((ev.IsCrit || finale) && !_sequenceImpactPunched)
             {
-                StartCoroutine(Punch(1.06f));
-                if (!approach) yield return new WaitForSeconds(Wait(0.07f));
+                _sequenceImpactPunched = true;
+                StartCoroutine(Punch(ev.IsCrit ? 1.06f : 1.035f));
             }
             SoundManager.Sfx(ev.IsCrit ? "hit_crit" : "hit");
             if (ev.IsCrit) SoundManager.Haptic(40);
             Float(card.Center + new Vector2(UnityEngine.Random.Range(-0.05f, 0.05f), 0.02f * ev.HitIndex), ev.Damage + (ev.IsCrit ? "!" : ""), ev.IsCrit ? UiFactory.Gold : UiFactory.PaperText, ev.IsCrit ? 84 : 64);
-            if (ev.Harmony) Float(card.Center + new Vector2(0f, 0.08f), "합격!", UiFactory.Gold, 80);
-            if (ev.Interrupted) Float(card.Center + new Vector2(0f, -0.07f), "차단!", UiFactory.Gold, 72);
+            if (ev.Counter) _log.text = NameOf(ev.ActorId) + "의 반격! 피해 +25%" + (ev.Harmony ? " · 내공합격" : "");
+            else if (ev.Harmony) _log.text = NameOf(ev.ActorId) + "의 내공합격!";
+            if (ev.Interrupted) _log.text = NameOf(ev.ActorId) + "의 파훼!";
             else if (ev.Stunned) Float(card.Center + new Vector2(0f, -0.07f), "굳음", GuardBlue, 60);
             card.ShownHp = ev.TargetHpAfter;
             RefreshFocusHud();
+            if (ev.Counter) ResponseNotice(ev.TargetId, NameOf(ev.ActorId) + "의 반격! 피해 +25%" + (ev.Harmony ? " · 내공합격" : ""));
             card.Hp.SetPct(card.Unit.Stats.MaxHp > 0 ? (float)ev.TargetHpAfter / card.Unit.Stats.MaxHp : 0f);
             card.HpText.text = ev.TargetHpAfter + " / " + card.Unit.Stats.MaxHp;
             card.Spirit.SetPct(card.Unit.Spirit / (float)InteractiveBattle.MaxSpirit);
             card.SpiritText.text = card.Unit.Spirit + " / " + InteractiveBattle.MaxSpirit;
-            StartCoroutine(Shake(card.Root, ev.IsCrit ? 22f : 14f));
+            StartCoroutine(Shake(card.Root, ev.IsCrit ? 22f : finale ? 18f : 14f));
             if (ev.TargetDefeated) { StartCoroutine(Collapse(card)); if (ev.Retreated) _log.text = ev.Message; }
             RefreshParty();
             if (approach && finishMotion && _basicMotion.IsActive)
@@ -2250,13 +2292,21 @@ namespace BiRyeoDo.Game.UI
             else if (!approach && !ev.Ranged && attacker != null && ev.HitIndex == 0) StartCoroutine(Lunge(attacker.Root, new Vector2(-130f, 0f)));
             if (attacker != null && ev.HitIndex == 0 && ev.Burst) { Float(attacker.Center + new Vector2(0f, 0.06f), "기세 폭발!", UiFactory.Red, 70); SoundManager.Haptic(40); }
             if (attacker != null && ev.HitIndex == 0 && ev.Weakened) Float(attacker.Center + new Vector2(0f, 0.06f), "내공 부족", GuardBlue, 56);
-            if (victim != null && !ev.Dodged) SlashFx(victim.Center, ev.HitIndex, ev.IsCrit, false, true);
+            bool finale = ev.HitCount > 1 && (finishMotion || ev.HitIndex == ev.HitCount - 1);
+            var style = StyleOf(null, ev);
+            if (victim != null && !ev.Dodged)
+            {
+                if (style == StrikeStyle.Projectile && attacker != null)
+                    yield return ProjectileFx(attacker.Center, victim.Center, ev.IsCrit || finale, true);
+                SlashFx(victim.Center, ev.HitIndex, ev.IsCrit, false, true, style, finale);
+            }
             if (victim != null)
             {
                 if (ev.Dodged)
                 {
                     SoundManager.Sfx("dodge");
                     Float(victim.Center, "회피!", new Color(0.7f, 0.9f, 1f), 70);
+                    if (ev.HitIndex == 0) FootworkFx(victim);
                 }
                 else
                 {
@@ -2267,7 +2317,7 @@ namespace BiRyeoDo.Game.UI
                     victim.ShownSpirit = ev.TargetSpiritAfter;
                     victim.Hp.SetPct((float)ev.TargetHpAfter / Math.Max(1, victim.Unit.Stats.MaxHp));
                     victim.HpText.text = ev.TargetHpAfter + " / " + victim.Unit.Stats.MaxHp;
-                    StartCoroutine(Shake(victim.Root, ev.Guarded ? 6f : 16f));
+                    StartCoroutine(Shake(victim.Root, ev.Guarded ? 6f : ev.IsCrit ? 22f : finale ? 18f : 16f));
                     StartCoroutine(Flash(ev.Guarded ? 0.12f : 0.30f));
                     if (ev.TargetDefeated) victim.Status.text = "쓰러짐";
                     if (ev.Rescued)
@@ -2300,6 +2350,21 @@ namespace BiRyeoDo.Game.UI
                 if (hit.Kind != EventKind.Attack) continue;
                 return hit.ActorId != current.ActorId || hit.SkillId != current.SkillId
                     || hit.TargetId != current.TargetId || hit.HitIndex <= current.HitIndex;
+            }
+            return true;
+        }
+
+        // Area hits can change targets without ending the art; a joint attack includes both actors.
+        private static bool EndsSkillSequence(List<BattleEvent> events, int index)
+        {
+            var current = events[index];
+            for (int next = index + 1; next < events.Count; next++)
+            {
+                var hit = events[next];
+                if (hit.Kind != EventKind.Attack) continue;
+                if (current.Joint && hit.Joint && current.SkillId == hit.SkillId) return false;
+                return hit.ActorId != current.ActorId || hit.SkillId != current.SkillId
+                    || hit.HitIndex < current.HitIndex || (hit.HitIndex == current.HitIndex && (!hit.AllEnemies || hit.TargetId == current.TargetId));
             }
             return true;
         }
@@ -2364,24 +2429,47 @@ namespace BiRyeoDo.Game.UI
         private IEnumerator Shake(RectTransform rt, float amount)
         {
             if (rt == null) yield break;
-            Vector2 origin = HomeOf(rt);
-            for (int i = 0; i < 6; i++)
+            ImpactShake active;
+            if (_impactShakes.TryGetValue(rt, out active))
             {
-                if (rt == null) yield break;
-                rt.anchoredPosition = origin + new Vector2(UnityEngine.Random.Range(-amount, amount), UnityEngine.Random.Range(-amount, amount) * 0.5f);
-                yield return new WaitForSeconds(0.02f / Pace);
+                active.Amount = Mathf.Max(active.Amount, amount);
+                active.Remaining = Mathf.Max(active.Remaining, .12f / Pace);
+                yield break;
+            }
+            active = new ImpactShake { Amount = amount, Remaining = .12f / Pace };
+            _impactShakes[rt] = active;
+            Vector2 origin = HomeOf(rt);
+            while (active.Remaining > 0f)
+            {
+                if (rt == null) break;
+                ImpactShake current;
+                if (!_impactShakes.TryGetValue(rt, out current) || current != active) yield break;
+                float strength = active.Amount * Mathf.Clamp01(active.Remaining / (.12f / Pace));
+                rt.anchoredPosition = origin + new Vector2(UnityEngine.Random.Range(-strength, strength), UnityEngine.Random.Range(-strength, strength) * 0.5f);
+                active.Remaining -= Time.deltaTime;
+                yield return null;
             }
             if (rt != null) rt.anchoredPosition = origin;
+            _impactShakes.Remove(rt);
         }
 
         private IEnumerator Flash(float peak)
         {
-            for (float e = 0f; e < 0.25f; e += Time.deltaTime)
+            _flashPeak = Mathf.Max(_flashPeak, peak);
+            if (_flashRemaining > 0f) yield break;
+            int generation = _impactGeneration;
+            float duration = .25f / Pace;
+            _flashRemaining = duration;
+            while (_flashRemaining > 0f && _flash != null)
             {
-                var c = _flash.color; c.a = peak * (1f - e / 0.25f); _flash.color = c;
+                if (generation != _impactGeneration) yield break;
+                var c = _flash.color; c.a = _flashPeak * Mathf.Clamp01(_flashRemaining / duration); _flash.color = c;
+                _flashRemaining -= Time.deltaTime;
                 yield return null;
             }
+            if (generation != _impactGeneration || _flash == null) yield break;
             var end = _flash.color; end.a = 0f; _flash.color = end;
+            _flashRemaining = 0f; _flashPeak = 0f;
         }
 
         // ------------------------------------------------------------------ strike effects
@@ -2407,21 +2495,23 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <summary>Slashing streaks plus a spark burst at the hit point; drawn from plain rectangles so no art is needed.</summary>
-        private void SlashFx(Vector2 at, int hitIndex, bool crit, bool ultimate, bool enemySide = false)
+        private void SlashFx(Vector2 at, int hitIndex, bool crit, bool ultimate, bool enemySide = false, StrikeStyle style = StrikeStyle.Blade, bool finale = false)
         {
             Color main = enemySide ? new Color(1f, 0.45f, 0.35f) : ultimate ? UiFactory.Gold : crit ? new Color(1f, 0.92f, 0.6f) : new Color(0.95f, 0.97f, 1f);
             float baseAngle = (hitIndex % 2 == 0 ? -35f : 35f) + UnityEngine.Random.Range(-12f, 12f);
-            int streaks = ultimate ? 3 : crit ? 2 : 1;
-            for (int i = 0; i < streaks; i++)
+            bool strong = crit || finale || ultimate;
+            int streaks = ultimate ? 3 : strong ? 2 : 1;
+            if (style == StrikeStyle.Impact || style == StrikeStyle.Footwork) ImpactRing(at, main, strong);
+            for (int i = 0; i < (style == StrikeStyle.Blade ? streaks : 0); i++)
             {
                 var rt = UiFactory.Rect("Slash", _fx, at, at);
-                rt.sizeDelta = new Vector2(ultimate ? 560f : 400f, crit ? 16f : 10f);
+                rt.sizeDelta = new Vector2(ultimate ? 560f : strong ? 460f : 400f, strong ? 16f : 10f);
                 rt.localRotation = Quaternion.Euler(0f, 0f, baseAngle + i * 22f);
                 var img = rt.gameObject.AddComponent<Image>();
                 img.color = main; img.raycastTarget = false;
-                StartCoroutine(StreakAnim(rt, img));
+                StartCoroutine(StreakAnim(rt, img, strong ? .28f : .22f));
             }
-            for (int i = 0; i < (crit ? 8 : 4); i++)
+            for (int i = 0; i < (strong ? 8 : 4); i++)
             {
                 var rt = UiFactory.Rect("Spark", _fx, at, at);
                 rt.sizeDelta = new Vector2(UnityEngine.Random.Range(14f, 30f), 6f);
@@ -2433,9 +2523,9 @@ namespace BiRyeoDo.Game.UI
             }
         }
 
-        private IEnumerator StreakAnim(RectTransform rt, Image img)
+        private IEnumerator StreakAnim(RectTransform rt, Image img, float seconds = .22f)
         {
-            float d = 0.22f / Pace;
+            float d = seconds / Pace;
             for (float e = 0f; e < d; e += Time.deltaTime)
             {
                 if (rt == null) yield break;
@@ -2466,15 +2556,23 @@ namespace BiRyeoDo.Game.UI
         /// <summary>Brief zoom of the enemy field on a critical hit.</summary>
         private IEnumerator Punch(float scale)
         {
-            float d = 0.18f / Pace;
-            for (float e = 0f; e < d; e += Time.deltaTime)
+            _punchPeak = Mathf.Max(_punchPeak, scale);
+            if (_punchRemaining > 0f) yield break;
+            float d = .18f / Pace;
+            int generation = _impactGeneration;
+            _punchRemaining = d;
+            while (_punchRemaining > 0f && _cardsRoot != null)
             {
-                float k = e / d;
-                float s = 1f + (scale - 1f) * (1f - k);
+                if (generation != _impactGeneration) yield break;
+                float s = 1f + (_punchPeak - 1f) * Mathf.Clamp01(_punchRemaining / d);
                 _cardsRoot.localScale = new Vector3(s, s, 1f);
+                _punchRemaining -= Time.deltaTime;
                 yield return null;
             }
-            _cardsRoot.localScale = Vector3.one;
+            if (generation != _impactGeneration) yield break;
+            if (_cardsRoot != null) _cardsRoot.localScale = Vector3.one;
+            _punchPeak = 1f;
+            _punchRemaining = 0f;
         }
 
         /// <summary>Defeated enemy staggers, sinks and fades instead of just dimming.</summary>

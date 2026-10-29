@@ -205,6 +205,34 @@ namespace BiRyeoDo.Tests.UI
             Assert.IsTrue((bool)method.Invoke(null, new object[] { events, 1 }));
             Assert.IsTrue((bool)method.Invoke(null, new object[] { events, 3 }));
         }
+
+        [Test]
+        public void AreaImpactSequenceEndsOnceAfterAllTargetsAndHits()
+        {
+            var method = typeof(BattleScreen).GetMethod("EndsSkillSequence", BindingFlags.NonPublic | BindingFlags.Static);
+            var events = new List<BattleEvent>();
+            for (int hit = 0; hit < 3; hit++)
+                foreach (string target in new[] { "a", "b" })
+                    events.Add(new BattleEvent { Kind = EventKind.Attack, ActorId = "p", TargetId = target, SkillId = "area", AllEnemies = true, HitIndex = hit, HitCount = 3 });
+            events.Add(new BattleEvent { Kind = EventKind.Status, TargetId = "b", TargetDefeated = true });
+            events.Add(new BattleEvent { Kind = EventKind.Attack, ActorId = "enemy", TargetId = "p", SkillId = "reply" });
+            for (int i = 0; i < 5; i++) Assert.IsFalse((bool)method.Invoke(null, new object[] { events, i }));
+            Assert.IsTrue((bool)method.Invoke(null, new object[] { events, 5 }));
+        }
+
+        [Test]
+        public void JointImpactSequenceIncludesBothActorsBeforeTheEnemyReply()
+        {
+            var method = typeof(BattleScreen).GetMethod("EndsSkillSequence", BindingFlags.NonPublic | BindingFlags.Static);
+            var events = new List<BattleEvent>
+            {
+                new BattleEvent { Kind = EventKind.Attack, ActorId = "p", TargetId = "e", SkillId = "joint", Joint = true },
+                new BattleEvent { Kind = EventKind.Attack, ActorId = "ally", TargetId = "e", SkillId = "joint", Joint = true },
+                new BattleEvent { Kind = EventKind.Attack, ActorId = "e", TargetId = "p", SkillId = "reply" }
+            };
+            Assert.IsFalse((bool)method.Invoke(null, new object[] { events, 0 }));
+            Assert.IsTrue((bool)method.Invoke(null, new object[] { events, 1 }));
+        }
     }
 }
 #endif

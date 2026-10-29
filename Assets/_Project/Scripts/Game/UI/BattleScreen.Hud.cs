@@ -285,7 +285,7 @@ namespace BiRyeoDo.Game.UI
             _actorGlyph.text = pic == null ? FirstGlyph(me.Name) : "";
         }
 
-        private void RefreshFocusHud()
+        private void RefreshFocusHud(EnemyCard preferred = null)
         {
             if (_focusName == null) return;
             EnemyCard focus = null;
@@ -295,6 +295,9 @@ namespace BiRyeoDo.Game.UI
                 if (focus == null || c.Unit.AwakeningStrike != null || c.Unit.Charging || (c.Unit.IsBoss && !focus.Unit.Charging)) focus = c;
                 if (c.Unit.Charging || c.Unit.AwakeningStrike != null) break;
             }
+            var counterTarget = !_animating && _battle != null ? _battle.CounterTargetOf(_battle.Current) : null;
+            if (counterTarget != null && (focus == null || (!focus.Unit.Charging && focus.Unit.AwakeningStrike == null))) focus = CardOf(counterTarget.Id);
+            if (preferred != null) focus = preferred;
             _focusedEnemy = focus;
             if (focus == null)
             {
@@ -311,10 +314,17 @@ namespace BiRyeoDo.Game.UI
             _focusHealth.text = focus.ShownHp.ToString("N0") + " / " + u.Stats.MaxHp.ToString("N0");
             _focusHp.SetPct(focus.ShownHp / (float)System.Math.Max(1, u.Stats.MaxHp));
             string phase = u.Phases != null && u.Phases.Count > 0 ? "  ·  단계 " + (focus.ShownPhase + 1) + "/" + (u.Phases.Count + 1) : "";
-            _focusDetail.text = u.AwakeningStrike != null ? "다음: " + BossPhases.AwakeningName + " · 강타의 " + (u.PhaseIndex == 1 ? "70%" : "100%") + "\n방어·회피·점혈로 대비하세요."
-                : threat ? u.PeekMove().Name + (u.ChargeTarget != null ? " → " + u.ChargeTarget.Name : "") + "\n방어·회피·중단으로 대비하세요."
+            _focusDetail.text = u.AwakeningStrike != null ? "다음: " + BossPhases.AwakeningName + " · 강타의 " + (u.PhaseIndex == 1 ? "70%" : "100%") + "\n파훼·방어·회피 성공 시 반격 기회"
+                : threat ? u.PeekMove().Name + (u.ChargeTarget != null ? " → " + u.ChargeTarget.Name : "") + "\n파훼·방어·회피 성공 시 반격 기회"
                 : (u.Stunned ? "행동 불능" : "다음: " + u.PeekMove().Name) + phase + (u.Statuses.Count > 0 ? "  ·  " + Statuses.Line(u) : "");
             _focusDetail.color = threat ? ThreatRed : UiFactory.Dim;
+            if (counterTarget == u)
+            {
+                _focusDetail.text = threat ? _focusDetail.text.Split('\n')[0] + "\n반격 +25% · 이번 행동 한정"
+                    : "반격 기회 · 이번 공격 피해 +25%\n다른 행동을 선택하면 기회가 사라집니다.";
+                _focusDetail.color = threat ? ThreatRed : UiFactory.Gold;
+                if (!threat) _focusTag.text = "반격";
+            }
             for (int i = 0; i < _phaseMarks.Count; i++)
             {
                 bool show = u.Phases != null && i < u.Phases.Count;

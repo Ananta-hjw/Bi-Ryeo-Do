@@ -53,6 +53,7 @@ namespace BiRyeoDo.Core
         public const int SpiritOnDealt = 10, SpiritOnTaken = 8, SpiritOnGuard = 12;
         public const float HarmonyDamageFactor = 2.5f;
         public const int JointSpiritCost = 50;
+        public const float CounterDamageFactor = 1.25f;
         // 정예·보스 enemies: 내공 comes back every action; a heavy strike costs EnemyQiPerPower per point of power (x hits);
         // a full 기세 makes the next strike hit EnemyBurstFactor harder; running dry weakens a heavy strike.
         public const int EnemyQiRegen = 3, EnemyQiPerPower = 8, EnemySpiritOnDealt = 12;
@@ -98,6 +99,30 @@ namespace BiRyeoDo.Core
         public bool TrialFailed { get; private set; }
         private bool _harmonyBoost;
         private readonly HashSet<string> _chain = new HashSet<string>();   // who has attacked in the current 수화관 chain
+        // Openings belong to a responder and one enemy. Snapshot them before a command so an
+        // interruption during that command cannot empower its remaining hits retroactively.
+        private readonly Dictionary<Combatant, Combatant> _counterOpenings = new Dictionary<Combatant, Combatant>();
+        private readonly Dictionary<Combatant, Combatant> _counterStrikes = new Dictionary<Combatant, Combatant>();
+
+        public Combatant CounterTargetOf(Combatant member)
+        {
+            Combatant target;
+            return member != null && member.IsAlive && _counterOpenings.TryGetValue(member, out target) && target.IsAlive ? target : null;
+        }
+
+        private void PrepareCounter(Combatant member)
+        {
+            var target = CounterTargetOf(member);
+            if (target != null) _counterStrikes[member] = target;
+            _counterOpenings.Remove(member);
+        }
+
+        private void GrantCounter(Combatant member, Combatant enemy, BattleEvent ev)
+        {
+            if (!member.IsAlive || !enemy.IsAlive) return;
+            _counterOpenings[member] = enemy;  // refresh/replace, never stack
+            ev.CounterReady = true;
+        }
 
         public InteractiveBattle(Combatant player, IEnumerable<Combatant> enemies, IRandom rng)
             : this(new[] { player }, enemies, rng)
@@ -166,6 +191,8 @@ namespace BiRyeoDo.Core
         {
             _partyGuardOwner = null;
             _chain.Clear();
+            _counterOpenings.Clear();
+            _counterStrikes.Clear();
             foreach (var m in _party) m.RescueUsed = false;
             foreach (var m in _party) if (m.Spirit < m.StartSpirit) m.Spirit = m.StartSpirit;
             return RunUntilParty();
@@ -258,6 +285,9 @@ namespace BiRyeoDo.Core
             var events = new List<BattleEvent>();
             Current = null;
             PartyActions++;
+            _counterStrikes.Clear();
+            PrepareCounter(actor);
+            if (cmd.Kind == CommandKind.Joint) PrepareCounter(cmd.Partner);
             _harmonyBoost = false;
             if (Trial != null && Trial.Kind == TrialKind.Harmony)
             {
@@ -327,6 +357,7 @@ namespace BiRyeoDo.Core
             }
 
             for (int i = firstEvent; i < events.Count; i++) { events[i].ActorQiAfter = actor.Qi; events[i].ActorSpiritAfter = actor.Spirit; }
+            _counterStrikes.Clear();
             CheckPhases(events);
             if (technique) TechniqueUses++;
             if (Trial != null && Trial.Kind == TrialKind.Technique && !TechniqueSucceeded && (PartyActions >= Trial.Limit || !AnyEnemyAlive)) TrialFailed = true;
@@ -409,13 +440,16 @@ namespace BiRyeoDo.Core
             bool crit = _rng.NextDouble() < actor.Stats.CritRate;
             int dmg = BattleEngine.CalcDamage(actor.Stats, t.Stats, skill, crit);
             if (_harmonyBoost) dmg = (int)Math.Round(dmg * HarmonyDamageFactor);
+            Combatant counterTarget;
+            bool counter = _counterStrikes.TryGetValue(actor, out counterTarget) && counterTarget == t;
+            if (counter) dmg = (int)Math.Round(dmg * CounterDamageFactor);
             t.Hp = Math.Max(0, t.Hp - dmg);
             if (t.UsesResources && t.IsAlive) t.Spirit = Math.Min(MaxSpirit, t.Spirit + SpiritOnEnemyHit);
             if (actor.Lifesteal > 0f && actor.IsAlive) actor.Hp = Math.Min(actor.Stats.MaxHp, actor.Hp + (int)Math.Round(dmg * actor.Lifesteal));
             var ev = new BattleEvent
             {
                 Turn = Turn, ActorId = actor.Id, TargetId = t.Id, SkillId = skill.Id, Kind = EventKind.Attack,
-                Damage = dmg, IsCrit = crit, HitIndex = h, HitCount = hits, Harmony = _harmonyBoost, AllEnemies = skill.AllEnemies, Ranged = skill.Ranged
+                Damage = dmg, IsCrit = crit, HitIndex = h, HitCount = hits, Harmony = _harmonyBoost, Counter = counter, AllEnemies = skill.AllEnemies, Ranged = skill.Ranged
             };
             if (t.RetreatHpPct > 0f && t.Hp <= t.Stats.MaxHp * t.RetreatHpPct)
             {
@@ -426,10 +460,16 @@ namespace BiRyeoDo.Core
             }
             if (!t.IsAlive) { t.Charging = false; t.ChargeTarget = null; t.AwakeningStrike = null; }
             else if (stun) ApplyStun(t, ev);
+            if (ev.Interrupted) GrantCounter(actor, t, ev);
             ev.TargetHpAfter = t.Hp;
             ev.TargetDefeated = !t.IsAlive;
             events.Add(ev);
             if (triggerBleed && h == 0 && t.IsAlive && t.Has(StatusKind.Bleed)) StatusHurt(t, StatusKind.Bleed, events);   // once per attack command
+            if (!t.IsAlive && ev.CounterReady)
+            {
+                _counterOpenings.Remove(actor);
+                ev.CounterReady = false;
+            }
             return ev;
         }
 
@@ -697,6 +737,7 @@ namespace BiRyeoDo.Core
             bool hurt = false, struck = false;   // struck: at least one hit landed without a guard (only those leave a 상태 이상)
             bool bled = target.Has(StatusKind.Bleed);
             int firstHit = events.Count;
+            BattleEvent lastHit = null;
             for (int h = 0; h < hits && target.IsAlive; h++)
             {
                 var ev = new BattleEvent
@@ -723,6 +764,7 @@ namespace BiRyeoDo.Core
                     if (!ev.Guarded) struck = true;
                 }
                 events.Add(ev);
+                lastHit = ev;
             }
             // 금요관: a charged blow that lands (even guarded) cuts one rope, however many hits it had; one fully dodged cuts nothing
             if (heavy && hurt && Trial != null && Trial.Kind == TrialKind.Lifeline)
@@ -736,6 +778,10 @@ namespace BiRyeoDo.Core
                 if (move.Inflict != StatusKind.None && _rng.NextDouble() < (heavy ? Statuses.ChargedChance : Statuses.MoveChance)) Inflict(enemy, target, move.Inflict, events);
                 if (heavy) Inflict(enemy, target, StatusKind.InnerWound, events);   // a charged blow taken without a guard leaves 내상
             }
+            // Resolve the entire move first: partial evasion or dying to its last hit/bleed
+            // must not grant a successful response. Mark one event, never one per hit.
+            if (heavy && !struck && target.IsAlive && lastHit != null)
+                GrantCounter(target, enemy, lastHit);
             if (hurt) target.Spirit = Math.Min(MaxSpirit, target.Spirit + SpiritOnTaken + target.SpiritTakenBonus);
             if (enemy.UsesResources && !burst) enemy.Spirit = Math.Min(MaxSpirit, enemy.Spirit + EnemySpiritOnDealt);
             for (int i = firstHit; i < events.Count; i++) events[i].TargetSpiritAfter = target.Spirit;
