@@ -137,7 +137,7 @@ namespace BiRyeoDo.Tests
         }
     
         [Test]
-        public void AStepWaitingForItsGateSaysWhatIsMissingAndIsAnnouncedWhenItOpens()
+        public void AStepWaitingForItsGateIsReportedOnceAndAgainWhenItOpens()
         {
             var save = new SaveData { Level = 1 };
             save.LearnedArts.Add("bunroesu");
@@ -147,13 +147,47 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(-1, rose);
             StringAssert.Contains("소성 10회 달성", waiting);
             StringAssert.Contains(Mastery.GateText(EarlyGameContent.FindArt("bunroesu"), 1), waiting);
-            Assert.IsEmpty(Mastery.PollGateRises(save));
+            // the after-battle report lists the waiting step once ...
+            var report = Mastery.PollReport(save);
+            Assert.AreEqual(1, report.Count);
+            Assert.IsTrue(report[0].Waiting);
+            Assert.AreEqual(1, report[0].To);
+            Assert.IsEmpty(Mastery.PollReport(save));
             var g = Mastery.TierGate(EarlyGameContent.FindArt("bunroesu"), 1);
             save.ClearedStage = g.Stage;
             save.Level = g.Level;
-            CollectionAssert.AreEqual(new[] { "분뢰수 숙련 소성!" }, Mastery.PollGateRises(save));
-            Assert.IsEmpty(Mastery.PollGateRises(save));
+            // ... and the step itself once its gate opens
+            report = Mastery.PollReport(save);
+            Assert.AreEqual(1, report.Count);
+            Assert.IsFalse(report[0].Waiting);
+            Assert.AreEqual(0, report[0].From);
+            Assert.AreEqual(1, report[0].To);
+            Assert.IsEmpty(Mastery.PollReport(save));
+            StringAssert.Contains("위력 +3%", Mastery.TierEffect(EarlyGameContent.FindArt("bunroesu"), 1));
             StringAssert.StartsWith("다음 대성: 25회 · ", Mastery.NextStepText(EarlyGameContent.FindArt("bunroesu"), 1));
+        }
+
+        [Test]
+        public void StepsReachedInAFightAreReportedAfterItButNotScrollReads()
+        {
+            var art = EarlyGameContent.FindArt("bunroesu");
+            var gate = Mastery.TierGate(art, 2);
+            var save = new SaveData { Level = gate.Level, ClearedStage = gate.Stage };
+            save.LearnedArts.Add("bunroesu");
+            int rose = -1;
+            for (int i = 0; i < Mastery.ThresholdsFor(art)[1]; i++) rose = Mastery.RecordUse(save, "bunroesu");
+            Assert.AreEqual(1, rose, "the fight still learns of the step at once (short line over 비류연)");
+            var report = Mastery.PollReport(save);
+            Assert.AreEqual(1, report.Count);
+            Assert.AreEqual(0, report[0].From);
+            Assert.AreEqual(1, report[0].To);
+            Assert.IsEmpty(Mastery.PollReport(save));
+            // a 수련서 says so in its own result line, so it adds no report card
+            save.Items.Add(new ItemStack("art_scroll_20", 1));
+            bool used;
+            StringAssert.Contains("대성", Mastery.UseScroll(save, "art_scroll_20", "bunroesu", out used));
+            Assert.IsTrue(used);
+            Assert.IsEmpty(Mastery.PollReport(save));
         }
 
         [Test]

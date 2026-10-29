@@ -11,6 +11,16 @@ namespace BiRyeoDo.Core
         public int Uses;
         public int Variant;   // 0 = none, otherwise a <see cref="ArtVariant"/> value
         public int Shown = -1;   // the 숙련 step last announced (-1: not recorded yet; additive field)
+        public int Noted = -1;   // the 숙련 step last shown in the after-battle 「무공 숙련」 report (-1: not recorded yet)
+        public int WaitNoted = -1;   // the use-count step last reported as waiting for its stage / level gate
+    }
+
+    /// <summary>One line of the after-battle 「무공 숙련」 report: a step reached (<see cref="From"/> to <see cref="To"/>), or uses that completed step <see cref="To"/> while its gate is still closed.</summary>
+    public sealed class MasteryNote
+    {
+        public ArtData Art;
+        public int From, To;
+        public bool Waiting;
     }
 
     public enum ArtVariant { None = 0, Power = 1, Swift = 2, Flurry = 3 }
@@ -44,20 +54,28 @@ namespace BiRyeoDo.Core
             if (art.OwnerId != null) return lines;
             for (int i = 0; i < Thresholds.Length; i++)
             {
-                var parts = new List<string>();
-                if (art.Effect == SkillEffect.Evade) parts.Add("회피 " + Math.Round(EvadeChanceByLevel[i] * 100f) + "%");
-                else if (i > 0) parts.Add("위력 +" + Math.Round(PowerBonusOf(art, i) * 100f) + "%");
-                if (i == VariantLevel && AvailableVariants(art).Count > 0) parts.Add("변초 해금");
-                if (i == MasterLevel)
-                {
-                    if (art.Cooldown > 0) parts.Add("재사용 -1턴");
-                    if (art.QiCost > 0) parts.Add("내공 -" + Math.Round((1f - MasterQiFactor) * 100f) + "%");
-                }
-                foreach (var f in EarlyGameContent.FormsOf(art.Id))
-                    if (f.FormTier == i) parts.Add("「" + f.Name + "」로 변화");
-                lines.Add(LevelNames[i] + " (" + ThresholdsFor(art)[i] + "회" + (i > 0 ? ", " + GateText(art, i) : "") + ")  " + (parts.Count > 0 ? string.Join(" · ", parts) : "기본"));
+                string effect = TierEffect(art, i);
+                lines.Add(LevelNames[i] + " (" + ThresholdsFor(art)[i] + "회" + (i > 0 ? ", " + GateText(art, i) : "") + ")  " + (effect.Length > 0 ? effect : "기본"));
             }
             return lines;
+        }
+
+        /// <summary>What step <paramref name="tier"/> gives the art: "위력 +3%", "회피 65%", "변초 해금", "재사용 -1턴 · 내공 -20%", "「편수 풍신」로 변화"; "" for none.</summary>
+        public static string TierEffect(ArtData art, int tier)
+        {
+            var parts = new List<string>();
+            if (art == null || art.OwnerId != null || tier < 0 || tier > MasterLevel) return "";
+            if (art.Effect == SkillEffect.Evade) parts.Add("회피 " + Math.Round(EvadeChanceByLevel[tier] * 100f) + "%");
+            else if (tier > 0) parts.Add("위력 +" + Math.Round(PowerBonusOf(art, tier) * 100f) + "%");
+            if (tier == VariantLevel && AvailableVariants(art).Count > 0) parts.Add("변초 해금");
+            if (tier == MasterLevel)
+            {
+                if (art.Cooldown > 0) parts.Add("재사용 -1턴");
+                if (art.QiCost > 0) parts.Add("내공 -" + Math.Round((1f - MasterQiFactor) * 100f) + "%");
+            }
+            foreach (var f in EarlyGameContent.FormsOf(art.Id))
+                if (f.FormTier == tier) parts.Add("「" + f.Name + "」로 변화");
+            return string.Join(" · ", parts);
         }
 
         /// <summary>
@@ -315,6 +333,8 @@ namespace BiRyeoDo.Core
             for (int i = 0; i < gain; i++) RecordUse(save, artId);
             used = true;
             int after = Level(save, artId);
+            var entry = Find(save, artId);
+            if (entry != null) entry.Noted = Math.Max(entry.Noted, after);   // the result line already says so; no report card for it
             return art.Name + "의 숙련 +" + gain + "회 (" + Uses(save, artId) + "회)" + (after > before ? "  " + LevelNames[after] + "에 올랐습니다!" : "");
         }
 
@@ -344,6 +364,7 @@ namespace BiRyeoDo.Core
             if (e == null) { e = new ArtMasteryEntry { Id = artId }; save.ArtMastery.Add(e); }
             var art = EarlyGameContent.FindArt(artId);
             if (e.Shown < 0) e.Shown = Level(save, artId);
+            if (e.Noted < 0) e.Noted = Level(save, artId);
             int usesBefore = LevelOf(art, e.Uses);
             e.Uses++;
             int usesAfter = LevelOf(art, e.Uses), gated = Level(save, artId);
@@ -361,24 +382,35 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>
-        /// Steps reached outside a fight's use count (a stage cleared or a level gained opened a gate the uses had already passed), announced once
-        /// as "분뢰수 숙련 대성!". The first call for an art only records its step.
+        /// The after-battle 「무공 숙련」 report, each change once: steps reached since the last report (in a fight, or later when a stage or level
+        /// opened a gate the uses had already passed), then steps whose uses are complete but whose gate is still closed. An art seen for the first
+        /// time only records where it stands.
         /// </summary>
-        public static List<string> PollGateRises(SaveData save)
+        public static List<MasteryNote> PollReport(SaveData save)
         {
-            var lines = new List<string>();
+            var rises = new List<MasteryNote>();
+            var waiting = new List<MasteryNote>();
             foreach (var id in save.LearnedArts)
             {
                 var art = EarlyGameContent.FindArt(id);
                 var e = Find(save, id);
                 if (art == null || art.OwnerId != null || e == null) continue;
-                int level = Level(save, id);
-                if (e.Shown < 0) { e.Shown = level; continue; }
-                if (level <= e.Shown) continue;
-                e.Shown = level;
-                lines.Add(art.Name + " 숙련 " + LevelNames[level] + "!" + (level == VariantLevel ? " 변초 해금" : ""));
+                int level = Level(save, id), uses = LevelOf(art, e.Uses);
+                if (e.Noted < 0) e.Noted = level;
+                if (level > e.Noted)
+                {
+                    rises.Add(new MasteryNote { Art = art, From = e.Noted, To = level });
+                    e.Noted = level;
+                }
+                e.Shown = Math.Max(e.Shown, level);
+                if (uses > level && uses > e.WaitNoted)
+                {
+                    waiting.Add(new MasteryNote { Art = art, From = level, To = level + 1, Waiting = true });
+                    e.WaitNoted = uses;
+                }
             }
-            return lines;
+            rises.AddRange(waiting);
+            return rises;
         }
 
         /// <summary>Variants that make sense for this art (supports and 비기 are left alone).</summary>

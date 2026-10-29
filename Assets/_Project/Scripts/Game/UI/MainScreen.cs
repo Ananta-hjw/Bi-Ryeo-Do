@@ -148,6 +148,7 @@ namespace BiRyeoDo.Game.UI
             helpHost.gameObject.AddComponent<HelpPanel>().Build(helpHost);
 
             BuildRealmModal(safe);
+            BuildMasteryModal(safe);
 
             Select((int)_router.startTab);
             SoundManager.Bgm("lobby");
@@ -214,7 +215,8 @@ namespace BiRyeoDo.Game.UI
                 _worldModal.SetActive(false);
             // The Android back key leaves a screen for 강호, unless a battle, help card or notice is up.
             if (Input.GetKeyDown(KeyCode.Escape) && !(_battleOverlay != null && _battleOverlay.activeSelf)
-                && !(HelpPanel.Instance != null && HelpPanel.Instance.IsOpen) && !(_realmModal != null && _realmModal.activeSelf))
+                && !(HelpPanel.Instance != null && HelpPanel.Instance.IsOpen) && !(_realmModal != null && _realmModal.activeSelf)
+                && !(_masteryModal != null && _masteryModal.activeSelf))
                 GoBack();
             _dotTimer -= Time.unscaledDeltaTime;
             if (_dotTimer > 0f || _realmModal == null || GameManager.Instance == null) return;
@@ -222,7 +224,8 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
 
             // 무공 경지 rose: tell the player once the battle overlay and any help card are out of the way.
-            bool busy = (_battleOverlay != null && _battleOverlay.activeSelf) || (HelpPanel.Instance != null && HelpPanel.Instance.IsOpen) || (_realmModal != null && _realmModal.activeSelf);
+            bool busy = (_battleOverlay != null && _battleOverlay.activeSelf) || (HelpPanel.Instance != null && HelpPanel.Instance.IsOpen) || (_realmModal != null && _realmModal.activeSelf)
+                || (_masteryModal != null && _masteryModal.activeSelf);
             int from, to;
             if (!busy && Realm.PollRise(save, out from, out to))
             {
@@ -241,20 +244,13 @@ namespace BiRyeoDo.Game.UI
 
             // 무공 변화: an art grew into the next technique of its line (숙련 + stage + level).
             if (busy) return;
+            // 무공 숙련 / 무공 변화: everything the last battle (or a stage / level gate) changed, as one card per art.
             var forms = Mastery.PollNewForms(save);
-            var steps = Mastery.PollGateRises(save);   // a stage or level opened a 숙련 step the uses had already reached
-            if (forms.Count > 0 || steps.Count > 0)
+            var notes = Mastery.PollReport(save);
+            if (forms.Count > 0 || notes.Count > 0)
             {
                 GameManager.Instance.SaveNow();
-                _realmTitle.text = forms.Count > 0 ? "무공 변화" : "무공 숙련";
-                var body = new List<string>();
-                body.AddRange(steps.Select(f => "<color=#9ADB9F>" + f + "</color>"));
-                body.AddRange(forms.Select(f => "<color=#E8C860>" + f + "</color>"));
-                _realmBody.text = string.Join("\n", body)
-                    + (forms.Count > 0 ? "\n\n<color=#9AA3B2>같은 칸에서 바뀐 무공을 그대로 씁니다. 숙련도 이어집니다.</color>" : "\n\n<color=#9AA3B2>스테이지와 레벨 조건을 채워 숙련 단계가 올랐습니다.</color>");
-                _realmModal.transform.SetAsLastSibling();
-                _realmModal.SetActive(true);
-                SoundManager.Sfx("levelup");
+                ShowMasteryReport(save, forms, notes);
                 return;
             }
 
@@ -281,6 +277,114 @@ namespace BiRyeoDo.Game.UI
             _realmModal.transform.SetAsLastSibling();
             _realmModal.SetActive(true);
             SoundManager.Sfx("levelup");
+        }
+
+        private GameObject _masteryModal;
+        private Text _masteryTitle;
+        private RectTransform _masteryList;
+
+        /// <summary>The after-battle 「무공 숙련」 report: one card per art (picture, step change, what it gives, what the next step needs), then steps waiting for their gate.</summary>
+        private void BuildMasteryModal(RectTransform parent)
+        {
+            var rt = UiFactory.Rect("MasteryModal", parent, Vector2.zero, Vector2.one);
+            _masteryModal = rt.gameObject;
+            rt.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.75f);   // blocks everything underneath
+            var card = UiFactory.Panel("Card", rt, new Vector2(0.05f, 0.06f), new Vector2(0.95f, 0.94f), UiFactory.ModalInk);
+            UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
+            _masteryTitle = UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.89f), new Vector2(0.95f, 0.98f), "무공 숙련", 46, UiFactory.Gold);
+            _masteryList = CodexPanel.Scroller((RectTransform)card.transform, 0.15f, 0.88f);
+            UiFactory.Button("Ok", card.transform, new Vector2(0.30f, 0.03f), new Vector2(0.70f, 0.13f), "확인", UiFactory.Red, CloseMasteryReport, 36);
+            _masteryModal.SetActive(false);
+        }
+
+        private void CloseMasteryReport()
+        {
+            _masteryModal.SetActive(false);
+            if (HelpPanel.Instance != null && !Tutorial.IsDone(GameManager.Instance.Save, "mastery")) HelpPanel.Instance.Show("mastery", true);
+        }
+
+        private const float MasteryCardHeight = 250f, MasteryCardGap = 14f;
+
+        private void ShowMasteryReport(SaveData save, List<string> forms, List<MasteryNote> notes)
+        {
+            for (int i = _masteryList.childCount - 1; i >= 0; i--) Destroy(_masteryList.GetChild(i).gameObject);
+            _masteryTitle.text = forms.Count > 0 && notes.Count == 0 ? "무공 변화" : "무공 숙련";
+            float y = MasteryCardGap;
+            foreach (var f in forms) y = MasteryLine(y, "<color=#E8C860>" + f + "</color>\n<size=26><color=#9AA3B2>같은 칸에서 바뀐 무공을 그대로 씁니다. 숙련도 이어집니다.</color></size>", 130f);
+            bool waitingHeader = false;
+            foreach (var n in notes)
+            {
+                if (n.Waiting && !waitingHeader)
+                {
+                    waitingHeader = true;
+                    y = MasteryLine(y, "<color=#E8C860>횟수 달성 — 조건이 남았습니다</color>\n<size=26><color=#9AA3B2>아래 조건을 채우면 바로 다음 단계에 오릅니다.</color></size>", 110f);
+                }
+                y = MasteryCard(save, n, y);
+            }
+            _masteryList.sizeDelta = new Vector2(0f, y);
+            _masteryModal.transform.SetAsLastSibling();
+            _masteryModal.SetActive(true);
+            SoundManager.Sfx("levelup");
+        }
+
+        private float MasteryLine(float y, string text, float height)
+        {
+            var row = UiFactory.Rect("Line", _masteryList, new Vector2(0.03f, 1f), new Vector2(0.97f, 1f));
+            row.pivot = new Vector2(0.5f, 1f);
+            row.sizeDelta = new Vector2(0f, height);
+            row.anchoredPosition = new Vector2(0f, -y);
+            UiFactory.Body(UiFactory.Label("Text", row, Vector2.zero, Vector2.one, text, 32, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal));
+            return y + height + MasteryCardGap;
+        }
+
+        private float MasteryCard(SaveData save, MasteryNote n, float y)
+        {
+            var art = n.Art;
+            var shown = Mastery.CurrentForm(save, art);
+            var row = UiFactory.Rect("Art_" + art.Id, _masteryList, new Vector2(0.03f, 1f), new Vector2(0.97f, 1f));
+            row.pivot = new Vector2(0.5f, 1f);
+            row.sizeDelta = new Vector2(0f, MasteryCardHeight);
+            row.anchoredPosition = new Vector2(0f, -y);
+            row.gameObject.AddComponent<Image>().color = UiFactory.Ink;
+            UiFactory.Frame(row, n.Waiting ? UiFactory.GoldDim : UiFactory.Gold, 2f);
+
+            var icon = UiFactory.Panel("Icon", row, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), Color.white);
+            icon.rectTransform.sizeDelta = new Vector2(190f, 190f);
+            icon.rectTransform.anchoredPosition = new Vector2(115f, 0f);
+            icon.sprite = ArtLibrary.Art(shown.Id) ?? ArtLibrary.Art(art.Id);
+            icon.preserveAspect = true;
+            if (icon.sprite == null)
+            {
+                icon.color = UiFactory.InkSoft;
+                UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, shown.Name.Substring(0, 1), 80, UiFactory.Gold);
+            }
+
+            var text = UiFactory.Rect("Text", row, Vector2.zero, Vector2.one);
+            text.offsetMin = new Vector2(240f, 12f);
+            text.offsetMax = new Vector2(-20f, -12f);
+            string from = Mastery.LevelNames[n.From], to = Mastery.LevelNames[n.To];
+            string step = n.Waiting
+                ? "<color=#E8C860>" + to + "</color> 사용 횟수 달성"
+                : "<color=#9AA3B2>" + from + "</color>   ▶   <color=#E8C860>" + to + "</color>";
+            string middle, bottom;
+            if (n.Waiting)
+            {
+                middle = "<color=#FFB27A>남은 조건: " + Mastery.GateText(art, n.To) + "</color>";
+                bottom = "<color=#9AA3B2>조건을 채우면 바로 " + to + "에 오릅니다.</color>";
+            }
+            else
+            {
+                string effect = Mastery.TierEffect(art, n.To);
+                middle = "<color=#9ADB9F>효과: " + (effect.Length > 0 ? effect : "기본") + "</color>";
+                bottom = n.To >= Mastery.MasterLevel
+                    ? "<color=#9AA3B2>최고 단계에 올랐습니다.</color>"
+                    : "<color=#9AA3B2>다음 " + Mastery.LevelNames[n.To + 1] + ": 사용 " + Mastery.Uses(save, art.Id) + " / " + Mastery.ThresholdsFor(art)[n.To + 1] + "회 · " + Mastery.GateText(art, n.To + 1) + "</color>";
+            }
+            UiFactory.Label("Name", text, new Vector2(0f, 0.74f), new Vector2(1f, 1f), shown.Name, 36, UiFactory.Gold, TextAnchor.MiddleLeft);
+            UiFactory.Label("Step", text, new Vector2(0f, 0.50f), new Vector2(1f, 0.74f), step, 32, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("Effect", text, new Vector2(0f, 0.26f), new Vector2(1f, 0.50f), middle, 28, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+            UiFactory.Label("Next", text, new Vector2(0f, 0f), new Vector2(1f, 0.26f), bottom, 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+            return y + MasteryCardHeight + MasteryCardGap;
         }
 
         private void BuildRealmModal(RectTransform parent)

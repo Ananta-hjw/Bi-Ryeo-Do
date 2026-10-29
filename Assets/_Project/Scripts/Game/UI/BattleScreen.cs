@@ -900,18 +900,15 @@ namespace BiRyeoDo.Game.UI
                 {
                     Daily.Record(GameManager.Instance.Save, DailyEvent.SkillUse);
                     if (Progression.IsUltimate(_command.Skill)) Daily.Record(GameManager.Instance.Save, DailyEvent.UltimateUse);
-                    string waiting;
-                    int rose = Mastery.RecordUse(GameManager.Instance.Save, _command.Skill.Id, out waiting);
+                    // A step reached shows as a short line over 비류연; the details (and steps waiting for their gate) come in the
+                    // 「무공 숙련」 report after the battle (Mastery.PollReport, MainScreen).
+                    int rose = Mastery.RecordUse(GameManager.Instance.Save, _command.Skill.Id);
                     GameManager.Instance.SaveNow();
-                    if (rose >= 0) SoundManager.Sfx("levelup");
-                    var usedArt = EarlyGameContent.FindArt(_command.Skill.Id);
                     if (rose >= 0)
                     {
-                        string next = Mastery.NextStepText(usedArt, rose);
-                        _masteryNotice = _command.Skill.Name + " 숙련 " + Mastery.LevelNames[rose] + "!" + (rose == Mastery.VariantLevel ? "  변초 해금 (무공 탭)" : "")
-                            + (next.Length > 0 ? "\n<size=34>" + next + "</size>" : "");
+                        SoundManager.Sfx("levelup");
+                        _masteryNotice = _command.Skill.Name + " " + Mastery.LevelNames[rose] + "▲";
                     }
-                    else if (waiting != null) _masteryNotice = _command.Skill.Name + " 숙련 " + waiting;
                 }
                 if (_command.Kind == CommandKind.Joint) Daily.Record(GameManager.Instance.Save, DailyEvent.JointUse);
                 if (_command.Kind == CommandKind.Item)
@@ -922,9 +919,13 @@ namespace BiRyeoDo.Game.UI
                 yield return PlayEvents(events);
                 if (_masteryNotice != null)
                 {
-                    string note = _masteryNotice; _masteryNotice = null;
-                    yield return Banner(note, 1.8f);
-                    if (HelpPanel.Instance != null) yield return HelpPanel.Instance.ShowOnce("mastery");
+                    var hero = PanelOf("player");
+                    if (hero != null)
+                    {
+                        var rise = NumberLabel(hero.Center + new Vector2(0f, 0.13f), _masteryNotice, UiFactory.Gold, 56);
+                        StartCoroutine(PopUp(rise.rectTransform, rise, 1.6f, 90f, 0f));
+                    }
+                    _masteryNotice = null;
                 }
                 actions++;
                 if (turnLimit > 0 && actions >= turnLimit && !_battle.IsOver) { _drawn = true; break; }
