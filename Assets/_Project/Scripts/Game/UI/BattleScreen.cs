@@ -1542,7 +1542,7 @@ namespace BiRyeoDo.Game.UI
                 else if (!reach) sub = "닿지 않음";
                 if (ok && _battle.Trial != null && _battle.Trial.Kind == TrialKind.Technique && _battle.RequiredTechniqueId == s.Id)
                     sub = _battle.TechniqueWindowOpen ? "목표 · 지금 대응" : "목표 · 예고 대기";
-                SetCommand(slot, s.Name, sub, ok, ArtLibrary.Art(s.Id));
+                SetCommand(slot, s.Name, sub, ok, ArtLibrary.Command(s.Id));
             }
             SetCommand(5, "방어", "피해 -60%", true, ArtLibrary.Icon("cmd_guard"));
             SetCommand(6, "운기", "내공 +" + InteractiveBattle.MeditateQi, true, ArtLibrary.Icon("cmd_meditate"));
@@ -1559,7 +1559,7 @@ namespace BiRyeoDo.Game.UI
             else
             {
                 bool ready = _battle.CanUse(ult) && _battle.CanReach(ult);
-                SetCommand(9, ult.Name, ready ? "기세 " + ult.SpiritCost : "기세 " + Mathf.Min(me.Spirit, ult.SpiritCost) + "/" + ult.SpiritCost, ready, ArtLibrary.Art(ult.Id) ?? ArtLibrary.Icon("ultimate_slot"));
+                SetCommand(9, ult.Name, ready ? "기세 " + ult.SpiritCost : "기세 " + Mathf.Min(me.Spirit, ult.SpiritCost) + "/" + ult.SpiritCost, ready, ArtLibrary.Command(ult.Id) ?? ArtLibrary.Icon("ultimate_slot"));
             }
             if (_jointPartners.Count == 0) _commands[8].Root.SetActive(false);
             else SetCommand(8, "합공", me.Spirit >= InteractiveBattle.JointSpiritCost ? "기세 " + InteractiveBattle.JointSpiritCost : "기세 부족", me.Spirit >= InteractiveBattle.JointSpiritCost, ArtLibrary.Icon("cmd_joint"));
@@ -1740,13 +1740,13 @@ namespace BiRyeoDo.Game.UI
             else if (slot >= 1 && slot <= Progression.MaxEquippedArts)
             {
                 var arts = ArtsOf(me);
-                if (slot - 1 < arts.Count) ShowTip(arts[slot - 1].Name, SkillBody(arts[slot - 1]), ArtLibrary.Art(arts[slot - 1].Id));
+                if (slot - 1 < arts.Count) ShowTip(arts[slot - 1].Name, SkillBody(arts[slot - 1]), ArtLibrary.Command(arts[slot - 1].Id));
             }
             else if (slot == 9)
             {
                 var ultimateSkill = UltimateOf(me);
                 if (ultimateSkill == null) ShowTip("필살기 슬롯", "장착한 비기가 없습니다. 무공 탭에서 배운 비기를 장착하면 여기에서 쓸 수 있습니다. 기세가 가득 차면 쓸 수 있는 필살기 한 자리입니다.", ArtLibrary.Icon("ultimate_slot"));
-                else ShowTip("필살기 · " + ultimateSkill.Name, SkillBody(ultimateSkill) + "\n기세가 가득 차면 쓸 수 있습니다.", ArtLibrary.Art(ultimateSkill.Id) ?? ArtLibrary.Icon("ultimate_slot"));
+                else ShowTip("필살기 · " + ultimateSkill.Name, SkillBody(ultimateSkill) + "\n기세가 가득 차면 쓸 수 있습니다.", ArtLibrary.Command(ultimateSkill.Id) ?? ArtLibrary.Icon("ultimate_slot"));
             }
             else if (slot == 5) ShowTip("방어", "다음 차례까지 받는 피해가 크게 줄어듭니다(피해 60% 감소). 기세가 조금 오릅니다.", ArtLibrary.Icon("cmd_guard"));
             else if (slot == 6) ShowTip("운기", "내공 +" + InteractiveBattle.MeditateQi + "과 체력을 조금 회복하고, 걸린 상태 이상을 풉니다.", ArtLibrary.Icon("cmd_meditate"));

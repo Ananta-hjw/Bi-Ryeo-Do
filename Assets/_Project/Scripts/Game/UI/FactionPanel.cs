@@ -86,7 +86,10 @@ namespace BiRyeoDo.Game.UI
                 var icon = UiFactory.Panel("Icon", card.transform, new Vector2(.12f, .40f), new Vector2(.88f, .96f), Color.white);
                 icon.raycastTarget = false;
                 var glyph = UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, "", 60, UiFactory.PaperText);
-                GoodIcon(icon, glyph, g, open);
+                GoodIcon(icon, glyph, g, open && !sold);
+                if (g.FactionId != null)
+                    UiFactory.Label("FactionMark", card.transform, new Vector2(.87f, .79f), new Vector2(.99f, .96f),
+                        FactionMark(g.FactionId), 22, open && !sold ? UiFactory.GoldDim : UiFactory.Dim);
                 UiFactory.Label("Name", card.transform, new Vector2(.04f, .17f), new Vector2(.96f, .40f), open ? Shop.NameOf(g) : "???", 26, open ? UiFactory.PaperText : UiFactory.InkSoft);
                 UiFactory.Label("Price", card.transform, new Vector2(.04f, .02f), new Vector2(.96f, .17f), sold ? "매진" : open ? g.Price.ToString("N0") + "은자" : "잠김",
                     26, sold || !open ? UiFactory.Dim : save.Doo >= g.Price ? UiFactory.Gold : new Color(1f, .55f, .45f, 1f));
@@ -95,11 +98,31 @@ namespace BiRyeoDo.Game.UI
             return goods.Count;
         }
 
-        /// <summary>The good's picture: the item's own art, or a scroll glyph for 숙련 수련 and 경험치 두루마리; grey while its shelf is shut.</summary>
-        private static void GoodIcon(Image icon, Text glyph, ShopGood g, bool open)
+        private static string FactionMark(string id)
+        {
+            switch (id)
+            {
+                case "academy": return "학";
+                case "biaoguk": return "표";
+                case "wudang": return "무";
+                case "greenwood": return "림";
+                case "huashan": return "화";
+                default: return "";
+            }
+        }
+
+        /// <summary>Item art or a distinct service illustration; locked and sold goods share one ink tone.</summary>
+        private static void GoodIcon(Image icon, Text glyph, ShopGood g, bool available)
         {
             var item = g.Kind == ShopKind.Item ? EarlyGameContent.FindItem(g.ItemId) : null;
             if (item != null) ItemArt.Apply(icon, glyph, item);
+            else if (ArtLibrary.ShopGood(g) != null)
+            {
+                icon.sprite = ArtLibrary.ShopGood(g);
+                icon.color = Color.white;
+                icon.material = null;
+                glyph.text = "";
+            }
             else
             {
                 icon.sprite = null;
@@ -108,7 +131,7 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Glyph(g.Kind == ShopKind.Training ? "arts" : "record", icon.transform, Vector2.zero, Vector2.one, UiFactory.Gold).raycastTarget = false;
             }
             icon.preserveAspect = true;
-            if (!open) icon.color = new Color(.35f, .35f, .38f, icon.color.a);
+            if (!available) IconCutout.ApplyLocked(icon.transform);
         }
 
         /// <summary>Details of one good: picture, shelf, description, limit and the buy button.</summary>
@@ -124,7 +147,7 @@ namespace BiRyeoDo.Game.UI
             bool open = Shop.IsOpen(save, g), sold = Shop.SoldOut(save, g), afford = save.Doo >= g.Price;
             var icon = UiFactory.Panel("Icon", card.transform, new Vector2(.06f, .64f), new Vector2(.36f, .96f), Color.white);
             var glyph = UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, "", 60, UiFactory.PaperText);
-            GoodIcon(icon, glyph, g, open);
+            GoodIcon(icon, glyph, g, open && !sold);
             string owner = g.FactionId == null ? "객잔" : Factions.Find(g.FactionId).Name;
             UiFactory.Label("Title", card.transform, new Vector2(.40f, .84f), new Vector2(.95f, .96f), open ? Shop.NameOf(g) : "???", 38, UiFactory.Gold, TextAnchor.MiddleLeft);
             UiFactory.Label("Shelf", card.transform, new Vector2(.40f, .66f), new Vector2(.95f, .84f),
