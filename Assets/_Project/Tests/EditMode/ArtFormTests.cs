@@ -135,5 +135,34 @@ namespace BiRyeoDo.Tests
                 }
             }
         }
+    
+        [Test]
+        public void AStepWaitingForItsGateSaysWhatIsMissingAndIsAnnouncedWhenItOpens()
+        {
+            var save = new SaveData { Level = 1 };
+            save.LearnedArts.Add("bunroesu");
+            string waiting = null;
+            int rose = -1;
+            for (int i = 0; i < 10; i++) rose = Mastery.RecordUse(save, "bunroesu", out waiting);
+            Assert.AreEqual(-1, rose);
+            StringAssert.Contains("소성 10회 달성", waiting);
+            StringAssert.Contains(Mastery.GateText(EarlyGameContent.FindArt("bunroesu"), 1), waiting);
+            Assert.IsEmpty(Mastery.PollGateRises(save));
+            var g = Mastery.TierGate(EarlyGameContent.FindArt("bunroesu"), 1);
+            save.ClearedStage = g.Stage;
+            save.Level = g.Level;
+            CollectionAssert.AreEqual(new[] { "분뢰수 숙련 소성!" }, Mastery.PollGateRises(save));
+            Assert.IsEmpty(Mastery.PollGateRises(save));
+            StringAssert.StartsWith("다음 대성: 25회 · ", Mastery.NextStepText(EarlyGameContent.FindArt("bunroesu"), 1));
+        }
+
+        [Test]
+        public void ScrollShelvesAreLimited()
+        {
+            var limits = Shop.Goods.Where(g => g.Kind == ShopKind.Item && g.ItemId != null && g.ItemId.StartsWith("art_scroll_")).ToDictionary(g => g.ItemId, g => g.Limit);
+            Assert.AreEqual(10, limits["art_scroll_5"]);
+            Assert.AreEqual(7, limits["art_scroll_10"]);
+            Assert.AreEqual(5, limits["art_scroll_20"]);
+        }
     }
 }

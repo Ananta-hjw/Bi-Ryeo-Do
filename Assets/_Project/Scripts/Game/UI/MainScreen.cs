@@ -242,12 +242,16 @@ namespace BiRyeoDo.Game.UI
             // 무공 변화: an art grew into the next technique of its line (숙련 + stage + level).
             if (busy) return;
             var forms = Mastery.PollNewForms(save);
-            if (forms.Count > 0)
+            var steps = Mastery.PollGateRises(save);   // a stage or level opened a 숙련 step the uses had already reached
+            if (forms.Count > 0 || steps.Count > 0)
             {
                 GameManager.Instance.SaveNow();
-                _realmTitle.text = "무공 변화";
-                _realmBody.text = string.Join("\n", forms.Select(f => "<color=#E8C860>" + f + "</color>"))
-                    + "\n\n<color=#9AA3B2>같은 칸에서 바뀐 무공을 그대로 씁니다. 숙련도 이어집니다.</color>";
+                _realmTitle.text = forms.Count > 0 ? "무공 변화" : "무공 숙련";
+                var body = new List<string>();
+                body.AddRange(steps.Select(f => "<color=#9ADB9F>" + f + "</color>"));
+                body.AddRange(forms.Select(f => "<color=#E8C860>" + f + "</color>"));
+                _realmBody.text = string.Join("\n", body)
+                    + (forms.Count > 0 ? "\n\n<color=#9AA3B2>같은 칸에서 바뀐 무공을 그대로 씁니다. 숙련도 이어집니다.</color>" : "\n\n<color=#9AA3B2>스테이지와 레벨 조건을 채워 숙련 단계가 올랐습니다.</color>");
                 _realmModal.transform.SetAsLastSibling();
                 _realmModal.SetActive(true);
                 SoundManager.Sfx("levelup");

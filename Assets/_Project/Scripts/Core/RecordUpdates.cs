@@ -35,6 +35,13 @@ namespace BiRyeoDo.Core
             return Keys(save, page).Distinct().Count(key => !read.Contains(key));
         }
 
+        /// <summary>The page's entries not read yet, as keys ("enemy:id", "item:id", ...), so the page can mark them before acknowledging.</summary>
+        public static List<string> UnreadKeys(SaveData save, string page)
+        {
+            var read = new HashSet<string>(save.ReadRecordUpdates ?? new List<string>());
+            return Keys(save, page).Distinct().Where(key => !read.Contains(key)).ToList();
+        }
+
         public static bool Acknowledge(SaveData save, string page)
         {
             if (save.ReadRecordUpdates == null) save.ReadRecordUpdates = new List<string>();

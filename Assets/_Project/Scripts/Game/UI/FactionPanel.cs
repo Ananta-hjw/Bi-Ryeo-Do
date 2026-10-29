@@ -26,29 +26,77 @@ namespace BiRyeoDo.Game.UI
             if (!Tutorial.IsDone(save, "faction") && HelpPanel.Instance != null) HelpPanel.Instance.Show("faction", true);
 
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.99f), (_shop ? "객잔 · " + save.Doo.ToString("N0") + "은자" : "세력 평판"), 40, UiFactory.Gold);
-            UiFactory.ScrollBody(UiFactory.Label("Toast", Root, new Vector2(0.05f, .80f), new Vector2(0.95f, .89f), toast ?? (_shop ? "세력 평판이 오르면 그 세력의 선반이 열립니다. 평판은 기록 탭 「세력 평판」에서 봅니다." : "그 세력의 스테이지에서 전투를 이기면 평판이 쌓입니다 (일반 +1, 어려움 +2, 극악 +3)"), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            UiFactory.ScrollBody(UiFactory.Label("Toast", Root, new Vector2(0.05f, .80f), new Vector2(0.95f, .89f), toast ?? (_shop ? "세력 평판이 오르면 그 세력의 선반이 열립니다. 평판은 기록 탭 「세력 평판」에서 봅니다." : "세력을 누르면 평판을 얻는 스테이지와 적용 중인 효과를 볼 수 있습니다."), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
 
             var content = CodexPanel.Scroller(Root, .02f, .79f);
             _scroll = content.parent.GetComponent<ScrollRect>();
             if (_shop) DrawShop(content, save);
             else DrawReputation(content, save);
+            _detail = null;
             AddClose();
         }
 
-        private static int DrawReputation(RectTransform content, SaveData save)
+        /// <summary>Colour of each 평판 단계 name (무명 · 안면 · 우호 · 신뢰 · 존경).</summary>
+        private static readonly string[] TierColors = { "#8C8C8C", "#D8CFB8", "#9ADB9F", "#7FB8F0", "#E8C860" };
+
+        private static string TierText(int tier) { return "<color=" + TierColors[tier] + ">" + Factions.TierNames[tier] + "</color>"; }
+
+        private static string PerkNow(SaveData save, FactionData f)
+        {
+            int tier = Factions.Tier(save, f.Id);
+            return tier >= 2 ? f.PerkText + " +" + Math.Round(Factions.PerkValue(save, f) * 100f) + (f.Perk == PerkKind.RestHeal ? "%p" : "%") : "없음 (우호부터)";
+        }
+
+        /// <summary>One card per faction: name and its 단계 (only the 단계 is coloured), points and the effect in force; tapping opens the details.</summary>
+        private int DrawReputation(RectTransform content, SaveData save)
         {
             int n = 0;
-            var grid = new ReadingGrid(content, 2, 300f);
+            var grid = new ReadingGrid(content, 2, 240f);
             foreach (var f in Factions.All)
             {
                 var band = grid.Add("Entry" + n++);
                 int tier = Factions.Tier(save, f.Id), points = Factions.Points(save, f.Id), next = Factions.ToNext(save, f.Id);
-                UiFactory.Label("Name", band, new Vector2(0.04f, 0.58f), new Vector2(0.96f, 0.97f), f.Name + "  ·  " + Factions.TierNames[tier], 32, tier >= 4 ? UiFactory.Gold : UiFactory.PaperText, TextAnchor.MiddleLeft);
-                string perk = f.PerkText + " " + (tier >= 2 ? "+" + Math.Round(Factions.PerkValue(save, f) * 100f) + (f.Perk == PerkKind.RestHeal ? "%p" : "%") : "(우호부터)");
-                UiFactory.Label("Info", band, new Vector2(0.04f, 0.32f), new Vector2(0.96f, 0.58f), "평판 " + points + (next >= 0 ? " (다음 단계까지 " + next + ")" : " (최고)") + "  ·  " + perk, 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
-                UiFactory.Label("Where", band, new Vector2(0.04f, 0.02f), new Vector2(0.96f, 0.32f), "얻는 곳: 스테이지 " + string.Join(", ", f.Stages), 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Name", band, new Vector2(0.04f, 0.62f), new Vector2(0.96f, 0.96f), f.Name + "  ·  " + TierText(tier), 32, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                UiFactory.Label("Info", band, new Vector2(0.04f, 0.30f), new Vector2(0.96f, 0.62f), "평판 " + points + (next >= 0 ? " (다음 단계까지 " + next + ")" : " (최고)") + "  ·  효과: " + PerkNow(save, f), 28, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
+                UiFactory.Label("Hint", band, new Vector2(0.04f, 0.04f), new Vector2(0.96f, 0.28f), "눌러서 상세 보기", 24, UiFactory.Gold, TextAnchor.MiddleLeft, FontStyle.Normal);
+                var faction = f;
+                var button = band.gameObject.AddComponent<Button>();
+                button.targetGraphic = band.GetComponent<Image>();
+                button.onClick.AddListener(() => ShowFaction(faction));
             }
             return n;
+        }
+
+        private RectTransform _detail;
+
+        /// <summary>Details of one faction: its 단계 ladder, the effect in force and at each 단계, where reputation comes from and the 객잔 shelf it opens.</summary>
+        private void ShowFaction(FactionData f)
+        {
+            SoundManager.Sfx("ui_click");
+            var save = GameManager.Instance.Save;
+            int tier = Factions.Tier(save, f.Id), points = Factions.Points(save, f.Id), next = Factions.ToNext(save, f.Id);
+            var lines = new List<string>();
+            if (!string.IsNullOrEmpty(f.Description)) lines.Add(f.Description);
+            lines.Add("<color=#E8C860>현재 단계</color>\n" + TierText(tier) + "  ·  평판 " + points + (next >= 0 ? " (다음 「" + Factions.TierNames[tier + 1] + "」까지 " + next + ")" : " (최고 단계)"));
+            var ladder = new List<string>();
+            for (int t = 1; t <= Factions.MaxTier; t++) ladder.Add(TierText(t) + " " + Factions.Thresholds[t]);
+            lines.Add("<color=#E8C860>단계 문턱</color>\n" + string.Join("  ·  ", ladder));
+            lines.Add("<color=#E8C860>적용 중인 효과</color>\n" + PerkNow(save, f) + "\n<size=26>" + f.PerkText + ": " + Factions.PerkLine(f) + "</size>");
+            var stages = new List<string>();
+            foreach (int st in f.Stages)
+            {
+                var data = EarlyGameContent.FindStage(st);
+                stages.Add("스테이지 " + st + (data != null ? " 「" + data.Name + "」" : ""));
+            }
+            lines.Add("<color=#E8C860>평판 얻는 곳</color>\n" + string.Join("\n", stages)
+                + "\n<size=26>전투마다 처음 이길 때 일반 +1 · 어려움 +2 · 극악 +3, 이 스테이지의 의뢰 완수 +" + Quests.QuestReputation + "</size>");
+            var shelf = new List<string>();
+            foreach (var g in Shop.Goods)
+                if (g.FactionId == f.Id) shelf.Add((Shop.IsOpen(save, g) ? "" : "<color=#8C8C8C>") + TierText(g.MinTier) + " " + Shop.NameOf(g) + (Shop.IsOpen(save, g) ? "" : " (잠김)</color>"));
+            if (shelf.Count > 0) lines.Add("<color=#E8C860>객잔 선반</color>\n" + string.Join("\n", shelf));
+            if (_detail != null) UnityEngine.Object.Destroy(_detail.gameObject);
+            _detail = UiFactory.InfoWindow(Root, f.Name + " 평판", string.Join("\n\n", lines));
+            UiFactory.ShowInfo(_detail);
         }
 
         private const int ShopColumns = 5;
@@ -87,8 +135,15 @@ namespace BiRyeoDo.Game.UI
                 icon.raycastTarget = false;
                 var glyph = UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, "", 60, UiFactory.PaperText);
                 GoodIcon(icon, glyph, g, open);
-                UiFactory.Label("Name", card.transform, new Vector2(.04f, .17f), new Vector2(.96f, .40f), open ? Shop.NameOf(g) : "???", 26, open ? UiFactory.PaperText : UiFactory.InkSoft);
-                UiFactory.Label("Price", card.transform, new Vector2(.04f, .02f), new Vector2(.96f, .17f), sold ? "매진" : open ? g.Price.ToString("N0") + "은자" : "잠김",
+                if (!open || sold)
+                {
+                    // Some painted icons stay bright under a grey tint, so a dark veil over the picture makes a shut shelf read as shut.
+                    var veil = UiFactory.Panel("Veil", card.transform, new Vector2(.02f, .02f), new Vector2(.98f, .98f), new Color(0f, 0f, 0f, .62f));
+                    veil.raycastTarget = false;
+                }
+                string need = g.FactionId == null ? "잠김" : Factions.Find(g.FactionId).Name + " " + Factions.TierNames[g.MinTier];
+                UiFactory.Label("Name", card.transform, new Vector2(.04f, .17f), new Vector2(.96f, .40f), open ? Shop.NameOf(g) : "???", 26, open && !sold ? UiFactory.PaperText : UiFactory.Dim);
+                UiFactory.Label("Price", card.transform, new Vector2(.04f, .02f), new Vector2(.96f, .17f), sold ? "매진" : open ? g.Price.ToString("N0") + "은자" : "잠김 · " + need,
                     26, sold || !open ? UiFactory.Dim : save.Doo >= g.Price ? UiFactory.Gold : new Color(1f, .55f, .45f, 1f));
             }
             content.sizeDelta = new Vector2(0f, gap + ((goods.Count + ShopColumns - 1) / ShopColumns) * (rowHeight + gap));
@@ -108,7 +163,7 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Glyph(g.Kind == ShopKind.Training ? "arts" : "record", icon.transform, Vector2.zero, Vector2.one, UiFactory.Gold).raycastTarget = false;
             }
             icon.preserveAspect = true;
-            if (!open) icon.color = new Color(.35f, .35f, .38f, icon.color.a);
+            if (!open) icon.color = new Color(.25f, .25f, .27f, icon.color.a);
         }
 
         /// <summary>Details of one good: picture, shelf, description, limit and the buy button.</summary>

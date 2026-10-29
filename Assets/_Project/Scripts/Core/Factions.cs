@@ -209,9 +209,9 @@ namespace BiRyeoDo.Core
             // 천무학관
             Item("aca_meal", "academy", 1, "meal_academy", 500),
             Item("aca_snow", "academy", 1, "snow_ginseng", 1800),
-            Item("aca_art5", "academy", 2, "art_scroll_5", 4500),
-            Item("aca_art10", "academy", 2, "art_scroll_10", 8200),
-            Item("aca_art20", "academy", 2, "art_scroll_20", 13000),
+            Item("aca_art5", "academy", 2, "art_scroll_5", 4500, 10),
+            Item("aca_art10", "academy", 2, "art_scroll_10", 8200, 7),
+            Item("aca_art20", "academy", 2, "art_scroll_20", 13000, 5),
             new ShopGood { Id = "aca_scroll", FactionId = "academy", MinTier = 2, Kind = ShopKind.ExpScroll, Amount = 20, Name = "수련 일지", Description = "한 단계 오르는 데 필요한 경험치의 20%를 얻습니다.", Price = 7500, Limit = 5 },
             Item("aca_ginseng", "academy", 3, "ginseng", 5200),
             new ShopGood { Id = "aca_scroll2", FactionId = "academy", MinTier = 4, Kind = ShopKind.ExpScroll, Amount = 50, Name = "비전 수련 일지", Description = "한 단계 오르는 데 필요한 경험치의 50%를 얻습니다.", Price = 19500, Limit = 3 },

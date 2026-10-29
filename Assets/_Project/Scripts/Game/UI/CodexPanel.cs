@@ -81,6 +81,13 @@ namespace BiRyeoDo.Game.UI
         {
             var save = GameManager.Instance.Save;
             Codex.Sync(save);
+            if (!_codexRoot.gameObject.activeSelf)
+            {
+                // What the red badge counted: remembered for this visit so every tab can mark it, then acknowledged.
+                _fresh = new HashSet<string>(RecordUpdates.UnreadKeys(save, RecordUpdates.CodexPage));
+                if (FreshCount("enemy:") == 0 && FreshCount("item:") > 0) _tab = 1;
+                else if (FreshCount("enemy:") > 0) _tab = 0;
+            }
             if (RecordUpdates.Acknowledge(save, RecordUpdates.CodexPage) && Application.isPlaying) GameManager.Instance.SaveNow();
             Clear(_codexRoot);
             _codexRoot.gameObject.SetActive(true);
@@ -90,7 +97,8 @@ namespace BiRyeoDo.Game.UI
             {
                 int tab = t;
                 float x0 = 0.05f + t * 0.31f;
-                var btn = UiFactory.Button("Tab" + t, _codexRoot, new Vector2(x0, .79f), new Vector2(x0 + 0.29f, 0.91f), TabNames[t], t == _tab ? UiFactory.Red : UiFactory.InkSoft, () => { _tab = tab; OpenCodex(); }, 30);
+                int fresh = t == 0 ? FreshCount("enemy:") : t == 1 ? FreshCount("item:") : 0;
+                var btn = UiFactory.Button("Tab" + t, _codexRoot, new Vector2(x0, .79f), new Vector2(x0 + 0.29f, 0.91f), TabNames[t] + (fresh > 0 ? "  <color=#FF8A7A>새 " + fresh + "</color>" : ""), t == _tab ? UiFactory.Red : UiFactory.InkSoft, () => { _tab = tab; OpenCodex(); }, 30);
             }
 
             string summary;
@@ -99,11 +107,15 @@ namespace BiRyeoDo.Game.UI
             int n = 0;
             if (_tab == 0)
             {
-                summary = "만난 적 " + save.SeenEnemies.Count + " / " + Codex.EnemyTotal;
-                foreach (var e in EarlyGameContent.Enemies)
+                summary = "만난 적 " + save.SeenEnemies.Count + " / " + Codex.EnemyTotal + FreshSummary("enemy:", id => EarlyGameContent.FindEnemy(id)?.Name);
+                var enemies = new List<EnemyData>();   // new ones first, the rest in content order
+                foreach (var e in EarlyGameContent.Enemies) if (IsFresh("enemy:" + e.Id)) enemies.Add(e);
+                foreach (var e in EarlyGameContent.Enemies) if (!IsFresh("enemy:" + e.Id)) enemies.Add(e);
+                foreach (var e in enemies)
                 {
                     bool seen = Codex.HasEnemy(save, e.Id);
                     var card = grid.Add("Enemy" + n++);
+                    if (IsFresh("enemy:" + e.Id)) NewTag(card);
                     var icon = UiFactory.Panel("Icon", card, new Vector2(.04f, .57f), new Vector2(.25f, .94f), UiFactory.InkSoft);
                     var glyph = UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, seen ? e.Name.Substring(0, 1) : "?", 44, UiFactory.PaperText);
                     var portrait = seen ? ArtLibrary.CharacterPortrait(e.ArtKey) : null;
@@ -114,13 +126,19 @@ namespace BiRyeoDo.Game.UI
             }
             else if (_tab == 1)
             {
-                summary = "모은 물품 " + save.SeenItems.Count + " / " + Codex.ItemTotal;
+                summary = "모은 물품 " + save.SeenItems.Count + " / " + Codex.ItemTotal + FreshSummary("item:", id => EarlyGameContent.FindItem(id)?.Name);
                 var items = new List<ItemData>(EarlyGameContent.Items);
-                items.Sort((a, b) => b.Grade != a.Grade ? ((int)b.Grade).CompareTo((int)a.Grade) : string.CompareOrdinal(a.Id, b.Id));
+                items.Sort((a, b) =>
+                {
+                    int fa = IsFresh("item:" + a.Id) ? 0 : 1, fb = IsFresh("item:" + b.Id) ? 0 : 1;
+                    if (fa != fb) return fa.CompareTo(fb);
+                    return b.Grade != a.Grade ? ((int)b.Grade).CompareTo((int)a.Grade) : string.CompareOrdinal(a.Id, b.Id);
+                });
                 foreach (var it in items)
                 {
                     bool seen = Codex.HasItem(save, it.Id);
                     var card = grid.Add("Item" + n++);
+                    if (IsFresh("item:" + it.Id)) NewTag(card);
                     var icon = UiFactory.Panel("Icon", card, new Vector2(.04f, .57f), new Vector2(.25f, .94f), Color.white);
                     var letter = UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, "?", 44, UiFactory.PaperText);
                     if (seen) ItemArt.Apply(icon, letter, it);
@@ -163,8 +181,38 @@ namespace BiRyeoDo.Game.UI
                     }
                 }
             }
-            UiFactory.Label("Summary", _codexRoot, new Vector2(0.05f, .70f), new Vector2(0.95f, .78f), summary, 30, UiFactory.Gold);
+            UiFactory.ScrollBody(UiFactory.Label("Summary", _codexRoot, new Vector2(0.05f, .70f), new Vector2(0.95f, .78f), summary, 30, UiFactory.Gold), 30);
             if (!Embedded) UiFactory.BackCorner(_codexRoot, () => { _codexRoot.gameObject.SetActive(false); _onChange(); });
+        }
+
+        private HashSet<string> _fresh = new HashSet<string>();
+
+        private bool IsFresh(string key) { return _fresh.Contains(key); }
+
+        private int FreshCount(string prefix)
+        {
+            int n = 0;
+            foreach (var k in _fresh) if (k.StartsWith(prefix, StringComparison.Ordinal)) n++;
+            return n;
+        }
+
+        /// <summary>"  ·  새로 발견 3: 염도, 철검, …" — the names behind the red badge (up to four, then a count).</summary>
+        private string FreshSummary(string prefix, Func<string, string> nameOf)
+        {
+            var names = new List<string>();
+            foreach (var k in _fresh)
+                if (k.StartsWith(prefix, StringComparison.Ordinal)) { var name = nameOf(k.Substring(prefix.Length)); if (!string.IsNullOrEmpty(name)) names.Add(name); }
+            if (names.Count == 0) return "";
+            string shown = string.Join(", ", names.GetRange(0, Math.Min(4, names.Count))) + (names.Count > 4 ? " 외 " + (names.Count - 4) + "개" : "");
+            return "\n<color=#FF8A7A>새로 발견 " + names.Count + "</color>: " + shown;
+        }
+
+        /// <summary>A red 「새로 발견」 ribbon on a card found since the 도감 was last opened (it stays for this visit).</summary>
+        private static void NewTag(RectTransform card)
+        {
+            var tag = UiFactory.Panel("New", card, new Vector2(.62f, .86f), new Vector2(.99f, .99f), new Color(.70f, .16f, .12f, .95f));
+            tag.raycastTarget = false;
+            UiFactory.Label("Text", tag.transform, Vector2.zero, Vector2.one, "새로 발견", 22, UiFactory.PaperText);
         }
 
         // ------------------------------------------------------------------ 업적

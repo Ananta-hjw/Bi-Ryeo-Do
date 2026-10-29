@@ -896,10 +896,18 @@ namespace BiRyeoDo.Game.UI
                 {
                     Daily.Record(GameManager.Instance.Save, DailyEvent.SkillUse);
                     if (Progression.IsUltimate(_command.Skill)) Daily.Record(GameManager.Instance.Save, DailyEvent.UltimateUse);
-                    int rose = Mastery.RecordUse(GameManager.Instance.Save, _command.Skill.Id);
+                    string waiting;
+                    int rose = Mastery.RecordUse(GameManager.Instance.Save, _command.Skill.Id, out waiting);
                     GameManager.Instance.SaveNow();
                     if (rose >= 0) SoundManager.Sfx("levelup");
-                    if (rose >= 0) _masteryNotice = _command.Skill.Name + " 숙련 " + Mastery.LevelNames[rose] + "!" + (rose == Mastery.VariantLevel ? "  변초 해금 (무공 탭)" : "");
+                    var usedArt = EarlyGameContent.FindArt(_command.Skill.Id);
+                    if (rose >= 0)
+                    {
+                        string next = Mastery.NextStepText(usedArt, rose);
+                        _masteryNotice = _command.Skill.Name + " 숙련 " + Mastery.LevelNames[rose] + "!" + (rose == Mastery.VariantLevel ? "  변초 해금 (무공 탭)" : "")
+                            + (next.Length > 0 ? "\n<size=34>" + next + "</size>" : "");
+                    }
+                    else if (waiting != null) _masteryNotice = _command.Skill.Name + " 숙련 " + waiting;
                 }
                 if (_command.Kind == CommandKind.Joint) Daily.Record(GameManager.Instance.Save, DailyEvent.JointUse);
                 if (_command.Kind == CommandKind.Item)
@@ -911,7 +919,7 @@ namespace BiRyeoDo.Game.UI
                 if (_masteryNotice != null)
                 {
                     string note = _masteryNotice; _masteryNotice = null;
-                    yield return Banner(note, 1.2f);
+                    yield return Banner(note, 1.8f);
                     if (HelpPanel.Instance != null) yield return HelpPanel.Instance.ShowOnce("mastery");
                 }
                 actions++;

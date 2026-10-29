@@ -10,6 +10,7 @@ namespace BiRyeoDo.Core
         public string Id;
         public int Uses;
         public int Variant;   // 0 = none, otherwise a <see cref="ArtVariant"/> value
+        public int Shown = -1;   // the 숙련 step last announced (-1: not recorded yet; additive field)
     }
 
     public enum ArtVariant { None = 0, Power = 1, Swift = 2, Flurry = 3 }
@@ -330,15 +331,54 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>Counts one use; returns the new mastery level when it just rose, otherwise -1.</summary>
-        public static int RecordUse(SaveData save, string artId)
+        public static int RecordUse(SaveData save, string artId) { string waiting; return RecordUse(save, artId, out waiting); }
+
+        /// <summary>
+        /// Counts one use. Returns the 숙련 step reached (gated: the step's stage and level must be met too), or -1. When the uses complete a step
+        /// whose gate is still closed, <paramref name="waiting"/> says what is missing ("대성 25회 달성 — 어려움 스테이지 5 돌파 · Lv.27이 필요합니다").
+        /// </summary>
+        public static int RecordUse(SaveData save, string artId, out string waiting)
         {
+            waiting = null;
             var e = Find(save, artId);
             if (e == null) { e = new ArtMasteryEntry { Id = artId }; save.ArtMastery.Add(e); }
             var art = EarlyGameContent.FindArt(artId);
-            int before = LevelOf(art, e.Uses);
+            if (e.Shown < 0) e.Shown = Level(save, artId);
+            int usesBefore = LevelOf(art, e.Uses);
             e.Uses++;
-            int after = LevelOf(art, e.Uses);
-            return after > before ? after : -1;
+            int usesAfter = LevelOf(art, e.Uses), gated = Level(save, artId);
+            if (gated > e.Shown) { e.Shown = gated; return gated; }
+            if (art != null && art.OwnerId == null && usesAfter > usesBefore && usesAfter > gated)
+                waiting = LevelNames[gated + 1] + " " + ThresholdsFor(art)[gated + 1] + "회 달성 — " + GateText(art, gated + 1) + "이 필요합니다";
+            return -1;
+        }
+
+        /// <summary>"다음 대성: 25회 · 일반 스테이지 10에 도달 · Lv.8" for the step after <paramref name="level"/>, or "" at 극의.</summary>
+        public static string NextStepText(ArtData art, int level)
+        {
+            if (art == null || level >= MasterLevel) return "";
+            return "다음 " + LevelNames[level + 1] + ": " + ThresholdsFor(art)[level + 1] + "회 · " + GateText(art, level + 1);
+        }
+
+        /// <summary>
+        /// Steps reached outside a fight's use count (a stage cleared or a level gained opened a gate the uses had already passed), announced once
+        /// as "분뢰수 숙련 대성!". The first call for an art only records its step.
+        /// </summary>
+        public static List<string> PollGateRises(SaveData save)
+        {
+            var lines = new List<string>();
+            foreach (var id in save.LearnedArts)
+            {
+                var art = EarlyGameContent.FindArt(id);
+                var e = Find(save, id);
+                if (art == null || art.OwnerId != null || e == null) continue;
+                int level = Level(save, id);
+                if (e.Shown < 0) { e.Shown = level; continue; }
+                if (level <= e.Shown) continue;
+                e.Shown = level;
+                lines.Add(art.Name + " 숙련 " + LevelNames[level] + "!" + (level == VariantLevel ? " 변초 해금" : ""));
+            }
+            return lines;
         }
 
         /// <summary>Variants that make sense for this art (supports and 비기 are left alone).</summary>
