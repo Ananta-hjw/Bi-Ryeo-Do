@@ -423,7 +423,7 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("쾌창", 1.05f, 1), EnemyMove.Attack("연쇄 찌르기", 0.55f, 2) } },
             new EnemyData { Id = "deung_yeoho", Name = "섬연창 등여호", ArtId = "biaosa", Level = 5, HpMul = 0.78f, AtkMul = 0.38f,
                 Moves = new[] { EnemyMove.Attack("섬연창", 0.6f, 2), EnemyMove.Attack("오단연쇄격", 0.4f, 3) } },
-            new EnemyData { Id = "jang_uyang", Name = "십팔검 장우양", ArtId = "gang_janghan", Level = 6, HpMul = 1.5f, AtkMul = 0.49f, IsBoss = true,
+            new EnemyData { Id = "jang_uyang", Name = "십팔검 장우양", ArtId = "jang_uyang", Level = 6, HpMul = 1.5f, AtkMul = 0.49f, IsBoss = true,
                 Moves = new[] { EnemyMove.Attack("난화검", 0.7f, 2), EnemyMove.Attack("난화수", 1.2f, 1), EnemyMove.Wind("난화검을 펼친다"), EnemyMove.Attack("난화검", 2.4f) } },
             new EnemyData { Id = "jo_yeonil", Name = "무영각 조연일", ArtId = "dan_pyeong", Level = 29, HpMul = 1.95f, AtkMul = 4.4f,
                 Moves = new[] { EnemyMove.Attack("무영각", 0.65f, 2), EnemyMove.Attack("발차기", 1.2f, 1) } },
@@ -449,7 +449,7 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("일격", 1.2f, 1), EnemyMove.Attack("연환 타격", 0.65f, 2) } },
             new EnemyData { Id = "gwan_seolji_story", Name = "청설옥검녀 관설지", ArtId = "default_woman", Level = 31, HpMul = 8.0f, AtkMul = 0.9f,
                 Moves = new[] { EnemyMove.Attack("빙령수류검", 0.7f, 2), EnemyMove.Attack("한빙벽", 1.1f, 1) } },
-            new EnemyData { Id = "cheong_heun_story", Name = "삼절검 청흔", ArtId = "ha_sein", Level = 31, HpMul = 8.0f, AtkMul = 0.9f,
+            new EnemyData { Id = "cheong_heun_story", Name = "삼절검 청흔", ArtId = "cheong_heun", Level = 31, HpMul = 8.0f, AtkMul = 0.9f,
                 Moves = new[] { EnemyMove.Attack("삼환회선비검", 0.65f, 3), EnemyMove.Wind("네 번째 검을 펼친다"), EnemyMove.Attack("무극검", 2.1f, 1) } },
             // Stage 7: 검혼관 기관 노방 (2권)
             new EnemyData { Id = "trap_arrow", Name = "기관 화살대", Level = 19, HpMul = 1.403f, AtkMul = 3.188f, SpeedAdd = 6,
@@ -705,7 +705,7 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("노검존의 일검", 0.8f, 2), EnemyMove.Attack("분노의 검", 1.3f), EnemyMove.Wind("손자의 이름에 검을 뽑는다"), EnemyMove.Attack("지존검법", 2.8f) } },
             new EnemyData { Id = "jin_soryeong", Name = "아미신녀 진소령", Level = 72, IsBoss = true, RetreatHpPct = 0.2f, HpMul = 7.500f, AtkMul = 5.200f, SpeedAdd = 8,
                 Moves = new[] { EnemyMove.Attack("이분영", 0.8f, 2).FromDistance(), EnemyMove.Attack("사련화영", 0.6f, 4).FromDistance(), EnemyMove.Wind("옥현이 허공에 떠오른다"), EnemyMove.Attack("팔련화린 난화만천", 0.45f, 8).FromDistance() } },
-            new EnemyData { Id = "cheong_heun_mugeuk", ArtId = "ha_sein", Name = "삼절검 청흔", Level = 70, IsBoss = true, HpMul = 7.161f, AtkMul = 4.250f, SpeedAdd = 6,
+            new EnemyData { Id = "cheong_heun_mugeuk", ArtId = "cheong_heun", Name = "삼절검 청흔", Level = 70, IsBoss = true, HpMul = 7.161f, AtkMul = 4.250f, SpeedAdd = 6,
                 Moves = new[] { EnemyMove.Attack("삼환회선비검", 0.7f, 3), EnemyMove.Attack("태극검", 1.3f), EnemyMove.Wind("삼정태극검혜를 펼친다"), EnemyMove.Attack("무극검 일관", 3.5f) } },
         };
 
