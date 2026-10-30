@@ -469,7 +469,7 @@ Game/UI 테스트 소스까지 Unity API 참조로 컴파일했으며, Unity Edi
 
 ### 전투 SD 보강 — 화평장·마천칠걸·멸성대 (2026-10-29)
 
-기존 Standing의 외형·배색을 바탕으로 기존 Battle SD 화풍에 맞춘 오른쪽 방향 전투 그림을 추가했다. 아래 자세와 의상 세부는 게임 시각화이며 새 원작 설정을 추가하지 않는다. 멸성대 대원은 `Standing/멸성대원.png`를 참조하고 전투 ID에 맞춰 영문 파일명을 사용한다.
+기존 Standing의 외형·배색을 바탕으로 기존 Battle SD 화풍에 맞춘 오른쪽 방향 전투 그림을 추가했다. 아래 자세와 의상 세부는 게임 시각화이며 새 원작 설정을 추가하지 않는다. 멸성대 대원은 `Standing/mulsung_daewon.png`를 참조하고 전투 ID에 맞춰 영문 파일명을 사용한다.
 
 | 원작 근거 | 전투 대상 / 스테이지 | 추가 파일 (`Assets/_Project/Resources/Art/Battle/`) |
 |---|---|---|
@@ -494,7 +494,7 @@ Game/UI 테스트 소스까지 Unity API 참조로 컴파일했으며, Unity Edi
 
 ### 전투 SD 보강 — 남창 후반과 장우양·청흔 (2026-10-29)
 
-Standing의 외형·배색을 기준으로 오른쪽 방향 전투 SD 6종을 추가했다. 자세와 의상 세부는 게임 시각화다. 공손일취의 참조 그림은 `Standing/gongson_ilchwi.png`, 전투 파일은 적 ID에 맞춘 `Battle/geomjon_gongson.png`다. 장우양은 `gang_janghan` 공유 대신 `jang_uyang`, 청흔의 두 적 데이터(`cheong_heun_story`, `cheong_heun_mugeuk`)는 `ha_sein` 공유 대신 `cheong_heun`을 사용한다.
+Standing의 외형·배색을 기준으로 오른쪽 방향 전투 SD 6종을 추가했다. 자세와 의상 세부는 게임 시각화다. 공손일취의 참조 그림은 `Standing/geomjon_gongson.png`, 전투 파일은 적 ID에 맞춘 `Battle/geomjon_gongson.png`다. 장우양은 `gang_janghan` 공유 대신 `jang_uyang`, 청흔의 두 적 데이터(`cheong_heun_story`, `cheong_heun_mugeuk`)는 `ha_sein` 공유 대신 `cheong_heun`을 사용한다.
 
 | 원작 근거 | 전투 대상 / 스테이지 | 추가 파일 (`Assets/_Project/Resources/Art/Battle/`) |
 |---|---|---|
@@ -714,3 +714,11 @@ Standing의 외형·배색을 기준으로 오른쪽 방향 전투 SD 6종을 �
 `StoryEscape`와 기존 `Technique`/`Responses`/`Survive`를 사용한다. 장면 전용 무공·정해진 시점은 소유 장비와 영구 동료/무공을 바꾸지 않는다.
 나백천은 구출하지만 두 노사는 포로다. 무당 초대 뒤 실제 결말은 무한이며 열쇠 전체 개봉·갈중하 동맹·30권 사건을 확정하지 않는다.
 저장 revision8·기존1~57 보상·정보 주체·검증 범위는 [구현 문서](../Docs/VOLUMES_28_29_ADAPTATION.md) 참조.
+
+## 전투 이미지 연결 정정 (2026-10-30)
+
+다른 인물·동물·소품을 임시로 빌리던 `ArtId`를 제거하고 전용 SD → 암살자/여성/그 외 default 규칙을 복원했다. 동일 인물의 시점·분신은 정규 키를 공유한다. 10권의 환영 속 검성/임덕성과 11권 임덕성은 각 인물 키로, 용천명은 실제 파일명 `yong_cheonmyeong`으로 연결한다. 본편 전투 구성·대사·능력치·보상은 변경하지 않는다. 연결 원칙은 [ART_GUIDE](../Docs/ART_GUIDE.md) 참조.
+
+Standing 파일명도 실제 코드 키에 맞춰 공손절휘·유재룡·유경영·유은성·몽무·멸성대원·공손일취 7건을 정리했다. PNG 내용과 Unity GUID는 유지하며 공손일취는 `geomjon_gongson`으로 통일한다(기존 `gongson_ilchwi` 조회 별칭 유지).
+
+Standing에 남아 있던 한글 파일명 23건도 영문 키로 변경했다. 대화/프로필의 표시 이름은 유지하며 `ArtLibrary.StandingKeys`에서 조회한다. 원본 그림·GUID·독고령과 영령의 별도 그림은 보존하고 SD/default 규칙에는 적용하지 않는다. [변경 목록](../Docs/STANDING_ART_CATALOG.md) 참조.

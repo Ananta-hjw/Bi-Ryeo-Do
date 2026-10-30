@@ -388,7 +388,7 @@ namespace BiRyeoDo.Game.UI
                     UiFactory.Label("Need", band, new Vector2(0.04f, 0.28f), new Vector2(0.96f, 0.46f),
                         "추천 최소 " + Recommend.Text(need), 30, Recommend.Meets(save, need) ? UiFactory.Dim : UiFactory.Red, TextAnchor.MiddleLeft, FontStyle.Normal);
                     var offerCopy = offer;
-                    var go = UiFactory.Button("Go", band, new Vector2(0.04f, 0.04f), new Vector2(0.96f, 0.25f), afford ? "도전" : "두 부족", afford ? UiFactory.Red : UiFactory.InkSoft, () => OnChallenge(offerCopy), 32);
+                    var go = UiFactory.Button("Go", band, new Vector2(0.04f, 0.04f), new Vector2(0.96f, 0.25f), afford ? "도전" : "은자 부족", afford ? UiFactory.Red : UiFactory.InkSoft, () => OnChallenge(offerCopy), 32);
                     go.interactable = afford;
                 }
             }
@@ -651,7 +651,7 @@ namespace BiRyeoDo.Game.UI
             {
                 var choice = ch;
                 bool ok = Fortunes.CanChoose(save, choice);
-                var btn = UiFactory.Button("Choice", _fortuneOverlay, new Vector2(0.08f, y - .11f), new Vector2(0.92f, y), choice.Label + (ok ? "" : " (두 부족)"), ok ? UiFactory.Red : UiFactory.InkSoft, () => ResolveFortune(ev, choice), 30);
+                var btn = UiFactory.Button("Choice", _fortuneOverlay, new Vector2(0.08f, y - .11f), new Vector2(0.92f, y), choice.Label + (ok ? "" : " (은자 부족)"), ok ? UiFactory.Red : UiFactory.InkSoft, () => ResolveFortune(ev, choice), 30);
                 btn.interactable = ok;
                 y -= 0.14f;
             }

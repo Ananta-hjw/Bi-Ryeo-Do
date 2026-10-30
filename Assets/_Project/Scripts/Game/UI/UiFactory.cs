@@ -18,25 +18,6 @@ namespace BiRyeoDo.Game.UI
         public static readonly Color Dim = new Color(.73f, .78f, .73f, 1f);
         public static readonly Color Jade = new Color(.39f, .62f, .55f, 1f);
 
-        // Warm paper for reading lists; keep the background painting visible between cards.
-        public static readonly Color ListPaper = new Color(.94f, .90f, .79f, 1f);
-        public static readonly Color PaperBorder = new Color(.57f, .46f, .29f, .65f);
-        private static readonly Color PaperButton = new Color(.83f, .78f, .65f, 1f);
-        private static readonly Color PaperInk = new Color(.15f, .20f, .17f, 1f);
-        private static readonly Color PaperMuted = new Color(.35f, .38f, .32f, 1f);
-        private static readonly Color PaperAccent = new Color(.44f, .30f, .12f, 1f);
-
-        private static bool IsOverPaper(Transform parent)
-        {
-            for (var current = parent; current != null; current = current.parent)
-            {
-                var image = current.GetComponent<Image>();
-                if (image == null || image.color.a < .5f) continue;
-                return image.color == ListPaper || image.color == PaperButton;
-            }
-            return false;
-        }
-
         public static readonly Color HeaderInk = new Color(.025f, .045f, .035f, .88f);
         public static readonly Color MenuWash = new Color(.02f, .045f, .03f, .24f);
         public static readonly Color ModalInk = new Color(.025f, .05f, .038f, .98f);
@@ -270,15 +251,7 @@ namespace BiRyeoDo.Game.UI
             var shadow = t.gameObject.AddComponent<Shadow>();
             shadow.effectColor = new Color(0f, 0f, 0f, 0.45f);
             shadow.effectDistance = new Vector2(1f, -1f);
-            if (IsOverPaper(parent))
-            {
-                if (color == Gold || color == GoldDim) t.color = PaperAccent;
-                else if (color == Dim || color == InkSoft) t.color = PaperMuted;
-                else if (color == PaperText || color == Color.white) t.color = PaperInk;
-                else if (color == Jade) t.color = new Color(.15f, .36f, .27f, 1f);
-                shadow.enabled = false;
-            }
-            else if (IsOverScenery(parent))
+            if (IsOverScenery(parent))
             {
                 // Keep semantic colours on cards; only exposed text needs the stronger scene treatment.
                 if (color == Gold || color == GoldDim) t.color = SceneryGold;
@@ -619,19 +592,18 @@ namespace BiRyeoDo.Game.UI
             var img = Rect(name, parent, min, max).gameObject.AddComponent<Image>();
             img.sprite = Gradient;
             img.type = Image.Type.Simple;
-            bool paper = IsOverPaper(parent) && (bg == InkSoft || bg == Ink);
-            img.color = paper ? PaperButton : bg;
+            img.color = bg;
             var btn = img.gameObject.AddComponent<Button>();
             btn.targetGraphic = img;
             var colors = btn.colors;
             colors.highlightedColor = new Color(1f, .96f, .86f, 1f);
             colors.pressedColor = new Color(.68f, .71f, .65f, 1f);
-            colors.disabledColor = paper ? new Color(.94f, .93f, .89f, 1f) : new Color(.55f, .58f, .55f, .65f);
+            colors.disabledColor = new Color(.55f, .58f, .55f, .65f);
             colors.fadeDuration = .12f;
             btn.colors = colors;
             if (onClick != null) btn.onClick.AddListener(onClick);
             btn.onClick.AddListener(() => Systems.SoundManager.Sfx("ui_click"));
-            if (bg.a > 0.05f) Frame(img.transform, paper ? PaperBorder : bg == Red ? Gold : GoldDim, 2f);
+            if (bg.a > 0.05f) Frame(img.transform, bg == Red ? Gold : GoldDim, 2f);
             Label("Label", img.transform, new Vector2(.05f, .08f), new Vector2(.95f, .92f), label, Mathf.Max(30, fontSize), PaperText);
             return btn;
         }
@@ -650,13 +622,6 @@ namespace BiRyeoDo.Game.UI
 
         public static Bar MakeBar(string name, Transform parent, Vector2 min, Vector2 max, Color back, Color fill)
         {
-            if (IsOverPaper(parent))
-            {
-                back = PaperButton;
-                if (fill == Gold) fill = PaperAccent;
-                else if (fill == Jade) fill = new Color(.15f, .36f, .27f, 1f);
-                else if (fill.b > fill.r && fill.b > fill.g) fill = new Color(.22f, .43f, .56f, 1f);
-            }
             var bg = Panel(name, parent, min, max, back);
             var fillImg = Panel("Fill", bg.transform, Vector2.zero, Vector2.one, fill);
             fillImg.sprite = Gradient;

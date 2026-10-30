@@ -80,7 +80,7 @@ namespace BiRyeoDo.Game.UI
             UiFactory.ScrollIndicator(scroll, viewport);
 
             var arts = EarlyGameContent.Arts.Where(a => a.OwnerId == null).ToArray();
-            var grid = new ReadingGrid(content, 3, 470f, paper: false);   // three cards per row
+            var grid = new ReadingGrid(content, 3, 470f);   // three cards per row
             for (int i = 0; i < arts.Length; i++)
             {
                 var art = arts[i];

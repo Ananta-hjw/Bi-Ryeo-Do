@@ -65,3 +65,33 @@
 검증(Pillow 필요): `python3 Tools/audit_standing_art.py`로 크기·RGBA·알파, 이미지 중복 및 메타데이터 GUID를 확인한다.
 
 입화 연결: 일반 화면은 Standing만 사용한다(없으면 이름 첫 글자 색 블록). 짧은 화자명(염도·빙검·구창·검후)도 같은 원본을 찾는다. 인물 변경 목록·전투·성장/회복·장비 화면 인물은 기존 SD 규칙을 유지한다.
+
+## 한글 파일명의 영문 키 정리 (2026-10-30)
+
+아래 파일은 PNG 내용과 Unity GUID를 보존하여 이름만 변경했다. `ArtLibrary.StandingKeys`가 화면의 한글 이름을 영문 키로 연결한다. SD 이미지 선택에는 사용하지 않는다. 영령(`yeongryeong`)과 독고령(`dokgo_ryeong`)의 기존 두 그림은 각각 보존한다.
+
+| 화면 이름 | Standing 파일 |
+|---|---|
+| 왕견 | `wang_gyeon.png` |
+| 유선아 | `yu_seona.png` |
+| 현의여인 | `hyeonui_woman.png` |
+| 손님 | `guest.png` |
+| 행인 | `passerby.png` |
+| 치사한 | `chi_sahan.png` |
+| 밀실의 무리 | `secret_room_group.png` |
+| 호골채 도적 | `hogol_robber.png` |
+| 무흔일호 | `muheun_ilho.png` |
+| 흑의서생 | `heukui_scholar.png` |
+| 수호대 | `guard_unit.png` |
+| 강하윤 | `gang_hayun.png` |
+| 고약한 | `go_yakhan.png` |
+| 손문경 | `son_mungyeong.png` |
+| 영령 | `yeongryeong.png` |
+| 주작단원 | `jujak_member.png` |
+| 지배자 | `ruler.png` |
+| 율령자 | `yullyeongja.png` |
+| 홍 | `hong.png` |
+| 안내 선배 | `senior_guide.png` |
+| 현수 | `hyeon_su.png` |
+| 괴인 | `mysterious_man.png` |
+| 장노 | `jang_no.png` |

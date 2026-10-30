@@ -9,18 +9,16 @@ namespace BiRyeoDo.Game.UI
         private readonly RectTransform _content;
         private readonly int _columns;
         private readonly float _height;
-        private readonly bool _paper;
         private RectTransform _row;
         private int _column, _rowIndex;
         private float _offset = Gap;
         private const float Gap = 16f;
 
-        public ReadingGrid(RectTransform content, int columns, float minimumHeight = 280f, bool paper = true)
+        public ReadingGrid(RectTransform content, int columns, float minimumHeight = 280f)
         {
             _content = content;
             _columns = Mathf.Clamp(columns, 2, 3);
             _height = minimumHeight;
-            _paper = paper;
         }
 
         private RectTransform NewRow(float height)
@@ -49,8 +47,8 @@ namespace BiRyeoDo.Game.UI
             var card = UiFactory.Rect(name, _row, new Vector2(column / (float)_columns, 0f), new Vector2((column + 1f) / _columns, 1f));
             card.offsetMin = new Vector2(column == 0 ? 0f : Gap / 2f, 0f);
             card.offsetMax = new Vector2(column == _columns - 1 ? 0f : -Gap / 2f, 0f);
-            card.gameObject.AddComponent<Image>().color = _paper ? UiFactory.ListPaper : UiFactory.Ink;
-            UiFactory.Frame(card, _paper ? UiFactory.PaperBorder : UiFactory.GoldDim, 2f);
+            card.gameObject.AddComponent<Image>().color = UiFactory.Ink;
+            UiFactory.Frame(card, UiFactory.GoldDim, 2f);
             _column = (column + 1) % _columns;
             return card;
         }

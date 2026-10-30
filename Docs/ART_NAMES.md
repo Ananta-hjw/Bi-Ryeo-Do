@@ -160,6 +160,6 @@
 | 검성 | `geom_seong.png` | 천무삼성, 모용휘의 조부 | **없음** |
 | 독고령 | `dokgo_ryeong.png` | 독안봉 | **없음** |
 | 혁월린 | `hyeok_wolrin.png` | 초대 학관주 | **없음** |
-| 공손일취 | `gongson_ilchwi.png` | 검존, 원로원 원주 | **없음** |
+| 공손일취 | `geomjon_gongson.png` | 검존, 원로원 원주 | **없음** |
 | 단목우 | `danmok_u.png` | 천기룡, 천무구룡 | **없음** |
 | 모경 | `mo_gyeong.png` | 폭랑귀도, 폭랑삼십육도 대장 | **없음** |

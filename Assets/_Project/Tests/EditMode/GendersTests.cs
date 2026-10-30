@@ -29,6 +29,45 @@ namespace BiRyeoDo.Tests
                 Assert.IsTrue(EarlyGameContent.Enemies.Any(e => e.ArtKey == key), key);
         }
 
+        [TestCase("jo_yeonil", "default_man")]
+        [TestCase("maeng_yeonho", "default_man")]
+        [TestCase("salhon_sipgwi", "default_assassin")]
+        [TestCase("amryong_salsu", "default_assassin")]
+        [TestCase("hogol_archer", "default_assassin")]
+        [TestCase("gwan_seolji_story", "default_woman")]
+        [TestCase("merchant_yeo", "default_woman")]
+        [TestCase("silent_duet", "default_woman")]
+        [TestCase("mothers_fire_ice", "default_woman")]
+        [TestCase("changranga", "default_man")]
+        public void UnillustratedOpponentsUseTheirOwnFallbackClassification(string id, string expected)
+        {
+            var enemy = EarlyGameContent.FindEnemy(id);
+            Assert.AreEqual(expected, Genders.DefaultFigure(enemy.ArtKey));
+        }
+
+        [TestCase("jo_yeonil")]
+        [TestCase("jin_pae")]
+        [TestCase("ilyeon")]
+        [TestCase("maeng_yeonho")]
+        [TestCase("salhon_sipgwi")]
+        [TestCase("admit_eonga")]
+        [TestCase("changranga")]
+        public void MissingArtworkNeverBorrowsAnUnrelatedCharactersKey(string id)
+        {
+            Assert.AreEqual(id, EarlyGameContent.FindEnemy(id).ArtKey);
+        }
+
+        [TestCase("hyo_ryong_rope", "hyo_ryong")]
+        [TestCase("hwan_geomseong", "geom_seong")]
+        [TestCase("hwan_family_duty", "im_deokseong")]
+        [TestCase("im_deokseong_story", "im_deokseong")]
+        [TestCase("yong_cheongmyeong_vote", "yong_cheonmyeong")]
+        [TestCase("yeongryeong_ice", "dokgo_ryeong")]
+        public void SameCharacterPortrayalsKeepTheirCanonicalArtwork(string id, string expected)
+        {
+            Assert.AreEqual(expected, EarlyGameContent.FindEnemy(id).ArtKey);
+        }
+
         [Test]
         public void EveryListedWomanIsARealArtKey()
         {

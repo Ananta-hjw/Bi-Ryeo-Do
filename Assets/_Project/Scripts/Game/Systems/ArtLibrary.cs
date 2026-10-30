@@ -50,7 +50,7 @@ namespace BiRyeoDo.Game.Systems
         public static Sprite DefaultChibi(string artKey) { return Load("Battle/" + BiRyeoDo.Core.Genders.DefaultFigure(artKey)); }
 
         /// <summary>Stable filename for a character name or ID; enemy art keys may differ from their battle IDs.</summary>
-        private static string CharacterKey(string name)
+        private static string CharacterKey(string name, bool allowShortTitle = true)
         {
             if (string.IsNullOrEmpty(name)) return null;
             if (name == BiRyeoDo.Core.StoryLine.Protagonist) return "player";
@@ -61,8 +61,9 @@ namespace BiRyeoDo.Game.Systems
             foreach (var enemy in BiRyeoDo.Core.EarlyGameContent.Enemies)
                 if (enemy.Name == name || enemy.Id == name) return enemy.ArtKey;
             // Dialogue often uses a short title (e.g. 염도) rather than the enemy's complete name.
-            foreach (var enemy in BiRyeoDo.Core.EarlyGameContent.Enemies)
-                if (name.Length >= 2 && enemy.Name.Contains(name)) return enemy.ArtKey;
+            if (allowShortTitle)
+                foreach (var enemy in BiRyeoDo.Core.EarlyGameContent.Enemies)
+                    if (name.Length >= 2 && enemy.Name.Contains(name)) return enemy.ArtKey;
             return name;
         }
 
@@ -72,14 +73,44 @@ namespace BiRyeoDo.Game.Systems
             if (string.IsNullOrEmpty(nameOrId)) return null;
             var exact = Chibi(nameOrId);
             if (exact != null) return exact;
-            string key = CharacterKey(nameOrId);
+            string key = CharacterKey(nameOrId, allowShortTitle: false);
             return Chibi(key) ?? DefaultChibi(key);
         }
+
+        // Standing-only display-name aliases. Keep SD identity and default selection independent.
+        private static readonly Dictionary<string, string> StandingKeys = new Dictionary<string, string>
+        {
+            { "왕견", "wang_gyeon" },
+            { "유선아", "yu_seona" },
+            { "현의여인", "hyeonui_woman" },
+            { "손님", "guest" },
+            { "행인", "passerby" },
+            { "치사한", "chi_sahan" },
+            { "밀실의 무리", "secret_room_group" },
+            { "호골채 도적", "hogol_robber" },
+            { "무흔일호", "muheun_ilho" },
+            { "흑의서생", "heukui_scholar" },
+            { "수호대", "guard_unit" },
+            { "강하윤", "gang_hayun" },
+            { "고약한", "go_yakhan" },
+            { "손문경", "son_mungyeong" },
+            { "영령", "yeongryeong" },
+            { "주작단원", "jujak_member" },
+            { "지배자", "ruler" },
+            { "율령자", "yullyeongja" },
+            { "홍", "hong" },
+            { "안내 선배", "senior_guide" },
+            { "현수", "hyeon_su" },
+            { "괴인", "mysterious_man" },
+            { "장노", "jang_no" },
+        };
 
         /// <summary>Non-combat art of a character: <c>Standing/&lt;id&gt;.png</c>; null when missing.</summary>
         public static Sprite StandingPortrait(string name)
         {
-            string key = CharacterKey(name);
+            if (string.IsNullOrEmpty(name)) return null;
+            string key;
+            if (!StandingKeys.TryGetValue(name, out key)) key = CharacterKey(name);
             return key == null ? null : Load("Standing/" + key);
         }
 

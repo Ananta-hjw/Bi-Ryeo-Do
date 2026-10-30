@@ -23,6 +23,7 @@ namespace BiRyeoDo.Core
             {
                 case "story_biry_staff": case "story_biry_search": case "story_biry_half": return "player";
                 case "story_yeonbi_left": return "yeonbi";
+                case "story_yong_cheongmyeong": return "yong_cheonmyeong";
                 default: return null;
             }
         }

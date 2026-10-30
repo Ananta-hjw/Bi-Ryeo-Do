@@ -117,6 +117,25 @@ namespace BiRyeoDo.Tests.UI
             Assert.AreNotSame(ArtLibrary.CharacterPortrait(StoryLine.Protagonist), ArtLibrary.SdFigure(Inventory.Hero));
         }
 
+        [TestCase("jo_yeonil", "default_man")]
+        [TestCase("maeng_yeonho", "default_man")]
+        [TestCase("salhon_sipgwi", "default_assassin")]
+        [TestCase("gwan_seolji_story", "default_woman")]
+        public void UnillustratedEnemiesUseDefaultSpritesInsteadOfBorrowedCharacters(string id, string expected)
+        {
+            Assert.IsNull(ArtLibrary.Chibi(id));
+            Assert.AreSame(ArtLibrary.Chibi(expected), ArtLibrary.SdFigure(EarlyGameContent.FindEnemy(id).ArtKey));
+            Assert.AreSame(ArtLibrary.Chibi(expected), ArtLibrary.SdFigure(EarlyGameContent.FindEnemy(id).Name));
+        }
+
+        [Test]
+        public void CombatDoesNotGuessAnotherCharacterFromAShortTitle()
+        {
+            Assert.AreSame(ArtLibrary.Chibi("default_man"), ArtLibrary.SdFigure("관살"));
+            Assert.AreSame(ArtLibrary.Chibi("cheong_heun"), ArtLibrary.SdFigure("cheong_heun_story"));
+            Assert.AreSame(ArtLibrary.Chibi("yong_cheonmyeong"), ArtLibrary.SdFigure(Roster.StoryArtKey("story_yong_cheongmyeong")));
+        }
+
         [TestCase("염도", "yeomdo")]
         [TestCase("빙검", "gwan_cheolsu")]
         [TestCase("구창", "gu_chang")]

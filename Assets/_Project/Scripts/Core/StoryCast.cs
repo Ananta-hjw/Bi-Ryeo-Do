@@ -90,7 +90,7 @@ namespace BiRyeoDo.Core
             new Entry("검성", "geom_seong", "천무삼성, 모용휘의 조부"),
             new Entry("독고령", "dokgo_ryeong", "독안봉", "영령"),
             new Entry("혁월린", "hyeok_wolrin", "초대 학관주, 염도·빙검의 사부"),
-            new Entry("공손일취", "gongson_ilchwi", "검존, 원로원 원주"),
+            new Entry("공손일취", "geomjon_gongson", "검존, 원로원 원주", "gongson_ilchwi"),
             new Entry("단목우", "danmok_u", "천기룡, 천무구룡"),
             new Entry("모경", "mo_gyeong", "폭랑귀도, 폭랑삼십육도 대장")
         };

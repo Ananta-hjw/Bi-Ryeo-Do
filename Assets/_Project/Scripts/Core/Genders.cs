@@ -12,12 +12,15 @@ namespace BiRyeoDo.Core
         private static readonly HashSet<string> Women = new HashSet<string>
         {
             "mu_hwa", "dan_hye", "sa_ran", "gal_hyo_rin", "gal_hyo_jin", "gal_hyo_min", "gal_hyo_hyo", "gal_hyo_myo", "namgung_sansan", "yunmi", "merchant_yeo", "ye_cheong", "ryu_eungyeong", "mong_mu", "hwan_mu", "dokgo_ryeong", "jin_ryeong", "yeonbi", "young_yeonbi", "young_na_yerin", "ok_yugyeong", "i_jinseol", "gyo_ok", "na_yerin", "geomhu_ioksang", "sunyeo", "ma_haryeong", "mask_gongpo", "mask_jeolmang", "mask_bitan",
+            "gwan_seolji_story", "gal_hyo_duet", "mothers_fire_ice",
             "chu_gayeon", "eonga_yeong", "baek_sayeong", "yu_ran",
         };
 
         // Art keys of bandits and assassins: 산적 셋, 자객, 살수 계열(살귀대, 천살·지살, 천지쌍살, 초혼오귀검), 쌍귀, 무정, 복면인, 하얀 손의 고수, 살룡대(복면).
         private static readonly HashSet<string> Assassins = new HashSet<string>
         {
+            "hogol_archer", "hogol_axe", "yonggol_archer", "yonggol_axe", "jeogung_bandit",
+            "amheon_guard", "amryong_salsu", "heuk_sang", "amyeong_member", "hwan_nameless_blade", "sura_screen", "salhon_sipgwi", "coffin_assassin",
             "hogol_bandit", "yonggol_bandit", "heukrang_bandit", "baegin_jagaek", "ssanggwi", "chohon_gwigeom", "cheonsal", "jisal",
             "ssangsal_hapgyeok", "salgwi_daewon", "mu_jeong", "suda_bokmyeon", "baek_son_gosu", "salryong_daewon", "cham_yeong", "gyeok_un", "hyeol_pyo",
         };
