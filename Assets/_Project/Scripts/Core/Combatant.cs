@@ -11,7 +11,7 @@ namespace BiRyeoDo.Core
 
         public readonly string Id;
         public string Name { get; internal set; }   // a story disguise changes presentation, never the growth Id
-        public string StoryArtId { get; internal set; }
+        public string StoryArtId { get; set; }   // a story figure override; settable so balance tests (another assembly) can copy it
         public readonly Team Team;
         public CombatStats Stats { get { return _stats; } }
         public readonly double RealmPowerBeforeBonus;
