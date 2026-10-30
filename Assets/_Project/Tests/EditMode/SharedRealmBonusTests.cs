@@ -66,7 +66,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void AllNonMartialEnemiesKeepTheirUnboostedStats()
         {
-            var excluded = EarlyGameContent.Enemies.Where(e => !Realm.HasRealm(e)).ToList();
+            var excluded = EarlyGameContent.Enemies.Where(e => !Realm.HasRealm(e) && e.FixedHp <= 0).ToList();   // a fixed-HP obstacle sets its own HP
             Assert.IsNotEmpty(excluded);
             foreach (var enemy in excluded)
             {

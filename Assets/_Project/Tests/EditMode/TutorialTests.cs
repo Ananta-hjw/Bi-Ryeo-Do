@@ -25,7 +25,7 @@ namespace BiRyeoDo.Tests
         public void TopicsUsedByTheGameExist()
         {
             foreach (var id in new[] { "intro", "battle", "counter", "joint", "mastery", "board", "promotion", "status" }) Assert.IsNotNull(Tutorial.Find(id), id);
-            foreach (TrialKind kind in System.Enum.GetValues(typeof(TrialKind))) if (kind != TrialKind.None) Assert.IsNotNull(Tutorial.Find(Tutorial.TrialTopic(kind)), kind.ToString());
+            foreach (TrialKind kind in System.Enum.GetValues(typeof(TrialKind))) if (kind != TrialKind.None && kind != TrialKind.Finale) Assert.IsNotNull(Tutorial.Find(Tutorial.TrialTopic(kind)), kind.ToString());   // the scripted 화룡멸겁대진 (Finale) has no rule page
         }
 
         [Test]

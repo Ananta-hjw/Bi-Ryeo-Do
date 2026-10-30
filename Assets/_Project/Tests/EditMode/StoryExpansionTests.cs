@@ -465,7 +465,7 @@ namespace BiRyeoDo.Tests
             CollectionAssert.AreEqual(new[] { "mask_bitan" }, trial.Encounters[4]);
             CollectionAssert.AreEqual(new[] { "mu_jeong" }, trial.Encounters[5]);
             CollectionAssert.AreEqual(new[] { "witness_pursuer" }, trial.Encounters[6]);
-            var fire = EarlyGameContent.FindStage(30);
+            var fire = EarlyGameContent.FindStage(30).WithDifficulty(1);   // 일반 30 ends in the scripted finale (FireDragonFinaleTests)
             CollectionAssert.AreEqual(new[] { "bi_daegongja" }, fire.Encounters[1]);
             Assert.AreEqual(TrialKind.Survive, fire.TrialFor(3).Kind);
             Assert.IsFalse(GearDrops.IsBossFight(fire, 3));
@@ -614,7 +614,7 @@ namespace BiRyeoDo.Tests
             foreach (int i in new[] { 0, 2, 3, 4 }) Assert.AreEqual(TrialKind.Survive, trial.TrialFor(i).Kind);
             foreach (string id in new[] { "gu_cheonhak", "wi_musang", "baek_tanjeo", "pae_hyeokseong", "hyo_ryong_rope" })
                 Assert.Greater(EarlyGameContent.FindEnemy(id).RetreatHpPct, 0f, id);
-            Assert.AreEqual(27, EarlyGameContent.FindArt("saengsa_seomroe").UnlockStage);
+            Assert.IsNull(EarlyGameContent.FindArt("saengsa_seomroe"));   // 섬뢰창 was taken out with the 66-stage ladder (Mastery.RemovedArts)
             Assert.IsFalse(EarlyGameContent.StageRewards[20].Any(item => item.Id == "mukrin_talisman"));
             string story = string.Join(" ", StoryEpisodes.Replay(EarlyGameContent.FindStage(20)));
             Assert.Less(story.IndexOf("이십일 일째", StringComparison.Ordinal), story.IndexOf("이십육 일째", StringComparison.Ordinal));

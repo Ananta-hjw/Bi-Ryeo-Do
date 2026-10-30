@@ -136,7 +136,7 @@ namespace BiRyeoDo.Game.UI
             SoundManager.Sfx("clear");
             _retry = false; _leave = false;
             int totalStars = StageStars.StarsOfStage(save, stage.Number, stage.Difficulty);
-            int maxStars = StageStars.MaxStarsOfStage(stage.Number);
+            int maxStars = StageStars.MaxStarsOfStage(stage.Number, stage.Difficulty);
             var stars = UiFactory.Panel("Stars", card, new Vector2(.05f, .65f), new Vector2(.95f, .84f), HudInk);
             RewardText("StarCount", stars.transform, new Vector2(.04f, .43f), new Vector2(.96f, .98f),
                 "★  " + totalStars + " / " + maxStars, 58, UiFactory.Gold, TextAnchor.MiddleCenter);
@@ -158,12 +158,12 @@ namespace BiRyeoDo.Game.UI
             if (chests > 0)
                 AddRewardNote(content, ref index, "받을 수 있는 별 보상  " + chests + "개", "강호 탭에서 별 보상 상자를 확인해 주세요.");
             AddRewardNote(content, ref index, "전투별 최고 별 기록", "승리 / 전원 생존 / 신속 순서입니다.\n이번 진행 이전에 획득한 별도 포함합니다.");
-            for (int fight = 0; fight < StageStars.FightCount(stage.Number); fight++)
+            for (int fight = 0; fight < StageStars.FightCount(stage.Number, stage.Difficulty); fight++)
             {
                 int mask = StageStars.MaskOf(save, stage.Number, fight, stage.Difficulty);
                 var row = RewardRow(content, index++, 100f);
                 RewardText("Fight", row, new Vector2(.04f, .08f), new Vector2(.43f, .92f),
-                    fight == StageStars.FightCount(stage.Number) - 1 ? "결전" : "전투 " + (fight + 1), 28, UiFactory.PaperText);
+                    fight == StageStars.FightCount(stage.Number, stage.Difficulty) - 1 ? "결전" : "전투 " + (fight + 1), 28, UiFactory.PaperText);
                 RewardText("Stars", row, new Vector2(.45f, .08f), new Vector2(.96f, .92f),
                     StarGlyphs(mask) + "  " + StageStars.Count(mask) + "/3", 36, UiFactory.Gold, TextAnchor.MiddleRight);
             }

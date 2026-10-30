@@ -66,6 +66,9 @@ namespace BiRyeoDo.Core
         public bool IsBoss;
         public bool StoryOnly;   // authored scene opponents are excluded from random tower encounters
         public float RetreatHpPct;   // >0: story boss that escapes at this HP fraction instead of dying
+        public bool HoldsAtOneHp;    // story boss that never drops below 1 HP: the blow that would fell it makes it leave instead (says RetreatLines)
+        public string[] RetreatLines;   // "화자|대사" lines said as it leaves
+        public int FixedHp;          // >0: exact max HP regardless of level and difficulty (a scripted obstacle, e.g. 화룡멸겁대진)
         /// <summary>A nameless follower (궁수, 도부수, 회원 ...) that fills out a story fight; never picked for the 무한 비무대 pool.</summary>
         public bool IsMinion;
         public int Level;
@@ -163,10 +166,14 @@ namespace BiRyeoDo.Core
 
         public Combatant CreateCombatant(string uniqueId)
         {
-            var c = new Combatant(uniqueId, Name, Team.Enemy, BuildStatsBeforeRealm(), null, Realm.HasRealm(this));
+            var stats = BuildStatsBeforeRealm();
+            if (FixedHp > 0) stats.MaxHp = FixedHp;
+            var c = new Combatant(uniqueId, Name, Team.Enemy, stats, null, FixedHp <= 0 && Realm.HasRealm(this));
             c.IsBoss = IsBoss;
             c.Rank = Rank;
             c.RetreatHpPct = RetreatHpPct;
+            c.HoldsAtOneHp = HoldsAtOneHp;
+            c.RetreatLines = RetreatLines;
             c.Range = Range;
             c.Moves = Moves != null && Moves.Length > 0 ? new List<EnemyMove>(Moves) : new List<EnemyMove> { EnemyMove.Plain };
             c.Phases = BossPhases.For(this);
@@ -280,13 +287,16 @@ namespace BiRyeoDo.Core
         {
             var enemy = EarlyGameContent.FindEnemy(id);
             if (enemy == null || IsTower) return enemy;
-            return IsQuest ? Quests.Scale(QuestId, enemy) : StageStars.StoryEnemy(enemy, Number, Difficulty, trial);
+            if (IsQuest) return Quests.Scale(QuestId, enemy);
+            var scaled = StageStars.StoryEnemy(enemy, Number, Difficulty, trial);
+            return FireDragonFinale.Is(this) && id == FireDragonFinale.BiId ? FireDragonFinale.LastStand(scaled) : scaled;
         }
 
         public StageData WithDifficulty(int difficulty)
         {
             var c = (StageData)MemberwiseClone();
             c.Difficulty = Math.Max(0, Math.Min(StageStars.DifficultyCount - 1, difficulty));
+            if (c.Number == FireDragonFinale.Stage && !c.IsQuest && !c.IsTower && c.Difficulty > 0) FireDragonFinale.UseLegacy(c);
             return c;
         }
     }
@@ -307,16 +317,16 @@ namespace BiRyeoDo.Core
         public static readonly ArtData[] ArtForms =
         {
             new ArtData { Id = "yeomyeong_cheonan", Name = "영사심결 오의 여명천안", Description = "눈이 황금빛으로 물들며 모든 수가 보인다. 다음 차례까지 모든 공격을 피한다.", Effect = SkillEffect.Evade, QiCost = 40, Cooldown = 3, UnlockStage = 10, FormOf = "samcheopyeong", FormTier = 1 },
-            new ArtData { Id = "nakroe_yeong", Name = "그림자 숨기기의 장 낙뢰영", Description = "봉황무 오의. 그림자 속으로 몸을 숨겨 다음 차례까지 모든 공격을 피한다.", Effect = SkillEffect.Evade, QiCost = 100, Cooldown = 3, UnlockStage = 5, UnlockDiff = 1, FormOf = "samcheopyeong", FormTier = 2 },
-            new ArtData { Id = "ujunggeo_buljeom", Name = "봉황무 비전극상오의 우중거 불점의", Description = "빗속을 걸어도 옷이 젖지 않는다. 다음 차례까지 모든 공격을 피한다.", Effect = SkillEffect.Evade, QiCost = 140, Cooldown = 2, UnlockStage = 19, UnlockDiff = 1, FormOf = "samcheopyeong", FormTier = 3 },
-            new ArtData { Id = "sineunsul_yeongsik", Name = "신은술 영식", Description = "그림자를 먹는 술법을 고쳐 만든 은신. 다음 차례까지 모든 공격을 피한다.", Effect = SkillEffect.Evade, QiCost = 160, Cooldown = 2, UnlockStage = 5, UnlockDiff = 2, FormOf = "samcheopyeong", FormTier = 4 },
+            new ArtData { Id = "nakroe_yeong", Name = "그림자 숨기기의 장 낙뢰영", Description = "봉황무 오의. 그림자 속으로 몸을 숨겨 다음 차례까지 모든 공격을 피한다.", Effect = SkillEffect.Evade, QiCost = 100, Cooldown = 3, UnlockStage = 12, UnlockDiff = 1, FormOf = "samcheopyeong", FormTier = 2 },
+            new ArtData { Id = "ujunggeo_buljeom", Name = "봉황무 비전극상오의 우중거 불점의", Description = "빗속을 걸어도 옷이 젖지 않는다. 다음 차례까지 모든 공격을 피한다.", Effect = SkillEffect.Evade, QiCost = 140, Cooldown = 2, UnlockStage = 18, UnlockDiff = 1, FormOf = "samcheopyeong", FormTier = 3 },
+            new ArtData { Id = "sineunsul_yeongsik", Name = "신은술 영식", Description = "그림자를 먹는 술법을 고쳐 만든 은신. 다음 차례까지 모든 공격을 피한다.", Effect = SkillEffect.Evade, QiCost = 160, Cooldown = 2, UnlockStage = 30, UnlockDiff = 1, FormOf = "samcheopyeong", FormTier = 4 },
             new ArtData { Id = "samboku_jungbok", Name = "삼복구타권법 중복", Description = "아구창창 주구장창. 아홉 번 쉬지 않고 두들긴다.", Power = 0.5f, Hits = 9, QiCost = 28, Cooldown = 2, UnlockStage = 9, FormOf = "samboku_chobok", FormTier = 2 },
-            new ArtData { Id = "simroe_cheonhyeongin", Name = "심뢰 극 천형인", Description = "비기. 단심무형의 장의 끝. 하늘의 형벌을 새기는 일격.", Power = 22.0f, SpiritCost = 100, UnlockStage = 30, UnlockDiff = 1, FormOf = "simroe", FormTier = 4 },
-            new ArtData { Id = "pyeonsu_pungsin", Range = 4, Name = "편수 풍신", Description = "비기. 한 손으로 다섯 자루 비뢰도를 풀어 물기둥째 적 전체를 쓸어 버린다.", Power = 15.0f, AllEnemies = true, SpiritCost = 100, UnlockStage = 36, UnlockDiff = 1, FormOf = "pungsin", FormTier = 2 },
-            new ArtData { Id = "hwaryong_nanryu", Name = "풍신 화룡난류", Description = "비기. 풍신 용권승천의 장. 풍신에 불을 실어 화룡의 꼬리와 열풍진, 두 머리의 불길이 적 전체를 휩쓴다.", Inflict = StatusKind.Burn, InflictChance = 0.6f, Power = 17.0f, AllEnemies = true, SpiritCost = 100, UnlockStage = 20, UnlockDiff = 2, FormOf = "pungsin", FormTier = 4 },
-            new ArtData { Id = "samnyeon_guta", Name = "돌아온 말복 천지무견 삼년구타", Description = "삼 년 치를 한 번에 몰아 열두 번 두들긴다.", Power = 1.6f, Hits = 12, QiCost = 330, Cooldown = 4, UnlockStage = 15, UnlockDiff = 2, FormOf = "cheonji_mugyeon", FormTier = 3 },
-            new ArtData { Id = "paego_makpaego", Name = "삼복구타산 궁극 말살기 패고패고막패고", Description = "삼복구타의 궁극 말살기. 쉬지 않고 열두 번 패고 또 팬다.", Power = 1.8f, Hits = 12, QiCost = 380, Cooldown = 4, UnlockStage = 24, UnlockDiff = 2, FormOf = "cheonji_mugyeon", FormTier = 4 },
-            new ArtData { Id = "gyeokgongjang", Ranged = true, Range = 4, Name = "격공장", Description = "허공을 격해 떨어진 적을 치는 장력.", Power = 7.5f, QiCost = 170, Cooldown = 2, UnlockStage = 14, UnlockDiff = 2, FormOf = "hoejeop", FormTier = 2 },
+            new ArtData { Id = "simroe_cheonhyeongin", Name = "심뢰 극 천형인", Description = "비기. 단심무형의 장의 끝. 하늘의 형벌을 새기는 일격.", Power = 22.0f, SpiritCost = 100, UnlockStage = 24, UnlockDiff = 1, FormOf = "simroe", FormTier = 4 },
+            new ArtData { Id = "pyeonsu_pungsin", Range = 4, Name = "편수 풍신", Description = "비기. 한 손으로 다섯 자루 비뢰도를 풀어 물기둥째 적 전체를 쓸어 버린다.", Power = 15.0f, AllEnemies = true, SpiritCost = 100, UnlockStage = 38, UnlockDiff = 1, FormOf = "pungsin", FormTier = 2 },
+            new ArtData { Id = "hwaryong_nanryu", Name = "풍신 화룡난류", Description = "비기. 풍신 용권승천의 장. 풍신에 불을 실어 화룡의 꼬리와 열풍진, 두 머리의 불길이 적 전체를 휩쓴다.", Inflict = StatusKind.Burn, InflictChance = 0.6f, Power = 17.0f, AllEnemies = true, SpiritCost = 100, UnlockStage = 60, UnlockDiff = 1, FormOf = "pungsin", FormTier = 4 },
+            new ArtData { Id = "samnyeon_guta", Name = "돌아온 말복 천지무견 삼년구타", Description = "삼 년 치를 한 번에 몰아 열두 번 두들긴다.", Power = 1.6f, Hits = 12, QiCost = 330, Cooldown = 4, UnlockStage = 61, FormOf = "cheonji_mugyeon", FormTier = 3 },
+            new ArtData { Id = "paego_makpaego", Name = "삼복구타산 궁극 말살기 패고패고막패고", Description = "삼복구타의 궁극 말살기. 쉬지 않고 열두 번 패고 또 팬다.", Power = 1.8f, Hits = 12, QiCost = 380, Cooldown = 4, UnlockStage = 5, UnlockDiff = 1, FormOf = "cheonji_mugyeon", FormTier = 4 },
+            new ArtData { Id = "gyeokgongjang", Ranged = true, Range = 4, Name = "격공장", Description = "허공을 격해 떨어진 적을 치는 장력.", Power = 7.5f, QiCost = 170, Cooldown = 2, UnlockStage = 56, FormOf = "hoejeop", FormTier = 2 },
         };
 
         public static List<ArtData> FormsOf(string baseId)
@@ -338,29 +348,19 @@ namespace BiRyeoDo.Core
             new ArtData { Id = "seonpung_roejeol", Name = "선풍뇌절", Description = "비기. 기세를 모두 쏟아 은빛 섬광으로 적을 쓰러뜨린다.", Power = 9.5f, SpiritCost = 100, LearnCost = 1500, UnlockStage = 4 },
             // Learned in volumes 7-9 (names from the original text)
             new ArtData { Id = "cheongeun_roe", Name = "뇌격타 천근뢰", Description = "천 근의 무게를 실은 뇌전의 일격. 철각비마대의 창을 꺾은 기술.", Inflict = StatusKind.Burn, InflictChance = 0.5f, Power = 6.4f, QiCost = 67, Cooldown = 3, LearnCost = 7000, UnlockStage = 10 },
-            new ArtData { Id = "bongik_bisang", Name = "사신무 봉익비상", Description = "봉황이 날개를 펴듯 사방으로 쏟아내는 일격. 적 전체를 친다.", Power = 3.6f, AllEnemies = true, QiCost = 110, Cooldown = 4, LearnCost = 15000, UnlockStage = 19 },
-            new ArtData { Id = "simroe", Name = "단심무형의 장 심뢰", Description = "비기. 마음을 베는 검기의 오의가 적의 중심을 꿰뚫는다.", Power = 13.0f, SpiritCost = 100, LearnCost = 9000, UnlockStage = 22 },
+            new ArtData { Id = "bongik_bisang", Name = "사신무 봉익비상", Description = "봉황이 날개를 펴듯 사방으로 쏟아내는 일격. 적 전체를 친다.", Power = 3.6f, AllEnemies = true, QiCost = 110, Cooldown = 4, LearnCost = 15000, UnlockStage = 15 },
+            new ArtData { Id = "simroe", Name = "단심무형의 장 심뢰", Description = "비기. 마음을 베는 검기의 오의가 적의 중심을 꿰뚫는다.", Power = 13.0f, SpiritCost = 100, LearnCost = 9000, UnlockStage = 20 },
             // Learned in volumes 10-12 (names from the original text)
-            new ArtData { Id = "saengsa_seomroe", Name = "생사결 섬뢰창", Description = "비뢰도 오의 검기. 뇌전의 창을 한 점에 모은다. 묵린혈망전에서는 비늘 대신 열린 입을 노렸다.", Power = 8.8f, QiCost = 152, Cooldown = 4, LearnCost = 16000, UnlockStage = 27 },
-            new ArtData { Id = "eunseompung", Name = "은검풍인의 장 은섬풍", Description = "검기가 은빛 바람이 되어 사방의 적을 찢는다. 적 전체를 친다.", Power = 4.2f, AllEnemies = true, QiCost = 212, Cooldown = 4, LearnCost = 24000, UnlockStage = 5, UnlockDiff = 1 },
-            new ArtData { Id = "goengroe", Ranged = true, Name = "굉천광뢰의 장 굉뢰", Description = "작은 은빛 물방울이 도와 무기를 박살내는 비뢰도의 오의.", Power = 10.5f, QiCost = 233, Cooldown = 4, LearnCost = 30000, UnlockStage = 12, UnlockDiff = 1 },
-            new ArtData { Id = "seomroe", Range = 4, Name = "섬뢰", Description = "비기. 빛을 뒤쫓는 쾌. 눈 깜짝할 새 미간을 꿰뚫는다.", Power = 17.0f, SpiritCost = 100, LearnCost = 22000, UnlockStage = 18, UnlockDiff = 1 },
-            // Learned in volumes 13-16
-            new ArtData { Id = "jikji_jilju", Name = "직지질주", Description = "봉황무의 오의. 절벽을 달리던 운신을 연속 공격으로 응용한다. 세 번 친다.", Power = 3.6f, Hits = 3, QiCost = 278, Cooldown = 4, LearnCost = 34000, UnlockStage = 24, UnlockDiff = 1 },
+            new ArtData { Id = "goengroe", Ranged = true, Name = "굉천광뢰의 장 굉뢰", Description = "작은 은빛 물방울이 도와 무기를 박살내는 비뢰도의 오의.", Power = 10.5f, QiCost = 233, Cooldown = 4, LearnCost = 30000, UnlockStage = 27 },
+            // Volumes 13-29 (names from the original text; 연비 is 비류연 in disguise, 21권). 일반 35-66 in story order, then 어려움 10 쌍룡귀천 and 어려움 30 풍신, the last art; techniques of an existing line are its forms (ArtForms).
+            new ArtData { Id = "cheonji_mugyeon", Name = "삼복구타봉법 말복 천지무견", Description = "천하무구를 고쳐 만든 봉법. 하늘도 땅도 보이지 않게 여섯 번 내려친다.", Power = 2.2f, Hits = 6, QiCost = 310, Cooldown = 4, LearnCost = 42000, UnlockStage = 35 },
+            new ArtData { Id = "hyeoncheon_powol", Name = "현천은린 오의 현천포월", Description = "비기. 수백 줄기 검은 번개가 달을 감싸듯 적 전체를 덮친다.", Power = 14.0f, AllEnemies = true, SpiritCost = 100, LearnCost = 48000, UnlockStage = 42 },
+            new ArtData { Id = "hoejeop", Ranged = true, Range = 4, Name = "회접", Description = "손으로 펴 만든 쇠 원반을 나비처럼 날린다.", Power = 6.5f, QiCost = 150, Cooldown = 2, LearnCost = 46000, UnlockStage = 48 },
+            new ArtData { Id = "mukroesal", Name = "무명검 오의 묵뢰살", Description = "검은 번개를 두른 일격. 심도 천외일도를 꺾은 오의.", Power = 15.0f, QiCost = 330, Cooldown = 4, LearnCost = 50000, UnlockStage = 54 },
+            new ArtData { Id = "jumang_pobak", Range = 4, Name = "괴뢰의 장 주망포박", Description = "뇌령사로 그물을 쳐 상대를 묶는다. 기를 모으는 중이면 끊는다.", Power = 2.0f, Effect = SkillEffect.Stun, QiCost = 200, Cooldown = 4, LearnCost = 52000, UnlockStage = 60 },
+            new ArtData { Id = "umin_gunmu", Name = "괴뢰의 장 꼭두각시 춤 우민군무 불신지옥", Description = "적을 서로 이간해 꼭두각시처럼 춤추게 한다. 적 전체가 굳는다.", Power = 3.0f, AllEnemies = true, Effect = SkillEffect.Stun, QiCost = 380, Cooldown = 5, LearnCost = 80000, UnlockStage = 66 },
+            new ArtData { Id = "ssangryong_gwicheon", Name = "뇌화열풍인 쌍룡귀천", Description = "비기. 벽력의 장 심득 오의. 벼락과 화룡과 질풍이 두 마리 용이 되어 하늘로 돌아간다.", Power = 20.0f, AllEnemies = true, SpiritCost = 100, LearnCost = 100000, UnlockStage = 10, UnlockDiff = 1 },
             new ArtData { Id = "pungsin", Name = "풍신(風神)", Description = "비기. 열 자루 비뢰도와 뇌령사가 나선을 그리며 용권풍이 되어 적 전체를 휩쓴다.", Power = 12.35f, AllEnemies = true, SpiritCost = 100, LearnCost = 44000, UnlockStage = 30, UnlockDiff = 1 },
-            // Volumes 17-29 (names from the original text; 연비 is 비류연 in disguise, 21권). 21-23권 open on 어려움, 23-29권 on 극악; techniques of an existing line are its forms (ArtForms).
-            new ArtData { Id = "ssangseom_ilgyeokroe", Ranged = true, Range = 4, Name = "검뢰사살의 장 충각 쌍섬일격뢰", Description = "비도 두 자루에 모든 힘을 모아 한 점에 꽂는다.", Inflict = StatusKind.Bleed, InflictChance = 0.5f, Power = 5.5f, Hits = 2, QiCost = 180, Cooldown = 4, LearnCost = 26000, UnlockStage = 2, UnlockDiff = 1 },
-            new ArtData { Id = "cheonji_mugyeon", Name = "삼복구타봉법 말복 천지무견", Description = "천하무구를 고쳐 만든 봉법. 하늘도 땅도 보이지 않게 여섯 번 내려친다.", Power = 2.2f, Hits = 6, QiCost = 310, Cooldown = 4, LearnCost = 42000, UnlockStage = 36, UnlockDiff = 1 },
-            new ArtData { Id = "hyeoncheon_powol", Name = "현천은린 오의 현천포월", Description = "비기. 수백 줄기 검은 번개가 달을 감싸듯 적 전체를 덮친다.", Power = 14.0f, AllEnemies = true, SpiritCost = 100, LearnCost = 48000, UnlockStage = 4, UnlockDiff = 2 },
-            new ArtData { Id = "hoejeop", Ranged = true, Range = 4, Name = "회접", Description = "손으로 펴 만든 쇠 원반을 나비처럼 날린다.", Power = 6.5f, QiCost = 150, Cooldown = 2, LearnCost = 46000, UnlockStage = 8, UnlockDiff = 2 },
-            new ArtData { Id = "mukroesal", Name = "무명검 오의 묵뢰살", Description = "검은 번개를 두른 일격. 심도 천외일도를 꺾은 오의.", Power = 15.0f, QiCost = 330, Cooldown = 4, LearnCost = 50000, UnlockStage = 10, UnlockDiff = 2 },
-            new ArtData { Id = "jumang_pobak", Range = 4, Name = "괴뢰의 장 주망포박", Description = "뇌령사로 그물을 쳐 상대를 묶는다. 기를 모으는 중이면 끊는다.", Power = 2.0f, Effect = SkillEffect.Stun, QiCost = 200, Cooldown = 4, LearnCost = 52000, UnlockStage = 13, UnlockDiff = 2 },
-            new ArtData { Id = "noeseom_ilsi", Name = "일점집중의 장 뇌섬일시", Description = "모든 힘을 한 점에 모아 갑옷 속까지 꿰뚫는다.", Power = 16.5f, QiCost = 350, Cooldown = 4, LearnCost = 58000, UnlockStage = 17, UnlockDiff = 2 },
-            new ArtData { Id = "simroe_yeolpa", Name = "단심무형의 장 심뢰열파", Description = "마음을 베는 검기를 사방으로 퍼뜨려 적 전체의 마음을 흔든다.", Inflict = StatusKind.InnerWound, InflictChance = 0.5f, Power = 5.5f, AllEnemies = true, QiCost = 320, Cooldown = 4, LearnCost = 60000, UnlockStage = 19, UnlockDiff = 2 },
-            new ArtData { Id = "noejeol_daneum", Range = 4, Name = "벽력단절의 장 뇌절단음", Description = "비뢰도 비전 오의. 소리까지 끊어 내는 벽력으로 상대를 굳힌다. 기를 모으는 중이면 끊는다.", Power = 6.0f, Effect = SkillEffect.Stun, QiCost = 280, Cooldown = 4, LearnCost = 70000, UnlockStage = 25, UnlockDiff = 2 },
-            new ArtData { Id = "noemangok", Name = "뇌망옥", Description = "뇌전의 그물 감옥이 적 전체를 일순 얼어붙게 한다.", Inflict = StatusKind.Chill, InflictChance = 0.6f, Power = 4.5f, AllEnemies = true, QiCost = 330, Cooldown = 4, LearnCost = 72000, UnlockStage = 26, UnlockDiff = 2 },
-            new ArtData { Id = "umin_gunmu", Name = "괴뢰의 장 꼭두각시 춤 우민군무 불신지옥", Description = "적을 서로 이간해 꼭두각시처럼 춤추게 한다. 적 전체가 굳는다.", Power = 3.0f, AllEnemies = true, Effect = SkillEffect.Stun, QiCost = 380, Cooldown = 5, LearnCost = 80000, UnlockStage = 32, UnlockDiff = 2 },
-            new ArtData { Id = "ssangryong_gwicheon", Name = "뇌화열풍인 쌍룡귀천", Description = "비기. 벽력의 장 심득 오의. 벼락과 화룡과 질풍이 두 마리 용이 되어 하늘로 돌아간다.", Power = 20.0f, AllEnemies = true, SpiritCost = 100, LearnCost = 100000, UnlockStage = 36, UnlockDiff = 2 },
             // Companions' fixed arts (names are descriptive unless the original text names the technique)
             new ArtData { Id = "xr_twin", Name = "쌍검 연격", Description = "쌍둥이 검으로 두 번 벤다.", Power = 1.5f, Hits = 2, QiCost = 18, Cooldown = 1, OwnerId = "hyo_ryong" },
             new ArtData { Id = "xr_barrier", Name = "태을천강벽", Description = "검막을 펼쳐 모두를 방어 태세로 만든다.", Effect = SkillEffect.GuardParty, QiCost = 30, Cooldown = 4, OwnerId = "hyo_ryong" },
@@ -719,6 +719,8 @@ namespace BiRyeoDo.Core
             // Stage 30: 화룡멸겁대진 (16권)
             new EnemyData { Id = "ma_chilgeol_jeoji", RetreatHpPct = .15f, Name = "마천칠걸 저지조", Level = 65, HpMul = 3.459f, AtkMul = 2.145f, SpeedAdd = 2,
                 Moves = new[] { EnemyMove.Attack("연환 공격", 0.7f, 3), EnemyMove.Attack("협공", 1.3f) } },
+            new EnemyData { Id = FireDragonFinale.JinId, ArtId = "hwaryong_hwayeom", Name = "화룡멸겁대진", Level = 66, StoryOnly = true, FixedHp = 999999,
+                Moves = new[] { EnemyMove.Attack(InteractiveBattle.FinaleBlowName, 1f).FromDistance() } },
             new EnemyData { Id = "hwaryong_hwayeom", Name = "화룡의 불꽃", Level = 66, HpMul = 4.257f, AtkMul = 2.145f,
                 Moves = new[] { EnemyMove.Attack("불의 성벽", 0.8f, 2).FromDistance(), EnemyMove.Wind("불길이 솟구친다"), EnemyMove.Attack("화룡의 숨결", 2.9f).FromDistance() } },
             new EnemyData { Id = "bi_daegongja", Name = "대공자 비", Level = 67, IsBoss = true, RetreatHpPct = 0.3f, HpMul = 7.492f, AtkMul = 2.593f, DefMul = 1.15f, SpeedAdd = 14,
@@ -1675,9 +1677,9 @@ namespace BiRyeoDo.Core
                 Encounters = new[] { new[] { "cliff_rescue" }, new[] { "geomhu_ioksang" }, new[] { "heuksaek_amhyeok", "wiji_hyeolpok" }, new[] { "macheon_samhyung", "macheon_samhyung", "macheon_samhyung" }, new[] { "mask_bitan" }, new[] { "mu_jeong" }, new[] { "witness_pursuer" } },
                 Trials = new[] { TrialRule.Survive("사람을 낚는 뇌령사", "적 6행동을 견디며 낙하의 힘을 흘리세요. 구조는 이어지는 장면에서 완성됩니다.", 6), TrialRule.Survive("검후의 십초지적", "적 12행동을 견디세요. 원작의 열 초식 전체를 같은 단위로 재는 시험은 아닙니다.", 12), TrialRule.Harmony("수화관의 내공 조화", "모두가 연속으로 공격하면 다음 일격이 강화됩니다. 32행동 안에 압력을 해소하세요.", 32), null, TrialRule.Survive("비탄의 견제", "적 6행동을 견디며 동료를 보호하세요. 세 가면을 동시에 쓰러뜨리는 목표가 아닙니다.", 6), TrialRule.Survive("삼성각의 증인 보호", "적 6행동을 견디며 동료를 엄호하세요.", 6), null } },
             new StageData { Number = 30, RewardWeightBudget = 8, Name = "화룡멸겁대진", RecommendedLevel = 65, DooTotal = 16000,
-                Prologue = StoryMidgame.Prologues[30], Intro = StoryMidgame.Intros[30], Outro = StoryMidgame.Outros[30],
-                Encounters = new[] { new[] { "ma_chilgeol_jeoji", "ma_chilgeol_jeoji", "ma_chilgeol_jeoji" }, new[] { "bi_daegongja" }, new[] { "hwaryong_hwayeom", "ma_chilgeol_jeoji" }, new[] { "hwaryong_rescue" } },
-                Trials = new[] { null, null, null, TrialRule.Survive("풍신을 위한 엄호", "적 6행동을 견디며 모인 사람들을 보호하세요. 이후 네 고수의 지원과 풍신으로 이어집니다.", 6) } },
+                // 일반: 비 holds at 1 HP, then the scripted 화룡멸겁대진 (FireDragonFinale); 어려움·극악 keep the earlier four fights (WithDifficulty)
+                Prologue = StoryMidgame.Prologues[30], Intro = StoryMidgame.Intros[30], Outro = FireDragonFinale.NormalOutro(),
+                Encounters = FireDragonFinale.Encounters, RewardEncounters = FireDragonFinale.RewardEncounters, Trials = FireDragonFinale.Trials },
             // Volumes 17-20: fixed perspectives preserve who is actually present in each scene.
             new StageData { Number = 31, RewardWeightBudget = 7, RewardScale = 8.0 / 7.0, Name = "청룡은장의 마지막 장사", RecommendedLevel = 67, DooTotal = 16200,
                 Prologue = StoryMidgame.Prologues[31], Intro = StoryMidgame.Intros[31], Outro = StoryMidgame.Outros[31],

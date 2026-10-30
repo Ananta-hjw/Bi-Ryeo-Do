@@ -252,7 +252,7 @@ public class FormationTests
     public void ArtRangesFollowTheirKind()
     {
         Assert.AreEqual(1, SkillSpec.BasicAttack().Range);
-        foreach (var id in new[] { EarlyGameContent.StarterArtId, "bi_roe_do", "seomroe", "isj_iljeom", "ny_simahn" }) Assert.AreEqual(4, EarlyGameContent.FindArt(id).EffectiveRange, id);
+        foreach (var id in new[] { EarlyGameContent.StarterArtId, "bi_roe_do", "hoejeop", "isj_iljeom", "ny_simahn" }) Assert.AreEqual(4, EarlyGameContent.FindArt(id).EffectiveRange, id);
         Assert.AreEqual(3, EarlyGameContent.FindArt("roegwang_ryuhagok").EffectiveRange, "area art");
         Assert.AreEqual(3, EarlyGameContent.FindArt("pungsin").EffectiveRange, "비기");
         Assert.AreEqual(1, EarlyGameContent.FindArt("jh_stun").EffectiveRange, "점혈");

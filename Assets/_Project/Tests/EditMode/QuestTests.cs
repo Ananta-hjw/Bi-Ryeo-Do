@@ -49,7 +49,7 @@ namespace BiRyeoDo.Tests
         {
             foreach (var q in Quests.All)
             {
-                var st = EarlyGameContent.FindStage(q.RefStage);
+                var st = Quests.ReferenceStage(q);   // 일반 30's quest replays one of the fights 어려움·극악 still play
                 Assert.IsNotNull(st, q.Id);
                 Assert.Less(q.Encounter, st.Encounters.Length, q.Id);
                 Assert.IsNotNull(q.Trial, q.Id);

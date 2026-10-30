@@ -9,7 +9,7 @@ namespace BiRyeoDo.Tests
     {
         private static void Clear(SaveData save, int stage, int diff)
         {
-            for (int f = 0; f < StageStars.FightCount(stage); f++) StageStars.Record(save, stage, f, diff, 1);
+            for (int f = 0; f < StageStars.FightCount(stage, diff); f++) StageStars.Record(save, stage, f, diff, 1);
         }
 
         private static void Uses(SaveData save, string id, int uses)
@@ -26,15 +26,16 @@ namespace BiRyeoDo.Tests
             var save = new SaveData { Level = 80 };
             save.LearnedArts.Add("pungsin");
             Uses(save, "pungsin", 5);   // 대성 for a 비기
-            Assert.AreEqual("pungsin", Mastery.CurrentForm(save, pungsin).Id, "어려움 36 not cleared yet");
-            Clear(save, 36, 1);
+            Assert.AreEqual("pungsin", Mastery.CurrentForm(save, pungsin).Id, "어려움 38 not cleared yet");
+            Clear(save, 38, 1);
             Assert.AreEqual("pyeonsu_pungsin", Mastery.CurrentForm(save, pungsin).Id);
             save.Level = Mastery.TierGate(pungsin, 2).Level - 1;
             Assert.AreEqual("pungsin", Mastery.CurrentForm(save, pungsin).Id, "below the step's level");
             save.Level = 80;
-            Clear(save, 20, 2);
-            Assert.AreEqual("pyeonsu_pungsin", Mastery.CurrentForm(save, pungsin).Id, "극의 not reached");
+            Clear(save, 59, 1);
             Uses(save, "pungsin", 20);
+            Assert.AreEqual("pyeonsu_pungsin", Mastery.CurrentForm(save, pungsin).Id, "어려움 60 not cleared yet");
+            Clear(save, 60, 1);
             var spec = Mastery.Apply(save, pungsin);
             Assert.AreEqual("pungsin", spec.Id, "the line keeps its id");
             Assert.AreEqual("풍신 화룡난류", spec.Name);
@@ -61,19 +62,18 @@ namespace BiRyeoDo.Tests
                 for (int i = 1; i < forms.Count; i++)
                 {
                     Assert.Greater(forms[i].FormTier, forms[i - 1].FormTier, g.Key);
-                    Assert.GreaterOrEqual(forms[i].UnlockDiff * 36 + forms[i].UnlockStage, forms[i - 1].UnlockDiff * 36 + forms[i - 1].UnlockStage, g.Key);
+                    Assert.GreaterOrEqual(forms[i].UnlockDiff * 66 + forms[i].UnlockStage, forms[i - 1].UnlockDiff * 66 + forms[i - 1].UnlockStage, g.Key);
                 }
             }
-            Assert.AreEqual(28, EarlyGameContent.Arts.Count(a => a.OwnerId == null), "48 arts - 11 folded into lines - 9 removed (비도 던지기 included)");
+            Assert.AreEqual(19, EarlyGameContent.Arts.Count(a => a.OwnerId == null), "48 arts - 11 folded into lines - 18 removed (비도 던지기 included)");
         }
 
         [Test]
         public void ANewFormIsAnnouncedOnce()
         {
             var save = new SaveData { Level = 80 };
-            save.LearnedArts.Add("hoejeop");
-            Clear(save, 8, 2);
-            Clear(save, 14, 2);
+            save.LearnedArts.Add("hoejeop");   // 일반 48; 격공장 at 대성, 일반 56
+            save.ClearedStage = 60;
             Assert.IsEmpty(Mastery.PollNewForms(save));
             Uses(save, "hoejeop", 25);
             CollectionAssert.AreEqual(new[] { "회접 → 격공장" }, Mastery.PollNewForms(save));
@@ -124,7 +124,7 @@ namespace BiRyeoDo.Tests
                 {
                     var a = Mastery.TierGate(art, t - 1);
                     var b = Mastery.TierGate(art, t);
-                    Assert.GreaterOrEqual(b.Difficulty * 36 + b.Stage, a.Difficulty * 36 + a.Stage, art.Id);
+                    Assert.GreaterOrEqual(b.Difficulty * 66 + b.Stage, a.Difficulty * 66 + a.Stage, art.Id);
                     Assert.GreaterOrEqual(b.Level, a.Level, art.Id);
                 }
                 foreach (var f in EarlyGameContent.FormsOf(art.Id))

@@ -216,7 +216,7 @@ namespace BiRyeoDo.Game.UI
                 node.Number.color = selected ? UiFactory.Gold : UiFactory.PaperText;
                 node.Name.color = !available && !cleared ? UiFactory.Dim : UiFactory.PaperText;
                 node.Status.text = (resume ? "이어가기" : cleared ? "돌파" : available ? "출전 가능" : "잠김")
-                    + (stars > 0 ? "  ·  ★ " + stars + "/" + StageStars.MaxStarsOfStage(stage.Number) : "");
+                    + (stars > 0 ? "  ·  ★ " + stars + "/" + StageStars.MaxStarsOfStage(stage.Number, Difficulty(save, stage)) : "");
                 points[i] = Stops[i];
                 if (i > 0) { colors[i - 1] = cleared ? new Color(.23f, .45f, .35f) : available ? Road : Closed; open[i - 1] = available || cleared; }
             }
@@ -235,8 +235,8 @@ namespace BiRyeoDo.Game.UI
             _stageKind.text = "스테이지 " + stage.Number.ToString("00") + " · " + StageStars.DifficultyNames[diff] + (resume ? " · 저장됨" : Cleared(save, stage) ? " · 돌파" : "");
             _stageTitle.text = stage.Name;
             _level.text = "권장 Lv." + StageStars.RecommendedPlayerLevel(stage.Number, diff);
-            _fights.text = "전투 " + stage.Encounters.Length + "회";
-            _stars.text = "★ " + StageStars.StarsOfStage(save, stage.Number, diff) + " / " + StageStars.MaxStarsOfStage(stage.Number);
+            _fights.text = "전투 " + StageStars.FightCount(stage.Number, diff) + "회";
+            _stars.text = "★ " + StageStars.StarsOfStage(save, stage.Number, diff) + " / " + StageStars.MaxStarsOfStage(stage.Number, diff);
             Recommend.StageReward(save, stage.WithDifficulty(diff), out long exp, out long doo);
             if (resume && StageProgress.AtEnding(save, stage)) { exp = 0; doo = 0; }
             _reward.text = "예상 보상" + (Recommend.IsReplay(save, stage.WithDifficulty(diff)) ? " · 재도전" : "") + "\n경험 " + exp.ToString("N0") + "\n은자 " + doo.ToString("N0");

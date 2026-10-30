@@ -49,35 +49,35 @@ namespace BiRyeoDo.Tests
         public void HarderDifficultiesOpenAfterTheEntryStageThenStageByStage()
         {
             var save = new SaveData();
-            int Last(int stage) { return StageStars.FightCount(stage) - 1; }
-            void Clear(int stage, int diff) { StageStars.Record(save, stage, Last(stage), diff, 1); }
-            for (int n = 1; n < StageStars.EntryStage; n++) Clear(n, 0);
-            Assert.IsFalse(StageStars.Unlocked(save, 1, 1));     // 일반 1-19 is not enough
-            StringAssert.Contains("일반 20", StageStars.LockLabel(save, 1, 1));
-            StageStars.Record(save, StageStars.EntryStage, 0, 0, 1);   // only the first fight of 일반 20
+            int Last(int stage, int diff) { return StageStars.FightCount(stage, diff) - 1; }
+            void Clear(int stage, int diff) { StageStars.Record(save, stage, Last(stage, diff), diff, 1); }
+            for (int n = 1; n < StageStars.OpenStage(1); n++) Clear(n, 0);
+            Assert.IsFalse(StageStars.Unlocked(save, 1, 1));     // 일반 1-29 is not enough
+            StringAssert.Contains("일반 30", StageStars.LockLabel(save, 1, 1));
+            StageStars.Record(save, StageStars.OpenStage(1), 0, 0, 1);   // only the first fight of 일반 30
             Assert.IsFalse(StageStars.Unlocked(save, 1, 1));
-            Clear(StageStars.EntryStage, 0);
-            Assert.IsTrue(StageStars.Unlocked(save, 1, 1));      // 일반 20 cleared: 어려움 opens
+            Clear(StageStars.OpenStage(1), 0);
+            Assert.IsTrue(StageStars.Unlocked(save, 1, 1));      // 일반 30 cleared: 어려움 opens
             Assert.IsFalse(StageStars.Unlocked(save, 2, 1));     // 어려움 1 must be cleared first
             Clear(1, 1);
             Assert.IsTrue(StageStars.Unlocked(save, 2, 1));
-            for (int n = 2; n <= StageStars.EntryStage; n++) Clear(n, 1);
-            Assert.IsFalse(StageStars.Unlocked(save, 21, 1));    // 어려움 21 still needs 일반 21
-            Clear(21, 0);
-            Assert.IsTrue(StageStars.Unlocked(save, 21, 1));
+            for (int n = 2; n <= StageStars.OpenStage(1); n++) Clear(n, 1);
+            Assert.IsFalse(StageStars.Unlocked(save, 31, 1));    // 어려움 31 still needs 일반 31
+            Clear(31, 0);
+            Assert.IsTrue(StageStars.Unlocked(save, 31, 1));
         }
 
         [Test]
-        public void ExtremeOpensAfterHardTwentyThenNeedsTheSameStageOnHard()
+        public void ExtremeOpensAfterHardFortyThenNeedsTheSameStageOnHard()
         {
             var save = new SaveData();
-            int Last(int stage) { return StageStars.FightCount(stage) - 1; }
-            void Clear(int stage, int diff) { StageStars.Record(save, stage, Last(stage), diff, 1); }
-            for (int n = 1; n < StageStars.EntryStage; n++) { Clear(n, 0); Clear(n, 1); }
-            Clear(StageStars.EntryStage, 0);
-            Assert.IsFalse(StageStars.Unlocked(save, 1, 2));     // 어려움 20 not cleared yet
-            StringAssert.Contains("어려움 20", StageStars.LockLabel(save, 1, 2));
-            Clear(StageStars.EntryStage, 1);
+            int Last(int stage, int diff) { return StageStars.FightCount(stage, diff) - 1; }
+            void Clear(int stage, int diff) { StageStars.Record(save, stage, Last(stage, diff), diff, 1); }
+            for (int n = 1; n < StageStars.OpenStage(2); n++) { Clear(n, 0); Clear(n, 1); }
+            Clear(StageStars.OpenStage(2), 0);
+            Assert.IsFalse(StageStars.Unlocked(save, 1, 2));     // 어려움 40 not cleared yet
+            StringAssert.Contains("어려움 40", StageStars.LockLabel(save, 1, 2));
+            Clear(StageStars.OpenStage(2), 1);
             Assert.IsTrue(StageStars.Unlocked(save, 1, 2));
             Assert.IsFalse(StageStars.Unlocked(save, 2, 2));     // 극악 1 not cleared yet
             Clear(1, 2);
@@ -91,9 +91,7 @@ namespace BiRyeoDo.Tests
             StageStars.Sync(save);
             int fights = Enumerable.Range(1, 20).Sum(n => StageStars.FightCount(n));
             Assert.AreEqual(fights + 1, StageStars.Total(save)); // the retired stage-19 filler keeps its legacy normal star
-            Assert.IsTrue(StageStars.Unlocked(save, 1, 1));      // 어려움 1 opens with 일반 20
-            Assert.IsFalse(StageStars.Unlocked(save, 2, 1));     // 어려움 2 also needs 어려움 1
-            Assert.IsFalse(StageStars.Unlocked(save, 21, 1));
+            Assert.IsFalse(StageStars.Unlocked(save, 1, 1));     // 어려움 1 opens with 일반 30, not 20
             StageStars.Sync(save);
             Assert.AreEqual(fights + 1, StageStars.Total(save)); // the retired stage-19 filler keeps its legacy normal star
         }
@@ -190,8 +188,8 @@ namespace BiRyeoDo.Tests
         public void HarderDifficultiesStartAtTheEntryStageAndClimbAtThreeQuartersOfTheNormalSlope()
         {
             int entry = StageStars.EntryStage;
-            Assert.AreEqual(StageStars.NormalBotLevel(entry), StageStars.TargetLevel(1, 1), 1e-9);   // 어려움 1 ≈ 일반 20
-            Assert.AreEqual(StageStars.TargetLevel(entry, 1), StageStars.TargetLevel(1, 2), 1e-9);  // 극악 1 ≈ 어려움 20
+            Assert.AreEqual(StageStars.NormalBotLevel(entry), StageStars.TargetLevel(1, 1), 1e-9);   // 어려움 1 ≈ 일반 40
+            Assert.AreEqual(StageStars.TargetLevel(entry, 1), StageStars.TargetLevel(1, 2), 1e-9);  // 극악 1 ≈ 어려움 40
             Assert.AreEqual(0, StageStars.LevelAdd(5, 0));                                          // 일반 is untouched
             var tiger = EarlyGameContent.FindEnemy("tiger");
             Assert.AreEqual(tiger.Level + StageStars.LevelAdd(1, 1), StageStars.ScaleEnemy(tiger, 1, 1).Level);
@@ -206,7 +204,7 @@ namespace BiRyeoDo.Tests
                 Assert.Greater(StageStars.LevelAdd(n, 2), StageStars.LevelAdd(n, 1), "stage " + n);
             }
             Assert.AreEqual(EarlyGameContent.FindStage(7).RecommendedPlayerLevel, StageStars.RecommendedPlayerLevel(7, 0));
-            Assert.Greater(StageStars.RecommendedPlayerLevel(1, 1), EarlyGameContent.FindStage(10).RecommendedPlayerLevel);   // 어려움 1 asks for a 일반 20 player
+            Assert.Greater(StageStars.RecommendedPlayerLevel(1, 1), EarlyGameContent.FindStage(10).RecommendedPlayerLevel);   // 어려움 1 asks for a 일반 40 player
             Assert.Greater(StageStars.RecommendedPlayerLevel(1, 2), StageStars.RecommendedPlayerLevel(1, 1));
         }
 

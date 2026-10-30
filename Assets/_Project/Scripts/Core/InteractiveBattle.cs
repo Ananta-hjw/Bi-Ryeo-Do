@@ -85,6 +85,98 @@ namespace BiRyeoDo.Core
         // Story-trial rule (set before Begin). Null = a normal fight.
         public TrialRule Trial { get; set; }
         public int PartyActions { get; private set; }
+
+        // ------------------------------------------------------------------ 화룡멸겁대진 (TrialKind.Finale, 일반 30)
+
+        public const string FinaleSkillId = "scene_pungsin_finale";
+        public const string FinaleSkillName = "풍뢰의 장 · 나선의 인 · 용권승룡";
+        public const string FinaleBlowName = "화룡멸겁";
+        private readonly HashSet<Combatant> _finaleOpened = new HashSet<Combatant>();
+        private bool IsFinale { get { return Trial != null && Trial.Kind == TrialKind.Finale; } }
+        /// <summary>The 진 has struck: everyone but 비류연 is down and he stands at 1 HP.</summary>
+        public bool FinaleStruck { get; private set; }
+        /// <summary>비류연's last action: whatever is commanded, it is the 풍신 that ends the 진.</summary>
+        public bool FinaleReady { get { return IsFinale && FinaleStruck && IsPlayerTurn; } }
+
+        /// <summary>The 풍신 of the finale (기세 100 so the screen plays the full 필살기 cut-in).</summary>
+        public static SkillSpec FinaleSkill()
+        {
+            return new SkillSpec { Id = FinaleSkillId, Name = FinaleSkillName, Power = 30f, AllEnemies = true, Range = 3, SpiritCost = 100,
+                Description = "열 자루 비뢰도와 뇌령사로 기류를 위로 돌려 불의 성벽을 끌어올린다." };
+        }
+
+        /// <summary>Finale turns: every living member acts once first, then the 진 strikes once, then only 비류연 acts.</summary>
+        private void FinaleTurn(List<BattleEvent> events)
+        {
+            if (!FinaleStruck)
+            {
+                Combatant next = null;
+                foreach (var m in _party)
+                    if (m.IsAlive && !_finaleOpened.Contains(m) && (next == null || m.Stats.Speed > next.Stats.Speed)) next = m;
+                if (next != null) { _finaleOpened.Add(next); StartPartyTurn(next); return; }
+                var jin = FirstLivingEnemy();
+                if (jin != null) { Turn++; EnemyActions++; Annihilate(jin, events); }
+                FinaleStruck = true;
+            }
+            var hero = Player.IsAlive ? Player : null;
+            if (hero == null) foreach (var m in _party) if (m.IsAlive) { hero = m; break; }
+            if (hero != null && !IsOver) StartPartyTurn(hero);
+            else Current = null;
+        }
+
+        private void StartPartyTurn(Combatant actor)
+        {
+            Turn++;
+            actor.Guarding = false;
+            actor.Evading = false;
+            actor.TickCooldowns();
+            actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + QiRegenFor(actor.Stats.MaxQi) + actor.QiRegenBonus);
+            Current = actor;
+        }
+
+        /// <summary>The 진's one blow: every member falls, 비류연 alone is left at 1 HP (no guard, dodge or rescue holds against it).</summary>
+        private void Annihilate(Combatant jin, List<BattleEvent> events)
+        {
+            _partyGuardOwner = null;
+            foreach (var m in _party)
+            {
+                if (!m.IsAlive) continue;
+                int left = m == Player ? 1 : 0;
+                int dmg = Math.Max(0, m.Hp - left);
+                m.Hp = left;
+                m.Guarding = false;
+                m.Evading = false;
+                events.Add(new BattleEvent
+                {
+                    Turn = Turn, ActorId = jin.Id, TargetId = m.Id, SkillId = FinaleBlowName, Kind = EventKind.Attack, Damage = dmg, HitIndex = 0, HitCount = 1,
+                    AllEnemies = true, TargetHpAfter = m.Hp, TargetDefeated = !m.IsAlive, Message = jin.Name + "의 " + FinaleBlowName + "!"
+                });
+            }
+        }
+
+        /// <summary>비류연's 풍신: the 진 is gone at once.</summary>
+        private List<BattleEvent> FinaleStrike()
+        {
+            var actor = Current;
+            Current = null;
+            PartyActions++;
+            var spec = actor.Skills.Find(s => s.Id == FinaleSkillId);
+            if (spec == null) { spec = FinaleSkill(); actor.Skills.Add(spec); }
+            var events = new List<BattleEvent>();
+            foreach (var e in _enemies)
+            {
+                if (!e.IsAlive) continue;
+                int dmg = e.Hp;
+                e.Hp = 0;
+                e.Charging = false; e.ChargeTarget = null; e.AwakeningStrike = null;
+                events.Add(new BattleEvent
+                {
+                    Turn = Turn, ActorId = actor.Id, TargetId = e.Id, SkillId = spec.Id, Kind = EventKind.Attack, Damage = dmg, HitIndex = 0, HitCount = 1,
+                    AllEnemies = true, TargetHpAfter = 0, TargetDefeated = true, ActorQiAfter = actor.Qi, ActorSpiritAfter = actor.Spirit
+                });
+            }
+            return events;
+        }
         public int EnemyActions { get; private set; }
         public int TechniqueUses { get; private set; }
         public bool TechniqueSucceeded { get { return Trial != null && Trial.Kind == TrialKind.Technique && TechniqueUses >= Trial.TechniqueUses; } }
@@ -280,6 +372,7 @@ namespace BiRyeoDo.Core
         public List<BattleEvent> PlayerAct(PlayerCommand cmd)
         {
             if (!IsPlayerTurn) throw new InvalidOperationException("Not the player's turn.");
+            if (FinaleReady) return FinaleStrike();
             if (cmd.Kind == CommandKind.Item && (cmd.Item == null || cmd.Item.Kind != ItemKind.Consumable || cmd.Item.MasteryUses > 0)) throw new InvalidOperationException("Not a consumable.");
             // Validate everything before touching any state, so a rejected command leaves the turn intact.
             if (cmd.Kind == CommandKind.Joint && (cmd.Skill == null || !CanJoint(cmd.Partner))) throw new InvalidOperationException("Joint attack unavailable.");
@@ -452,6 +545,7 @@ namespace BiRyeoDo.Core
             bool counter = _counterStrikes.TryGetValue(actor, out counterTarget) && counterTarget == t;
             if (counter) dmg = (int)Math.Round(dmg * CounterDamageFactor);
             t.Hp = Math.Max(0, t.Hp - dmg);
+            if (IsFinale && t.Team == Team.Enemy && t.Hp < 1) t.Hp = 1;   // the 진 cannot be worn down
             if (t.UsesResources && t.IsAlive) t.Spirit = Math.Min(MaxSpirit, t.Spirit + SpiritOnEnemyHit);
             if (actor.Lifesteal > 0f && actor.IsAlive) actor.Hp = Math.Min(actor.Stats.MaxHp, actor.Hp + (int)Math.Round(dmg * actor.Lifesteal));
             var ev = new BattleEvent
@@ -466,10 +560,11 @@ namespace BiRyeoDo.Core
                 ev.Retreated = true;
                 ev.Message = t.Name + "(이)가 물러난다!";
             }
+            else if (t.HoldsAtOneHp && t.Hp <= 0) Leave(t, ev);
             if (!t.IsAlive) { t.Charging = false; t.ChargeTarget = null; t.AwakeningStrike = null; }
             else if (stun) ApplyStun(t, ev);
             if (ev.Interrupted) GrantCounter(actor, t, ev);
-            ev.TargetHpAfter = t.Hp;
+            ev.TargetHpAfter = ev.Retreated && t.HoldsAtOneHp ? 1 : t.Hp;
             ev.TargetDefeated = !t.IsAlive;
             events.Add(ev);
             if (triggerBleed && h == 0 && t.IsAlive && t.Has(StatusKind.Bleed)) StatusHurt(t, StatusKind.Bleed, events);   // once per attack command
@@ -556,6 +651,7 @@ namespace BiRyeoDo.Core
             int dmg = Statuses.DotDamage(unit, kind);
             if (dmg <= 0 || !unit.IsAlive) return;
             unit.Hp = Math.Max(0, unit.Hp - dmg);
+            if (IsFinale && unit.Team == Team.Enemy && unit.Hp < 1) unit.Hp = 1;
             var ev = new BattleEvent { Turn = Turn, ActorId = unit.Id, TargetId = unit.Id, SkillId = "status", Kind = EventKind.Status, Status = kind, Damage = dmg, Message = unit.Name + ": " + Statuses.Name(kind) + " -" + dmg };
             if (unit.Hp == 0 && unit.Team == Team.Player) TryRescue(unit, ev);
             if (unit.RetreatHpPct > 0f && unit.Hp <= unit.Stats.MaxHp * unit.RetreatHpPct)
@@ -564,10 +660,20 @@ namespace BiRyeoDo.Core
                 ev.Retreated = true;
                 ev.Message = unit.Name + "(이)가 물러난다!";
             }
+            else if (unit.HoldsAtOneHp && unit.Hp <= 0) Leave(unit, ev);
             if (!unit.IsAlive) { unit.Charging = false; unit.ChargeTarget = null; unit.AwakeningStrike = null; }
-            ev.TargetHpAfter = unit.Hp;
+            ev.TargetHpAfter = ev.Retreated && unit.HoldsAtOneHp ? 1 : unit.Hp;
             ev.TargetDefeated = !unit.IsAlive;
             events.Add(ev);
+        }
+
+        /// <summary>A boss that holds at 1 HP: the blow that would fell it ends the fight with its exit lines instead (shown at 1 HP).</summary>
+        private static void Leave(Combatant unit, BattleEvent ev)
+        {
+            unit.Hp = 0;
+            ev.Retreated = true;
+            ev.Lines = unit.RetreatLines;
+            ev.Message = unit.Name + "(이)가 물러난다!";
         }
 
         /// <summary>Start of a unit's own turn: 중독·화상 hurt, then every status loses a turn.</summary>
@@ -609,6 +715,7 @@ namespace BiRyeoDo.Core
         private List<BattleEvent> RunUntilParty()
         {
             var events = new List<BattleEvent>();
+            if (IsFinale && !IsOver) { FinaleTurn(events); return events; }
             while (!IsOver)
             {
                 var actor = NextActor();

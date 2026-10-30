@@ -31,17 +31,25 @@ namespace BiRyeoDo.Core
         public const int DifficultyCount = 3;
         public static readonly string[] DifficultyNames = { "일반", "어려움", "극악" };
         /// <summary>
-        /// 어려움·극악 재조정: a harder difficulty opens once its entry stage is cleared on the difficulty below (일반 20 → 어려움, 어려움 20 → 극악).
-        /// Its stage 1 is built to feel like that entry stage, and every later stage rises from there at <see cref="HardSlope"/> of the 일반 slope.
+        /// 어려움·극악 재조정: a harder difficulty opens once <see cref="OpenStage"/> is cleared on the difficulty below.
+        /// Its stage 1 is built to feel like the entry stage of the difficulty below (어려움 1 ≈ 일반 40, 극악 1 ≈ 어려움 40), and every later stage rises from there at <see cref="HardSlope"/> of the 일반 slope.
         /// The difficulty is measured in the level the balance bot needs (<see cref="TargetLevel"/>); the enemies are the 일반 enemies of the same stage,
         /// raised by the curve levels the bot gains over 일반 (<see cref="LevelAdd"/>), with a fitted HP/attack trade that keeps the fights about as long as on 일반 (<see cref="HardLengthTable"/>).
         /// </summary>
-        public const int EntryStage = 20;
+        public const int EntryStage = 40;
+        /// <summary>
+        /// Stage that must be cleared on the difficulty below to open a harder one (index = difficulty: 일반 30 → 어려움, 어려움 40 → 극악).
+        /// 어려움 opens a little before its stage 1 (built like 일반 <see cref="EntryStage"/>); a save that already won on the harder difficulty
+        /// under the old rule (일반/어려움 20) keeps it open (<see cref="AlreadyOpen"/>).
+        /// </summary>
+        public static readonly int[] OpenStages = { 0, 30, 40 };
+        public static int OpenStage(int difficulty) { return OpenStages[Clamp(difficulty)]; }
+        const int LegacyOpenStage = 20;
         public const double HardSlope = 0.75;
 
         /// <summary>
         /// Raised level for level, the enemies of a harder difficulty would last about twice (어려움) or three times (극악) as long as on 일반, because HP grows
-        /// faster than damage up the curve. This table (index = difficulty, then stage - 1; fitted with the balance bot) shortens them back to about
+        /// faster than damage up the curve. This table (index = difficulty, then stage - 1, all 66 stages; fitted with the balance bot for the 일반 40 anchor) shortens them back to about
         /// <see cref="HardLengthTarget"/> times the 일반 fight: HP / f, attack x f^<see cref="HardAtkExp"/> so the shorter fight still hurts as much.
         /// </summary>
         public static readonly float[][] HardLengthTable =
@@ -49,15 +57,21 @@ namespace BiRyeoDo.Core
             null,
             new[]
             {
-                1.067f, 2.079f, 2.688f, 1.739f, 2.079f, 1.820f, 1.812f, 1.649f, 1.540f, 1.828f, 1.765f, 1.807f,
-                1.668f, 1.792f, 1.769f, 1.787f, 1.851f, 1.557f, 1.561f, 1.573f, 1.762f, 1.558f, 1.564f, 1.865f,
-                1.353f, 1.462f, 1.351f, 1.377f, 1.374f, 1.318f, 1.449f, 1.304f, 1.251f, 1.197f, 1.232f, 1.118f,
+                0.758f, 2.079f, 6.000f, 6.000f, 2.079f, 1.820f, 2.363f, 3.856f, 3.442f, 1.903f, 4.010f, 4.241f,
+                4.079f, 4.765f, 4.708f, 4.280f, 4.439f, 3.735f, 4.069f, 1.118f, 4.679f, 4.335f, 2.396f, 4.263f,
+                3.100f, 3.808f, 1.278f, 3.845f, 2.122f, 2.942f, 0.548f, 0.939f, 4.152f, 2.186f, 0.500f, 0.500f,
+                1.543f, 3.467f, 4.407f, 0.888f, 0.985f, 0.500f, 0.517f, 2.972f, 3.074f, 2.303f, 0.658f, 2.920f,
+                0.789f, 2.369f, 3.154f, 3.384f, 0.658f, 0.974f, 0.526f, 2.401f, 0.658f, 1.000f, 1.000f, 1.906f,
+                0.500f, 1.775f, 0.658f, 0.658f, 0.500f, 0.684f,
             },
             new[]
             {
-                1.542f, 2.949f, 3.715f, 2.415f, 2.705f, 2.151f, 2.536f, 2.489f, 2.355f, 2.742f, 2.556f, 2.506f,
-                2.036f, 2.411f, 2.476f, 2.561f, 2.311f, 2.286f, 2.401f, 2.026f, 2.459f, 2.289f, 2.090f, 2.441f,
-                2.079f, 2.368f, 2.056f, 2.115f, 2.033f, 1.921f, 2.038f, 1.882f, 1.751f, 1.819f, 1.733f, 1.708f,
+                1.020f, 2.949f, 6.000f, 6.000f, 2.705f, 2.151f, 3.850f, 5.940f, 5.532f, 1.709f, 6.000f, 6.000f,
+                6.000f, 6.000f, 6.000f, 6.000f, 6.000f, 5.650f, 6.000f, 1.618f, 6.000f, 6.000f, 3.933f, 6.000f,
+                4.871f, 6.000f, 1.278f, 6.000f, 2.875f, 4.650f, 0.500f, 1.554f, 6.000f, 3.511f, 0.500f, 0.500f,
+                2.203f, 5.848f, 6.000f, 0.975f, 1.491f, 0.500f, 0.517f, 4.674f, 4.655f, 3.753f, 0.658f, 4.780f,
+                0.658f, 3.532f, 4.978f, 5.524f, 0.658f, 1.344f, 0.526f, 3.813f, 0.658f, 1.000f, 1.000f, 3.096f,
+                0.500f, 2.724f, 0.658f, 0.658f, 0.500f, 0.571f,
             },
         };
         public const float HardLengthTarget = 1.15f;
@@ -86,15 +100,21 @@ namespace BiRyeoDo.Core
             null,
             new[]
             {
-                1.777f, 1.150f, 0.879f, 0.949f, 1.000f, 0.735f, 0.804f, 1.180f, 0.784f, 0.902f, 0.794f, 0.825f,
-                0.835f, 0.868f, 0.949f, 0.717f, 0.754f, 0.698f, 0.764f, 0.804f, 0.527f, 0.974f, 0.655f, 0.745f,
-                0.879f, 0.857f, 0.794f, 0.403f, 0.514f, 1.079f, 0.846f, 0.555f, 1.079f, 0.368f, 0.987f, 0.857f,
+                2.459f, 1.150f, 1.400f, 1.310f, 1.000f, 0.735f, 2.459f, 2.419f, 2.459f, 2.459f, 2.459f, 1.447f,
+                1.572f, 1.572f, 1.950f, 1.129f, 1.918f, 1.625f, 2.049f, 2.459f, 0.710f, 1.332f, 1.377f, 1.148f,
+                1.332f, 0.300f, 1.521f, 0.622f, 0.989f, 1.377f, 2.459f, 2.459f, 1.447f, 1.354f, 2.459f, 2.459f,
+                2.459f, 0.811f, 1.129f, 0.425f, 1.625f, 2.459f, 2.459f, 1.056f, 2.459f, 2.459f, 2.459f, 2.459f,
+                2.459f, 2.459f, 2.459f, 2.459f, 2.459f, 2.459f, 2.459f, 2.016f, 2.459f, 2.459f, 2.459f, 2.459f,
+                2.459f, 2.459f, 2.459f, 2.459f, 2.459f, 2.459f,
             },
             new[]
             {
-                1.777f, 1.307f, 0.630f, 0.949f, 1.000f, 0.879f, 0.857f, 1.291f, 0.937f, 0.925f, 0.764f, 0.672f,
-                0.974f, 0.999f, 1.012f, 0.717f, 0.774f, 0.794f, 0.814f, 0.647f, 0.555f, 0.902f, 0.868f, 0.764f,
-                0.745f, 0.794f, 0.555f, 0.368f, 0.949f, 0.949f, 0.698f, 0.501f, 0.879f, 0.355f, 0.794f, 0.630f,
+                2.459f, 1.307f, 1.521f, 1.766f, 1.000f, 0.879f, 2.459f, 2.459f, 2.459f, 2.459f, 2.340f, 2.190f,
+                1.950f, 1.766f, 1.546f, 1.680f, 2.301f, 1.598f, 2.084f, 2.459f, 0.622f, 1.572f, 1.289f, 1.092f,
+                1.423f, 0.300f, 1.983f, 0.501f, 0.925f, 1.289f, 2.459f, 2.459f, 1.471f, 1.226f, 2.459f, 2.459f,
+                2.459f, 0.675f, 1.056f, 0.372f, 1.546f, 2.459f, 2.459f, 0.941f, 2.459f, 2.459f, 2.459f, 2.459f,
+                2.459f, 2.459f, 2.459f, 2.459f, 2.459f, 2.459f, 2.459f, 1.795f, 2.459f, 2.459f, 2.459f, 2.459f,
+                2.459f, 2.459f, 2.459f, 2.459f, 2.459f, 2.459f,
             },
         };
         public static readonly float[] RewardFactor = { 1.0f, 1.5f, 2.2f };   // 두 and exp
@@ -186,14 +206,15 @@ namespace BiRyeoDo.Core
 
         static readonly float[] FastLimitFactor = { 1f, 1.2f, 1.3f };
 
-        public static int FightCount(int stage)
+        public static int FightCount(int stage, int difficulty = 0)
         {
             var st = EarlyGameContent.FindStage(stage);
-            return st != null ? st.Encounters.Length : 0;
+            if (st == null) return 0;
+            return difficulty > 0 ? st.WithDifficulty(difficulty).Encounters.Length : st.Encounters.Length;   // 일반 30 has fewer fights (FireDragonFinale)
         }
 
         /// <summary>Stars a stage can give on one difficulty (3 per fight).</summary>
-        public static int MaxStarsOfStage(int stage) { return FightCount(stage) * 3; }
+        public static int MaxStarsOfStage(int stage, int difficulty = 0) { return FightCount(stage, difficulty) * 3; }
 
         /// <summary>The level the balance bot plays a 일반 stage at: the recommended level plus <see cref="NormalEdgeLevels"/>.</summary>
         public static int NormalBotLevel(int stage)
@@ -204,7 +225,7 @@ namespace BiRyeoDo.Core
 
         /// <summary>
         /// Bot level a stage is built for on a difficulty. 일반 = <see cref="NormalBotLevel"/>; a harder one starts at the entry stage of the difficulty below
-        /// and climbs <see cref="HardSlope"/> as fast as 일반 does from its stage 1 (어려움 1 ≈ 일반 20, 극악 1 ≈ 어려움 20).
+        /// and climbs <see cref="HardSlope"/> as fast as 일반 does from its stage 1 (어려움 1 ≈ 일반 40, 극악 1 ≈ 어려움 40).
         /// </summary>
         public static double TargetLevel(int stage, int difficulty)
         {
@@ -374,8 +395,8 @@ namespace BiRyeoDo.Core
         /// <summary>Stars earned in one stage on one difficulty.</summary>
         public static int StarsOfStage(SaveData save, int stage, int difficulty)
         {
-            int n = 0;
-            foreach (var e in save.StageStars) if (e.Stage == stage && e.Diff == difficulty) n += Count(e.Mask);
+            int n = 0, fights = FightCount(stage, difficulty);   // a fight a stage no longer has (일반 30's old fourth) is not counted here
+            foreach (var e in save.StageStars) if (e.Stage == stage && e.Diff == difficulty && e.Fight < fights) n += Count(e.Mask);
             return n;
         }
 
@@ -389,7 +410,7 @@ namespace BiRyeoDo.Core
         /// <summary>A stage counts as cleared on a difficulty once its last fight was won there.</summary>
         public static bool StageCleared(SaveData save, int stage, int difficulty)
         {
-            int last = FightCount(stage) - 1;
+            int last = FightCount(stage, difficulty) - 1;
             return last >= 0 && (MaskOf(save, stage, last, difficulty) & 1) != 0;
         }
 
@@ -410,7 +431,7 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>
-        /// A harder difficulty opens once <see cref="EntryStage"/> is cleared on the difficulty below (일반 20 → 어려움, 어려움 20 → 극악),
+        /// A harder difficulty opens once <see cref="OpenStage"/> is cleared on the difficulty below (일반 30 → 어려움, 어려움 40 → 극악),
         /// then stage by stage: the same stage must be cleared on the difficulty below AND the previous stage on this one.
         /// </summary>
         public static bool Unlocked(SaveData save, int stage, int difficulty)
@@ -423,10 +444,19 @@ namespace BiRyeoDo.Core
         {
             difficulty = Clamp(difficulty);
             if (difficulty <= 0) return "";
-            if (!StageCleared(save, EntryStage, difficulty - 1)) return DifficultyNames[difficulty - 1] + " " + EntryStage + "\n돌파 필요";
+            int open = OpenStage(difficulty);
+            if (!StageCleared(save, open, difficulty - 1) && !AlreadyOpen(save, difficulty)) return DifficultyNames[difficulty - 1] + " " + open + "\n돌파 필요";
             if (!StageCleared(save, stage, difficulty - 1)) return DifficultyNames[difficulty - 1] + "\n돌파 필요";
             if (stage > 1 && !StageCleared(save, stage - 1, difficulty)) return "앞 스테이지\n돌파 필요";
             return "";
+        }
+
+        /// <summary>A save from before <see cref="OpenStage"/> rose (old rule: stage 20 of the difficulty below) that already won a fight on this difficulty keeps it open.</summary>
+        public static bool AlreadyOpen(SaveData save, int difficulty)
+        {
+            if (!StageCleared(save, LegacyOpenStage, difficulty - 1)) return false;
+            foreach (var e in save.StageStars) if (e.Diff == difficulty && e.Mask != 0) return true;
+            return false;
         }
 
         /// <summary>Stores the best result of a fight; returns how many new stars it earned.</summary>
@@ -494,8 +524,9 @@ namespace BiRyeoDo.Core
             get
             {
                 int fights = 0;
-                foreach (var st in EarlyGameContent.Stages) fights += st.Encounters.Length;
-                return fights * 3 * DifficultyCount;
+                foreach (var st in EarlyGameContent.Stages)
+                    for (int d = 0; d < DifficultyCount; d++) fights += FightCount(st.Number, d);
+                return fights * 3;
             }
         }
 

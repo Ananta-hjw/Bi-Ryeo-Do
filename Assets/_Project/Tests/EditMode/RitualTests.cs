@@ -6,7 +6,7 @@ public class RitualTests
 {
     private static void Clear(SaveData save, int stage, int diff)
     {
-        for (int f = 0; f < StageStars.FightCount(stage); f++) StageStars.Record(save, stage, f, diff, 1);
+        for (int f = 0; f < StageStars.FightCount(stage, diff); f++) StageStars.Record(save, stage, f, diff, 1);
     }
 
     private static SaveData Ready()

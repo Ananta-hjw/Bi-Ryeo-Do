@@ -27,7 +27,7 @@ namespace BiRyeoDo.Core
 
         public static bool AtEnding(SaveData save, StageData stage)
         {
-            return stage != null && Has(save, stage.Number) && save.ProgressNext >= stage.Encounters.Length;
+            return stage != null && Has(save, stage.Number) && FireDragonFinale.ResumeAt(stage, save.ProgressNext) >= stage.Encounters.Length;
         }
 
         public static void Store(SaveData save, int stageNumber, int nextEncounter, IEnumerable<Combatant> party, int difficulty = 0)

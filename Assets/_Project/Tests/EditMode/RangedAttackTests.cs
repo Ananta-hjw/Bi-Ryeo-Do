@@ -15,7 +15,7 @@ namespace BiRyeoDo.Tests
         [TestCase("bido_throw", true)]
         [TestCase("bi_roe_do", true)]
         [TestCase("goengroe", true)]
-        [TestCase("seomroe", false)]
+        [TestCase("hyeoncheon_powol", false)]
         [TestCase("isj_iljeom", false)]
         public void CatalogAndMasteryPreserveExplicitAttackPresentationInsteadOfInferringItFromReach(string id, bool ranged)
         {

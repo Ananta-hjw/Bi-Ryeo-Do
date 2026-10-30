@@ -12,7 +12,7 @@ namespace BiRyeoDo.Tests
             var save = new SaveData { Level = 99, ClearedStage = 36 };
             for (int d = 1; d <= 2; d++)
                 for (int s = 1; s <= 36; s++)
-                    for (int f = 0; f < StageStars.FightCount(s); f++) StageStars.Record(save, s, f, d, 1);
+                    for (int f = 0; f < StageStars.FightCount(s, d); f++) StageStars.Record(save, s, f, d, 1);
             return save;
         }
 

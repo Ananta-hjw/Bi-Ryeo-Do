@@ -137,10 +137,20 @@ namespace BiRyeoDo.Core
             return list;
         }
 
+        /// <summary>The stage whose fight a quest replays (일반 30's quest replays one of the four fights 어려움·극악 still play).</summary>
+        public static StageData ReferenceStage(QuestData q)
+        {
+            var st = EarlyGameContent.FindStage(q.RefStage);
+            if (st == null || st.Number != FireDragonFinale.Stage) return st;
+            var legacy = st.WithDifficulty(1);
+            legacy.Difficulty = 0;
+            return legacy;
+        }
+
         /// <summary>The one-fight stage that plays this quest (reuses the reference stage's encounter and background).</summary>
         public static StageData ToStage(QuestData q)
         {
-            var reference = EarlyGameContent.FindStage(q.RefStage);
+            var reference = ReferenceStage(q);
             return new StageData
             {
                 Number = q.RefStage, Name = q.Name, IsQuest = true, QuestId = q.Id,

@@ -135,9 +135,13 @@ namespace BiRyeoDo.Tests
         [TestCase(10, 1)]
         [TestCase(20, 1)]
         [TestCase(36, 1)]
+        [TestCase(50, 1)]
+        [TestCase(66, 1)]
         [TestCase(1, 2)]
         [TestCase(20, 2)]
         [TestCase(36, 2)]
+        [TestCase(50, 2)]
+        [TestCase(66, 2)]
         public void HarderStagesPlayLikeTheSameNormalStageAtTheirTargetLevel(int number, int difficulty)   // 어려움·극악 재조정: same win rate, about the same fight length
         {
             var normal = EarlyGameContent.FindStage(number);

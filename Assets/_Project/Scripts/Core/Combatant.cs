@@ -43,6 +43,8 @@ namespace BiRyeoDo.Core
         public EnemyRank Rank;             // enemies: 일반 / 정예 / 보스 (정예 and 보스 use 내공 and 기세)
         public bool IsBoss;                // bosses cannot be stun-locked, only interrupted
         public float RetreatHpPct;         // >0: a story boss that flees (leaves the fight) once its HP drops to this fraction of max
+        public bool HoldsAtOneHp;          // a story boss that leaves instead of falling below 1 HP
+        public string[] RetreatLines;      // what it says as it leaves ("화자|대사")
         public int MoveIndex;              // enemy script position
         public List<EnemyMove> Moves;      // enemy attack script, cycled in order
         public List<BossPhase> Phases;     // story bosses: 단계 전환 still to come, in order (see BossPhases)
@@ -63,7 +65,7 @@ namespace BiRyeoDo.Core
                 QiRegenBonus = QiRegenBonus, SpiritDealtBonus = SpiritDealtBonus, SpiritTakenBonus = SpiritTakenBonus,
                 StoryArtId = StoryArtId, StartSpirit = StartSpirit, Lifesteal = Lifesteal, RescuerId = RescuerId, RescueUsed = RescueUsed,
                 Col = Col, Row = Row, Range = Range, Guarding = Guarding, Evading = Evading, EvadeChance = EvadeChance,
-                Charging = Charging, Stunned = Stunned, Rank = Rank, IsBoss = IsBoss, RetreatHpPct = RetreatHpPct,
+                Charging = Charging, Stunned = Stunned, Rank = Rank, IsBoss = IsBoss, RetreatHpPct = RetreatHpPct, HoldsAtOneHp = HoldsAtOneHp, RetreatLines = RetreatLines,
                 MoveIndex = MoveIndex, Moves = Moves, Phases = Phases, PhaseIndex = PhaseIndex, AwakeningStrike = AwakeningStrike
             };
             copy.Skills.Clear();

@@ -27,7 +27,7 @@ namespace BiRyeoDo.Game.UI
         // Unknown arts retain an impact rather than acquiring invented weapon lore.
         private static StrikeStyle StyleOf(SkillSpec skill, BattleEvent ev)
         {
-            if (skill != null && (skill.Effect == SkillEffect.Evade || skill.Id == "jikji_jilju")) return StrikeStyle.Footwork;
+            if (skill != null && skill.Effect == SkillEffect.Evade) return StrikeStyle.Footwork;
             string name = skill != null ? skill.Name ?? "" : ev.SkillId ?? "";
             if (ev.Ranged || name.Contains("비도") || name.Contains("비뢰도") || name.Contains("뢰광류하곡") || (skill != null && skill.Id == "pungsin")) return StrikeStyle.Projectile;
             string description = skill != null ? skill.Description ?? "" : "";

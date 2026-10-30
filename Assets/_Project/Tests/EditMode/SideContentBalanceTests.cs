@@ -36,7 +36,7 @@ namespace BiRyeoDo.Tests
         public void LaterQuestsTrackTheirMainFightOnceWithMatchingRecommendation(string id)
         {
             var q = Quests.Find(id);
-            var reference = EarlyGameContent.FindStage(q.RefStage);
+            var reference = Quests.ReferenceStage(q);
             var stage = Quests.ToStage(q);
             foreach (string enemyId in stage.Encounters[0])
             {

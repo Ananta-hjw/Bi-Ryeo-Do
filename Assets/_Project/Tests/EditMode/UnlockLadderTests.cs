@@ -6,11 +6,11 @@ public class UnlockLadderTests
 {
     private static void Clear(SaveData save, int stage, int diff)
     {
-        for (int f = 0; f < StageStars.FightCount(stage); f++) StageStars.Record(save, stage, f, diff, 1);
+        for (int f = 0; f < StageStars.FightCount(stage, diff); f++) StageStars.Record(save, stage, f, diff, 1);
     }
 
     [Test]
-    public void TheFinalArtAndTheFinalInnerArtSitAtHardStageThirty()
+    public void TheLastArtAndTheFinalInnerArtSitAtHardStageThirty()
     {
         var pungsin = EarlyGameContent.FindArt("pungsin");
         Assert.AreEqual(30, pungsin.UnlockStage);
@@ -27,18 +27,59 @@ public class UnlockLadderTests
     }
 
     [Test]
-    public void LearningStepsAreSpreadOutAndOrderedByPower()
+    public void LearningStepsAreSpreadOutAndFengShenComesLast()
     {
-        // the ladder: 일반 stage N = N, 어려움 stage N = 36 + N, 극악 stage N = 72 + N
-        var steps = EarlyGameContent.Arts.Where(a => a.OwnerId == null && a.LearnCost > 0)
-            .Select(a => a.UnlockDiff * 36 + a.UnlockStage).OrderBy(x => x).ToList();
-        Assert.GreaterOrEqual(steps.Distinct().Count(), steps.Count - 1);   // nearly every art has its own step
-        Assert.AreEqual(108, steps.Last());   // 쌍룡귀천: 극악 36
-        for (int i = 1; i < steps.Count; i++) Assert.LessOrEqual(steps[i] - steps[i - 1], 12, "gap before step " + steps[i]);
+        // the ladder: 일반 stage N = N, 어려움 stage N = 66 + N; no art is learned on 극악
+        int n = EarlyGameContent.Stages.Length;
+        Assert.AreEqual(66, n);
+        var hero = EarlyGameContent.Arts.Where(a => a.OwnerId == null).ToList();
+        Assert.AreEqual(19, hero.Count);
+        Assert.IsTrue(hero.All(a => a.UnlockDiff <= 1));
+        var steps = hero.Where(a => a.LearnCost > 0).Select(a => a.UnlockDiff * n + a.UnlockStage).OrderBy(x => x).ToList();
+        Assert.AreEqual(steps.Count, steps.Distinct().Count() + 1);   // only 비뢰도 and 삼첩영 share 일반 3
+        Assert.AreEqual(n + 30, steps.Last());   // 풍신: 어려움 30, the last art
+        Assert.AreEqual(n + 10, steps[steps.Count - 2]);   // 쌍룡귀천: 어려움 10
+        for (int i = 1; i < steps.Count - 1; i++) Assert.LessOrEqual(steps[i] - steps[i - 1], 10, "gap before step " + steps[i]);
         // 심법 still end on 어려움 30 (here 어려움 stage N = 30 + N)
         var inner = InnerArts.All.Select(a => a.UnlockDiff * 30 + a.UnlockStage).OrderBy(x => x).ToList();
         Assert.AreEqual(60, inner.Last());
         for (int i = 1; i < inner.Count; i++) Assert.LessOrEqual(inner[i] - inner[i - 1], 12);
+    }
+
+    [Test]
+    public void TheFireDragonFormOfFengShenIsTheVeryLastStep()
+    {
+        var last = Mastery.TierGate(EarlyGameContent.FindArt("pungsin"), 4);
+        Assert.AreEqual(1, last.Difficulty);
+        Assert.AreEqual(60, last.Stage);
+        Assert.AreEqual("hwaryong_nanryu", EarlyGameContent.FormsOf("pungsin").Last().Id);
+        foreach (var art in EarlyGameContent.Arts.Where(a => a.OwnerId == null))
+            for (int t = 1; t <= 4; t++)
+            {
+                if (art.Id == "pungsin" && t == 4) continue;
+                var g = Mastery.TierGate(art, t);
+                Assert.IsTrue(g.Difficulty == 0 || (g.Difficulty == 1 && g.Stage < 60), art.Id + " step " + t);
+            }
+    }
+
+    [Test]
+    public void HardOpensAtThirtyExtremeAtHardFortyAndOldSavesKeepThem()
+    {
+        var save = new SaveData { ClearedStage = 29 };
+        for (int s = 1; s <= 29; s++) Clear(save, s, 0);
+        Assert.IsFalse(StageStars.Unlocked(save, 1, 1));
+        StringAssert.Contains("30", StageStars.LockLabel(save, 1, 1));
+        Clear(save, 30, 0);
+        Assert.IsTrue(StageStars.Unlocked(save, 1, 1));
+        for (int s = 1; s <= 39; s++) { Clear(save, s, 0); Clear(save, s, 1); }
+        StringAssert.Contains("어려움 40", StageStars.LockLabel(save, 1, 2));
+
+        var old = new SaveData { ClearedStage = 25 };
+        for (int s = 1; s <= 25; s++) Clear(old, s, 0);
+        Assert.IsFalse(StageStars.Unlocked(old, 1, 1));
+        Clear(old, 1, 1);   // won on 어려움 when it still opened at 일반 20
+        Assert.IsTrue(StageStars.Unlocked(old, 2, 1));
+        Assert.IsFalse(StageStars.Unlocked(old, 1, 2));
     }
 
     [Test]

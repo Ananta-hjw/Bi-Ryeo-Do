@@ -278,7 +278,7 @@ namespace BiRyeoDo.Core
             var party = BuildParty(save, ids);
             if (party.Count != ids.Count) return null;
             bool resume = !st.IsQuest && !st.IsTower && StageProgress.Has(save, st.Number) && save.ProgressDifficulty == st.Difficulty;
-            int first = resume ? Math.Min(save.ProgressNext, st.Encounters.Length) : 0;
+            int first = resume ? FireDragonFinale.ResumeAt(st, save.ProgressNext) : 0;
             if (resume) StageProgress.Restore(save, party);
             var fights = FormationPlanner.FightsOf(st);
             if (first > 0) fights.RemoveRange(0, first);

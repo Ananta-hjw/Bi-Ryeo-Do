@@ -53,8 +53,10 @@ namespace BiRyeoDo.Tests
         [Test]
         public void TheFireEndsThroughSharedRescueRatherThanKillingBiOrCollectingThePrizeEarly()
         {
-            string text = Replay(30);
+            // 어려움·극악 keep the earlier four fights; 일반 plays the scripted 화룡멸겁대진 (FireDragonFinale)
+            string text = string.Join(" ", StoryEpisodes.Replay(EarlyGameContent.FindStage(30).WithDifficulty(1)));
             Ordered(text, "실을 따라 만난 스승들", "주방으로 모인 단서", "최우수 조가 불린 뒤의 이의", "우승 발표와 염마뢰", "같지 않은 그림자", "불의 성벽", "남은 사람을 살리는 힘", "용권승룡", "피해는 사망 셋", "한때 은명이라 불린 남자", "청룡은장");
+            Ordered(Replay(30), "우승 발표와 염마뢰", "같지 않은 그림자", "칫... 귀찮게 하는군", "화룡멸겁대진을 발동해라", "독고령", "내력을 보태줄 수 있어요", "알았네, 내력을 보태지", "모든 묵룡환을 푼다", "여신의 입맞춤", "하.. 죽겠네", "피해는 사망 셋", "한때 은명이라 불린 남자", "청룡은장");
             StringAssert.Contains("혼자 완벽히 해낼 자신이 없다", text);
             StringAssert.Contains("현금 배당의 정산 장면은 없었다", text);
             StringAssert.Contains("모용휘도 혁중의 제안을 받아들였지만", text);
@@ -199,6 +201,7 @@ namespace BiRyeoDo.Tests
             for (int i = 0; i < stage.Encounters.Length; i++)
             {
                 var scenes = StoryEpisodes.BeforeFight(stage, i, save);
+                if (FireDragonFinale.IsFinale(stage, i)) { Assert.AreSame(FireDragonFinale.Departure, scenes); continue; }   // sets up the scripted fight on every run
                 if (stage.EventFor(i) != null)
                 {
                     Assert.IsNull(scenes);
@@ -214,7 +217,7 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(9876, save.Doo);
             save.ClearedStage = number;
             Assert.IsNull(StoryEpisodes.BeforeFight(stage, 0, save));
-            Assert.AreEqual(number >= 58 ? new[] { 3, 3, 4, 4, 4, 4, 4, 4, 5 }[number - 58] : number >= 49 ? new[] { 7, 4, 4, 2, 3, 5, 5, 5, 2 }[number - 49] : number >= 42 ? new[] { 4, 3, 5, 4, 5, 2, 5 }[number - 42] : number >= 37 ? new[] { 2, 3, 3, 4, 1 }[number - 37] : number == 14 ? 11 : number == 15 ? 5 : number == 18 ? 4 : number == 19 ? 6 : number == 31 ? 3 : number == 27 || number == 29 ? 7 : number == 22 || number == 26 ? 6 : number >= 23 && number <= 25 || number == 30 ? 4 : number == 28 || number == 35 ? 5 : number >= 31 && number != 34 ? 4 : 3, stage.Encounters.Length);
+            Assert.AreEqual(number >= 58 ? new[] { 3, 3, 4, 4, 4, 4, 4, 4, 5 }[number - 58] : number >= 49 ? new[] { 7, 4, 4, 2, 3, 5, 5, 5, 2 }[number - 49] : number >= 42 ? new[] { 4, 3, 5, 4, 5, 2, 5 }[number - 42] : number >= 37 ? new[] { 2, 3, 3, 4, 1 }[number - 37] : number == 14 ? 11 : number == 15 ? 5 : number == 18 ? 4 : number == 19 ? 6 : number == 31 ? 3 : number == 27 || number == 29 ? 7 : number == 22 || number == 26 ? 6 : number >= 23 && number <= 25 ? 4 : number == 30 ? 3 : number == 28 || number == 35 ? 5 : number >= 31 && number != 34 ? 4 : 3, stage.Encounters.Length);
         }
     }
 }

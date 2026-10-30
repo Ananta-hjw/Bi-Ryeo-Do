@@ -344,7 +344,14 @@ namespace BiRyeoDo.Core
                 for (int i = 0; i < stage.Encounters.Length; i++)
                 {
                     StoryScene[] scenes;
-                    if (stage.EventFor(i) == null && TryScenes(stage.Number * 100 + i, out scenes)) Append(lines, scenes);
+                    if (FireDragonFinale.IsFinale(stage, i))
+                    {
+                        lines.AddRange(FireDragonFinale.RetreatLines);
+                        Append(lines, FireDragonFinale.Departure);
+                        lines.AddRange(FireDragonFinale.AfterBlow);
+                        lines.AddRange(FireDragonFinale.AfterStrike);
+                    }
+                    else if (stage.EventFor(i) == null && TryScenes(stage.Number * 100 + i, out scenes)) Append(lines, scenes);
                     var ev = stage.EventFor(i);
                     if (ev != null)
                     {
@@ -376,6 +383,7 @@ namespace BiRyeoDo.Core
         /// <summary>Continue story on an unfinished full run, including a saved resume; isolated fights and repeat clears skip it.</summary>
         public static StoryScene[] BeforeFight(StageData stage, int encounter, SaveData save, bool singleFight = false)
         {
+            if (FireDragonFinale.IsFinale(stage, encounter)) return FireDragonFinale.Departure;   // sets up the scripted fight, also on replays
             if (stage == null || save == null || stage.EventFor(encounter) != null || stage.IsQuest || stage.IsTower || singleFight
                 || save.ClearedStage >= stage.Number || stage.Encounters == null || encounter < 0 || encounter >= stage.Encounters.Length) return null;
             StoryScene[] scenes;

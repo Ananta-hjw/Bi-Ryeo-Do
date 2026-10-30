@@ -316,6 +316,7 @@ namespace BiRyeoDo.Game.UI
             CancelBasicMotion();
             StopAllCoroutines();
             ClearUltimateCutIn();
+            ClearFinaleLayer();
             ResetFeel();
             ResetImpactEffects();
             HideFightRewards();
@@ -411,7 +412,7 @@ namespace BiRyeoDo.Game.UI
 
             // Continue a stage the player stepped back from; anything else starts fresh (and drops an old resume point).
             bool resume = !stage.IsQuest && !stage.IsTower && StageProgress.Has(save, stage.Number);
-            int startIndex = resume ? Math.Min(save.ProgressNext, stage.Encounters.Length) : 0;
+            int startIndex = resume ? FireDragonFinale.ResumeAt(stage, save.ProgressNext) : 0;
             if (!resume && !stage.IsQuest && !stage.IsTower && save.ProgressStage != 0) { StageProgress.Clear(save); GameManager.Instance.SaveNow(); }
 
             // A cleared stage can be replayed from any fight (optionally just that one); the first clear always runs from the start.
@@ -493,7 +494,8 @@ namespace BiRyeoDo.Game.UI
                             string gains = Factions.GainText(stage.Number, diff);
                             if (gains.Length > 0) repLine = "평판 " + gains + (rises.Count > 0 ? "  (" + string.Join(", ", rises) + ")" : "");
                         }
-                        int fightMask = storyEvent != null ? 7 : StageStars.Evaluate(stage.Number, i, _fightActions, _fightFell, diff);
+                        // a choice event and the scripted 화룡멸겁대진 (everyone falls by design) give all three stars once won
+                        int fightMask = storyEvent != null || FireDragonFinale.IsFinale(stage, i) ? 7 : StageStars.Evaluate(stage.Number, i, _fightActions, _fightFell, diff);
                         bool stageWasCleared = StageStars.StageCleared(save, stage.Number, diff);
                         int fightNew = StageStars.Record(save, stage.Number, i, diff, fightMask);
                         rewardMask = fightMask; rewardNewStars = fightNew;
@@ -694,6 +696,7 @@ namespace BiRyeoDo.Game.UI
             CancelBasicMotion();
             StopAllCoroutines();
             ClearUltimateCutIn();
+            ClearFinaleLayer();
             ResetFeel();
             ResetImpactEffects();
             HideFightRewards();
@@ -726,6 +729,7 @@ namespace BiRyeoDo.Game.UI
             CancelBasicMotion();
             StopAllCoroutines();
             ClearUltimateCutIn();
+            ClearFinaleLayer();
             ResetFeel();
             ResetImpactEffects();
             HideFightRewards();
@@ -917,9 +921,17 @@ namespace BiRyeoDo.Game.UI
                     if (hint != null) yield return HelpPanel.Instance.ShowOnce(hint);
                 }
 
-                _hasCommand = false;
-                while (!_hasCommand && !_fled) yield return null;
-                if (_fled) yield break;
+                if (_battle.FinaleReady)
+                {
+                    yield return FinaleFlow();   // 일반 30: the masters' 내력, then the 풍신 button
+                    if (_fled) yield break;
+                }
+                else
+                {
+                    _hasCommand = false;
+                    while (!_hasCommand && !_fled) yield return null;
+                    if (_fled) yield break;
+                }
 
                 SetCommandsInteractable(false);
                 var actor = _battle.Current;
@@ -954,6 +966,7 @@ namespace BiRyeoDo.Game.UI
                 actions++;
                 if (turnLimit > 0 && actions >= turnLimit && !_battle.IsOver) { _drawn = true; break; }
             }
+            if (trial != null && trial.Kind == TrialKind.Finale && _battle.PlayerWon && !_fled) yield return FinaleCollapse();
             _fightActions = actions;
             _fightFell = _party.Exists(m => !m.IsAlive);
             if (trial != null && _battle.TrialFailed) _log.text = _battle.TrialFailReason;
@@ -2254,6 +2267,12 @@ namespace BiRyeoDo.Game.UI
                         RefreshCards();
                         yield return new WaitForSeconds(Wait(SmallDelay));
                         break;
+                }
+                // a boss that holds at 1 HP says its exit lines as it leaves (일반 30's 대공자 비)
+                if (ev.Retreated && ev.Lines != null && ev.Lines.Length > 0 && !_fled)
+                {
+                    yield return new WaitForSeconds(Wait(0.35f));
+                    yield return ShowStory(NameOf(ev.TargetId), ev.Lines);
                 }
             }
         }

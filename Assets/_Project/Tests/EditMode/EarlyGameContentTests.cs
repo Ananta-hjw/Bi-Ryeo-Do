@@ -55,7 +55,7 @@ namespace BiRyeoDo.Tests
                     bool expectedBoss = s.Number == 58 || s.Number == 59 || s.Number == 63 || s.Number == 65 ? false : s.Number == 60 ? i == 0 : s.Number == 61 ? i == 2 : s.Number == 64 ? i == 1 : s.Number == 66 ? i == 3 : s.Number == 52 || s.Number == 53 || s.Number == 55 ? false : s.Number == 54 ? i == 3 : s.Number == 43 ? i == 1 : s.Number == 47 ? false : s.Number == 48 ? i == 2 : s.Number == 21 ? i >= 1 : s.Number == 24 ? i == 2 : s.Number == 27 ? i == 0 : s.Number == 29 ? i >= 5 : s.Number == 30 || s.Number == 39 ? i == 1 : s.Number == 31 || s.Number == 33 ? i == 2 : s.Number == 35 ? i == 3 : i == s.Encounters.Length - 1;
                     Assert.AreEqual(expectedBoss, hasBoss, s.Name + " encounter " + i);
                     if (i == s.Encounters.Length - 1 && !hasBoss && s.Number != 39)
-                        Assert.IsTrue(s.TrialFor(i).Kind == TrialKind.Survive || s.TrialFor(i).Kind == TrialKind.Technique, s.Name);
+                        Assert.IsTrue(s.TrialFor(i).Kind == TrialKind.Survive || s.TrialFor(i).Kind == TrialKind.Technique || s.TrialFor(i).Kind == TrialKind.Finale, s.Name);
                 }
             }
         }
@@ -112,10 +112,10 @@ namespace BiRyeoDo.Tests
         [Test]
         public void ProtagonistArtsExcludeCompanionArts()
         {
-            // Healing stays with 윤준호; binding arts (점혈-like Stun) appear for the protagonist only from the 극악 ladder (26권 이후).
+            // Healing stays with 윤준호; binding arts (점혈-like Stun) appear for the protagonist only late on the 일반 ladder (26권 이후 = stage 49+).
             var hero = EarlyGameContent.Arts.Where(a => a.OwnerId == null).ToList();
             Assert.IsTrue(hero.All(a => a.Effect != SkillEffect.HealAlly && a.Effect != SkillEffect.Cleanse));
-            Assert.IsTrue(hero.Where(a => a.Effect == SkillEffect.Stun).All(a => a.UnlockDiff == 2));
+            Assert.IsTrue(hero.Where(a => a.Effect == SkillEffect.Stun).All(a => a.UnlockDiff > 0 || a.UnlockStage >= 49));
         }
 
         [Test]

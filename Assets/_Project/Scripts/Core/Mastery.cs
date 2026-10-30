@@ -126,9 +126,15 @@ namespace BiRyeoDo.Core
             foreach (var id in RemovedArts) Fold(save, id, null);
         }
 
-        /// <summary>Arts taken out of the game (2026-10 말): plain strikes and repeats of other arts.</summary>
+        /// <summary>
+        /// Arts taken out of the game (2026-10 말): plain strikes and repeats of other arts, then (66-stage ladder) the nine whose role
+        /// another art already covers and whose story weight is smallest.
+        /// </summary>
         public static readonly string[] RemovedArts =
-            { "yeobanjang", "cheonji_ibun", "jeokjunghwa", "palhwa_nanmu", "seomjeon_ilsi", "palseom_noegwang", "hyeoncheon_secheom", "hyeoncheon_hoecheon", "sanmak" };
+        {
+            "yeobanjang", "cheonji_ibun", "jeokjunghwa", "palhwa_nanmu", "seomjeon_ilsi", "palseom_noegwang", "hyeoncheon_secheom", "hyeoncheon_hoecheon", "sanmak",
+            "simroe_yeolpa", "noeseom_ilsi", "eunseompung", "jikji_jilju", "ssangseom_ilgyeokroe", "noemangok", "saengsa_seomroe", "noejeol_daneum", "seomroe",
+        };
 
         private static void Fold(SaveData save, string oldId, string intoId)
         {
@@ -214,44 +220,42 @@ namespace BiRyeoDo.Core
 
         /// <summary>
         /// 숙련 단계의 관문: each step after 입문 also needs a stage and 비류연's level. The step's stage lies further along the learning ladder than the
-        /// art's own (소성 +3, 대성 +8, 극성 +15, 극의 +24 stages, 일반 1-36 → 어려움 → 극악, capped at 극악 36); a step where the art turns into a form
-        /// (<see cref="EarlyGameContent.ArtForms"/>) uses the form's stage. The level is the player's expected level there (<see cref="ExpectedLevel"/>)
-        /// minus <see cref="TierLevelSlack"/>. Later steps never ask for less than earlier ones.
+        /// art's own (소성 +3, 대성 +8, 극성 +15, 극의 +24 stages, 일반 1-66 → 어려움 1-66, capped at 어려움 <see cref="LastPlainGate"/>); a step where the
+        /// art turns into a form (<see cref="EarlyGameContent.ArtForms"/>) uses the form's stage (풍신 화룡난류 at 어려움 60 is the last of all).
+        /// The level is the player's expected level there (<see cref="ExpectedLevel"/>) minus <see cref="TierLevelSlack"/>. Later steps never ask for less than earlier ones.
         /// </summary>
         public static readonly int[] TierStageOffset = { 0, 3, 8, 15, 24 };
         public const int TierLevelSlack = 2;
-        private const int LadderStages = 36;
+        /// <summary>Last 어려움 stage a step without a form can ask for, so the final form (어려움 60) stays the last step.</summary>
+        public const int LastPlainGate = 59;
+        private static int LadderStages { get { return EarlyGameContent.Stages.Length; } }
 
         public struct Gate { public int Stage, Difficulty, Level; }
 
         public static Gate TierGate(ArtData art, int tier)
         {
-            int start = Math.Max(1, art.UnlockDiff * LadderStages + art.UnlockStage);
+            int n = LadderStages;
+            int start = Math.Max(1, art.UnlockDiff * n + art.UnlockStage);
             var forms = EarlyGameContent.FormsOf(art.Id);
             int pos = start, level = 1;
             for (int t = 1; t <= tier; t++)
             {
                 ArtData form = null;
                 foreach (var f in forms) if (f.FormTier == t) form = f;
-                int p = form != null ? form.UnlockDiff * LadderStages + Math.Max(1, form.UnlockStage) : Math.Min(3 * LadderStages, start + TierStageOffset[t]);
-                int d = (p - 1) / LadderStages;
-                int lv = Math.Max(1, ExpectedLevel(p - d * LadderStages, d) - TierLevelSlack);
+                int p = form != null ? form.UnlockDiff * n + Math.Max(1, form.UnlockStage) : Math.Min(n + LastPlainGate, start + TierStageOffset[t]);
                 pos = Math.Max(pos, p);
-                level = Math.Max(level, lv);
+                int d = (pos - 1) / n;
+                level = Math.Max(level, Math.Max(1, ExpectedLevel(pos - d * n, d) - TierLevelSlack));
             }
-            int diff = (pos - 1) / LadderStages;
-            return new Gate { Stage = pos - diff * LadderStages, Difficulty = diff, Level = tier == 0 ? 1 : level };
+            int diff = (pos - 1) / n;
+            return new Gate { Stage = pos - diff * n, Difficulty = diff, Level = tier == 0 ? 1 : level };
         }
 
-        /// <summary>
-        /// The level a player usually has on reaching a stage: 일반 = the stage's recommended level (28 at 36); 어려움 and 극악 add about ten levels each
-        /// across their 36 stages (어려움 36 ≈ 38, 극악 36 ≈ 48), the pace their experience rewards give.
-        /// </summary>
+        /// <summary>The level a player usually has on reaching a stage: the 권장 레벨 shown for it on that difficulty (<see cref="StageStars.RecommendedPlayerLevel"/>).</summary>
         public static int ExpectedLevel(int stage, int difficulty)
         {
             stage = Math.Max(1, Math.Min(LadderStages, stage));
-            if (difficulty <= 0) { var s = EarlyGameContent.FindStage(stage); return s != null ? s.RecommendedPlayerLevel : stage; }
-            return 18 + 10 * difficulty + (int)Math.Round(10.0 * stage / LadderStages);
+            return StageStars.RecommendedPlayerLevel(stage, difficulty);
         }
 
         public static bool TierOpen(SaveData save, ArtData art, int tier)
