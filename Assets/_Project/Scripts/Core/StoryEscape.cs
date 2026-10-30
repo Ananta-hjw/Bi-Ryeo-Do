@@ -57,9 +57,6 @@ namespace BiRyeoDo.Core
                     case "story_yeongryeong": skills = new List<SkillSpec> { Hit("scene_escape_yeong_sword", "몸이 기억하는 검로", 3f, 2), Avoid("scene_escape_yeong_step", "틈을 잡는 보법") }; break;
                     case "na_yerin": skills = new List<SkillSpec> { Hit("scene_escape_yerin_sword", "한상옥령신검", 3f, 2), Avoid("scene_escape_yerin_step", "비설보") }; break;
                 }
-                if (stage.Number == 58 && encounter == 0 && member.Id == "na_yerin") skills.Add(Avoid("scene_escape_seat", "배에 오른다"));
-                if (stage.Number == 58 && encounter == 1 && member.Id == "story_biry_escape") skills.Add(Avoid("scene_escape_badge", "연화검패를 내민다"));
-                if (stage.Number == 58 && encounter == 2 && member.Id == "story_biry_escape") skills.Add(Avoid("scene_escape_cover", "표사의 예로 답한다"));
                 if (stage.Number == 60 && encounter == 1 && member.Id == "story_yeom_do") skills.Add(Avoid("scene_escape_fire_wall", "홍련지벽 · 맡은 공세 대응"));
                 if (stage.Number == 60 && encounter == 1 && member.Id == "story_bing_geom") skills.Add(Avoid("scene_escape_ice_guard", "빙령지순 · 맡은 공세 대응"));
                 if (stage.Number == 60 && encounter == 2 && member.Id == "story_bing_geom") skills.Add(Hit("scene_escape_save_fire", "설풍보 · 염도 구원", 0.2f, 1));

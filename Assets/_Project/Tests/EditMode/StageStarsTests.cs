@@ -90,12 +90,12 @@ namespace BiRyeoDo.Tests
             var save = new SaveData { ClearedStage = 20, Level = 60 };
             StageStars.Sync(save);
             int fights = Enumerable.Range(1, 20).Sum(n => StageStars.FightCount(n));
-            Assert.AreEqual(fights, StageStars.Total(save));
+            Assert.AreEqual(fights + 1, StageStars.Total(save)); // the retired stage-19 filler keeps its legacy normal star
             Assert.IsTrue(StageStars.Unlocked(save, 1, 1));      // 어려움 1 opens with 일반 20
             Assert.IsFalse(StageStars.Unlocked(save, 2, 1));     // 어려움 2 also needs 어려움 1
             Assert.IsFalse(StageStars.Unlocked(save, 21, 1));
             StageStars.Sync(save);
-            Assert.AreEqual(fights, StageStars.Total(save));
+            Assert.AreEqual(fights + 1, StageStars.Total(save)); // the retired stage-19 filler keeps its legacy normal star
         }
 
         [Test]

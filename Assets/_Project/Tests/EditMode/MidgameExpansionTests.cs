@@ -19,7 +19,7 @@ namespace BiRyeoDo.Tests
         [TestCase(15, 5)]
         [TestCase(17, 3)]
         [TestCase(18, 4)]
-        [TestCase(19, 7)]
+        [TestCase(19, 6)]
         public void MainStoryExpansionHasGrowthRewardsAndCorrectFinalOpponent(int number, int fights)
         {
             var stage = EarlyGameContent.FindStage(number);
@@ -79,7 +79,7 @@ namespace BiRyeoDo.Tests
         {
             var stage = EarlyGameContent.FindStage(number);
             Assert.AreEqual(oldBudget, stage.RewardWeightBudget);
-            var baseline = stage.WithDifficulty(0); baseline.RewardWeightBudget = 0;
+            var baseline = stage.WithDifficulty(0); baseline.RewardWeightBudget = 0; baseline.RewardScale = 1.0;
             var ids = stage.Encounters.SelectMany(x => x).ToArray();
             double factor = (double)newWeight / oldBudget;
             Assert.That(ids.Sum(id => EarlyGameContent.DooReward(stage, id)), Is.EqualTo(ids.Sum(id => EarlyGameContent.DooReward(baseline, id)) * factor).Within(ids.Length * factor));
@@ -151,7 +151,13 @@ namespace BiRyeoDo.Tests
             }
             else if (stage.Number == 15) copy.Encounters = stage.Encounters.Skip(1).ToArray();
             else if (stage.Number == 18) copy.Encounters = new[] { stage.Encounters[0], stage.Encounters[3] };
-            else if (stage.Number == 19) copy.Encounters = new[] { stage.Encounters[0], stage.Encounters[5], stage.Encounters[6] };
+            else if (stage.Number == 19)
+            {
+                // Preserve the historical three-fight fixture after filler compaction.
+                copy.Encounters = new[] { new[] { "hwan_ying", "hwan_ying", "hwan_ying" }, new[] { "hwan_sukbu", "hwan_ying" }, new[] { "hwan_sabu" } };
+                copy.Trials = new[] { null, TrialRule.Survive("환상의 틈", "공격 6행동을 견디세요.", 6), null };
+                copy.RewardScale = 1.0;
+            }
             return copy;
         }
 

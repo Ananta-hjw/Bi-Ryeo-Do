@@ -159,7 +159,7 @@ namespace BiRyeoDo.Tests
             Assert.GreaterOrEqual(wins, 17);
         }
 
-        [TestCase(31, 2, 3, 1)] [TestCase(32, 2, 3, 0)] [TestCase(33, 3, 3, 2)]
+        [TestCase(31, 2, 2, 1)] [TestCase(32, 2, 3, 0)] [TestCase(33, 3, 3, 2)]
         [TestCase(34, 2, 2, 0)] [TestCase(35, 3, 4, 1)] [TestCase(36, 2, 3, 1)]
         public void RevisionEightKeepsEarnedStarsAndFinalCreditWithoutClaimingNewFights(int number, int oldCount, int final, int inserted)
         {
@@ -228,7 +228,7 @@ namespace BiRyeoDo.Tests
                     }
                 }
             }
-            Assert.AreEqual(24, fights);
+            Assert.AreEqual(23, fights);
             CollectionAssert.AreEqual(new[] { "im_seongjin" }, save.ActiveCompanions);
             CollectionAssert.AreEqual(new[] { "na_yerin" }, save.BenchedCompanions);
             Assert.IsFalse(save.CompanionLevels.Any(x => Roster.IsStoryActor(x.Id)));
@@ -569,7 +569,7 @@ namespace BiRyeoDo.Tests
 
         [TestCase(15, 4, 3, 4, 3)]
         [TestCase(18, 3, 2, 3, 2)]
-        [TestCase(19, 5, 4, 6, 3)]
+        [TestCase(19, 5, 4, 5, 2)]
         public void RevisionFiveKeepsFinalCreditAndLeavesInsertedFightsUnclaimed(int number, int oldCount, int oldLast, int newLast, int added)
         {
             var save = new SaveData { StoryContentRevision = 4, ClearedStage = 20, ProgressStage = number, ProgressNext = oldLast, Doo = 12345, Level = 24 };
@@ -585,7 +585,7 @@ namespace BiRyeoDo.Tests
                 Assert.AreEqual(0, StageStars.MaskOf(save, number, added, diff));
                 Assert.IsTrue(StageStars.StageCleared(save, number, diff));
             }
-            if (number == 19) Assert.AreEqual(0, StageStars.MaskOf(save, 19, 4, 0));
+            if (number == 19) Assert.AreEqual(0, StageStars.MaskOf(save, 19, 3, 0));
             Assert.AreEqual(stars, StageStars.Total(save));
             Assert.AreEqual(0, save.ProgressStage);
             Assert.AreEqual(20, save.ClearedStage); Assert.AreEqual(12345, save.Doo); Assert.AreEqual(24, save.Level);
@@ -610,8 +610,8 @@ namespace BiRyeoDo.Tests
             Assert.IsFalse(GearDrops.IsBossFight(ice, 2));
             Assert.IsTrue(GearDrops.IsBossFight(ice, 3));
             var trial = EarlyGameContent.FindStage(19);
-            Assert.AreEqual(7, trial.Encounters.Length);
-            foreach (int i in new[] { 1, 3, 4, 5 }) Assert.AreEqual(TrialKind.Survive, trial.TrialFor(i).Kind);
+            Assert.AreEqual(6, trial.Encounters.Length);
+            foreach (int i in new[] { 0, 2, 3, 4 }) Assert.AreEqual(TrialKind.Survive, trial.TrialFor(i).Kind);
             foreach (string id in new[] { "gu_cheonhak", "wi_musang", "baek_tanjeo", "pae_hyeokseong", "hyo_ryong_rope" })
                 Assert.Greater(EarlyGameContent.FindEnemy(id).RetreatHpPct, 0f, id);
             Assert.AreEqual(27, EarlyGameContent.FindArt("saengsa_seomroe").UnlockStage);

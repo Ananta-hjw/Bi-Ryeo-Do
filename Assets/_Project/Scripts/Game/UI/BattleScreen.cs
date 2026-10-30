@@ -411,7 +411,7 @@ namespace BiRyeoDo.Game.UI
 
             // Continue a stage the player stepped back from; anything else starts fresh (and drops an old resume point).
             bool resume = !stage.IsQuest && !stage.IsTower && StageProgress.Has(save, stage.Number);
-            int startIndex = resume ? Math.Min(save.ProgressNext, stage.Encounters.Length - 1) : 0;
+            int startIndex = resume ? Math.Min(save.ProgressNext, stage.Encounters.Length) : 0;
             if (!resume && !stage.IsQuest && !stage.IsTower && save.ProgressStage != 0) { StageProgress.Clear(save); GameManager.Instance.SaveNow(); }
 
             // A cleared stage can be replayed from any fight (optionally just that one); the first clear always runs from the start.
@@ -441,7 +441,7 @@ namespace BiRyeoDo.Game.UI
             while (again)
             {
                 again = false;
-                _storyEncounter = startIndex;
+                _storyEncounter = Math.Min(startIndex, stage.Encounters.Length - 1);
                 BuildParty(stage);
                 if (resume) { StageProgress.Restore(save, _party); RefreshParty(); }
                 long gainedExp = 0, gainedDoo = 0;

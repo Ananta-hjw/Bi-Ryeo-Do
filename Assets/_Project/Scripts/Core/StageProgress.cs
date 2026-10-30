@@ -22,7 +22,12 @@ namespace BiRyeoDo.Core
     {
         public static bool Has(SaveData save, int stageNumber)
         {
-            return save.ProgressStage == stageNumber && stageNumber > 0 && save.ProgressNext > 0;
+            return save.ProgressStage == stageNumber && stageNumber > 0 && save.ProgressNext >= 0;
+        }
+
+        public static bool AtEnding(SaveData save, StageData stage)
+        {
+            return stage != null && Has(save, stage.Number) && save.ProgressNext >= stage.Encounters.Length;
         }
 
         public static void Store(SaveData save, int stageNumber, int nextEncounter, IEnumerable<Combatant> party, int difficulty = 0)

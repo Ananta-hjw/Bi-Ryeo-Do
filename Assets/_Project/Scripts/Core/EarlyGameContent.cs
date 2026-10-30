@@ -246,6 +246,7 @@ namespace BiRyeoDo.Core
         public int Number;
         public string Name;
         public int RewardWeightBudget;   // original reward denominator; added fights pay extra instead of diluting existing rewards
+        public double RewardScale = 1.0; // redistributes a shortened chapter's experience/currency budget across retained fights
         /// <summary>The fights' line-ups before 전투 인원 확장: exp, 두 and drops follow these, so the followers added later pay nothing extra (null = <see cref="Encounters"/>).</summary>
         public string[][] RewardEncounters;
         /// <summary>Optional story scenes shown before Intro, only while the stage has not been cleared yet (bridges the volumes' plot between fights).</summary>
@@ -1624,12 +1625,12 @@ namespace BiRyeoDo.Core
                 Encounters = new[] { new[] { "yong_cheonmyeong" }, new[] { "hyo_ryong_rope" }, new[] { "gwan_cheolsu_trial" }, new[] { "gwan_cheolsu" } },
                 Trials = new[] { TrialRule.Survive("백룡검의 한 합", "검격 2행동을 견디며 벗어나세요. 결판을 내는 비무가 아닙니다.", 2), null,
                     TrialRule.Survive("북극칠성인의 압력", "공격 6행동을 견디며 검세를 읽으세요. 기존 방어·회피로 대응할 수 있습니다.", 6), null } },
-            new StageData { Number = 19, RewardWeightBudget = 8, Name = "환마동 시험", RecommendedLevel = 43, DooTotal = 9000,
+            new StageData { Number = 19, RewardWeightBudget = 8, RewardScale = 1.5, Name = "환마동 시험", RecommendedLevel = 43, DooTotal = 9000,
                 Prologue = StoryMidgame.Prologues[19],
                 Intro = StoryMidgame.Intros[19],
                 Outro = StoryMidgame.Outros[19],
-                Encounters = new[] { new[] { "hwan_ying", "hwan_ying", "hwan_ying" }, new[] { "hwan_geomseong" }, new[] { "hwan_gal_hyobong" }, new[] { "hwan_family_duty" }, new[] { "hwan_nameless_blade" }, new[] { "hwan_sukbu", "hwan_ying" }, new[] { "hwan_sabu" } },
-                Trials = new[] { null, TrialRule.Survive("나뭇가지 앞에서", "공격 6행동을 견디며 자신을 돌아보세요. 실제 검성을 이기는 목표가 아닙니다.", 6), null,
+                Encounters = new[] { new[] { "hwan_geomseong" }, new[] { "hwan_gal_hyobong" }, new[] { "hwan_family_duty" }, new[] { "hwan_nameless_blade" }, new[] { "hwan_sukbu" }, new[] { "hwan_sabu" } },
+                Trials = new[] { TrialRule.Survive("나뭇가지 앞에서", "공격 6행동을 견디며 자신을 돌아보세요. 실제 검성을 이기는 목표가 아닙니다.", 6), null,
                     TrialRule.Survive("아버지의 기대", "공격 6행동을 견디며 두려움을 마주하세요.", 6),
                     TrialRule.Survive("끝나지 않는 기억", "공격 6행동을 견디며 환상의 틈을 찾으세요.", 6),
                     TrialRule.Survive("도움을 청할 시간", "공격 6행동을 견디며 동료의 부름을 기다리세요. 가해자를 처치해야 통과하는 시험이 아닙니다.", 6), null } },
@@ -1678,11 +1679,11 @@ namespace BiRyeoDo.Core
                 Encounters = new[] { new[] { "ma_chilgeol_jeoji", "ma_chilgeol_jeoji", "ma_chilgeol_jeoji" }, new[] { "bi_daegongja" }, new[] { "hwaryong_hwayeom", "ma_chilgeol_jeoji" }, new[] { "hwaryong_rescue" } },
                 Trials = new[] { null, null, null, TrialRule.Survive("풍신을 위한 엄호", "적 6행동을 견디며 모인 사람들을 보호하세요. 이후 네 고수의 지원과 풍신으로 이어집니다.", 6) } },
             // Volumes 17-20: fixed perspectives preserve who is actually present in each scene.
-            new StageData { Number = 31, RewardWeightBudget = 7, Name = "청룡은장의 마지막 장사", RecommendedLevel = 67, DooTotal = 16200,
+            new StageData { Number = 31, RewardWeightBudget = 7, RewardScale = 8.0 / 7.0, Name = "청룡은장의 마지막 장사", RecommendedLevel = 67, DooTotal = 16200,
                 Prologue = StoryMidgame.Prologues[31], Intro = StoryMidgame.Intros[31], Outro = StoryMidgame.Outros[31],
-                Encounters = new[] { new[] { "salryong_daewon", "salryong_daewon", "salryong_daewon" }, new[] { "cheongryong_escape" }, new[] { "salryong_yun" }, new[] { "caravan_ambush" } },
-                StoryActors = new[] { new[] { "story_yu_jaeryong" }, new[] { "story_yu_jaeryong" }, new[] { "story_yu_jaeryong" }, new[] { "story_jang_uyang" } },
-                Trials = new[] { TrialRule.Survive("아이들이 빠져나갈 시간", "적 4행동을 견디며 공세를 읽으세요.", 4), TrialRule.Survive("진짜 통로를 숨긴다", "적 4행동을 견디며 공세를 읽으세요.", 4), TrialRule.Survive("아버지의 마지막 장사", "적 6행동을 견디며 남매의 퇴로를 지키세요. 이후 유재룡의 마지막 선택으로 이어집니다.", 6), TrialRule.Survive("호위가 검을 뽑기 전에", "적 2행동을 견디며 공세를 읽으세요.", 2) } },
+                Encounters = new[] { new[] { "salryong_daewon", "salryong_daewon", "salryong_daewon" }, new[] { "cheongryong_escape" }, new[] { "salryong_yun" } },
+                StoryActors = new[] { new[] { "story_yu_jaeryong" }, new[] { "story_yu_jaeryong" }, new[] { "story_yu_jaeryong" } },
+                Trials = new[] { TrialRule.Survive("아이들이 빠져나갈 시간", "적 4행동을 견디며 공세를 읽으세요.", 4), TrialRule.Survive("진짜 통로를 숨긴다", "적 4행동을 견디며 공세를 읽으세요.", 4), TrialRule.Survive("아버지의 마지막 장사", "적 6행동을 견디며 남매의 퇴로를 지키세요. 이후 유재룡의 마지막 선택으로 이어집니다.", 6) } },
             new StageData { Number = 32, RewardWeightBudget = 5, Name = "황금 완장과 보름의 수련", RecommendedLevel = 68, DooTotal = 16600,
                 Prologue = StoryMidgame.Prologues[32], Intro = StoryMidgame.Intros[32], Outro = StoryMidgame.Outros[32],
                 Encounters = new[] { new[] { "ichon_training" }, new[] { "yu_ran", "yu_unbi" }, new[] { "gwan_eogeom_first" }, new[] { "gwan_cheolsu_eogeom" } },
@@ -1813,9 +1814,11 @@ namespace BiRyeoDo.Core
                 Trials = new TrialRule[] { TrialRule.Technique("봉익일우 · 우산 위의 귀환", "봉익일우 · 우산 위의 귀환 기술로 대응하세요.", "scene_umbrella_boat", 25, false), TrialRule.Technique("장송곡 · 편수 풍신", "다섯 비뢰도로 물기둥을 일으켜 추격을 차단하세요.", "scene_water_funeral", 25, true) } },
             new StageData { Number = 58, Name = "상실 뒤에 오른 연화기", RecommendedLevel = 116, DooTotal = 51000, RewardWeightBudget = 3,
                 Prologue = StoryEscape.Prologues[58], Intro = StoryEscape.Intros[58], Outro = StoryEscape.Outros[58],
-                Encounters = new[] { new[] { "departing_ferry" }, new[] { "hubei_escort" }, new[] { "south_checkpoint" } },
+                Encounters = new[] { new string[0], new string[0], new string[0] },
+                RewardEncounters = new[] { new[] { "departing_ferry" }, new[] { "hubei_escort" }, new[] { "south_checkpoint" } },
+                Events = new[] { StoryChoiceEvents.DepartingFerry, StoryChoiceEvents.HubeiEscort, StoryChoiceEvents.SouthCheckpoint },
                 StoryActors = new[] { new[] { "na_yerin" }, new[] { "story_biry_escape", "jang_hong" }, new[] { "story_biry_escape", "story_bing_geom" } },
-                Trials = new TrialRule[] { TrialRule.Technique("배에 오른 선택", "배에 오른 선택 기술로 대응하세요.", "scene_escape_seat", 30, false), TrialRule.Technique("연화검패와 표사의 신분", "연화검패와 표사의 신분 기술로 대응하세요.", "scene_escape_badge", 30, false), TrialRule.Technique("충돌 없는 통과", "충돌 없는 통과 기술로 대응하세요.", "scene_escape_cover", 30, true) } },
+                Trials = new TrialRule[] { null, null, null } },
             new StageData { Number = 59, Name = "남겨 둔 다섯째 거점", RecommendedLevel = 118, DooTotal = 52500, RewardWeightBudget = 3,
                 Prologue = StoryEscape.Prologues[59], Intro = StoryEscape.Intros[59], Outro = StoryEscape.Outros[59],
                 Encounters = new[] { new string[0], new string[0], new string[0] },
@@ -1911,7 +1914,7 @@ namespace BiRyeoDo.Core
         /// </summary>
         public static long ExpReward(StageData st, string enemyId)
         {
-            return (long)Math.Ceiling((double)StageExpSpan(st) * RewardWeight(enemyId) / RewardDenominator(st));
+            return (long)Math.Ceiling((double)StageExpSpan(st) * RewardWeight(enemyId) * st.RewardScale / RewardDenominator(st));
         }
 
         /// <summary>Exp between this stage's level and the next one's: the pool <see cref="ExpReward"/> shares out by weight.</summary>
@@ -1953,7 +1956,7 @@ namespace BiRyeoDo.Core
 
         public static long DooReward(StageData st, string enemyId)
         {
-            return (long)Math.Round((double)st.DooTotal * StageDooFactor * RewardWeight(enemyId) / RewardDenominator(st));
+            return (long)Math.Round((double)st.DooTotal * StageDooFactor * RewardWeight(enemyId) * st.RewardScale / RewardDenominator(st));
         }
 
         private static readonly Dictionary<string, EnemyData> DynamicEnemies = new Dictionary<string, EnemyData>();

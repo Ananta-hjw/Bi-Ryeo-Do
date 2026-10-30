@@ -121,7 +121,7 @@ namespace BiRyeoDo.Core
             new[] { 29, 22, 24 },   // 16
             new[] { 15, 10, 24 },   // 17
             new[] { 10, 16, 25, 30 },   // 18
-            new[] { 34, 21, 20, 21, 24, 18, 55 },   // 19
+            new[] { 21, 20, 21, 24, 18, 55 },   // 19
             new[] { 43, 26, 37 },   // 20
             new[] { 57, 43, 22 },   // 21
             new[] { 30, 61, 42, 61, 48, 50 },   // 22
@@ -133,7 +133,7 @@ namespace BiRyeoDo.Core
             new[] { 28, 22, 46, 34, 36 },   // 28
             new[] { 38, 55, 27, 30, 28, 28, 32 },   // 29
             new[] { 80, 55, 50, 38 },   // 30
-            new[] { 3, 7, 8, 4 },   // 31
+            new[] { 3, 7, 8 },   // 31
             new[] { 11, 14, 5, 11 },   // 32
             new[] { 8, 8, 20, 5 },   // 33
             new[] { 8, 35, 12 },   // 34
@@ -467,6 +467,8 @@ namespace BiRyeoDo.Core
                 foreach (var entry in save.StageStars)
                     if (entry.Stage == st.Number && entry.Diff == 0) { recorded = true; break; }
                 if (recorded) continue;
+                // Preserve the removed normal-star slot when backfilling an entirely pre-star chapter.
+                if (st.Number == 19 || st.Number == 31) save.RetiredStoryStars++;
                 for (int f = 0; f < st.Encounters.Length; f++)
                     if ((MaskOf(save, st.Number, f, 0) & 1) == 0) Record(save, st.Number, f, 0, 1);
             }

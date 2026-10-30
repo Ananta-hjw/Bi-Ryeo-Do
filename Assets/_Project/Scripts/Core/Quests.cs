@@ -43,7 +43,7 @@ namespace BiRyeoDo.Core
                 Trial = TrialRule.Deadline("속전속결", "37행동 안에 모두 쓰러뜨리세요.", 37), RewardDoo = 13500 },
             new QuestData { Id = "q_rope_rehearsal", Name = "절제된 쌍검 수련", Brief = "효룡과의 수련에서 힘을 아끼던 공방을 복기합니다. 실제 줄의 절단·낙하를 판정하는 새 시험은 아닙니다.", RefStage = 18, Encounter = 1,
                 Trial = TrialRule.Survive("힘의 절제", "적 8행동을 견디세요.", 8), RewardDoo = 15000, ItemId = "bear_gall" },
-            new QuestData { Id = "q_illusion_breath", Name = "환상 뒤의 집중 수련", Brief = "환마동에서 현실의 감각을 되찾던 집중을 안전한 모의 수련으로 복기합니다. 다른 이의 상처를 공개하는 과제가 아닙니다.", RefStage = 19, Encounter = 4,
+            new QuestData { Id = "q_illusion_breath", Name = "환상 뒤의 집중 수련", Brief = "환마동에서 현실의 감각을 되찾던 집중을 안전한 모의 수련으로 복기합니다. 다른 이의 상처를 공개하는 과제가 아닙니다.", RefStage = 19, Encounter = 3,
                 Trial = TrialRule.Survive("호흡과 감각", "적 10행동을 견디며 호흡을 유지하세요.", 10), RewardDoo = 16200, ItemId = "ginseng" },
             new QuestData { Id = "q_viper", Edge = 1.10f, Name = "동굴 독사 퇴치", Brief = "독사 떼가 몰려온다. 쓰러지지 않고 버텨낼 수 있겠는가.", RefStage = 20, Encounter = 0,
                 Trial = TrialRule.Survive("독사굴 버티기", "적의 공격을 18번 견디세요.", 18), RewardDoo = 17100, ItemId = "ginseng" },

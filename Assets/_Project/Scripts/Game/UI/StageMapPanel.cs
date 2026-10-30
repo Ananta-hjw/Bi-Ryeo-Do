@@ -238,11 +238,12 @@ namespace BiRyeoDo.Game.UI
             _fights.text = "전투 " + stage.Encounters.Length + "회";
             _stars.text = "★ " + StageStars.StarsOfStage(save, stage.Number, diff) + " / " + StageStars.MaxStarsOfStage(stage.Number);
             Recommend.StageReward(save, stage.WithDifficulty(diff), out long exp, out long doo);
+            if (resume && StageProgress.AtEnding(save, stage)) { exp = 0; doo = 0; }
             _reward.text = "예상 보상" + (Recommend.IsReplay(save, stage.WithDifficulty(diff)) ? " · 재도전" : "") + "\n경험 " + exp.ToString("N0") + "\n은자 " + doo.ToString("N0");
             string reason = save.HighestUnlockedStage < stage.Number ? "이전 스테이지를 돌파하면 열립니다."
                 : !Promotion.StageAllowed(save, stage.Number) ? Promotion.RankName(Promotion.GateRank) + " 이상으로 승급해 주세요."
                 : !StageStars.Unlocked(save, stage.Number, diff) ? StageStars.LockLabel(save, stage.Number, diff).Replace("\n", " ")
-                : resume ? "전투 " + (save.ProgressNext + 1) + "부터 이어갑니다. 저장된 난이도로 출전합니다."
+                : resume ? (StageProgress.AtEnding(save, stage) ? "남은 전투 없이 이야기 마무리와 돌파 보상으로 이어갑니다." : "구간 " + (save.ProgressNext + 1) + "부터 이어갑니다. 저장된 난이도로 출전합니다.")
                 : "출전 준비에서 적과 파티 배치를 확인할 수 있습니다.";
             _condition.text = reason;
             _go.interactable = playable;

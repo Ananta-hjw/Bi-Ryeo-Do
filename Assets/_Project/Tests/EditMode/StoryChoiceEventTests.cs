@@ -7,6 +7,169 @@ namespace BiRyeoDo.Tests
 {
     public class StoryChoiceEventTests
     {
+        [TestCase(0)] [TestCase(1)]
+        public void BothDepartureChoicesKeepYerinsAgencyAndTheCanonicalSeatExchange(int choice)
+        {
+            var ev = StoryChoiceEvents.DepartingFerry;
+            string text = string.Join(" ", ev.Opening.Concat(StoryChoiceEvents.Outcome(ev, choice)).Concat(ev.Ending));
+            foreach (string detail in new[] { "나예린", "절벽", "십여 장", "스스로", "예청", "나백천", "구출", "곁의 자리" })
+                StringAssert.Contains(detail, text);
+            foreach (string inventedOutcome in new[] { "예청이 동행을 허락했다", "교제를 정식으로 승낙했다", "물결을 쓰러뜨렸다", "대난원" })
+                StringAssert.DoesNotContain(inventedOutcome, text);
+            var question = StoryLine.Parse(ev.Ending[0]);
+            var answer = StoryLine.Parse(ev.Ending[1]);
+            Assert.AreEqual("나예린", question.Speaker);
+            Assert.AreEqual("내릴 자리는 없느냐?", question.Text);
+            Assert.IsTrue(answer.IsProtagonist);
+            Assert.AreEqual("내 옆자리는 언제나 예린의 자리.", answer.Text);
+            string replay = string.Join(" ", StoryEpisodes.Replay(EarlyGameContent.FindStage(58)));
+            StringAssert.Contains(ev.Choices[choice].Outcome[0], replay);
+            Assert.Less(replay.IndexOf(ev.Ending[2], StringComparison.Ordinal),
+                replay.IndexOf(StoryChoiceEvents.HubeiEscort.Opening[0], StringComparison.Ordinal));
+        }
+
+        [TestCase(0)] [TestCase(1)] [TestCase(2)]
+        public void DepartureKeepsFirstRewardAndResumesAtEscortWithoutEnteringCombat(int difficulty)
+        {
+            var stage = EarlyGameContent.FindStage(58).WithDifficulty(difficulty);
+            var save = new SaveData();
+            Assert.IsEmpty(stage.Encounters[0]);
+            Assert.IsNull(stage.TrialFor(0));
+            Assert.AreSame(StoryChoiceEvents.DepartingFerry, stage.EventFor(0));
+            Assert.IsNull(StoryEpisodes.BeforeFight(stage, 0, save));
+            var party = Roster.CreateStoryParty(stage, 0, save);
+            CollectionAssert.AreEqual(new[] { "na_yerin" }, party.Select(m => m.Id));
+            Assert.IsFalse(party.Any(m => m.Skills.Any(s => s.Id == "scene_escape_seat")));
+            Recommend.FightReward(save, stage, 0, false, out long exp, out long doo);
+            var legacy = new StageData { Number = 58, RecommendedLevel = stage.RecommendedLevel,
+                DooTotal = stage.DooTotal, RewardWeightBudget = 3, Difficulty = difficulty,
+                Encounters = stage.RewardEncounters };
+            Recommend.FightReward(save, legacy, 0, false, out long oldExp, out long oldDoo);
+            Assert.Greater(exp, 0); Assert.Greater(doo, 0);
+            Assert.AreEqual(oldExp, exp); Assert.AreEqual(oldDoo, doo);
+            Assert.IsEmpty(GearDrops.RollFight(save, stage, 0, new SeededRandom(42)));
+            Assert.AreEqual(3, StageStars.Record(save, 58, 0, difficulty, 7));
+            Assert.IsFalse(StageStars.StageCleared(save, 58, difficulty));
+            Recommend.FightReward(save, stage, 0, Recommend.WonBefore(save, stage, 0), out exp, out doo);
+            Assert.AreEqual(0, exp); Assert.AreEqual(0, doo);
+            Assert.IsFalse(Roster.SamePerspective(stage, 0, 1));
+            var continuation = Roster.CreateStoryParty(stage, 1, save);
+            StageProgress.Store(save, 58, 1, continuation, difficulty);
+            Assert.AreSame(StoryChoiceEvents.HubeiEscort, stage.EventFor(save.ProgressNext));
+            CollectionAssert.AreEqual(new[] { "story_biry_escape", "jang_hong" }, continuation.Select(m => m.Id));
+            var run = BalanceSimulation.Play(stage, save, 42);
+            Assert.IsTrue(run.Won);
+            Assert.AreEqual(0, run.Actions);
+            CollectionAssert.AreEqual(new[] { 0, 0, 0 }, run.FightActions);
+            Assert.AreEqual(1d, run.HpLeft);
+        }
+
+        [TestCase(0)] [TestCase(1)]
+        public void BothEscortChoicesPrepareTheCoverWithoutSolvingTheLaterMystery(int choice)
+        {
+            var ev = StoryChoiceEvents.HubeiEscort;
+            string text = string.Join(" ", ev.Opening.Concat(StoryChoiceEvents.Outcome(ev, choice)).Concat(ev.Ending));
+            foreach (string detail in new[] { "옥유경", "영령", "무명", "장소옥", "나예린", "기억이 모두 돌아온 것은 아니었다", "강목", "연화검패", "장우양", "장이하", "표승", "푸른 장인", "장홍", "무창행 표행", "죽립", "변장" })
+                StringAssert.Contains(detail, text);
+            foreach (string laterReveal in new[] { "초운락", "대난원", "칠성좌", "흑견을 쓰러뜨렸다", "남문을 통과했다" })
+                StringAssert.DoesNotContain(laterReveal, text);
+            string replay = string.Join(" ", StoryEpisodes.Replay(EarlyGameContent.FindStage(58)));
+            StringAssert.Contains(ev.Choices[choice].Outcome[0], replay);
+            Assert.Less(replay.IndexOf(ev.Ending[0], StringComparison.Ordinal),
+                replay.IndexOf(StoryChoiceEvents.SouthCheckpoint.Opening[0], StringComparison.Ordinal));
+        }
+
+        [TestCase(0)] [TestCase(1)] [TestCase(2)]
+        public void EscortPreservesItsRewardAndCanResumeAtTheCheckpoint(int difficulty)
+        {
+            var stage = EarlyGameContent.FindStage(58).WithDifficulty(difficulty);
+            var save = new SaveData();
+            Assert.IsEmpty(stage.Encounters[1]);
+            Assert.IsNull(stage.TrialFor(1));
+            Assert.AreSame(StoryChoiceEvents.HubeiEscort, stage.EventFor(1));
+            var party = Roster.CreateStoryParty(stage, 1, save);
+            CollectionAssert.AreEqual(new[] { "story_biry_escape", "jang_hong" }, party.Select(m => m.Id));
+            Assert.IsFalse(party.Any(m => m.Skills.Any(s => s.Id == "scene_escape_badge")));
+            StageProgress.Store(save, 58, 1, party, difficulty);
+            Assert.AreSame(StoryChoiceEvents.HubeiEscort, stage.EventFor(save.ProgressNext));
+            Assert.IsNull(StoryEpisodes.BeforeFight(stage, 1, save));
+            Recommend.FightReward(save, stage, 1, false, out long exp, out long doo);
+            var legacy = new StageData { Number = 58, RecommendedLevel = stage.RecommendedLevel,
+                DooTotal = stage.DooTotal, RewardWeightBudget = 3, Difficulty = difficulty,
+                Encounters = stage.RewardEncounters };
+            Recommend.FightReward(save, legacy, 1, false, out long oldExp, out long oldDoo);
+            Assert.Greater(exp, 0); Assert.Greater(doo, 0);
+            Assert.AreEqual(oldExp, exp); Assert.AreEqual(oldDoo, doo);
+            Assert.IsEmpty(GearDrops.RollFight(save, stage, 1, new SeededRandom(42)));
+            StageStars.Record(save, 58, 1, difficulty, 7);
+            Assert.IsFalse(StageStars.StageCleared(save, 58, difficulty));
+            Recommend.FightReward(save, stage, 1, Recommend.WonBefore(save, stage, 1), out exp, out doo);
+            Assert.AreEqual(0, exp); Assert.AreEqual(0, doo);
+            Assert.IsFalse(Roster.SamePerspective(stage, 1, 2));
+            var continuation = Roster.CreateStoryParty(stage, 2, save);
+            StageProgress.Store(save, 58, 2, continuation, difficulty);
+            Assert.AreSame(StoryChoiceEvents.SouthCheckpoint, stage.EventFor(save.ProgressNext));
+            var restored = Roster.CreateStoryParty(stage, 2, save);
+            StageProgress.Restore(save, restored);
+            CollectionAssert.AreEqual(new[] { "story_biry_escape", "story_bing_geom" }, restored.Select(m => m.Id));
+        }
+
+        [TestCase(0)] [TestCase(1)]
+        public void BothCheckpointChoicesPreserveTheCoverAndMuwhaOpensTheWay(int choice)
+        {
+            var ev = StoryChoiceEvents.SouthCheckpoint;
+            string text = string.Join(" ", ev.Opening.Concat(StoryChoiceEvents.Outcome(ev, choice)).Concat(ev.Ending));
+            foreach (string detail in new[] { "형산십이검", "곽현", "응징한 사람은 무화", "장이하", "빙검", "수레", "남희성", "흑견", "삿갓", "오체투지", "큰마님", "동행한 사이", "여표사", "충돌 없이", "용산객잔", "감시의 위험" })
+                StringAssert.Contains(detail, text);
+            foreach (string inventedOutcome in new[] { "흑견을 쓰러뜨렸다", "검문관을 처치했다", "정체를 들키지 않았음이 확실했다", "대난원" })
+                StringAssert.DoesNotContain(inventedOutcome, text);
+            string replay = string.Join(" ", StoryEpisodes.Replay(EarlyGameContent.FindStage(58)));
+            StringAssert.Contains(ev.Choices[choice].Outcome[0], replay);
+            StringAssert.Contains(ev.Ending[0], replay);
+        }
+
+        [TestCase(0)] [TestCase(1)] [TestCase(2)]
+        public void CheckpointRetainsTheSavedFinalSlotPerspectiveAndFirstClearReward(int difficulty)
+        {
+            var stage = EarlyGameContent.FindStage(58).WithDifficulty(difficulty);
+            Assert.AreEqual(3, stage.Encounters.Length);
+            Assert.IsEmpty(stage.Encounters[0]);
+            Assert.IsNull(stage.TrialFor(0));
+            Assert.AreSame(StoryChoiceEvents.DepartingFerry, stage.EventFor(0));
+            Assert.IsEmpty(stage.Encounters[1]);
+            Assert.AreSame(StoryChoiceEvents.HubeiEscort, stage.EventFor(1));
+            Assert.IsEmpty(stage.Encounters[2]);
+            Assert.IsNull(stage.TrialFor(2));
+            Assert.AreSame(StoryChoiceEvents.SouthCheckpoint, stage.EventFor(2));
+            var save = BalanceSimulation.Starter(58, BalanceSimulation.BotLevel(stage));
+            var party = Roster.CreateStoryParty(stage, 2, save);
+            CollectionAssert.AreEqual(new[] { "story_biry_escape", "story_bing_geom" }, party.Select(m => m.Id));
+            Assert.IsFalse(party.Any(m => m.Skills.Any(s => s.Id == "scene_escape_cover")));
+            StageProgress.Store(save, 58, 2, party, difficulty);
+            Assert.AreSame(StoryChoiceEvents.SouthCheckpoint, stage.EventFor(save.ProgressNext));
+            Assert.IsNull(StoryEpisodes.BeforeFight(stage, 2, save));
+            Recommend.FightReward(save, stage, 2, false, out long exp, out long doo);
+            var legacy = new StageData { Number = 58, RecommendedLevel = stage.RecommendedLevel,
+                DooTotal = stage.DooTotal, RewardWeightBudget = 3, Difficulty = difficulty,
+                Encounters = stage.RewardEncounters };
+            Recommend.FightReward(save, legacy, 2, false, out long oldExp, out long oldDoo);
+            Assert.Greater(exp, 0); Assert.Greater(doo, 0);
+            Assert.AreEqual(oldExp, exp); Assert.AreEqual(oldDoo, doo);
+            Assert.IsEmpty(GearDrops.RollFight(save, stage, 2, new SeededRandom(42)));
+            Assert.IsFalse(StageStars.StageCleared(save, 58, difficulty));
+            Assert.AreEqual(3, StageStars.Record(save, 58, 2, difficulty, 7));
+            Assert.IsTrue(StageStars.StageCleared(save, 58, difficulty));
+            Assert.AreEqual(0, StageStars.Record(save, 58, 2, difficulty, 7));
+            Recommend.FightReward(save, stage, 2, Recommend.WonBefore(save, stage, 2), out exp, out doo);
+            Assert.AreEqual(0, exp); Assert.AreEqual(0, doo);
+            var run = BalanceSimulation.Play(stage, save, 42);
+            Assert.IsTrue(run.Won);
+            Assert.AreEqual(0, run.FightActions[0]);
+            Assert.AreEqual(0, run.FightActions[1]);
+            Assert.AreEqual(0, run.FightActions[2]);
+            Assert.Greater(run.HpLeft, 0);
+        }
+
         [Test]
         public void AllThreeEventsKeepSavedEncounterSlotsAndPerspectives()
         {
