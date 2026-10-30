@@ -15,7 +15,7 @@ namespace BiRyeoDo.Game.UI
         /// <summary>Standing art height as a share of the screen: about the upper two thirds (head to thigh) stays on screen.</summary>
         private const float UltimateStandingHeight = 1.45f;
         /// <summary>Real seconds the whole cut-in lasts, whatever the battle speed (the held frame takes up the rest).</summary>
-        private const float UltimateLength = 3.5f;
+        private const float UltimateLength = 2.5f;
         private RectTransform _ultimateLayer;
 
         /// <summary>Removes a cut-in left half-drawn when the overlay is reopened (its coroutine was stopped).</summary>
@@ -25,8 +25,10 @@ namespace BiRyeoDo.Game.UI
             _ultimateLayer = null;
         }
 
-        private IEnumerator UltimateCutIn(string skillName, string artKey)
+        /// <param name="partnerKey">合擊: the companion joining the attack, shown on the right facing 비류연 (null for a 필살기).</param>
+        private IEnumerator UltimateCutIn(string skillName, string artKey, string partnerKey = null)
         {
+            bool joint = !string.IsNullOrEmpty(partnerKey);
             ClearUltimateCutIn();
             SoundManager.Sfx("ultimate");
             SoundManager.Haptic(120);
@@ -63,30 +65,17 @@ namespace BiRyeoDo.Game.UI
             }
 
             // The user's standing art (SD figure only when it is missing), taller than the band so the upper body bursts out of it; the legs run off the bottom of the screen.
-            Image figure = null;
-            RectTransform figureRt = null;
-            var sprite = string.IsNullOrEmpty(artKey) ? null : ArtLibrary.StandingPortrait(artKey);
-            bool standing = sprite != null;
-            if (!standing && !string.IsNullOrEmpty(artKey)) sprite = BattleFigure(artKey);
-            if (sprite != null)
-            {
-                float aspect = sprite.rect.height > 0f ? sprite.rect.width / sprite.rect.height : 0.66f;
-                float figureH = h * (standing ? UltimateStandingHeight : 0.74f);
-                figureRt = UiFactory.Rect("Figure", layer, new Vector2(0.22f, 0.98f), new Vector2(0.22f, 0.98f));
-                figureRt.pivot = new Vector2(0.5f, 1f);
-                figureRt.sizeDelta = new Vector2(figureH * aspect, figureH);
-                figure = figureRt.gameObject.AddComponent<Image>();
-                figure.sprite = sprite;
-                figure.preserveAspect = true;
-                figure.raycastTarget = false;
-                figure.color = new Color(1f, 1f, 1f, 0f);
-            }
+            // A 合擊 also brings the partner in from the right, mirrored to face 비류연, and the name moves to the middle between them.
+            Image figure, partner = null;
+            var figureRt = CutInFigure(layer, artKey, h, joint ? 0.19f : 0.22f, false, out figure);
+            var partnerRt = joint ? CutInFigure(layer, partnerKey, h, 0.81f, true, out partner) : null;
+            float nameMin = joint ? 0.30f : 0.36f, nameMax = joint ? 0.70f : 0.98f;
 
-            var caption = UiFactory.Label("Caption", layer, new Vector2(0.36f, 0.6f), new Vector2(0.98f, 0.68f), "必 殺 · 필살기", 44, UltimateGlow);
+            var caption = UiFactory.Label("Caption", layer, new Vector2(nameMin, 0.6f), new Vector2(nameMax, 0.68f), joint ? "合 擊 · 합공" : "必 殺 · 필살기", 44, UltimateGlow);
             caption.resizeTextForBestFit = false;
             caption.horizontalOverflow = HorizontalWrapMode.Overflow;
             caption.color = new Color(1f, 0.86f, 0.42f, 0f);
-            var title = UiFactory.Label("Name", layer, new Vector2(0.36f, 0.38f), new Vector2(0.98f, 0.6f), skillName, 136, UltimateGlow);
+            var title = UiFactory.Label("Name", layer, new Vector2(nameMin, 0.38f), new Vector2(nameMax, 0.6f), skillName, joint ? 112 : 136, UltimateGlow);
             title.resizeTextForBestFit = false;
             title.horizontalOverflow = HorizontalWrapMode.Overflow;
             var outline = title.gameObject.AddComponent<Outline>();
@@ -130,6 +119,13 @@ namespace BiRyeoDo.Game.UI
                     float fk = EaseOut(Mathf.Clamp01((e - enter * 0.6f) / (0.22f / Pace)));
                     figureRt.anchoredPosition = new Vector2(-w * 0.45f * (1f - fk) + e * 30f * Pace, 0f);
                     SetColorAlpha(figure, e < exit ? fk : Mathf.Clamp01(1f - (e - exit) / (0.14f / Pace)));
+                }
+                // The partner mirrors it from the right, a beat later.
+                if (partnerRt != null)
+                {
+                    float pk = EaseOut(Mathf.Clamp01((e - enter) / (0.22f / Pace)));
+                    partnerRt.anchoredPosition = new Vector2(w * 0.45f * (1f - pk) - e * 30f * Pace, 0f);
+                    SetColorAlpha(partner, e < exit ? pk : Mathf.Clamp01(1f - (e - exit) / (0.14f / Pace)));
                 }
 
                 // Name stamps down from twice its size with a little overshoot.
@@ -189,6 +185,28 @@ namespace BiRyeoDo.Game.UI
             }
             StartCoroutine(FlashColor(new Color(1f, 0.93f, 0.75f), 0.35f, 0.16f));
             StartCoroutine(Shake(_cardsRoot, 14f));
+        }
+
+        /// <summary>A cut-in figure: the standing art (the SD figure only when it is missing), anchored at the top of the screen at <paramref name="x"/>; null when there is no art.</summary>
+        private RectTransform CutInFigure(RectTransform layer, string artKey, float h, float x, bool mirror, out Image image)
+        {
+            image = null;
+            var sprite = string.IsNullOrEmpty(artKey) ? null : ArtLibrary.StandingPortrait(artKey);
+            bool standing = sprite != null;
+            if (!standing && !string.IsNullOrEmpty(artKey)) sprite = BattleFigure(artKey);
+            if (sprite == null) return null;
+            float aspect = sprite.rect.height > 0f ? sprite.rect.width / sprite.rect.height : 0.66f;
+            float figureH = h * (standing ? UltimateStandingHeight : 0.74f);
+            var rt = UiFactory.Rect(mirror ? "Partner" : "Figure", layer, new Vector2(x, 0.98f), new Vector2(x, 0.98f));
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.sizeDelta = new Vector2(figureH * aspect, figureH);
+            if (mirror) rt.localScale = new Vector3(-1f, 1f, 1f);
+            image = rt.gameObject.AddComponent<Image>();
+            image.sprite = sprite;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            image.color = new Color(1f, 1f, 1f, 0f);
+            return rt;
         }
 
         private IEnumerator FlashColor(Color color, float peak, float seconds)

@@ -2095,7 +2095,12 @@ namespace BiRyeoDo.Game.UI
                         if (ev.Joint && _cutInKey != "joint")
                         {
                             _cutInKey = "joint";
-                            yield return SkillCutIn(_jointName, true, "player");
+                            // both 비류연 and the companion who joins the attack appear in the cut-in
+                            string partnerKey = null;
+                            foreach (var other in events)
+                                if (other.Joint && other.ActorId != ev.ActorId && PanelOf(other.ActorId) != null) { partnerKey = Roster.StoryArtKey(PanelOf(other.ActorId).Unit); break; }
+                            var hero = PanelOf("player");
+                            yield return SkillCutIn(_jointName, true, hero != null ? Roster.StoryArtKey(hero.Unit) : "player", partnerKey);
                             _sequenceImpactPunched = true;
                         }
                         else if (byParty && ev.HitIndex == 0 && !ev.Joint)
@@ -2639,9 +2644,9 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <summary>Skill-name flash before the strike; 비기 (and joint attacks) get the full-screen `UltimateCutIn`.</summary>
-        private IEnumerator SkillCutIn(string skillName, bool ultimate, string artKey = null)
+        private IEnumerator SkillCutIn(string skillName, bool ultimate, string artKey = null, string partnerKey = null)
         {
-            if (ultimate) { yield return UltimateCutIn(skillName, artKey); yield break; }
+            if (ultimate) { yield return UltimateCutIn(skillName, artKey, partnerKey); yield break; }
             SoundManager.Sfx("skill");
             _banner.fontSize = 72;
             _banner.color = UiFactory.PaperText;
