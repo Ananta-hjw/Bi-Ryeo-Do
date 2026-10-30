@@ -199,6 +199,12 @@ namespace BiRyeoDo.Tests
             for (int i = 0; i < stage.Encounters.Length; i++)
             {
                 var scenes = StoryEpisodes.BeforeFight(stage, i, save);
+                if (stage.EventFor(i) != null)
+                {
+                    Assert.IsNull(scenes);
+                    foreach (var line in stage.EventFor(i).Opening) StringAssert.Contains(line, Replay(number));
+                    continue;
+                }
                 Assert.IsNotNull(scenes);
                 foreach (var scene in scenes) StringAssert.Contains(scene.Title, Replay(number));
                 Assert.IsNull(StoryEpisodes.BeforeFight(stage, i, save, true));

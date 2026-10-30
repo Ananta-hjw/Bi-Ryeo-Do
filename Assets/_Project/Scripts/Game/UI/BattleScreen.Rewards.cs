@@ -256,29 +256,31 @@ namespace BiRyeoDo.Game.UI
         private IEnumerator ShowHub(StageData stage, int doneIndex, int mask, int newStars)
         {
             int next = doneIndex + 1;
-            bool boss = next == stage.Encounters.Length - 1;
+            bool nextEvent = stage.EventFor(next) != null;
+            bool doneEvent = stage.EventFor(doneIndex) != null;
+            bool boss = !nextEvent && next == stage.Encounters.Length - 1;
             bool canResume = !stage.IsQuest && !stage.IsTower;
-            var card = CreateRewardCard("BetweenFights", "다음 전투 준비", StageStars.TagFor(stage.Difficulty) + stage.Name);
+            var card = CreateRewardCard("BetweenFights", nextEvent ? "다음 이벤트" : "다음 전투 준비", StageStars.TagFor(stage.Difficulty) + stage.Name);
             var progress = UiFactory.Panel("Progress", card, new Vector2(.05f, .72f), new Vector2(.95f, .84f), HudInk);
             RewardText("Victory", progress.transform, new Vector2(.04f, .43f), new Vector2(.96f, .98f),
-                "전투 " + (doneIndex + 1) + " / " + stage.Encounters.Length + " 승리", 42, UiFactory.Gold, TextAnchor.MiddleCenter);
+                (doneEvent ? "이벤트 " : "전투 ") + (doneIndex + 1) + " / " + stage.Encounters.Length + (doneEvent ? " 완료" : " 승리"), 42, UiFactory.Gold, TextAnchor.MiddleCenter);
             RewardText("Stars", progress.transform, new Vector2(.04f, .03f), new Vector2(.96f, .45f),
                 mask >= 0 ? StarGlyphs(mask) + "  " + StageStars.Count(mask) + "/3" + (newStars > 0 ? "  ·  새 별 +" + newStars : "  ·  새 별 없음") : "전투 후 회복이 반영되었습니다.",
                 30, UiFactory.Gold, TextAnchor.MiddleCenter);
             RewardText("NextFight", card, new Vector2(.06f, .65f), new Vector2(.94f, .71f),
-                boss ? "다음은 결전 · 전투 " + (next + 1) : "다음 전투 " + (next + 1) + " / " + stage.Encounters.Length,
+                nextEvent ? "다음 이벤트 · " + stage.EventFor(next).Title : boss ? "다음은 결전 · 전투 " + (next + 1) : "다음 전투 " + (next + 1) + " / " + stage.Encounters.Length,
                 34, boss ? ThreatRed : UiFactory.PaperText, TextAnchor.MiddleCenter);
-            RewardText("PartyTitle", card, new Vector2(.06f, .59f), new Vector2(.94f, .65f), "파티 상태 · 전투 후 회복 반영", 28, UiFactory.Gold);
+            RewardText("PartyTitle", card, new Vector2(.06f, .59f), new Vector2(.94f, .65f), doneEvent ? "파티 상태" : "파티 상태 · 전투 후 회복 반영", 28, UiFactory.Gold);
             var content = CodexPanel.Scroller(card, .23f, .59f);
             int index = 0;
             foreach (var unit in _party) AddPartyRecovery(content, index++, unit);
             var trial = stage.TrialFor(next);
             if (trial != null) AddRewardNote(content, ref index, "다음 전투 조건 · " + trial.Title, trial.Brief);
             RewardText("SaveHint", card, new Vector2(.06f, .14f), new Vector2(.94f, .22f),
-                canResume ? "물러나면 진행이 저장됩니다.\n다시 도전할 때 다음 전투부터 이어집니다." : "준비가 되면 다음 전투에 도전해 주세요.\n물러나면 다음 도전은 처음부터 시작합니다.",
+                canResume ? "물러나면 진행이 저장됩니다.\n다시 도전할 때 다음 구간부터 이어집니다." : "준비가 되면 다음 전투에 도전해 주세요.\n물러나면 다음 도전은 처음부터 시작합니다.",
                 26, UiFactory.Dim, TextAnchor.MiddleCenter);
             UiFactory.Button("NextFight", card, new Vector2(.05f, .025f), new Vector2(.61f, .12f),
-                boss ? "결전에 도전" : "다음 전투 도전", UiFactory.Red, () => _rewardsDone = true, 32);
+                nextEvent ? "이벤트 진행" : boss ? "결전에 도전" : "다음 전투 도전", UiFactory.Red, () => _rewardsDone = true, 32);
             UiFactory.Button("Leave", card, new Vector2(.65f, .025f), new Vector2(.95f, .12f),
                 canResume ? "물러나기\n(저장)" : "물러나기", UiFactory.InkSoft, () => { _leave = true; _rewardsDone = true; }, 30);
             _leave = false; _retry = false;

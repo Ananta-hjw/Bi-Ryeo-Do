@@ -26,6 +26,8 @@ namespace BiRyeoDo.Core
         public static void FightReward(SaveData save, StageData st, int fight, bool replay, out long exp, out long doo)
         {
             exp = 0; doo = 0;
+            // Event rewards retain the former slot's first-clear budget, without repeat farming.
+            if (st.EventFor(fight) != null && replay) return;
             int diff = st.IsTower || st.IsQuest ? 0 : st.Difficulty;
             bool towerFirst = st.IsTower && st.TowerFloor > save.TowerBest;
             foreach (var id in EarlyGameContent.RewardIds(st, fight))

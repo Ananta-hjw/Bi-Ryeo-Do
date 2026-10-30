@@ -356,7 +356,7 @@ namespace BiRyeoDo.Game.UI
 
         private void UpdatePickToggle()
         {
-            _pickToggleLabel.text = _pickSingle ? "이 전투 하나만 하고 끝내기: 켜짐" : "이 전투 하나만 하고 끝내기: 꺼짐";
+            _pickToggleLabel.text = _pickSingle ? "이 구간만 진행하기: 켜짐" : "이 구간만 진행하기: 꺼짐";
         }
 
         /// <summary>Lets the player choose which fight of a cleared stage to start from; returns the index or -1 for 강호로.</summary>
@@ -365,7 +365,7 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             SetCommandsVisible(false);
             _panel.SetActive(false);
-            _pickTitle.text = "전투 선택 · " + stage.Name;
+            _pickTitle.text = "구간 선택 · " + stage.Name;
             for (int i = 0; i < _pickButtons.Count; i++)
             {
                 bool has = i < stage.Encounters.Length;
@@ -379,7 +379,9 @@ namespace BiRyeoDo.Game.UI
                     if (!names.Contains(n)) names.Add(n);
                 }
                 int mask = StageStars.MaskOf(save, stage.Number, i, diff);
-                _pickLabels[i].text = "전투 " + (i + 1) + (i == stage.Encounters.Length - 1 ? " (결전)" : "") + " · " + string.Join(", ", names) + "   " + StarGlyphs(mask);
+                var ev = stage.EventFor(i);
+                if (ev != null) names.Add(ev.Title);
+                _pickLabels[i].text = (ev != null ? "이벤트 " : "전투 ") + (i + 1) + (ev == null && i == stage.Encounters.Length - 1 ? " (결전)" : "") + " · " + string.Join(", ", names) + "   " + StarGlyphs(mask);
             }
             UpdatePickToggle();
             _pickRoot.SetActive(true);
@@ -461,11 +463,17 @@ namespace BiRyeoDo.Game.UI
                     var episodes = StoryEpisodes.BeforeFight(stage, i, save, singleFight);
                     if (episodes != null)
                         foreach (var scene in episodes) yield return ShowStory(scene.Title, scene.Lines);
-                    yield return Banner(i == stage.Encounters.Length - 1 ? "결전!" : "전투 " + (i + 1), 0.7f);
-                    yield return Fight(stage.Encounters[i], stage.TrialFor(i), stage);
+                    var storyEvent = stage.EventFor(i);
+                    if (storyEvent != null)
+                        yield return ShowChoiceEvent(storyEvent);
+                    else
+                    {
+                        yield return Banner(i == stage.Encounters.Length - 1 ? "결전!" : "전투 " + (i + 1), 0.7f);
+                        yield return Fight(stage.Encounters[i], stage.TrialFor(i), stage);
+                    }
 
                     if (_fled) { cleared = false; break; }
-                    if (!_battle.PlayerWon) { cleared = false; break; }
+                    if (storyEvent == null && !_battle.PlayerWon) { cleared = false; break; }
 
                     // Every fight has its own stars: won, nobody fell, and fast enough.
                     _lastStarLine = "";
@@ -473,37 +481,40 @@ namespace BiRyeoDo.Game.UI
                     var found = new List<string>();   // 심득석 / 수련서 discovered by this win
                     bool firstWin = true;
                     int rewardMask = -1, rewardNewStars = 0;
-                    var materialDrops = GearDrops.RollFight(save, stage, i, new SeededRandom(Environment.TickCount));
+                    var materialDrops = storyEvent == null ? GearDrops.RollFight(save, stage, i, new SeededRandom(Environment.TickCount)) : new List<ItemStack>();
                     if (!stage.IsQuest && !stage.IsTower)
                     {
                         // Reputation, 수련서 and full 경험/두 come from the first win of each fight on each difficulty, so replaying one fight cannot farm them
                         // (losing a later fight and retrying the stage replays the fights already won).
                         firstWin = (StageStars.MaskOf(save, stage.Number, i, diff) & 1) == 0;
-                        if (firstWin)
+                        if (firstWin && storyEvent == null)
                         {
                             var rises = Factions.OnFightWon(save, stage.Number, diff);
                             string gains = Factions.GainText(stage.Number, diff);
                             if (gains.Length > 0) repLine = "평판 " + gains + (rises.Count > 0 ? "  (" + string.Join(", ", rises) + ")" : "");
                         }
-                        int fightMask = StageStars.Evaluate(stage.Number, i, _fightActions, _fightFell, diff);
+                        int fightMask = storyEvent != null ? 7 : StageStars.Evaluate(stage.Number, i, _fightActions, _fightFell, diff);
                         bool stageWasCleared = StageStars.StageCleared(save, stage.Number, diff);
                         int fightNew = StageStars.Record(save, stage.Number, i, diff, fightMask);
                         rewardMask = fightMask; rewardNewStars = fightNew;
                         int stones = StageStars.GrantClearInsight(save, stage.Number, diff, stageWasCleared);
                         if (stones > 0) { repLine += (repLine.Length > 0 ? "\n" : "") + "심득석 +" + stones; found.Add("심득석 x" + stones); }
-                        if (!replay && firstWin) foreach (var scroll in Mastery.RollScrolls(save, new SeededRandom(Environment.TickCount), stage.Number, diff))
+                        if (storyEvent == null && !replay && firstWin) foreach (var scroll in Mastery.RollScrolls(save, new SeededRandom(Environment.TickCount), stage.Number, diff))
                         {
                             var scrollData = EarlyGameContent.FindItem(scroll.Id);
                             if (scrollData != null) found.Add(scrollData.Name);
                         }
                         newStars += fightNew;
-                        _lastStarLine = FightStarLine(stage.Number, i, diff, fightMask, _fightActions, fightNew);
+                        _lastStarLine = storyEvent != null ? "이벤트 완료  " + StarGlyphs(fightMask) : FightStarLine(stage.Number, i, diff, fightMask, _fightActions, fightNew);
                     }
 
                     long exp = 0, doo = 0;
-                    save.BattleWins++;
-                    Daily.Record(save, DailyEvent.BattleWin);
-                    if (!_fightFell) Daily.Record(save, DailyEvent.Flawless);
+                    if (storyEvent == null)
+                    {
+                        save.BattleWins++;
+                        Daily.Record(save, DailyEvent.BattleWin);
+                        if (!_fightFell) Daily.Record(save, DailyEvent.Flawless);
+                    }
                     foreach (var id in stage.Encounters[i]) Codex.SeeEnemy(save, id);
                     Recommend.FightReward(save, stage, i, replay || !firstWin, out exp, out doo);   // a fight already won pays the replay rate
                     var drops = new List<ItemStack>();
@@ -514,8 +525,8 @@ namespace BiRyeoDo.Game.UI
                         drops.Add(materialDrop);
                         materialNames.Add(MaterialName(materialDrop.Id) + " " + materialDrop.Count + "개");
                     }
-                    if (!stage.IsQuest && !stage.IsTower) materialLines.Add("전투 " + (i + 1) + ": " + (materialNames.Count > 0 ? string.Join(" · ", materialNames) : "없음"));
-                    if (!stage.IsQuest && !stage.IsTower) for (int roll = 0; roll < StageStars.DropRolls(diff); roll++) drops.AddRange(RollDrops(EarlyGameContent.RewardIds(stage, i)));
+                    if (storyEvent == null && !stage.IsQuest && !stage.IsTower) materialLines.Add("전투 " + (i + 1) + ": " + (materialNames.Count > 0 ? string.Join(" · ", materialNames) : "없음"));
+                    if (storyEvent == null && !stage.IsQuest && !stage.IsTower) for (int roll = 0; roll < StageStars.DropRolls(diff); roll++) drops.AddRange(RollDrops(EarlyGameContent.RewardIds(stage, i)));
                     CompanionGrowth.EnsureRecords(save);   // before the protagonist levels, so old saves' companions start at the old level
                     // Capture presentation snapshots before experience changes anyone's level.
                     var levelsBefore = new Dictionary<string, int> { { Inventory.Hero, save.Level } };
@@ -555,7 +566,11 @@ namespace BiRyeoDo.Game.UI
                     GameManager.Instance.SaveNow();
                     if (leveled.Count > 0) RebuildPartyForNewLevel(stage, leveled);
                     SoundManager.Sfx(leveled.Count > 0 ? "levelup" : "win");
-                    yield return ShowFightRewards(stage, i, rewardMask, rewardNewStars, exp, doo, drops, repLine, levels);
+                    if (storyEvent != null)
+                        yield return ShowResult("이벤트 완료 · " + storyEvent.Title,
+                            "단서를 확인하고 다음 행동을 정했습니다.\n\n" + _lastStarLine + "\n경험 " + exp + " · 은자 " + doo + (repLine.Length > 0 ? "\n" + repLine : ""), false);
+                    else
+                        yield return ShowFightRewards(stage, i, rewardMask, rewardNewStars, exp, doo, drops, repLine, levels);
                     if (levelLines.Count > 0)
                         yield return ShowLevelUp(stage, levelsBefore, statsBefore);
                     if (found.Count > 0)
@@ -563,7 +578,7 @@ namespace BiRyeoDo.Game.UI
                         GameManager.Instance.SaveNow();
                         yield return ShowResult("발견!", "전투 도중 귀한 물건을 발견했습니다.\n\n" + string.Join("\n", found) + "\n\n행낭에서 확인할 수 있습니다.", false);
                     }
-                    foreach (var m in _party) m.RestBetweenFights(Combatant.RestHealPct + Factions.Bonus(save, PerkKind.RestHeal));
+                    if (storyEvent == null) foreach (var m in _party) m.RestBetweenFights(Combatant.RestHealPct + Factions.Bonus(save, PerkKind.RestHeal));
                     RefreshParty();
 
                     if (singleFight && i < stage.Encounters.Length - 1) { singleDone = true; break; }
@@ -590,7 +605,7 @@ namespace BiRyeoDo.Game.UI
                 if (!_fled && !stage.IsQuest && !stage.IsTower) { StageProgress.Clear(save); GameManager.Instance.SaveNow(); }
                 if (singleDone)
                 {
-                    yield return ShowResult("전투 " + (_lastFightNumber) + " 승리!", "획득  경험 " + gainedExp + " · 은자 " + gainedDoo + MaterialSummary(materialLines) + (_lastStarLine.Length > 0 ? "\n" + _lastStarLine : "") + "\n\n다른 전투는 스테이지를 다시 눌러 고를 수 있습니다.", false);
+                    yield return ShowResult((stage.EventFor(_lastFightNumber - 1) != null ? "이벤트 " + _lastFightNumber + " 완료!" : "전투 " + _lastFightNumber + " 승리!"), "획득  경험 " + gainedExp + " · 은자 " + gainedDoo + MaterialSummary(materialLines) + (_lastStarLine.Length > 0 ? "\n" + _lastStarLine : "") + "\n\n다른 구간은 스테이지를 다시 눌러 고를 수 있습니다.", false);
                     break;
                 }
                 if (cleared && stage.IsQuest)

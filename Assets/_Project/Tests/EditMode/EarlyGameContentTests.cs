@@ -38,6 +38,12 @@ namespace BiRyeoDo.Tests
                 for (int i = 0; i < s.Encounters.Length; i++)
                 {
                     var enc = s.Encounters[i];
+                    if (s.EventFor(i) != null)
+                    {
+                        Assert.IsEmpty(enc, s.Name);
+                        Assert.IsNull(s.TrialFor(i), s.Name);
+                        continue;
+                    }
                     Assert.IsTrue(enc.Length >= 1 && enc.Length <= 4, s.Name);
                     bool hasBoss = false;
                     foreach (var id in enc)

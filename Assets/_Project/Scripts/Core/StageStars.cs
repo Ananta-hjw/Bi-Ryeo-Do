@@ -25,6 +25,7 @@ namespace BiRyeoDo.Core
     /// holds its own three stars per difficulty: 돌파, 전원 생존 (nobody falls in that fight) and 신속 (within that fight's
     /// action limit). Harder difficulties scale the enemies and pay more. Total stars open milestone chests.
     /// </summary>
+    // Noncombat event slots grant all three progress stars on completion; no survival or speed check.
     public static class StageStars
     {
         public const int DifficultyCount = 3;

@@ -73,7 +73,7 @@ namespace BiRyeoDo.Core
         /// <summary>Call before recording the victory. Story first clears are tracked separately per difficulty and fight.</summary>
         public static List<ItemStack> RollFight(SaveData save, StageData stage, int fight, IRandom rng)
         {
-            if (stage == null || stage.IsTower || stage.IsQuest || stage.Number <= 0
+            if (stage == null || stage.IsTower || stage.IsQuest || stage.Number <= 0 || stage.EventFor(fight) != null
                 || stage.Encounters == null || fight < 0 || fight >= stage.Encounters.Length) return new List<ItemStack>();
             bool first = !Recommend.IsReplay(save, stage) && !Recommend.WonBefore(save, stage, fight);
             return Roll(stage.Number, stage.Difficulty, first && IsBossFight(stage, fight), rng);

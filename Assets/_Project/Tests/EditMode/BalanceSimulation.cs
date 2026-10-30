@@ -114,6 +114,23 @@ namespace BiRyeoDo.Tests
             {
                 if (k > 0 && !Roster.SamePerspective(stage, k - 1, k)) party = Party(save, stage, k);
                 Roster.PrepareStoryEncounter(stage, k, party);
+                if (stage.EventFor(k) != null)
+                {
+                    result.FightActions.Add(0);
+                    if (progression)
+                    {
+                        Recommend.FightReward(save, stage, k, Recommend.WonBefore(save, stage, k), out long eventExp, out long eventDoo);
+                        CompanionGrowth.EnsureRecords(save);
+                        Progression.AddExp(save, eventExp);
+                        foreach (var m in party)
+                            if (EarlyGameContent.FindCompanion(m.Id) != null) CompanionGrowth.AddExp(save, m.Id, eventExp);
+                        CompanionGrowth.ShareWithBench(save, party.Select(m => m.Id).ToList(), eventExp);
+                        save.Doo += eventDoo;
+                        StageStars.Record(save, stage.Number, k, stage.Difficulty, 7);
+                    }
+                    if (k == stage.Encounters.Length - 1) result.HpLeft = party.Sum(p => (double)p.Hp) / party.Sum(p => (double)p.Stats.MaxHp);
+                    continue;
+                }
                 var enemies = stage.Encounters[k].Select((id, i) =>
                 {
                     var data = stage.EnemyFor(id, stage.TrialFor(k));

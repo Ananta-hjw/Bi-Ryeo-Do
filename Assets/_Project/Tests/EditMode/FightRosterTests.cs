@@ -15,6 +15,7 @@ namespace BiRyeoDo.Tests
                 Assert.AreEqual(st.Encounters.Length, st.RewardEncounters.Length, st.Name);
                 for (int k = 0; k < st.Encounters.Length; k++)
                 {
+                    if (st.EventFor(k) != null) { Assert.IsEmpty(st.Encounters[k]); continue; }
                     Assert.GreaterOrEqual(st.Encounters[k].Length, st.RewardEncounters[k].Length, st.Name + " " + k);
                     // every story opponent is still there (stages 3 and 4 swap one 산적 for the 도부수)
                     foreach (var id in st.RewardEncounters[k].Distinct())

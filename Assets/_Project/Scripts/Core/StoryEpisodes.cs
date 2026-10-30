@@ -344,7 +344,14 @@ namespace BiRyeoDo.Core
                 for (int i = 0; i < stage.Encounters.Length; i++)
                 {
                     StoryScene[] scenes;
-                    if (TryScenes(stage.Number * 100 + i, out scenes)) Append(lines, scenes);
+                    if (stage.EventFor(i) == null && TryScenes(stage.Number * 100 + i, out scenes)) Append(lines, scenes);
+                    var ev = stage.EventFor(i);
+                    if (ev != null)
+                    {
+                        lines.AddRange(ev.Opening);
+                        foreach (var choice in ev.Choices) lines.AddRange(choice.Outcome);
+                        lines.AddRange(ev.Ending);
+                    }
                 }
             if (stage.Outro != null) lines.AddRange(stage.Outro);
             return lines.ToArray();
@@ -369,7 +376,7 @@ namespace BiRyeoDo.Core
         /// <summary>Continue story on an unfinished full run, including a saved resume; isolated fights and repeat clears skip it.</summary>
         public static StoryScene[] BeforeFight(StageData stage, int encounter, SaveData save, bool singleFight = false)
         {
-            if (stage == null || save == null || stage.IsQuest || stage.IsTower || singleFight
+            if (stage == null || save == null || stage.EventFor(encounter) != null || stage.IsQuest || stage.IsTower || singleFight
                 || save.ClearedStage >= stage.Number || stage.Encounters == null || encounter < 0 || encounter >= stage.Encounters.Length) return null;
             StoryScene[] scenes;
             return TryScenes(stage.Number * 100 + encounter, out scenes) ? scenes : null;

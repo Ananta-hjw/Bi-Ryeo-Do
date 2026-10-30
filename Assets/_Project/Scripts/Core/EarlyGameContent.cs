@@ -257,6 +257,12 @@ namespace BiRyeoDo.Core
         public string[][] StoryActors;
         /// <summary>Optional special rules, parallel to <see cref="Encounters"/> (null or a null entry = a normal fight).</summary>
         public TrialRule[] Trials;
+        /// <summary>Optional choice events, parallel to Encounters. An event slot has no enemies.</summary>
+        public StoryChoiceEvent[] Events;
+        public StoryChoiceEvent EventFor(int encounter)
+        {
+            return !IsQuest && !IsTower && Events != null && encounter >= 0 && encounter < Events.Length ? Events[encounter] : null;
+        }
         public TrialRule TrialFor(int encounter) { return Trials != null && encounter < Trials.Length ? Trials[encounter] : null; }
 
         public int RecommendedLevel;   // the enemy stat-curve level of the stage; the player level to bring is RecommendedPlayerLevel
@@ -1812,9 +1818,11 @@ namespace BiRyeoDo.Core
                 Trials = new TrialRule[] { TrialRule.Technique("배에 오른 선택", "배에 오른 선택 기술로 대응하세요.", "scene_escape_seat", 30, false), TrialRule.Technique("연화검패와 표사의 신분", "연화검패와 표사의 신분 기술로 대응하세요.", "scene_escape_badge", 30, false), TrialRule.Technique("충돌 없는 통과", "충돌 없는 통과 기술로 대응하세요.", "scene_escape_cover", 30, true) } },
             new StageData { Number = 59, Name = "남겨 둔 다섯째 거점", RecommendedLevel = 118, DooTotal = 52500, RewardWeightBudget = 3,
                 Prologue = StoryEscape.Prologues[59], Intro = StoryEscape.Intros[59], Outro = StoryEscape.Outros[59],
-                Encounters = new[] { new[] { "ruined_contacts" }, new[] { "last_report" }, new[] { "inn_encirclement" } },
+                Encounters = new[] { new string[0], new string[0], new string[0] },
+                RewardEncounters = new[] { new[] { "ruined_contacts" }, new[] { "last_report" }, new[] { "inn_encirclement" } },
+                Events = new[] { StoryChoiceEvents.RuinedContacts, StoryChoiceEvents.LastReport, StoryChoiceEvents.InnEncirclement },
                 StoryActors = new[] { new[] { "story_biry_escape", "jang_hong", "story_mo_yonghwi", "story_namgung_sang" }, new[] { "story_biry_escape", "jang_hong", "story_mo_yonghwi", "story_namgung_sang" }, new[] { "na_yerin" } },
-                Trials = new TrialRule[] { TrialRule.Technique("거점의 흔적 읽기", "거점의 흔적 읽기 기술로 대응하세요.", "scene_escape_contacts", 30, false), TrialRule.Technique("대난원과 칠성좌의 보고", "대난원과 칠성좌의 보고 기술로 대응하세요.", "scene_escape_report", 30, false), TrialRule.Technique("일행을 깨우는 확신", "일행을 깨우는 확신 기술로 대응하세요.", "scene_escape_warning", 30, false) } },
+                Trials = new TrialRule[] { null, null, null } },
             new StageData { Number = 60, Name = "두 노사가 남긴 시간", RecommendedLevel = 120, DooTotal = 54000, RewardWeightBudget = 6,
                 Prologue = StoryEscape.Prologues[60], Intro = StoryEscape.Intros[60], Outro = StoryEscape.Outros[60],
                 Encounters = new[] { new[] { "son_gwang_patrol" }, new[] { "twins_fire_l", "twins_fire_r" }, new[] { "muhwa_drain_fire" }, new[] { "muhwa_drain_ice" } },

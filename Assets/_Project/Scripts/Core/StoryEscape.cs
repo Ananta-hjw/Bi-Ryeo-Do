@@ -60,9 +60,6 @@ namespace BiRyeoDo.Core
                 if (stage.Number == 58 && encounter == 0 && member.Id == "na_yerin") skills.Add(Avoid("scene_escape_seat", "배에 오른다"));
                 if (stage.Number == 58 && encounter == 1 && member.Id == "story_biry_escape") skills.Add(Avoid("scene_escape_badge", "연화검패를 내민다"));
                 if (stage.Number == 58 && encounter == 2 && member.Id == "story_biry_escape") skills.Add(Avoid("scene_escape_cover", "표사의 예로 답한다"));
-                if (stage.Number == 59 && encounter == 0 && member.Id == "jang_hong") skills.Add(Avoid("scene_escape_contacts", "거점의 흔적을 읽는다"));
-                if (stage.Number == 59 && encounter == 1 && member.Id == "jang_hong") skills.Add(Avoid("scene_escape_report", "상현의 보고를 기록한다"));
-                if (stage.Number == 59 && encounter == 2 && member.Id == "na_yerin") skills.Add(Avoid("scene_escape_warning", "조용히 일행을 깨운다"));
                 if (stage.Number == 60 && encounter == 1 && member.Id == "story_yeom_do") skills.Add(Avoid("scene_escape_fire_wall", "홍련지벽 · 맡은 공세 대응"));
                 if (stage.Number == 60 && encounter == 1 && member.Id == "story_bing_geom") skills.Add(Avoid("scene_escape_ice_guard", "빙령지순 · 맡은 공세 대응"));
                 if (stage.Number == 60 && encounter == 2 && member.Id == "story_bing_geom") skills.Add(Hit("scene_escape_save_fire", "설풍보 · 염도 구원", 0.2f, 1));

@@ -63,7 +63,8 @@ namespace BiRyeoDo.Tests
         [TestCase(45, 8, 45)] [TestCase(46, 12, 60)] [TestCase(47, 15, 35)] [TestCase(48, 28, 70)]
         [TestCase(49, 12, 30)] [TestCase(50, 18, 45)] [TestCase(51, 20, 55)] [TestCase(52, 12, 35)]
         [TestCase(53, 4, 12)] [TestCase(54, 25, 65)] [TestCase(55, 10, 25)] [TestCase(56, 43, 69)] [TestCase(57, 2, 10)]
-        [TestCase(58, 3, 12)] [TestCase(59, 6, 18)] [TestCase(60, 44, 70)] [TestCase(61, 10, 25)]
+        // Stage 59 is entirely noncombat and is covered by StoryChoiceEventTests.
+        [TestCase(58, 3, 12)] [TestCase(60, 44, 70)] [TestCase(61, 10, 25)]
         [TestCase(62, 18, 40)] [TestCase(63, 20, 40)] [TestCase(64, 5, 16)] [TestCase(65, 12, 30)] [TestCase(66, 20, 45)]
         public void LateNormalStagesKeepPressureWithoutLongHpSlogs(int number, int minActions, int maxActions)   // Re-measured with current expected gear and actual story perspectives (80-125% of 100-run action means).
         {

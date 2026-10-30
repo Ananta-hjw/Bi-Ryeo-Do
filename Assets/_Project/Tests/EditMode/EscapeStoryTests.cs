@@ -110,7 +110,7 @@ namespace BiRyeoDo.Tests
             string departure = Text(58), warning = Text(59), captives = Text(60), gate = Text(61), dogs = Text(62), chorus = Text(63), sister = Text(64), river = Text(65), end = Text(66);
             StringAssert.Contains("성좌 문양", departure); StringAssert.Contains("조부의 품", departure); StringAssert.Contains("쌍붕도 중천", departure); StringAssert.Contains("수련", departure); StringAssert.Contains("나예린 자신의 뜻", departure);
             StringAssert.Contains("응징한 사람은 무화", departure); StringAssert.Contains("은설란", departure);
-            StringAssert.Contains("대난원", warning); StringAssert.Contains("상현은 보고 뒤 숨을 거뒀다", warning); StringAssert.Contains("영령과 진령을 깨워", warning);
+            StringAssert.Contains("대난원", warning); StringAssert.Contains("상현은 숨을 거뒀다", warning); StringAssert.Contains("영령을 깨우고 진령에게", warning);
             StringAssert.Contains("미완성", captives); StringAssert.Contains("살아 있는 포로", captives);
             StringAssert.Contains("임시 흑천맹주", gate); StringAssert.Contains("추적 계획은 끝나지", gate);
             StringAssert.Contains("차음막", dogs); StringAssert.Contains("숨대롱", dogs);
