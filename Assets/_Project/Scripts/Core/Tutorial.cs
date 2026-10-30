@@ -19,6 +19,19 @@ namespace BiRyeoDo.Core
         /// <summary>A gold heading line. Pages are short lists: a heading, one idea per line, blank lines between groups.</summary>
         private static string H(string title) { return "<color=#D4B87A>" + title + "</color>\n"; }
 
+        private static readonly string CounterResponsePage = H("파훼 · 반격 기회 얻기")
+            + "· 적 위에 「!!」가 뜨면 큰 기술을 준비 중입니다.\n"
+            + "· 점혈로 준비를 끊으면 파훼하며, 반격 기회를 얻습니다.\n"
+            + "· 큰 기술을 방어해 버티거나 모두 피해도 기회를 얻습니다.\n"
+            + "· 여러 번 공격하는 기술은 전부 방어·회피하고 살아남아야 합니다.";
+
+        private static readonly string CounterUsePage = H("반격 · 다음 행동의 선택")
+            + "① 적 아래의 「반격 +25%」를 확인하세요.\n"
+            + "② 다음 자기 행동에서 그 적을 공격하세요. 피해가 25% 증가합니다.\n\n"
+            + "· 연타 전체에 적용되며, 타격마다 배율이 쌓이지 않습니다.\n"
+            + "· 다른 적을 공격하거나 방어·운기 등을 선택하면 기회가 사라집니다.\n"
+            + "· 합공에 참여해도 그 인물의 반격 기회를 사용합니다.";
+
         public static readonly TutorialTopic[] All =
         {
             new TutorialTopic { Id = "intro", Title = "강호 화면", Pages = new[]
@@ -47,14 +60,25 @@ namespace BiRyeoDo.Core
                 H("명령") + "· 공격　 내공 없이 치기\n· 무공　 내공 사용, 쓰면 몇 턴 대기\n· 필살기　 기세 100으로 비기\n· 방어 · 운기(내공·체력 회복) · 아이템\n\n버튼을 길게 누르면 설명이 나옵니다.",
                 H("공격하기") + "① 공격이나 무공 선택\n② 금색 적 누르기\n　금색 = 공격 가능 · 붉은색 = 사거리 밖\n③ 다시 고르려면 「취소」",
                 H("화면 보기") + "· 막대: 초록 체력 · 파랑 내공 · 금색 기세\n· 오른쪽 위 적 칸: 보스(없으면 앞의 적)의 체력 · 단계 · 상태 이상\n· 적 위에 「!!」: 힘을 모았습니다. 큰 공격이 곧 옵니다\n　→ 방어 · 회피 · 점혈로 대비\n· 위쪽 줄: 행동 순서\n· 적·아군을 누르면 정보가 나옵니다.",
-                H("파훼와 반격") + "예고된 큰 기술을 점혈로 끊거나, 방어해 살아남거나, 모두 피하면 반격 기회를 얻습니다.\n\n다음 자기 행동에서 그 적을 공격하면 피해가 25% 증가합니다. 다른 행동을 선택하면 기회가 사라집니다.\n\n적 아래의 「반격 +25%」를 확인하세요."
+                CounterResponsePage,
+                CounterUsePage
             }, Details = new[]
             {
                 H("명령") + "· 공격　 내공이 들지 않는 기본 공격\n· 무공　 내공을 쓰고, 쓰면 몇 턴 기다려야 다시 씀\n· 필살기　 기세 100이 차면 금색 버튼으로 비기\n· 합공　 인연 친분부터, 기세 50\n· 방어　 다음 차례까지 받는 피해 -60%\n· 운기　 내공 +40(최대 내공의 20%가 더 크면 그만큼), 체력 8% 회복, 상태 이상 하나 해제\n· 아이템　 행낭의 영약 사용",
                 H("공격하기") + "① 공격이나 무공을 누릅니다.\n② 칠 수 있는 적은 금색, 닿지 않는 적은 붉은색 바닥이 됩니다.\n③ 금색 적을 누르면 공격이 나갑니다.\n\n· 「취소」로 다시 고릅니다.\n· 전체 공격 · 방어 · 운기는 대상 없이 바로 나갑니다.\n· 치유 무공과 회복 아이템은 초록으로 표시된 아군을 고릅니다.",
-                H("적의 예고") + "· 적의 다음 행동은 보이지 않습니다.\n· 적 위에 「!!」가 뜨면 힘을 모은 것입니다. 큰 공격이 곧 옵니다.\n　→ 방어로 줄이고, 회피로 피하고, 점혈로 끊으세요.\n　→ 막거나 피하면 「간파!」\n· 적의 금색 기세 막대가 가득 차면 다음 타격이 1.5배\n· ◆ 정예와 우두머리는 내공이 모자라면 큰 기술이 약해집니다.",
+                H("적의 예고") + "· 적의 다음 행동은 보이지 않습니다.\n· 적 위에 「!!」가 뜨면 힘을 모은 것입니다. 큰 공격이 곧 옵니다.\n　→ 방어로 줄이고, 회피로 피하고, 점혈로 끊으세요.\n　→ 큰 기술 전체를 방어·회피하고 살아남으면 「대응 성공!」\n· 적의 금색 기세 막대가 가득 차면 다음 타격이 1.5배\n· ◆ 정예와 우두머리는 내공이 모자라면 큰 기술이 약해집니다.",
                 H("정보 보기") + "· 막대: 초록 체력 · 파랑 내공 · 금색 기세\n· 위쪽 줄: 행동 순서 (누르면 그 인물 정보)\n· 적 · 아군을 누르면 능력치 · 무공 · 상태\n· 명령 버튼 · 아군을 길게 누르면 스킬 설명\n\n" + H("전투 사이 정비") + "체력 +30% · 내공 +50% 회복, 기세는 그대로 이어집니다.",
-                H("파훼와 반격") + "· 준비 중인 큰 기술을 점혈로 끊으면 파훼입니다.\n· 예고된 큰 기술을 방어하거나 모두 피하고 살아남아도 반격 기회를 얻습니다. 일부를 방어 없이 맞으면 얻지 못합니다.\n· 다음 자기 행동에서 그 적에게 가하는 공격의 피해가 25% 증가합니다. 연타 전체에 적용되며 타격마다 배율이 누적되지는 않습니다.\n· 다른 행동을 선택하면 사라집니다. 합공에 참여해도 그 인물의 기회를 사용합니다.\n· 생명줄 시험에서는 방어해도 줄이 끊어지는 기존 규칙이 유지됩니다."
+                CounterResponsePage,
+                CounterUsePage + "\n\n생명줄 시험에서는 방어해도 줄이 끊어집니다."
+            } },
+            new TutorialTopic { Id = "counter", Title = "파훼와 반격", Pages = new[]
+            {
+                CounterResponsePage,
+                CounterUsePage
+            }, Details = new[]
+            {
+                CounterResponsePage,
+                CounterUsePage + "\n\n생명줄 시험에서는 방어해도 줄이 끊어집니다."
             } },
             new TutorialTopic { Id = "joint", Title = "합공과 인연", Pages = new[]
             {
@@ -271,6 +295,8 @@ namespace BiRyeoDo.Core
         public static void MarkDone(SaveData save, string id)
         {
             if (!save.TutorialDone.Contains(id)) save.TutorialDone.Add(id);
+            // The full first-battle guide already includes both counter pages.
+            if (id == "battle" && !save.TutorialDone.Contains("counter")) save.TutorialDone.Add("counter");
         }
     }
 }

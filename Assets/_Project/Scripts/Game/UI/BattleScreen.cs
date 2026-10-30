@@ -897,7 +897,7 @@ namespace BiRyeoDo.Game.UI
                     bool anyStatus = false;
                     foreach (var u in _party) if (u.Statuses.Count > 0) anyStatus = true;
                     foreach (var c in _cards) if (c.Unit.Statuses.Count > 0) anyStatus = true;
-                    string hint = !Tutorial.IsDone(save0, "battle") ? "battle" : !Tutorial.IsDone(save0, "reach") ? "reach" : _jointPartners.Count > 0 && !Tutorial.IsDone(save0, "joint") ? "joint"
+                    string hint = !Tutorial.IsDone(save0, "battle") ? "battle" : !Tutorial.IsDone(save0, "counter") ? "counter" : !Tutorial.IsDone(save0, "reach") ? "reach" : _jointPartners.Count > 0 && !Tutorial.IsDone(save0, "joint") ? "joint"
                         : anyStatus && !Tutorial.IsDone(save0, "status") ? "status" : _phaseSeen && !Tutorial.IsDone(save0, "phase") ? "phase" : null;
                     if (hint != null) yield return HelpPanel.Instance.ShowOnce(hint);
                 }

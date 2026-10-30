@@ -24,7 +24,7 @@ namespace BiRyeoDo.Tests
         [Test]
         public void TopicsUsedByTheGameExist()
         {
-            foreach (var id in new[] { "intro", "battle", "joint", "mastery", "board", "promotion", "status" }) Assert.IsNotNull(Tutorial.Find(id), id);
+            foreach (var id in new[] { "intro", "battle", "counter", "joint", "mastery", "board", "promotion", "status" }) Assert.IsNotNull(Tutorial.Find(id), id);
             foreach (TrialKind kind in System.Enum.GetValues(typeof(TrialKind))) if (kind != TrialKind.None) Assert.IsNotNull(Tutorial.Find(Tutorial.TrialTopic(kind)), kind.ToString());
         }
 
@@ -36,7 +36,30 @@ namespace BiRyeoDo.Tests
             Tutorial.MarkDone(save, "battle");
             Tutorial.MarkDone(save, "battle");
             Assert.IsTrue(Tutorial.IsDone(save, "battle"));
-            Assert.AreEqual(1, save.TutorialDone.Count);
+            Assert.IsTrue(Tutorial.IsDone(save, "counter"));
+            Assert.AreEqual(2, save.TutorialDone.Count);
+        }
+        [Test]
+        public void LegacyBattleGuideCompletionDoesNotHideTheNewCounterGuide()
+        {
+            var save = new SaveData();
+            save.TutorialDone.Add("battle");
+            Assert.IsTrue(Tutorial.IsDone(save, "battle"));
+            Assert.IsFalse(Tutorial.IsDone(save, "counter"));
+            Tutorial.MarkDone(save, "counter");
+            Assert.IsTrue(Tutorial.IsDone(save, "counter"));
+            Assert.AreEqual(2, save.TutorialDone.Count);
+        }
+
+        [Test]
+        public void FirstBattleAndStandaloneCounterGuideShareTheSameInstructionPages()
+        {
+            var battle = Tutorial.Find("battle").PagesFor(false);
+            var counter = Tutorial.Find("counter").PagesFor(false);
+            Assert.AreEqual(counter[0], battle[battle.Length - 2]);
+            Assert.AreEqual(counter[1], battle[battle.Length - 1]);
+            StringAssert.Contains("25%", counter[1]);
+            StringAssert.Contains("다른 적", counter[1]);
         }
     }
 }
