@@ -73,7 +73,7 @@ namespace BiRyeoDo.Core
                 Trial = TrialRule.Survive("퇴로 확보", "적 10행동을 견디세요.", 10), RewardDoo = 32400, ItemId = "okruju" },
             new QuestData { Id = "q_hyeol", Edge = 1.10f, Name = "새벽의 호위 복기", Brief = "장우양과 장우경이 버틴 새벽의 호위를 복기합니다. 십삼혈의 생존 잔당이 남았다는 뜻은 아닙니다.", RefStage = 35, Encounter = 2,
                 Trial = TrialRule.Survive("호위의 시간", "적 12행동을 견디세요.", 12), RewardDoo = 34200, ItemId = "ginseng" },
-            new QuestData { Id = "q_ichon", Name = "일촌의 간격 수련", Brief = "일촌간파의 간격 읽기를 모의 수련으로 되짚습니다. 비뢰도를 받는 새 내기는 아닙니다.", RefStage = 32, Encounter = 0,
+            new QuestData { Id = "q_ichon", Name = "완장 도전의 간격 수련", Brief = "유란·유운비와의 완장 도전 공방을 바탕으로 간격 읽기를 모의 수련합니다. 완장이나 비뢰도를 새로 얻는 내기는 아닙니다.", RefStage = 32, Encounter = 0,
                 Trial = TrialRule.Survive("공방 복기", "적 8행동을 견디세요.", 8), RewardDoo = 29700, ItemId = "ginseng" },
             new QuestData { Id = "q_white_phoenix", Name = "섬광 속 퇴로 수련", Brief = "증인을 놓친 뒤에도 동료와 살아 돌아올 길을 지키던 판단을 복기합니다. 상대의 고정 도주를 막는 시험은 아닙니다.", RefStage = 34, Encounter = 2,
                 Trial = TrialRule.Survive("공방 복기", "적 10행동을 견디세요.", 10), RewardDoo = 32400, ItemId = "okruju" },
