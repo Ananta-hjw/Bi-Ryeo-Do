@@ -87,7 +87,7 @@ namespace BiRyeoDo.Tests
                     Assert.AreEqual(a.Skills.Count, a.Skills.Select(x => x.Id).Distinct().Count());
                 }
             }
-            Assert.AreEqual(37, fights);
+            Assert.AreEqual(36, fights);
             CollectionAssert.AreEqual(items, save.Items.Select(x => x.Id + ":" + x.Count));
             CollectionAssert.AreEqual(gear, save.GearSlots.Where(x => !string.IsNullOrEmpty(x.ItemId)).Select(x => x.Owner + ":" + x.ItemId + ":" + x.Level));
             CollectionAssert.AreEqual(arts, save.EquippedArts); CollectionAssert.AreEqual(learned, save.LearnedArts);
@@ -124,7 +124,8 @@ namespace BiRyeoDo.Tests
         {
             var save = new SaveData { StoryContentRevision = 8, ClearedStage = 48, ProgressStage = 48, ProgressNext = 4, Level = 65, Doo = 12345 };
             StageStars.Record(save, 48, 0, 0, 7); StoryContentMigration.Apply(save);
-            Assert.AreEqual(48, save.ProgressStage); Assert.AreEqual(4, save.ProgressNext); Assert.AreEqual(12345, save.Doo);
+            Assert.AreEqual(48, save.ProgressStage); Assert.AreEqual(3, save.ProgressNext); Assert.AreEqual(12345, save.Doo);
+            Assert.IsTrue(StageProgress.AtEnding(save, EarlyGameContent.FindStage(48)));
             for (int d = 0; d < 3; d++)
                 foreach (var stage in EarlyGameContent.Stages.Skip(48).Take(9))
                 {

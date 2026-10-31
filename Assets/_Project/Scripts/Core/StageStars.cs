@@ -169,8 +169,8 @@ namespace BiRyeoDo.Core
             new[] { 3, 13, 3, 11, 10 },   // 44
             new[] { 18, 3, 3, 3 },   // 45
             new[] { 14, 4, 10, 3, 4 },   // 46
-            new[] { 5, 21 },   // 47
-            new[] { 22, 17, 17, 3, 3 },   // 48
+            new[] { 21 },   // 47
+            new[] { 22, 17, 17 },   // 48
             new[] { 8, 3, 4, 4, 4, 3, 4 },   // 49
             new[] { 25, 7, 3, 4 },   // 50
             new[] { 29, 17, 4, 4 },   // 51
@@ -179,15 +179,15 @@ namespace BiRyeoDo.Core
             new[] { 29, 6, 8, 7, 4 },   // 54
             new[] { 3, 3, 4, 4, 10 },   // 55
             new[] { 5, 7, 36, 4, 4 },   // 56
-            new[] { 3, 4 },   // 57
+            new[] { 4 },   // 57
             new[] { 3, 3, 5 },   // 58
             new[] { 6, 6, 3 },   // 59
             new[] { 21, 7, 6, 5 },   // 60
             new[] { 4, 4, 4, 11 },   // 61
-            new[] { 3, 15, 11, 7 },   // 62
+            new[] { 15, 11, 7 },   // 62
             new[] { 7, 8, 9, 11 },   // 63
             new[] { 4, 4, 4, 4 },   // 64
-            new[] { 3, 7, 6, 11 },   // 65
+            new[] { 3, 6, 11 },   // 65
             new[] { 7, 4, 4, 4, 25 },   // 66
         };
 
@@ -498,7 +498,7 @@ namespace BiRyeoDo.Core
                     if (entry.Stage == st.Number && entry.Diff == 0) { recorded = true; break; }
                 if (recorded) continue;
                 // Preserve the removed normal-star slot when backfilling an entirely pre-star chapter.
-                if (st.Number == 19 || st.Number == 31 || st.Number == 32 || st.Number == 35) save.RetiredStoryStars++;
+                if (st.Number == 19 || st.Number == 31 || st.Number == 32 || st.Number == 35 || st.Number == 47 || st.Number == 48 || st.Number == 57 || st.Number == 62 || st.Number == 65) save.RetiredStoryStars += st.Number == 48 ? 2 : 1;
                 for (int f = 0; f < st.Encounters.Length; f++)
                     if ((MaskOf(save, st.Number, f, 0) & 1) == 0) Record(save, st.Number, f, 0, 1);
             }
