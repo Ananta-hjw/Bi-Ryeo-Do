@@ -348,10 +348,14 @@ namespace BiRyeoDo.Core
                     {
                         lines.AddRange(FireDragonFinale.RetreatLines);
                         Append(lines, FireDragonFinale.Departure);
-                        lines.AddRange(FireDragonFinale.AfterBlow);
-                        lines.AddRange(FireDragonFinale.AfterStrike);
                     }
                     else if (stage.EventFor(i) == null && TryScenes(stage.Number * 100 + i, out scenes)) Append(lines, scenes);
+                    var showdown = Showdowns.Is(stage, i) ? stage.TrialFor(i).Script : null;   // the scene played inside a scripted showdown
+                    if (showdown != null)
+                    {
+                        lines.AddRange(showdown.AfterBlow);
+                        lines.AddRange(showdown.AfterStrike);
+                    }
                     var ev = stage.EventFor(i);
                     if (ev != null)
                     {

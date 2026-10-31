@@ -8,7 +8,14 @@ namespace BiRyeoDo.Core
         Lifeline,   // 금요관: every charged enemy move that lands cuts a lifeline; Limit cuts lose
         Harmony,    // 수화관 내공합격: an unbroken chain of attacks by the whole party powers up the next hit; defeat the enemies within Limit party actions
         Technique,  // use an owned scene technique in the required window before the party-action limit
-        Finale      // scripted 화룡멸겁대진 (일반 30): the party acts once, the 진 fells everyone but 비류연 (left at 1 HP), then his one action is the 풍신 that ends it
+        Finale      // scripted showdown (일반 30 화룡멸겁대진, 46 천외일도): a fixed opening, the scene, then 비류연's one action is the art that ends it (TrialRule.Script)
+    }
+
+    /// <summary>How a scripted showdown (<see cref="TrialKind.Finale"/>) opens before 비류연's last action.</summary>
+    public enum FinaleStyle
+    {
+        PartyFirst,   // every living member acts once, then the enemy's one blow fells all but 비류연 (left at 1 HP)
+        Unavoidable,  // the enemy's every blow lands through guard and dodge, ours do nothing; after FinaleTurns actions or below TriggerHpPct the scene begins
     }
 
     /// <summary>A special rule for one fight of a story trial (시험). The fight still runs on the normal engine.</summary>
@@ -21,6 +28,10 @@ namespace BiRyeoDo.Core
         public string[] TechniqueSequence, ResponseCues;
         public int TechniqueUses = 1;
         public bool RequiresCharge;
+        public FinaleStyle Style;
+        public ShowdownScript Script;
+        public int FinaleTurns = 3;
+        public float BlowPct = 0.2f, TriggerHpPct = 0.3f;
 
         public static TrialRule Technique(string title, string brief, string skillId, int partyActions = 20, bool requiresCharge = false, int uses = 1)
         {
@@ -40,7 +51,11 @@ namespace BiRyeoDo.Core
                 RequiresCharge = true, Limit = partyActions };
         }
 
-        public static TrialRule Finale(string title, string brief) { return new TrialRule { Kind = TrialKind.Finale, Title = title, Brief = brief }; }
+        public static TrialRule Finale(string title, string brief, ShowdownScript script, FinaleStyle style = FinaleStyle.PartyFirst)
+        {
+            if (script == null) throw new System.ArgumentException("A showdown needs its script");
+            return new TrialRule { Kind = TrialKind.Finale, Title = title, Brief = brief, Script = script, Style = style };
+        }
         public static TrialRule Survive(string title, string brief, int enemyActions) { return new TrialRule { Kind = TrialKind.Survive, Limit = enemyActions, Title = title, Brief = brief }; }
         public static TrialRule Deadline(string title, string brief, int partyActions) { return new TrialRule { Kind = TrialKind.Deadline, Limit = partyActions, Title = title, Brief = brief }; }
         public static TrialRule Lifeline(string title, string brief, int cuts) { return new TrialRule { Kind = TrialKind.Lifeline, Limit = cuts, Title = title, Brief = brief }; }

@@ -412,7 +412,7 @@ namespace BiRyeoDo.Game.UI
 
             // Continue a stage the player stepped back from; anything else starts fresh (and drops an old resume point).
             bool resume = !stage.IsQuest && !stage.IsTower && StageProgress.Has(save, stage.Number);
-            int startIndex = resume ? FireDragonFinale.ResumeAt(stage, save.ProgressNext) : 0;
+            int startIndex = resume ? Showdowns.ResumeAt(stage, save.ProgressNext) : 0;
             if (!resume && !stage.IsQuest && !stage.IsTower && save.ProgressStage != 0) { StageProgress.Clear(save); GameManager.Instance.SaveNow(); }
 
             // A cleared stage can be replayed from any fight (optionally just that one); the first clear always runs from the start.
@@ -494,8 +494,8 @@ namespace BiRyeoDo.Game.UI
                             string gains = Factions.GainText(stage.Number, diff);
                             if (gains.Length > 0) repLine = "평판 " + gains + (rises.Count > 0 ? "  (" + string.Join(", ", rises) + ")" : "");
                         }
-                        // a choice event and the scripted 화룡멸겁대진 (everyone falls by design) give all three stars once won
-                        int fightMask = storyEvent != null || FireDragonFinale.IsFinale(stage, i) ? 7 : StageStars.Evaluate(stage.Number, i, _fightActions, _fightFell, diff);
+                        // a choice event and a scripted showdown (일반 30, 46) give all three stars once won
+                        int fightMask = storyEvent != null || Showdowns.Is(stage, i) ? 7 : StageStars.Evaluate(stage.Number, i, _fightActions, _fightFell, diff);
                         bool stageWasCleared = StageStars.StageCleared(save, stage.Number, diff);
                         int fightNew = StageStars.Record(save, stage.Number, i, diff, fightMask);
                         rewardMask = fightMask; rewardNewStars = fightNew;
@@ -923,7 +923,7 @@ namespace BiRyeoDo.Game.UI
 
                 if (_battle.FinaleReady)
                 {
-                    yield return FinaleFlow();   // 일반 30: the masters' 내력, then the 풍신 button
+                    yield return FinaleFlow(_battle.Trial.Script);   // 일반 30 풍신, 46 묵뢰살: the scene, then the art's button
                     if (_fled) yield break;
                 }
                 else
@@ -966,7 +966,7 @@ namespace BiRyeoDo.Game.UI
                 actions++;
                 if (turnLimit > 0 && actions >= turnLimit && !_battle.IsOver) { _drawn = true; break; }
             }
-            if (trial != null && trial.Kind == TrialKind.Finale && _battle.PlayerWon && !_fled) yield return FinaleCollapse();
+            if (trial != null && trial.Kind == TrialKind.Finale && _battle.PlayerWon && !_fled) yield return FinaleCollapse(trial.Script);
             _fightActions = actions;
             _fightFell = _party.Exists(m => !m.IsAlive);
             if (trial != null && _battle.TrialFailed) _log.text = _battle.TrialFailReason;
@@ -2149,6 +2149,12 @@ namespace BiRyeoDo.Game.UI
                         bool finishStrike = EndsSkillSequence(events, eventIndex);
                         if (byParty) yield return PartyHit(ev, finishMotion, finishStrike);
                         else yield return EnemyHit(ev, finishMotion);
+                        if (!string.IsNullOrEmpty(ev.Quip))   // scripted showdowns: "거리가 줄지 않는다!" / "심도에 닿지 않는다."
+                        {
+                            _log.text = ev.Quip;
+                            var quipAt = byParty ? (CardOf(ev.TargetId) != null ? CardOf(ev.TargetId).Center : Vector2.zero) : (PanelOf(ev.TargetId) != null ? PanelOf(ev.TargetId).Center : Vector2.zero);
+                            if (quipAt != Vector2.zero) Float(quipAt + new Vector2(0f, 0.1f), byParty ? "닿지 않음" : "거리 0", UiFactory.Gold, 52);
+                        }
                         if (ev.CounterReady)
                         {
                             if (!byParty)

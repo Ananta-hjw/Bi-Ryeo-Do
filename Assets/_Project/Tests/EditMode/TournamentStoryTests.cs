@@ -120,7 +120,7 @@ namespace BiRyeoDo.Tests
                     }
                 }
             }
-            Assert.AreEqual(28, fights);
+            Assert.AreEqual(27, fights);   // 46's 봉황환 and 묵뢰살 fights became one showdown
             CollectionAssert.AreEqual(items, save.Items.Select(x => x.Id + ":" + x.Count));
             CollectionAssert.AreEqual(slots, save.GearSlots.Where(x => !string.IsNullOrEmpty(x.ItemId)).Select(x => x.Owner + ":" + x.ItemId + ":" + x.Level));
             CollectionAssert.AreEqual(equipped, save.EquippedArts); CollectionAssert.AreEqual(learned, save.LearnedArts);
@@ -173,8 +173,9 @@ namespace BiRyeoDo.Tests
             Assert.Less(d.IndexOf("한빙섬옥 ·"), d.IndexOf("피리가 끊긴 뒤"));
             StringAssert.Contains("상대 진영에 남", d);
             Assert.Less(e.IndexOf("혈무막막이 드러낸"), e.IndexOf("관에서 나온"));
-            Assert.Less(e.IndexOf("관에서 나온"), e.IndexOf("손목에 남은 봉황환"));
-            Assert.Less(e.IndexOf("손목에 남은 봉황환"), e.IndexOf("무명검 · 한 점"));
+            Assert.Less(e.IndexOf("관에서 나온"), e.IndexOf("열세 번째 도"));
+            Assert.Less(e.IndexOf("열세 번째 도"), e.IndexOf("봉황환을 풀었다"));
+            Assert.Less(e.IndexOf("봉황환을 풀었다"), e.IndexOf("흑과 은의 뇌광"));
             Assert.Less(e.IndexOf("우승이 선포"), e.IndexOf("나예린을 데려갔다"));
             StringAssert.Contains("이벽한", e); StringAssert.Contains("꼭 돌려주겠다는 약속", f);
             StringAssert.Contains("나예린이 저항하며 남긴 흔적", f);

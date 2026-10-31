@@ -49,10 +49,8 @@ namespace BiRyeoDo.Core
                     case "story_biry_staff":
                         skills = new List<SkillSpec> { Hit("scene_staff", "삼복구타봉법", 2.5f, 2), Avoid("scene_shell_deflect", "벽력포 흘리기"), Hit("scene_shell_cut", "벽력탄 가르기", 6f), Hit("scene_muzzle_stop", "포구 막기", 4f) }; break;
                     case "story_yeonbi_left":
-                        if (stage.Number == 46 && encounter == 4)
-                            skills = new List<SkillSpec> { Hit("scene_mukroesal", "무명검 · 묵뢰살", 9f), Avoid("scene_left_evade", "검로 읽기") };
-                        else if (stage.Number == 46 && encounter == 3)
-                            skills = new List<SkillSpec> { Avoid("scene_release_flow", "힘의 흐름을 잇는다"), Avoid("scene_left_evade", "검로 읽기") };
+                        if (stage.Number == 46 && encounter == 3)   // the 천외일도 showdown: 묵뢰살 comes from its icon, not a command
+                            skills = new List<SkillSpec> { Hit("scene_left_umbrella", "현천은린 회천", 2.6f, 2), Avoid("scene_left_evade", "검로 읽기") };
                         else skills = new List<SkillSpec> { Hit("scene_left_umbrella", "현천은린 회천", 2.6f, 2), Avoid("scene_left_evade", "왼손 우산막"), Avoid("scene_redirect", "기류를 땅으로 돌린다"), Hit("scene_umbrella_spear", "천지무견 자다봉창", 6f) };
                         break;
                     case "story_ryu_eungyeong":
@@ -244,7 +242,7 @@ namespace BiRyeoDo.Core
                     "미소저 전대는 결승에 올랐다. 이긴 검이 끊어 낸 조종과 아직 되찾지 못한 사람의 거리는 함께 남았다.",
                 } },
             { 46, new[] {
-                    "묵뢰살 앞에 천외일도가 꺾였다. 처형을 외치는 관중에게 연비는 그 재미를 위해 살인자가 될 이유가 없다고 답했다. 미소저 전대의 우승이 선포됐다.",
+                    "미소저 전대의 우승이 선포됐다.",   // the 묵뢰살 and the crowd played in the showdown (StoryShowdowns.Cheonoe)
                     "들것꾼으로 위장한 입막음꾼을 막은 뒤, 깨어난 칠상흔은 혁중 앞에 엎드렸다. 불초 제자가 사부님을 뵙는다고 했다. 혈염쌍도 이벽한이 돌아온 순간이었다.",
                     "피의 밤에 만난 얼굴 없는 그자의 이름을 말하려던 때 일곱 통풍구에서 독무가 흘렀다. 혁중이 목숨을 건졌지만 이벽한은 혼수상태가 됐고 증언은 끊겼다.",
                     "대기실에는 수면향과 다친 윤미가 남아 있었다. 오른팔 없는 붉은 옷 가면 사내가 나예린을 데려갔다. 본래 목소리로 준호를 부른 연비에게 류연이냐는 물음이 돌아왔다. 우승 뒤에 닥친 별개의 암습이었다.",
@@ -364,6 +362,7 @@ namespace BiRyeoDo.Core
                 } },
             { 4600, new[] {
                     new StoryScene { Title = "반 토막 도와 반보의 거리", Lines = new[] {
+                        "연비|약점을 아는 노인이 당신을 '그 아이'라 부르더라.",
                         "칠상흔은 혈강을 펼쳤다. 부족한 길이를 메우려 반보 더 들어오는 버릇이 우산 앞에 남아 있었다.",
                         "과거를 숨긴 관과 쇠사슬도 아직 등에 묶여 있었다.",
                     } }
@@ -381,15 +380,8 @@ namespace BiRyeoDo.Core
                     } }
                 } },
             { 4603, new[] {
-                    new StoryScene { Title = "손목에 남은 봉황환", Lines = new[] {
+                    new StoryScene { Title = "열세 번째 도", Lines = new[] {
                         "천외일도는 혈류십이도의 열세 번째를 찾던 시간 끝에 온 심도였다. 피한다고 거리만 벌릴 수 있는 검로가 아니었다.",
-                        "연비는 흙먼지 속에서 손목에 남은 묵룡환을 풀었다. 폭주를 거슬러 막는 대신 길을 내 주며 흐름을 이어야 했다.",
-                    } }
-                } },
-            { 4604, new[] {
-                    new StoryScene { Title = "무명검 · 한 점에서 만난 극", Lines = new[] {
-                        "암흑에서 깨어났을 때 시간은 거의 흐르지 않았다. 현천은린 우산대에서 은사 문양의 흑검이 나왔다.",
-                        "형태 없는 무명검은 사부가 나뭇가지로 보이던 수련이었다. 천외일도 앞에서 묵뢰살로 맞서는 한 점이 다가왔다.",
                     } }
                 } },
             { 4700, new[] {

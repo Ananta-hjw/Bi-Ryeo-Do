@@ -93,16 +93,29 @@ namespace BiRyeoDo.Core
         public const string FinaleBlowName = "화룡멸겁";
         private readonly HashSet<Combatant> _finaleOpened = new HashSet<Combatant>();
         private bool IsFinale { get { return Trial != null && Trial.Kind == TrialKind.Finale; } }
-        /// <summary>The 진 has struck: everyone but 비류연 is down and he stands at 1 HP.</summary>
+        private bool IsUnavoidable { get { return IsFinale && Trial.Style == FinaleStyle.Unavoidable; } }
+        private int _finaleBlows;
+        /// <summary>The opening is over (일반 30: the 진 has felled all but 비류연; 46: the 심도 has done its work): the scene comes next.</summary>
         public bool FinaleStruck { get; private set; }
-        /// <summary>비류연's last action: whatever is commanded, it is the 풍신 that ends the 진.</summary>
+        /// <summary>비류연's last action: whatever is commanded, it is the showdown's art (<see cref="ShowdownScript.Skill"/>) that ends it.</summary>
         public bool FinaleReady { get { return IsFinale && FinaleStruck && IsPlayerTurn; } }
 
-        /// <summary>The 풍신 of the finale (기세 100 so the screen plays the full 필살기 cut-in).</summary>
-        public static SkillSpec FinaleSkill()
+        /// <summary>Unavoidable: the enemy's blow lands through guard and dodge for a share of max HP, never below 1.</summary>
+        private void UnavoidableBlow(Combatant enemy, List<BattleEvent> events)
         {
-            return new SkillSpec { Id = FinaleSkillId, Name = FinaleSkillName, Power = 30f, AllEnemies = true, Range = 3, SpiritCost = 100,
-                Description = "열 자루 비뢰도와 뇌령사로 기류를 위로 돌려 불의 성벽을 끌어올린다." };
+            EnemyActions++;
+            var target = Player.IsAlive ? Player : FrontMember();
+            if (target == null) return;
+            int dmg = Math.Max(1, (int)Math.Round(target.Stats.MaxHp * Trial.BlowPct));
+            target.Hp = Math.Max(1, target.Hp - dmg);
+            target.Guarding = false;
+            target.Evading = false;
+            var script = Trial.Script;
+            events.Add(new BattleEvent
+            {
+                Turn = Turn, ActorId = enemy.Id, TargetId = target.Id, SkillId = script.BlowName, Kind = EventKind.Attack, Damage = dmg, HitIndex = 0, HitCount = 1,
+                TargetHpAfter = target.Hp, Message = enemy.Name + "의 " + script.BlowName + "!", Quip = _finaleBlows++ == 0 && script.FirstBlowQuip != null ? script.FirstBlowQuip : script.BlowQuip
+            });
         }
 
         /// <summary>Finale turns: every living member acts once first, then the 진 strikes once, then only 비류연 acts.</summary>
@@ -160,8 +173,8 @@ namespace BiRyeoDo.Core
             var actor = Current;
             Current = null;
             PartyActions++;
-            var spec = actor.Skills.Find(s => s.Id == FinaleSkillId);
-            if (spec == null) { spec = FinaleSkill(); actor.Skills.Add(spec); }
+            var spec = actor.Skills.Find(s => s.Id == Trial.Script.SkillId);
+            if (spec == null) { spec = Trial.Script.Skill(); actor.Skills.Add(spec); }
             var events = new List<BattleEvent>();
             foreach (var e in _enemies)
             {
@@ -172,7 +185,8 @@ namespace BiRyeoDo.Core
                 events.Add(new BattleEvent
                 {
                     Turn = Turn, ActorId = actor.Id, TargetId = e.Id, SkillId = spec.Id, Kind = EventKind.Attack, Damage = dmg, HitIndex = 0, HitCount = 1,
-                    AllEnemies = true, TargetHpAfter = 0, TargetDefeated = true, ActorQiAfter = actor.Qi, ActorSpiritAfter = actor.Spirit
+                    AllEnemies = true, TargetHpAfter = 0, TargetDefeated = true, ActorQiAfter = actor.Qi, ActorSpiritAfter = actor.Spirit,
+                    Retreated = Trial.Script.EnemyLeaves, Message = Trial.Script.EnemyLeaves ? e.Name + "(이)가 쓰러졌다." : null
                 });
             }
             return events;
@@ -259,6 +273,7 @@ namespace BiRyeoDo.Core
                     case TrialKind.Survive: return "버텨라 " + Math.Min(EnemyActions, Trial.Limit) + "/" + Trial.Limit;
                     case TrialKind.Technique: return "대응 " + TechniqueUses + "/" + Trial.TechniqueUses + " · " + PartyActions + "/" + Trial.Limit + "행동";
                     case TrialKind.Deadline: return "제한 " + PartyActions + "/" + Trial.Limit + "행동";
+                    case TrialKind.Finale: return IsUnavoidable && !FinaleStruck ? "거리 0" : "";
                     case TrialKind.Lifeline:
                         {
                             var sb = new System.Text.StringBuilder("생명줄 ");
@@ -544,6 +559,7 @@ namespace BiRyeoDo.Core
             Combatant counterTarget;
             bool counter = _counterStrikes.TryGetValue(actor, out counterTarget) && counterTarget == t;
             if (counter) dmg = (int)Math.Round(dmg * CounterDamageFactor);
+            if (IsUnavoidable && t.Team == Team.Enemy) dmg = 0;   // 46: no blow reaches the 심도
             t.Hp = Math.Max(0, t.Hp - dmg);
             if (IsFinale && t.Team == Team.Enemy && t.Hp < 1) t.Hp = 1;   // the 진 cannot be worn down
             if (t.UsesResources && t.IsAlive) t.Spirit = Math.Min(MaxSpirit, t.Spirit + SpiritOnEnemyHit);
@@ -553,6 +569,7 @@ namespace BiRyeoDo.Core
                 Turn = Turn, ActorId = actor.Id, TargetId = t.Id, SkillId = skill.Id, Kind = EventKind.Attack,
                 Damage = dmg, IsCrit = crit, HitIndex = h, HitCount = hits, Harmony = _harmonyBoost, Counter = counter, AllEnemies = skill.AllEnemies, Ranged = skill.Ranged
             };
+            if (IsUnavoidable && t.Team == Team.Enemy) ev.Quip = Trial.Script.NoHarmQuip;
             if (t.RetreatHpPct > 0f && t.Hp <= t.Stats.MaxHp * t.RetreatHpPct)
             {
                 // Story boss: it escapes rather than dying. The fight ends as a win but nobody is slain.
@@ -715,7 +732,7 @@ namespace BiRyeoDo.Core
         private List<BattleEvent> RunUntilParty()
         {
             var events = new List<BattleEvent>();
-            if (IsFinale && !IsOver) { FinaleTurn(events); return events; }
+            if (IsFinale && !IsUnavoidable && !IsOver) { FinaleTurn(events); return events; }
             while (!IsOver)
             {
                 var actor = NextActor();
@@ -733,12 +750,15 @@ namespace BiRyeoDo.Core
 
                 if (actor.Team == Team.Player)
                 {
+                    // 46: enough of the 심도 (three of our actions, or 비류연 below the trigger) and the scene begins on this turn
+                    if (IsUnavoidable && !FinaleStruck && (PartyActions >= Trial.FinaleTurns || Player.Hp <= Player.Stats.MaxHp * Trial.TriggerHpPct)) FinaleStruck = true;
                     actor.TickCooldowns();
                     if (!wounded) actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + QiRegenFor(actor.Stats.MaxQi) + actor.QiRegenBonus);
                     Current = actor;
                     return events;
                 }
-                EnemyAct(actor, events, wounded);
+                if (IsUnavoidable) UnavoidableBlow(actor, events);
+                else EnemyAct(actor, events, wounded);
             }
             Current = null;
             return events;

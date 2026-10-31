@@ -23,11 +23,6 @@ namespace BiRyeoDo.Core
             new[] { "ma_chilgeol_jeoji", "ma_chilgeol_jeoji", "ma_chilgeol_jeoji" }, new[] { BiId }, new[] { "hwaryong_hwayeom", "ma_chilgeol_jeoji", "hwaryong_rescue" },
         };
 
-        public static readonly TrialRule[] Trials =
-        {
-            null, null, TrialRule.Finale("화룡멸겁대진", "불의 성벽이 모두를 가둡니다. 먼저 움직일 수 있는 만큼 움직이세요."),
-        };
-
         /// <summary>The fights before this change, still played on 어려움·극악 and referenced by the 화재 속 엄호 quest.</summary>
         public static readonly string[][] LegacyEncounters =
         {
@@ -107,12 +102,18 @@ namespace BiRyeoDo.Core
             "비류연|하.. 죽겠네",
         };
 
-        /// <summary>Resume point of a stage: a 일반 30 run saved before its last two fights became the finale picks up at the finale.</summary>
-        public static int ResumeAt(StageData stage, int next)
+        /// <summary>The scene, the 풍신 button and its cut-in (declared after the lines it uses).</summary>
+        public static readonly ShowdownScript Script = new ShowdownScript
         {
-            int at = System.Math.Min(next, stage.Encounters.Length);
-            return Is(stage) && next > FinaleFight ? FinaleFight : at;
-        }
+            Title = "화룡멸겁대진", AfterBlow = AfterBlow, AfterStrike = AfterStrike, HeroCollapses = true,
+            IconArtId = "pungsin", IconName = "풍신(風神)", Hint = "풍신 아이콘을 눌러 펼치세요",
+            SkillId = InteractiveBattle.FinaleSkillId, SkillName = InteractiveBattle.FinaleSkillName, BlowName = InteractiveBattle.FinaleBlowName,
+        };
+
+        public static readonly TrialRule[] Trials =
+        {
+            null, null, TrialRule.Finale("화룡멸겁대진", "불의 성벽이 모두를 가둡니다. 먼저 움직일 수 있는 만큼 움직이세요.", Script),
+        };
 
         /// <summary>일반's Outro: the 풍신, the kiss and the collapse already played in the fight, so it starts where 나예린 holds him.</summary>
         public static string[] NormalOutro()

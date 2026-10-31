@@ -92,8 +92,8 @@ namespace BiRyeoDo.Tests
         public void OldNormalSavesResumeAtTheFinaleAndKeepTheirClear()
         {
             var save = new SaveData { ProgressStage = 30, ProgressNext = 3 };
-            Assert.AreEqual(2, FireDragonFinale.ResumeAt(Normal, save.ProgressNext));
-            Assert.AreEqual(3, FireDragonFinale.ResumeAt(Normal.WithDifficulty(1), 3));
+            Assert.AreEqual(2, Showdowns.ResumeAt(Normal, save.ProgressNext));
+            Assert.AreEqual(3, Showdowns.ResumeAt(Normal.WithDifficulty(1), 3));
             for (int f = 0; f < 4; f++) StageStars.Record(save, 30, f, 0, 7);
             Assert.IsTrue(StageStars.StageCleared(save, 30, 0));
             Assert.AreEqual(9, StageStars.StarsOfStage(save, 30, 0), "the old fourth fight's stars no longer count for the stage");

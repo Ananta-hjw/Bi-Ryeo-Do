@@ -45,6 +45,7 @@ namespace BiRyeoDo.Core
         public bool StatusCured;
         // Kind == Phase: the boss ActorId began phase HitIndex (1-based) of its fight; Lines are the StoryLine lines to play
         public string[] Lines;
+        public string Quip;          // a short line the log shows after the hit (scripted showdowns: "거리가 줄지 않는다!")
     }
 
     public sealed class BattleResult

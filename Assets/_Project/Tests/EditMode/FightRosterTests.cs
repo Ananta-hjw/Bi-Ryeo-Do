@@ -16,7 +16,7 @@ namespace BiRyeoDo.Tests
                 for (int k = 0; k < st.Encounters.Length; k++)
                 {
                     if (st.EventFor(k) != null) { Assert.IsEmpty(st.Encounters[k]); continue; }
-                    if (FireDragonFinale.IsFinale(st, k)) continue;   // the scripted 진 pays what the two fights it replaced paid
+                    if (Showdowns.Is(st, k)) continue;   // a scripted showdown (일반 30, 46) pays what the fights it replaced paid
                     Assert.GreaterOrEqual(st.Encounters[k].Length, st.RewardEncounters[k].Length, st.Name + " " + k);
                     // every story opponent is still there (stages 3 and 4 swap one 산적 for the 도부수)
                     foreach (var id in st.RewardEncounters[k].Distinct())

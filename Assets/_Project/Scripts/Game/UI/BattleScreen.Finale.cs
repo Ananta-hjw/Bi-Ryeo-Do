@@ -7,25 +7,25 @@ using UnityEngine.UI;
 namespace BiRyeoDo.Game.UI
 {
     /// <summary>
-    /// 일반 30 「화룡멸겁대진」 (FireDragonFinale): after the 진's blow the four masters lend 비류연 their 내력, a large 풍신 icon waits in the
-    /// middle of the screen, and pressing it plays the 필살기 cut-in of 「풍뢰의 장 · 나선의 인 · 용권승룡」. The rules live in InteractiveBattle (TrialKind.Finale).
+    /// Scripted showdowns (TrialKind.Finale, ShowdownScript): after the opening the scene plays, a large icon waits in the middle of the screen,
+    /// and pressing it plays the 필살기 cut-in of the last art (일반 30 풍신, 46 묵뢰살). The rules live in InteractiveBattle.
     /// </summary>
     public partial class BattleScreen
     {
         private RectTransform _finaleLayer;
         private bool _finalePressed;
 
-        /// <summary>The scene after the blow, then the 풍신 button; leaves the command the battle turns into the 풍신.</summary>
-        private IEnumerator FinaleFlow()
+        /// <summary>The scene after the opening, then the art's button; leaves the command the battle turns into that art.</summary>
+        private IEnumerator FinaleFlow(ShowdownScript script)
         {
             SetCommandsVisible(false);
-            yield return ShowStory("화룡멸겁대진", FireDragonFinale.AfterBlow);
+            yield return ShowStory(script.Title, script.AfterBlow);
             if (_fled) yield break;
-            yield return FinaleButton();
-            _command = PlayerCommand.Guard();   // whatever is sent, the battle resolves 비류연's last action as the 풍신
+            yield return FinaleButton(script);
+            _command = PlayerCommand.Guard();   // whatever is sent, the battle resolves 비류연's last action as the showdown's art
         }
 
-        private IEnumerator FinaleButton()
+        private IEnumerator FinaleButton(ShowdownScript script)
         {
             ClearFinaleLayer();
             _finalePressed = false;
@@ -37,15 +37,15 @@ namespace BiRyeoDo.Game.UI
             var halo = Fill(layer, "Halo", new Vector2(.38f, .30f), new Vector2(.62f, .74f), new Color(1f, .78f, .3f, .22f));
             var iconRect = UiFactory.Rect("Icon", layer, new Vector2(.40f, .34f), new Vector2(.60f, .70f));
             var icon = iconRect.gameObject.AddComponent<Image>();
-            icon.sprite = ArtLibrary.Art("pungsin") ?? ArtLibrary.Command("pungsin") ?? ArtLibrary.Icon("ultimate_slot");
+            icon.sprite = ArtLibrary.Art(script.IconArtId) ?? ArtLibrary.Command(script.IconArtId) ?? ArtLibrary.Icon("ultimate_slot");
             icon.preserveAspect = true;
             icon.color = icon.sprite != null ? Color.white : UiFactory.Gold;
             var button = iconRect.gameObject.AddComponent<Button>();
             button.targetGraphic = icon;
             button.onClick.AddListener(() => { _finalePressed = true; SoundManager.Sfx("ui_click"); });
 
-            UiFactory.Label("Name", layer, new Vector2(.2f, .74f), new Vector2(.8f, .82f), "풍신(風神)", 72, UiFactory.Gold);
-            UiFactory.Label("Hint", layer, new Vector2(.2f, .25f), new Vector2(.8f, .32f), "풍신 아이콘을 눌러 펼치세요", 40, UiFactory.PaperText);
+            UiFactory.Label("Name", layer, new Vector2(.2f, .74f), new Vector2(.8f, .82f), script.IconName, 72, UiFactory.Gold);
+            UiFactory.Label("Hint", layer, new Vector2(.2f, .25f), new Vector2(.8f, .32f), script.Hint, 40, UiFactory.PaperText);
 
             // the icon breathes until it is pressed (real time, so the speed setting and hit-stop never freeze it)
             float t = 0f;
@@ -66,10 +66,10 @@ namespace BiRyeoDo.Game.UI
             _finaleLayer = null;
         }
 
-        /// <summary>After the 진 is gone: 비류연 sinks down, then his last line.</summary>
-        private IEnumerator FinaleCollapse()
+        /// <summary>After the strike: 비류연 sinks down if the script says so, then the closing lines.</summary>
+        private IEnumerator FinaleCollapse(ShowdownScript script)
         {
-            var hero = PanelOf("player");
+            var hero = script.HeroCollapses ? PanelOf("player") : null;
             if (hero != null && hero.Art != null)
             {
                 var rect = hero.Art.rectTransform;
@@ -87,7 +87,7 @@ namespace BiRyeoDo.Game.UI
                 SetAlpha(hero.Art, 0.4f);
                 hero.Name.color = new Color(0.5f, 0.5f, 0.5f, 1f);
             }
-            yield return ShowStory("화룡멸겁대진", FireDragonFinale.AfterStrike);
+            if (script.AfterStrike != null && script.AfterStrike.Length > 0) yield return ShowStory(script.Title, script.AfterStrike);
         }
     }
 }
