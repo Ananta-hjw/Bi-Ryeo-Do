@@ -67,9 +67,8 @@ namespace BiRyeoDo.Core
                 if (stage.Number == 61 && encounter == 3 && member.Id == "story_namgung_sang") skills.Add(Hit("scene_escape_gate_thunder", "뇌궁섬뢰", 0.2f, 1));
                 if (stage.Number == 61 && encounter == 3 && member.Id == "jang_hong") skills.Add(Hit("scene_escape_gate_gray", "잿빛 검강 · 연환", 0.2f, 1));
                 if (stage.Number == 61 && encounter == 3 && member.Id == "story_mo_yonghwi") skills.Add(Hit("scene_escape_gate_galaxy", "은하만상", 0.2f, 1));
-                if (stage.Number == 62 && encounter == 0 && member.Id == "story_biry_escape") skills.Add(Avoid("scene_escape_laughter", "웃음으로 긴장을 감춘다"));
-                if (stage.Number == 62 && encounter == 2 && member.Id == "jang_hong") skills.Add(Avoid("scene_escape_shadow_bind", "차음막 · 영사삭 묵영포박"));
-                if (stage.Number == 62 && encounter == 3 && member.Id == "story_biry_escape") skills.Add(Hit("scene_escape_dog_capture", "변장 뒤의 몽둥이", 2f, 1));
+                if (stage.Number == 62 && encounter == 1 && member.Id == "jang_hong") skills.Add(Avoid("scene_escape_shadow_bind", "차음막 · 영사삭 묵영포박"));
+                if (stage.Number == 62 && encounter == 2 && member.Id == "story_biry_escape") skills.Add(Hit("scene_escape_dog_capture", "변장 뒤의 몽둥이", 2f, 1));
                 if (stage.Number == 63 && encounter == 0 && member.Id == "story_baek_muyeong") skills.Add(Avoid("scene_escape_flute_feint", "옥소로 시선을 끈다"));
                 if (stage.Number == 63 && encounter == 1 && member.Id == "story_cheong_heun") skills.Add(Hit("scene_escape_three_swords", "삼검교연 삼검귀일", 0.2f, 1));
                 if (stage.Number == 63 && encounter == 2 && member.Id == "story_yong_cheongmyeong") skills.Add(Hit("scene_escape_triple_roar", "삼존불영삼재 · 삼중 사자후", 0.2f, 1));
@@ -79,9 +78,8 @@ namespace BiRyeoDo.Core
                 if (stage.Number == 64 && encounter == 2 && member.Id == "na_yerin") skills.Add(Avoid("scene_escape_hold_sword", "검을 놓지 않는 의지"));
                 if (stage.Number == 64 && encounter == 3 && member.Id == "story_yeongryeong") skills.Add(Avoid("scene_escape_sister_smoke", "향신료 연막 · 예린과 이탈"));
                 if (stage.Number == 65 && encounter == 0 && member.Id == "story_biry_escape") skills.Add(Avoid("scene_escape_sect_threads", "뇌령사를 세 문파에 건다"));
-                if (stage.Number == 65 && encounter == 1 && member.Id == "story_biry_escape") skills.Add(Avoid("scene_escape_distrust", "우민군무 불신지옥"));
-                if (stage.Number == 65 && encounter == 2 && member.Id == "jang_hong") skills.Add(Avoid("scene_escape_red_flower", "암시 봉인 · 붉은 남천"));
-                if (stage.Number == 65 && encounter == 3 && member.Id == "jang_hong") skills.Add(Avoid("scene_escape_current", "급류 아래로 선행 진입"));
+                if (stage.Number == 65 && encounter == 1 && member.Id == "jang_hong") skills.Add(Avoid("scene_escape_red_flower", "암시 봉인 · 붉은 남천"));
+                if (stage.Number == 65 && encounter == 2 && member.Id == "jang_hong") skills.Add(Avoid("scene_escape_current", "급류 아래로 선행 진입"));
                 if (stage.Number == 66 && encounter == 0 && member.Id == "story_biry_escape") skills.Add(Hit("scene_escape_clear_elements", "풍신 질풍", 0.2f, 1));
                 if (stage.Number == 66 && encounter == 1 && member.Id == "story_biry_escape") skills.Add(Hit("scene_escape_free_father", "뇌령사 · 나백천 구출", 0.2f, 1));
                 if (stage.Number == 66 && encounter == 2 && member.Id == "story_biry_escape") skills.Add(Hit("scene_escape_fire_dragon", "화룡난류", 0.5f, 1));
@@ -415,19 +413,17 @@ namespace BiRyeoDo.Core
             { 6200, new[] {
                     new StoryScene { Title = "웃어라, 남궁상", Lines = new[] {
                         "알림 방울 뒤에 추격의 발소리가 따라왔다. 숲을 울리는 웃음이 긴장의 냄새를 바꾸었다. 흑견이 함정을 의심하는 틈에 길을 바꿀 수 있었다.",
-                    } }
-                } },
-            { 6201, new[] {
+                    } },
                     new StoryScene { Title = "흑견대 제삼대 · 복장을 얻을 틈", Lines = new[] {
                         "최와와의 제삼대가 소리의 방향으로 갈렸다. 장홍·모용휘·남궁상이 마혈을 제압하고 비류연이 물품을 살폈다. 추격대를 모두 죽일 필요는 없었다.",
                     } }
                 } },
-            { 6202, new[] {
+            { 6201, new[] {
                     new StoryScene { Title = "휘파람 밖의 차음막", Lines = new[] {
                         "백구가 점혈을 풀고 휘파람을 불었다. 장홍의 거짓 연기 뒤에서 모용휘와 남궁상이 이미 소리를 막았다. 이번에는 그림자로 움직임을 묶을 차례였다.",
                     } }
                 } },
-            { 6203, new[] {
+            { 6202, new[] {
                     new StoryScene { Title = "포승줄에 묶인 위장", Lines = new[] {
                         "장홍이 인피면구로 부상병이 되어 흑견에게 붙들렸다. 쌍룡양박 안에서 묵영포박이 거꾸로 그림자를 묶었다. 흑견대 복장의 비류연이 몽둥이를 들었다.",
                     } }
@@ -481,14 +477,12 @@ namespace BiRyeoDo.Core
             { 6501, new[] {
                     new StoryScene { Title = "우민군무 불신지옥", Lines = new[] {
                         "뇌령사가 움직이자 나전의 검이 흑저를 베었다. 세 문파 사이의 싸움이 천라지망 안으로 번졌다. 비류연은 꼭두각시 춤의 틈으로 일행을 통과시켰다.",
-                    } }
-                } },
-            { 6502, new[] {
+                    } },
                     new StoryScene { Title = "암시 봉인을 건 사람", Lines = new[] {
                         "지나치게 쉬운 통과가 장홍에게 불안으로 남았다. 흑견대 물품과 자신의 암시 봉인을 대조하자 붉은 남천 꽃과 은신처의 기억이 이어졌다.",
                     } }
                 } },
-            { 6503, new[] {
+            { 6502, new[] {
                     new StoryScene { Title = "급류 아래의 길", Lines = new[] {
                         "장홍이 먼저 물속으로 뛰었다. 비류연이 뇌령사로 생존을 확인한 뒤 나머지 세 사람이 따라갈 차례였다. 물 아래 동굴이 대난원이었다.",
                     } }

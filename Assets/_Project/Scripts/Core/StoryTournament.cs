@@ -62,9 +62,7 @@ namespace BiRyeoDo.Core
                     case "story_biry_search":
                         skills = new List<SkillSpec> { Hit("scene_search_fist", "삼복구타권법", 2.4f, 2), Avoid("scene_confirm_charm", "남겨진 뿔 장식 확인"), Avoid("scene_search_step", "퇴로 살피기") }; break;
                     case "story_biry_half":
-                        skills = encounter >= 3
-                            ? new List<SkillSpec> { Hit("scene_slow_fist", "느린 접촉", .1f), Hit("scene_second_fist", "반응을 확인하는 두 번째 타격", .9f), Avoid("scene_probe_step", "운균 앞의 호흡") }
-                            : new List<SkillSpec> { Hit("scene_loaned_darts", "빌린 비뢰도", 1f, 5), Hit("scene_jungbok", "삼복구타권법 중복", 2.5f, 2), Avoid("scene_half_step", "봉황무의 틈") };
+                        skills = new List<SkillSpec> { Hit("scene_loaned_darts", "빌린 비뢰도", 1f, 5), Hit("scene_jungbok", "삼복구타권법 중복", 2.5f, 2), Avoid("scene_half_step", "봉황무의 틈") };
                         break;
                     case "na_yerin":
                         if (stage.Number == 45 && encounter > 0)
@@ -83,7 +81,6 @@ namespace BiRyeoDo.Core
                         break;
                     case "jang_hong":
                         member.Skills.RemoveAll(skill => skill.Id == "scene_trace");
-                        if (stage.Number == 47 && encounter == 0) member.Skills.Add(Avoid("scene_trace", "흔적분으로 경로 살피기"));
                         break;
                 }
                 if (skills == null) continue;
@@ -254,6 +251,10 @@ namespace BiRyeoDo.Core
                     "꼭 돌려주겠다는 약속이 남았다. 계승 완료나 진비뢰도 전체 반환은 아니었다. 돈왕이 가져간 상금도 아직 손에 없었다.",
                 } },
             { 48, new[] {
+                    "금 밖으로 밀려나면 패한다는 첫 판의 규칙이었다. 효룡의 일격붕은 금강반탄강기에 튕겨 장외로 나갔다. 그 결과가 비류연의 시도까지 실패로 만들지는 않았다.",
+                    "갑옷을 다시 붙이기를 기다린 비류연은 아주 느린 주먹을 내밀었다. 작은 충격에는 판이 터지지 않는다는 사실을 확인했다.",
+                    "느린 접촉으로 본 조건 뒤 두 번째 주먹이 판을 날렸다. 그러나 락비오는 금 밖으로 밀려나지 않았다.",
+                    "다음은 그의 차례였다. 아직 다섯 공격을 받은 것도, 규칙전에서 이긴 것도 아니었다.",
                     "락비오의 운균에서 오가 나왔다. 금 안에서 자세를 세운 비류연은 철권 다섯 대를 앞뒀다. 첫 판의 결말과 둘째 판의 규칙은 아직 오지 않았다.",
                     "동해도에서는 모용휘와 공손절휘가 자군의 미의 대결 앞에 섰다. 북해와 남해로 향한 두 조의 결판도 남아 있었다.",
                     "같은 밤 장막 너머. 마천각주는 은명의 아버지 북천멸겁이었다. 제사십사계 천번지복지계의 실행을 명하고 남천의 상자와 동 가면을 건넸다.",
@@ -388,9 +389,7 @@ namespace BiRyeoDo.Core
                     new StoryScene { Title = "흔적분을 따라", Lines = new[] {
                         "돈왕의 빈 방과 환기 통로에서 찾아낸 길을 장홍의 흔적분이 이었다. 나백천이 벽을 열고 세 사람이 안쪽으로 들어갔다.",
                         "없는 범인을 지목하는 대신 실제로 남아 있는 길을 확인할 차례였다.",
-                    } }
-                } },
-            { 4701, new[] {
+                    } },
                     new StoryScene { Title = "쌍으로 만든 검은 뿔", Lines = new[] {
                         "묵린혈망의 검은 뿔 장식이 있었다. 비류연이 알아본 쌍의 한쪽은 나예린이 저항하며 남긴 흔적이었다.",
                         "돈왕과 외팔이가 버리고 간 방에 폭염진이 걸려 있었다. 단서를 찾은 일이 함정을 잘못 고른 실수가 되지는 않았다.",
@@ -413,18 +412,6 @@ namespace BiRyeoDo.Core
                     new StoryScene { Title = "철신관 앞의 남은 두 권", Lines = new[] {
                         "삼복구타권법 중복과 쌍검혈란이 철갑사패의 문을 열었다. 앞의 두 사람을 넘겨도 남은 두 권이 본관을 막았다.",
                         "대장들이 구경하는 철신관 안에는 아직 열지 않은 관과 강순천갑이 기다렸다.",
-                    } }
-                } },
-            { 4803, new[] {
-                    new StoryScene { Title = "운균 · 작은 충격의 반응", Lines = new[] {
-                        "금 밖으로 밀려나면 패한다는 첫 판의 규칙이었다. 효룡의 일격붕은 금강반탄강기에 튕겨 장외로 나갔다. 그 결과가 비류연의 시도까지 실패로 만들지는 않았다.",
-                        "갑옷을 다시 붙이기를 기다린 비류연은 아주 느린 주먹을 내밀었다. 작은 충격에는 판이 터지지 않는다는 사실부터 확인해야 했다.",
-                    } }
-                } },
-            { 4804, new[] {
-                    new StoryScene { Title = "두 번째 타격, 넘어가지 않은 금", Lines = new[] {
-                        "느린 접촉으로 본 조건 뒤 두 번째 주먹이 판을 날렸다. 그러나 락비오는 금 밖으로 밀려나지 않았다.",
-                        "다음은 그의 차례였다. 아직 다섯 공격을 받은 것도, 규칙전에서 이긴 것도 아니었다.",
                     } }
                 } },
         };

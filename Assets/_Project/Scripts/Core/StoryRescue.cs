@@ -147,10 +147,6 @@ namespace BiRyeoDo.Core
                 }
                 if (stage.Number == 57 && encounter == 0 && member.Id == "story_biry_rescue")
                 {
-                    skills.Add(Avoid("scene_umbrella_boat", "봉익일우"));
-                }
-                if (stage.Number == 57 && encounter == 1 && member.Id == "story_biry_rescue")
-                {
                     skills.Add(Hit("scene_water_funeral", "편수 풍신 · 수룡의 번 승천", 1f, 5));
                 }
                 if (stage.Number == 56 && encounter == 2 && member.Id == "story_biry_rescue")
@@ -522,9 +518,7 @@ namespace BiRyeoDo.Core
             { 5700, new[] {
                     new StoryScene { Title = "봉익일우 · 출항한 배로", Lines = new[] {
                         "서천의 이마에 상흔을 남긴 비류연이 호수로 이탈했다. 현천은린에 올라 장력을 노처럼 써 배를 따라갔다. 우산에 담긴 다른 이름의 물음은 아직 답을 얻지 못했다.",
-                    } }
-                } },
-            { 5701, new[] {
+                    } },
                     new StoryScene { Title = "첫 결원 · 장송곡", Lines = new[] {
                         "돌아온 배에서 당문혜가 당삼을 부탁했다. 만천화우의 꽃비를 완성해 달라는 마지막 말 뒤, 당삼은 처음 누나라 부르며 맹세했다. 주작단 열여섯 자리에서 처음 한 자리가 비었다.",
                         "기쁨의 축하 대신 침묵이 남았다. 귀문십장의 고속선과 십이호법의 추격선이 다시 둘러쌌다. 비류연은 왼쪽 발목의 묵룡환을 풀고 다섯 비뢰도를 들었다.",

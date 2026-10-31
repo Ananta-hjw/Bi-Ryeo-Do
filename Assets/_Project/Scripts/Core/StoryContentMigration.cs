@@ -5,7 +5,7 @@ namespace BiRyeoDo.Core
     /// <summary>Preserve cleared stages, earned stars and boss-clear records when the early story fight lists change.</summary>
     public static class StoryContentMigration
     {
-        public const int CurrentRevision = 10;
+        public const int CurrentRevision = 13;
         public static void Apply(SaveData save)
         {
             if (save == null || save.StoryContentRevision >= CurrentRevision) return;
@@ -143,6 +143,17 @@ namespace BiRyeoDo.Core
             }
             if (save.StoryContentRevision < 9) CompactFillerEncounters(save);
             if (save.StoryContentRevision < 10) CompactPair(save, 32, 35, 4);
+            if (save.StoryContentRevision < 11)
+            {
+                RemoveEncounter(save, 47, 0);
+                RemoveEncounter(save, 48, 3);
+            }
+            if (save.StoryContentRevision < 12) CompactPair(save, 57, 48, 3);
+            if (save.StoryContentRevision < 13)
+            {
+                RemoveEncounter(save, 62, 0);
+                RemoveEncounter(save, 65, 1);
+            }
             save.StoryContentRevision = CurrentRevision;
         }
 
@@ -180,6 +191,22 @@ namespace BiRyeoDo.Core
             if (save.ProgressStage == leadingChapter) save.ProgressNext = System.Math.Max(0, save.ProgressNext - 1);
             // The old final filler becomes a completion-only resume, without replaying the retained last fight.
             if (save.ProgressStage == trailingChapter) save.ProgressNext = System.Math.Min(save.ProgressNext, oldLast);
+        }
+
+        private static void RemoveEncounter(SaveData save, int number, int removed)
+        {
+            for (int i = save.StageStars.Count - 1; i >= 0; i--)
+            {
+                var entry = save.StageStars[i];
+                if (entry.Stage != number) continue;
+                if (entry.Fight == removed)
+                {
+                    save.RetiredStoryStars += StageStars.Count(entry.Mask);
+                    save.StageStars.RemoveAt(i);
+                }
+                else if (entry.Fight > removed) entry.Fight--;
+            }
+            if (save.ProgressStage == number && save.ProgressNext > removed) save.ProgressNext--;
         }
     }
 }

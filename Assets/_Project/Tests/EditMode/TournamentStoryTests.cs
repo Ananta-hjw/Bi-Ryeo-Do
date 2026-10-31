@@ -120,7 +120,7 @@ namespace BiRyeoDo.Tests
                     }
                 }
             }
-            Assert.AreEqual(27, fights);   // 46's 봉황환 and 묵뢰살 fights became one showdown
+            Assert.AreEqual(24, fights);   // 46 has one showdown; 47 lost one filler and 48 lost both probes
             CollectionAssert.AreEqual(items, save.Items.Select(x => x.Id + ":" + x.Count));
             CollectionAssert.AreEqual(slots, save.GearSlots.Where(x => !string.IsNullOrEmpty(x.ItemId)).Select(x => x.Owner + ":" + x.ItemId + ":" + x.Level));
             CollectionAssert.AreEqual(equipped, save.EquippedArts); CollectionAssert.AreEqual(learned, save.LearnedArts);
