@@ -37,6 +37,46 @@ namespace BiRyeoDo.Game.UI
             _command = PlayerCommand.Guard();   // whatever is sent, the battle resolves 비류연's last action as the showdown's art
         }
 
+        /// <summary>
+        /// 20: the opened mouth. The art's icon waits <see cref="ShowdownScript.WindowSeconds"/> real seconds over the battle; pressed in time it sets
+        /// <see cref="_finalePressed"/>, missed and the turn goes on with the usual commands until the next wind-up.
+        /// </summary>
+        private IEnumerator FinaleWindow(ShowdownScript script)
+        {
+            SetCommandsVisible(false);
+            ClearFinaleLayer();
+            _finalePressed = false;
+            var layer = UiFactory.Rect("FinaleWindow", _root, Vector2.zero, Vector2.one);
+            layer.SetAsLastSibling();
+            _finaleLayer = layer;
+            Fill(layer, "Dim", Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, 0.35f));
+            var iconRect = UiFactory.Rect("Icon", layer, new Vector2(.42f, .36f), new Vector2(.58f, .66f));
+            var icon = iconRect.gameObject.AddComponent<Image>();
+            icon.sprite = ArtLibrary.Art(script.IconArtId) ?? ArtLibrary.Command(script.IconArtId) ?? ArtLibrary.Icon("ultimate_slot");
+            icon.preserveAspect = true;
+            icon.color = icon.sprite != null ? Color.white : UiFactory.Gold;
+            var button = iconRect.gameObject.AddComponent<Button>();
+            button.targetGraphic = icon;
+            button.onClick.AddListener(() => { _finalePressed = true; SoundManager.Sfx("ui_click"); });
+            UiFactory.Label("Hint", layer, new Vector2(.2f, .68f), new Vector2(.8f, .78f), script.Hint, 64, UiFactory.Red);
+            var count = UiFactory.Label("Count", layer, new Vector2(.3f, .26f), new Vector2(.7f, .34f), "", 48, UiFactory.PaperText);
+            SoundManager.Sfx("charge");
+            for (float t = 0f; t < script.WindowSeconds && !_finalePressed && !_fled; t += Time.unscaledDeltaTime)
+            {
+                count.text = script.IconName + "  " + Mathf.CeilToInt(script.WindowSeconds - t) + "초";
+                float pulse = 1f + 0.08f * Mathf.Sin(t * 10f);
+                if (iconRect != null) iconRect.localScale = new Vector3(pulse, pulse, 1f);
+                yield return null;
+            }
+            ClearFinaleLayer();
+            if (!_finalePressed && !_fled)
+            {
+                _log.text = "입이 닫혔다…….";
+                SetCommandsVisible(true);
+                RefreshCommands();
+            }
+        }
+
         /// <summary>A red flash and a shake: the moment something cuts into the 필살기.</summary>
         private IEnumerator FinaleInterrupt()
         {

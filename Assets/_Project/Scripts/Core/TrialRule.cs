@@ -16,6 +16,7 @@ namespace BiRyeoDo.Core
     {
         PartyFirst,   // every living member acts once, then the enemy's one blow fells all but 비류연 (left at 1 HP)
         Unavoidable,  // the enemy's every blow lands through guard and dodge, ours do nothing; after FinaleTurns actions or below TriggerHpPct the scene begins
+        Window,       // an ordinary fight where our blows lose most of their force (ArmorFactor); while the enemy winds up, 비류연's turn offers the art that ends it
     }
 
     /// <summary>A special rule for one fight of a story trial (시험). The fight still runs on the normal engine.</summary>
@@ -32,6 +33,7 @@ namespace BiRyeoDo.Core
         public ShowdownScript Script;
         public int FinaleTurns = 3;
         public float BlowPct = 0.2f, TriggerHpPct = 0.3f;
+        public float ArmorFactor = 0.25f;
 
         public static TrialRule Technique(string title, string brief, string skillId, int partyActions = 20, bool requiresCharge = false, int uses = 1)
         {

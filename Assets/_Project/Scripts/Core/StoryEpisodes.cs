@@ -353,9 +353,10 @@ namespace BiRyeoDo.Core
                     var showdown = Showdowns.Is(stage, i) ? stage.TrialFor(i).Script : null;   // the scene played inside a scripted showdown
                     if (showdown != null)
                     {
-                        lines.AddRange(showdown.AfterBlow);
+                        if (showdown.ArmorLines != null) lines.AddRange(showdown.ArmorLines);
+                        if (showdown.AfterBlow != null) lines.AddRange(showdown.AfterBlow);
                         if (showdown.InterruptLines != null) lines.AddRange(showdown.InterruptLines);
-                        lines.AddRange(showdown.AfterStrike);
+                        if (showdown.AfterStrike != null) lines.AddRange(showdown.AfterStrike);
                     }
                     var ev = stage.EventFor(i);
                     if (ev != null)

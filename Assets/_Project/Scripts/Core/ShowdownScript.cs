@@ -27,6 +27,11 @@ namespace BiRyeoDo.Core
         public string StrikeQuip;
         public bool TwoStep { get { return !string.IsNullOrEmpty(SecondIconName); } }
 
+        // Window showdowns (20 묵린혈망): the first blow on the scales, its scene, and how long the button waits (real seconds)
+        public string FirstNoHarmQuip;
+        public string[] ArmorLines;
+        public float WindowSeconds = 3f;
+
         /// <summary>The last action (기세 100 so the screen plays the full 필살기 cut-in, unless the cut-in already played before a second button).</summary>
         public SkillSpec Skill()
         {
@@ -37,11 +42,17 @@ namespace BiRyeoDo.Core
     /// <summary>Stage-level helpers for scripted showdowns.</summary>
     public static class Showdowns
     {
-        /// <summary>True when the fight is a scripted showdown (it always gives all three stars once won).</summary>
+        /// <summary>True when the fight is a scripted showdown.</summary>
         public static bool Is(StageData stage, int fight)
         {
             var t = stage != null ? stage.TrialFor(fight) : null;
             return t != null && t.Kind == TrialKind.Finale;
+        }
+
+        /// <summary>A scripted showdown gives all three stars once won, except a window showdown, which is a real fight (20 묵린혈망).</summary>
+        public static bool FixedStars(StageData stage, int fight)
+        {
+            return Is(stage, fight) && stage.TrialFor(fight).Style != FinaleStyle.Window;
         }
 
         /// <summary>

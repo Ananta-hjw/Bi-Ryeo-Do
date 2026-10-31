@@ -495,7 +495,7 @@ namespace BiRyeoDo.Game.UI
                             if (gains.Length > 0) repLine = "평판 " + gains + (rises.Count > 0 ? "  (" + string.Join(", ", rises) + ")" : "");
                         }
                         // a choice event and a scripted showdown (일반 30, 46) give all three stars once won
-                        int fightMask = storyEvent != null || Showdowns.Is(stage, i) ? 7 : StageStars.Evaluate(stage.Number, i, _fightActions, _fightFell, diff);
+                        int fightMask = storyEvent != null || Showdowns.FixedStars(stage, i) ? 7 : StageStars.Evaluate(stage.Number, i, _fightActions, _fightFell, diff);
                         bool stageWasCleared = StageStars.StageCleared(save, stage.Number, diff);
                         int fightNew = StageStars.Record(save, stage.Number, i, diff, fightMask);
                         rewardMask = fightMask; rewardNewStars = fightNew;
@@ -921,7 +921,15 @@ namespace BiRyeoDo.Game.UI
                     if (hint != null) yield return HelpPanel.Instance.ShowOnce(hint);
                 }
 
-                if (_battle.FinaleReady)
+                bool windowHit = false;
+                if (_battle.FinaleWindowOpen)   // 20: the mouth is open, a few real seconds to strike
+                {
+                    yield return FinaleWindow(_battle.Trial.Script);
+                    if (_fled) yield break;
+                    windowHit = _finalePressed;
+                }
+                if (windowHit) _command = PlayerCommand.Finale();
+                else if (_battle.FinaleReady)
                 {
                     yield return FinaleFlow(_battle.Trial.Script);   // 일반 30 풍신, 46 묵뢰살: the scene, then the art's button
                     if (_fled) yield break;
@@ -2151,6 +2159,7 @@ namespace BiRyeoDo.Game.UI
                         else yield return EnemyHit(ev, finishMotion);
                         if (!string.IsNullOrEmpty(ev.Quip))   // scripted showdowns: "거리가 줄지 않는다!" / "심도에 닿지 않는다."
                         {
+                            if (ev.Lines != null && ev.Lines.Length > 0 && !ev.Retreated && !_fled) yield return ShowStory(_battle.Trial != null && _battle.Trial.Script != null ? _battle.Trial.Script.Title : "", ev.Lines);
                             _log.text = ev.Quip;
                             var quipAt = byParty ? (CardOf(ev.TargetId) != null ? CardOf(ev.TargetId).Center : Vector2.zero) : (PanelOf(ev.TargetId) != null ? PanelOf(ev.TargetId).Center : Vector2.zero);
                             if (quipAt != Vector2.zero && ev.Quip.Length <= 12) Float(quipAt + new Vector2(0f, 0.1f), ev.Quip, UiFactory.Gold, 48);   // short lines also float over the unit

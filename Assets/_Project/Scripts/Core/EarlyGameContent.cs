@@ -1640,7 +1640,8 @@ namespace BiRyeoDo.Core
                 Prologue = StoryMidgame.Prologues[20],
                 Intro = StoryMidgame.Intros[20],
                 Outro = StoryMidgame.Outros[20],
-                Encounters = new[] { new[] { "cave_viper", "cave_viper", "cave_viper" }, new[] { "cave_viper", "cave_viper" }, new[] { "mukrin_hyeolmang" } } },
+                Encounters = new[] { new[] { "cave_viper", "cave_viper", "cave_viper" }, new[] { "cave_viper", "cave_viper" }, new[] { "mukrin_hyeolmang" } },
+                Trials = new[] { null, null, StoryShowdowns.HyeolmangTrial } },   // the 섬뢰창 into the opened mouth
             new StageData { Number = 21, RewardWeightBudget = 8, Name = "흑랑채의 청혼", RecommendedLevel = 47, DooTotal = 10000,
                 Prologue = StoryMidgame.Prologues[21], Intro = StoryMidgame.Intros[21], Outro = StoryMidgame.Outros[21],
                 Encounters = new[] { new[] { "heukrang_bandit", "heukrang_bandit", "heukrang_bandit" }, new[] { "im_gae" }, new[] { "lee_songhak" } },

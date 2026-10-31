@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace BiRyeoDo.Core
 {
-    public enum CommandKind { Skill, Guard, Meditate, Item, Joint }
+    public enum CommandKind { Skill, Guard, Meditate, Item, Joint, Finale }
 
     public struct PlayerCommand
     {
@@ -33,6 +33,8 @@ namespace BiRyeoDo.Core
         public static PlayerCommand UseItem(ItemData item) { return new PlayerCommand { Kind = CommandKind.Item, Item = item }; }
         public static PlayerCommand Guard() { return new PlayerCommand { Kind = CommandKind.Guard }; }
         public static PlayerCommand Meditate() { return new PlayerCommand { Kind = CommandKind.Meditate }; }
+        /// <summary>The showdown's art while its window is open (<see cref="InteractiveBattle.FinaleWindowOpen"/>, 20 섬뢰창).</summary>
+        public static PlayerCommand Finale() { return new PlayerCommand { Kind = CommandKind.Finale }; }
     }
 
     /// <summary>
@@ -94,6 +96,18 @@ namespace BiRyeoDo.Core
         private readonly HashSet<Combatant> _finaleOpened = new HashSet<Combatant>();
         private bool IsFinale { get { return Trial != null && Trial.Kind == TrialKind.Finale; } }
         private bool IsUnavoidable { get { return IsFinale && Trial.Style == FinaleStyle.Unavoidable; } }
+        private bool IsWindow { get { return IsFinale && Trial.Style == FinaleStyle.Window; } }
+        private bool _armorNoted;
+        /// <summary>20: 비류연's turn while the enemy winds up (its mouth is open): <see cref="PlayerCommand.Finale"/> ends it.</summary>
+        public bool FinaleWindowOpen
+        {
+            get
+            {
+                if (!IsWindow || !IsPlayerTurn || Current != Player) return false;
+                foreach (var e in _enemies) if (e.IsAlive && e.Charging) return true;
+                return false;
+            }
+        }
         private int _finaleBlows;
         /// <summary>The opening is over (일반 30: the 진 has felled all but 비류연; 46: the 심도 has done its work): the scene comes next.</summary>
         public bool FinaleStruck { get; private set; }
@@ -391,6 +405,11 @@ namespace BiRyeoDo.Core
         {
             if (!IsPlayerTurn) throw new InvalidOperationException("Not the player's turn.");
             if (FinaleReady) return FinaleStrike();
+            if (cmd.Kind == CommandKind.Finale)
+            {
+                if (!FinaleWindowOpen) throw new InvalidOperationException("The window is closed.");
+                return FinaleStrike();
+            }
             if (cmd.Kind == CommandKind.Item && (cmd.Item == null || cmd.Item.Kind != ItemKind.Consumable || cmd.Item.MasteryUses > 0)) throw new InvalidOperationException("Not a consumable.");
             // Validate everything before touching any state, so a rejected command leaves the turn intact.
             if (cmd.Kind == CommandKind.Joint && (cmd.Skill == null || !CanJoint(cmd.Partner))) throw new InvalidOperationException("Joint attack unavailable.");
@@ -563,6 +582,7 @@ namespace BiRyeoDo.Core
             bool counter = _counterStrikes.TryGetValue(actor, out counterTarget) && counterTarget == t;
             if (counter) dmg = (int)Math.Round(dmg * CounterDamageFactor);
             if (IsUnavoidable && t.Team == Team.Enemy) dmg = 0;   // 46: no blow reaches the 심도
+            if (IsWindow && t.Team == Team.Enemy) dmg = Math.Max(1, (int)Math.Round(dmg * Trial.ArmorFactor));   // 20: the old scales throw most of it back
             t.Hp = Math.Max(0, t.Hp - dmg);
             if (IsFinale && t.Team == Team.Enemy && t.Hp < 1) t.Hp = 1;   // the 진 cannot be worn down
             if (t.UsesResources && t.IsAlive) t.Spirit = Math.Min(MaxSpirit, t.Spirit + SpiritOnEnemyHit);
@@ -573,6 +593,12 @@ namespace BiRyeoDo.Core
                 Damage = dmg, IsCrit = crit, HitIndex = h, HitCount = hits, Harmony = _harmonyBoost, Counter = counter, AllEnemies = skill.AllEnemies, Ranged = skill.Ranged
             };
             if (IsUnavoidable && t.Team == Team.Enemy) ev.Quip = Trial.Script.NoHarmQuip;
+            if (IsWindow && t.Team == Team.Enemy)
+            {
+                ev.Quip = _armorNoted ? Trial.Script.NoHarmQuip : Trial.Script.FirstNoHarmQuip;
+                if (!_armorNoted) ev.Lines = Trial.Script.ArmorLines;   // the first bounce: 나예린 explains the scales
+                _armorNoted = true;
+            }
             if (t.RetreatHpPct > 0f && t.Hp <= t.Stats.MaxHp * t.RetreatHpPct)
             {
                 // Story boss: it escapes rather than dying. The fight ends as a win but nobody is slain.
@@ -636,7 +662,7 @@ namespace BiRyeoDo.Core
                 target.AwakeningStrike = null;
                 ev.Interrupted = true;
             }
-            else if (target.Charging)
+            else if (target.Charging && !IsWindow)   // 20: a stun cannot shut the opened mouth (the showdown's window)
             {
                 // Interrupt the wind-up: the heavy move that follows is skipped.
                 target.Charging = false;
@@ -735,7 +761,7 @@ namespace BiRyeoDo.Core
         private List<BattleEvent> RunUntilParty()
         {
             var events = new List<BattleEvent>();
-            if (IsFinale && !IsUnavoidable && !IsOver) { FinaleTurn(events); return events; }
+            if (IsFinale && Trial.Style == FinaleStyle.PartyFirst && !IsOver) { FinaleTurn(events); return events; }
             while (!IsOver)
             {
                 var actor = NextActor();

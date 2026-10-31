@@ -47,6 +47,23 @@ namespace BiRyeoDo.Core
 
         public static readonly TrialRule CheonoeTrial = Cheonoe46();
 
+        /// <summary>
+        /// 20 「매몰 44일」 (10권): the first 비뢰도 bounces off the old scales, and 섬뢰창 goes into the opened mouth.
+        /// Story/analysis/vol10.md 「묵린혈망전과 다시 막힌 길」. The 25% force, the three seconds and the guidance lines are game terms.
+        /// </summary>
+        public static readonly ShowdownScript Hyeolmang = new ShowdownScript
+        {
+            Title = "묵린혈망",
+            ArmorLines = new[] { "나예린이 영물도감의 지식으로 설명했다. 팔백 년 가까이 산 영물의 오래된 비늘은 단단하고 탄력이 있어, 웬만한 힘은 그대로 튕겨 냈다." },
+            FirstNoHarmQuip = "비늘에 튕긴다!",
+            NoHarmQuip = "검은 비늘에 막힌다.",
+            IconArtId = "saengsa_seomroe", IconName = "생사결 섬뢰창", Hint = "입이 열렸다! 지금!",
+            SkillId = "scene_seomroechang_finale", SkillName = "비뢰도 오의 검기 · 생사결 섬뢰창",
+            WindowSeconds = 3f,
+        };
+
+        public static readonly TrialRule HyeolmangTrial = TrialRule.Finale("묵린혈망", "검은 비늘은 공격을 튕겨 냅니다. 혈망이 침을 모아 입을 여는 순간을 노리세요.", Hyeolmang, FinaleStyle.Window);
+
         public static readonly ShowdownScript Moon = new ShowdownScript
         {
             Title = "현천포월",

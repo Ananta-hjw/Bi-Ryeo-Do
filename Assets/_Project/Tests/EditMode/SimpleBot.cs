@@ -11,6 +11,7 @@ namespace BiRyeoDo.Tests
         public static PlayerCommand Choose(InteractiveBattle b)
         {
             var me = b.Current;
+            if (b.FinaleWindowOpen) return PlayerCommand.Finale();   // 20: the opened mouth
             var alive = b.Enemies.Where(e => e.IsAlive).ToList();
             var skills = me.Skills.Where(s => s.Id != "basic" && b.CanUse(s)).ToList();
             var charging = alive.Where(e => e.AwakeningStrike != null || e.Charging).ToList();

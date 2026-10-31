@@ -142,7 +142,7 @@ namespace BiRyeoDo.Core
             new[] { 15, 10, 24 },   // 17
             new[] { 10, 16, 25, 30 },   // 18
             new[] { 21, 20, 21, 24, 18, 55 },   // 19
-            new[] { 43, 26, 37 },   // 20
+            new[] { 43, 26, 20 },   // 20 (the 혈망 showdown ends at the first opened mouth: the bot needs 17)
             new[] { 57, 43, 22 },   // 21
             new[] { 30, 61, 42, 61, 48, 50 },   // 22
             new[] { 46, 37, 22, 48 },   // 23

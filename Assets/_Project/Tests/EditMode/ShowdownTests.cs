@@ -91,6 +91,36 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void ScalesTurnBlowsAsideUntilTheMouthOpensForSeomroechang()
+        {
+            var stage = EarlyGameContent.FindStage(20);
+            Assert.AreEqual(3, stage.Encounters.Length);
+            var trial = stage.TrialFor(2);
+            Assert.AreEqual(FinaleStyle.Window, trial.Style);
+            Assert.IsFalse(Showdowns.FixedStars(stage, 2), "a real fight keeps its usual stars");
+            var save = BalanceSimulation.Starter(20, StageStars.NormalBotLevel(20));
+            var party = BalanceSimulation.Party(save, stage, 2);
+            var snake = stage.EnemyFor("mukrin_hyeolmang", trial).CreateCombatant("snake");
+            var battle = new InteractiveBattle(party, new List<Combatant> { snake }, new SeededRandom(8)) { Trial = trial };
+            var events = battle.Begin();
+            int guard = 0;
+            while (!battle.IsOver && !battle.FinaleWindowOpen && guard++ < 200)
+            {
+                Assert.Throws<InvalidOperationException>(() => battle.PlayerAct(PlayerCommand.Finale()), "closed until the mouth opens");
+                events.AddRange(battle.PlayerAct(SimpleBot.Choose(battle)));
+            }
+            Assert.IsTrue(battle.FinaleWindowOpen, "the wind-up opens the window on 비류연's turn");
+            var hits = events.Where(e => e.TargetId == snake.Id && e.Kind == EventKind.Attack).ToList();
+            Assert.AreEqual("비늘에 튕긴다!", hits[0].Quip);
+            Assert.IsNotNull(hits[0].Lines, "the first bounce brings 나예린's explanation");
+            Assert.IsTrue(hits.Skip(1).All(e => e.Quip == "검은 비늘에 막힌다." && e.Lines == null));
+            var strike = battle.PlayerAct(PlayerCommand.Finale());
+            Assert.IsTrue(strike.All(e => e.SkillId == "scene_seomroechang_finale" && e.TargetDefeated && !e.Retreated));
+            Assert.IsTrue(battle.PlayerWon);
+            Assert.AreEqual("비뢰도 오의 검기 · 생사결 섬뢰창", party[0].Skills.Single(sk => sk.Id == "scene_seomroechang_finale").Name);
+        }
+
+        [Test]
         public void TheSceneUsesTheOriginalLinesAndTheStoryLogKeepsIt()
         {
             string story = string.Join(" ", StoryEpisodes.Replay(Final));
