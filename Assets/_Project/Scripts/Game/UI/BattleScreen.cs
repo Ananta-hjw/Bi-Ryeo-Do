@@ -2153,7 +2153,7 @@ namespace BiRyeoDo.Game.UI
                         {
                             _log.text = ev.Quip;
                             var quipAt = byParty ? (CardOf(ev.TargetId) != null ? CardOf(ev.TargetId).Center : Vector2.zero) : (PanelOf(ev.TargetId) != null ? PanelOf(ev.TargetId).Center : Vector2.zero);
-                            if (quipAt != Vector2.zero) Float(quipAt + new Vector2(0f, 0.1f), byParty ? "닿지 않음" : "거리 0", UiFactory.Gold, 52);
+                            if (quipAt != Vector2.zero && ev.Quip.Length <= 12) Float(quipAt + new Vector2(0f, 0.1f), ev.Quip, UiFactory.Gold, 48);   // short lines also float over the unit
                         }
                         if (ev.CounterReady)
                         {

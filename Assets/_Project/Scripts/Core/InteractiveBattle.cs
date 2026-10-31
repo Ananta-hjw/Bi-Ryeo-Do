@@ -176,17 +176,20 @@ namespace BiRyeoDo.Core
             var spec = actor.Skills.Find(s => s.Id == Trial.Script.SkillId);
             if (spec == null) { spec = Trial.Script.Skill(); actor.Skills.Add(spec); }
             var events = new List<BattleEvent>();
+            var script = Trial.Script;
+            if (script.SelfCostPct > 0f) actor.Hp = Math.Max(1, actor.Hp - (int)Math.Round(actor.Stats.MaxHp * script.SelfCostPct));   // 43: the blow 비류연 turns on himself
             foreach (var e in _enemies)
             {
                 if (!e.IsAlive) continue;
-                int dmg = e.Hp;
+                int dmg = script.StrikeHarmless ? 0 : e.Hp;   // 43: the lightning goes into the ground, nobody is struck
                 e.Hp = 0;
                 e.Charging = false; e.ChargeTarget = null; e.AwakeningStrike = null;
                 events.Add(new BattleEvent
                 {
                     Turn = Turn, ActorId = actor.Id, TargetId = e.Id, SkillId = spec.Id, Kind = EventKind.Attack, Damage = dmg, HitIndex = 0, HitCount = 1,
                     AllEnemies = true, TargetHpAfter = 0, TargetDefeated = true, ActorQiAfter = actor.Qi, ActorSpiritAfter = actor.Spirit,
-                    Retreated = Trial.Script.EnemyLeaves, Message = Trial.Script.EnemyLeaves ? e.Name + "(이)가 쓰러졌다." : null
+                    Retreated = script.EnemyLeaves, Message = script.EnemyLeaves ? e.Name + (script.StrikeHarmless ? "(이)가 물러섰다." : "(이)가 쓰러졌다.") : null,
+                    Quip = script.StrikeQuip
                 });
             }
             return events;

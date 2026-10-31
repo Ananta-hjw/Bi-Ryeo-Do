@@ -354,6 +354,7 @@ namespace BiRyeoDo.Core
                     if (showdown != null)
                     {
                         lines.AddRange(showdown.AfterBlow);
+                        if (showdown.InterruptLines != null) lines.AddRange(showdown.InterruptLines);
                         lines.AddRange(showdown.AfterStrike);
                     }
                     var ev = stage.EventFor(i);

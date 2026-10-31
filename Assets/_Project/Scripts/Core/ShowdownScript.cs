@@ -17,10 +17,20 @@ namespace BiRyeoDo.Core
         public bool HeroCollapses;        // 비류연 sinks down after the strike
         public bool EnemyLeaves;          // the opponent is beaten but not slain (shown as leaving)
 
-        /// <summary>The last art (기세 100 so the screen plays the full 필살기 cut-in).</summary>
+        // Two-button showdowns (43 현천포월): the first button plays CutInName's 필살기 cut-in, InterruptLines break into it,
+        // and the second button is the last action; StrikeHarmless leaves the opponent unhurt and costs the user SelfCostPct of max HP.
+        public string CutInName;
+        public string[] InterruptLines;
+        public string SecondIconArtId, SecondIconName, SecondHint;
+        public bool StrikeHarmless;
+        public float SelfCostPct;
+        public string StrikeQuip;
+        public bool TwoStep { get { return !string.IsNullOrEmpty(SecondIconName); } }
+
+        /// <summary>The last action (기세 100 so the screen plays the full 필살기 cut-in, unless the cut-in already played before a second button).</summary>
         public SkillSpec Skill()
         {
-            return new SkillSpec { Id = SkillId, Name = SkillName, Power = 30f, AllEnemies = true, Range = 3, SpiritCost = 100 };
+            return new SkillSpec { Id = SkillId, Name = SkillName, Power = 30f, AllEnemies = true, Range = 3, SpiritCost = TwoStep ? 0 : 100 };
         }
     }
 
