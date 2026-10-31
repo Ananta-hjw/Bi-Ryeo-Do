@@ -159,8 +159,8 @@ namespace BiRyeoDo.Tests
             Assert.GreaterOrEqual(wins, 17);
         }
 
-        [TestCase(31, 2, 2, 1)] [TestCase(32, 2, 3, 0)] [TestCase(33, 3, 3, 2)]
-        [TestCase(34, 2, 2, 0)] [TestCase(35, 3, 4, 1)] [TestCase(36, 2, 3, 1)]
+        [TestCase(31, 2, 2, 1)] [TestCase(32, 2, 2, -1)] [TestCase(33, 3, 3, 2)]
+        [TestCase(34, 2, 2, 0)] [TestCase(35, 3, 3, 1)] [TestCase(36, 2, 3, 1)]
         public void RevisionEightKeepsEarnedStarsAndFinalCreditWithoutClaimingNewFights(int number, int oldCount, int final, int inserted)
         {
             var save = new SaveData { StoryContentRevision = 7, ClearedStage = 36, ProgressStage = number, ProgressNext = 1, Doo = 12345, Level = 40 };
@@ -176,7 +176,7 @@ namespace BiRyeoDo.Tests
             for (int diff = 0; diff < 3; diff++)
             {
                 Assert.AreEqual(7, StageStars.MaskOf(save, number, final, diff));
-                Assert.AreEqual(0, StageStars.MaskOf(save, number, inserted, diff));
+                if (inserted >= 0) Assert.AreEqual(0, StageStars.MaskOf(save, number, inserted, diff));
                 Assert.IsTrue(StageStars.StageCleared(save, number, diff));
                 Assert.IsTrue(Recommend.IsReplay(save, EarlyGameContent.FindStage(number).WithDifficulty(diff)));
             }
@@ -228,7 +228,7 @@ namespace BiRyeoDo.Tests
                     }
                 }
             }
-            Assert.AreEqual(23, fights);
+            Assert.AreEqual(21, fights);
             CollectionAssert.AreEqual(new[] { "im_seongjin" }, save.ActiveCompanions);
             CollectionAssert.AreEqual(new[] { "na_yerin" }, save.BenchedCompanions);
             Assert.IsFalse(save.CompanionLevels.Any(x => Roster.IsStoryActor(x.Id)));
@@ -251,11 +251,10 @@ namespace BiRyeoDo.Tests
             StageProgress.Store(save, 35, 3, same, 2);
             var resumed = Roster.CreateStoryParty(stage, 3, save); StageProgress.Restore(save, resumed);
             Assert.AreEqual(123, resumed[0].Hp); Assert.AreEqual(0, resumed[0].Qi); Assert.AreEqual(50, resumed[0].Spirit);
-            var next = Roster.CreateStoryParty(stage, 4, save);
-            StageProgress.Store(save, 35, 4, next, 2);
-            resumed = Roster.CreateStoryParty(stage, 4, save); StageProgress.Restore(save, resumed);
-            Assert.AreEqual("story_yu_gyeongyeong", resumed.Single().Id);
-            Assert.AreEqual(resumed[0].Stats.MaxHp, resumed[0].Hp);
+            StageProgress.Store(save, 35, 4, resumed, 2);
+            Assert.IsTrue(StageProgress.AtEnding(save, stage));
+            Assert.AreEqual(123, save.ProgressHp[0].Hp);
+            Assert.AreEqual(0, save.ProgressHp[0].Qi);
             Assert.AreEqual(2, save.ProgressDifficulty);
         }
 
@@ -274,9 +273,10 @@ namespace BiRyeoDo.Tests
             Assert.IsFalse(battle.CanJoint(party[1]));
             party[0].StoryControlled = false;
             Assert.IsTrue(battle.CanJoint(party[1]));
-            var child = Roster.CreateStoryParty(EarlyGameContent.FindStage(35), 4, save).Single();
-            Assert.IsTrue(child.Skills.Where(x => x.Id != "basic").All(x => x.Effect == SkillEffect.Evade));
-            CollectionAssert.AreEqual(new[] { "closed_room_threat" }, EarlyGameContent.FindStage(35).Encounters.Last());
+            var dawn = EarlyGameContent.FindStage(35);
+            Assert.IsFalse(dawn.StoryActors.SelectMany(x => x).Contains("story_yu_gyeongyeong"));
+            Assert.IsFalse(dawn.Encounters.SelectMany(x => x).Contains("closed_room_threat"));
+            StringAssert.Contains("소년은 선아를 감쌌다", string.Join(" ", dawn.Outro));
             Assert.IsFalse(Realm.HasRealm(EarlyGameContent.FindEnemy("closed_room_threat")));
         }
 
@@ -342,7 +342,7 @@ namespace BiRyeoDo.Tests
             StringAssert.Contains("나예린|연비!", departure);
             Assert.IsFalse(departure.Contains("연비의 정체는 비류연"));
             Assert.IsFalse(departure.Contains("청룡은장의 재건이 끝났다"));
-            Assert.AreEqual(TrialKind.Survive, EarlyGameContent.FindStage(35).TrialFor(4).Kind);
+            Assert.AreEqual(TrialKind.Survive, EarlyGameContent.FindStage(35).TrialFor(3).Kind);
             Assert.AreEqual(TrialKind.Survive, EarlyGameContent.FindStage(36).TrialFor(3).Kind);
         }
 

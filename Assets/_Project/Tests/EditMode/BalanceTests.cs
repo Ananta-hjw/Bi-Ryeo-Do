@@ -52,7 +52,7 @@ namespace BiRyeoDo.Tests
         [TestCase(29, 122, 192)]
         [TestCase(30, 89, 140)]
         [TestCase(31, 14, 25)]
-        [TestCase(32, 24, 44)]
+        [TestCase(32, 16, 30)]
         [TestCase(33, 20, 45)]
         [TestCase(34, 35, 65)]
         [TestCase(35, 39, 65)]
