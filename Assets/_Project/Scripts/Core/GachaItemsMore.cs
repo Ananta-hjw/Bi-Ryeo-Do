@@ -135,7 +135,7 @@ namespace BiRyeoDo.Core
             new ItemData { Id = "gen_pan_rar02", Name = "은사 고", Kind = ItemKind.Pants, Grade = ItemGrade.Rare, HpPct = 0.1f, Description = "걸을 때마다 가볍게 스친다. 체력 +10%." },
             new ItemData { Id = "gen_pan_rar03", Name = "응련 각반", Kind = ItemKind.Pants, Grade = ItemGrade.Rare, HpPct = 0.04f, DefPct = 0.06f, Description = "튼튼한 솔기가 인상적이다. 체력 +4%, 방어 +6%." },
             new ItemData { Id = "gen_pan_rar04", Name = "사슴가죽 바지", Kind = ItemKind.Pants, Grade = ItemGrade.Rare, HpPct = 0.07f, SpeedAdd = 1, Description = "허리끈을 조이면 몸이 가뿐하다. 체력 +7%, 속도 +1." },
-            new ItemData { Id = "gen_boo_rar01", Name = "흑견 장화", Kind = ItemKind.Boots, Grade = ItemGrade.Rare, HpPct = 0.02f, CritAdd = 0.01f, SpeedAdd = 7, Description = "걸음이 가벼워지는 신발. 체력 +2%, 속도 +7, 치명타 +1%." },
+            new ItemData { Id = "gen_boo_rar01", Name = "흑견 장화", Kind = ItemKind.Boots, Grade = ItemGrade.Rare, HpPct = 0.02f, AtkPct = 0.03f, CritAdd = 0.02f, SpeedAdd = 7, Description = "걸음이 가벼워지는 신발. 체력 +2%, 공격 +3%, 속도 +7, 치명타 +2%." },
             new ItemData { Id = "gen_boo_rar02", Name = "은사 비화", Kind = ItemKind.Boots, Grade = ItemGrade.Rare, HpPct = 0.02f, DefPct = 0.06f, CritAdd = 0.01f, SpeedAdd = 5, Description = "바닥을 잘 잡아 미끄러지지 않는다. 체력 +2%, 방어 +6%, 속도 +5, 치명타 +1%." },
             new ItemData { Id = "gen_boo_rar03", Name = "응련 장화", Kind = ItemKind.Boots, Grade = ItemGrade.Rare, HpPct = 0.10f, CritAdd = 0.01f, SpeedAdd = 3, Description = "산길에서도 든든한 신발. 체력 +10%, 속도 +3, 치명타 +1%." },
             new ItemData { Id = "gen_boo_rar04", Name = "백호 가죽신", Kind = ItemKind.Boots, Grade = ItemGrade.Rare, HpPct = 0.03f, SpeedAdd = 6, CritAdd = 0.01f, Description = "신으면 걸음이 저절로 빨라진다. 체력 +3%, 속도 +6, 치명타 +1%." },
