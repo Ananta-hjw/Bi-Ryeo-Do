@@ -17,6 +17,7 @@ namespace BiRyeoDo.Core
         PartyFirst,   // every living member acts once, then the enemy's one blow fells all but 비류연 (left at 1 HP)
         Unavoidable,  // the enemy's every blow lands through guard and dodge, ours do nothing; after FinaleTurns actions or below TriggerHpPct the scene begins
         Window,       // an ordinary fight where our blows lose most of their force (ArmorFactor); while the enemy winds up, 비류연's turn offers the art that ends it
+        Duel,         // 비류연 alone, his turn from the start: the screen times the strike (24 동전); each late press costs BlowPct of max HP, the Limit-th one loses
     }
 
     /// <summary>A special rule for one fight of a story trial (시험). The fight still runs on the normal engine.</summary>
@@ -57,6 +58,13 @@ namespace BiRyeoDo.Core
         {
             if (script == null) throw new System.ArgumentException("A showdown needs its script");
             return new TrialRule { Kind = TrialKind.Finale, Title = title, Brief = brief, Script = script, Style = style };
+        }
+
+        /// <summary>A timed one-on-one (24 동방학): <paramref name="misses"/> late presses lose the fight, each one costs <paramref name="blowPct"/> of max HP.</summary>
+        public static TrialRule Duel(string title, string brief, ShowdownScript script, int misses = 5, float blowPct = 0.2f)
+        {
+            if (script == null || misses < 1) throw new System.ArgumentException("A duel needs its script and at least one chance");
+            return new TrialRule { Kind = TrialKind.Finale, Title = title, Brief = brief, Script = script, Style = FinaleStyle.Duel, Limit = misses, BlowPct = blowPct };
         }
         public static TrialRule Survive(string title, string brief, int enemyActions) { return new TrialRule { Kind = TrialKind.Survive, Limit = enemyActions, Title = title, Brief = brief }; }
         public static TrialRule Deadline(string title, string brief, int partyActions) { return new TrialRule { Kind = TrialKind.Deadline, Limit = partyActions, Title = title, Brief = brief }; }

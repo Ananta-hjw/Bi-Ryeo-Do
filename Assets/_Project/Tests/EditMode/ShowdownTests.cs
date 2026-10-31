@@ -121,6 +121,75 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void CoinDuelIsBiryuyeonAloneAndFiveLatePressesLoseIt()
+        {
+            var stage = EarlyGameContent.FindStage(24);
+            Assert.AreEqual(4, stage.Encounters.Length, "the stage keeps its four fights");
+            var trial = stage.TrialFor(1);
+            Assert.AreEqual(FinaleStyle.Duel, trial.Style);
+            Assert.IsTrue(Showdowns.FixedStars(stage, 1));
+            CollectionAssert.AreEqual(new[] { "dongbang_hak" }, stage.Encounters[1]);
+            CollectionAssert.AreEqual(new[] { "dongbang_hak", "hyeolma_dae_b" }, stage.RewardEncounters[1], "it still pays for the 혈마대원");
+            var save = BalanceSimulation.Starter(24, StageStars.NormalBotLevel(24));
+            var party = BalanceSimulation.Party(save, stage, 1);
+            Assert.AreEqual(1, party.Count, "one on one");
+            var hak = stage.EnemyFor("dongbang_hak", trial).CreateCombatant("hak");
+            var battle = new InteractiveBattle(party, new List<Combatant> { hak }, new SeededRandom(4)) { Trial = trial };
+            battle.Begin();
+            Assert.AreSame(party[0], battle.Current, "비류연's turn from the start, no gauge race");
+            Assert.IsTrue(battle.FinaleReady);
+            Assert.AreEqual("기회 5/5", battle.TrialStatus);
+            int max = party[0].Stats.MaxHp;
+            party[0].Hp = max / 2;   // even half-hurt he gets all five chances
+            for (int i = 1; i <= 4; i++)
+            {
+                var miss = battle.DuelMiss().Single();
+                Assert.AreEqual("붉은 검이 먼저 닿았다!", miss.Quip);
+                Assert.IsTrue(party[0].IsAlive, "miss " + i);
+                Assert.IsFalse(battle.IsOver);
+                Assert.AreSame(party[0], battle.Current, "the turn stays his for the next coin");
+            }
+            Assert.AreEqual(1, party[0].Hp, "never below 1 before the last chance");
+            Assert.AreEqual("기회 1/5", battle.TrialStatus);
+            var last = battle.DuelMiss().Single();
+            Assert.IsTrue(last.TargetDefeated);
+            Assert.IsTrue(battle.IsOver);
+            Assert.IsFalse(battle.PlayerWon);
+            Assert.IsTrue(battle.TrialFailed);
+            Assert.Throws<InvalidOperationException>(() => battle.DuelMiss());
+        }
+
+        [Test]
+        public void EachLatePressCostsAFifthAndTheStrikeEndsTheDuel()
+        {
+            var stage = EarlyGameContent.FindStage(24);
+            var trial = stage.TrialFor(1);
+            var party = BalanceSimulation.Party(BalanceSimulation.Starter(24, StageStars.NormalBotLevel(24)), stage, 1);
+            var hak = stage.EnemyFor("dongbang_hak", trial).CreateCombatant("hak");
+            var battle = new InteractiveBattle(party, new List<Combatant> { hak }, new SeededRandom(4)) { Trial = trial };
+            battle.Begin();
+            int max = party[0].Stats.MaxHp;
+            party[0].Hp = max;
+            var miss = battle.DuelMiss().Single();
+            Assert.AreEqual((int)Math.Round(max * 0.2f), miss.Damage);
+            Assert.AreEqual(max - miss.Damage, party[0].Hp);
+            Assert.AreEqual(0.1f, trial.Script.DuelWindowStep, 1e-6f, "each miss widens the window by 0.1 s");
+            var strike = battle.PlayerAct(PlayerCommand.Guard());   // whatever is sent, it is 섬뢰
+            Assert.IsTrue(strike.All(e => e.SkillId == "scene_seomroe_finale" && e.TargetDefeated && !e.Retreated));
+            Assert.IsTrue(battle.PlayerWon);
+            Assert.AreEqual(0, party[0].Skills.Single(sk => sk.Id == "scene_seomroe_finale").SpiritCost, "a white flash, not the 필살기 cut-in");
+            string story = string.Join(" ", StoryEpisodes.Replay(stage));
+            foreach (var cue in new[] { "뢰(雷)의 어느 얼굴", "빛을 뒤쫓는 쾌", "두 개의 묵룡환", "이 동전에 떨어지는 걸로 신호를 삼죠", "봤나?", "열십자", "뇌의 이름을 인정하죠", "섬뢰(閃雷)!", "학(鶴)! 이, 이 노옴!" })
+                StringAssert.Contains(cue, story);
+            Assert.IsTrue(BalanceSimulation.Play(stage, BalanceSimulation.Starter(24, StageStars.NormalBotLevel(24)), 5).Won);
+            for (int d = 1; d <= 2; d++)
+            {
+                Assert.AreEqual(FinaleStyle.Duel, stage.WithDifficulty(d).TrialFor(1).Style, "the same duel on every difficulty");
+                CollectionAssert.AreEqual(new[] { "player" }, Roster.StoryActorsFor(stage.WithDifficulty(d), 1));
+            }
+        }
+
+        [Test]
         public void TheSceneUsesTheOriginalLinesAndTheStoryLogKeepsIt()
         {
             string story = string.Join(" ", StoryEpisodes.Replay(Final));

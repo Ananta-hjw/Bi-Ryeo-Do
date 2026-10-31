@@ -44,7 +44,7 @@ namespace BiRyeoDo.Tests
             for (int n = 0; n < 4; n++) Assert.GreaterOrEqual(wins[n], (int)(reached[n] * 0.9));
         }
 
-        [TestCase(24, 76, 120)]
+        [TestCase(24, 54, 85)]   // fight 2 is the coin duel (one action) since the 동방학 showdown
         [TestCase(25, 70, 111)]    // Rescue now ends by surviving the white-hand assault, not killing the next-volume opponent.
         [TestCase(26, 130, 246)]   // shorter since 일반 8+ enemy attack/defense x0.8
         [TestCase(27, 85, 131)]

@@ -1655,8 +1655,11 @@ namespace BiRyeoDo.Core
                 Encounters = new[] { new[] { "bisa_snake", "bisa_snake", "bisa_snake" }, new[] { "cheonghong_ssanggaksa", "bisa_snake" }, new[] { "hyeol_chang" }, new[] { "mo_saryeong" } } },
             new StageData { Number = 24, RewardWeightBudget = 8, Name = "비뢰쌍마와 매화가면", RecommendedLevel = 53, DooTotal = 12000,
                 Prologue = StoryMidgame.Prologues[24], Intro = StoryMidgame.Intros[24], Outro = StoryMidgame.Outros[24],
-                Encounters = new[] { new[] { "hyeolma_dae_b", "hyeolma_dae_b", "hyeolma_dae_b" }, new[] { "dongbang_hak", "hyeolma_dae_b" }, new[] { "gong_pae" }, new[] { "maehwa_mask_trial" } },
-                Trials = new[] { null, null, null, TrialRule.Survive("옷깃을 향한 도전", "적 6행동을 견디며 검로를 읽으세요. 윤준호의 도전은 이후 이야기로 이어집니다.", 6) } },
+                // fight 2 is the coin duel (StoryShowdowns.Coin): 비류연 alone against 동방학; it still pays for the 혈마대원 it once had
+                Encounters = new[] { new[] { "hyeolma_dae_b", "hyeolma_dae_b", "hyeolma_dae_b" }, new[] { "dongbang_hak" }, new[] { "gong_pae" }, new[] { "maehwa_mask_trial" } },
+                RewardEncounters = new[] { new[] { "hyeolma_dae_b", "hyeolma_dae_b", "hyeolma_dae_b" }, new[] { "dongbang_hak", "hyeolma_dae_b" }, new[] { "gong_pae" }, new[] { "maehwa_mask_trial" } },
+                StoryActors = new[] { null, new[] { "player" }, null, null },
+                Trials = new[] { null, StoryShowdowns.CoinTrial, null, TrialRule.Survive("옷깃을 향한 도전", "적 6행동을 견디며 검로를 읽으세요. 윤준호의 도전은 이후 이야기로 이어집니다.", 6) } },
             new StageData { Number = 25, RewardWeightBudget = 8, Name = "멸겁삼관과 화평장", RecommendedLevel = 55, DooTotal = 13000,
                 Prologue = StoryMidgame.Prologues[25], Intro = StoryMidgame.Intros[25], Outro = StoryMidgame.Outros[25],
                 Encounters = new[] { new[] { "hwapyeong_soldier", "hwapyeong_soldier", "hwapyeong_soldier" }, new[] { "hwapyeong_soldier", "cheonsal_hwapyeong", "jisal_hwapyeong" }, new[] { "hwapyeong_soldier", "hwapyeong_soldier" }, new[] { "baek_son_gosu" } },

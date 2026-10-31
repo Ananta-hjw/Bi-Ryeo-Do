@@ -97,6 +97,33 @@ namespace BiRyeoDo.Core
         private bool IsFinale { get { return Trial != null && Trial.Kind == TrialKind.Finale; } }
         private bool IsUnavoidable { get { return IsFinale && Trial.Style == FinaleStyle.Unavoidable; } }
         private bool IsWindow { get { return IsFinale && Trial.Style == FinaleStyle.Window; } }
+        /// <summary>24 동전 대결: 비류연's turn from the start; the screen times the press, <see cref="DuelMiss"/> answers a late one.</summary>
+        public bool IsDuel { get { return IsFinale && Trial.Style == FinaleStyle.Duel; } }
+        public int DuelMisses { get; private set; }
+
+        /// <summary>
+        /// A late press in the duel: the opponent's blade lands first for <see cref="TrialRule.BlowPct"/> of max HP (never below 1),
+        /// and the <see cref="TrialRule.Limit"/>-th miss fells 비류연 and loses the fight. The turn stays his for the next coin.
+        /// </summary>
+        public List<BattleEvent> DuelMiss()
+        {
+            if (!IsDuel || !IsPlayerTurn) throw new InvalidOperationException("Not a duel turn.");
+            var hero = Current;
+            var enemy = FirstLivingEnemy();
+            DuelMisses++;
+            EnemyActions++;
+            bool last = DuelMisses >= Trial.Limit;
+            int before = hero.Hp;
+            hero.Hp = last ? 0 : Math.Max(1, hero.Hp - Math.Max(1, (int)Math.Round(hero.Stats.MaxHp * Trial.BlowPct)));
+            if (last) { TrialFailed = true; Current = null; }
+            var script = Trial.Script;
+            return new List<BattleEvent> { new BattleEvent
+            {
+                Turn = Turn, ActorId = enemy != null ? enemy.Id : null, TargetId = hero.Id, SkillId = script.BlowName, Kind = EventKind.Attack,
+                Damage = before - hero.Hp, HitIndex = 0, HitCount = 1, TargetHpAfter = hero.Hp, TargetDefeated = !hero.IsAlive,
+                Message = (enemy != null ? enemy.Name + "의 " : "") + script.BlowName + "!", Quip = last ? script.LastQuip : script.LateQuip
+            } };
+        }
         private bool _armorNoted;
         /// <summary>20: 비류연's turn while the enemy winds up (its mouth is open): <see cref="PlayerCommand.Finale"/> ends it.</summary>
         public bool FinaleWindowOpen
@@ -290,7 +317,7 @@ namespace BiRyeoDo.Core
                     case TrialKind.Survive: return "버텨라 " + Math.Min(EnemyActions, Trial.Limit) + "/" + Trial.Limit;
                     case TrialKind.Technique: return "대응 " + TechniqueUses + "/" + Trial.TechniqueUses + " · " + PartyActions + "/" + Trial.Limit + "행동";
                     case TrialKind.Deadline: return "제한 " + PartyActions + "/" + Trial.Limit + "행동";
-                    case TrialKind.Finale: return IsUnavoidable && !FinaleStruck ? "거리 0" : "";
+                    case TrialKind.Finale: return IsUnavoidable && !FinaleStruck ? "거리 0" : IsDuel ? "기회 " + Math.Max(0, Trial.Limit - DuelMisses) + "/" + Trial.Limit : "";
                     case TrialKind.Lifeline:
                         {
                             var sb = new System.Text.StringBuilder("생명줄 ");
@@ -312,6 +339,7 @@ namespace BiRyeoDo.Core
             {
                 if (!TrialFailed || Trial == null) return "";
                 if (Trial.Kind == TrialKind.Technique) return "정해진 대응을 마치지 못했습니다.";
+                if (IsDuel) return "상대의 검이 먼저 닿았습니다.";
                 return Trial.Kind == TrialKind.Lifeline ? "생명줄이 끊어졌다!" : "제한 시간이 지났다!";
             }
         }
@@ -762,6 +790,13 @@ namespace BiRyeoDo.Core
         {
             var events = new List<BattleEvent>();
             if (IsFinale && Trial.Style == FinaleStyle.PartyFirst && !IsOver) { FinaleTurn(events); return events; }
+            if (IsDuel && !IsOver)   // 24: no gauge race, the coin decides; 비류연 holds the turn until the strike
+            {
+                FinaleStruck = true;
+                if (Player.IsAlive) StartPartyTurn(Player);
+                else Current = null;
+                return events;
+            }
             while (!IsOver)
             {
                 var actor = NextActor();

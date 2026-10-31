@@ -64,6 +64,52 @@ namespace BiRyeoDo.Core
 
         public static readonly TrialRule HyeolmangTrial = TrialRule.Finale("묵린혈망", "검은 비늘은 공격을 튕겨 냅니다. 혈망이 침을 모아 입을 여는 순간을 노리세요.", Hyeolmang, FinaleStyle.Window);
 
+        /// <summary>
+        /// 24 「떨어지는 동전」 (12권): 동방학's 쾌 against 비류연's, the coin 염도 throws is the signal; 섬뢰 through the brow, the shirt cut in a cross.
+        /// Lines are the original's (Story/raw/vol12, 3,080~3,200행, shortened); 「아직!」 and 「늦었다!」 are game wording.
+        /// </summary>
+        public static readonly ShowdownScript Coin = new ShowdownScript
+        {
+            Title = "떨어지는 동전",
+            AfterBlow = new[]
+            {
+                "비류연|할아버지께서는 뢰(雷)의 어느 얼굴을 추구하고 계시죠?",
+                "동방학|나는 빛을 뒤쫓는 쾌(快)를 추구한다!",
+                "비류연|저의 쾌로 노인장의 쾌를 맞상대해 드리죠.",
+                "동방학|건방지구나!",
+                "비류연|보통이죠.",
+                "찰칵! 오른팔과 오른다리에서 두 개의 묵룡환이 풀려 땅바닥에 떨어졌다. 쿵!",
+                "비류연|이 동전에 떨어지는 걸로 신호를 삼죠!",
+                "비류연이 주머니에서 동전 하나를 꺼내 염도에게 건넸다.",
+                "동방학|그냥 자결하는 게 시간도 절약하고 더 좋지 않겠느냐?",
+                "비류연|그럼 이제 던지죠!",
+            },
+            IconArtId = "seomroe", IconName = "섬뢰(閃雷)", Hint = "동전이 땅에 닿는 순간 누르세요",
+            EarlyText = "아직!", LateText = "늦었다!",
+            LateQuip = "붉은 검이 먼저 닿았다!", LastQuip = "붉은 검이 먼저 닿았다……",
+            BlowName = "붉은 검",
+            SkillId = "scene_seomroe_finale", SkillName = "비뢰도 오의 · 섬뢰", QuietStrike = true,
+            AfterStrike = new[]
+            {
+                "빛과 생사가 한 순간 한 자리에서 교차했다. 아무도 두 사람의 초식 교환을 보지 못했다.",
+                "염도|봤나?",
+                "빙검|못 봤네!",
+                "동방학의 광소가 터져 나왔다가 거짓말처럼 뚝 멎었다. 두 사람은 어느새 서로의 자리에 서 있었다.",
+                "동방학|……시험 결과는 어땠나?",
+                "비류연|그 정도 빠르기면 쓸만하군요.",
+                "투두둑! 비류연의 앞섶이 열십자 모양으로 잘려 나갔다.",
+                "비류연|두 번의 변화가 아니라 그냥 한 번이면 좋았을 것을, 아쉽군요.",
+                "동방학|합격인가?",
+                "비류연|당신의 명호에 들어간 뇌의 이름을 인정하죠.",
+                "동방학|방금 그 초식의 이름이 무엇인가?",
+                "비류연|섬뢰(閃雷)!",
+                "동방학|나의 이름으로 날 깨트렸다는 이야긴가? 더할 나위 없는 완벽한 패배로군.",
+                "미간에서 붉은 선이 흘러내렸다. 동방학의 몸이 그대로 앞으로 고꾸라졌다.",
+            },
+        };
+
+        public static readonly TrialRule CoinTrial = TrialRule.Duel("떨어지는 동전", "비류연 혼자 겨룹니다. 동전이 땅에 닿는 순간 섬뢰를 누르세요. 늦으면 체력을 잃고, 다섯 번 늦으면 패배합니다.", Coin);
+
         public static readonly ShowdownScript Moon = new ShowdownScript
         {
             Title = "현천포월",

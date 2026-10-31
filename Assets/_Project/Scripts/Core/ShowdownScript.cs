@@ -32,10 +32,17 @@ namespace BiRyeoDo.Core
         public string[] ArmorLines;
         public float WindowSeconds = 3f;
 
+        // Duels (24 동방학): the coin's fall time range, the press window after it lands and how much each miss widens it (real seconds),
+        // what an early press and a late one say, and whether the strike skips the 필살기 cut-in for a single white flash
+        public float CoinMinSeconds = 1.2f, CoinMaxSeconds = 2.2f;
+        public float DuelWindowSeconds = 0.5f, DuelWindowStep = 0.1f;
+        public string EarlyText, LateText, LateQuip, LastQuip;
+        public bool QuietStrike;
+
         /// <summary>The last action (기세 100 so the screen plays the full 필살기 cut-in, unless the cut-in already played before a second button).</summary>
         public SkillSpec Skill()
         {
-            return new SkillSpec { Id = SkillId, Name = SkillName, Power = 30f, AllEnemies = true, Range = 3, SpiritCost = TwoStep ? 0 : 100 };
+            return new SkillSpec { Id = SkillId, Name = SkillName, Power = 30f, AllEnemies = true, Range = 3, SpiritCost = TwoStep || QuietStrike ? 0 : 100 };
         }
     }
 
@@ -49,7 +56,7 @@ namespace BiRyeoDo.Core
             return t != null && t.Kind == TrialKind.Finale;
         }
 
-        /// <summary>A scripted showdown gives all three stars once won, except a window showdown, which is a real fight (20 묵린혈망).</summary>
+        /// <summary>A scripted showdown (the 24 duel included) gives all three stars once won, except a window showdown, which is a real fight (20 묵린혈망).</summary>
         public static bool FixedStars(StageData stage, int fight)
         {
             return Is(stage, fight) && stage.TrialFor(fight).Style != FinaleStyle.Window;

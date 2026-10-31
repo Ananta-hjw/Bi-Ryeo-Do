@@ -929,6 +929,12 @@ namespace BiRyeoDo.Game.UI
                     windowHit = _finalePressed;
                 }
                 if (windowHit) _command = PlayerCommand.Finale();
+                else if (_battle.IsDuel)
+                {
+                    yield return FinaleDuel(_battle.Trial.Script);   // 24 동전: the scene, then the coin until the strike or the last chance
+                    if (_fled) yield break;
+                    if (_battle.IsOver) break;
+                }
                 else if (_battle.FinaleReady)
                 {
                     yield return FinaleFlow(_battle.Trial.Script);   // 일반 30 풍신, 46 묵뢰살: the scene, then the art's button
