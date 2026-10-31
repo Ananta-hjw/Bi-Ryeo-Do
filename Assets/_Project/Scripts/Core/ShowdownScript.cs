@@ -62,6 +62,12 @@ namespace BiRyeoDo.Core
             return Is(stage, fight) && stage.TrialFor(fight).Style != FinaleStyle.Window;
         }
 
+        /// <summary>A window showdown (20 묵린혈망): its 신속 star is 섬뢰창 at the first opened mouth instead of an action count.</summary>
+        public static bool IsWindow(StageData stage, int fight)
+        {
+            return Is(stage, fight) && stage.TrialFor(fight).Style == FinaleStyle.Window;
+        }
+
         /// <summary>
         /// Resume point of a stage. Only old saves store a point past the last fight; on a stage whose last fights were merged into a showdown
         /// (일반 30, 46) that point picks up at the showdown instead of skipping it.

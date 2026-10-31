@@ -129,66 +129,66 @@ namespace BiRyeoDo.Core
             new[] { 8, 10, 10 },   // 4
             new[] { 11, 10 },   // 5
             new[] { 8, 12, 8 },   // 6
-            new[] { 5, 5, 6, 6, 5, 9, 11, 10 },   // 7
+            new[] { 3, 3, 4, 4, 4, 5, 6, 10 },   // 7
             new[] { 12, 13, 19 },   // 8
             new[] { 19, 19, 27, 13 },   // 9
-            new[] { 10, 12, 18 },   // 10
-            new[] { 9, 5, 5, 23 },   // 11
+            new[] { 6, 12, 20 },   // 10
+            new[] { 6, 5, 5, 15 },   // 11
             new[] { 8, 7, 7, 8, 8, 19 },   // 12
-            new[] { 12, 23, 27, 26 },   // 13
-            new[] { 11, 17, 14, 11, 12, 22, 18, 22, 22, 16, 39 },   // 14
+            new[] { 7, 15, 16, 21 },   // 13
+            new[] { 8, 9, 7, 8, 7, 14, 13, 9, 11, 11, 24 },   // 14
             new[] { 12, 21, 14, 8, 18 },   // 15
             new[] { 29, 22, 24 },   // 16
-            new[] { 15, 10, 24 },   // 17
-            new[] { 10, 16, 25, 30 },   // 18
-            new[] { 21, 20, 21, 24, 18, 55 },   // 19
+            new[] { 7, 18, 13 },   // 17
+            new[] { 10, 7, 13, 15 },   // 18
+            new[] { 13, 11, 13, 11, 14, 21 },   // 19
             new[] { 43, 26, 20 },   // 20 (the 혈망 showdown ends at the first opened mouth: the bot needs 17)
-            new[] { 57, 43, 22 },   // 21
-            new[] { 30, 61, 42, 61, 48, 50 },   // 22
+            new[] { 24, 20, 11 },   // 21
+            new[] { 15, 27, 18, 28, 24, 25 },   // 22
             new[] { 46, 37, 22, 48 },   // 23
-            new[] { 51, 56, 52, 28 },   // 24
-            new[] { 11, 55, 38, 38 },   // 25
-            new[] { 45, 28, 45, 66, 11, 45 },   // 26
-            new[] { 28, 18, 18, 18, 18, 18, 18 },   // 27
-            new[] { 28, 22, 46, 34, 36 },   // 28
-            new[] { 38, 55, 27, 30, 28, 28, 32 },   // 29
-            new[] { 80, 55, 50, 38 },   // 30
-            new[] { 3, 7, 8 },   // 31
-            new[] { 14, 5, 11 },   // 32
-            new[] { 8, 8, 20, 5 },   // 33
-            new[] { 8, 35, 12 },   // 34
-            new[] { 34, 5, 6, 10 },   // 35
-            new[] { 9, 5, 5, 8 },   // 36
-            new[] { 6, 5 },   // 37
-            new[] { 8, 16, 11 },   // 38
-            new[] { 8, 8, 12 },   // 39
-            new[] { 17, 18, 27, 7 },   // 40
-            new[] { 8 },   // 41
-            new[] { 7, 4, 4, 4 },   // 42
-            new[] { 7, 9, 3 },   // 43
-            new[] { 3, 13, 3, 11, 10 },   // 44
-            new[] { 18, 3, 3, 3 },   // 45
-            new[] { 14, 4, 10, 3, 4 },   // 46
-            new[] { 21 },   // 47
-            new[] { 22, 17, 17 },   // 48
-            new[] { 8, 3, 4, 4, 4, 3, 4 },   // 49
-            new[] { 25, 7, 3, 4 },   // 50
-            new[] { 29, 17, 4, 4 },   // 51
-            new[] { 27, 3 },   // 52
-            new[] { 4, 3, 4 },   // 53
-            new[] { 29, 6, 8, 7, 4 },   // 54
-            new[] { 3, 3, 4, 4, 10 },   // 55
-            new[] { 5, 7, 36, 4, 4 },   // 56
-            new[] { 4 },   // 57
-            new[] { 3, 3, 5 },   // 58
-            new[] { 6, 6, 3 },   // 59
-            new[] { 21, 7, 6, 5 },   // 60
-            new[] { 4, 4, 4, 11 },   // 61
-            new[] { 15, 11, 7 },   // 62
-            new[] { 7, 8, 9, 11 },   // 63
-            new[] { 4, 4, 4, 4 },   // 64
-            new[] { 3, 6, 11 },   // 65
-            new[] { 7, 4, 4, 4, 25 },   // 66
+            new[] { 24, 2, 25, 13 },   // 24
+            new[] { 29, 24, 21, 31 },   // 25
+            new[] { 21, 24, 19, 32, 23, 23 },   // 26
+            new[] { 23, 14, 9, 14, 14, 14, 14 },   // 27
+            new[] { 7, 21, 19, 17, 16 },   // 28
+            new[] { 15, 39, 10, 12, 14, 16, 13 },   // 29
+            new[] { 31, 44, 5, 38 },   // 30
+            new[] { 41, 23, 36 },   // 31 (party of four)
+            new[] { 10, 28, 33 },   // 32 (party of four)
+            new[] { 39, 11, 17, 34 },   // 33 (party of four)
+            new[] { 18, 21, 31 },   // 34 (party of four)
+            new[] { 8, 14, 26, 23 },   // 35 (party of four)
+            new[] { 26, 15, 16, 16 },   // 36 (party of four)
+            new[] { 12, 2 },   // 37 (party of four)
+            new[] { 16, 7, 15 },   // 38 (party of four)
+            new[] { 6, 6, 7 },   // 39 (party of four)
+            new[] { 19, 19, 18, 5 },   // 40 (party of four)
+            new[] { 6 },   // 41 (party of four)
+            new[] { 17, 5, 5, 5 },   // 42 (party of four)
+            new[] { 16, 13, 3 },   // 43 (party of four; the last entries belong to fights merged into the showdown)
+            new[] { 15, 16, 4, 8, 15 },   // 44 (party of four)
+            new[] { 22, 4, 4, 4 },   // 45 (party of four)
+            new[] { 16, 5, 10, 16, 4 },   // 46 (party of four; the last entries belong to fights merged into the showdown)
+            new[] { 25 },   // 47 (party of four)
+            new[] { 18, 16, 16 },   // 48 (party of four)
+            new[] { 10, 2, 5, 5, 5, 2, 5 },   // 49 (party of four)
+            new[] { 28, 8, 4, 7 },   // 50 (party of four)
+            new[] { 40, 20, 10, 7 },   // 51 (party of four)
+            new[] { 30, 4 },   // 52 (party of four)
+            new[] { 6, 2, 5 },   // 53 (party of four)
+            new[] { 14, 11, 11, 7, 9 },   // 54 (party of four)
+            new[] { 4, 4, 7, 5, 27 },   // 55 (party of four)
+            new[] { 26, 15, 75, 5, 5 },   // 56 (party of four)
+            new[] { 5 },   // 57 (party of four)
+            new[] { 3, 3, 5 },   // 58 (party of four)
+            new[] { 6, 6, 3 },   // 59 (party of four)
+            new[] { 50, 17, 24, 24 },   // 60 (party of four)
+            new[] { 5, 5, 5, 11 },   // 61 (party of four)
+            new[] { 19, 8, 5 },   // 62 (party of four)
+            new[] { 22, 21, 22, 20 },   // 63 (party of four)
+            new[] { 7, 7, 7, 30 },   // 64 (party of four)
+            new[] { 2, 5, 12 },   // 65 (party of four)
+            new[] { 5, 5, 5, 5, 27 },   // 66 (party of four)
         };
 
         public static int FastLimit(int stage, int fight)
@@ -342,6 +342,26 @@ namespace BiRyeoDo.Core
             return ScaleEnemy(enemy, stage, 0, survive).Scaled(HardHpFix(stage, difficulty), HardAtkFix(stage, difficulty), 1f, LevelAdd(stage, difficulty));
         }
 
+        /// <summary>
+        /// From <see cref="Roster.ReenactFrom"/> every story fight is fought by the player's party of four instead of the one to three story bodies the
+        /// enemies were tuned against: the enemies grow by how many fewer people the original scene had (4 / the stage's average number of actors,
+        /// 1 to 4, times <see cref="PartyHardenScale"/>; HP x f^HardenHpExp, attack x f^HardenAtkExp, 일반 only). A scene 비류연 fought alone is x6
+        /// (HP and attack x2.45), one the original already fought as four is x1.5.
+        /// </summary>
+        public static float PartyHarden(int stage)
+        {
+            if (stage < Roster.ReenactFrom) return 1f;
+            var st = EarlyGameContent.FindStage(stage);
+            if (st == null || st.StoryActors == null) return 1f;
+            double people = 0; int fights = 0;
+            foreach (var actors in st.StoryActors) if (actors != null) { people += actors.Length; fights++; }
+            if (fights == 0) return 1f;
+            double f = (EarlyGameContent.MaxCompanions + 1) / (people / fights);
+            return (float)Math.Max(1.0, Math.Min(EarlyGameContent.MaxCompanions + 1, f) * PartyHardenScale);
+        }
+
+        public static double PartyHardenScale = 1.5;   // a little above the plain head count: the party also brings 합공, healing and guards
+
         /// <summary>The boss of every fifth story stage from 10 (10, 15, … 35) has HP, attack and defense x1.3 on every difficulty (story stages only; 의뢰·무한 비무대 clones are unchanged).</summary>
         public const float MilestoneBossBoost = 1.3f;
         public const int MilestoneEvery = 5, MilestoneFromStage = 10;
@@ -361,6 +381,14 @@ namespace BiRyeoDo.Core
             bool survive = trial != null && trial.Kind == TrialKind.Survive;
             var scaled = ScaleEnemy(enemy, stage, difficulty, survive);
             if (IsMilestoneBoss(enemy, stage)) scaled = scaled.Scaled(MilestoneBossBoost, MilestoneBossBoost, MilestoneBossBoost);
+            if (stage >= Roster.ReenactFrom)
+            {
+                // a 시험 wall (huge HP so it is endured, not beaten) hit like a story body's sparring partner; against a party of four it gets the
+                // attack the stage's other enemies get, then everyone gets the party factor
+                if (enemy.HpMul > 10f) scaled = scaled.Scaled(1f, NormalAtkBoost(stage) * NormalStatEaseFor(stage), 1f);
+                float party = difficulty == 0 ? PartyHarden(stage) : 1f;   // 어려움·극악 keep their own fitted tables (HardLengthTable, HardAtkTune)
+                if (party != 1f) scaled = scaled.Scaled((float)Math.Pow(party, HardenHpExp), (float)Math.Pow(party, HardenAtkExp), 1f);
+            }
             var gear = GearLoadout.ForEnemies(stage, difficulty);
             return gear == null || !Realm.HasRealm(enemy) || (trial != null && !survive) ? scaled : scaled.WithGear(gear);
         }
@@ -372,6 +400,26 @@ namespace BiRyeoDo.Core
             int n = 0;
             for (int i = 0; i < 3; i++) if ((mask & (1 << i)) != 0) n++;
             return n;
+        }
+
+        /// <summary>
+        /// The star mask of a won fight of a stage. A window showdown (20 묵린혈망) can only end when the mouth opens, so its 신속 star is
+        /// 섬뢰창 at the first chance (<paramref name="windowsMissed"/> 0) instead of an action count.
+        /// </summary>
+        public static int Evaluate(StageData stage, int fight, int actions, bool anyoneFell, int windowsMissed)
+        {
+            if (!Showdowns.IsWindow(stage, fight)) return Evaluate(stage.Number, fight, actions, anyoneFell, stage.Difficulty);
+            int mask = 1;
+            if (!anyoneFell) mask |= 2;
+            if (windowsMissed == 0) mask |= 4;
+            return mask;
+        }
+
+        /// <summary>The third star's name for the result windows: 「신속 14/9행동」, or 「첫 기회에 섬뢰창」 in a window showdown.</summary>
+        public static string FastText(StageData stage, int fight, int actions)
+        {
+            if (Showdowns.IsWindow(stage, fight)) return "첫 기회에 " + stage.TrialFor(fight).Script.IconName;
+            return "신속 " + actions + "/" + FastLimit(stage.Number, fight, stage.Difficulty) + "행동";
         }
 
         /// <summary>The star mask earned by a won fight.</summary>

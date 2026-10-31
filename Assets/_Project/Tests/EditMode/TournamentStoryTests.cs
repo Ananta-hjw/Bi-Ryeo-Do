@@ -109,8 +109,8 @@ namespace BiRyeoDo.Tests
                 Assert.AreEqual(stage.Encounters.Length, stage.StoryActors.Length);
                 for (int i = 0; i < stage.Encounters.Length; i++)
                 {
-                    var party = Roster.CreateStoryParty(stage, i, save); fights++;
-                    CollectionAssert.AreEqual(stage.StoryActors[i], party.Select(x => x.Id));
+                    var party = BalanceSimulation.FightParty(save, stage, i); fights++;
+                    BalanceSimulation.AssertActors(stage, i, party);
                     foreach (var member in party) Assert.LessOrEqual(member.Skills.Count(s => s.Id != "basic" && s.SpiritCost == 0), Progression.MaxEquippedArts + (member.Id == Inventory.Hero ? 0 : 1));
                     var rule = stage.TrialFor(i);
                     if (rule != null && rule.Kind == TrialKind.Technique)
@@ -132,7 +132,10 @@ namespace BiRyeoDo.Tests
         {
             var save = BalanceSimulation.Starter(44, 55);
             var regular = CompanionGrowth.Create(save, EarlyGameContent.FindCompanion("yun_junho"));
-            var disguised = Roster.CreateStoryParty(EarlyGameContent.FindStage(44), 2, save).Single();
+            var disguised = CompanionGrowth.Create(save, EarlyGameContent.FindCompanion("yun_junho"));   // 44 is reenacted: 윤미 joins the player's party
+            Roster.PrepareStoryEncounter(EarlyGameContent.FindStage(44), 2, new List<Combatant> { disguised });
+            Assert.IsTrue(disguised.Skills.Any(s => s.Id == "scene_chilmae"), "the trial's 칠매검 is added to his own arts");
+            Assert.IsTrue(disguised.Skills.Any(s => s.Id.StartsWith("yj_")));
             Assert.AreEqual("yun_junho", disguised.Id); Assert.AreEqual("윤미", disguised.Name);
             Assert.AreEqual(regular.Stats.Attack, disguised.Stats.Attack);
             Assert.AreEqual(regular.Stats.MaxHp, disguised.Stats.MaxHp);
@@ -146,14 +149,17 @@ namespace BiRyeoDo.Tests
         {
             var save = BalanceSimulation.Starter(48, 60);
             var stage = EarlyGameContent.FindStage(45);
-            var party = Roster.CreateStoryParty(stage, 1, save); party[0].Hp = 123; party[0].Qi = 40; party[0].Spirit = 27;
+            var party = BalanceSimulation.StoryParty(stage, 1, save);
+            var heroine = party.First(x => x.Id == "na_yerin");   // 45 is reenacted: 나예린 is required and carries the scene forms
+            heroine.Hp = 123; heroine.Qi = 40; heroine.Spirit = 27;
             Roster.PrepareStoryEncounter(stage, 2, party);
-            Assert.AreEqual(123, party[0].Hp); Assert.AreEqual(40, party[0].Qi); Assert.AreEqual(27, party[0].Spirit);
-            Assert.IsTrue(party[0].Skills.Any(s => s.Id == "scene_hanbing"));
-            Assert.IsFalse(party[0].Skills.Any(s => s.Id == "scene_soan"));
+            Assert.AreEqual(123, heroine.Hp); Assert.AreEqual(40, heroine.Qi); Assert.AreEqual(27, heroine.Spirit);
+            Assert.IsTrue(heroine.Skills.Any(s => s.Id == "scene_hanbing"));
+            Assert.IsFalse(heroine.Skills.Any(s => s.Id == "scene_soan"));
             StageProgress.Store(save, 45, 2, party, 1);
-            var restored = Roster.CreateStoryParty(stage.WithDifficulty(1), 2, save); StageProgress.Restore(save, restored);
-            Assert.AreEqual(123, restored[0].Hp); Assert.IsTrue(restored[0].Skills.Any(s => s.Id == "scene_hanbing"));
+            var restored = BalanceSimulation.StoryParty(stage.WithDifficulty(1), 2, save); StageProgress.Restore(save, restored);
+            var back = restored.First(x => x.Id == "na_yerin");
+            Assert.AreEqual(123, back.Hp); Assert.IsTrue(back.Skills.Any(s => s.Id == "scene_hanbing"));
             Assert.IsFalse(CompanionGrowth.Create(save, EarlyGameContent.FindCompanion("na_yerin")).Skills.Any(s => s.Id.StartsWith("scene_")));
             foreach (int n in new[] { 47, 48 })
                 Assert.IsFalse(EarlyGameContent.FindStage(n).StoryActors.SelectMany(x => x).Any(id => new[] { "na_yerin", "yun_junho", "story_namgung_sang", "story_ryu_eungyeong" }.Contains(id)));

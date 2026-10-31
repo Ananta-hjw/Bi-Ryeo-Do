@@ -44,28 +44,28 @@ namespace BiRyeoDo.Tests
             for (int n = 0; n < 4; n++) Assert.GreaterOrEqual(wins[n], (int)(reached[n] * 0.9));
         }
 
-        [TestCase(24, 54, 85)]   // fight 2 is the coin duel (one action) since the 동방학 showdown
-        [TestCase(25, 70, 111)]    // Rescue now ends by surviving the white-hand assault, not killing the next-volume opponent.
-        [TestCase(26, 130, 246)]   // shorter since 일반 8+ enemy attack/defense x0.8
-        [TestCase(27, 85, 131)]
-        [TestCase(28, 63, 100)]
-        [TestCase(29, 122, 192)]
-        [TestCase(30, 68, 106)]
-        [TestCase(31, 14, 25)]
-        [TestCase(32, 16, 30)]
-        [TestCase(33, 20, 45)]
-        [TestCase(34, 35, 65)]
-        [TestCase(35, 39, 65)]
-        [TestCase(36, 16, 30)]
-        [TestCase(37, 5, 12)] [TestCase(38, 18, 40)] [TestCase(39, 8, 14)]
-        [TestCase(40, 43, 80)] [TestCase(41, 4, 16)]
-        [TestCase(42, 8, 40)] [TestCase(43, 8, 40)] [TestCase(44, 15, 70)]
-        [TestCase(45, 8, 45)] [TestCase(46, 12, 60)] [TestCase(47, 15, 35)] [TestCase(48, 28, 70)]
-        [TestCase(49, 12, 30)] [TestCase(50, 18, 45)] [TestCase(51, 20, 55)] [TestCase(52, 12, 35)]
-        [TestCase(53, 4, 12)] [TestCase(54, 25, 65)] [TestCase(55, 10, 25)] [TestCase(56, 43, 69)] [TestCase(57, 2, 10)]
+        [TestCase(24, 53, 84)]   // fight 2 is the coin duel (one action) since the 동방학 showdown
+        [TestCase(25, 88, 139)]    // Rescue now ends by surviving the white-hand assault, not killing the next-volume opponent.
+        [TestCase(26, 119, 187)]   // shorter since 일반 8+ enemy attack/defense x0.8
+        [TestCase(27, 81, 128)]
+        [TestCase(28, 67, 105)]
+        [TestCase(29, 96, 152)]
+        [TestCase(30, 68, 107)]
+        [TestCase(31, 88, 138)]   // reenacted by the full party since 남궁상·모용휘 joined (more party actions per enemy action)
+        [TestCase(32, 60, 95)]
+        [TestCase(33, 87, 137)]
+        [TestCase(34, 59, 93)]
+        [TestCase(35, 59, 93)]
+        [TestCase(36, 61, 96)]
+        [TestCase(37, 11, 18)] [TestCase(38, 32, 51)] [TestCase(39, 14, 24)]
+        [TestCase(40, 61, 96)] [TestCase(41, 4, 8)]
+        [TestCase(42, 26, 41)] [TestCase(43, 23, 38)] [TestCase(44, 45, 72)]
+        [TestCase(45, 25, 41)] [TestCase(46, 39, 63)] [TestCase(47, 21, 34)] [TestCase(48, 41, 66)]
+        [TestCase(49, 26, 41)] [TestCase(50, 38, 60)] [TestCase(51, 64, 102)] [TestCase(52, 27, 44)]
+        [TestCase(53, 9, 15)] [TestCase(54, 41, 65)] [TestCase(55, 37, 59)] [TestCase(56, 108, 170)] [TestCase(57, 4, 7)]
         // Stages 58-59 are entirely noncombat and are covered by StoryChoiceEventTests.
-        [TestCase(60, 44, 70)] [TestCase(61, 10, 25)]
-        [TestCase(62, 18, 40)] [TestCase(63, 20, 40)] [TestCase(64, 5, 16)] [TestCase(65, 12, 30)] [TestCase(66, 20, 45)]
+        [TestCase(60, 99, 156)] [TestCase(61, 20, 33)]
+        [TestCase(62, 26, 42)] [TestCase(63, 72, 113)] [TestCase(64, 41, 66)] [TestCase(65, 13, 22)] [TestCase(66, 39, 62)]
         public void LateNormalStagesKeepPressureWithoutLongHpSlogs(int number, int minActions, int maxActions)   // Re-measured with current expected gear and actual story perspectives (80-125% of 100-run action means).
         {
             var stage = EarlyGameContent.FindStage(number);

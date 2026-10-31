@@ -57,8 +57,8 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual("pae_hyeokseong", EarlyGameContent.FindStage(17).Encounters[2][0]);
             var quest = Quests.All.Single(q => q.Id == "q_sadae");
             CollectionAssert.AreEqual(new[] { "sadae_jilpung", "sadae_jilpung", "sadae_jilpung" }, Quests.ToStage(quest).Encounters[0]);
-            Assert.AreEqual(TrialKind.Survive, EarlyGameContent.FindStage(14).TrialFor(6).Kind);
-            Assert.AreEqual(8, EarlyGameContent.FindStage(14).TrialFor(6).Limit);
+            Assert.IsNull(EarlyGameContent.FindStage(14).TrialFor(6), "갈효봉 is fought, not endured");
+            Assert.Greater(EarlyGameContent.FindEnemy("gal_hyobong").RetreatHpPct, 0f, "and withdraws instead of falling");
         }
 
         [TestCase(14, 10, 23)]

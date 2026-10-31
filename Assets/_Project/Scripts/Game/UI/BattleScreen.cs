@@ -457,7 +457,7 @@ namespace BiRyeoDo.Game.UI
                 {
                     bool changePerspective = i > startIndex && !Roster.SamePerspective(stage, i - 1, i);
                     _storyEncounter = i;
-                    if (changePerspective) BuildParty(stage);
+                    if (changePerspective) BuildParty(stage, Roster.Reenacted(stage) ? _party : null);
                     Roster.PrepareStoryEncounter(stage, i, _party);
                     _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + tag + stage.Name + "  (" + (i + 1) + "/" + stage.Encounters.Length + ")";
                     _lastFightNumber = i + 1;
@@ -495,7 +495,7 @@ namespace BiRyeoDo.Game.UI
                             if (gains.Length > 0) repLine = "평판 " + gains + (rises.Count > 0 ? "  (" + string.Join(", ", rises) + ")" : "");
                         }
                         // a choice event and a scripted showdown (일반 30, 46) give all three stars once won
-                        int fightMask = storyEvent != null || Showdowns.FixedStars(stage, i) ? 7 : StageStars.Evaluate(stage.Number, i, _fightActions, _fightFell, diff);
+                        int fightMask = storyEvent != null || Showdowns.FixedStars(stage, i) ? 7 : StageStars.Evaluate(stage, i, _fightActions, _fightFell, _fightWindowsMissed);
                         bool stageWasCleared = StageStars.StageCleared(save, stage.Number, diff);
                         int fightNew = StageStars.Record(save, stage.Number, i, diff, fightMask);
                         rewardMask = fightMask; rewardNewStars = fightNew;
@@ -507,7 +507,7 @@ namespace BiRyeoDo.Game.UI
                             if (scrollData != null) found.Add(scrollData.Name);
                         }
                         newStars += fightNew;
-                        _lastStarLine = storyEvent != null ? "이벤트 완료  " + StarGlyphs(fightMask) : FightStarLine(stage.Number, i, diff, fightMask, _fightActions, fightNew);
+                        _lastStarLine = storyEvent != null ? "이벤트 완료  " + StarGlyphs(fightMask) : FightStarLine(stage, i, fightMask, _fightActions, fightNew);
                     }
 
                     long exp = 0, doo = 0;
@@ -592,6 +592,7 @@ namespace BiRyeoDo.Game.UI
                         if (_leave)
                         {
                             var continuation = Roster.SamePerspective(stage, i, i + 1) ? _party : CreateParty(stage, i + 1);
+                            if (continuation != _party && Roster.Reenacted(stage)) Roster.CarryWounds(_party, continuation);
                             StageProgress.Store(save, stage.Number, i + 1, continuation, diff);
                             GameManager.Instance.SaveNow();
                             _fled = true; cleared = false; break;
@@ -843,6 +844,7 @@ namespace BiRyeoDo.Game.UI
         }
 
         private int _fightActions;
+        private int _fightWindowsMissed;   // 20: opened mouths left unanswered (its 신속 star)
         private bool _fightFell;
 
         private string _lastStarLine = "";
@@ -853,12 +855,12 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <summary>"★★☆  (신속 14/9행동)  +1" for the fight that was just won: the stars of this run plus the reason for a missing one.</summary>
-        private static string FightStarLine(int stageNumber, int fight, int difficulty, int mask, int actions, int gained)
+        private static string FightStarLine(StageData stage, int fight, int mask, int actions, int gained)
         {
             string line = StarGlyphs(mask);
             var missed = new List<string>();
             if ((mask & 2) == 0) missed.Add("전원 생존 실패");
-            if ((mask & 4) == 0) missed.Add("신속 " + actions + "/" + StageStars.FastLimit(stageNumber, fight, difficulty) + "행동");
+            if ((mask & 4) == 0) missed.Add(StageStars.FastText(stage, fight, actions) + (Showdowns.IsWindow(stage, fight) ? " 실패" : ""));
             if (missed.Count > 0) line += "  (" + string.Join(", ", missed) + ")";
             if (gained > 0) line += "  새 별 +" + gained;
             return line;
@@ -982,6 +984,7 @@ namespace BiRyeoDo.Game.UI
             }
             if (trial != null && trial.Kind == TrialKind.Finale && _battle.PlayerWon && !_fled) yield return FinaleCollapse(trial.Script);
             _fightActions = actions;
+            _fightWindowsMissed = _battle.WindowsMissed;
             _fightFell = _party.Exists(m => !m.IsAlive);
             if (trial != null && _battle.TrialFailed) _log.text = _battle.TrialFailReason;
             if (turnLimit > 0 || trial != null) _stageLabel.text = label;
@@ -1015,7 +1018,8 @@ namespace BiRyeoDo.Game.UI
             if (storyParty != null) return storyParty;
             var hero = Formation.BuildHero(save);   // equipped arts (four + one 비기), stats and 심법 perks
             var party = new List<Combatant> { hero };
-            foreach (var c in EarlyGameContent.SelectCompanionsFor(Roster.PartyStage(stage, save), save))
+            int fight = encounter < 0 ? _storyEncounter : encounter;
+            foreach (var c in Roster.CompanionsFor(stage, fight, save))   // a reenacted story fight brings its required companions first
             {
                 int bondLevel = Bonds.Level(save, c.Id);
                 party.Add(CompanionGrowth.Create(save, c));
@@ -1071,9 +1075,11 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Panel("CampLine", root, new Vector2((FieldLeft + FieldRight) * .5f - .001f, FieldBottom), new Vector2((FieldLeft + FieldRight) * .5f + .001f, HeaderTop), new Color(.83f, .72f, .48f, .22f));
         }
 
-        private void BuildParty(StageData stage)
+        /// <summary>Builds the party and its panels; on a reenacted stage <paramref name="carry"/> (the party before) keeps its wounds.</summary>
+        private void BuildParty(StageData stage, List<Combatant> carry = null)
         {
             _party = CreateParty(stage);
+            if (carry != null) Roster.CarryWounds(carry, _party);
             _hudActor = null;
             ClearPanels();
             int n = _party.Count;
@@ -1770,8 +1776,9 @@ namespace BiRyeoDo.Game.UI
         private static string SkillDetails(SkillSpec s)
         {
             var parts = new List<string>();
-            if (s.Effect == SkillEffect.Evade) parts.Add("다음 차례까지 공격을 " + Mathf.RoundToInt(s.EvadeChance * 100f) + "% 확률로 회피");
-            else if (s.Effect == SkillEffect.GuardParty) parts.Add("파티 전체 방어 태세");
+            string support = SupportEffects.Describe(s);
+            if (support != null) parts.Add(support);
+            else if (s.Effect == SkillEffect.Evade) parts.Add("다음 차례까지 공격을 " + Mathf.RoundToInt(s.EvadeChance * 100f) + "% 확률로 회피");
             else if (s.Effect == SkillEffect.HealAlly) parts.Add("가장 다친 동료 체력 " + Mathf.RoundToInt(s.HealPct * 100f) + "% 회복");
             else if (s.Effect == SkillEffect.Cleanse) parts.Add("고른 동료의 상태 이상을 모두 풀고 체력 " + Mathf.RoundToInt(s.HealPct * 100f) + "% 회복");
             else
@@ -1857,7 +1864,7 @@ namespace BiRyeoDo.Game.UI
             var companion = EarlyGameContent.FindCompanion(partner.Id);
             var spec = companion != null ? Bonds.JointSpec(companion, Bonds.Level(GameManager.Instance.Save, partner.Id), Bonds.ReferencePower(_battle.Player.Skills)) : null;
             string name = companion != null && !string.IsNullOrEmpty(companion.JointName) ? companion.JointName : "합공";
-            string extra = spec == null ? "" : spec.Effect == SkillEffect.Stun ? "\n적을 굳혀 강타를 끊습니다." : spec.Effect == SkillEffect.GuardParty ? "\n파티 전체가 방어 태세를 취합니다." : spec.Effect == SkillEffect.HealAlly ? "\n가장 다친 동료를 치유합니다." : "";
+            string extra = spec == null ? "" : spec.Effect == SkillEffect.Stun ? "\n적을 굳혀 강타를 끊습니다." : spec.Effect == SkillEffect.GuardParty ? "\n파티 전체가 " + InteractiveBattle.PartyGuardTurns + "차례 동안 방어 태세를 취합니다." : spec.Effect == SkillEffect.HealAlly ? "\n가장 다친 동료를 치유합니다." : spec.Inflict != StatusKind.None ? "\n맞은 적은 반드시 " + Statuses.Name(spec.Inflict) + "에 걸립니다." : "";
             ShowTip(name + " (" + partner.Name + ")", "기세 " + InteractiveBattle.JointSpiritCost + " · 위력 ×" + (spec != null ? spec.Power.ToString("0.0") : "?") + "\n비류연과 " + partner.Name + "이(가) 연달아 칩니다. " + partner.Name + "은(는) 다음 행동을 씁니다." + extra, ArtLibrary.Icon("cmd_joint"));
         }
 
@@ -2123,7 +2130,8 @@ namespace BiRyeoDo.Game.UI
             {
                 var ev = events[eventIndex];
                 if (_fled) yield break;
-                if (ev.Kind != EventKind.Attack) _cutInKey = "";
+                // A 상태 이상 tick inside an attack (출혈 between the two strikes of a 합공) is part of that attack: it must not let the cut-in play again.
+                if (ev.Kind != EventKind.Attack && ev.Kind != EventKind.Status) _cutInKey = "";
                 var actorPanel = PanelOf(ev.ActorId);
                 bool byParty = actorPanel != null;
                 if (actorPanel != null && ev.Kind != EventKind.Status) { actorPanel.ShownQi = ev.ActorQiAfter; actorPanel.ShownSpirit = ev.ActorSpiritAfter; }   // status events carry no gauges
@@ -2188,7 +2196,8 @@ namespace BiRyeoDo.Game.UI
                     case EventKind.Guard:
                         SoundManager.Sfx("guard");
                         _log.text = ev.Message;
-                        foreach (var p in _panels) if (_battle.IsGuarded(p.Unit)) Float(p.Center, "방어!", GuardBlue, 52);
+                        if (ev.Tag != null) { var tagged = PanelOf(ev.TargetId); if (tagged != null) Float(tagged.Center, ev.Tag, GuardBlue, 52); }   // 대신 막기, 반격 태세, 기세, 결계, 집중
+                        else foreach (var p in _panels) if (_battle.IsGuarded(p.Unit)) Float(p.Center, "방어!", GuardBlue, 52);
                         RefreshParty();
                         yield return new WaitForSeconds(Wait(SmallDelay));
                         break;
@@ -2222,7 +2231,7 @@ namespace BiRyeoDo.Game.UI
                     case EventKind.Evade:
                         SoundManager.Sfx("dodge");
                         _log.text = ev.Message;
-                        if (actorPanel != null) Float(actorPanel.Center, "회피 태세", new Color(0.7f, 0.9f, 1f), 52);
+                        if (actorPanel != null) Float(actorPanel.Center, ev.Tag ?? "회피 태세", new Color(0.7f, 0.9f, 1f), 52);
                         if (actorPanel != null) FootworkFx(actorPanel);
                         RefreshParty();
                         yield return new WaitForSeconds(Wait(SmallDelay));

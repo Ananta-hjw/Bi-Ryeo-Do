@@ -86,6 +86,8 @@ namespace BiRyeoDo.Core
             { "yun_junho", new[] { new Awakening { ArtId = "yj_heal", HealAdd = 0.15f, CooldownAdd = -1 } } },
             { "na_yerin", new[] { new Awakening { ArtId = "ny_simahn", PowerMul = 1.3f }, new Awakening { ArtId = "ny_hansang", HitsAdd = 1 } } },
             { "im_seongjin", new[] { new Awakening { ArtId = "isj_iljeom", PowerMul = 1.3f }, new Awakening { ArtId = "isj_seonggwang", HitsAdd = 1 } } },
+            { "namgung_sang", new[] { new Awakening { ArtId = "ns_noejeon", PowerMul = 1.3f }, new Awakening { ArtId = "ns_baekroe", HitsAdd = 1 } } },
+            { "mo_yonghwi", new[] { new Awakening { ArtId = "mh_ilseom", PowerMul = 1.3f }, new Awakening { ArtId = "mh_mancheon", HitsAdd = 1 } } },
         };
 
         public static string AwakeningText(string companionId)
@@ -97,6 +99,8 @@ namespace BiRyeoDo.Core
                 case "yun_junho": return "자하신공 치유량 +15%p, 재사용 -1턴";
                 case "na_yerin": return "심안검 위력 x1.3, 한상옥령신검 +1타";
                 case "im_seongjin": return "일점필중 위력 x1.3, 성광일시 +1타";
+                case "namgung_sang": return "뇌전검법 위력 x1.3, 백뢰비성시 +1타";
+                case "mo_yonghwi": return "은하일섬 위력 x1.3, 은하유성만천 +1타";
             }
             return "";
         }

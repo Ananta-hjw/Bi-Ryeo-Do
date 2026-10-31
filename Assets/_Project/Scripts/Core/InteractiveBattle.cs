@@ -59,6 +59,16 @@ namespace BiRyeoDo.Core
         public const int MeditateQi = 40;
         public const float MeditateHealPct = 0.08f;
         public const float GuardDamageFactor = 0.4f;
+        /// <summary>태을천강벽 (and every party-wide guard): damage x0.7 (half the cut of a guard) for the caster's next three turns.</summary>
+        public const float PartyGuardDamageFactor = 0.7f;
+        public const int PartyGuardTurns = 3;
+        public const float CoverDamageFactor = 0.7f;          // 원의 곤: the covering member takes 30% less
+        public const float FocusDamageFactor = 2.3f;          // 유성보: the next attack +130%
+        public const float FocusTakenFactor = 1.2f;           // … and +20% taken until then
+        public const int WardTurns = 2;                       // 은하밀밀: own turns with no 상태 이상
+        public const int PartySpiritGain = 25;                // 뇌광산란
+        public const float CounterStancePower = 1.5f;         // 성막밀밀: the strike back
+        public const float ChillAttackFactor = 0.9f;          // 한기: the chilled unit deals -10%
         public const int SpiritOnDealt = 10, SpiritOnTaken = 8, SpiritOnGuard = 12;
         public const float HarmonyDamageFactor = 2.5f;
         public const int JointSpiritCost = 50;
@@ -126,6 +136,9 @@ namespace BiRyeoDo.Core
         }
         private bool _armorNoted;
         /// <summary>20: 비류연's turn while the enemy winds up (its mouth is open): <see cref="PlayerCommand.Finale"/> ends it.</summary>
+        /// <summary>20: how many times the mouth opened on 비류연's turn without 섬뢰창 (the fight's 신속 star asks for none).</summary>
+        public int WindowsMissed { get; private set; }
+
         public bool FinaleWindowOpen
         {
             get
@@ -139,7 +152,7 @@ namespace BiRyeoDo.Core
         /// <summary>The opening is over (일반 30: the 진 has felled all but 비류연; 46: the 심도 has done its work): the scene comes next.</summary>
         public bool FinaleStruck { get; private set; }
         /// <summary>비류연's last action: whatever is commanded, it is the showdown's art (<see cref="ShowdownScript.Skill"/>) that ends it.</summary>
-        public bool FinaleReady { get { return IsFinale && FinaleStruck && IsPlayerTurn; } }
+        public bool FinaleReady { get { return IsFinale && FinaleStruck && IsPlayerTurn && Current == Player; } }   // companions keep acting until 비류연's turn
 
         /// <summary>Unavoidable: the enemy's blow lands through guard and dodge for a share of max HP, never below 1.</summary>
         private void UnavoidableBlow(Combatant enemy, List<BattleEvent> events)
@@ -360,6 +373,18 @@ namespace BiRyeoDo.Core
         // 태을천강벽 style guards cover the whole party until the caster acts again. A per-unit flag was cleared when each member
         // acted, so allies who moved before the next enemy attack silently lost it.
         private Combatant _partyGuardOwner;
+        private int _partyGuardTurns;   // the caster's turns left before the party guard ends
+
+        private void StartPartyGuard(Combatant caster) { _partyGuardOwner = caster; _partyGuardTurns = PartyGuardTurns; }
+
+        /// <summary>Damage factor a guard gives this unit: its own guard (x0.4) or the party guard (x0.7), whichever cuts more; 1 when unguarded.</summary>
+        public float GuardFactorFor(Combatant unit)
+        {
+            float f = 1f;
+            if (unit.Guarding) f = GuardDamageFactor;
+            if (_partyGuardOwner != null && unit.IsAlive && _party.Contains(unit)) f = Math.Min(f, PartyGuardDamageFactor);
+            return f;
+        }
 
         public bool IsGuarded(Combatant unit)
         {
@@ -433,6 +458,7 @@ namespace BiRyeoDo.Core
         {
             if (!IsPlayerTurn) throw new InvalidOperationException("Not the player's turn.");
             if (FinaleReady) return FinaleStrike();
+            if (FinaleWindowOpen && cmd.Kind != CommandKind.Finale) WindowsMissed++;   // 20: the mouth was open and 섬뢰창 was not thrown
             if (cmd.Kind == CommandKind.Finale)
             {
                 if (!FinaleWindowOpen) throw new InvalidOperationException("The window is closed.");
@@ -456,8 +482,7 @@ namespace BiRyeoDo.Core
             _harmonyBoost = false;
             if (Trial != null && Trial.Kind == TrialKind.Harmony)
             {
-                bool attacking = cmd.Kind == CommandKind.Joint || (cmd.Kind == CommandKind.Skill && cmd.Skill != null && cmd.Skill.Effect != SkillEffect.Evade
-                    && cmd.Skill.Effect != SkillEffect.GuardParty && cmd.Skill.Effect != SkillEffect.HealAlly && cmd.Skill.Effect != SkillEffect.Cleanse);
+                bool attacking = cmd.Kind == CommandKind.Joint || (cmd.Kind == CommandKind.Skill && cmd.Skill != null && (cmd.Skill.Effect == SkillEffect.None || cmd.Skill.Effect == SkillEffect.Stun));
                 if (attacking)
                 {
                     // the chain is full once every living member has attacked in it (one fast member attacking again does not count twice);
@@ -554,8 +579,41 @@ namespace BiRyeoDo.Core
                     events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = skill.Id, Kind = EventKind.Evade, TargetHpAfter = actor.Hp, Message = actor.Name + "의 " + skill.Name + "!" });
                     return;
                 case SkillEffect.GuardParty:
-                    _partyGuardOwner = actor;
+                    StartPartyGuard(actor);
                     events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = skill.Id, Kind = EventKind.Guard, TargetHpAfter = actor.Hp, Message = actor.Name + "의 " + skill.Name + "! 모두가 방어 태세." });
+                    return;
+                case SkillEffect.Stealth:
+                    actor.Stealthed = true; actor.StealthCrit = true;
+                    events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = skill.Id, Kind = EventKind.Evade, Tag = "은신", TargetHpAfter = actor.Hp, Message = actor.Name + "의 " + skill.Name + "! 그림자 속으로 사라졌다." });
+                    return;
+                case SkillEffect.HealParty:
+                    foreach (var m in _party)
+                    {
+                        if (!m.IsAlive) continue;
+                        int heal = (int)Math.Round(m.Stats.MaxHp * skill.HealPct);
+                        m.Hp = Math.Min(m.Stats.MaxHp, m.Hp + heal);
+                        events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = m.Id, SkillId = skill.Id, Kind = EventKind.Heal, Heal = heal, TargetHpAfter = m.Hp, Message = actor.Name + "의 " + skill.Name + "! 일행 모두 회복." });
+                    }
+                    return;
+                case SkillEffect.Cover:
+                    actor.Covering = true;
+                    events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = skill.Id, Kind = EventKind.Guard, Tag = "대신 막기", TargetHpAfter = actor.Hp, Message = actor.Name + "의 " + skill.Name + "! 일행 앞을 막아선다." });
+                    return;
+                case SkillEffect.CounterStance:
+                    actor.CounterStance = true;
+                    events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = skill.Id, Kind = EventKind.Guard, Tag = "반격 태세", TargetHpAfter = actor.Hp, Message = actor.Name + "의 " + skill.Name + "! 빈틈을 노리는 검막." });
+                    return;
+                case SkillEffect.PartySpirit:
+                    foreach (var m in _party) if (m.IsAlive) m.Spirit = Math.Min(MaxSpirit, m.Spirit + PartySpiritGain);
+                    events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = skill.Id, Kind = EventKind.Guard, Tag = "기세 +" + PartySpiritGain, TargetHpAfter = actor.Hp, Message = actor.Name + "의 " + skill.Name + "! 일행의 기세가 오른다." });
+                    return;
+                case SkillEffect.Ward:
+                    foreach (var m in _party) if (m.IsAlive) m.WardTurns = WardTurns;
+                    events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = skill.Id, Kind = EventKind.Guard, Tag = "결계", TargetHpAfter = actor.Hp, Message = actor.Name + "의 " + skill.Name + "! 일행이 상태 이상에 걸리지 않는다." });
+                    return;
+                case SkillEffect.Focus:
+                    actor.Focused = true;
+                    events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = skill.Id, Kind = EventKind.Guard, Tag = "집중", TargetHpAfter = actor.Hp, Message = actor.Name + "의 " + skill.Name + "! 다음 일격에 모든 것을 모은다." });
                     return;
                 case SkillEffect.HealAlly:
                     {
@@ -599,12 +657,15 @@ namespace BiRyeoDo.Core
                 foreach (var t in targets)
                     if (t.IsAlive && _rng.NextDouble() < skill.InflictChance) Inflict(actor, t, skill.Inflict, events);
             if (skill.SpiritCost == 0) actor.Spirit = Math.Min(MaxSpirit, actor.Spirit + SpiritOnDealt + actor.SpiritDealtBonus);
+            if (targets.Count > 0) { actor.Focused = false; actor.StealthCrit = false; }   // 유성보·신은술 are spent on this attack
         }
 
         private BattleEvent DealHit(Combatant actor, Combatant t, SkillSpec skill, int h, int hits, bool stun, List<BattleEvent> events, bool triggerBleed = true)
         {
-            bool crit = _rng.NextDouble() < actor.Stats.CritRate;
+            bool crit = actor.StealthCrit || _rng.NextDouble() < actor.Stats.CritRate;
             int dmg = BattleEngine.CalcDamage(actor.Stats, t.Stats, skill, crit);
+            if (actor.Focused) dmg = (int)Math.Round(dmg * FocusDamageFactor);
+            if (actor.Has(StatusKind.Chill)) dmg = (int)Math.Round(dmg * ChillAttackFactor);
             if (_harmonyBoost) dmg = (int)Math.Round(dmg * HarmonyDamageFactor);
             Combatant counterTarget;
             bool counter = _counterStrikes.TryGetValue(actor, out counterTarget) && counterTarget == t;
@@ -665,11 +726,13 @@ namespace BiRyeoDo.Core
             if (bled) StatusHurt(t, StatusKind.Bleed, events);
             var next = t.IsAlive ? t : ResolveTarget(null, spec);
             if (next != null) DealHit(partner, next, spec, 0, 1, spec.Effect == SkillEffect.Stun, events, !bled).Joint = true;
+            if (next != null && spec.Inflict != StatusKind.None && next.IsAlive && _rng.NextDouble() < spec.InflictChance) Inflict(partner, next, spec.Inflict, events);   // 백혼합벽: 한기
+            actor.Focused = false; actor.StealthCrit = false; partner.Focused = false; partner.StealthCrit = false;
 
             switch (spec.Effect)
             {
                 case SkillEffect.GuardParty:
-                    _partyGuardOwner = partner;
+                    StartPartyGuard(partner);
                     events.Add(new BattleEvent { Turn = Turn, ActorId = partner.Id, TargetId = partner.Id, SkillId = spec.Id, Kind = EventKind.Guard, Joint = true, TargetHpAfter = partner.Hp, Message = spec.Name + "! \ubaa8\ub450\uac00 \ubc29\uc5b4 \ud0dc\uc138." });
                     break;
                 case SkillEffect.HealAlly:
@@ -715,6 +778,7 @@ namespace BiRyeoDo.Core
         private void Inflict(Combatant source, Combatant target, StatusKind kind, List<BattleEvent> events)
         {
             if (kind == StatusKind.None || !target.IsAlive) return;
+            if (target.WardTurns > 0) return;   // 은하밀밀
             if (!target.AddStatus(kind, Statuses.DefaultTurns(kind))) return;   // already carries a status: nothing new takes hold
             events.Add(new BattleEvent { Turn = Turn, ActorId = source.Id, TargetId = target.Id, SkillId = "status", Kind = EventKind.Status, Status = kind, TargetHpAfter = target.Hp, Message = target.Name + ": " + Statuses.Name(kind) + "!" });
         }
@@ -804,8 +868,11 @@ namespace BiRyeoDo.Core
                 Turn++;
                 actor.Guarding = false;
                 actor.Evading = false;
-                // A party-wide guard lasts until its caster's next turn; if the caster fell, until the next ally acts.
-                if (actor == _partyGuardOwner || (_partyGuardOwner != null && !_partyGuardOwner.IsAlive && actor.Team == Team.Player)) _partyGuardOwner = null;
+                actor.Stealthed = false; actor.Covering = false; actor.CounterStance = false;   // stances last until the unit's next turn
+                if (actor.WardTurns > 0) actor.WardTurns--;
+                // A party-wide guard lasts for three of its caster's turns; if the caster fell, until the next ally acts.
+                if (actor == _partyGuardOwner && --_partyGuardTurns <= 0) _partyGuardOwner = null;
+                if (_partyGuardOwner != null && !_partyGuardOwner.IsAlive && actor.Team == Team.Player) _partyGuardOwner = null;
 
                 bool wounded = actor.Has(StatusKind.InnerWound);   // 내상 this turn (read before the statuses tick down)
                 TickStatuses(actor, events);
@@ -814,8 +881,9 @@ namespace BiRyeoDo.Core
 
                 if (actor.Team == Team.Player)
                 {
-                    // 46: enough of the 심도 (three of our actions, or 비류연 below the trigger) and the scene begins on this turn
-                    if (IsUnavoidable && !FinaleStruck && (PartyActions >= Trial.FinaleTurns || Player.Hp <= Player.Stats.MaxHp * Trial.TriggerHpPct)) FinaleStruck = true;
+                    // 46·43: enough of the 심도 (three of the enemy's blows, or 비류연 below the trigger) and the scene begins
+                    // (counted in the enemy's blows, so a party of four still feels the 심도 a few times before the scene)
+                    if (IsUnavoidable && !FinaleStruck && (EnemyActions >= Trial.FinaleTurns || Player.Hp <= Player.Stats.MaxHp * Trial.TriggerHpPct)) FinaleStruck = true;
                     actor.TickCooldowns();
                     if (!wounded) actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + QiRegenFor(actor.Stats.MaxQi) + actor.QiRegenBonus);
                     Current = actor;
@@ -833,22 +901,35 @@ namespace BiRyeoDo.Core
         {
             Combatant best = null;
             int bestDepth = int.MaxValue;
+            bool hideStealthed = AnyVisibleMember;
             foreach (var m in _party)
             {
-                if (!m.IsAlive) continue;
+                if (!m.IsAlive || (hideStealthed && m.Stealthed)) continue;
                 int d = Depth(m);
                 if (best == null || d < bestDepth || (d == bestDepth && (float)m.Hp / m.Stats.MaxHp < (float)best.Hp / best.Stats.MaxHp)) { best = m; bestDepth = d; }
             }
             return best;
         }
 
+        /// <summary>Some living member is not hidden by 신은술 (if every one is, nobody can be hidden).</summary>
+        private bool AnyVisibleMember { get { foreach (var m in _party) if (m.IsAlive && !m.Stealthed) return true; return false; } }
+
+        /// <summary>원의 곤: a covering member takes the blow meant for anyone else; 신은술 sends a blow meant for the hidden one to the front line.</summary>
+        private Combatant Redirect(Combatant target)
+        {
+            foreach (var m in _party) if (m.IsAlive && m.Covering) return m;
+            if (target != null && target.Stealthed && AnyVisibleMember) return FrontMember();
+            return target;
+        }
+
         /// <summary>The member a 저격 move picks: the back-most one within reach (ties: the more wounded one).</summary>
         private Combatant BackMember(int reach)
         {
             Combatant far = null; int farDepth = -1;
+            bool hideStealthed = AnyVisibleMember;
             foreach (var m in _party)
             {
-                if (!m.IsAlive) continue;
+                if (!m.IsAlive || (hideStealthed && m.Stealthed)) continue;
                 int d = Depth(m);
                 if (d >= reach) continue;
                 if (d > farDepth || (d == farDepth && (float)m.Hp / m.Stats.MaxHp < (float)far.Hp / far.Stats.MaxHp)) { far = m; farDepth = d; }
@@ -909,6 +990,7 @@ namespace BiRyeoDo.Core
                 var far = BackMember(Math.Max(enemy.Range, SnipeReach));
                 if (far != null) target = far;
             }
+            target = Redirect(target);
 
             bool heavy = awakening || enemy.Charging;
             if (awakening) enemy.AwakeningStrike = null;
@@ -953,7 +1035,11 @@ namespace BiRyeoDo.Core
                 {
                     ev.IsCrit = _rng.NextDouble() < enemy.Stats.CritRate;
                     int dmg = BattleEngine.CalcDamage(enemy.Stats, target.Stats, spec, ev.IsCrit);
-                    if (IsGuarded(target)) { dmg = Math.Max(1, (int)Math.Round(dmg * GuardDamageFactor)); ev.Guarded = true; }
+                    if (enemy.Has(StatusKind.Chill)) dmg = (int)Math.Round(dmg * ChillAttackFactor);
+                    if (target.Focused) dmg = (int)Math.Round(dmg * FocusTakenFactor);
+                    if (target.Covering) dmg = Math.Max(1, (int)Math.Round(dmg * CoverDamageFactor));
+                    float guard = GuardFactorFor(target);
+                    if (guard < 1f) { dmg = Math.Max(1, (int)Math.Round(dmg * guard)); ev.Guarded = true; }
                     target.Hp = Math.Max(0, target.Hp - dmg);
                     if (target.Hp == 0) TryRescue(target, ev);
                     ev.Damage = dmg;
@@ -982,6 +1068,8 @@ namespace BiRyeoDo.Core
             if (heavy && !struck && target.IsAlive && lastHit != null)
                 GrantCounter(target, enemy, lastHit);
             if (hurt) target.Spirit = Math.Min(MaxSpirit, target.Spirit + SpiritOnTaken + target.SpiritTakenBonus);
+            if (target.CounterStance && target.IsAlive && enemy.IsAlive && lastHit != null)   // 성막밀밀: the striker is struck back once per move
+                DealHit(target, enemy, new SkillSpec { Id = "counter_stance", Name = "반격", Power = CounterStancePower }, 0, 1, false, events).Counter = true;
             if (enemy.UsesResources && !burst) enemy.Spirit = Math.Min(MaxSpirit, enemy.Spirit + EnemySpiritOnDealt);
             for (int i = firstHit; i < events.Count; i++) events[i].TargetSpiritAfter = target.Spirit;
         }

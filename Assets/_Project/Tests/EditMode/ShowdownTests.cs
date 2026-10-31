@@ -41,13 +41,15 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual("거리 0", battle.TrialStatus);
             var evade = hero.Skills.First(s => s.Effect == SkillEffect.Evade);
             int actions = 0;
-            while (!battle.FinaleStruck)
+            while (!battle.FinaleReady)   // the whole party acts; the scene waits for 비류연's turn
             {
                 Assert.IsTrue(battle.IsPlayerTurn);
-                events.AddRange(battle.PlayerAct(actions % 2 == 0 ? PlayerCommand.UseSkill(evade, null) : PlayerCommand.UseSkill(SkillSpec.BasicAttack(), chilsang)));
+                bool mine = battle.Current == hero;
+                events.AddRange(battle.PlayerAct(mine && battle.CanUse(evade) ? PlayerCommand.UseSkill(evade, null) : PlayerCommand.UseSkill(SkillSpec.BasicAttack(), chilsang)));
                 actions++;
-                Assert.LessOrEqual(actions, trial.FinaleTurns);
+                Assert.LessOrEqual(actions, 40, "the scene comes after a few rounds");
             }
+            Assert.GreaterOrEqual(events.Count(e => e.SkillId == "천외일도"), trial.FinaleTurns, "three blows of the 심도 before the scene");
             var blows = events.Where(e => e.SkillId == "천외일도").ToList();
             Assert.IsNotEmpty(blows);
             Assert.IsTrue(blows.All(e => e.Damage > 0 && e.TargetId == hero.Id), "dodging does not shorten the distance");
@@ -76,9 +78,9 @@ namespace BiRyeoDo.Tests
             var yecheong = stage.EnemyFor("yecheong_twins", trial).CreateCombatant("ye");
             var battle = new InteractiveBattle(party, new List<Combatant> { yecheong }, new SeededRandom(4)) { Trial = trial };
             var events = battle.Begin();
-            while (!battle.FinaleStruck) events.AddRange(battle.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), yecheong)));
+            while (!battle.FinaleReady) events.AddRange(battle.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), yecheong)));
             Assert.IsTrue(events.Where(e => e.SkillId == "십이야").All(e => e.TargetId == hero.Id && e.Damage > 0));
-            Assert.IsTrue(events.Where(e => e.ActorId == hero.Id && e.Kind == EventKind.Attack).All(e => e.Damage == 0 && e.Quip == "상대는 장모님이다."));
+            Assert.IsTrue(events.Where(e => e.TargetId == yecheong.Id && e.Kind == EventKind.Attack).All(e => e.Damage == 0 && e.Quip == "상대는 장모님이다."), "no one in the party harms her");
             int hp = hero.Hp;
             var strike = battle.PlayerAct(PlayerCommand.Guard());
             Assert.IsTrue(strike.All(e => e.SkillId == "scene_redirect_finale" && e.Damage == 0 && e.Retreated), "nobody is struck");

@@ -87,7 +87,7 @@ namespace BiRyeoDo.Core
                         if (skill.Effect == SkillEffect.Stun) benefit += Reference.Stats.MaxHp * .08;
                         if (skill.Inflict != StatusKind.None) benefit += skill.InflictChance * Reference.Stats.MaxHp * .035;
                     }
-                    else if (skill.Effect == SkillEffect.HealAlly || skill.Effect == SkillEffect.Cleanse)
+                    else if (skill.Effect == SkillEffect.HealAlly || skill.Effect == SkillEffect.Cleanse || skill.Effect == SkillEffect.HealParty)
                         benefit = Reference.Stats.MaxHp * (skill.HealPct * 1.6 + (skill.Effect == SkillEffect.Cleanse ? .08 : 0));
                     else if (skill.Effect == SkillEffect.GuardParty) benefit = Reference.Stats.MaxHp * .35;
                     else if (skill.Effect == SkillEffect.Evade) benefit = Reference.Stats.MaxHp * .16 * skill.EvadeChance;
@@ -130,7 +130,7 @@ namespace BiRyeoDo.Core
                 Reference = reference, Original = new string[6], Options = new List<string>[6], Effects = new Dictionary<string, GearEffects>[6],
                 BaseStats = companion == null ? Progression.HeroStatsFor(level) : companion.StatsBeforeGear(level, bond, training),
                 ItemSets = new Dictionary<string, int>(), SetCounts = new int[Gear.Sets.Length], SetBonuses = new SetTier[Gear.Sets.Length][],
-                Healer = reference.Skills.Any(s => s.Effect == SkillEffect.HealAlly || s.Effect == SkillEffect.Cleanse),
+                Healer = reference.Skills.Any(s => s.Effect == SkillEffect.HealAlly || s.Effect == SkillEffect.Cleanse || s.Effect == SkillEffect.HealParty),
                 Protector = reference.Skills.Any(s => s.Effect == SkillEffect.GuardParty)
             };
             for (int i = 0; i < Gear.Sets.Length; i++)

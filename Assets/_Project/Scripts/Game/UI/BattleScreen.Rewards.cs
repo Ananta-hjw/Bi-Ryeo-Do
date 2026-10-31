@@ -33,7 +33,7 @@ namespace BiRyeoDo.Game.UI
             {
                 RewardText("StarCount", stars.transform, new Vector2(.04f, .50f), new Vector2(.96f, .98f),
                     StarGlyphs(mask) + "   " + StageStars.Count(mask) + " / 3", 58, UiFactory.Gold, TextAnchor.MiddleCenter);
-                string[] criteria = { "승리", "전원 생존", "신속 " + _fightActions + "/" + StageStars.FastLimit(stage.Number, fight, stage.Difficulty) + "행동" };
+                string[] criteria = { "승리", "전원 생존", StageStars.FastText(stage, fight, _fightActions) };
                 for (int i = 0; i < 3; i++)
                     RewardText("Criterion" + i, stars.transform, new Vector2(.02f + i * .33f, .25f), new Vector2(.32f + i * .33f, .52f),
                         ((mask & (1 << i)) != 0 ? "✓ " : "· ") + criteria[i], 25,

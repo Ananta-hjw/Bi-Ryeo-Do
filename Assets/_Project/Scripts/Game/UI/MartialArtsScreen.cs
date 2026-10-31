@@ -190,8 +190,8 @@ namespace BiRyeoDo.Game.UI
                 if (shown != art) lines.Add("<color=#E8C860>" + art.Name + "이(가) 「" + shown.Name + "」로 변했습니다.</color>");
                 lines.Add(shown.Description);
                 string cost = art.SpiritCost > 0 ? "기세 " + art.SpiritCost : spec.QiCost > 0 ? "내공 " + spec.QiCost : "내공 0";
-                string effect = art.Effect == SkillEffect.Evade ? "다음 차례까지 공격을 " + Mathf.RoundToInt(spec.EvadeChance * 100f) + "% 확률로 회피"
-                    : art.Effect == SkillEffect.GuardParty ? "파티 전원 방어 태세"
+                string effect = SupportEffects.Describe(spec) != null ? SupportEffects.Describe(spec)
+                    : art.Effect == SkillEffect.Evade ? "다음 차례까지 공격을 " + Mathf.RoundToInt(spec.EvadeChance * 100f) + "% 확률로 회피"
                     : art.Effect == SkillEffect.HealAlly ? "아군 체력 " + Mathf.RoundToInt(spec.HealPct * 100f) + "% 회복"
                     : "위력 ×" + spec.Power.ToString("0.00") + (spec.Hits > 1 ? " ×" + spec.Hits + "타" : "") + (spec.AllEnemies ? " · 적 전체" : "") + (art.Effect == SkillEffect.Stun ? " · 점혈(굳음)" : "")
                     + (shown.Inflict != StatusKind.None ? " · " + Statuses.Name(shown.Inflict) + " " + Mathf.RoundToInt(shown.InflictChance * 100f) + "%" : "");
@@ -318,8 +318,8 @@ namespace BiRyeoDo.Game.UI
         {
             if (a.SpiritCost > 0) return new Color(0.62f, 0.44f, 0.12f, 1f);
             if (a.AllEnemies) return new Color(0.38f, 0.22f, 0.55f, 1f);
-            if (a.Effect == SkillEffect.Evade || a.Effect == SkillEffect.GuardParty) return new Color(0.18f, 0.34f, 0.58f, 1f);
-            if (a.Effect == SkillEffect.HealAlly) return new Color(0.20f, 0.46f, 0.30f, 1f);
+            if (a.Effect == SkillEffect.Evade || (SupportEffects.IsSupport(a.Effect) && a.Effect != SkillEffect.HealAlly && a.Effect != SkillEffect.HealParty && a.Effect != SkillEffect.Cleanse)) return new Color(0.18f, 0.34f, 0.58f, 1f);
+            if (a.Effect == SkillEffect.HealAlly || a.Effect == SkillEffect.HealParty) return new Color(0.20f, 0.46f, 0.30f, 1f);
             if (a.Effect == SkillEffect.Stun) return new Color(0.16f, 0.46f, 0.50f, 1f);
             return new Color(0.55f, 0.18f, 0.18f, 1f);
         }
@@ -373,8 +373,8 @@ namespace BiRyeoDo.Game.UI
                 }
                 x += width + gap;
             };
-            if (a.Effect == SkillEffect.Evade) add("회피 " + Mathf.RoundToInt(spec.EvadeChance * 100f) + "%", ChipSupport);
-            else if (a.Effect == SkillEffect.GuardParty) add("파티 방어", ChipSupport);
+            if (SupportEffects.Chip(spec) != null) add(SupportEffects.Chip(spec), ChipSupport);
+            else if (a.Effect == SkillEffect.Evade) add("회피 " + Mathf.RoundToInt(spec.EvadeChance * 100f) + "%", ChipSupport);
             else if (a.Effect == SkillEffect.HealAlly) add("치유 " + Mathf.RoundToInt(spec.HealPct * 100f) + "%", ChipSupport);
             else
             {

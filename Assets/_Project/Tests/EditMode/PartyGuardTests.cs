@@ -54,8 +54,13 @@ namespace BiRyeoDo.Tests
             Assert.AreSame(caster, battle.Current);
             battle.PlayerAct(PlayerCommand.UseSkill(guardSkill, null));
             Assert.IsTrue(battle.IsGuarded(hero));
-            // Let turns pass until the caster is up again; then the guard is gone.
-            for (int i = 0; i < 10 && battle.Current != caster; i++) battle.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), foe));
+            // 태을천강벽 lasts for the caster's next three turns: still up on the first two, gone on the third.
+            int casterTurns = 0;
+            for (int i = 0; i < 40 && casterTurns < InteractiveBattle.PartyGuardTurns; i++)
+            {
+                battle.PlayerAct(PlayerCommand.UseSkill(SkillSpec.BasicAttack(), foe));
+                if (battle.Current == caster && ++casterTurns < InteractiveBattle.PartyGuardTurns) Assert.IsTrue(battle.IsGuarded(hero), "turn " + casterTurns);
+            }
             Assert.AreSame(caster, battle.Current);
             Assert.IsFalse(battle.IsGuarded(hero));
             Assert.IsFalse(battle.IsGuarded(caster));

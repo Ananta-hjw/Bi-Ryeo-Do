@@ -28,7 +28,7 @@ namespace BiRyeoDo.Tests
                 Assert.AreEqual(stage.Encounters.Length, stage.StoryActors.Length);
                 for (int i = 0; i < stage.Encounters.Length; i++)
                 {
-                    var party = Roster.CreateStoryParty(stage, i, new SaveData());
+                    var party = BalanceSimulation.StoryParty(stage, i, new SaveData());
                     Assert.IsFalse(party.Any(m => m.Skills.Any(s => s.Id == "scene_escape_laughter" || s.Id == "scene_escape_distrust")));
                     var rule = stage.TrialFor(i);
                     if (rule != null && rule.Kind == TrialKind.Technique)

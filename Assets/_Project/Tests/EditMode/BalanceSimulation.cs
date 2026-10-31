@@ -90,7 +90,7 @@ namespace BiRyeoDo.Tests
                 return storyParty;
             }
             var party = new List<Combatant> { gear != null ? Formation.BuildHero(save, Inventory.ApplyGear(BareHeroStats(save), ids, gear)) : Formation.BuildHero(save) };
-            foreach (var c in EarlyGameContent.SelectCompanionsFor(Roster.PartyStage(stage, save), save))
+            foreach (var c in Roster.CompanionsFor(stage, encounter, save))
             {
                 if (gear == null) { party.Add(CompanionGrowth.Create(save, c)); continue; }
                 int level = CompanionGrowth.LevelOf(save, c.Id), train = CompanionTraining.LevelOf(save, c.Id);
@@ -98,6 +98,56 @@ namespace BiRyeoDo.Tests
             }
             Formation.Apply(party, save, stage);
             return party;
+        }
+
+        /// <summary>
+        /// The party of a story fight as the game builds it: the fixed story party, or on a reenacted stage the player's party with the
+        /// required companions and the fight's scene technique.
+        /// </summary>
+        public static List<Combatant> FightParty(SaveData save, StageData stage, int encounter)
+        {
+            var party = Roster.CreateStoryParty(stage, encounter, save);
+            if (party != null) return party;
+            party = Party(save, stage, encounter);
+            Roster.PrepareStoryEncounter(stage, encounter, party);
+            return party;
+        }
+
+        /// <summary>The story party of a fight as before (null for a quest, a tower floor or a stage without story actors), reenacted from 31.</summary>
+        public static List<Combatant> StoryParty(StageData stage, int encounter, SaveData save)
+        {
+            if (!Roster.Reenacted(stage) || Roster.CanonActorsFor(stage, encounter) == null) return Roster.CreateStoryParty(stage, encounter, save);
+            return FightParty(save, stage, encounter);
+        }
+
+        /// <summary>
+        /// The people of the original text who can be in the party are there: 비류연 for any of his scene bodies and the companions among
+        /// the actors (others are left to the player's picks). A party before <see cref="Roster.ReenactFrom"/> is exactly the actors.
+        /// </summary>
+        public static void AssertPartyIs(IEnumerable<string> actors, IList<Combatant> party)
+        {
+            var ids = party.Select(x => x.Id).ToList();
+            if (party.Count == 0 || !party.Any(x => x.Id == Inventory.Hero) && !actors.Any(a => Roster.CompanionIdOf(a) == Inventory.Hero) && actors.All(a => ids.Contains(a)))
+            {
+                NUnit.Framework.CollectionAssert.AreEqual(actors, ids);
+                return;
+            }
+            NUnit.Framework.Assert.AreEqual(Inventory.Hero, ids[0], "비류연 leads the reenacting party");
+            foreach (var a in actors)
+            {
+                string id = Roster.CompanionIdOf(a);
+                if (id == Inventory.Hero || EarlyGameContent.FindCompanion(id) != null) NUnit.Framework.CollectionAssert.Contains(ids, id);
+            }
+            NUnit.Framework.Assert.IsFalse(ids.Any(Roster.IsStoryActor));
+        }
+
+        /// <summary>A fixed story party is exactly its actors; a reenacted one is 비류연's party with every required companion and no story-only body.</summary>
+        public static void AssertActors(StageData stage, int encounter, IList<Combatant> party)
+        {
+            if (!Roster.Reenacted(stage)) { NUnit.Framework.CollectionAssert.AreEqual(stage.StoryActors[encounter], party.Select(x => x.Id)); return; }
+            NUnit.Framework.Assert.AreEqual(Inventory.Hero, party[0].Id, stage.Number + "/" + encounter);
+            foreach (var c in Roster.RequiredFor(stage, encounter)) NUnit.Framework.Assert.IsTrue(party.Any(x => x.Id == c.Id), stage.Number + "/" + encounter + " needs " + c.Id);
+            NUnit.Framework.Assert.IsFalse(party.Any(x => Roster.IsStoryActor(x.Id)), stage.Number + "/" + encounter);
         }
 
         /// <summary>The protagonist's stats before the 경지 bonus with nothing worn (심법 and 검룡위 still count).</summary>
@@ -112,7 +162,12 @@ namespace BiRyeoDo.Tests
             var result = new Result();
             for (int k = 0; k < stage.Encounters.Length; k++)
             {
-                if (k > 0 && !Roster.SamePerspective(stage, k - 1, k)) party = Party(save, stage, k);
+                if (k > 0 && !Roster.SamePerspective(stage, k - 1, k))
+                {
+                    var before = party;
+                    party = Party(save, stage, k);
+                    if (Roster.Reenacted(stage)) Roster.CarryWounds(before, party);
+                }
                 Roster.PrepareStoryEncounter(stage, k, party);
                 if (stage.EventFor(k) != null)
                 {

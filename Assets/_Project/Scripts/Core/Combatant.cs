@@ -36,6 +36,12 @@ namespace BiRyeoDo.Core
         public int Range = 1;              // enemies: how many tiles away their attacks reach
         public bool Guarding;              // damage taken is reduced until this unit's next turn
         public bool Evading;               // hits can miss until this unit's next turn
+        public bool Stealthed;             // out of the enemies' single-target picks until this unit's next turn (신은술)
+        public bool StealthCrit;           // the next attack is a sure critical hit (신은술)
+        public bool Covering;              // draws every single-target enemy attack until this unit's next turn, at reduced damage (원의 곤)
+        public bool CounterStance;         // strikes back at whoever hits it until this unit's next turn (성막밀밀)
+        public int WardTurns;              // own turns left with no 상태 이상 taking hold (은하밀밀)
+        public bool Focused;               // the next attack deals more, and this unit takes more until then (유성보)
         public float EvadeChance = 1f;     // chance each hit misses while Evading
         public bool Charging;              // enemy is winding up its next move (telegraph)
         public Combatant ChargeTarget;     // who the wound-up move will hit
@@ -65,6 +71,7 @@ namespace BiRyeoDo.Core
                 QiRegenBonus = QiRegenBonus, SpiritDealtBonus = SpiritDealtBonus, SpiritTakenBonus = SpiritTakenBonus,
                 StoryArtId = StoryArtId, StartSpirit = StartSpirit, Lifesteal = Lifesteal, RescuerId = RescuerId, RescueUsed = RescueUsed,
                 Col = Col, Row = Row, Range = Range, Guarding = Guarding, Evading = Evading, EvadeChance = EvadeChance,
+                Stealthed = Stealthed, StealthCrit = StealthCrit, Covering = Covering, CounterStance = CounterStance, WardTurns = WardTurns, Focused = Focused,
                 Charging = Charging, Stunned = Stunned, Rank = Rank, IsBoss = IsBoss, RetreatHpPct = RetreatHpPct, HoldsAtOneHp = HoldsAtOneHp, RetreatLines = RetreatLines,
                 MoveIndex = MoveIndex, Moves = Moves, Phases = Phases, PhaseIndex = PhaseIndex, AwakeningStrike = AwakeningStrike
             };

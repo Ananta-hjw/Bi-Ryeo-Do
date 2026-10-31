@@ -37,8 +37,8 @@ namespace BiRyeoDo.Tests
             Assert.IsNull(stage.TrialFor(0));
             Assert.AreSame(StoryChoiceEvents.DepartingFerry, stage.EventFor(0));
             Assert.IsNull(StoryEpisodes.BeforeFight(stage, 0, save));
-            var party = Roster.CreateStoryParty(stage, 0, save);
-            CollectionAssert.AreEqual(new[] { "na_yerin" }, party.Select(m => m.Id));
+            var party = BalanceSimulation.StoryParty(stage, 0, save);
+            BalanceSimulation.AssertPartyIs(new[] { "na_yerin" }, party);
             Assert.IsFalse(party.Any(m => m.Skills.Any(s => s.Id == "scene_escape_seat")));
             Recommend.FightReward(save, stage, 0, false, out long exp, out long doo);
             var legacy = new StageData { Number = 58, RecommendedLevel = stage.RecommendedLevel,
@@ -53,10 +53,10 @@ namespace BiRyeoDo.Tests
             Recommend.FightReward(save, stage, 0, Recommend.WonBefore(save, stage, 0), out exp, out doo);
             Assert.AreEqual(0, exp); Assert.AreEqual(0, doo);
             Assert.IsFalse(Roster.SamePerspective(stage, 0, 1));
-            var continuation = Roster.CreateStoryParty(stage, 1, save);
+            var continuation = BalanceSimulation.StoryParty(stage, 1, save);
             StageProgress.Store(save, 58, 1, continuation, difficulty);
             Assert.AreSame(StoryChoiceEvents.HubeiEscort, stage.EventFor(save.ProgressNext));
-            CollectionAssert.AreEqual(new[] { "story_biry_escape", "jang_hong" }, continuation.Select(m => m.Id));
+            BalanceSimulation.AssertPartyIs(new[] { "story_biry_escape", "jang_hong" }, continuation);
             var run = BalanceSimulation.Play(stage, save, 42);
             Assert.IsTrue(run.Won);
             Assert.AreEqual(0, run.Actions);
@@ -87,8 +87,8 @@ namespace BiRyeoDo.Tests
             Assert.IsEmpty(stage.Encounters[1]);
             Assert.IsNull(stage.TrialFor(1));
             Assert.AreSame(StoryChoiceEvents.HubeiEscort, stage.EventFor(1));
-            var party = Roster.CreateStoryParty(stage, 1, save);
-            CollectionAssert.AreEqual(new[] { "story_biry_escape", "jang_hong" }, party.Select(m => m.Id));
+            var party = BalanceSimulation.StoryParty(stage, 1, save);
+            BalanceSimulation.AssertPartyIs(new[] { "story_biry_escape", "jang_hong" }, party);
             Assert.IsFalse(party.Any(m => m.Skills.Any(s => s.Id == "scene_escape_badge")));
             StageProgress.Store(save, 58, 1, party, difficulty);
             Assert.AreSame(StoryChoiceEvents.HubeiEscort, stage.EventFor(save.ProgressNext));
@@ -106,12 +106,12 @@ namespace BiRyeoDo.Tests
             Recommend.FightReward(save, stage, 1, Recommend.WonBefore(save, stage, 1), out exp, out doo);
             Assert.AreEqual(0, exp); Assert.AreEqual(0, doo);
             Assert.IsFalse(Roster.SamePerspective(stage, 1, 2));
-            var continuation = Roster.CreateStoryParty(stage, 2, save);
+            var continuation = BalanceSimulation.StoryParty(stage, 2, save);
             StageProgress.Store(save, 58, 2, continuation, difficulty);
             Assert.AreSame(StoryChoiceEvents.SouthCheckpoint, stage.EventFor(save.ProgressNext));
-            var restored = Roster.CreateStoryParty(stage, 2, save);
+            var restored = BalanceSimulation.StoryParty(stage, 2, save);
             StageProgress.Restore(save, restored);
-            CollectionAssert.AreEqual(new[] { "story_biry_escape", "story_bing_geom" }, restored.Select(m => m.Id));
+            BalanceSimulation.AssertPartyIs(new[] { "story_biry_escape", "story_bing_geom" }, restored);
         }
 
         [TestCase(0)] [TestCase(1)]
@@ -142,8 +142,8 @@ namespace BiRyeoDo.Tests
             Assert.IsNull(stage.TrialFor(2));
             Assert.AreSame(StoryChoiceEvents.SouthCheckpoint, stage.EventFor(2));
             var save = BalanceSimulation.Starter(58, BalanceSimulation.BotLevel(stage));
-            var party = Roster.CreateStoryParty(stage, 2, save);
-            CollectionAssert.AreEqual(new[] { "story_biry_escape", "story_bing_geom" }, party.Select(m => m.Id));
+            var party = BalanceSimulation.StoryParty(stage, 2, save);
+            BalanceSimulation.AssertPartyIs(new[] { "story_biry_escape", "story_bing_geom" }, party);
             Assert.IsFalse(party.Any(m => m.Skills.Any(s => s.Id == "scene_escape_cover")));
             StageProgress.Store(save, 58, 2, party, difficulty);
             Assert.AreSame(StoryChoiceEvents.SouthCheckpoint, stage.EventFor(save.ProgressNext));
@@ -187,13 +187,13 @@ namespace BiRyeoDo.Tests
             {
                 var scaled = stage.WithDifficulty(d);
                 var save = new SaveData();
-                var party = Roster.CreateStoryParty(scaled, 1, save);
+                var party = BalanceSimulation.StoryParty(scaled, 1, save);
                 StageProgress.Store(save, 59, 1, party, d);
                 Assert.IsTrue(StageProgress.Has(save, 59));
                 Assert.AreSame(StoryChoiceEvents.LastReport, scaled.EventFor(save.ProgressNext));
                 Assert.IsNull(StoryEpisodes.BeforeFight(scaled, 1, save));
                 Assert.IsFalse(party.Any(m => m.Skills.Any(s => s.Id == "scene_escape_report")));
-                Assert.IsFalse(Roster.CreateStoryParty(scaled, 0, save).Any(m => m.Skills.Any(s => s.Id == "scene_escape_contacts")));
+                Assert.IsFalse(BalanceSimulation.StoryParty(scaled, 0, save).Any(m => m.Skills.Any(s => s.Id == "scene_escape_contacts")));
             }
         }
 
@@ -229,10 +229,10 @@ namespace BiRyeoDo.Tests
         {
             var stage = EarlyGameContent.FindStage(59).WithDifficulty(difficulty);
             var save = BalanceSimulation.Starter(59, BalanceSimulation.BotLevel(stage));
-            var party = Roster.CreateStoryParty(stage, 0, save);
+            var party = BalanceSimulation.StoryParty(stage, 0, save);
             StageStars.Record(save, 59, 0, difficulty, 7);
             StageProgress.Store(save, 59, 1, party, difficulty);
-            var restored = Roster.CreateStoryParty(stage, save.ProgressNext, save);
+            var restored = BalanceSimulation.StoryParty(stage, save.ProgressNext, save);
             StageProgress.Restore(save, restored);
             Assert.IsTrue(Roster.SamePerspective(stage, 0, 1));
             Assert.AreSame(StoryChoiceEvents.LastReport, stage.EventFor(save.ProgressNext));
@@ -302,8 +302,8 @@ namespace BiRyeoDo.Tests
         {
             var stage = EarlyGameContent.FindStage(59).WithDifficulty(difficulty);
             var save = new SaveData();
-            var party = Roster.CreateStoryParty(stage, 2, save);
-            CollectionAssert.AreEqual(new[] { "na_yerin" }, party.Select(m => m.Id));
+            var party = BalanceSimulation.StoryParty(stage, 2, save);
+            BalanceSimulation.AssertPartyIs(new[] { "na_yerin" }, party);
             Assert.IsFalse(party.Any(m => m.Skills.Any(s => s.Id == "scene_escape_warning")));
             StageStars.Record(save, 59, 0, difficulty, 7);
             StageStars.Record(save, 59, 1, difficulty, 7);

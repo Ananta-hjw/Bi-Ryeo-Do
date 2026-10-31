@@ -236,8 +236,8 @@ namespace BiRyeoDo.Game.UI
                     + (spec.Cooldown > 0 ? " · 재사용 " + spec.Cooldown + "턴" : " · 재사용 없음");
                 if (hero) resources += " · 숙련 " + Mastery.LevelNames[Mastery.Level(Save, art.Id)];
                 Text(row, "Resources", .25f, .56f, .97f, .74f, resources, 24, UiFactory.PaperText);
-                string effect = spec.Effect == SkillEffect.HealAlly ? "아군 체력 " + Math.Round(spec.HealPct * 100f) + "% 회복"
-                    : spec.Effect == SkillEffect.GuardParty ? "아군 전체 방어 태세"
+                string effect = SupportEffects.Describe(spec) != null ? SupportEffects.Describe(spec)
+                    : spec.Effect == SkillEffect.HealAlly ? "아군 체력 " + Math.Round(spec.HealPct * 100f) + "% 회복"
                     : spec.Effect == SkillEffect.Evade ? "회피 확률 " + Math.Round(spec.EvadeChance * 100f) + "%"
                     : spec.Effect == SkillEffect.Cleanse ? "아군 상태 이상 해제"
                     : "위력 ×" + spec.Power.ToString("0.##") + " · " + Math.Max(1, spec.Hits) + "타 · " + (spec.AllEnemies ? "적 전체" : "적 1명");

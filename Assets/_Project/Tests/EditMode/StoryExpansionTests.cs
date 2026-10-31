@@ -29,41 +29,33 @@ namespace BiRyeoDo.Tests
         }
 
         [TestCase(0)] [TestCase(1)] [TestCase(2)]
-        public void YoungYeonbiNeverBorrowsAdultLevelsGearOrArts(int difficulty)
+        public void ChildhoodFlashbackIsReenactedByTheGrownPartyWithItsSceneTechnique(int difficulty)
         {
             var stage = EarlyGameContent.FindStage(37).WithDifficulty(difficulty);
-            var plain = BalanceSimulation.Starter(37, 40);
-            var grown = SideContentSimulation.Prepared(37, 80, true);
-            var first = Roster.CreateStoryParty(stage, 0, plain).Single();
-            var second = Roster.CreateStoryParty(stage, 0, grown).Single();
-            Assert.AreEqual(first.Stats.MaxHp, second.Stats.MaxHp); Assert.AreEqual(first.Stats.Attack, second.Stats.Attack);
-            Assert.AreEqual(first.Stats.Defense, second.Stats.Defense); Assert.AreEqual(first.Stats.Speed, second.Stats.Speed);
-            CollectionAssert.AreEqual(first.Skills.Select(x => x.Id), second.Skills.Select(x => x.Id));
-            Assert.IsFalse(first.Skills.Any(x => plain.EquippedArts.Contains(x.Id)));
-            Assert.IsTrue(first.Skills.Any(x => x.Id == "scene_palhwa"));
-            first.Hp = 123; first.Qi = 40; first.Spirit = 35;
-            Roster.PrepareStoryEncounter(stage, 1, new[] { first });
-            Assert.AreEqual(123, first.Hp); Assert.AreEqual(40, first.Qi); Assert.AreEqual(35, first.Spirit);
-            Assert.IsTrue(first.Skills.Any(x => x.Id == "scene_ssangseom"));
-            Assert.IsFalse(first.Skills.Any(x => x.Id == "scene_palhwa"));
-            var focused = Roster.CreateStoryParty(stage, 1, plain).Single();
-            Assert.IsTrue(focused.Skills.Any(x => x.Id == "scene_ssangseom"));
-            Assert.IsFalse(focused.Skills.Any(x => x.Id == "scene_palhwa"));
-            Assert.IsFalse(plain.CompanionLevels.Any(x => x.Id == first.Id));
+            var save = BalanceSimulation.Starter(37, 40);
+            for (int fight = 0; fight < stage.Encounters.Length; fight++)
+            {
+                var party = BalanceSimulation.StoryParty(stage, fight, save);
+                Assert.AreEqual(Inventory.Hero, party[0].Id, "37 is reenacted from 31 on: the grown 비류연 leads");
+                Assert.IsFalse(party.Any(x => x.Id == "story_young_yeonbi"));
+                var trial = stage.TrialFor(fight);
+                if (trial != null && trial.Kind == TrialKind.Technique) Assert.IsTrue(party[0].Skills.Any(x => x.Id == trial.TechniqueId));
+            }
+            Assert.IsFalse(save.CompanionLevels.Any(x => Roster.IsStoryActor(x.Id)));
         }
 
         [Test]
         public void HerUnnamedSwordIsVisibleOnlyInTheActualRopeBreakthrough()
         {
             var save = BalanceSimulation.Starter(40, 44); var stage = EarlyGameContent.FindStage(40);
-            var earlier = Roster.CreateStoryParty(stage, 2, save).First(x => x.Id == "na_yerin");
+            var earlier = BalanceSimulation.StoryParty(stage, 2, save).First(x => x.Id == "na_yerin");
             Assert.IsFalse(earlier.Skills.Any(x => x.Id == "scene_silver_snow"));
-            var finisher = Roster.CreateStoryParty(stage, 3, save).Single();
+            var finisher = BalanceSimulation.StoryParty(stage, 3, save).First(x => x.Id == "na_yerin");
             Assert.AreEqual("na_yerin", finisher.Id);
             Assert.IsTrue(finisher.Skills.Any(x => x.Id == "scene_silver_snow"));
             Assert.LessOrEqual(finisher.Skills.Count(x => x.Id != "basic" && x.SpiritCost == 0), Progression.MaxEquippedArts + 1);
             Assert.IsFalse(CompanionGrowth.Create(save, EarlyGameContent.FindCompanion("na_yerin")).Skills.Any(x => x.Id == "scene_silver_snow"));
-            Assert.IsNull(Roster.CreateStoryParty(Quests.ToStage(Quests.Find("q_rope_pattern")), 0, save));
+            Assert.IsNull(BalanceSimulation.StoryParty(Quests.ToStage(Quests.Find("q_rope_pattern")), 0, save));
             Assert.IsFalse(save.LearnedArts.Contains("scene_silver_snow"));
             Assert.IsFalse(save.EquippedArts.Contains("scene_silver_snow"));
         }
@@ -119,12 +111,12 @@ namespace BiRyeoDo.Tests
                 Assert.AreEqual(stage.Encounters.Length, stage.StoryActors.Length);
                 for (int fight = 0; fight < stage.Encounters.Length; fight++)
                 {
-                    var party = Roster.CreateStoryParty(stage, fight, save);
-                    CollectionAssert.AreEqual(stage.StoryActors[fight], party.Select(x => x.Id));
+                    var party = BalanceSimulation.FightParty(save, stage, fight);
+                    BalanceSimulation.AssertActors(stage, fight, party);
                     Assert.AreEqual(party.Count, party.Select(x => x.Id).Distinct().Count());
                     foreach (var member in party)
                     {
-                        Assert.IsTrue(member.StoryControlled);
+                        Assert.AreEqual(!Roster.Reenacted(stage), member.StoryControlled);
                         Assert.LessOrEqual(member.Skills.Count(x => x.Id != "basic" && x.SpiritCost <= 0), Progression.MaxEquippedArts + (member.Id == Inventory.Hero ? 0 : 1));
                     }
                 }
@@ -216,10 +208,10 @@ namespace BiRyeoDo.Tests
                 Assert.AreEqual(stage.Encounters.Length, stage.StoryActors.Length);
                 for (int fight = 0; fight < stage.Encounters.Length; fight++)
                 {
-                    var party = Roster.CreateStoryParty(stage, fight, save); fights++;
-                    CollectionAssert.AreEqual(stage.StoryActors[fight], party.Select(x => x.Id));
+                    var party = BalanceSimulation.FightParty(save, stage, fight); fights++;
+                    BalanceSimulation.AssertActors(stage, fight, party);
                     Assert.IsTrue(party.Count >= 1 && party.Count <= 4);
-                    Assert.IsTrue(party.All(x => x.StoryControlled));
+                    Assert.IsTrue(party.All(x => x.StoryControlled != Roster.Reenacted(stage)));
                     foreach (var actor in party.Where(x => Roster.IsStoryActor(x.Id)))
                     {
                         Assert.AreEqual(hero.Stats.MaxHp, actor.Stats.MaxHp);
@@ -234,24 +226,24 @@ namespace BiRyeoDo.Tests
             Assert.IsFalse(save.CompanionLevels.Any(x => Roster.IsStoryActor(x.Id)));
             Assert.IsEmpty(save.ArtMastery);
             var stronger = BalanceSimulation.Starter(36, 45);
-            Assert.Greater(Roster.CreateStoryParty(EarlyGameContent.FindStage(32), 0, stronger)[0].Stats.Attack,
-                Roster.CreateStoryParty(EarlyGameContent.FindStage(32), 0, save)[0].Stats.Attack);
+            Assert.Greater(BalanceSimulation.StoryParty(EarlyGameContent.FindStage(33), 0, stronger)[0].Stats.Attack,
+                BalanceSimulation.StoryParty(EarlyGameContent.FindStage(33), 0, save)[0].Stats.Attack);
             var quest = Quests.ToStage(Quests.Find("q_hyeol"));
-            Assert.IsNull(Roster.CreateStoryParty(quest, 0, save));
-            Assert.IsNull(Roster.CreateStoryParty(Tower.ToStage(save, 35), 0, save));
+            Assert.IsNull(BalanceSimulation.StoryParty(quest, 0, save));
+            Assert.IsNull(BalanceSimulation.StoryParty(Tower.ToStage(save, 35), 0, save));
         }
 
         [Test]
         public void PerspectiveChangesSaveTheNextActorsAndSamePerspectiveKeepsWounds()
         {
-            var save = BalanceSimulation.Starter(35, 40); var stage = EarlyGameContent.FindStage(35);
+            var save = BalanceSimulation.Starter(36, 40); var stage = EarlyGameContent.FindStage(36);
             Assert.IsFalse(Roster.SamePerspective(stage, 0, 1)); Assert.IsTrue(Roster.SamePerspective(stage, 2, 3));
-            var same = Roster.CreateStoryParty(stage, 2, save);
+            var same = BalanceSimulation.StoryParty(stage, 2, save);
             same[0].Hp = 123; same[0].Qi = 0; same[0].Spirit = 50;
-            StageProgress.Store(save, 35, 3, same, 2);
-            var resumed = Roster.CreateStoryParty(stage, 3, save); StageProgress.Restore(save, resumed);
+            StageProgress.Store(save, 36, 3, same, 2);
+            var resumed = BalanceSimulation.StoryParty(stage, 3, save); StageProgress.Restore(save, resumed);
             Assert.AreEqual(123, resumed[0].Hp); Assert.AreEqual(0, resumed[0].Qi); Assert.AreEqual(50, resumed[0].Spirit);
-            StageProgress.Store(save, 35, 4, resumed, 2);
+            StageProgress.Store(save, 36, 4, resumed, 2);
             Assert.IsTrue(StageProgress.AtEnding(save, stage));
             Assert.AreEqual(123, save.ProgressHp[0].Hp);
             Assert.AreEqual(0, save.ProgressHp[0].Qi);
@@ -262,17 +254,12 @@ namespace BiRyeoDo.Tests
         public void ImprisonedHeroAndProtectedChildrenDoNotReplaceTheActualCombatants()
         {
             var save = BalanceSimulation.Starter(34, 40); var stage = EarlyGameContent.FindStage(34);
-            var party = Roster.CreateStoryParty(stage, 0, save);
-            CollectionAssert.AreEqual(new[] { "na_yerin", "hyo_ryong", "story_i_jinseol" }, party.Select(x => x.Id));
-            party[0].Spirit = 100;
-            var battle = new InteractiveBattle(party, new[] { stage.EnemyFor(stage.Encounters[0][0]).CreateCombatant("test") }, new SeededRandom(3));
-            battle.Begin();
-            for (int turn = 0; battle.Current != party[0] && !battle.IsOver && turn < 20; turn++) battle.PlayerAct(PlayerCommand.Guard());
-            Assert.AreSame(party[0], battle.Current);
-            party[0].Spirit = 100;
-            Assert.IsFalse(battle.CanJoint(party[1]));
-            party[0].StoryControlled = false;
-            Assert.IsTrue(battle.CanJoint(party[1]));
+            save.BenchedCompanions.Add("na_yerin");   // benched or not, the story needs her here
+            var party = BalanceSimulation.FightParty(save, stage, 0);
+            Assert.AreEqual(Inventory.Hero, party[0].Id, "34 is reenacted by the player's party");
+            Assert.IsTrue(party.Any(x => x.Id == "na_yerin") && party.Any(x => x.Id == "hyo_ryong"));
+            Assert.IsFalse(party.Any(x => x.Id == "story_i_jinseol"), "이진설 is not a companion: her place goes to the player's own pick");
+            Assert.IsTrue(party.All(x => !x.StoryControlled));
             var dawn = EarlyGameContent.FindStage(35);
             Assert.IsFalse(dawn.StoryActors.SelectMany(x => x).Contains("story_yu_gyeongyeong"));
             Assert.IsFalse(dawn.Encounters.SelectMany(x => x).Contains("closed_room_threat"));
@@ -342,8 +329,8 @@ namespace BiRyeoDo.Tests
             StringAssert.Contains("나예린|연비!", departure);
             Assert.IsFalse(departure.Contains("연비의 정체는 비류연"));
             Assert.IsFalse(departure.Contains("청룡은장의 재건이 끝났다"));
-            Assert.AreEqual(TrialKind.Survive, EarlyGameContent.FindStage(35).TrialFor(3).Kind);
-            Assert.AreEqual(TrialKind.Survive, EarlyGameContent.FindStage(36).TrialFor(3).Kind);
+            Assert.IsNull(EarlyGameContent.FindStage(35).TrialFor(3)); Assert.IsNull(EarlyGameContent.FindStage(36).TrialFor(3));
+            Assert.Greater(EarlyGameContent.FindEnemy("jin_soryeong").RetreatHpPct, 0f, "진소령 concedes the bout, she is not struck down");
         }
 
         [TestCase("f_unfamiliar_staff")] [TestCase("f_leave_nest")] [TestCase("f_free_help")]
@@ -457,7 +444,8 @@ namespace BiRyeoDo.Tests
             var seven = EarlyGameContent.FindStage(27);
             Assert.AreEqual(7, seven.Encounters.Length);
             Assert.IsTrue(seven.Encounters.All(x => x.Length == 1));
-            Assert.IsTrue(seven.Trials.All(t => t.Kind == TrialKind.Survive));
+            Assert.IsTrue(seven.Trials.All(t => t == null));
+            Assert.IsTrue(seven.Encounters.All(x => EarlyGameContent.FindEnemy(x[0]).RetreatHpPct > 0), "the 칠걸 withdraw, nobody executes them");
             Assert.AreEqual(TrialKind.Deadline, EarlyGameContent.FindStage(28).TrialFor(0).Kind);
             var trial = EarlyGameContent.FindStage(29);
             Assert.AreEqual(TrialKind.Survive, trial.TrialFor(0).Kind);
@@ -552,13 +540,15 @@ namespace BiRyeoDo.Tests
             CollectionAssert.AreEqual(new[] { "lee_songhak" }, bandits.Encounters[2]);
             var valley = EarlyGameContent.FindStage(22);
             Assert.AreEqual(6, valley.Encounters.Length);
-            Assert.AreEqual(TrialKind.Survive, valley.TrialFor(0).Kind);
+            Assert.IsNull(valley.TrialFor(0));
+            Assert.Greater(EarlyGameContent.FindEnemy("im_deokseong_story").RetreatHpPct, 0f, "the father and son draw; 임덕성 withdraws");
             Assert.AreEqual(5, valley.Encounters[1].Length + valley.Encounters[2].Length);
             CollectionAssert.AreEqual(valley.Encounters[3], Quests.ToStage(Quests.Find("q_hyeolma")).Encounters[0]);
             var masked = EarlyGameContent.FindStage(24);
             Assert.IsTrue(GearDrops.IsBossFight(masked, 2));
             Assert.IsFalse(GearDrops.IsBossFight(masked, 3));
-            Assert.AreEqual(TrialKind.Survive, masked.TrialFor(3).Kind);
+            Assert.IsNull(masked.TrialFor(3));
+            Assert.Greater(EarlyGameContent.FindEnemy("maehwa_mask_trial").RetreatHpPct, 0f, "the 매화가면 test ends with him stepping back");
             var rescue = EarlyGameContent.FindStage(25);
             Assert.AreEqual(TrialKind.Survive, rescue.TrialFor(3).Kind);
             CollectionAssert.Contains(rescue.Encounters[1], "cheonsal_hwapyeong");
@@ -602,16 +592,16 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(5, cavalry.Encounters.Length);
             CollectionAssert.AreEqual(new[] { "wi_musang" }, cavalry.Encounters[3]);
             CollectionAssert.AreEqual(new[] { "gu_cheonhak" }, cavalry.Encounters[4]);
-            Assert.AreEqual(TrialKind.Survive, EarlyGameContent.FindStage(17).TrialFor(1).Kind);
+            Assert.IsNull(EarlyGameContent.FindStage(17).TrialFor(1));
             var ice = EarlyGameContent.FindStage(18);
             Assert.AreEqual(4, ice.Encounters.Length);
-            Assert.AreEqual(TrialKind.Survive, ice.TrialFor(0).Kind);
-            Assert.AreEqual(TrialKind.Survive, ice.TrialFor(2).Kind);
+            Assert.IsNull(ice.TrialFor(0)); Assert.IsNull(ice.TrialFor(2));   // fought; 용천명 and 빙검 withdraw at 15%
+            Assert.Greater(EarlyGameContent.FindEnemy("yong_cheonmyeong").RetreatHpPct, 0f); Assert.Greater(EarlyGameContent.FindEnemy("gwan_cheolsu_trial").RetreatHpPct, 0f);
             Assert.IsFalse(GearDrops.IsBossFight(ice, 2));
             Assert.IsTrue(GearDrops.IsBossFight(ice, 3));
             var trial = EarlyGameContent.FindStage(19);
             Assert.AreEqual(6, trial.Encounters.Length);
-            foreach (int i in new[] { 0, 2, 3, 4 }) Assert.AreEqual(TrialKind.Survive, trial.TrialFor(i).Kind);
+            foreach (int i in new[] { 0, 2, 3, 4 }) Assert.IsNull(trial.TrialFor(i), "the illusions are cut down, not endured");
             foreach (string id in new[] { "gu_cheonhak", "wi_musang", "baek_tanjeo", "pae_hyeokseong", "hyo_ryong_rope" })
                 Assert.Greater(EarlyGameContent.FindEnemy(id).RetreatHpPct, 0f, id);
             Assert.IsNull(EarlyGameContent.FindArt("saengsa_seomroe"));   // 섬뢰창 was taken out with the 66-stage ladder (Mastery.RemovedArts)
@@ -648,13 +638,14 @@ namespace BiRyeoDo.Tests
         public void VolumesFourToSevenSeparateEscapeRetreatAndMentalRestoration()
         {
             var infiltration = EarlyGameContent.FindStage(10);
-            Assert.IsTrue(infiltration.Trials.All(t => t.Kind == TrialKind.Survive));
+            Assert.IsNull(infiltration.TrialFor(0)); Assert.IsNull(infiltration.TrialFor(1));
+            Assert.AreEqual(TrialKind.Survive, infiltration.TrialFor(2).Kind, "나예린 is only escaped from");
             var wudang = EarlyGameContent.FindStage(14);
             Assert.AreEqual(11, wudang.Encounters.Length);
             CollectionAssert.AreEqual(new[] { "chohon_gwigeom", "chohon_gwigeom" }, wudang.Encounters[7]);
             CollectionAssert.AreEqual(new[] { "myeongbu_jang", "myeongbu_jang" }, wudang.Encounters[8]);
-            Assert.AreEqual(TrialKind.Survive, wudang.TrialFor(6).Kind);
-            Assert.AreEqual(TrialKind.Survive, wudang.TrialFor(9).Kind);
+            Assert.IsNull(wudang.TrialFor(6)); Assert.IsNull(wudang.TrialFor(9));   // 갈효봉 is fought and withdraws
+            Assert.Greater(EarlyGameContent.FindEnemy("gal_hyobong").RetreatHpPct, 0f);
             CollectionAssert.AreEqual(new[] { "cheonsal", "jisal" }, wudang.Encounters.Last());
             foreach (string id in new[] { "chohon_gwigeom", "myeongbu_jang", "cheonsal", "jisal" })
                 Assert.Greater(EarlyGameContent.FindEnemy(id).RetreatHpPct, 0f, id);
@@ -820,8 +811,8 @@ namespace BiRyeoDo.Tests
             CollectionAssert.AreEqual(new[] { "no_jusaeng", "chae_hagun" }, EarlyGameContent.FindStage(11).Encounters[0]);
             var final = EarlyGameContent.FindStage(13);
             Assert.AreEqual(4, final.Encounters.Length);
-            Assert.AreEqual(TrialKind.Survive, final.TrialFor(1).Kind);
-            Assert.AreEqual(TrialKind.Survive, final.TrialFor(2).Kind);
+            Assert.IsNull(final.TrialFor(1)); Assert.IsNull(final.TrialFor(2));   // the finals are fought; the opponents withdraw at 15%
+            Assert.Greater(EarlyGameContent.FindEnemy("gwan_seolji_story").RetreatHpPct, 0f); Assert.Greater(EarlyGameContent.FindEnemy("cheong_heun_story").RetreatHpPct, 0f);
             var save = BalanceSimulation.Starter(13, 20);
             StageProgress.Store(save, 13, 2, BalanceSimulation.Party(save, final));
             Assert.IsTrue(StageProgress.Has(save, 13));

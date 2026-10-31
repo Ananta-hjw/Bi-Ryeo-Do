@@ -66,7 +66,7 @@ namespace BiRyeoDo.Core
             {
                 case StatusKind.Poison: return "중독: 자기 차례마다 최대 체력의 " + Pct(PoisonPct) + "를 잃습니다(" + DefaultTurns(kind) + "턴).";
                 case StatusKind.Burn: return "화상: 자기 차례마다 최대 체력의 " + Pct(BurnPct) + "를 잃습니다(" + DefaultTurns(kind) + "턴).";
-                case StatusKind.Chill: return "한기: 몸이 굳어 차례가 늦게 돌아옵니다(속도 -" + Pct(1f - ChillSpeed) + ", " + DefaultTurns(kind) + "턴).";
+                case StatusKind.Chill: return "한기: 몸이 굳어 차례가 늦게 돌아오고 주는 피해가 줄어듭니다(속도 -" + Pct(1f - ChillSpeed) + ", 공격 -" + Pct(1f - InteractiveBattle.ChillAttackFactor) + ", " + DefaultTurns(kind) + "턴).";
                 case StatusKind.InnerWound: return "내상: 내공이 차오르지 않습니다(" + DefaultTurns(kind) + "턴).";
                 case StatusKind.Bleed: return "출혈: 공격을 맞을 때마다 최대 체력의 " + Pct(BleedPct) + "를 더 잃습니다(" + DefaultTurns(kind) + "턴).";
             }

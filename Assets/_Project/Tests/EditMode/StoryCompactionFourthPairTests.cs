@@ -24,8 +24,8 @@ namespace BiRyeoDo.Tests
             StringAssert.DoesNotContain("반응폭약", ending);
             var save = new SaveData();
             for (int i = 0; i < armor.Encounters.Length; i++)
-                Assert.IsFalse(Roster.CreateStoryParty(armor, i, save).Any(m => m.Skills.Any(s => s.Id == "scene_second_fist" || s.Id == "scene_slow_fist")));
-            var party = Roster.CreateStoryParty(lake, 0, save);
+                Assert.IsFalse(BalanceSimulation.StoryParty(armor, i, save).Any(m => m.Skills.Any(s => s.Id == "scene_second_fist" || s.Id == "scene_slow_fist")));
+            var party = BalanceSimulation.StoryParty(lake, 0, save);
             Assert.IsFalse(party.Any(m => m.Skills.Any(s => s.Id == "scene_umbrella_boat")));
             Assert.IsTrue(party.Any(m => m.Skills.Any(s => s.Id == lake.TrialFor(0).TechniqueId)));
             string intro = string.Join(" ", StoryEpisodes.BeforeFight(lake, 0, save).SelectMany(s => s.Lines));

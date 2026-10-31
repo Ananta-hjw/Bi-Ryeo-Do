@@ -201,7 +201,7 @@ namespace BiRyeoDo.Tests
             var lines = CompanionGrowth.ShareWithBench(save, new[] { "player", "hyo_ryong" }, exp);
             Assert.AreEqual(12, CompanionGrowth.LevelOf(save, "hyo_ryong"));
             Assert.AreEqual(11, CompanionGrowth.LevelOf(save, "na_yerin"));
-            Assert.AreEqual(EarlyGameContent.Companions.Count(c => c.Id != "hyo_ryong"), lines.Count);
+            Assert.AreEqual(EarlyGameContent.CompanionsFor(30).Count(c => c.Id != "hyo_ryong"), lines.Count);   // only those who have joined by stage 30
             var early = Save(10, 3);   // nobody has joined yet: nothing to share
             Assert.AreEqual(0, CompanionGrowth.ShareWithBench(early, new[] { "player" }, exp).Count);
             Assert.AreEqual(0, early.CompanionLevels.Count);

@@ -46,7 +46,7 @@ namespace BiRyeoDo.Tests
             var sick = b.Party.FirstOrDefault(m => m.IsAlive && (m.Has(StatusKind.Burn) || m.Has(StatusKind.Poison)));
             if (cleanse != null && sick != null) return PlayerCommand.UseSkill(cleanse, null).WithAlly(sick);
 
-            var heal = skills.FirstOrDefault(s => s.Effect == SkillEffect.HealAlly);
+            var heal = skills.FirstOrDefault(s => s.Effect == SkillEffect.HealAlly || s.Effect == SkillEffect.HealParty);
             if (heal != null && b.Party.Any(m => m.IsAlive && m.Hp < m.Stats.MaxHp * 0.55f)) return PlayerCommand.UseSkill(heal, null);
 
             // The strongest art that reaches, aimed at the weakest enemy it reaches.

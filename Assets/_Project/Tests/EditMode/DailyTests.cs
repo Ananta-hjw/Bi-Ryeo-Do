@@ -30,7 +30,7 @@ namespace BiRyeoDo.Tests
         public void StoryAndCompanionSkillsCountDailyGoalsWithoutCreatingHeroMastery()
         {
             var save = BalanceSimulation.Starter(40, 44);
-            var child = Roster.CreateStoryParty(EarlyGameContent.FindStage(37), 1, save).Single();
+            var child = new Combatant("story_young_yeonbi", "어린 연비", Team.Player, Progression.HeroStatsAtCurve(30), new[] { new SkillSpec { Id = "scene_ssangseom", Name = "충각 쌍섬일격뢰", Power = 8f } }, true);   // a story-only body (37 is reenacted now)
             var focus = child.Skills.First(x => x.Id == "scene_ssangseom");
             Assert.AreEqual(-1, Daily.RecordPlayerSkill(save, child, focus));
             var heroine = CompanionGrowth.Create(save, EarlyGameContent.FindCompanion("na_yerin"));

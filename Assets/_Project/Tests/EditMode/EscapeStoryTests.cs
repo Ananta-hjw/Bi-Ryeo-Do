@@ -44,9 +44,9 @@ namespace BiRyeoDo.Tests
                 Assert.AreEqual(stage.Encounters.Length, stage.StoryActors.Length);
                 for (int i = 0; i < stage.Encounters.Length; i++)
                 {
-                    var party = Roster.CreateStoryParty(stage, i, save); fights++;
-                    CollectionAssert.AreEqual(stage.StoryActors[i], party.Select(x => x.Id));
-                    foreach (var member in party) Assert.LessOrEqual(member.Skills.Count(s => s.Id != "basic" && s.SpiritCost == 0), 4);
+                    var party = BalanceSimulation.FightParty(save, stage, i); fights++;
+                    BalanceSimulation.AssertActors(stage, i, party);
+                    foreach (var member in party) Assert.LessOrEqual(member.Skills.Count(s => s.Id != "basic" && s.SpiritCost == 0), Roster.Reenacted(stage) && member.Id != Inventory.Hero ? Progression.MaxEquippedArts + 1 : 4);
                     var rule = stage.TrialFor(i);
                     if (rule != null && rule.Kind == TrialKind.Technique)
                         foreach (var id in rule.TechniqueSequence ?? new[] { rule.TechniqueId })
@@ -63,8 +63,7 @@ namespace BiRyeoDo.Tests
             CollectionAssert.AreEqual(arts, save.EquippedArts); CollectionAssert.AreEqual(learned, save.LearnedArts);
             Assert.IsTrue(save.CompanionLevels.All(x => EarlyGameContent.FindCompanion(x.Id) != null));
             Assert.AreEqual(41, Tower.ReferenceStage(70));
-            var sansan = Roster.CreateStoryParty(EarlyGameContent.FindStage(64), 3, save).Single();
-            Assert.IsTrue(Genders.IsFemale(Roster.StoryArtKey(sansan)));
+            Assert.IsTrue(Genders.IsFemale(Roster.StoryArtKey("story_yeongryeong")));   // 64 is reenacted; her picture still reads as hers in its scenes
         }
 
         [Test]
@@ -94,13 +93,15 @@ namespace BiRyeoDo.Tests
             string[] searchers = { "story_biry_escape", "jang_hong", "story_mo_yonghwi", "story_namgung_sang" };
             foreach (int n in new[] { 62, 65 })
                 foreach (var ids in EarlyGameContent.FindStage(n).StoryActors) CollectionAssert.AreEqual(searchers, ids);
+            Assert.IsTrue(Roster.Reenacted(EarlyGameContent.FindStage(63)) && Roster.Reenacted(EarlyGameContent.FindStage(64)) && Roster.Reenacted(EarlyGameContent.FindStage(60)));   // the player's party reenacts them
             foreach (var ids in EarlyGameContent.FindStage(63).StoryActors)
                 CollectionAssert.AreEqual(new[] { "story_baek_muyeong", "story_cheong_heun", "story_yong_cheongmyeong", "story_ma_haryeong" }, ids);
             for (int i = 0; i < 3; i++) CollectionAssert.AreEqual(new[] { "na_yerin" }, EarlyGameContent.FindStage(64).StoryActors[i]);
             CollectionAssert.AreEqual(new[] { "story_yeongryeong" }, EarlyGameContent.FindStage(64).StoryActors[3]);
             foreach (var stage in EarlyGameContent.Stages.Skip(57))
                 Assert.IsFalse(stage.StoryActors.SelectMany(x => x).Contains("hyo_ryong"), "Hyo Ryong is training, not on this rescue route");
-            Assert.IsFalse(EarlyGameContent.FindStage(60).Trials.Skip(1).Any(t => t == null || t.Kind != TrialKind.Technique));
+            Assert.IsNull(EarlyGameContent.FindStage(60).TrialFor(1), "the twins are fought outright");
+            Assert.IsTrue(EarlyGameContent.FindStage(60).Trials.Skip(2).All(t => t != null && t.Kind == TrialKind.Survive), "무화 is endured: the two masters lose and are taken");
             Assert.AreEqual(TrialKind.Survive, EarlyGameContent.FindStage(66).TrialFor(4).Kind);
         }
 

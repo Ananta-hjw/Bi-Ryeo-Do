@@ -692,6 +692,7 @@ namespace BiRyeoDo.Game.UI
             if (!Tutorial.IsDone(save, "formation") && HelpPanel.Instance != null) HelpPanel.Instance.Show("formation", true);
             var available = AvailableCompanions(save);
             var active = EarlyGameContent.SelectCompanionsFor(Math.Max(1, save.HighestUnlockedStage), save);
+            var next = EarlyGameContent.FindStage(Math.Max(1, save.HighestUnlockedStage));
             UiFactory.Label("Title", _partyOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "파티 편성", 44, UiFactory.Gold);
             UiFactory.ScrollBody(UiFactory.Label("Rules", _partyOverlay, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.92f),
                 "비류연과 함께 싸울 동료는 최대 " + EarlyGameContent.MaxCompanions + "명입니다. 눌러서 출전과 대기를 바꿉니다.", 28, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 32);
@@ -704,12 +705,15 @@ namespace BiRyeoDo.Game.UI
             int memberIndex = 0;
             foreach (var c in available)
             {
-                bool on = active.Contains(c);
+                bool required = Roster.RequiredInStage(next, c.Id);   // the next story stage cannot be fought without this one
+                bool on = active.Contains(c) || required;
                 var band = CodexPanel.Band(roster, memberIndex++);
                 UiFactory.Label("Name", band, new Vector2(0.03f, 0.52f), new Vector2(0.64f, 0.97f), c.Name, 36, on ? UiFactory.Gold : UiFactory.PaperText, TextAnchor.MiddleLeft);
                 UiFactory.Label("Role", band, new Vector2(0.03f, 0.03f), new Vector2(0.64f, 0.52f), c.Role + "  ·  인연 " + Bonds.LevelNames[Bonds.Level(save, c.Id)] + " (" + Bonds.BonusText(Bonds.Level(save, c.Id)) + ")", 30, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var companion = c;
-                UiFactory.Button("Toggle", band, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), on ? "출전" : "대기", on ? UiFactory.Red : UiFactory.InkSoft, () => ToggleCompanion(companion), 32);
+                if (required)
+                    UiFactory.Button("Toggle", band, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), "필수", UiFactory.Gold, () => ShowRequiredNotice(companion, next), 32);
+                else UiFactory.Button("Toggle", band, new Vector2(0.68f, 0.12f), new Vector2(0.97f, 0.88f), on ? "출전" : "대기", on ? UiFactory.Red : UiFactory.InkSoft, () => ToggleCompanion(companion), 32);
             }
 
             var formation = UiFactory.Rect("Formation", _partyOverlay, new Vector2(.52f, .16f), new Vector2(.98f, .835f));
@@ -815,7 +819,7 @@ namespace BiRyeoDo.Game.UI
             ClearChildren(_prepOverlay);
             _prepOverlay.gameObject.SetActive(true);
             _prepOverlay.SetAsLastSibling();
-            var active = EarlyGameContent.SelectCompanionsFor(Roster.PartyStage(st, save), save);
+            var active = Roster.CompanionsFor(st, 0, save);   // a reenacted story fight brings its required companions first
             UiFactory.Label("Title", _prepOverlay, new Vector2(0.05f, 0.93f), new Vector2(0.95f, 0.99f), "출전 준비", 44, UiFactory.Gold);
             UiFactory.Label("Stage", _prepOverlay, new Vector2(0.05f, 0.885f), new Vector2(0.95f, 0.93f), st.Name, 28, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal);
 
@@ -826,6 +830,9 @@ namespace BiRyeoDo.Game.UI
             bool pastStory = fixedStory && st.Number == 37;
             body.Append(fixedStory ? "이야기에 따라 인물과 배치가 정해집니다. 상대의 예고를 읽고 방어·회피·무공을 선택해 주세요." : "적의 공격은 기본적으로 앞 줄부터 향합니다. 앞 줄에는 맞아도 버티는 인물을, 뒷줄에는 공격이 강한 인물을 세우세요.");
             if (snipers && !fixedStory) body.Append("\n뒷줄을 노리는 적이 있습니다. 이번에는 뒷줄에도 버틸 수 있는 인물을 두는 편이 좋습니다.");
+            string reenact = Roster.ReenactSummary(st);
+            if (reenact.Length > 0)
+                body.Append("\n\n원작 장면을 현재 편성 파티로 재현합니다. 필수 인물은 빠지지 않고 나머지는 파티 편성대로 나갑니다.\n").Append(reenact);
             UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Advice", _prepOverlay, new Vector2(0.05f, 0.775f), new Vector2(0.95f, 0.88f), body.ToString(), 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 32));
 
             Recommend.StageReward(save, st, out long rewardExp, out long rewardDoo);
@@ -850,6 +857,11 @@ namespace BiRyeoDo.Game.UI
             else BuildFormationBlock(formation, new List<CompanionData>(active), () => OpenPrep(st, go), .18f, .72f, st);
             UiFactory.Button("Go", _prepOverlay, new Vector2(0.52f, .015f), new Vector2(0.95f, .12f), "출전", UiFactory.Red, () => { _prepOverlay.gameObject.SetActive(false); go(); }, 38);
             UiFactory.Button("Cancel", _prepOverlay, new Vector2(0.05f, .015f), new Vector2(0.48f, .12f), "취소", UiFactory.InkSoft, () => { _prepOverlay.gameObject.SetActive(false); _placeSelected = null; }, 34);
+        }
+
+        private void ShowRequiredNotice(CompanionData c, StageData next)
+        {
+            UiFactory.Confirm(_partyOverlay, "필수 인물", c.Name + "은(는) 다음 스테이지 「" + next.Name + "」의 이야기에 꼭 필요한 인물이라 대기로 돌릴 수 없습니다. 나머지 자리는 직접 고를 수 있습니다.", "확인", () => { });
         }
 
         private void ToggleCompanion(CompanionData c)
@@ -955,7 +967,7 @@ namespace BiRyeoDo.Game.UI
         private static string PartyText(StageData st)
         {
             if (Roster.StoryPartySummary(st).Length > 0) return " · 이야기 시점 전투";
-            var companions = EarlyGameContent.SelectCompanionsFor(Roster.PartyStage(st, GameManager.Instance.Save), GameManager.Instance.Save);
+            var companions = Roster.CompanionsFor(st, 0, GameManager.Instance.Save);
             if (companions.Count == 0) return "";
             var names = new List<string>();
             foreach (var c in companions) names.Add(c.Name);

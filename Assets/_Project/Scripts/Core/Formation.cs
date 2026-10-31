@@ -23,7 +23,7 @@ namespace BiRyeoDo.Core
             {
                 if (a.OwnerId != id) continue;
                 if (a.Effect == SkillEffect.GuardParty) p = Math.Min(p, 1);
-                if (a.Effect == SkillEffect.HealAlly) return 3;
+                if (a.Effect == SkillEffect.HealAlly || a.Effect == SkillEffect.HealParty) return 3;
             }
             return p;
         }

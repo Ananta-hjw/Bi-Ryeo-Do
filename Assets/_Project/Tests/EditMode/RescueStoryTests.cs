@@ -74,9 +74,9 @@ namespace BiRyeoDo.Tests
                 Assert.AreEqual(stage.Encounters.Length, stage.StoryActors.Length);
                 for (int i = 0; i < stage.Encounters.Length; i++)
                 {
-                    var party = Roster.CreateStoryParty(stage, i, save); fights++;
-                    CollectionAssert.AreEqual(stage.StoryActors[i], party.Select(x => x.Id));
-                    foreach (var member in party) Assert.LessOrEqual(member.Skills.Count(s => s.Id != "basic" && s.SpiritCost == 0), 4);
+                    var party = BalanceSimulation.FightParty(save, stage, i); fights++;
+                    BalanceSimulation.AssertActors(stage, i, party);
+                    foreach (var member in party) Assert.LessOrEqual(member.Skills.Count(s => s.Id != "basic" && s.SpiritCost == 0), Roster.Reenacted(stage) && member.Id != Inventory.Hero ? Progression.MaxEquippedArts + 1 : 4);
                     var rule = stage.TrialFor(i);
                     if (rule != null && rule.Kind == TrialKind.Technique)
                         foreach (var id in rule.TechniqueSequence ?? new[] { rule.TechniqueId })
@@ -93,8 +93,7 @@ namespace BiRyeoDo.Tests
             CollectionAssert.AreEqual(arts, save.EquippedArts); CollectionAssert.AreEqual(learned, save.LearnedArts);
             Assert.IsTrue(save.CompanionLevels.All(x => EarlyGameContent.FindCompanion(x.Id) != null));
             Assert.AreEqual(41, Tower.ReferenceStage(70));
-            var sansan = Roster.CreateStoryParty(EarlyGameContent.FindStage(51), 0, save).First(x => x.Id == "story_namgung_sansan");
-            Assert.IsTrue(Genders.IsFemale(Roster.StoryArtKey(sansan)));
+            Assert.IsTrue(Genders.IsFemale(Roster.StoryArtKey("story_namgung_sansan")));   // 51 is reenacted; her picture still reads as hers in its scenes
         }
 
         [Test]

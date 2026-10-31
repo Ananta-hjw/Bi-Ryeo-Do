@@ -69,7 +69,7 @@ namespace BiRyeoDo.Core
                     weight += w;
                     if (InteractiveBattle.NeedsTarget(skill))
                         p.Offense += w * hit * skill.Power * Math.Max(1, skill.Hits) * (skill.AllEnemies ? 1.7 : 1.0);
-                    else if (skill.Effect == SkillEffect.HealAlly || skill.Effect == SkillEffect.Cleanse)
+                    else if (skill.Effect == SkillEffect.HealAlly || skill.Effect == SkillEffect.Cleanse || skill.Effect == SkillEffect.HealParty)
                         p.Support += w * skill.HealPct * s.MaxHp * Math.Max(1, s.Speed) / 100.0;
                     else if (skill.Effect == SkillEffect.GuardParty) p.Support += w * s.MaxHp * .2;
                     else if (skill.Effect == SkillEffect.Evade) p.Support += w * s.MaxHp * skill.EvadeChance * .1;
@@ -294,7 +294,7 @@ namespace BiRyeoDo.Core
             foreach (var skill in actor.Skills)
                 if (skill.Effect == SkillEffect.Cleanse && sick != null && battle.CanUse(skill)) return PlayerCommand.UseSkill(skill, null).WithAlly(sick);
             foreach (var skill in actor.Skills)
-                if (skill.Effect == SkillEffect.HealAlly && wounded && battle.CanUse(skill)) return PlayerCommand.UseSkill(skill, null);
+                if ((skill.Effect == SkillEffect.HealAlly || skill.Effect == SkillEffect.HealParty) && wounded && battle.CanUse(skill)) return PlayerCommand.UseSkill(skill, null);
             SkillSpec best = SkillSpec.BasicAttack();
             Combatant target = null;
             double score = -1;
@@ -337,7 +337,7 @@ namespace BiRyeoDo.Core
             {
                 if (!battle.CanUse(skill)) continue;
                 if (skill.Effect == SkillEffect.Cleanse && sick != null) return PlayerCommand.UseSkill(skill, null).WithAlly(sick);
-                if (skill.Effect == SkillEffect.HealAlly && wounded != null && wounded.Hp < wounded.Stats.MaxHp * .60f)
+                if ((skill.Effect == SkillEffect.HealAlly || skill.Effect == SkillEffect.HealParty) && wounded != null && wounded.Hp < wounded.Stats.MaxHp * .60f)
                     return PlayerCommand.UseSkill(skill, null).WithAlly(wounded);
                 if (wind && skill.Effect == SkillEffect.Stun && battle.EnemiesInRange(skill.Range).Contains(winding)) return PlayerCommand.UseSkill(skill, winding);
                 if (wind && skill.Effect == SkillEffect.GuardParty) return PlayerCommand.UseSkill(skill, null);

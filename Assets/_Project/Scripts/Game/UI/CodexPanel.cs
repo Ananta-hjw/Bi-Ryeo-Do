@@ -15,7 +15,7 @@ namespace BiRyeoDo.Game.UI
         private RectTransform _detail;
         public bool Embedded;
         private int _tab;                       // 0 enemies, 1 items, 2 arts
-        private static readonly string[] TabNames = { "적", "물품", "무공" };
+        private static readonly string[] TabNames = { "캐릭터", "물품", "무공" };
         internal const float RowH = 220f, RowGap = 16f;   // tall enough for two stacked, easy-to-hit buttons
 
         public CodexPanel(RectTransform codexRoot, RectTransform achRoot, Action onChange)
@@ -107,7 +107,7 @@ namespace BiRyeoDo.Game.UI
             int n = 0;
             if (_tab == 0)
             {
-                summary = "만난 적 " + save.SeenEnemies.Count + " / " + Codex.EnemyTotal + FreshSummary("enemy:", id => EarlyGameContent.FindEnemy(id)?.Name);
+                summary = "만난 캐릭터 " + save.SeenEnemies.Count + " / " + Codex.EnemyTotal + FreshSummary("enemy:", id => EarlyGameContent.FindEnemy(id)?.Name);
                 var enemies = new List<EnemyData>();   // new ones first, the rest in content order
                 foreach (var e in EarlyGameContent.Enemies) if (IsFresh("enemy:" + e.Id)) enemies.Add(e);
                 foreach (var e in EarlyGameContent.Enemies) if (!IsFresh("enemy:" + e.Id)) enemies.Add(e);
@@ -118,7 +118,7 @@ namespace BiRyeoDo.Game.UI
                     if (IsFresh("enemy:" + e.Id)) NewTag(card);
                     var icon = UiFactory.Panel("Icon", card, new Vector2(.04f, .57f), new Vector2(.25f, .94f), UiFactory.InkSoft);
                     var glyph = UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, seen ? e.Name.Substring(0, 1) : "?", 44, UiFactory.PaperText);
-                    var portrait = seen ? ArtLibrary.CharacterPortrait(e.ArtKey) : null;
+                    var portrait = seen ? ArtLibrary.SdFigure(e.Id) : null;   // the battle SD figure (default figures when it has none)
                     if (portrait != null) { icon.sprite = portrait; icon.color = Color.white; icon.preserveAspect = true; glyph.text = ""; }
                     UiFactory.Label("Name", card, new Vector2(.29f, .57f), new Vector2(.96f, .95f), seen ? e.Name : "???", 30, seen ? UiFactory.PaperText : UiFactory.Dim, TextAnchor.MiddleLeft);
                     UiFactory.Label("Info", card, new Vector2(.04f, .10f), new Vector2(.96f, .53f), seen ? "Lv." + e.DisplayLevel + (e.IsBoss ? " · 우두머리" : "") + (Realm.HasRealm(e) ? "\n경지 " + Realm.ForEnemy(e) : "") : "아직 쓰러뜨리지 못했습니다", 28, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);

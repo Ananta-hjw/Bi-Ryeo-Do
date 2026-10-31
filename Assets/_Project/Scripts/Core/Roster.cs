@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace BiRyeoDo.Core
@@ -8,14 +9,106 @@ namespace BiRyeoDo.Core
     /// </summary>
     public static class Roster
     {
+        /// <summary>The fixed story party of a fight, or null when the player's party fights (always from <see cref="ReenactFrom"/> on).</summary>
         public static string[] StoryActorsFor(StageData stage, int encounter)
+        {
+            return Reenacted(stage) ? null : CanonActorsFor(stage, encounter);
+        }
+
+        /// <summary>Who fought this fight in the original text (the stage's <see cref="StageData.StoryActors"/>), whether or not the game fixes the party.</summary>
+        public static string[] CanonActorsFor(StageData stage, int encounter)
         {
             return stage != null && !stage.IsQuest && !stage.IsTower && stage.StoryActors != null
                 && encounter >= 0 && encounter < stage.StoryActors.Length ? stage.StoryActors[encounter] : null;
         }
 
+        /// <summary>From this stage on every story fight is reenacted by the player's party (2부: 남궁상·모용휘 have joined, the party is four).</summary>
+        public static int ReenactFrom = 31;   // a field so the balance probes can compare with the old fixed story parties
+
+        /// <summary>A story stage whose fights are reenacted by the player's party instead of a fixed story party.</summary>
+        public static bool Reenacted(StageData stage) { return stage != null && stage.Number >= ReenactFrom && !stage.IsQuest && !stage.IsTower; }
+
+        /// <summary>
+        /// Who a story actor is in the player's party: 비류연's scene bodies (연비, 왼손 우산, 정신봉, 탈출 중 …) are 비류연, the story bodies of
+        /// people who later became companions (남궁상, 모용휘) are those companions; anyone else is the id itself (not in the party).
+        /// </summary>
+        public static string CompanionIdOf(string actorId)
+        {
+            switch (actorId)
+            {
+                case "story_namgung_sang": return "namgung_sang";
+                case "story_mo_yonghwi": return "mo_yonghwi";
+                case "story_yeonbi": case "story_young_yeonbi": case "story_yeonbi_left": case "story_biry_staff": case "story_biry_search":
+                case "story_biry_half": case "story_biry_rescue": case "story_biry_escape":
+                    return Inventory.Hero;
+                default: return actorId;
+            }
+        }
+
+        /// <summary>Companions the story needs in this fight of a reenacted stage: they always fight, whatever the player's picks or bench say.</summary>
+        public static List<CompanionData> RequiredFor(StageData stage, int encounter)
+        {
+            var list = new List<CompanionData>();
+            if (!Reenacted(stage)) return list;
+            var actors = CanonActorsFor(stage, encounter);
+            if (actors == null) return list;
+            foreach (var id in actors)
+            {
+                var c = EarlyGameContent.FindCompanion(CompanionIdOf(id));
+                if (c != null && c.JoinStage <= stage.Number && !list.Contains(c) && list.Count < EarlyGameContent.MaxCompanions) list.Add(c);
+            }
+            return list;
+        }
+
+        private static bool HasSceneTechnique(StageData stage, int encounter)
+        {
+            var trial = stage.TrialFor(encounter);
+            return trial != null && trial.Kind == TrialKind.Technique;
+        }
+
+        /// <summary>40 「은빛 눈보라」의 마지막 공방: 나예린's unfinished new sword (scene only) takes her 백혼검뢰 line's place.</summary>
+        private static void SilverSnow(StageData stage, int encounter, IList<Combatant> party)
+        {
+            if (stage.Number != 40 || encounter != 3) return;
+            Combatant heroine = null;
+            foreach (var m in party) if (m.Id == "na_yerin") heroine = m;
+            if (heroine == null) return;
+            heroine.Skills.RemoveAll(skill => skill.Id == "ny_baekhon" || CompanionTraining.Succeeds(skill.Id, "ny_baekhon"));
+            heroine.Skills.Insert(1, new SkillSpec { Id = "scene_silver_snow", Name = "새 검기", Description = "비설보를 바탕으로 펼치는 미완의 검기. 이 공방에서만 사용합니다.", Power = 6f, AllEnemies = true, Range = 3, QiCost = 24, Cooldown = 1 });
+        }
+
+        /// <summary>True when the companion is needed in any fight of the stage (it cannot be benched for it).</summary>
+        public static bool RequiredInStage(StageData stage, string companionId)
+        {
+            if (!Reenacted(stage) || stage.Encounters == null) return false;
+            for (int i = 0; i < stage.Encounters.Length; i++)
+                foreach (var c in RequiredFor(stage, i)) if (c.Id == companionId) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// The companions who fight this fight: on a reenacted stage the required ones first, then the player's own picks up to
+        /// <see cref="EarlyGameContent.MaxCompanions"/>; elsewhere just the player's picks.
+        /// </summary>
+        public static List<CompanionData> CompanionsFor(StageData stage, int encounter, SaveData save)
+        {
+            var picks = EarlyGameContent.SelectCompanionsFor(PartyStage(stage, save), save);
+            var result = RequiredFor(stage, encounter);
+            foreach (var c in picks) if (!result.Contains(c) && result.Count < EarlyGameContent.MaxCompanions) result.Add(c);
+            return result;
+        }
+
+        /// <summary>A reenacted stage keeps the same party between fights unless the required companions change; then the wounds carry over (<see cref="CarryWounds"/>).</summary>
         public static bool SamePerspective(StageData stage, int first, int second)
         {
+            if (Reenacted(stage))
+            {
+                if (HasSceneTechnique(stage, first) || HasSceneTechnique(stage, second)) return false;   // rebuilt so the borrowed slot comes back
+                var x = RequiredFor(stage, first); var y = RequiredFor(stage, second);
+                if (x.Count != y.Count) return false;
+                for (int i = 0; i < x.Count; i++) if (x[i] != y[i]) return false;
+                return true;
+            }
             var a = StoryActorsFor(stage, first); var b = StoryActorsFor(stage, second);
             if (a == null || b == null) return a == b;
             if (a.Length != b.Length) return false;
@@ -49,9 +142,88 @@ namespace BiRyeoDo.Core
             return companion != null ? companion.Name : StoryEscape.ActorName(id) ?? StoryRescue.ActorName(id) ?? StoryTournament.ActorName(id);
         }
 
+        /// <summary>
+        /// For the prep window of a reenacted stage: per fight, who fought it in the original text and which companions must come along.
+        /// </summary>
+        public static string ReenactSummary(StageData stage)
+        {
+            if (!Reenacted(stage)) return "";
+            var lines = new List<string>();
+            for (int i = 0; i < stage.Encounters.Length; i++)
+            {
+                var actors = CanonActorsFor(stage, i);
+                if (actors == null) continue;
+                var names = new List<string>();
+                foreach (var id in actors) names.Add(StoryName(id));
+                var required = new List<string>();
+                foreach (var c in RequiredFor(stage, i)) required.Add(c.Name);
+                lines.Add("전투 " + (i + 1) + ": 원작 " + string.Join(" · ", names) + (required.Count > 0 ? " → 필수 " + string.Join(" · ", required) : ""));
+            }
+            return string.Join("\n", lines);
+        }
+
+        /// <summary>After the party is rebuilt for another fight, the members who fought before keep their 체력·내공·기세.</summary>
+        public static void CarryWounds(IList<Combatant> before, IList<Combatant> after)
+        {
+            if (before == null || after == null) return;
+            foreach (var m in after)
+                foreach (var old in before)
+                {
+                    if (old.Id != m.Id) continue;
+                    m.Hp = Math.Min(m.Stats.MaxHp, Math.Max(old.IsAlive ? 1 : 0, (int)Math.Round(m.Stats.MaxHp * (double)old.Hp / Math.Max(1, old.Stats.MaxHp))));
+                    m.Qi = Math.Min(m.Stats.MaxQi, (int)Math.Round(m.Stats.MaxQi * (double)old.Qi / Math.Max(1, old.Stats.MaxQi)));
+                    m.Spirit = old.Spirit;
+                }
+        }
+
+        /// <summary>
+        /// A reenacted fight whose trial asks for a companion's scene technique (50 염천빙지 일원합, 52 기맥 관조, 64 비홍관운, 44 윤미의 칠매검):
+        /// the companion keeps its own arts and gets only that technique (and the scene's name, 윤미), as the story body would have had it.
+        /// Techniques of an earlier fight are taken away first.
+        /// </summary>
+        public static void AddSceneTechniques(StageData stage, int encounter, IList<Combatant> party)
+        {
+            if (!Reenacted(stage) || party == null) return;
+            foreach (var m in party) m.Skills.RemoveAll(skill => skill.Id.StartsWith("scene_", StringComparison.Ordinal));
+            SilverSnow(stage, encounter, party);
+            var trial = stage.TrialFor(encounter);
+            var actors = CanonActorsFor(stage, encounter);
+            if (trial == null || trial.Kind != TrialKind.Technique || actors == null) return;
+            var wanted = new HashSet<string>();
+            if (trial.TechniqueSequence != null) foreach (var id in trial.TechniqueSequence) wanted.Add(id);
+            else if (trial.TechniqueId != null) wanted.Add(trial.TechniqueId);
+            foreach (var actor in actors)
+            {
+                Combatant member = null;
+                foreach (var m in party) if (m.Id == CompanionIdOf(actor)) member = m;
+                if (member == null) continue;
+                var body = new Combatant(actor, member.Name, Team.Player, member.Stats, null);
+                var one = new List<Combatant> { body };
+                StoryTournament.PrepareParty(stage, encounter, one);
+                StoryRescue.PrepareParty(stage, encounter, one);
+                StoryEscape.PrepareParty(stage, encounter, one);
+                int slots = member.Id == Inventory.Hero ? Progression.MaxEquippedArts : Progression.MaxEquippedArts + 1;
+                foreach (var skill in body.Skills)
+                {
+                    if (!wanted.Contains(skill.Id) || member.Skills.Exists(x => x.Id == skill.Id)) continue;
+                    // the command bar holds four ordinary arts for 비류연 and five for a companion: the scene technique takes the last one's place for this fight
+                    int ordinary = member.Skills.FindAll(x => x.Id != "basic" && x.SpiritCost <= 0).Count;
+                    if (ordinary >= slots)
+                    {
+                        int last = member.Skills.FindLastIndex(x => x.Id != "basic" && x.SpiritCost <= 0 && !wanted.Contains(x.Id));
+                        if (last >= 0) member.Skills.RemoveAt(last);
+                    }
+                    member.Skills.Add(skill);
+                }
+                if (member.Id == Inventory.Hero) continue;   // 비류연 stays himself (연비's dress and names are scene presentation)
+                if (body.Name != member.Name) member.Name = body.Name;
+                if (body.StoryArtId != null) member.StoryArtId = body.StoryArtId;
+            }
+        }
+
         public static string StoryPartySummary(StageData stage)
         {
-            if (stage == null || stage.IsQuest || stage.IsTower || stage.StoryActors == null) return "";
+            if (stage == null || stage.IsQuest || stage.IsTower || stage.StoryActors == null || Reenacted(stage)) return "";
             var lines = new List<string>();
             for (int i = 0; i < stage.Encounters.Length; i++)
             {
@@ -88,15 +260,7 @@ namespace BiRyeoDo.Core
                     result.Add(new Combatant(id, name, Team.Player, stats, StorySkills(id, encounter), past));
                 }
             }
-            if (stage.Number == 40 && encounter == 3)
-            {
-                var heroine = result.Find(member => member.Id == "na_yerin");
-                if (heroine != null)
-                {
-                    heroine.Skills.RemoveAll(skill => skill.Id == "ny_baekhon" || CompanionTraining.Succeeds(skill.Id, "ny_baekhon"));
-                    heroine.Skills.Insert(1, new SkillSpec { Id = "scene_silver_snow", Name = "새 검기", Description = "비설보를 바탕으로 펼치는 미완의 검기. 이 공방에서만 사용합니다.", Power = 6f, AllEnemies = true, Range = 3, QiCost = 24, Cooldown = 1 });
-                }
-            }
+            SilverSnow(stage, encounter, result);
             StoryTournament.PrepareParty(stage, encounter, result);
             StoryRescue.PrepareParty(stage, encounter, result);
             StoryEscape.PrepareParty(stage, encounter, result);
@@ -108,6 +272,7 @@ namespace BiRyeoDo.Core
         /// <summary>A new technique in the same flashback changes commands without replacing the wounded body.</summary>
         public static void PrepareStoryEncounter(StageData stage, int encounter, IEnumerable<Combatant> party)
         {
+            if (Reenacted(stage)) { AddSceneTechniques(stage, encounter, new List<Combatant>(party)); return; }
             if (StoryActorsFor(stage, encounter) == null) return;
             StoryTournament.PrepareParty(stage, encounter, party);
             StoryRescue.PrepareParty(stage, encounter, party);

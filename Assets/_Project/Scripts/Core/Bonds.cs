@@ -91,7 +91,8 @@ namespace BiRyeoDo.Core
             return new SkillSpec
             {
                 Id = "joint", Name = companion.JointName, Power = basePower * companion.JointPower * (1f + PowerPerLevel * (level - 1)),
-                Effect = companion.JointEffect, HealPct = 0.20f, Range = 3
+                Effect = companion.JointEffect, HealPct = 0.20f, Range = 3,
+                Inflict = companion.JointInflict, InflictChance = companion.JointInflict == StatusKind.None ? 0f : 1f
             };
         }
     }

@@ -29,8 +29,8 @@ namespace BiRyeoDo.Tests
             StringAssert.DoesNotContain("반응폭약", probe);
             StringAssert.DoesNotContain("락비오가 패배", probe);
             var save = new SaveData();
-            Assert.IsFalse(Roster.CreateStoryParty(search, 0, save).Any(m => m.Skills.Any(s => s.Id == "scene_trace")));
-            var party = Roster.CreateStoryParty(armor, 2, save);
+            Assert.IsFalse(BalanceSimulation.StoryParty(search, 0, save).Any(m => m.Skills.Any(s => s.Id == "scene_trace")));
+            var party = BalanceSimulation.StoryParty(armor, 2, save);
             Assert.IsFalse(party.Any(m => m.Skills.Any(s => s.Id == "scene_slow_fist")));
             Assert.IsFalse(party.Any(m => m.Skills.Any(s => s.Id == "scene_second_fist")));
             CollectionAssert.AreEqual(new[] { "horn_trap" }, Quests.ToStage(Quests.Find("q_explosion_exit")).Encounters[0]);
