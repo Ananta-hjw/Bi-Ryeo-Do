@@ -38,7 +38,7 @@ namespace BiRyeoDo.Tests
         [TestCase("gen_boo_nor04", 4.000000d)]
         [TestCase("gen_boo_nor07", 4.000000d)]
         [TestCase("gen_boo_nor10", 4.000000d)]
-        [TestCase("gen_acc_fin04", 7.000000d)]
+        [TestCase("gen_acc_fin04", 13.000000d)]   // 등급 편차 재조정 (2026-10 말)
         [TestCase("gen_wea_nor08", 4.000000d)]
         [TestCase("gen_wea_nor09", 5.000000d)]
         [TestCase("gen_wea_nor10", 5.000000d)]
@@ -65,7 +65,7 @@ namespace BiRyeoDo.Tests
         [TestCase("gen_pan_fin05", 6.000000d)]
         [TestCase("gen_pan_fin06", 6.000000d)]
         [TestCase("gen_pan_fin07", 7.000000d)]
-        [TestCase("gen_pan_fin08", 5.000000d)]
+        [TestCase("gen_pan_fin08", 8.333333d)]   // 등급 편차 재조정 (2026-10 말)
         [TestCase("gen_boo_fin04", 7.000000d)]
         [TestCase("gen_boo_fin07", 7.000000d)]
         [TestCase("gen_boo_fin05", 9.000000d)]
@@ -75,7 +75,7 @@ namespace BiRyeoDo.Tests
         [TestCase("gen_wea_rar07", 15.000000d)]
         [TestCase("gen_arm_rar06", 12.000000d)]
         [TestCase("gen_boo_rar04", 11.000000d)]
-        [TestCase("gen_boo_rar07", 11.000000d)]
+        [TestCase("gen_boo_rar07", 15.000000d)]   // 등급 편차 재조정 (2026-10 말)
         [TestCase("gen_boo_rar05", 15.000000d)]
         [TestCase("gen_boo_rar06", 15.000000d)]
         [TestCase("gen_arm_epi01", 23.400000d)]   // 18 before the 영웅 x1.3 grade scale

@@ -45,9 +45,9 @@
 | 상의 | 목면 저고리 | 내공 +0.5% 방어 +3% 속도 +1 | `catalog_normal_armor_05` |
 | 상의 | 대련용 조끼 | 내공 +0.3% 방어 +3% 속도 +1 | `catalog_normal_armor_06` |
 | 상의 | 덧댄 장삼 | 공격 +1% 방어 +4% | `catalog_normal_armor_07` |
-| 하의 | 목면 수련바지 | 체력 +5% 방어 +2% 치명타 +1% | `catalog_normal_pants_01` |
+| 하의 | 목면 수련바지 | 체력 +3% 방어 +1% 치명타 +1% (2026-10 말 재조정, 최종값) | `catalog_normal_pants_01` |
 | 하의 | 산행 각반 | 체력 +6% 치명타 +1% | `catalog_normal_pants_02` |
-| 하의 | 광목 행전 | 체력 +4% 내공 +0.2% 방어 +3% | `catalog_normal_pants_03` |
+| 하의 | 광목 행전 | 체력 +3% 방어 +1.5% 내공 +0.2% (2026-10 말 재조정, 최종값) | `catalog_normal_pants_03` |
 | 하의 | 염색 베바지 | 체력 +5% 방어 +1% 속도 +1 | `catalog_normal_pants_04` |
 | 하의 | 마부 바지 | 체력 +4% 내공 +0.6% 공격 +1% | `catalog_normal_pants_05` |
 | 하의 | 품 넓은 잠방이 | 체력 +5% 방어 +1% | `catalog_normal_pants_06` |
@@ -91,12 +91,12 @@
 | 하의 | 청사 수련고 | 체력 +7% 방어 +1% 치명타 +1% | `catalog_fine_pants_02` |
 | 하의 | 연철 정강이갑 | 체력 +6% 공격 +4% 치명타 +2% | `catalog_fine_pants_03` |
 | 하의 | 녹피 각반 | 체력 +7% 치명타 +2% | `catalog_fine_pants_04` |
-| 하의 | 표행 통바지 | 체력 +7% 공격 +1% 방어 +4% | `catalog_fine_pants_05` |
-| 하의 | 질긴 면포고 | 체력 +8% 방어 +5% | `catalog_fine_pants_06` |
+| 하의 | 표행 통바지 | 체력 +4% 공격 +2% 방어 +2% (2026-10 말 재조정, 최종값) | `catalog_fine_pants_05` |
+| 하의 | 질긴 면포고 | 체력 +5% 방어 +3% (2026-10 말 재조정, 최종값) | `catalog_fine_pants_06` |
 | 하의 | 황면 누비고 | 체력 +8% 내공 +0.9% 치명타 +1% | `catalog_fine_pants_07` |
 | 하의 | 적동 무릎갑 | 체력 +6% 방어 +3% 속도 +1 | `catalog_fine_pants_08` |
-| 하의 | 은사 행전 | 체력 +6% 방어 +6% 치명타 +1% | `catalog_fine_pants_09` |
-| 신발 | 표행 가죽화 | 내공 +0.6% 속도 +1 치명타 +2% | `catalog_fine_boots_01` |
+| 하의 | 은사 행전 | 방어 +5% 체력 +2% 치명타 +1% (2026-10 말 재조정, 최종값) | `catalog_fine_pants_09` |
+| 신발 | 표행 가죽화 | 속도 +5 체력 +3% 치명타 +2% 내공 +0.6% (2026-10 말 재조정, 최종값) | `catalog_fine_boots_01` |
 | 신발 | 청사 경공화 | 공격 +5% 속도 +1 | `catalog_fine_boots_02` |
 | 신발 | 연철 군화 | 내공 +0.8% 공격 +4% 속도 +2 | `catalog_fine_boots_03` |
 | 신발 | 산사슴 비화 | 체력 +4% 공격 +5% 속도 +2 | `catalog_fine_boots_04` |
@@ -104,11 +104,11 @@
 | 신발 | 황면 덧신 | 공격 +4% 방어 +2% 속도 +2 | `catalog_fine_boots_06` |
 | 신발 | 무관 단화 | 내공 +0.8% 공격 +3% 속도 +2 | `catalog_fine_boots_07` |
 | 신발 | 적동 징화 | 공격 +6% 속도 +2 치명타 +1% | `catalog_fine_boots_08` |
-| 장신구 | 청사 향낭 | 체력 +2% 내공 +1.2% 속도 +2 | `catalog_fine_accessory_01` |
-| 장신구 | 연철 호심패 | 체력 +8% 공격 +4% | `catalog_fine_accessory_02` |
+| 장신구 | 청사 향낭 | 체력 +5% 속도 +3 내공 +1.2% (2026-10 말 재조정, 최종값) | `catalog_fine_accessory_01` |
+| 장신구 | 연철 호심패 | 체력 +4% 공격 +4% (2026-10 말 재조정, 최종값) | `catalog_fine_accessory_02` |
 | 장신구 | 산호 귀고리 | 공격 +9% 방어 +1% | `catalog_fine_accessory_03` |
 | 장신구 | 백동 팔찌 | 방어 +8% 치명타 +2% | `catalog_fine_accessory_04` |
-| 장신구 | 금실 매듭장식 | 내공 +1.2% 치명타 +2% | `catalog_fine_accessory_05` |
+| 장신구 | 금실 매듭장식 | 공격 +5% 치명타 +3% 내공 +1.2% (2026-10 말 재조정, 최종값) | `catalog_fine_accessory_05` |
 
 ### 희귀
 
@@ -137,11 +137,11 @@
 | 신발 | 옥사 장화 | 내공 +1.4% 방어 +7% 속도 +3 | `catalog_rare_boots_03` |
 | 신발 | 현린 전투화 | 방어 +8% 속도 +4 | `catalog_rare_boots_04` |
 | 신발 | 적수 단화 | 체력 +7% 속도 +4 치명타 +1% | `catalog_rare_boots_05` |
-| 신발 | 운학 포혜 | 내공 +1.2% 속도 +4 치명타 +1% | `catalog_rare_boots_06` |
+| 신발 | 운학 포혜 | 속도 +7 방어 +4% 치명타 +2% 내공 +1.2% (2026-10 말 재조정, 최종값) | `catalog_rare_boots_06` |
 | 신발 | 벽옥 철화 | 공격 +8% 속도 +2 | `catalog_rare_boots_07` |
 | 신발 | 백사 보운리 | 공격 +7% 속도 +3 치명타 +1% | `catalog_rare_boots_08` |
 | 장신구 | 벽옥 호심패 | 체력 +9% 내공 +1.4% 방어 +7% | `catalog_rare_accessory_01` |
-| 장신구 | 운학 깃노리개 | 체력 +14% 방어 +7% 속도 +2 | `catalog_rare_accessory_02` |
+| 장신구 | 운학 깃노리개 | 체력 +8% 방어 +3% 속도 +2 (2026-10 말 재조정, 최종값) | `catalog_rare_accessory_02` |
 
 ### 영웅
 
@@ -193,13 +193,13 @@
 | 하의 | 백린 금강고 | 체력 +15% 내공 +1.8% 방어 +14% 속도 +7 | `catalog_legendary_pants_03` |
 | 하의 | 홍운 비단고 | 체력 +21% 속도 +7 치명타 피해 +10% | `catalog_legendary_pants_04` |
 | 하의 | 태산 철각반 | 체력 +19% 내공 +1.8% 공격 +10% 치명타 +2% | `catalog_legendary_pants_05` |
-| 신발 | 일월 유영화 | 내공 +1.8% 속도 +9 치명타 +1% 치명타 피해 +12% | `catalog_legendary_boots_01` |
+| 신발 | 일월 유영화 | 속도 +20 공격 +15% 치명타 +6% 치명타 피해 +25% 내공 +2.7% (2026-10 말 재조정, 최종값) | `catalog_legendary_boots_01` |
 | 신발 | 벽해 답파화 | 내공 +0.9% 공격 +12% 속도 +9 | `catalog_legendary_boots_02` |
 | 신발 | 백린 무영리 | 체력 +16% 방어 +18% 속도 +5 치명타 피해 +3% | `catalog_legendary_boots_03` |
 | 신발 | 홍운 비천화 | 공격 +8% 방어 +15% 속도 +8 치명타 피해 +7% | `catalog_legendary_boots_04` |
 | 신발 | 태산 금강화 | 내공 +1.8% 방어 +18% 속도 +6 | `catalog_legendary_boots_05` |
 | 신발 | 은월 보행리 | 공격 +12% 속도 +6 치명타 +5% 치명타 피해 +6% | `catalog_legendary_boots_06` |
-| 장신구 | 일월 보주 | 내공 +3.5% 방어 +9% 속도 +6 | `catalog_legendary_accessory_01` |
+| 장신구 | 일월 보주 | 방어 +20% 체력 +10% 속도 +9 내공 +5.2% (2026-10 말 재조정, 최종값) | `catalog_legendary_accessory_01` |
 | 장신구 | 벽해 호신경 | 체력 +24% 방어 +16% 속도 +2 | `catalog_legendary_accessory_02` |
 
 ### 신화

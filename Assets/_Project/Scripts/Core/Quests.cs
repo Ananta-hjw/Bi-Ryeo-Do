@@ -40,7 +40,7 @@ namespace BiRyeoDo.Core
             new QuestData { Id = "q_market_screen", Name = "저잣거리 엄호 복기", Brief = "민간인과 자객을 가려내던 호위의 공방을 모의 수련으로 복기합니다. 새 청부 사건은 아닙니다.", RefStage = 16, Encounter = 0,
                 Trial = TrialRule.Survive("호위의 시야", "적 12행동을 견디며 동료를 엄호하세요.", 12), RewardDoo = 13500, ItemId = "okruju" },
             new QuestData { Id = "q_baegin", Edge = 1.10f, Name = "저잣거리 자객 소탕", Brief = "백인 자객들이 사람 많은 거리에 숨어 있다. 소란이 커지기 전에 끝내라.", RefStage = 16, Encounter = 0,
-                Trial = TrialRule.Deadline("속전속결", "37행동 안에 모두 쓰러뜨리세요.", 37), RewardDoo = 13500 },
+                Trial = TrialRule.Deadline("속전속결", "33행동 안에 모두 쓰러뜨리세요.", 33), RewardDoo = 13500 },
             new QuestData { Id = "q_rope_rehearsal", Name = "절제된 쌍검 수련", Brief = "효룡과의 수련에서 힘을 아끼던 공방을 복기합니다. 실제 줄의 절단·낙하를 판정하는 새 시험은 아닙니다.", RefStage = 18, Encounter = 1,
                 Trial = TrialRule.Survive("힘의 절제", "적 8행동을 견디세요.", 8), RewardDoo = 15000, ItemId = "bear_gall" },
             new QuestData { Id = "q_illusion_breath", Name = "환상 뒤의 집중 수련", Brief = "환마동에서 현실의 감각을 되찾던 집중을 안전한 모의 수련으로 복기합니다. 다른 이의 상처를 공개하는 과제가 아닙니다.", RefStage = 19, Encounter = 3,
