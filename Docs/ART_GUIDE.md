@@ -6,11 +6,11 @@
 
 | 위치 | 파일 이름 | 규격 |
 |---|---|---|
-| `Resources/Art/Backgrounds/` | `stage_01.png` … `stage_36.png` | 세로 1080×1920 (또는 9:16), 전투 화면 배경 |
+| `Resources/Art/Backgrounds/` | `stage_07.png` … `stage_66.png`, 기존 `battle_*` | 가로 약 16:9, 전투·대화·지역 미리보기 배경 |
 | `Resources/Art/Standing/` | 아래 표의 id (예: `tiger.png`, 주인공 `player.png`) | **투명 배경 PNG**, 1024×1536 전신 입화 |
 
 - PNG/JPG 모두 된다. 배경은 JPG로 해도 된다(이름만 `.jpg`).
-- 파일 크기가 클수록 앱 용량과 메모리가 늘어난다. 적은 1024px 이하, 배경은 1080×1920 정도가 적당하다.
+- 파일 크기가 클수록 앱 용량과 메모리가 늘어난다. 적은 1024px 이하, 배경은 가로 약 1664×936~1920×1080 정도가 적당하다.
 - 이미지를 넣은 뒤 Unity에서 별도 설정은 필요 없다(런타임에 스프라이트로 변환한다). GitHub에 올리면 CI가 APK에 포함해 빌드한다.
 
 ## 화풍을 통일하는 법
@@ -21,7 +21,7 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 ```
 
 - 캐릭터는 `plain white background`를 같이 쓰면 배경 제거가 쉽다. 배경 제거는 remove.bg나 이미지 도구의 배경 제거 기능을 쓰면 된다.
-- 화면 비율은 배경 `9:16`, 캐릭터 `1:1`로 지정한다.
+- 화면 비율은 배경 `16:9` 가로형, 전투 캐릭터 `1:1`로 지정한다.
 - 마음에 드는 첫 결과가 나오면 같은 모델·같은 설정으로 이어서 뽑아야 통일감이 유지된다.
 - 원작 인물의 얼굴은 생성할 때마다 달라진다. 외형 묘사는 원작에 나온 특징(머리색, 옷, 무기)만 적었고 얼굴은 정하지 않았다. 마음에 드는 결과를 고르면 된다.
 
@@ -112,46 +112,13 @@ ink wash painting style, sumi-e, muted earth tones, soft brush strokes, wuxia, t
 | `jang_hong.png` | 장홍 | a bearded man who looks older than his age, kind but nagging expression, sword at his waist, upper body, plain white background |
 | `yun_junho.png` | 윤준호 | a timid young swordsman of a mountain sect with plum blossom emblem, white and purple robe, upper body, plain white background |
 
-## 배경 (스테이지 9개)
+## 배경 (7~66장 전용 60장)
 
-| 파일 | 스테이지 | 프롬프트 (공통 문구 뒤에 붙이기) |
-|---|---|---|
-| `stage_01.png` | 아미산 숲 | misty pine forest on a steep mountain slope, a small wooden hut in the distance, morning fog, vertical composition, no characters, 9:16 |
-| `stage_02.png` | 중양표국 | courtyard gate of a Chinese escort agency compound, wooden gate with a banner flag, stone paving, vertical composition, no characters, 9:16 |
-| `stage_03.png` | 호골채 매복 | narrow mountain road between steep cliffs, ambush spot, dusk light, vertical composition, no characters, 9:16 |
-| `stage_04.png` | 용골채 매복 | wide mountain pass with rocky cliffs and scattered boulders, tense atmosphere, overcast sky, vertical composition, no characters, 9:16 |
-| `stage_05.png` | 주주 윤하루 | traditional Chinese inn exterior at night, red lanterns, wooden two-story building, quiet street, vertical composition, no characters, 9:16 |
-| `stage_06.png` | 남창 호아장 | martial arts manor courtyard, weapon racks, stone training ground, large hall in the background, vertical composition, no characters, 9:16 |
-| `stage_07.png` | 천무학관 검혼관 | dormitory approach path inside a Chinese martial academy, wooden corridor with hidden trap mechanisms, arrow slits and a row of swords in the ground, tense atmosphere, vertical composition, no characters, 9:16 |
-| `stage_08.png` | 천무식당 | large dining hall of a Chinese martial academy, long wooden tables, warm lantern light, evening, vertical composition, no characters, 9:16 |
-| `stage_09.png` | 천무학관 운향정 | elegant pavilion beside a calm artificial lake, stalagmite-like garden rocks, lush green trees, moonlit, vertical composition, no characters, 9:16 |
-| `stage_10.png` | 백향관 침투 | dormitory tower of a Chinese martial academy for women at night, new moon, fragrant flower garden with hidden formation stones, lanterns off, vertical composition, no characters, 9:16 |
-| `stage_11.png` | 승급시험 | octagonal stone duel stage with eight pillars inside a martial academy hall, judges' seats, daylight, vertical composition, no characters, 9:16 |
-| `stage_12.png` | 삼성무제 본선 | huge outdoor martial arts tournament arena with banners of many sects, packed spectator stands, bright sky, vertical composition, no characters, 9:16 |
-| `stage_13.png` | 삼성대전 결승 | final tournament arena with cracked stone floor, crowd in the stands, three elders' seats on a dais, dramatic sky, vertical composition, no characters, 9:16 |
-| `stage_14.png` | 무당산 고립 | misty Wudang mountain trail at dusk, mist-covered stone steps, dark pines, ink-wash style, vertical composition, no characters |
-| `stage_15.png` | 철각비마대 | windswept highland road with iron-clad cavalry banners, dust, ink-wash style, vertical composition, no characters |
-| `stage_16.png` | 저잣거리 습격 | crowded old market street at night with paper lanterns, ink-wash style, vertical composition, no characters |
-| `stage_17.png` | 마하령의 분노 | training hall courtyard with scattered shields and torn banners, ink-wash style, vertical composition, no characters |
-| `stage_18.png` | 태극의 인재 | snowy cold training hall with frost on stone floor, taiji pattern on ground, ink-wash style, vertical composition, no characters |
-| `stage_19.png` | 환마동 시험 | dim cave hall with eight stone doors and drifting incense smoke, ink-wash style, vertical composition, no characters |
-| `stage_20.png` | 매몰 44일 | underground cave with glowing blue minerals like stars, ink-wash style, vertical composition, no characters |
-| `stage_21.png` | 흑랑채 청혼 | mountain bandit fortress at dusk with black wolf banners, ink-wash style, vertical composition, no characters |
-| `stage_22.png` | 낙뢰곡 철쇄봉혼진 | narrow canyon crisscrossed with iron chains and falling arrows, ink-wash style, vertical composition, no characters |
-| `stage_23.png` | 비사진 | canyon floor swarming with snakes under a stormy sky, ink-wash style, vertical composition, no characters |
-| `stage_24.png` | 비뢰쌍마 | scorched canyon battlefield with smoke and two elderly silhouettes, ink-wash style, vertical composition, no characters |
-| `stage_25.png` | 화평장 | old manor at night with torchlight and dark guards, ink-wash style, vertical composition, no characters |
-| `stage_26.png` | 살귀대 | tavern street at dusk with pursuers on rooftops, ink-wash style, vertical composition, no characters |
-| `stage_27.png` | 마천칠걸 | red plum valley entrance with seven silhouettes, ink-wash style, vertical composition, no characters |
-| `stage_28.png` | 멸성대 | small roadside inn at noon surrounded by dark silhouettes, ink-wash style, vertical composition, no characters |
-| `stage_29.png` | 중토관 | dense wilderness mountain at dawn with mist, ink-wash style, vertical composition, no characters |
-| `stage_30.png` | 화룡멸겁대진 | red plum valley engulfed by a ring of fire and smoke, ink-wash style, vertical composition, no characters |
-| `stage_31.png` | 청룡은장의 밤 | burning Sichuan money-lender manor at night, masked silhouettes on the roofs, embers and smoke, ink-wash style, vertical composition, no characters |
-| `stage_32.png` | 승천무제 시험관 | martial academy courtyard in early spring with a golden armband on a stone bench, flying swords in the mist, ink-wash style, vertical composition, no characters |
-| `stage_33.png` | 무극검과 누명 | evening street of Nanchang below a lantern-lit wine house, a ring of swordsmen under a red sunset, ink-wash style, vertical composition, no characters |
-| `stage_34.png` | 흰 봉황 | gate of a large escort agency cut into twelve pieces at night, frost glitter in the air, ink-wash style, vertical composition, no characters |
-| `stage_35.png` | 전설의 포효 | escort agency courtyard at dawn, a broken door and a huge white tiger shadow in the trees, ink-wash style, vertical composition, no characters |
-| `stage_36.png` | 운명의 비무 | large martial arts arena crowded with spectators, eight flying sword shadows blooming like lotus petals, ink-wash style, vertical composition, no characters |
+현재 배경은 `Resources/Art/Backgrounds/stage_07.png`~`stage_66.png`에 있으며, 1~6장은 기존 `battle_forest`·`battle_road`·`battle_manor` 테마를 사용한다. 각 장의 장소·원전 권·연결 방식은 [SCENERY_ART.md](SCENERY_ART.md)를 따른다. `SceneryArt.StageKey`가 전투·대화·지역 미리보기·홈 여정 카드의 그림을 선택하고 의뢰도 참조 장의 배경을 사용한다.
+
+가로 약 16:9의 반실사 무협 채색화에 산수화의 원근·안개를 더한다. 캐릭터·군중·동물·글자·로고는 넣지 않고, 하단 중앙 45%와 전투 인물이 서는 가로 공간은 평탄하게 비워 둔다. 건물·소품·나무·불꽃·빙벽은 후경이나 가장자리에 둔다. 같은 학관·비무장도 시간대·광원·구도를 달리하며 원작의 장소와 분위기를 우선한다. 소품·건축 세부는 미술적 해석이고 새로운 사건을 확정하지 않는다.
+
+PNG 원본을 사용하고 Unity `.meta`는 mipmap·읽기/쓰기 비활성, NPOT 크기 유지, Clamp, 최대 2048, 플랫폼 압축을 유지한다. 실제 4:3·16:9·20:9 화면에서 캐릭터·대사와 대비 및 중앙 자르기를 확인한다.
 
 ## 적 (36종)
 

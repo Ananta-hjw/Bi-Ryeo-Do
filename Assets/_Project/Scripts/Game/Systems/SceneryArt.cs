@@ -6,26 +6,20 @@ namespace BiRyeoDo.Game.Systems
     /// <summary>Atmospheric environment themes mapped to existing story settings, without changing stage rules.</summary>
     public static class SceneryArt
     {
-        private static readonly string[] Stages =
+        private static readonly string[] OpeningStages =
         {
-            "forest", "manor", "road", "road", "manor", "manor", "cave", "manor", "pavilion", "pavilion",
-            "academy", "academy", "academy", "forest", "road", "manor", "academy", "forest", "cave", "cave",
-            "road", "valley", "valley", "valley", "manor", "road", "valley", "manor", "cave", "valley",
-            "manor", "academy", "academy", "manor", "manor", "academy",
-            "forest", "academy", "manor", "road", "pavilion",
-            "road", "manor", "academy", "academy", "academy", "cave", "academy",
-            "cave", "academy", "manor", "cave", "cave", "academy", "manor", "road", "road",
-            "road", "manor", "manor", "academy", "forest", "cave", "forest", "valley", "valley"
+            "forest", "manor", "road", "road", "manor", "manor"
         };
 
         public static string StageKey(int stage)
         {
-            return "battle_" + (stage >= 1 && stage <= Stages.Length ? Stages[stage - 1] : "road");
+            if (stage >= 7 && stage <= 66) return "stage_" + stage.ToString("00");
+            return "battle_" + (stage >= 1 && stage <= OpeningStages.Length ? OpeningStages[stage - 1] : "road");
         }
 
         public static Sprite Battle(StageData stage)
         {
-            return ArtLibrary.Environment(stage.IsTower ? "battle_academy" : stage.IsQuest ? "battle_road" : StageKey(stage.Number));
+            return ArtLibrary.Environment(stage.IsTower ? "battle_academy" : StageKey(stage.Number));
         }
 
         public static string MenuKey(string key)
