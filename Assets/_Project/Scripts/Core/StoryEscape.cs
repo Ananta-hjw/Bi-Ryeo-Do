@@ -79,7 +79,6 @@ namespace BiRyeoDo.Core
                 if (stage.Number == 64 && encounter == 3 && member.Id == "story_yeongryeong") skills.Add(Avoid("scene_escape_sister_smoke", "향신료 연막 · 예린과 이탈"));
                 if (stage.Number == 65 && encounter == 0 && member.Id == "story_biry_escape") skills.Add(Avoid("scene_escape_sect_threads", "뇌령사를 세 문파에 건다"));
                 if (stage.Number == 65 && encounter == 1 && member.Id == "jang_hong") skills.Add(Avoid("scene_escape_red_flower", "암시 봉인 · 붉은 남천"));
-                if (stage.Number == 65 && encounter == 2 && member.Id == "jang_hong") skills.Add(Avoid("scene_escape_current", "급류 아래로 선행 진입"));
                 if (stage.Number == 66 && encounter == 0 && member.Id == "story_biry_escape") skills.Add(Hit("scene_escape_clear_elements", "풍신 질풍", 0.2f, 1));
                 if (stage.Number == 66 && encounter == 1 && member.Id == "story_biry_escape") skills.Add(Hit("scene_escape_free_father", "뇌령사 · 나백천 구출", 0.2f, 1));
                 if (stage.Number == 66 && encounter == 2 && member.Id == "story_biry_escape") skills.Add(Hit("scene_escape_fire_dragon", "화룡난류", 0.5f, 1));
@@ -319,11 +318,13 @@ namespace BiRyeoDo.Core
                     "효혜는 은천벽의 월권을 경계하며 잠적한 둘째를 불러올 때라 판단했다. 은설란에게 그를 마중할 일을 맡겼다. 임시 맹주의 자리와 다음 권력의 구상이 움직이고 있었다.",
                 } },
             { 65, new[] {
+                    "장홍이 먼저 물속으로 뛰었다. 비류연이 뇌령사로 생존을 확인한 뒤 나머지 세 사람이 따라갔다. 물 아래 동굴이 대난원이었다.",
                     "급류 아래 동굴에서 중상 입은 나백천을 찾았다. 일행은 먼저 살아 있음을 확인하고 그의 상태를 살폈다.",
                     "그를 찾아 헤맨 길이 눈앞의 사람으로 끝났다. 안도 뒤에도 가슴의 상처에서는 피가 멎지 않았다.",
                     "나백천이 그 상처를 보며 백이 년 전 천무봉의 기억을 꺼냈다. 보지 못한 싸움의 끝과 위천무의 최종 생사는 여전히 남았다.",
                 } },
             { 66, new[] {
+                    "벼락과 화룡, 질풍이 포위를 흔들었다. 비류연의 전음에 장홍이 혼절한 나백천을 업었다. 남궁상과 모용휘가 함께 빠져나갈 틈을 지켰다.",
                     "장홍이 나백천을 업고 일행이 포위를 빠져나왔다. 화룡과 용권이 뇌신의 경계로 향하는 문을 열었어도 경지 전체를 완성한 것은 아니었다.",
                     "타지 않은 서찰은 무당산에서 진실을 밝히겠다 약속했다. 신마가와 굉천은 무당을 향했고 염도·빙검은 여전히 포로였다. 사란이 단혜에게 전한 말의 내용은 드러나지 않았다.",
                     "비류연은 실제로는 남쪽 무한으로 돌아갔다. 잡아야 할 호랑이가 있다는 말만 남겼고 신마가가 일부러 놓아주었는지는 확인되지 않았다.",
@@ -482,11 +483,6 @@ namespace BiRyeoDo.Core
                         "지나치게 쉬운 통과가 장홍에게 불안으로 남았다. 흑견대 물품과 자신의 암시 봉인을 대조하자 붉은 남천 꽃과 은신처의 기억이 이어졌다.",
                     } }
                 } },
-            { 6502, new[] {
-                    new StoryScene { Title = "급류 아래의 길", Lines = new[] {
-                        "장홍이 먼저 물속으로 뛰었다. 비류연이 뇌령사로 생존을 확인한 뒤 나머지 세 사람이 따라갈 차례였다. 물 아래 동굴이 대난원이었다.",
-                    } }
-                } },
             { 6600, new[] {
                     new StoryScene { Title = "강 아래까지 닫힌 환영식", Lines = new[] {
                         "나백천은 한철궤라 부른 천하군림궤 속에 장문령부와 천하군림지존신패, 강호조복혈안서, 빈 신무림기가 있음을 밝혔다. 강제로 열면 폭약과 강산이 내용을 파괴하도록 되어 있었다.",
@@ -507,11 +503,6 @@ namespace BiRyeoDo.Core
             { 6603, new[] {
                     new StoryScene { Title = "얼음에 맞선 쌍두룡", Lines = new[] {
                         "화룡난류가 삼매진화를 회전시켜 화룡을 일으켰다. 사란이 절대빙벽으로 막자 쌍두룡과 두 용권이 맞부딪쳤다. 뇌화열풍인 쌍룡귀천이 탈출할 길을 열려 했다.",
-                    } }
-                } },
-            { 6604, new[] {
-                    new StoryScene { Title = "혼절한 나백천을 업고", Lines = new[] {
-                        "벼락과 화룡, 질풍이 포위를 흔들었다. 비류연의 전음에 장홍이 혼절한 나백천을 업었다. 남궁상과 모용휘가 함께 빠져나갈 틈을 지켰다.",
                     } }
                 } },
         };

@@ -5,7 +5,7 @@ namespace BiRyeoDo.Core
     /// <summary>Preserve cleared stages, earned stars and boss-clear records when the early story fight lists change.</summary>
     public static class StoryContentMigration
     {
-        public const int CurrentRevision = 13;
+        public const int CurrentRevision = 14;
         public static void Apply(SaveData save)
         {
             if (save == null || save.StoryContentRevision >= CurrentRevision) return;
@@ -154,6 +154,11 @@ namespace BiRyeoDo.Core
                 RemoveEncounter(save, 62, 0);
                 RemoveEncounter(save, 65, 1);
             }
+            if (save.StoryContentRevision < 14)
+            {
+                CompactLastEncounter(save, 65, 2);
+                CompactLastEncounter(save, 66, 4);
+            }
             save.StoryContentRevision = CurrentRevision;
         }
 
@@ -164,6 +169,12 @@ namespace BiRyeoDo.Core
 
         private static void CompactPair(SaveData save, int leadingChapter, int trailingChapter, int oldLast)
         {
+            RemoveEncounter(save, leadingChapter, 0);
+            CompactLastEncounter(save, trailingChapter, oldLast);
+        }
+
+        private static void CompactLastEncounter(SaveData save, int trailingChapter, int oldLast)
+        {
             var newlyCleared = new bool[StageStars.DifficultyCount];
             for (int d = 0; d < newlyCleared.Length; d++)
                 newlyCleared[d] = (StageStars.MaskOf(save, trailingChapter, oldLast - 1, d) & 1) != 0
@@ -172,23 +183,21 @@ namespace BiRyeoDo.Core
             int before = 0, after = 0;
             foreach (var entry in save.StageStars)
             {
-                if (entry.Stage != leadingChapter && entry.Stage != trailingChapter) { compacted.Add(entry); continue; }
+                if (entry.Stage != trailingChapter) { compacted.Add(entry); continue; }
                 before += StageStars.Count(entry.Mask);
-                if (entry.Stage == leadingChapter && entry.Fight == 0) continue;
-                int fight = entry.Stage == leadingChapter ? entry.Fight - 1 : entry.Fight == oldLast ? oldLast - 1 : entry.Fight;
+                int fight = entry.Fight == oldLast ? oldLast - 1 : entry.Fight;
                 var existing = compacted.Find(e => e.Stage == entry.Stage && e.Fight == fight && e.Diff == entry.Diff);
                 if (existing == null)
                     compacted.Add(new StarEntry { Stage = entry.Stage, Fight = fight, Diff = entry.Diff, Mask = entry.Mask });
                 else existing.Mask |= entry.Mask;
             }
             foreach (var entry in compacted)
-                if (entry.Stage == leadingChapter || entry.Stage == trailingChapter) after += StageStars.Count(entry.Mask);
+                if (entry.Stage == trailingChapter) after += StageStars.Count(entry.Mask);
             save.RetiredStoryStars += before - after;
             save.StageStars = compacted;
             // The real final fight now completes the chapter. Credit its unclaimed clear insight once.
             for (int d = 0; d < newlyCleared.Length; d++)
                 if (newlyCleared[d]) StageStars.GrantClearInsight(save, trailingChapter, d, false);
-            if (save.ProgressStage == leadingChapter) save.ProgressNext = System.Math.Max(0, save.ProgressNext - 1);
             // The old final filler becomes a completion-only resume, without replaying the retained last fight.
             if (save.ProgressStage == trailingChapter) save.ProgressNext = System.Math.Min(save.ProgressNext, oldLast);
         }

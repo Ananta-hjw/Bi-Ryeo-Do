@@ -65,7 +65,7 @@ namespace BiRyeoDo.Tests
         [TestCase(53, 9, 15)] [TestCase(54, 41, 65)] [TestCase(55, 37, 59)] [TestCase(56, 108, 170)] [TestCase(57, 4, 7)]
         // Stages 58-59 are entirely noncombat and are covered by StoryChoiceEventTests.
         [TestCase(60, 99, 156)] [TestCase(61, 20, 33)]
-        [TestCase(62, 26, 42)] [TestCase(63, 72, 113)] [TestCase(64, 41, 66)] [TestCase(65, 13, 22)] [TestCase(66, 39, 62)]
+        [TestCase(62, 26, 42)] [TestCase(63, 72, 113)] [TestCase(64, 41, 66)] [TestCase(65, 4, 7)] [TestCase(66, 16, 25)]
         public void LateNormalStagesKeepPressureWithoutLongHpSlogs(int number, int minActions, int maxActions)   // Re-measured with current expected gear and actual story perspectives (80-125% of 100-run action means).
         {
             var stage = EarlyGameContent.FindStage(number);

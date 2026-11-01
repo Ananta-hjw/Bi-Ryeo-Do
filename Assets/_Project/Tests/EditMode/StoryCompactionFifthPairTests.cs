@@ -12,7 +12,7 @@ namespace BiRyeoDo.Tests
         {
             var dogs = EarlyGameContent.FindStage(62);
             var sects = EarlyGameContent.FindStage(65);
-            Assert.AreEqual(3, dogs.Encounters.Length); Assert.AreEqual(3, sects.Encounters.Length);
+            Assert.AreEqual(3, dogs.Encounters.Length); Assert.AreEqual(2, sects.Encounters.Length);
             Assert.IsFalse(dogs.Encounters.SelectMany(x => x).Contains("tracking_scent"));
             Assert.IsFalse(sects.Encounters.SelectMany(x => x).Contains("distrust_corridor"));
             string pursuit = string.Join(" ", StoryEpisodes.BeforeFight(dogs, 0, new SaveData()).SelectMany(s => s.Lines));
@@ -36,7 +36,7 @@ namespace BiRyeoDo.Tests
                 }
             }
             CollectionAssert.AreEqual(new[] { "third_dog_squad", "third_dog_squad", "third_dog_squad" }, Quests.ToStage(Quests.Find("q_shadow_deception")).Encounters[0]);
-            CollectionAssert.AreEqual(new[] { "dae_nan_current" }, Quests.ToStage(Quests.Find("q_current_guard")).Encounters[0]);
+            CollectionAssert.AreEqual(new[] { "three_sects" }, Quests.ToStage(Quests.Find("q_current_guard")).Encounters[0]);
         }
 
         [Test]
@@ -49,13 +49,13 @@ namespace BiRyeoDo.Tests
                     for (int i = 0; i < 4; i++) StageStars.Record(save, number, i, d, 7);
             int total = StageStars.Total(save);
             StoryContentMigration.Apply(save);
-            Assert.AreEqual(total, StageStars.Total(save)); Assert.AreEqual(18, save.RetiredStoryStars);
+            Assert.AreEqual(total, StageStars.Total(save)); Assert.AreEqual(27, save.RetiredStoryStars);
             Assert.AreEqual(3, StageStars.MaskOf(save, 48, 2, 0));
             for (int d = 0; d < 3; d++)
                 foreach (int number in new[] { 62, 65 }) Assert.IsTrue(StageStars.StageCleared(save, number, d));
             Assert.AreEqual(12345, save.Doo); Assert.AreEqual(70, save.Level);
             StoryContentMigration.Apply(save);
-            Assert.AreEqual(total, StageStars.Total(save)); Assert.AreEqual(18, save.RetiredStoryStars);
+            Assert.AreEqual(total, StageStars.Total(save)); Assert.AreEqual(27, save.RetiredStoryStars);
         }
 
         [Test]
@@ -63,14 +63,14 @@ namespace BiRyeoDo.Tests
         {
             var save = new SaveData { StoryContentRevision = 12 };
             StageStars.Record(save, 62, 0, 1, 7); StageStars.Record(save, 62, 1, 1, 3);
-            StageStars.Record(save, 65, 1, 2, 5); StageStars.Record(save, 65, 2, 2, 3);
+            StageStars.Record(save, 65, 1, 2, 5); StageStars.Record(save, 65, 0, 2, 3);
             int total = StageStars.Total(save);
             StoryContentMigration.Apply(save);
             Assert.AreEqual(total, StageStars.Total(save)); Assert.AreEqual(5, save.RetiredStoryStars);
             Assert.AreEqual(3, StageStars.MaskOf(save, 62, 0, 1));
             Assert.AreEqual(0, StageStars.MaskOf(save, 62, 1, 1));
-            Assert.AreEqual(0, StageStars.MaskOf(save, 65, 0, 2));
-            Assert.AreEqual(3, StageStars.MaskOf(save, 65, 1, 2));
+            Assert.AreEqual(3, StageStars.MaskOf(save, 65, 0, 2));
+            Assert.AreEqual(0, StageStars.MaskOf(save, 65, 1, 2));
             Assert.IsFalse(StageStars.StageCleared(save, 62, 1));
             Assert.IsFalse(StageStars.StageCleared(save, 65, 2));
             Assert.AreEqual(0, Inventory.Count(save, InnerArts.StoneId));

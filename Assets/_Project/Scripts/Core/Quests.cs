@@ -98,8 +98,8 @@ namespace BiRyeoDo.Core
             new QuestData { Id = "q_shadow_deception", Name = "추격대 분산 수련", Brief = "당시의 협력과 퇴로 확보를 정규 파티의 모의 수련으로 복기합니다. 새로운 포로나 피해 사건이 생기는 의뢰가 아닙니다.", RefStage = 62, Encounter = 0, Trial = TrialRule.Survive("엄호의 시간", "적 8행동을 견디세요.", 8), RewardDoo = 60300, ItemId = "ginseng" },
             new QuestData { Id = "q_chorus_break", Name = "합주의 틈 엄호 수련", Brief = "당시의 협력과 퇴로 확보를 정규 파티의 모의 수련으로 복기합니다. 새로운 포로나 피해 사건이 생기는 의뢰가 아닙니다.", RefStage = 63, Encounter = 2, Trial = TrialRule.Survive("엄호의 시간", "적 10행동을 견디세요.", 10), RewardDoo = 61200, ItemId = "okruju" },
             new QuestData { Id = "q_spear_read", Name = "창로 관찰 복기", Brief = "당시의 협력과 퇴로 확보를 정규 파티의 모의 수련으로 복기합니다. 새로운 포로나 피해 사건이 생기는 의뢰가 아닙니다.", RefStage = 64, Encounter = 0, Trial = TrialRule.Survive("엄호의 시간", "적 10행동을 견디세요.", 10), RewardDoo = 62100, ItemId = "ilgeup_yeongdan" },
-            new QuestData { Id = "q_current_guard", Name = "급류 진입 엄호 복기", Brief = "당시의 협력과 퇴로 확보를 정규 파티의 모의 수련으로 복기합니다. 새로운 포로나 피해 사건이 생기는 의뢰가 아닙니다.", RefStage = 65, Encounter = 2, Trial = TrialRule.Survive("엄호의 시간", "적 8행동을 견디세요.", 8), RewardDoo = 63000, ItemId = "ginseng" },
-            new QuestData { Id = "q_father_carry", Name = "부상자 이송 수련", Brief = "당시의 협력과 퇴로 확보를 정규 파티의 모의 수련으로 복기합니다. 새로운 포로나 피해 사건이 생기는 의뢰가 아닙니다.", RefStage = 66, Encounter = 4, Trial = TrialRule.Survive("엄호의 시간", "적 10행동을 견디세요.", 10), RewardDoo = 63900, ItemId = "ilgeup_yeongdan" },
+            new QuestData { Id = "q_current_guard", Name = "세 문파 돌파 엄호 복기", Brief = "당시의 협력과 퇴로 확보를 정규 파티의 모의 수련으로 복기합니다. 새로운 포로나 피해 사건이 생기는 의뢰가 아닙니다.", RefStage = 65, Encounter = 0, Trial = TrialRule.Survive("엄호의 시간", "적 8행동을 견디세요.", 8), RewardDoo = 63000, ItemId = "ginseng" },
+            new QuestData { Id = "q_father_carry", Name = "구출대 퇴로 엄호 수련", Brief = "당시의 협력과 퇴로 확보를 정규 파티의 모의 수련으로 복기합니다. 새로운 포로나 피해 사건이 생기는 의뢰가 아닙니다.", RefStage = 66, Encounter = 3, Trial = TrialRule.Survive("엄호의 시간", "적 10행동을 견디세요.", 10), RewardDoo = 63900, ItemId = "ilgeup_yeongdan" },
         };
 
         public static QuestData Find(string id)
