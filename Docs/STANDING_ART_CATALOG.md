@@ -148,3 +148,7 @@
 ## 신규 인물 전투 SD 2차 — 2026-11-01
 
 린(`young_na_yerin`)·혁월린(`hyeok_wolrin`)·갈중천(`gal_jungcheon`)·매화가면(`maehwa_mask_trial`)·은가면 비탄(`mask_bitan`)·신유성(`shin_yuseong`)의 SD를 `Resources/Art/Battle/`에 추가했다. 모두 Standing 원본을 바탕으로 오른쪽을 보는 자세이며, 기존 그림은 보존한다. 1·2차 합계로 신규 Standing 12종의 SD가 마련되었다. 디자인과 키 연결은 [GAME_MAPPING](../Story/GAME_MAPPING.md)의 SD 2차 항목 참조.
+
+## 공패·갈중혁·도성 최신 원화의 SD 반영 — 2026-11-01
+
+최신 Standing을 참고해 Battle `gong_pae`를 교체하고 `hyeok_jung`·`do_seong`을 새로 추가했다. 공패의 자흑색 복식·다부진 체형, 갈중혁의 회흑색 복식·쌍도, 도성의 백색 수염·주홍색 예복을 구분한다. Standing 원본과 기존 공패 SD의 Unity GUID는 유지한다. 자세와 연결 범위는 [GAME_MAPPING](../Story/GAME_MAPPING.md)의 같은 항목 참조.
