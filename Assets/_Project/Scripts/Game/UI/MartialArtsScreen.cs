@@ -160,7 +160,7 @@ namespace BiRyeoDo.Game.UI
             var card = UiFactory.Panel("Card", _detail, Vector2.zero, Vector2.one, UiFactory.ModalInk);
             UiFactory.Frame(card.transform, ultimate ? UiFactory.Gold : UiFactory.GoldDim, 3f);
             var big = UiFactory.Panel("Picture", card.transform, new Vector2(0.66f, 0.84f), new Vector2(0.96f, 0.985f), IconColor(art));
-            var picture = ArtLibrary.Art(art.Id);
+            var picture = ArtLibrary.Art(shown.Id);
             big.sprite = picture;
             big.preserveAspect = true;
             if (picture != null) big.color = hidden ? new Color(0.35f, 0.35f, 0.38f, 1f) : Color.white;
@@ -421,13 +421,13 @@ namespace BiRyeoDo.Game.UI
                     tap.onClick.AddListener(() => Unequip(target));
                     var off = UiFactory.Label("Unequip", slot.transform, new Vector2(.84f, .58f), new Vector2(.99f, .98f), "✕", 20, UiFactory.Dim);
                     off.raycastTarget = false;
-                    var picture = ArtLibrary.Art(art.Id);
+                    var picture = ArtLibrary.Art(Mastery.CurrentForm(save, art).Id);
                     var icon = UiFactory.Panel("Icon", slot.transform, new Vector2(.04f, .12f), new Vector2(.32f, .88f), picture != null ? Color.white : IconColor(art));
                     icon.sprite = picture;
                     icon.preserveAspect = true;
                     if (picture == null) UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, art.Name.Substring(0, 1), 30, UiFactory.PaperText);
                 }
-                string name = art != null ? art.Name : ult ? "필살기 빈 칸" : "빈 칸";
+                string name = art != null ? Mastery.CurrentForm(save, art).Name : ult ? "필살기 빈 칸" : "빈 칸";
                 var label = UiFactory.Body(UiFactory.Label("Name", slot.transform, new Vector2(art != null ? .35f : .05f, .05f), new Vector2(.97f, .95f),
                     (ult ? "<color=#D4B87A>필살</color>\n" : "") + name, 22, art != null ? UiFactory.PaperText : UiFactory.Dim, art != null ? TextAnchor.MiddleLeft : TextAnchor.MiddleCenter, FontStyle.Normal), 1.05f);
                 label.resizeTextForBestFit = true;   // long names shrink inside the fixed slot instead of spilling
@@ -463,14 +463,15 @@ namespace BiRyeoDo.Game.UI
 
                 int mLevel = Mastery.Level(save, a.Id);
                 var variant = Mastery.VariantOf(save, a.Id);
-                var picture = ArtLibrary.Art(a.Id);
+                var shown = learned ? Mastery.CurrentForm(save, a) : a;
+                var picture = ArtLibrary.Art(shown.Id);
                 r.Icon.sprite = picture;
                 r.Icon.preserveAspect = true;
                 bool hidden = !learned && !unlocked;   // like 심법: a locked art shows as ???
                 r.IconGlyph.text = picture != null ? "" : hidden ? "?" : a.Name.Substring(0, 1);
                 r.Icon.color = picture != null ? ((learned || unlocked) ? Color.white : new Color(0.35f, 0.35f, 0.38f, 1f))
                     : (learned || unlocked) ? IconColor(a) : new Color(0.2f, 0.2f, 0.22f, 1f);
-                r.Title.text = hidden ? "???" : (learned ? Mastery.CurrentForm(save, a).Name : a.Name) + (variant != ArtVariant.None ? "(" + Mastery.VariantName(variant) + ")" : "")
+                r.Title.text = hidden ? "???" : shown.Name + (variant != ArtVariant.None ? "(" + Mastery.VariantName(variant) + ")" : "")
                     + (learned ? "  <size=24><color=#D4B87A>" + Stars(mLevel) + " " + Mastery.LevelNames[mLevel] + "</color></size>" : "");
                 r.Tag.text = equipped ? "장착 중" : _newArtIds.Contains(a.Id) && !learned ? "<color=#FF6A5A>새 무공</color>" : "";
                 r.Tag.transform.parent.gameObject.SetActive(r.Tag.text.Length > 0);

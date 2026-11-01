@@ -649,7 +649,7 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("꼬리치기", 0.7f, 3), EnemyMove.Attack("독액", 1.3f).FromDistance().Sniping(), EnemyMove.Wind("바위를 녹이는 침을 모은다"), EnemyMove.Attack("묵린 강타", 3.3f) } },
             // Stage 21: 흑랑채 청혼 (11권)
             new EnemyData { Id = "im_deokseong_story", RetreatHpPct = .15f, ArtId = "im_deokseong", Name = "녹림왕 임덕성", Level = 49, HpMul = 3.4f, AtkMul = 3.410f,
-                Moves = new[] { EnemyMove.Attack("부자의 공방", .8f, 2), EnemyMove.Wind("큰 도끼를 들어 올린다"), EnemyMove.Attack("녹림왕의 도끼", 2.5f) } },
+                Moves = new[] { EnemyMove.Attack("부자의 공방", .8f, 2), EnemyMove.Wind("낭아도를 들어 올린다"), EnemyMove.Attack("광풍마랑도법", 2.5f) } },
             new EnemyData { Id = "hyeol_chang", Name = "혈창", Level = 52, HpMul = 2.2f, AtkMul = 3.0f,
                 Moves = new[] { EnemyMove.Attack("가로막는 창", .8f, 2), EnemyMove.Wind("창끝을 겨눈다"), EnemyMove.Attack("혈창의 찌르기", 2.5f) } },
             new EnemyData { Id = "maehwa_mask_trial", RetreatHpPct = .15f, Name = "매화가면의 시험", Level = 53, HpMul = 3.8f, AtkMul = 3.4f,
@@ -762,7 +762,7 @@ namespace BiRyeoDo.Core
             new EnemyData { Id = "mask_bitan", RetreatHpPct = .15f, Name = "은가면 「비탄」", Level = 66, HpMul = 6.32f, AtkMul = 3.029f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("허상 일검", 0.7f, 3), EnemyMove.Attack("나뭇가지 일검", 1.3f), EnemyMove.Wind("심정청도의 검기를 모은다"), EnemyMove.Attack("비탄의 일검", 2.8f) } },
             // Stage 28 trial: 목요관 야간 질주 (15권)
-            new EnemyData { Id = "jongri_chu_night", RetreatHpPct = .15f, Name = "칠련창 종리추", Level = 59, HpMul = 2.779f, AtkMul = 2.951f,
+            new EnemyData { Id = "jongri_chu_night", ArtId = "jongri_chu", RetreatHpPct = .15f, Name = "칠련창 종리추", Level = 59, HpMul = 2.779f, AtkMul = 2.951f,
                 Moves = new[] { EnemyMove.Attack("칠성창", 0.7f, 3), EnemyMove.Attack("일곱 창 투척", 1.2f).FromDistance() } },
             new EnemyData { Id = "do_chuun_night", RetreatHpPct = .15f, Name = "사갈검편 도추운", Level = 59, HpMul = 2.617f, AtkMul = 2.951f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("검편 채찍", 0.7f, 3), EnemyMove.Attack("사갈편", 1.2f) } },
@@ -785,7 +785,7 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("이어지는 비도", .6f, 2).FromDistance(), EnemyMove.Wind("다음 비도가 날아온다"), EnemyMove.Attack("일곱 비도의 틈", 1.8f).FromDistance() } },
             new EnemyData { Id = "gwan_eogeom_first", ArtId = "gwan_cheolsu", Name = "빙검 · 이기어검의 첫 검", Level = 67, HpMul = 6.32f, AtkMul = 2.235f, RetreatHpPct = .15f,
                 Moves = new[] { EnemyMove.Attack("이기어검", .8f, 2).FromDistance(), EnemyMove.Wind("검영이 둘로 나뉜다"), EnemyMove.Attack("어검분영술", 2.2f).FromDistance() } },
-            new EnemyData { Id = "gongson_ambush", Name = "황금 완장을 노리는 검객", Level = 70, HpMul = 6.02f, AtkMul = 2.376f, RetreatHpPct = .15f,
+            new EnemyData { Id = "gongson_ambush", Name = "황금 완장을 노리는 검객", ArtId = "gongson_jeolhwi", Level = 70, HpMul = 6.02f, AtkMul = 2.376f, RetreatHpPct = .15f,
                 Moves = new[] { EnemyMove.Attack("야습의 검", .8f, 2), EnemyMove.Wind("지존검의 기세를 모은다"), EnemyMove.Attack("지존검법", 2.4f) } },
             new EnemyData { Id = "i_sigeon_arrow", ArtId = "i_sigeon", Name = "흑응비섬의 이시건", Level = 71, HpMul = 2.20f, AtkMul = 1.8f, RetreatHpPct = .15f,
                 Moves = new[] { EnemyMove.Attack("자운의 검", .8f, 2), EnemyMove.Wind("흑응비섬을 준비한다"), EnemyMove.Attack("흑응비섬", 2.5f) } },

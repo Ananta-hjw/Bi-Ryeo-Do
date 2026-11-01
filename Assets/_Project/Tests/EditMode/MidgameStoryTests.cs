@@ -67,7 +67,7 @@ namespace BiRyeoDo.Tests
         {
             Ordered(Replay(21), "장례 뒤의 물음", "거울 신호와 돌아올 힘", "구궁산의 청혼", "흑랑부의 빈틈", "임개를 구한 군자소요검", "노사들이 중재");
             string valley = Replay(22);
-            Ordered(valley, "흑랑채에 남은 흔적", "순풍루에서 들은 마음", "함께 가기로 한 사람들", "대홍산의 첫 추궁", "도끼와 곤", "숲에서 만난 생존자", "처음 칼을 겨눈 뒤", "볼을 스친 첫 화살", "되던진 것은 다른 화살", "쇠사슬 위의 도약");
+            Ordered(valley, "흑랑채에 남은 흔적", "순풍루에서 들은 마음", "함께 가기로 한 사람들", "대홍산의 첫 추궁", "도와 곤", "숲에서 만난 생존자", "처음 칼을 겨눈 뒤", "볼을 스친 첫 화살", "되던진 것은 다른 화살", "쇠사슬 위의 도약");
             StringAssert.Contains("물을 말을 남기지 않았다", valley);
             StringAssert.Contains("다른 화살을 되던져 혈궁을 죽였다", valley);
             StringAssert.Contains("무승부", valley);

@@ -140,3 +140,15 @@
 ## 공패·도성 재제작 — 2026-11-01
 
 후속 피드백에 따라 기존 이미지 참조 없이 두 그림을 새로 제작했다. `gong_pae`는 지나친 비만을 줄이고 살집 있는 큰 골격과 마교 고수의 단정한 자흑색 예복·위엄으로, `do_seong`은 새 얼굴 골격·정돈된 백발·긴 수염·무거운 주홍 예복과 격한 눈빛으로 표현한다. 앞선 두 시안을 같은 파일명으로 교체한다. 세부 기준은 `ART_LOOKS.md` 마지막 재조정 항목을 따른다.
+
+## 신규 인물 전투 SD 1차 — 2026-11-01
+
+예청(`ye_cheong`)·옥유경(`ok_yugyeong`)·연비(`yeonbi`)·관설지(`gwan_seolji_story`)·동방학(`dongbang_hak`)·종리추(`jongri_chu`)의 Standing을 참고한 전투 SD를 `Resources/Art/Battle/`에 추가했다. 전원 오른쪽을 보는 전투 자세이며 Standing 원본은 보존한다. 디자인·키 연결은 [GAME_MAPPING](../Story/GAME_MAPPING.md)의 같은 날짜 SD 항목 참조.
+
+## 신규 인물 전투 SD 2차 — 2026-11-01
+
+린(`young_na_yerin`)·혁월린(`hyeok_wolrin`)·갈중천(`gal_jungcheon`)·매화가면(`maehwa_mask_trial`)·은가면 비탄(`mask_bitan`)·신유성(`shin_yuseong`)의 SD를 `Resources/Art/Battle/`에 추가했다. 모두 Standing 원본을 바탕으로 오른쪽을 보는 자세이며, 기존 그림은 보존한다. 1·2차 합계로 신규 Standing 12종의 SD가 마련되었다. 디자인과 키 연결은 [GAME_MAPPING](../Story/GAME_MAPPING.md)의 SD 2차 항목 참조.
+
+## 공패·갈중혁·도성 최신 원화의 SD 반영 — 2026-11-01
+
+최신 Standing을 참고해 Battle `gong_pae`를 교체하고 `hyeok_jung`·`do_seong`을 새로 추가했다. 공패의 자흑색 복식·다부진 체형, 갈중혁의 회흑색 복식·쌍도, 도성의 백색 수염·주홍색 예복을 구분한다. Standing 원본과 기존 공패 SD의 Unity GUID는 유지한다. 자세와 연결 범위는 [GAME_MAPPING](../Story/GAME_MAPPING.md)의 같은 항목 참조.
