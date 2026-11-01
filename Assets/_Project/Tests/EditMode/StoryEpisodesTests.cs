@@ -82,9 +82,10 @@ namespace BiRyeoDo.Tests
             var save = new SaveData { ClearedStage = 9 };
             var boss = StoryEpisodes.BeforeFight(stage, 2, save);
             StringAssert.Contains("다섯 번", string.Join(" ", boss.SelectMany(scene => scene.Lines)));
-            StringAssert.Contains("단독 잠입", string.Join(" ", stage.Intro));
+            StringAssert.Contains("홀로", string.Join(" ", stage.Intro));
+            Assert.IsFalse(stage.Intro.Any(line => StoryLine.Parse(line).IsDialogue && !StoryLine.Parse(line).IsProtagonist), "no companion lookouts");
             var replay = string.Join(" ", StoryEpisodes.Replay(stage));
-            Assert.Less(replay.IndexOf("검후처의 다섯 종소리"), replay.IndexOf("비류연은 쓰러진 진령"));
+            Assert.Less(replay.IndexOf("다섯 번의 종소리"), replay.IndexOf("꼭두각시처럼"));
             StringAssert.Contains("무흔일호", replay);
             StringAssert.Contains("삼공자", replay);
         }
@@ -95,7 +96,8 @@ namespace BiRyeoDo.Tests
             var stage = EarlyGameContent.FindStage(11);
             Assert.IsNull(StoryEpisodes.BeforeFight(stage, 0, new SaveData { ClearedStage = 10 }));
             StringAssert.Contains("싸우지 않고 기권", string.Join(" ", stage.Outro));
-            StringAssert.Contains("오문형·장대평", string.Join(" ", stage.Outro));
+            var replay = string.Join(" ", StoryEpisodes.Replay(stage));
+            Assert.Less(replay.IndexOf("오문형"), replay.IndexOf("장대평"));
             CollectionAssert.AreEqual(new[] { "dan_daepung" }, stage.Encounters[3]);
             Assert.AreEqual(4, stage.Encounters.Length, "Three Moyong Hwi fights precede Dan Daepung; Gang Hyeonchu forfeits");
         }
@@ -118,7 +120,7 @@ namespace BiRyeoDo.Tests
             Assert.Less(replay.IndexOf("검후전의 무승부"), replay.IndexOf("세 부문의 결말"));
             Assert.Less(replay.IndexOf("설욕을 건 위지천"), replay.IndexOf("뢰광류하곡"));
             Assert.IsFalse(replay.Contains("그녀도 저항하지 않았다"));
-            StringAssert.Contains("불명", replay);
+            StringAssert.Contains("이번에도 성공하지 못했군요", replay, "vol5: her sword answers the second kiss");
         }
 
         [Test]

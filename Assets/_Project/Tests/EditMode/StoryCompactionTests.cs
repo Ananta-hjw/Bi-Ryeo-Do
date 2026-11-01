@@ -16,7 +16,7 @@ namespace BiRyeoDo.Tests
             string replay = string.Join(" ", StoryEpisodes.Replay(trial));
             StringAssert.Contains("그 아이를 베는 대신 손을 내미는 것이 출구", replay);
             StringAssert.Contains("야광주 목걸이", replay);
-            StringAssert.Contains("책임은 가해자에게", replay);
+            StringAssert.Contains("이 짐승만도 못한 놈", replay, "vol10: her father ends it, the blame stays with the uncle");
             var bank = EarlyGameContent.FindStage(31);
             Assert.AreEqual(3, bank.Encounters.Length);
             Assert.IsFalse(bank.Encounters.SelectMany(x => x).Contains("caravan_ambush"));

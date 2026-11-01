@@ -25,6 +25,7 @@ namespace BiRyeoDo.Tests
                 Assert.AreEqual(4, StageStars.FightCount(30, d));
                 StringAssert.Contains("용권승룡", string.Join(" ", hard.Outro));
                 Assert.AreEqual(0.3f, hard.EnemyFor("bi_daegongja").RetreatHpPct, 1e-6f);
+                CollectionAssert.AreEqual(FireDragonFinale.RetreatLines, hard.EnemyFor("bi_daegongja").RetreatLines, "the same words on every difficulty");
             }
             Assert.IsFalse(string.Join(" ", Normal.Outro).Contains("용권승룡"), "the 풍신 already played in the fight");
             CollectionAssert.AreEqual(new[] { "hwaryong_rescue" }, Quests.ToStage(Quests.Find("q_fire_gather")).Encounters[0]);
@@ -44,7 +45,8 @@ namespace BiRyeoDo.Tests
             Assert.IsTrue(battle.PlayerWon);
             var exit = events.Single(e => e.Retreated);
             Assert.AreEqual(1, exit.TargetHpAfter, "shown at 1 HP as he leaves");
-            CollectionAssert.AreEqual(new[] { "대공자 비|칫... 귀찮게 하는군." }, exit.Lines);
+            CollectionAssert.AreEqual(FireDragonFinale.RetreatLines, exit.Lines);
+            StringAssert.Contains("용이 날아오를 시간이다", exit.Lines.Last(), "vol16's own words");
         }
 
         [Test]
@@ -83,7 +85,7 @@ namespace BiRyeoDo.Tests
             var save = BalanceSimulation.Starter(30, StageStars.NormalBotLevel(30));
             Assert.IsTrue(BalanceSimulation.Play(Normal, save, 11).Won);
             string story = string.Join(" ", StoryEpisodes.Replay(Normal));
-            foreach (var cue in new[] { "칫... 귀찮게 하는군", "화룡멸겁대진을 발동해라", "내력을 보태줄 수 있어요", "알았네, 내력을 보태지", "모든 묵룡환을 푼다", "하.. 죽겠네" })
+            foreach (var cue in new[] { "용이 날아오를 시간이다", "막대한 내력을 소진하는 일", "모든 조력을 아끼지 않겠네", "여신의 입맞춤", "묵룡환이 풀려 나가고", "수고하셨어요, 류연" })
                 StringAssert.Contains(cue, story);
             CollectionAssert.AreEqual(FireDragonFinale.Departure, StoryEpisodes.BeforeFight(Normal, 2, new SaveData { ClearedStage = 30 }));
         }

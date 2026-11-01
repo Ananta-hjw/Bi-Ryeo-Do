@@ -650,7 +650,7 @@ namespace BiRyeoDo.Tests
             foreach (string id in new[] { "chohon_gwigeom", "myeongbu_jang", "cheonsal", "jisal" })
                 Assert.Greater(EarlyGameContent.FindEnemy(id).RetreatHpPct, 0f, id);
             string text = string.Join(" ", StoryEpisodes.Replay(wudang));
-            Assert.Less(text.IndexOf("윤준호는 아홉 시진", StringComparison.Ordinal), text.IndexOf("열두 시진", StringComparison.Ordinal));
+            Assert.Less(text.IndexOf("아홉 시진", StringComparison.Ordinal), text.IndexOf("열두 시진", StringComparison.Ordinal));
             StringAssert.Contains("갈효봉|효룡", text);
             StringAssert.Contains("마진가는 학생들의 증언을 믿고 거절했다", text);
         }

@@ -55,11 +55,11 @@ namespace BiRyeoDo.Tests
         {
             // 어려움·극악 keep the earlier four fights; 일반 plays the scripted 화룡멸겁대진 (FireDragonFinale)
             string text = string.Join(" ", StoryEpisodes.Replay(EarlyGameContent.FindStage(30).WithDifficulty(1)));
-            Ordered(text, "실을 따라 만난 스승들", "주방으로 모인 단서", "최우수 조가 불린 뒤의 이의", "우승 발표와 염마뢰", "같지 않은 그림자", "불의 성벽", "남은 사람을 살리는 힘", "용권승룡", "피해는 사망 셋", "한때 은명이라 불린 남자", "청룡은장");
-            Ordered(Replay(30), "우승 발표와 염마뢰", "같지 않은 그림자", "칫... 귀찮게 하는군", "화룡멸겁대진을 발동해라", "독고령", "내력을 보태줄 수 있어요", "알았네, 내력을 보태지", "모든 묵룡환을 푼다", "여신의 입맞춤", "하.. 죽겠네", "피해는 사망 셋", "한때 은명이라 불린 남자", "청룡은장");
-            StringAssert.Contains("혼자 완벽히 해낼 자신이 없다", text);
-            StringAssert.Contains("현금 배당의 정산 장면은 없었다", text);
-            StringAssert.Contains("모용휘도 혁중의 제안을 받아들였지만", text);
+            Ordered(text, "은가면의 정체", "잠꼬대와 주방", "이의 있음!", "불꽃의 봉화로", "화룡멸겁대진 발동", "같지 않은 그림자", "용이 날아오를 시간이다", "불의 성벽", "남은 사람을 살리는 힘", "용권승룡", "수고하셨어요, 류연", "사망 세 명", "한때 은명이라 불렸던 남자", "청룡은장");
+            Ordered(Replay(30), "은가면의 정체", "이의 있음!", "같지 않은 그림자", "용이 날아오를 시간이다", "독고령", "막대한 내력을 소진하는 일", "모든 조력을 아끼지 않겠네", "배당금", "여신의 입맞춤", "중독사할지도", "살았어요, 류연", "수고하셨어요, 류연", "사망 세 명", "한때 은명이라 불렸던 남자", "청룡은장");
+            StringAssert.Contains("혼자 힘으로는 완벽하게 구현해 낼 자신이 없거든요", text);
+            StringAssert.Contains("반드시 이겨야만 하는 적입니다", text);
+            Assert.IsFalse(Replay(30).Contains("하.. 죽겠네"), "the user's placeholder lines gave way to vol16's");
         }
 
         [Test]
@@ -68,7 +68,7 @@ namespace BiRyeoDo.Tests
             Ordered(Replay(21), "장례 뒤의 물음", "거울 신호와 돌아올 힘", "구궁산의 청혼", "흑랑부의 빈틈", "임개를 구한 군자소요검", "노사들이 중재");
             string valley = Replay(22);
             Ordered(valley, "흑랑채에 남은 흔적", "순풍루에서 들은 마음", "함께 가기로 한 사람들", "대홍산의 첫 추궁", "도끼와 곤", "숲에서 만난 생존자", "처음 칼을 겨눈 뒤", "볼을 스친 첫 화살", "되던진 것은 다른 화살", "쇠사슬 위의 도약");
-            StringAssert.Contains("다섯을 모두 죽여 자백을 받아낸 것이 아니었다", valley);
+            StringAssert.Contains("물을 말을 남기지 않았다", valley);
             StringAssert.Contains("다른 화살을 되던져 혈궁을 죽였다", valley);
             StringAssert.Contains("무승부", valley);
         }
@@ -78,7 +78,7 @@ namespace BiRyeoDo.Tests
         {
             string snakes = Replay(23), demons = Replay(24);
             Ordered(snakes, "반 장의 안전", "화살의 궤도와 두 손", "가로막은 혈창", "지사진의 틈", "죽이지 않고 붙잡아");
-            StringAssert.Contains("완성된 시간 정지가 아니었다", snakes);
+            StringAssert.Contains("지.금.당.장", snakes);
             Ordered(demons, "얼마나 들렸는가", "떨어지는 동전", "부서진 도와 남은 폭탄", "비뢰쌍마전 뒤의 약속", "모사령|천겁령", "돌밭에 야영", "열 수와 옷깃", "다음 날 태극의 인재");
             StringAssert.Contains("살아 있는 공패", demons);
             StringAssert.Contains("외상", demons);
@@ -100,11 +100,10 @@ namespace BiRyeoDo.Tests
         public void WudangJourneyAndTrainingLeadToTheControlledBrotherAndHisLastWords()
         {
             string text = Replay(14);
-            Ordered(text, "한계를 두지 않는다는 것", "연말의 청룡단전", "새해의 목적지", "장강, 첫 번째 위기", "갑판에서 보내는 지원", "적웅채와 표국의 내일",
+            Ordered(text, "한계를 두지 않는다는 것", "연말의 청룡단전", "새해의 목적지", "장강, 첫 번째 위기", "갑판에서 보내는 지원", "적웅채",
                 "태극절애의 노도인", "그물을 알아본 사람", "숙소의 연환검진", "폭우 속에서 듣는 말", "네 초상화", "첫 충돌 뒤의 고립", "전원 생환을 위한 시간",
-                "두 번째 변장", "함께 넘은 관문", "두 번째 공세", "보호를 택한 검", "단심무형의 장 심뢰", "갈효봉|효룡", "겁, 하늘의 겁", "마진가는 학생들의 증언을 믿고 거절했다");
+                "두 번째 변장", "함께 넘은 관문", "두 번째 공세", "보호를 택한 검", "단심무형의 장 심뢰", "갈효봉|효룡", "하늘의 겁", "마진가는 학생들의 증언을 믿고 거절했다");
             Assert.IsFalse(text.Contains("지살의 오른팔"));
-            StringAssert.Contains("신원이 확인된 것은 아니다", text);
             StringAssert.Contains("모용휘·청흔·효룡·남궁상·현운·장홍·나예린", text);
         }
 
@@ -112,11 +111,9 @@ namespace BiRyeoDo.Tests
         public void CavalryRetreatPrecedesTheMemorialAndInspectorAndDoesNotBecomeAnExtermination()
         {
             string cavalry = Replay(15), inspector = Replay(16);
-            StringAssert.Contains("이미 끝난 사건의 회상", cavalry);
-            Ordered(cavalry, "철비십이격", "위무상의 상대", "구천학의 일기승부", "구천학|졌다.", "철각비마대를 물렸다");
-            Ordered(inspector, "진혼제 뒤의 학관", "흑천맹의 사신과 합의문", "웃음을 잃지 않는 조사관", "손목을 잃은 회주", "세 번째 호위");
-            StringAssert.Contains("행인 모두를 공격할 이유는 없었다", inspector);
-            StringAssert.Contains("이중 정보 작전이라는 설명은 청흔을 설득하려는 거짓말", inspector);
+            Ordered(cavalry, "진혼제", "철비십이격", "위무상의 상대", "구천학의 일기승부", "과연 너만 한 자가", "철각비마대는 물러갔다");
+            Ordered(inspector, "흑천맹의 사신", "떠나는 조사관", "손목을 잃은 회주", "두 번이 세 번이 된 것뿐이에요");
+            StringAssert.Contains("기회를 놓쳤을 뿐", inspector);
         }
 
         [Test]
@@ -154,9 +151,7 @@ namespace BiRyeoDo.Tests
         public void TheTrialSeparatesPrivateIllusionsAndPreservesUnknownCulpritsAndEarlyAddress()
         {
             string text = Replay(19);
-            Ordered(text, "여덟 갈래 문", "매화의 두려움", "검성의 나뭇가지와 은설란의 환영", "형의 환영", "한 사람의 오래된 악몽", "비류연 앞에 선 사부", "직접 시험해 보시죠", "비황신침도 그 바람에 빗나갔지만", "연쇄 붕괴");
-            StringAssert.Contains("실제 은설란은 밖에서 기다렸다", text);
-            StringAssert.Contains("실제 인물이 아니라 환영", text);
+            Ordered(text, "여덟 갈래 문", "매화의 두려움", "검성의 나뭇가지", "형의 환영", "한 사람의 오래된 악몽", "비류연 앞에 선 사부", "직접 시험해 보시죠", "비황신침도 그 바람에 빗나갔지만", "연쇄 붕괴");
             StringAssert.Contains("학관은 그가 염마뢰를 던졌다는 사실을 알지 못했다", text);
             Assert.IsFalse(text.Contains("나예린|류연"));
         }
@@ -165,10 +160,10 @@ namespace BiRyeoDo.Tests
         public void NaturalCaveSurvivalLeadsToLakeRescueAndTheEmptyCoffinFuneral()
         {
             string text = Replay(20);
-            Ordered(text, "나예린|류연.", "열흘째, 구조대 밖으로", "별의 강 사이로 흐르는 음률", "이십일 일째의 묵린혈망",
-                "사십사 일째", "파양호", "인공호흡", "빈 관 둘", "조의금은 많이 걷혔어요", "사망자는 한 명도 없었다", "후보 오십 명");
-            StringAssert.Contains("내단은 없었고", text);
-            StringAssert.Contains("나백천은 딸 나예린", text);
+            Ordered(text, "나예린|류연", "열흘째, 구조대 밖으로", "별의 강 사이로 흐르는 음률", "이십일 일째의 묵린혈망",
+                "사십사 일째", "숨을 불어넣으며 파양호", "빈 관 둘", "조의금은 많이 거두었나요", "사망자는 한 명도 없었다", "후보 오십 명");
+            StringAssert.Contains("내단은 없었다", text);
+            StringAssert.Contains("나백천|오오! 예린아!", text);
             Assert.IsFalse(Replay(10).Contains("나백천의 손녀"));
         }
 
