@@ -181,7 +181,7 @@ namespace BiRyeoDo.Tests
             Assert.IsTrue(battle.PlayerWon);
             Assert.AreEqual(0, party[0].Skills.Single(sk => sk.Id == "scene_seomroe_finale").SpiritCost, "a white flash, not the 필살기 cut-in");
             string story = string.Join(" ", StoryEpisodes.Replay(stage));
-            foreach (var cue in new[] { "뢰(雷)의 어느 얼굴", "빛을 뒤쫓는 쾌", "두 개의 묵룡환", "이 동전에 떨어지는 걸로 신호를 삼죠", "봤나?", "열십자", "뇌의 이름을 인정하죠", "섬뢰(閃雷)!", "학(鶴)! 이, 이 노옴!" })
+            foreach (var cue in new[] { "뢰(雷)의 어느 얼굴", "빛을 뒤쫓는 쾌", "두 개의 묵룡환", "이 동전에 떨어지는 걸로 신호를 삼죠", "봤나?", "열십자", "뇌의 이름을 인정하죠", "섬뢰(閃雷)!", "공패|학! 하~악! 이, 이 노옴!" })
                 StringAssert.Contains(cue, story);
             Assert.IsTrue(BalanceSimulation.Play(stage, BalanceSimulation.Starter(24, StageStars.NormalBotLevel(24)), 5).Won);
             for (int d = 1; d <= 2; d++)

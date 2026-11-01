@@ -23,7 +23,7 @@ namespace BiRyeoDo.Tests
         public void RescueAndTheActualWoundPrecedeThePublicClashAndPrivateOrders()
         {
             var escape = Replay(26);
-            Ordered(escape, "교대가 지키는 사람", "지킬 것이 있는 검", "휘선 뒤에서 바뀐 궤도", "걱정하는 사람이 여는 길", "현장 지휘자는 십귀", "만난 적 없는 사람들", "나예린|류연! 피가", "대호", "철침");
+            Ordered(escape, "교대가 지키는 사람", "지킬 것이 있는 검", "휘선 뒤에서 바뀐 궤도", "걱정하는 사람이 여는 길", "현장 지휘자는 십귀", "만난 적 없는 사람들", "나예린|……류연! 피가", "대호", "철침");
             var seven = Replay(27);
             Ordered(seven, "규칙이 허락한 도전", "깨어나기로 한 사람", "열 장의 경계", "돌아오는 흑응익", "여섯 창과 일곱째", "묵빛 채찍의 봉쇄", "등에 남은 상처", "앞의 겸기, 뒤의 추영", "드러난 은형", "바늘과 시선", "은설란|대공자!", "사적 알현", "대삼원칙", "추첨이 시작");
             Assert.IsFalse(seven.Contains("피가……"));
