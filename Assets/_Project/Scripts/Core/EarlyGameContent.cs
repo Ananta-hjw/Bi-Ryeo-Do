@@ -649,7 +649,7 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("꼬리치기", 0.7f, 3), EnemyMove.Attack("독액", 1.3f).FromDistance().Sniping(), EnemyMove.Wind("바위를 녹이는 침을 모은다"), EnemyMove.Attack("묵린 강타", 3.3f) } },
             // Stage 21: 흑랑채 청혼 (11권)
             new EnemyData { Id = "im_deokseong_story", RetreatHpPct = .15f, ArtId = "im_deokseong", Name = "녹림왕 임덕성", Level = 49, HpMul = 3.4f, AtkMul = 3.410f,
-                Moves = new[] { EnemyMove.Attack("부자의 공방", .8f, 2), EnemyMove.Wind("큰 도끼를 들어 올린다"), EnemyMove.Attack("녹림왕의 도끼", 2.5f) } },
+                Moves = new[] { EnemyMove.Attack("부자의 공방", .8f, 2), EnemyMove.Wind("낭아도를 들어 올린다"), EnemyMove.Attack("광풍마랑도법", 2.5f) } },
             new EnemyData { Id = "hyeol_chang", Name = "혈창", Level = 52, HpMul = 2.2f, AtkMul = 3.0f,
                 Moves = new[] { EnemyMove.Attack("가로막는 창", .8f, 2), EnemyMove.Wind("창끝을 겨눈다"), EnemyMove.Attack("혈창의 찌르기", 2.5f) } },
             new EnemyData { Id = "maehwa_mask_trial", RetreatHpPct = .15f, Name = "매화가면의 시험", Level = 53, HpMul = 3.8f, AtkMul = 3.4f,
