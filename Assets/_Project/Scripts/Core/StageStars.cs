@@ -187,8 +187,8 @@ namespace BiRyeoDo.Core
             new[] { 19, 8, 5 },   // 62 (party of four)
             new[] { 22, 21, 22, 20 },   // 63 (party of four)
             new[] { 7, 7, 7, 30 },   // 64 (party of four)
-            new[] { 2, 5, 12 },   // 65 (party of four)
-            new[] { 5, 5, 5, 5, 27 },   // 66 (party of four)
+            new[] { 2, 5 },   // 65 (party of four)
+            new[] { 5, 5, 5, 5 },   // 66 (party of four)
         };
 
         public static int FastLimit(int stage, int fight)
@@ -546,7 +546,7 @@ namespace BiRyeoDo.Core
                     if (entry.Stage == st.Number && entry.Diff == 0) { recorded = true; break; }
                 if (recorded) continue;
                 // Preserve the removed normal-star slot when backfilling an entirely pre-star chapter.
-                if (st.Number == 19 || st.Number == 31 || st.Number == 32 || st.Number == 35 || st.Number == 47 || st.Number == 48 || st.Number == 57 || st.Number == 62 || st.Number == 65) save.RetiredStoryStars += st.Number == 48 ? 2 : 1;
+                if (st.Number == 19 || st.Number == 31 || st.Number == 32 || st.Number == 35 || st.Number == 47 || st.Number == 48 || st.Number == 57 || st.Number == 62 || st.Number == 65 || st.Number == 66) save.RetiredStoryStars += st.Number == 48 || st.Number == 65 ? 2 : 1;
                 for (int f = 0; f < st.Encounters.Length; f++)
                     if ((MaskOf(save, st.Number, f, 0) & 1) == 0) Record(save, st.Number, f, 0, 1);
             }

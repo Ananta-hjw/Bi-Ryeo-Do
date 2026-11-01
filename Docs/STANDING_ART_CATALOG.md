@@ -95,3 +95,48 @@
 | 현수 | `hyeon_su.png` |
 | 괴인 | `mysterious_man.png` |
 | 장노 | `jang_no.png` |
+
+## 중요 대화 인물 추가 1차 — 2026-11-01
+
+아래 6종은 기존 Standing 화풍을 참고한 1024×1536 RGBA 입화이며 빈 영역과 네 모서리는 투명하다. 원작 확인 요소와 창작 복식·색 배합은 `ART_LOOKS.md`의 같은 항목에서 구분한다.
+
+| 인물·모습 | 파일 | 디자인 구분 |
+|---|---|---|
+| 예청 | [ye_cheong.png](../Assets/_Project/Resources/Art/Standing/ye_cheong.png) | 나예린과 닮은 중년의 미부, 은월 장식과 휘어진 도 빙월, 백옥·은청·연옥색 |
+| 옥유경 | [ok_yugyeong.png](../Assets/_Project/Resources/Art/Standing/ok_yugyeong.png) | 엄한 무교관의 지시 자세, 검정·자주·진홍·옥색·금색 |
+| 연비 | [yeonbi.png](../Assets/_Project/Resources/Art/Standing/yeonbi.png) | 비류연과 닮은 금빛 눈·미소, 여성적인 여장 실루엣, 검은 매화 양산과 칠채 보요 |
+| 린 | [young_na_yerin.png](../Assets/_Project/Resources/Art/Standing/young_na_yerin.png) | 어린 나예린의 얼굴·체형, 무기 없는 단정한 차림과 붉은 수건 |
+| 혁월린 | [hyeok_wolrin.png](../Assets/_Project/Resources/Art/Standing/hyeok_wolrin.png) | 젊은 무신의 회상 모습, 왼손 청색 검 빙루·오른손 적색 도 홍염 |
+| 갈중천 / 흑천맹주 | [gal_jungcheon.png](../Assets/_Project/Resources/Art/Standing/gal_jungcheon.png) | 수염과 풍채가 있는 중년 맹주, 먹색·암홍색 무복과 옥 장식 |
+
+예청·옥유경·연비·린·혁월린은 기존 `StoryCast` ID로 자동 연결된다. 갈중천은 `StoryCast`에 이름과 `흑천맹주` 대화 별칭을 등록해 같은 전용 그림을 사용한다. 전투 SD는 별도로 제작하지 않았다.
+
+## 중요 대화 인물 추가 2차 — 2026-11-01
+
+남은 중요 인물·모습 6종을 같은 Standing 화풍의 투명 RGBA 전신 입화로 추가했다. 기존 그림은 보존한다.
+
+| 인물·모습 | 파일 | 디자인 구분 |
+|---|---|---|
+| 관설지 | [gwan_seolji_story.png](../Assets/_Project/Resources/Art/Standing/gwan_seolji_story.png) | 옅은 남색 머리, 남청·백색·은색 무복, 두 손을 검자루에 둔 수비 자세 |
+| 동방학 | [dongbang_hak.png](../Assets/_Project/Resources/Art/Standing/dongbang_hak.png) | 푸른 무복과 붉은 검, 매우 마른 체격과 깊고 냉정한 눈매 |
+| 매화가면 | [maehwa_mask_trial.png](../Assets/_Project/Resources/Art/Standing/maehwa_mask_trial.png) | 비류연의 검은 머리·젊은 얼굴이 남은 변장, 매화 가면·자색 두건과 매화 가지 |
+| 은가면 비탄 | [mask_bitan.png](../Assets/_Project/Resources/Art/Standing/mask_bitan.png) | 검후와 이어지는 여성 은가면, 자주·먹색 두건과 암홍색·백색 겹옷 |
+| 종리추 | [jongri_chu.png](../Assets/_Project/Resources/Art/Standing/jongri_chu.png) | 긴 창, 청록·회청·주황 계열의 짧은 트임 무복과 바지, 절제된 창수 자세 |
+| 신유성 | [shin_yuseong.png](../Assets/_Project/Resources/Art/Standing/shin_yuseong.png) | 은패와 네 색 수실, 녹청·황토색 여행복, 능청스럽고 자신만만한 표정 |
+
+`신유성`은 StoryCast에 등록했고 `은가면 비탄`은 Standing 전용 별칭으로 연결했다. 종리추의 야간 ID `jongri_chu_night`도 같은 입화로 연결해 같은 사람의 얼굴이 달라지지 않게 했다. 기존 `maehwa_geomseon.png`와 검후·은가면 공포·절망 입화 및 전투 SD는 유지한다.
+
+
+## 중요 인물 5종 교체 — 2026-11-01
+
+사용자 정정 설정에 따라 매화가면(`maehwa_mask_trial`), 동방학(`dongbang_hak`), 공패(`gong_pae`), 갈혁중(`hyeok_jung`), 도성(`do_seong`)의 Standing을 재디자인했다. 매화가면은 유환권 노인 대신 비류연의 변장으로 바꾸고, 갈혁중은 쌍도 굉천도를 든 천하제일인급 고수로, 도성은 불같은 천무삼성 절대고수로 표현한다. 동방학의 가늘고 빠른 형상과 공패의 거대하고 육중한 형상도 대비시킨다. 기존 파일명·메타데이터·대화 연결은 유지한다. 상세 설정 우선순위는 `ART_LOOKS.md`의 재디자인 항목을 따른다.
+
+
+## 공패·갈혁중·도성 원화 새로 제작 — 2026-11-01
+
+`gong_pae.png`, `hyeok_jung.png`, `do_seong.png`는 사용자의 추가 요청에 따라 기존 그림을 참조하지 않고 글로 적은 설정만으로 새로 제작했다. 공패의 거대한 비만 체격과 대도, 갈혁중의 두 자루 굉천도와 최고수의 위엄, 도성의 작고 단단한 체구와 불같은 성격을 중심으로 얼굴·복식·구도를 새로 구성했다. 앞선 수정본을 대체하며 기존 리소스 키와 Unity GUID를 유지한다.
+
+
+## 공패·도성 재제작 — 2026-11-01
+
+후속 피드백에 따라 기존 이미지 참조 없이 두 그림을 새로 제작했다. `gong_pae`는 지나친 비만을 줄이고 살집 있는 큰 골격과 마교 고수의 단정한 자흑색 예복·위엄으로, `do_seong`은 새 얼굴 골격·정돈된 백발·긴 수염·무거운 주홍 예복과 격한 눈빛으로 표현한다. 앞선 두 시안을 같은 파일명으로 교체한다. 세부 기준은 `ART_LOOKS.md` 마지막 재조정 항목을 따른다.

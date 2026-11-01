@@ -57,7 +57,7 @@ namespace BiRyeoDo.Tests
                     Assert.AreEqual(a.Skills.Count, a.Skills.Select(x => x.Id).Distinct().Count());
                 }
             }
-            Assert.AreEqual(33, fights);
+            Assert.AreEqual(31, fights);
             CollectionAssert.AreEqual(items, save.Items.Select(x => x.Id + ":" + x.Count));
             CollectionAssert.AreEqual(gear, save.GearSlots.Where(x => !string.IsNullOrEmpty(x.ItemId)).Select(x => x.Owner + ":" + x.ItemId + ":" + x.Level));
             CollectionAssert.AreEqual(arts, save.EquippedArts); CollectionAssert.AreEqual(learned, save.LearnedArts);
@@ -102,7 +102,7 @@ namespace BiRyeoDo.Tests
                 Assert.IsFalse(stage.StoryActors.SelectMany(x => x).Contains("hyo_ryong"), "Hyo Ryong is training, not on this rescue route");
             Assert.IsNull(EarlyGameContent.FindStage(60).TrialFor(1), "the twins are fought outright");
             Assert.IsTrue(EarlyGameContent.FindStage(60).Trials.Skip(2).All(t => t != null && t.Kind == TrialKind.Survive), "무화 is endured: the two masters lose and are taken");
-            Assert.AreEqual(TrialKind.Survive, EarlyGameContent.FindStage(66).TrialFor(4).Kind);
+            Assert.AreEqual("scene_escape_twin_dragons", EarlyGameContent.FindStage(66).TrialFor(3).TechniqueId);
         }
 
         [Test]

@@ -31,6 +31,8 @@ namespace BiRyeoDo.Core
             new Entry("흑견", "heukgyeon", "흑천십비의 노졸"),
             new Entry("손광", "son_gwang", "순찰단주 쾌영도"),
             new Entry("갈중하", "gal_jungha", "쌍도를 멘 둘째"),
+            new Entry("갈중천", "gal_jungcheon", "흑천맹주, 갈중혁의 아들", "흑천맹주"),
+            new Entry("신유성", "shin_yuseong", "취영검, 화산지회 사강 출신 학관 졸업생"),
             new Entry("남궁산산", "namgung_sansan", "남궁세가, 남궁상의 쌍둥이"),
             new Entry("예청", "ye_cheong", "빙월선자, 나예린의 어머니"),
             new Entry("류은경", "ryu_eungyeong", "세류보 장녀, 이약빙의 후계자"),

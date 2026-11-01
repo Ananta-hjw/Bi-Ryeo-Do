@@ -6,26 +6,23 @@ namespace BiRyeoDo.Game.Systems
     /// <summary>Atmospheric environment themes mapped to existing story settings, without changing stage rules.</summary>
     public static class SceneryArt
     {
-        private static readonly string[] Stages =
+        public const int StagesPerJourney = 6;
+        public static int JourneyPageCount { get { return (EarlyGameContent.Stages.Length + StagesPerJourney - 1) / StagesPerJourney; } }
+
+        private static readonly string[] OpeningStages =
         {
-            "forest", "manor", "road", "road", "manor", "manor", "cave", "manor", "pavilion", "pavilion",
-            "academy", "academy", "academy", "forest", "road", "manor", "academy", "forest", "cave", "cave",
-            "road", "valley", "valley", "valley", "manor", "road", "valley", "manor", "cave", "valley",
-            "manor", "academy", "academy", "manor", "manor", "academy",
-            "forest", "academy", "manor", "road", "pavilion",
-            "road", "manor", "academy", "academy", "academy", "cave", "academy",
-            "cave", "academy", "manor", "cave", "cave", "academy", "manor", "road", "road",
-            "road", "manor", "manor", "academy", "forest", "cave", "forest", "valley", "valley"
+            "forest", "manor", "road", "road", "manor", "manor"
         };
 
         public static string StageKey(int stage)
         {
-            return "battle_" + (stage >= 1 && stage <= Stages.Length ? Stages[stage - 1] : "road");
+            if (stage >= 7 && stage <= 66) return "stage_" + stage.ToString("00");
+            return "battle_" + (stage >= 1 && stage <= OpeningStages.Length ? OpeningStages[stage - 1] : "road");
         }
 
         public static Sprite Battle(StageData stage)
         {
-            return ArtLibrary.Environment(stage.IsTower ? "battle_academy" : stage.IsQuest ? "battle_road" : StageKey(stage.Number));
+            return ArtLibrary.Environment(stage.IsTower ? "battle_academy" : StageKey(stage.Number));
         }
 
         public static string MenuKey(string key)
@@ -53,10 +50,10 @@ namespace BiRyeoDo.Game.Systems
             return "world";
         }
 
-        /// <summary>Six decorative journey regions, one for each six-stage map page.</summary>
+        /// <summary>One decorative landscape for every six-stage page, including the final story chapters.</summary>
         public static string JourneyKey(int page)
         {
-            return "world_journey_" + (Mathf.Clamp(page, 0, 5) + 1).ToString("00");
+            return "world_journey_" + (Mathf.Clamp(page, 0, JourneyPageCount - 1) + 1).ToString("00");
         }
 
         public static Sprite Journey(int page) { return ArtLibrary.Environment(JourneyKey(page)); }

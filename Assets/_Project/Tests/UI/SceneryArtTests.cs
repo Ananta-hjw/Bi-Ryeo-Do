@@ -13,10 +13,11 @@ namespace BiRyeoDo.Tests.UI
     public class SceneryArtTests
     {
         [Test]
-        public void EveryStoryStageHasOneOfSevenAvailableEnvironmentsAndMenusResolve()
+        public void EveryStoryStageLoadsItsAssignedEnvironmentAndMenusResolve()
         {
             var keys = EarlyGameContent.Stages.Select(stage => SceneryArt.StageKey(stage.Number)).Distinct().ToArray();
-            Assert.AreEqual(7, keys.Length);
+            Assert.AreEqual(63, keys.Length);
+            Assert.AreEqual(60, EarlyGameContent.Stages.Skip(6).Select(stage => SceneryArt.StageKey(stage.Number)).Distinct().Count());
             foreach (var key in keys) Assert.IsNotNull(ArtLibrary.Environment(key), key);
             foreach (var stage in EarlyGameContent.Stages) Assert.AreSame(ArtLibrary.Environment(SceneryArt.StageKey(stage.Number)), SceneryArt.Battle(stage));
             foreach (var key in new[] { "world", "companions", "equipment", "arts", "gacha", "bag", "record" }) Assert.IsNotNull(SceneryArt.Menu(key), key);
@@ -136,6 +137,20 @@ namespace BiRyeoDo.Tests.UI
             Assert.AreSame(ArtLibrary.Chibi("yong_cheonmyeong"), ArtLibrary.SdFigure(Roster.StoryArtKey("story_yong_cheongmyeong")));
         }
 
+        [TestCase("예청", "ye_cheong")]
+        [TestCase("옥유경", "ok_yugyeong")]
+        [TestCase("연비", "yeonbi")]
+        [TestCase("린", "young_na_yerin")]
+        [TestCase("혁월린", "hyeok_wolrin")]
+        [TestCase("갈중천", "gal_jungcheon")]
+        [TestCase("흑천맹주", "gal_jungcheon")]
+        [TestCase("관설지", "gwan_seolji_story")]
+        [TestCase("동방학", "dongbang_hak")]
+        [TestCase("매화가면", "maehwa_mask_trial")]
+        [TestCase("은가면 비탄", "mask_bitan")]
+        [TestCase("종리추", "jongri_chu")]
+        [TestCase("jongri_chu_night", "jongri_chu")]
+        [TestCase("신유성", "shin_yuseong")]
         [TestCase("염도", "yeomdo")]
         [TestCase("빙검", "gwan_cheolsu")]
         [TestCase("구창", "gu_chang")]
@@ -149,26 +164,59 @@ namespace BiRyeoDo.Tests.UI
         [Test]
         public void EveryJourneyPageLoadsADistinctMapPainting()
         {
-            var paintings = Enumerable.Range(0, 6).Select(SceneryArt.Journey).ToArray();
+            Assert.AreEqual(11, SceneryArt.JourneyPageCount);
+            var paintings = Enumerable.Range(0, SceneryArt.JourneyPageCount).Select(SceneryArt.Journey).ToArray();
             foreach (var painting in paintings) Assert.IsNotNull(painting);
-            Assert.AreEqual(6, paintings.Distinct().Count());
+            Assert.AreEqual(SceneryArt.JourneyPageCount, paintings.Distinct().Count());
             Assert.AreEqual(SceneryArt.JourneyKey(0), SceneryArt.JourneyKey(-1));
-            Assert.AreEqual(SceneryArt.JourneyKey(5), SceneryArt.JourneyKey(6));
+            Assert.AreEqual(SceneryArt.JourneyKey(10), SceneryArt.JourneyKey(11));
+            Assert.AreEqual(SceneryArt.JourneyPageCount, (EarlyGameContent.Stages.Length + StageMapPanel.StagesPerPage - 1) / StageMapPanel.StagesPerPage);
+        }
+
+        [TestCase(31, "world_journey_06")] [TestCase(36, "world_journey_06")]
+        [TestCase(37, "world_journey_07")] [TestCase(42, "world_journey_07")]
+        [TestCase(43, "world_journey_08")] [TestCase(49, "world_journey_09")]
+        [TestCase(55, "world_journey_10")] [TestCase(61, "world_journey_11")]
+        [TestCase(66, "world_journey_11")]
+        public void LaterJourneyPagesUseTheirOwnLandscapes(int number, string expected)
+        {
+            int page = (number - 1) / StageMapPanel.StagesPerPage;
+            Assert.AreEqual(expected, SceneryArt.JourneyKey(page));
+            Assert.IsNotNull(SceneryArt.Journey(page));
         }
 
         [TestCase(1, "battle_forest")]
         [TestCase(2, "battle_manor")]
-        [TestCase(7, "battle_cave")]
-        [TestCase(9, "battle_pavilion")]
-        [TestCase(10, "battle_pavilion")]
-        [TestCase(12, "battle_academy")]
-        [TestCase(19, "battle_cave")]
-        [TestCase(20, "battle_cave")]
-        [TestCase(22, "battle_valley")]
-        [TestCase(30, "battle_valley")]
+        [TestCase(7, "stage_07")]
+        [TestCase(9, "stage_09")]
+        [TestCase(10, "stage_10")]
+        [TestCase(12, "stage_12")]
+        [TestCase(19, "stage_19")]
+        [TestCase(20, "stage_20")]
+        [TestCase(22, "stage_22")]
+        [TestCase(30, "stage_30")]
         public void StorySettingsChooseAppropriateThemes(int stage, string expected)
         {
             Assert.AreEqual(expected, SceneryArt.StageKey(stage));
+        }
+
+        [TestCase(7)] [TestCase(30)] [TestCase(58)] [TestCase(66)]
+        public void DedicatedScenerySurvivesDifficultyChanges(int number)
+        {
+            var stage = EarlyGameContent.FindStage(number);
+            var expected = SceneryArt.Battle(stage);
+            for (int difficulty = 0; difficulty < StageStars.DifficultyCount; difficulty++)
+                Assert.AreSame(expected, SceneryArt.Battle(stage.WithDifficulty(difficulty)));
+        }
+
+        [Test]
+        public void RehearsalsUseTheirStoryLocationAndTowerKeepsItsArena()
+        {
+            foreach (var quest in Quests.All)
+                Assert.AreSame(ArtLibrary.Background(quest.RefStage), SceneryArt.Battle(Quests.ToStage(quest)), quest.Id);
+            Assert.AreSame(ArtLibrary.Environment("battle_academy"), SceneryArt.Battle(new StageData { Number = 66, IsTower = true }));
+            Assert.AreEqual("battle_road", SceneryArt.StageKey(0));
+            Assert.AreEqual("battle_road", SceneryArt.StageKey(67));
         }
 
         [TestCase(16f / 9f)]
