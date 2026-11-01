@@ -762,7 +762,7 @@ namespace BiRyeoDo.Core
             new EnemyData { Id = "mask_bitan", RetreatHpPct = .15f, Name = "은가면 「비탄」", Level = 66, HpMul = 6.32f, AtkMul = 3.029f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("허상 일검", 0.7f, 3), EnemyMove.Attack("나뭇가지 일검", 1.3f), EnemyMove.Wind("심정청도의 검기를 모은다"), EnemyMove.Attack("비탄의 일검", 2.8f) } },
             // Stage 28 trial: 목요관 야간 질주 (15권)
-            new EnemyData { Id = "jongri_chu_night", RetreatHpPct = .15f, Name = "칠련창 종리추", Level = 59, HpMul = 2.779f, AtkMul = 2.951f,
+            new EnemyData { Id = "jongri_chu_night", ArtId = "jongri_chu", RetreatHpPct = .15f, Name = "칠련창 종리추", Level = 59, HpMul = 2.779f, AtkMul = 2.951f,
                 Moves = new[] { EnemyMove.Attack("칠성창", 0.7f, 3), EnemyMove.Attack("일곱 창 투척", 1.2f).FromDistance() } },
             new EnemyData { Id = "do_chuun_night", RetreatHpPct = .15f, Name = "사갈검편 도추운", Level = 59, HpMul = 2.617f, AtkMul = 2.951f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("검편 채찍", 0.7f, 3), EnemyMove.Attack("사갈편", 1.2f) } },

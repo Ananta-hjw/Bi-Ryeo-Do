@@ -140,3 +140,7 @@
 ## 공패·도성 재제작 — 2026-11-01
 
 후속 피드백에 따라 기존 이미지 참조 없이 두 그림을 새로 제작했다. `gong_pae`는 지나친 비만을 줄이고 살집 있는 큰 골격과 마교 고수의 단정한 자흑색 예복·위엄으로, `do_seong`은 새 얼굴 골격·정돈된 백발·긴 수염·무거운 주홍 예복과 격한 눈빛으로 표현한다. 앞선 두 시안을 같은 파일명으로 교체한다. 세부 기준은 `ART_LOOKS.md` 마지막 재조정 항목을 따른다.
+
+## 신규 인물 전투 SD 1차 — 2026-11-01
+
+예청(`ye_cheong`)·옥유경(`ok_yugyeong`)·연비(`yeonbi`)·관설지(`gwan_seolji_story`)·동방학(`dongbang_hak`)·종리추(`jongri_chu`)의 Standing을 참고한 전투 SD를 `Resources/Art/Battle/`에 추가했다. 전원 오른쪽을 보는 전투 자세이며 Standing 원본은 보존한다. 디자인·키 연결은 [GAME_MAPPING](../Story/GAME_MAPPING.md)의 같은 날짜 SD 항목 참조.

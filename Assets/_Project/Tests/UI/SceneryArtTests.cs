@@ -121,7 +121,6 @@ namespace BiRyeoDo.Tests.UI
         [TestCase("jo_yeonil", "default_man")]
         [TestCase("maeng_yeonho", "default_man")]
         [TestCase("salhon_sipgwi", "default_assassin")]
-        [TestCase("gwan_seolji_story", "default_woman")]
         public void UnillustratedEnemiesUseDefaultSpritesInsteadOfBorrowedCharacters(string id, string expected)
         {
             Assert.IsNull(ArtLibrary.Chibi(id));
