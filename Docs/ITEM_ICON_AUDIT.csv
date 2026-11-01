@@ -3,9 +3,9 @@ bear_gall,웅담,Consumable,Fine,details,890.0,3.0,437.0,437.0,corrected
 okruju,옥루주,Consumable,Fine,items_0,160.0,3.0,150.0,145.0,corrected
 ginseng,인형설삼,Consumable,Epic,items_0,316.0,3.0,151.0,145.0,corrected
 insight_stone,심득석,Material,Epic,items_0,473.0,3.0,151.0,145.0,corrected
-art_scroll_5,무공 수련서 (소),Consumable,Rare,items_0,630.0,3.0,150.0,145.0,corrected
-art_scroll_10,무공 수련서 (중),Consumable,Epic,items_0,786.0,3.0,151.0,145.0,corrected
-art_scroll_20,무공 수련서 (대),Consumable,Legendary,items_0,943.0,3.0,150.0,145.0,corrected
+art_scroll_5,무공 수련서 (소),Consumable,Rare,active_icons_01,317.0,317.0,308.0,308.0,corrected
+art_scroll_10,무공 수련서 (중),Consumable,Epic,active_icons_01,631.0,317.0,308.0,308.0,corrected
+art_scroll_20,무공 수련서 (대),Consumable,Legendary,active_icons_01,945.0,317.0,308.0,308.0,corrected
 leather,가죽,Material,Normal,items_0,1099.0,3.0,152.0,145.0,corrected
 laundry_bat,강철 빨래방망이,Weapon,Fine,items_0,3.0,154.0,151.0,151.0,corrected
 jin_biroedo,진비뢰도,Weapon,Transcendent,jin_biroedo,3.0,3.0,1248.0,1248.0,corrected

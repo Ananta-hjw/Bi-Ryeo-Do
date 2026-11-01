@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using BiRyeoDo.Core;
 using BiRyeoDo.Game.Systems;
@@ -35,7 +36,7 @@ namespace BiRyeoDo.Tests.UI
                 Assert.AreSame(sprite, ArtLibrary.Item(item));
                 Assert.IsTrue(locations.Add(sprite.texture.GetInstanceID() + ":" + sprite.rect), "Reused item picture: " + item.Id);
             }
-            foreach (var art in EarlyGameContent.Arts)
+            foreach (var art in EarlyGameContent.Arts.Concat(EarlyGameContent.ArtForms))
             {
                 var sprite = ReadableIconLibrary.Find("Art", art.Id);
                 CheckBounds(sprite, art.Id);
