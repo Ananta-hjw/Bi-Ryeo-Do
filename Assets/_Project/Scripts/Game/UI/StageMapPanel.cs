@@ -10,7 +10,7 @@ namespace BiRyeoDo.Game.UI
     /// <summary>A six-stop illustrated journey map with an inspector; geography is decorative, stage data stays authoritative.</summary>
     public sealed class StageMapPanel
     {
-        public const int StagesPerPage = 6;
+        public const int StagesPerPage = SceneryArt.StagesPerJourney;
         private static readonly Vector2[] Stops =
         {
             new Vector2(.14f, .70f), new Vector2(.43f, .81f), new Vector2(.79f, .70f),
@@ -40,7 +40,7 @@ namespace BiRyeoDo.Game.UI
 
         public int Page { get { return _page; } }
         public int SelectedStage { get { return _selected; } }
-        public int PageCount { get { return (EarlyGameContent.Stages.Length + StagesPerPage - 1) / StagesPerPage; } }
+        public int PageCount { get { return SceneryArt.JourneyPageCount; } }
 
         public StageMapPanel(RectTransform root, Action<StageData> onStage, Action onChange, Action onStars, Action onInn)
         {

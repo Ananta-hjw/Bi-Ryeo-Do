@@ -6,6 +6,9 @@ namespace BiRyeoDo.Game.Systems
     /// <summary>Atmospheric environment themes mapped to existing story settings, without changing stage rules.</summary>
     public static class SceneryArt
     {
+        public const int StagesPerJourney = 6;
+        public static int JourneyPageCount { get { return (EarlyGameContent.Stages.Length + StagesPerJourney - 1) / StagesPerJourney; } }
+
         private static readonly string[] OpeningStages =
         {
             "forest", "manor", "road", "road", "manor", "manor"
@@ -47,10 +50,10 @@ namespace BiRyeoDo.Game.Systems
             return "world";
         }
 
-        /// <summary>Six decorative journey regions, one for each six-stage map page.</summary>
+        /// <summary>One decorative landscape for every six-stage page, including the final story chapters.</summary>
         public static string JourneyKey(int page)
         {
-            return "world_journey_" + (Mathf.Clamp(page, 0, 5) + 1).ToString("00");
+            return "world_journey_" + (Mathf.Clamp(page, 0, JourneyPageCount - 1) + 1).ToString("00");
         }
 
         public static Sprite Journey(int page) { return ArtLibrary.Environment(JourneyKey(page)); }

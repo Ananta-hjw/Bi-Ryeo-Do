@@ -1,6 +1,6 @@
 # Wuxia Environment Art
 
-Sixty dedicated story paintings now accompany the original seven battle themes, three menu paintings and six journey maps. All are landscape images suited to the game’s horizontal screen. Generated originals remain outside the project.
+Sixty dedicated story paintings now accompany the original seven battle themes, three menu paintings and eleven journey maps. All are landscape images suited to the game’s horizontal screen. Generated originals remain outside the project.
 
 ## Story backgrounds (stages 7–66)
 
@@ -74,6 +74,23 @@ The new paintings use a consistent semi-realistic wuxia style with restrained in
 Stages 1–6 retain the original `battle_forest`, `battle_manor` and `battle_road` paintings. The original seven battle themes remain available to menus and the tower. `stage_01.png` is intentionally absent. Invalid stage numbers still resolve to `battle_road`.
 
 All new PNGs retain their original dimensions. Import metadata disables mipmaps and CPU readability, clamps wrap modes, preserves NPOT dimensions, and enables platform texture compression with a 2048 maximum texture size.
+
+## Journey maps in the stage list
+
+`SceneryArt.JourneyPageCount` derives the map count from the current story-stage count using the shared `StagesPerJourney` constant (six stops). `StageMapPanel` uses those same values. All eleven pages now have distinct `world_journey_01.png`–`world_journey_11.png` resources. The previous fixed six-page clamp caused every page from stages 31–36 onward to reuse the sixth painting; the upper bound now follows the actual page count.
+
+The first five maps (stages 1–30) are retained. Map 06 is repainted and maps 07–11 are new. These are high oblique landscape panoramas for the route UI, separate from the per-stage battle paintings in the inspector. Landmarks are decorative; paths, stage nodes, labels and progression indicators are drawn by the UI rather than baked into the art. The route does not establish literal geography.
+
+| Map | Stages | Setting and source |
+|---|---|---|
+| [06](../Assets/_Project/Resources/Art/Backgrounds/world_journey_06.png) | 31–36 | 표국·학관·호수 비무장 (`analysis/vol18.md`–`vol20.md`) |
+| [07](../Assets/_Project/Resources/Art/Backgrounds/world_journey_07.png) | 37–42 | 아미산의 담·마천각·강호란도와 선착장 (`analysis/vol21.md`–`vol23.md`) |
+| [08](../Assets/_Project/Resources/Art/Backgrounds/world_journey_08.png) | 43–48 | 강호란도 비무장·숙소·마천각 진입 (`analysis/vol23.md`–`vol25.md`) |
+| [09](../Assets/_Project/Resources/Art/Backgrounds/world_journey_09.png) | 49–54 | 서·동·남·북해도 네 시련 (`analysis/vol26.md`–`vol27.md`) |
+| [10](../Assets/_Project/Resources/Art/Backgrounds/world_journey_10.png) | 55–60 | 감금 회랑에서 출항·호북행·무한 객잔 (`analysis/vol27.md`–`vol28.md`) |
+| [11](../Assets/_Project/Resources/Art/Backgrounds/world_journey_11.png) | 61–66 | 남문·추적 숲·비밀 통로·붉은 남천과 대난원 (`analysis/vol28.md`–`vol29.md`) |
+
+The Unity regression checks all eleven distinct resource loads, later-page boundary stages, and clamping only outside the real page range. Cloud checks decode and compare the eleven images, validate metadata, compile `SceneryArt.cs` against Unity reference assemblies, and exercise the actual lookup source with lightweight Unity type stand-ins. Full Unity rendering and Android touch input still require Editor/device verification.
 
 ## Menu mapping
 

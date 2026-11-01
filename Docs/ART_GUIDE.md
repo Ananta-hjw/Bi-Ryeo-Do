@@ -385,4 +385,4 @@ AI 프롬프트 예시: "wuxia ink-wash style icon of <아이템 설명>, single
 
 ### 강호 여정 지도
 
-`Resources/Art/Backgrounds/world_journey_map.png`는 스테이지 선택 전용 16:9 산수화 지도입니다. 글자·표식·길을 그림에 합치지 않고 `StageMapPanel`/`StageMapRoute`가 표시하므로 진행 상태와 해상도에 맞게 갱신됩니다. 그림 속 지형·건물은 장식이며 원작의 실제 지리 관계를 정의하지 않습니다. 기존 전투 배경은 선택한 지역의 오른쪽 상세 그림에 사용합니다.
+`Resources/Art/Backgrounds/world_journey_01.png`~`world_journey_11.png`는 스테이지 선택 전용 가로 산수화 지도입니다. 6지역씩 총 11페이지이며, 31장 이후는 표국·학관 / 마천각 입성 / 강호란도 비무 / 네 해도 / 출항과 무한 / 남문과 대난원으로 구분합니다. `SceneryArt.JourneyPageCount`와 `StageMapPanel`이 페이지 수와 그림 선택 범위를 공유합니다. 글자·표식·길을 그림에 합치지 않고 `StageMapPanel`/`StageMapRoute`가 표시하므로 진행 상태와 해상도에 맞게 갱신됩니다. 그림 속 지형·건물은 장식이며 원작의 실제 지리 관계를 정의하지 않습니다. 기존 전투 배경은 선택한 지역의 오른쪽 상세 그림에 사용합니다.
