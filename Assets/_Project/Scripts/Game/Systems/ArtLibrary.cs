@@ -80,6 +80,21 @@ namespace BiRyeoDo.Game.Systems
         // Standing-only display-name aliases. Keep SD identity and default selection independent.
         private static readonly Dictionary<string, string> StandingKeys = new Dictionary<string, string>
         {
+            { "도추운", "do_chuun" },
+            { "맹연호", "maeng_yeonho" },
+            { "이송학", "lee_songhak" },
+            { "이송", "lee_songhak" },
+            { "위무상", "wi_musang" },
+            { "위천상", "wi_musang" },
+            { "늑기한", "neuk_gihan" },
+            { "담환", "dam_hwan" },
+            { "담 총관", "dam_hwan" },
+            { "용경의", "yong_gyeongui" },
+            { "도제", "yong_gyeongui" },
+            { "섭운명", "seop_unmyeong" },
+            { "검치", "seop_unmyeong" },
+            { "윤미", "yun_mi" },
+            { "공손경운", "gongson_gyeongun" },
             { "몽환장주", "monghwan_jangju" },
             { "불락구척", "bullak_gucheok" },
             { "돈왕", "donwang" },
