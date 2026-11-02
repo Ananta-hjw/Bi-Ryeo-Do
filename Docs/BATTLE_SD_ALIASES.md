@@ -17,7 +17,7 @@
 - 창랑/마랑객은 `changrang`. 창랑대 철갑늑대의 `armored_wolf`와 분리한다.
 - 효민·효효 개인 그림과 합주 그림, 단혜·사란 개인 그림과 합격 그림을 구분한다. 천음선자는 홍란, 천음선녀는 갈효민이다.
 - 노사부·사부 호칭만으로 조회할 때는 기존 `hwan_sabu`가 기본이다. 실제 스토리 재생은 장면에 명시한 `HeroArtKey`를 우선해 비류연의 노사부 변장(`biry_old_master`)과 실제 사부(`hwan_sabu`)를 구분한다. 단계 번호만으로 모든 대화를 한 인물에 묶지 않는다.
-- 윤미는 변장 전용 전투 키 `yunmi`로 연결한다. 전용 SD가 없어 기본 여성 그림을 사용한다. `yun_junho`의 평상시 SD와 Standing의 `yun_mi`를 혼동하지 않는다.
+- 윤미는 변장 전용 전투 키 `yunmi`로 연결한다. 전용 `Battle/yunmi.png`를 사용한다. `yun_junho`의 평상시 SD와 Standing의 `yun_mi`를 혼동하지 않는다.
 - 사부 관계 일반화·미확정 정체 연결은 하지 않는다. 무명과 위천무를 합치지 않고, 이름만으로 특정할 수 없는 복면인·환영·주군·아버지·노인은 특정 개인 SD에 묶지 않는다.
 - 전용 파일이 없는 인물의 기본 SD 분류와 외팔 천살·지살의 그림은 이번 별칭 연결 작업에서 변경하지 않는다.
 
@@ -31,8 +31,8 @@
 | 윤준호 | `yun_junho` | `yun_junho.png` |
 | 나예린 / 빙백봉 / 빙백봉 나예린 | `na_yerin` | `na_yerin.png` |
 | 임성진 / 진성곤 | `im_seongjin` | `im_seongjin.png` |
-| 남궁상 / 뇌전검룡 | `namgung_sang` | `default_man.png` (전용 없음) |
-| 모용휘 / 칠절신검 | `mo_yonghwi` | `default_man.png` (전용 없음) |
+| 남궁상 / 뇌전검룡 | `namgung_sang` | `namgung_sang.png` |
+| 모용휘 / 칠절신검 | `mo_yonghwi` | `mo_yonghwi.png` |
 | 강장한 / 비풍도 | `gang_janghan` | `gang_janghan.png` |
 | 중광 / 패호 | `paeho_jung_gwang` | `paeho_jung_gwang.png` |
 | 우악 / 패룡 | `paeryong_wooak` | `paeryong_wooak.png` |
@@ -124,7 +124,7 @@
 | 은가면 공포 / 은가면 「공포」 | `mask_gongpo` | `mask_gongpo.png` |
 | 은가면 절망 / 은가면 「절망」 | `mask_jeolmang` | `mask_jeolmang.png` |
 | 은가면 비탄 / 은가면 「비탄」 | `mask_bitan` | `mask_bitan.png` |
-| 윤미 | `yunmi` | `default_woman.png` (전용 없음) |
+| 윤미 | `yunmi` | `yunmi.png` |
 | 당철영 / 당삼 | `dang_cheolyeong` | `default_man.png` (전용 없음) |
 | 은설란 / 사중화 | `eun_seolran` | `default_man.png` (전용 없음) |
 | 홍란 / 천음선자 | `hong_ran` | `default_man.png` (전용 없음) |
@@ -151,10 +151,10 @@
 | 도광서 / 기환검쾌 | `do_gwangseo` | `default_man.png` (전용 없음) |
 | 단목우 / 천기룡 | `danmok_u` | `default_man.png` (전용 없음) |
 | 모경 / 폭랑귀도 | `mo_gyeong` | `default_man.png` (전용 없음) |
-| 도추운 / 사갈검편 | `do_chuun` | `default_man.png` (전용 없음) |
-| 맹연호 / 청룡단주 / 천수룡 / 옥룡신검 | `maeng_yeonho` | `default_man.png` (전용 없음) |
-| 이송학 / 이송 / 군자소요검 | `lee_songhak` | `default_man.png` (전용 없음) |
-| 위무상 / 위천상 | `wi_musang` | `default_man.png` (전용 없음) |
+| 도추운 / 사갈검편 | `do_chuun` | `do_chuun.png` |
+| 맹연호 / 청룡단주 / 천수룡 / 옥룡신검 | `maeng_yeonho` | `maeng_yeonho.png` |
+| 이송학 / 이송 / 군자소요검 | `lee_songhak` | `lee_songhak.png` |
+| 위무상 / 위천상 | `wi_musang` | `wi_musang.png` |
 | 늑기한 / 천익검 | `neuk_gihan` | `default_man.png` (전용 없음) |
 | 담환 / 담 총관 | `dam_hwan` | `default_man.png` (전용 없음) |
 | 용경의 / 도제 / 일도단애 | `yong_gyeongui` | `default_man.png` (전용 없음) |
@@ -199,3 +199,7 @@
 - 전투 SD는 1단계 백호전·2단계 표국전에서만 변장 외형을 사용한다. 그 전의 산짐승전은 평상시 비류연, 이후 표행은 제자들의 전투다. 의뢰·무한 비무대에는 이 변장 규칙을 적용하지 않는다. 변장 상태를 벗어나면 임시 외형 키를 지운다.
 
 검증: 추가한 노사부 구분·장면 메타데이터·외형 전환 회귀 6건이 통과했다. 전체 Core NUnit은 1,457 통과·12 실패였고, 변경 전 HEAD `1e0eb1e`에서도 같은 12개 밸런스 검사가 동일한 값으로 실패했다. 기존 적 300개의 키/ID/전체 이름과 동료 7명의 SD 조회는 동일하며, Battle 144개 파일·319개 이름 연결·Standing 179개 파일 검사와 Game C# 9 구문 검사도 통과했다. 실제 Unity 렌더링은 확인하지 못했다.
+
+### 전투 등장 인물 7종 보완 — 2026-11-02
+
+모용휘·남궁상·맹연호·이송학·위무상·도추운·윤미에 전용 SD를 추가했다. 도추운의 야간 적 `do_chuun_night`도 `ArtId = "do_chuun"`으로 같은 인물의 그림을 사용한다. 윤미는 전투 키 `yunmi`와 입화 키 `yun_mi`를 유지하며, 44장 변장 전투 외의 윤준호는 기존 `yun_junho` 그림을 사용한다.

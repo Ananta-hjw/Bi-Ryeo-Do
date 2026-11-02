@@ -766,7 +766,7 @@ namespace BiRyeoDo.Core
             // Stage 28 trial: 목요관 야간 질주 (15권)
             new EnemyData { Id = "jongri_chu_night", ArtId = "jongri_chu", RetreatHpPct = .15f, Name = "칠련창 종리추", Level = 59, HpMul = 2.779f, AtkMul = 2.951f,
                 Moves = new[] { EnemyMove.Attack("칠성창", 0.7f, 3), EnemyMove.Attack("일곱 창 투척", 1.2f).FromDistance() } },
-            new EnemyData { Id = "do_chuun_night", RetreatHpPct = .15f, Name = "사갈검편 도추운", Level = 59, HpMul = 2.617f, AtkMul = 2.951f, SpeedAdd = 4,
+            new EnemyData { Id = "do_chuun_night", ArtId = "do_chuun", RetreatHpPct = .15f, Name = "사갈검편 도추운", Level = 59, HpMul = 2.617f, AtkMul = 2.951f, SpeedAdd = 4,
                 Moves = new[] { EnemyMove.Attack("검편 채찍", 0.7f, 3), EnemyMove.Attack("사갈편", 1.2f) } },
             // Balance clones: the same enemy tuned separately for a later stage (artwork is shared via ArtId)
             new EnemyData { Id = "eonga_yeong_b", ArtId = "eonga_yeong", Name = "파풍창 언가영", Level = 30, HpMul = 2.660f, AtkMul = 4.117f,

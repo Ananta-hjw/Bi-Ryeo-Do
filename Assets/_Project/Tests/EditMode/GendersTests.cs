@@ -57,6 +57,7 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(id, EarlyGameContent.FindEnemy(id).ArtKey);
         }
 
+        [TestCase("do_chuun_night", "do_chuun")]
         [TestCase("hyo_ryong_rope", "hyo_ryong")]
         [TestCase("hwan_geomseong", "geom_seong")]
         [TestCase("hwan_family_duty", "im_deokseong")]
