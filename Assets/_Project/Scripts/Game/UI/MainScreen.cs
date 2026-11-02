@@ -133,7 +133,15 @@ namespace BiRyeoDo.Game.UI
                     _battleOverlay.SetActive(false);
                     done();
                 });
-            }, () => Select((int)TabRouter.Tab.Companions));
+            }, () => Select((int)TabRouter.Tab.Companions), (title, scenes, done) =>
+            {
+                _battleOverlay.SetActive(true);
+                _battle.OpenStoryScenes(title, scenes, () =>
+                {
+                    _battleOverlay.SetActive(false);
+                    done();
+                });
+            });
             _home.Build(homeRoot, _world, OpenWorldMenu, tab => Select((int)tab));
             // Screens that moved their header into the top bar grew upward under it: keep the bar drawn on top.
             foreach (var panel in panels)

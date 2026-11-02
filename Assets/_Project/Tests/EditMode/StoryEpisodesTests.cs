@@ -6,6 +6,88 @@ namespace BiRyeoDo.Tests
 {
     public class StoryEpisodesTests
     {
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        public void DetailedReplayUsesTheSameOpeningEncountersAndEndingAsBattle(int number)
+        {
+            var stage = EarlyGameContent.FindStage(number);
+            var completed = new SaveData { ClearedStage = 3 };
+            var expected = new System.Collections.Generic.List<StoryScene>(EarlyStory.Opening(stage));
+            for (int fight = 0; fight < stage.Encounters.Length; fight++)
+            {
+                Assert.IsNull(StoryEpisodes.BeforeFight(stage, fight, completed));
+                var scenes = StoryEpisodes.BeforeFight(stage, fight, completed, false, true);
+                if (scenes != null) expected.AddRange(scenes);
+                Assert.IsNull(StoryEpisodes.BeforeFight(stage, fight, completed, true, true));
+            }
+            expected.Add(new StoryScene { Lines = stage.Outro, HeroArtKey = stage.OutroHeroArtKey });
+            expected.Add(new StoryScene { Lines = StoryBriefings.Aftermath(number), HeroArtKey = stage.OutroHeroArtKey });
+            var actual = StoryEpisodes.ReplayScenes(stage);
+            CollectionAssert.AreEqual(expected.SelectMany(x => x.Lines), actual.SelectMany(x => x.Lines));
+            CollectionAssert.AreEqual(expected.Select(x => x.HeroArtKey), actual.Select(x => x.HeroArtKey));
+        }
+
+        [Test]
+        public void EarlyChaptersExplainTimeChangesAndSeparateTheFarewellFromTheRoad()
+        {
+            var first = StoryEpisodes.ReplayScenes(EarlyGameContent.FindStage(1));
+            StringAssert.Contains("회상", first[0].Title);
+            StringAssert.Contains("열아홉", string.Join(" ", first[1].Lines));
+            StringAssert.Contains("두 달 뒤", string.Join(" ", first.SelectMany(x => x.Lines)));
+            var second = StoryEpisodes.ReplayScenes(EarlyGameContent.FindStage(2));
+            StringAssert.Contains("회상", second[0].Title);
+            StringAssert.Contains("현재", second[1].Title);
+            var text = string.Join(" ", second.SelectMany(x => x.Lines));
+            Assert.Less(text.IndexOf("거의 돌아가실 모습"), text.IndexOf("아미파 속가제자"));
+            Assert.Less(text.IndexOf("중양표국 정문 앞"), text.IndexOf("합숙 마지막 밤"));
+            StringAssert.DoesNotContain("월급 석 냥", string.Join(" ", StoryBriefings.Interlude(1).Lines));
+            var third = StoryEpisodes.ReplayScenes(EarlyGameContent.FindStage(3));
+            Assert.AreEqual(StoryAppearance.OldMasterDisguise, third[0].HeroArtKey);
+            Assert.IsTrue(third.Skip(1).All(x => x.HeroArtKey == null));
+            Assert.IsNull(EarlyStory.Background(EarlyGameContent.FindStage(3)).HeroArtKey);
+            Assert.IsNull(EarlyStory.Opening(EarlyGameContent.FindStage(4)));
+            Assert.IsFalse(EarlyStory.Supports(new StageData { Number = 1, IsQuest = true }));
+            Assert.IsFalse(EarlyStory.Supports(new StageData { Number = 1, IsTower = true }));
+        }
+
+        [Test]
+        public void FirstStageReplayChangesAppearanceOnlyAfterTheWaterfall()
+        {
+            var stage = EarlyGameContent.FindStage(1);
+            var scenes = StoryEpisodes.ReplayScenes(stage);
+            Assert.IsNull(scenes[0].HeroArtKey, "The actual master's training precedes the disguise");
+            var waterfall = scenes.Single(s => s.Title == "폭포에서 얻은 서찰");
+            Assert.IsNull(waterfall.HeroArtKey);
+            var camp = scenes.Single(s => s.Title == "노사부와 열여섯 제자");
+            Assert.AreEqual(StoryAppearance.OldMasterDisguise, camp.HeroArtKey);
+            var tiger = scenes.Single(s => s.Title == "뜻밖의 백호");
+            Assert.AreEqual(StoryAppearance.OldMasterDisguise, tiger.HeroArtKey);
+            Assert.AreEqual(StoryAppearance.OldMasterDisguise, scenes.Last().HeroArtKey);
+            Assert.Less(System.Array.IndexOf(scenes, waterfall), System.Array.IndexOf(scenes, camp));
+            Assert.Less(System.Array.IndexOf(scenes, camp), System.Array.IndexOf(scenes, tiger));
+            Assert.IsNull(StoryBriefings.Interlude(1).HeroArtKey, "The real master remains a different person");
+        }
+
+        [Test]
+        public void AgencyReplayKeepsTheDisguiseAndTheFollowingStageEndsIt()
+        {
+            var agency = EarlyGameContent.FindStage(2);
+            Assert.IsTrue(StoryEpisodes.ReplayScenes(agency).All(s => s.HeroArtKey == StoryAppearance.OldMasterDisguise));
+            Assert.AreEqual(StoryAppearance.OldMasterDisguise, StoryBriefings.Interlude(2).HeroArtKey);
+            Assert.AreEqual(StoryAppearance.OldMasterDisguise, agency.IntroHeroArtKey);
+            Assert.AreEqual(StoryAppearance.OldMasterDisguise, agency.OutroHeroArtKey);
+            for (int i = 0; i < agency.Encounters.Length; i++)
+                Assert.AreEqual(StoryAppearance.OldMasterDisguise, StoryAppearance.HeroBattleKey(agency, i));
+            var farewell = StoryEpisodes.ReplayScenes(EarlyGameContent.FindStage(3));
+            Assert.AreEqual(StoryAppearance.OldMasterDisguise, farewell.First().HeroArtKey);
+            Assert.IsNull(farewell.Last().HeroArtKey);
+            Assert.AreEqual("player", StoryAppearance.HeroBattleKey(EarlyGameContent.FindStage(3), 0));
+            Assert.IsNull(StoryEpisodes.ReplayScenes(null));
+            Assert.IsNull(StoryEpisodes.ReplayScenes(new StageData { IsQuest = true }));
+            Assert.IsNull(StoryEpisodes.ReplayScenes(new StageData { IsTower = true }));
+        }
+
         [Test]
         public void EpisodesAppearForUnfinishedRunsButNeverInReplaysQuestsTowerOrIsolatedFights()
         {
@@ -29,7 +111,9 @@ namespace BiRyeoDo.Tests
         {
             var stage = EarlyGameContent.FindStage(1);
             var save = new SaveData();
-            for (int i = 0; i < 3; i++) Assert.IsNull(StoryEpisodes.BeforeFight(stage, i, save));
+            Assert.IsNull(StoryEpisodes.BeforeFight(stage, 0, save));
+            Assert.IsNotNull(StoryEpisodes.BeforeFight(stage, 1, save));
+            Assert.IsNotNull(StoryEpisodes.BeforeFight(stage, 2, save));
             var scenes = StoryEpisodes.BeforeFight(stage, 3, save);
             Assert.AreEqual(3, scenes.Length);
             StringAssert.Contains("진조운", string.Join(" ", scenes[0].Lines));

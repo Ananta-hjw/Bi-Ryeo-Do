@@ -334,6 +334,38 @@ namespace BiRyeoDo.Game.UI
         private bool _pickDone, _pickSingle;
         private int _pickIndex;
 
+        private GameObject _replayModeRoot;
+        private bool _replayModeDone, _watchEarlyStory, _combatOnly;
+
+        private void BuildReplayMode(RectTransform root)
+        {
+            var rect = UiFactory.Rect("ReplayMode", root, Vector2.zero, Vector2.one);
+            _replayModeRoot = rect.gameObject;
+            UiFactory.Panel("Dim", rect, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, .78f));
+            var card = UiFactory.Panel("Card", rect, new Vector2(.18f, .18f), new Vector2(.82f, .82f), UiFactory.ModalInk);
+            UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
+            UiFactory.Label("Title", card.transform, new Vector2(.05f, .79f), new Vector2(.95f, .97f), "재도전 방식", 38, UiFactory.Gold);
+            UiFactory.Label("Hint", card.transform, new Vector2(.07f, .57f), new Vector2(.93f, .78f),
+                "이야기와 함께 처음부터 진행하거나, 대사를 건너뛰고 전투에 집중할 수 있습니다.", 28, UiFactory.PaperText);
+            UiFactory.Button("Story", card.transform, new Vector2(.07f, .38f), new Vector2(.93f, .55f), "스토리 함께 보기 · 처음부터", UiFactory.InkSoft,
+                () => { _watchEarlyStory = true; _replayModeDone = true; }, 28);
+            UiFactory.Button("Combat", card.transform, new Vector2(.07f, .17f), new Vector2(.93f, .34f), "전투만 진행 · 구간 선택 / 이어하기", UiFactory.InkSoft,
+                () => { _watchEarlyStory = false; _replayModeDone = true; }, 28);
+            UiFactory.Button("Cancel", card.transform, new Vector2(.30f, .015f), new Vector2(.70f, .14f), "강호로", UiFactory.InkSoft,
+                () => { _fled = true; _replayModeDone = true; }, 26);
+            _replayModeRoot.SetActive(false);
+        }
+
+        private IEnumerator PickReplayMode()
+        {
+            _watchEarlyStory = false;
+            _replayModeDone = false;
+            _replayModeRoot.SetActive(true);
+            _replayModeRoot.transform.SetAsLastSibling();
+            while (!_replayModeDone) yield return null;
+            _replayModeRoot.SetActive(false);
+        }
+
         private void BuildPick(RectTransform root)
         {
             var rect = UiFactory.Rect("Pick", root, Vector2.zero, Vector2.one);
@@ -353,6 +385,7 @@ namespace BiRyeoDo.Game.UI
             _pickToggleLabel = toggle.GetComponentInChildren<Text>();
             UiFactory.Button("Cancel", card.transform, new Vector2(0.30f, .015f), new Vector2(0.70f, .135f), "강호로", UiFactory.InkSoft, () => { _pickIndex = -1; _pickDone = true; }, 30);
             _pickRoot.SetActive(false);
+            BuildReplayMode(root);
         }
 
         private void UpdatePickToggle()
@@ -399,6 +432,7 @@ namespace BiRyeoDo.Game.UI
             _promotionRun = false;
             var save = GameManager.Instance.Save;
             _fled = false;
+            _combatOnly = false;
             int diff = stage.IsTower || stage.IsQuest ? 0 : stage.Difficulty;
             string tag = StageStars.TagFor(diff);
             _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + tag + stage.Name;
@@ -410,6 +444,20 @@ namespace BiRyeoDo.Game.UI
             SetCommandsVisible(false);
             _log.text = "";
 
+            bool detailedStory = EarlyStory.Supports(stage);
+            bool earlyReplay = detailedStory && (save.ClearedStage >= stage.Number || StageProgress.Has(save, stage.Number));
+            _watchEarlyStory = detailedStory && !earlyReplay;
+            if (earlyReplay)
+            {
+                yield return PickReplayMode();
+                _combatOnly = !_watchEarlyStory;
+                if (!_fled && _watchEarlyStory && StageProgress.Has(save, stage.Number))
+                {
+                    StageProgress.Clear(save);
+                    GameManager.Instance.SaveNow();
+                }
+            }
+
             // Continue a stage the player stepped back from; anything else starts fresh (and drops an old resume point).
             bool resume = !stage.IsQuest && !stage.IsTower && StageProgress.Has(save, stage.Number);
             int startIndex = resume ? Showdowns.ResumeAt(stage, save.ProgressNext) : 0;
@@ -419,29 +467,35 @@ namespace BiRyeoDo.Game.UI
             int pickStart = 0;
             bool singleFight = false;
             bool clearedHere = !stage.IsQuest && !stage.IsTower && (diff == 0 ? save.ClearedStage >= stage.Number : StageStars.StageCleared(save, stage.Number, diff));
-            if (!resume && clearedHere && stage.Encounters.Length > 1)
+            if (!_fled && !resume && clearedHere && !(earlyReplay && _watchEarlyStory) && stage.Encounters.Length > 1)
             {
                 yield return PickFight(stage, diff);
                 if (_pickIndex < 0) _fled = true;
                 else { pickStart = _pickIndex; singleFight = _pickSingle; startIndex = pickStart; }
             }
 
-            if (!resume && !_fled && pickStart == 0 && !singleFight)
+            if (!resume && !_fled && pickStart == 0 && !singleFight && !_combatOnly)
             {
-                var recap = !stage.IsTower && !stage.IsQuest && save.ClearedStage < stage.Number ? StoryBriefings.Briefing(stage.Number) : null;
-                if (recap != null) yield return ShowStory(stage.Name + " — 이야기 배경", recap, stage.IntroHeroArtKey);
-                var between = recap != null ? StoryBriefings.Interlude(stage.Number) : null;
-                if (between != null) yield return ShowStory("막간 — " + between.Title, between.Lines, between.HeroArtKey);
-                if (stage.Prologue != null && save.ClearedStage < stage.Number)
-                    foreach (var scene in stage.Prologue)
-                        yield return ShowStory(scene.Title, scene.Lines, scene.HeroArtKey);
-                if (!stage.IsTower) yield return ShowStory(stage.Name, stage.Intro, stage.IntroHeroArtKey);
+                if (!detailedStory)
+                {
+                    var recap = !stage.IsTower && !stage.IsQuest && save.ClearedStage < stage.Number ? StoryBriefings.Briefing(stage.Number) : null;
+                    if (recap != null) yield return ShowStory(stage.Name + " — 이야기 배경", recap, stage.IntroHeroArtKey);
+                    var between = recap != null ? StoryBriefings.Interlude(stage.Number) : null;
+                    if (between != null) yield return ShowStory("막간 — " + between.Title, between.Lines, between.HeroArtKey);
+                    if (stage.Prologue != null && save.ClearedStage < stage.Number)
+                        foreach (var scene in stage.Prologue)
+                            yield return ShowStory(scene.Title, scene.Lines, scene.HeroArtKey);
+                    if (!stage.IsTower) yield return ShowStory(stage.Name, stage.Intro, stage.IntroHeroArtKey);
+                }
             }
 
             bool again = !_fled;
             while (again)
             {
                 again = false;
+                if (detailedStory && !resume && !_combatOnly && !singleFight && startIndex == 0)
+                    foreach (var scene in EarlyStory.Opening(stage))
+                        yield return ShowStory(scene.Title ?? stage.Name, scene.Lines, scene.HeroArtKey);
                 _storyEncounter = Math.Min(startIndex, stage.Encounters.Length - 1);
                 BuildParty(stage);
                 if (resume) { StageProgress.Restore(save, _party); RefreshParty(); }
@@ -459,9 +513,10 @@ namespace BiRyeoDo.Game.UI
                     _storyEncounter = i;
                     if (changePerspective) BuildParty(stage, Roster.Reenacted(stage) ? _party : null);
                     Roster.PrepareStoryEncounter(stage, i, _party);
+                    RefreshPartyFigures();
                     _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + tag + stage.Name + "  (" + (i + 1) + "/" + stage.Encounters.Length + ")";
                     _lastFightNumber = i + 1;
-                    var episodes = StoryEpisodes.BeforeFight(stage, i, save, singleFight);
+                    var episodes = _combatOnly ? null : StoryEpisodes.BeforeFight(stage, i, save, singleFight, earlyReplay && _watchEarlyStory);
                     if (episodes != null)
                         foreach (var scene in episodes) yield return ShowStory(scene.Title, scene.Lines, scene.HeroArtKey);
                     var storyEvent = stage.EventFor(i);
@@ -638,7 +693,7 @@ namespace BiRyeoDo.Game.UI
                     Roster.BenchNewcomers(save, joiners);
                     GameManager.Instance.SaveNow();
                     yield return ShowStory(stage.Name + " 돌파", stage.Outro, stage.OutroHeroArtKey);
-                    var after = firstClear ? StoryBriefings.Aftermath(stage.Number) : null;
+                    var after = firstClear || (earlyReplay && _watchEarlyStory) ? StoryBriefings.Aftermath(stage.Number) : null;
                     if (after != null) yield return ShowStory(stage.Name + " — 그 뒤", after, stage.OutroHeroArtKey);
                     string bondNote = AwardBonds(save);
                     var reward = Inventory.GrantStageReward(save, stage.Number);
@@ -659,6 +714,17 @@ namespace BiRyeoDo.Game.UI
                     again = _retry;
                     resume = false;
                     startIndex = pickStart;
+                    if (again && detailedStory)
+                    {
+                        yield return PickReplayMode();
+                        _combatOnly = !_watchEarlyStory;
+                        again = !_fled;
+                        if (_watchEarlyStory)
+                        {
+                            startIndex = pickStart = 0;
+                            singleFight = false;
+                        }
+                    }
                 }
             }
 
@@ -692,6 +758,11 @@ namespace BiRyeoDo.Game.UI
         /// <summary>Plays a scene in the visual-novel layer without any fight, then calls <paramref name="onClose"/>.</summary>
         public void OpenStory(string title, string[] lines, Action onClose)
         {
+            OpenStoryScenes(title, new[] { new StoryScene { Lines = lines } }, onClose);
+        }
+
+        public void OpenStoryScenes(string title, StoryScene[] scenes, Action onClose)
+        {
             if (_inputGuard != null) _inputGuard.SetActive(false);
             _onClose = onClose;
             CancelBasicMotion();
@@ -701,12 +772,13 @@ namespace BiRyeoDo.Game.UI
             ResetFeel();
             ResetImpactEffects();
             HideFightRewards();
-            StartCoroutine(RunStoryOnly(title, lines));
+            StartCoroutine(RunStoryOnly(title, scenes));
         }
 
-        private IEnumerator RunStoryOnly(string title, string[] lines)
+        private IEnumerator RunStoryOnly(string title, StoryScene[] scenes)
         {
             _fled = false;
+            _combatOnly = false;
             _backdropImage.sprite = SceneryArt.Menu("record");
             _backdropImage.color = Color.white;
             ClearCards();
@@ -715,7 +787,14 @@ namespace BiRyeoDo.Game.UI
             _log.text = "";
             _stageLabel.text = title;
             SoundManager.Bgm("lobby");
-            yield return ShowStory(title, lines);
+            if (scenes != null)
+                foreach (var scene in scenes)
+                    if (scene != null && scene.Lines != null)
+                    {
+                        yield return ShowStory(scene.Title ?? title, scene.Lines, scene.HeroArtKey, true);
+                        if (_storySkip || _fled) break;
+                    }
+            _storySkip = false;
             _panel.SetActive(false);
             _banner.text = "";
             _bannerBg.color = new Color(0f, 0f, 0f, 0f);
@@ -743,6 +822,7 @@ namespace BiRyeoDo.Game.UI
             var save = GameManager.Instance.Save;
             var arena = new StageData { Number = 0, Name = "승급 비무" };   // Number 0 = no companions
             _fled = false;
+            _combatOnly = false;
             _backdropImage.sprite = ArtLibrary.Environment("battle_academy");
             _backdropImage.color = Color.white;
             ClearCards();
@@ -1451,6 +1531,17 @@ namespace BiRyeoDo.Game.UI
             }
             RefreshBoard();
             RefreshFocusHud();
+        }
+
+        private void RefreshPartyFigures()
+        {
+            foreach (var panel in _panels)
+            {
+                var sprite = BattleFigure(Roster.StoryArtKey(panel.Unit));
+                if (panel.Art == null || panel.Art.sprite == sprite) continue;
+                panel.Art.sprite = sprite;
+                panel.Art.GetComponent<BattleFigureFit>().Fit();
+            }
         }
 
         private void RefreshParty()
@@ -2761,8 +2852,9 @@ namespace BiRyeoDo.Game.UI
 
         // ------------------------------------------------------------------ panels
 
-        private IEnumerator ShowStory(string title, string[] lines, string heroArtKey = null)
+        private IEnumerator ShowStory(string title, string[] lines, string heroArtKey = null, bool keepSkip = false)
         {
+            if (_combatOnly) yield break;
             SetCommandsVisible(false);
             _panel.SetActive(false);
             _storySkip = false;
@@ -2827,7 +2919,7 @@ namespace BiRyeoDo.Game.UI
                 }
             }
             _storyRoot.SetActive(false);
-            _storySkip = false;
+            if (!keepSkip) _storySkip = false;
             StartCoroutine(GuardTaps());   // taps that were meant for the story must not fall through to the screen underneath
         }
 

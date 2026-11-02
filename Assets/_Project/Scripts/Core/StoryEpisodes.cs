@@ -7,6 +7,27 @@ namespace BiRyeoDo.Core
     {
         private static readonly Dictionary<int, StoryScene[]> Before = new Dictionary<int, StoryScene[]>
         {
+            { 101, new[] { new StoryScene { Title = "사냥으로 모으는 비상금", Lines = new[] {
+                "그 무렵 비류연은 호랑이 가죽과 곰의 웅담도 돈이 된다는 것을 잘 알고 있었다. 이 사냥들은 합숙 교관이 되기 전 아미산에서 지내던 생활을 보여 준다.",
+                "+비류연|(대장간 월급은 사부님 손으로 가니, 숲에서 번 돈만큼은 따로 챙겨야지.)",
+            } } } },
+            { 102, new[] { new StoryScene { Title = "늦봄 — 수뢰비 수련을 앞두고", Lines = new[] {
+                "사냥과 대장간 일 사이에도 수련은 계속됐다. 물 밖에서 비뢰도를 다루는 데 익숙해진 비류연 앞에는 수중 수련, 수뢰비가 남아 있었다.",
+                "다음 이야기는 열아홉 살 늦봄, 그가 폭포에서 수련하던 날로 이어진다.",
+            } } } },
+            { 300, new[] { new StoryScene { Title = "표행 도중 — 사천 경계의 매복", Lines = new[] {
+                    "스승과 헤어진 주작단은 중양표국의 남창행 표행을 호위했다. 사천 경계의 산길에서 오백 명 가까운 산적이 튀어나왔다.",
+                    "호골채 도적|여기는 호골채의 길이다! 표물을 내놓아라!",
+                    "+남궁상|표사와 표물부터 지켜라! 한 사람도 잃지 마!",
+            } } } },
+            { 301, new[] { new StoryScene { Title = "표행의 진형을 지키다", Lines = new[] {
+                "처음의 습격을 막아도 산길에는 호골채 무리가 남아 있었다. 주작단은 표사와 표물을 지킬 자리를 유지했다.",
+                "+남궁상|흩어져 쫓지 마라. 우리 뒤의 표사들을 먼저 지켜!",
+            } } } },
+            { 302, new[] { new StoryScene { Title = "호골채 두목 패호 중광", Lines = new[] {
+                "호골채의 두목 패호 중광이 버티는 길목. 제자들이 합숙에서 익힌 힘을 스승 없이 보여 줄 차례였다.",
+                "호골채 두목을 맡은 이는 주작단의 조천우였다.",
+            } } } },
             { 103, new[]
                 {
                     new StoryScene { Title = "폭포에서 얻은 서찰", Lines = new[] {
@@ -16,7 +37,7 @@ namespace BiRyeoDo.Core
                             "비류연|엇! 주머니가 상당히 묵직한데……. 이야!",
                             "죽은 사람은 천무학관이 주작단의 합숙 교관으로 부른 철담비환 진조운이었다. 품에서 인피면구와 서찰, 황금이 나왔다.",
                             "+비류연|(가르치러 가던 사람이라……. 재미있을 것 같아. 그렇게 해 볼까.)",
-                            "두 달 동안 사기술을 익힌 비류연은 노인의 얼굴을 쓰고 천무아미수련원으로 향했다.",
+                            "두 달 뒤 — 사기술을 익히고 묵환을 준비한 비류연은 인피면구로 노인의 얼굴을 쓰고 천무아미수련원으로 향했다.",
                         } },
                     new StoryScene { HeroArtKey = StoryAppearance.OldMasterDisguise, Title = "노사부와 열여섯 제자", Lines = new[] {
                             "남궁상|누구요?",
@@ -28,7 +49,7 @@ namespace BiRyeoDo.Core
                             "남궁상|전 남궁세가의 둘째 아들이며, 현재 주작단의 단주를 맡고 있는 남궁상이라고 합니다! 앞으로 잘 부탁드립니다!",
                         } },
                     new StoryScene { HeroArtKey = StoryAppearance.OldMasterDisguise, Title = "뜻밖의 백호", Lines = new[] {
-                            "노사부의 서신을 받은 남궁상과 진령이 같은 숲에서 마주쳤다.",
+                            "합숙이 시작되고 수련을 함께하던 어느 날. 노사부는 남궁상의 짝사랑을 알고 두 사람을 같은 숲으로 불러냈다. 남궁상과 진령은 각각 서신을 받고 찾아왔다.",
                             "남궁상|진…… 진 소저! 이곳엔 어쩐 일로…….",
                             "진령|전 사부님이 부르셔서……. 여기에…….",
                             "남궁상|앗! 저…… 저도 마찬가지로 사부님께서 부르셔서 왔습니다! 이야기가 있다고 했는데…….",
@@ -168,7 +189,7 @@ namespace BiRyeoDo.Core
                 } },
             { 202, new[]
                 {
-                    new StoryScene { Title = "강장한", Lines = new[] {
+                    new StoryScene { HeroArtKey = StoryAppearance.OldMasterDisguise, Title = "강장한", Lines = new[] {
                             "비류연|댁의 표국에 강장한인지 건장한인지 하는 놈이 표사로 있다는데 사실이요? 그 일당이 내 제자에게 끼친 정신적·육체적 피해 보상을 요구하는 바이요!",
                             "장우양|그럴 리가 없소이다! 강 대표두는 우리 표국에서도 광명하기로 이름난 사람이오! 그런 일을 할 사람이 아니오!",
                             "술에 취한 강장한이 비틀거리며 들어왔다. 찬물을 뒤집어쓰고서야 정신을 차렸다.",
@@ -180,7 +201,7 @@ namespace BiRyeoDo.Core
                 } },
             { 203, new[]
                 {
-                    new StoryScene { Title = "국주의 체면", Lines = new[] {
+                    new StoryScene { HeroArtKey = StoryAppearance.OldMasterDisguise, Title = "국주의 체면", Lines = new[] {
                             "강장한까지 쓰러지자 국주 장우양이 앞을 막아섰다.",
                             "장우양|우리 중양표국의 체면도 있으니 그냥 가실 수는 없소이다. 겨우 열여섯 명의 무리에게 표국이 쑥대밭이 되었다는 소문이 난다면 누가 우리에게 표물을 맡기겠소!",
                             "비류연|아! 그래서 중양표국의 몸보신을 위해 날 잡아 드시겠다 이거군! 칼로 쳐서!",
@@ -191,7 +212,7 @@ namespace BiRyeoDo.Core
                 } },
             { 204, new[]
                 {
-                    new StoryScene { Title = "국주의 난화검", Lines = new[] {
+                    new StoryScene { HeroArtKey = StoryAppearance.OldMasterDisguise, Title = "국주의 난화검", Lines = new[] {
                             "장우양|그냥 돌려보낼 수는 없소이다!",
                             "비류연|매를 버는군! 먼저 오쇼!",
                             "장우양|먼저 가겠소이다!",
@@ -447,35 +468,66 @@ namespace BiRyeoDo.Core
         /// <summary>Stage body in playback order, without combat or rewards, for completed-story replay.</summary>
         public static string[] Replay(StageData stage)
         {
-            if (stage == null || stage.IsTower || stage.IsQuest) return null;
+            var scenes = ReplayScenes(stage);
+            if (scenes == null) return null;
             var lines = new List<string>();
-            Append(lines, stage.Prologue);
-            if (stage.Intro != null) lines.AddRange(stage.Intro);
+            foreach (var scene in scenes)
+            {
+                if (scene.Title != null) lines.Add("— " + scene.Title + " —");
+                lines.AddRange(scene.Lines);
+            }
+            return lines.ToArray();
+        }
+
+        /// <summary>Replay retains authored appearance boundaries, including changes within a stage.</summary>
+        public static StoryScene[] ReplayScenes(StageData stage)
+        {
+            if (stage == null || stage.IsTower || stage.IsQuest) return null;
+            var result = new List<StoryScene>();
+            if (EarlyStory.Supports(stage)) AddScenes(result, EarlyStory.Opening(stage));
+            else
+            {
+                AddScenes(result, stage.Prologue);
+                AddLines(result, stage.Intro, stage.IntroHeroArtKey);
+            }
             if (stage.Encounters != null)
                 for (int i = 0; i < stage.Encounters.Length; i++)
                 {
                     StoryScene[] scenes;
-                    if (FireDragonFinale.IsFinale(stage, i)) Append(lines, FireDragonFinale.Departure);
-                    else if (stage.EventFor(i) == null && TryScenes(stage.Number * 100 + i, out scenes)) Append(lines, scenes);
-                    var showdown = Showdowns.Is(stage, i) ? stage.TrialFor(i).Script : null;   // the scene played inside a scripted showdown
+                    if (FireDragonFinale.IsFinale(stage, i)) AddScenes(result, FireDragonFinale.Departure);
+                    else if (stage.EventFor(i) == null && TryScenes(stage.Number * 100 + i, out scenes)) AddScenes(result, scenes);
+                    var showdown = Showdowns.Is(stage, i) ? stage.TrialFor(i).Script : null;
                     if (showdown != null)
                     {
-                        if (showdown.ArmorLines != null) lines.AddRange(showdown.ArmorLines);
-                        if (showdown.AfterBlow != null) lines.AddRange(showdown.AfterBlow);
-                        if (showdown.InterruptLines != null) lines.AddRange(showdown.InterruptLines);
-                        if (showdown.AfterStrike != null) lines.AddRange(showdown.AfterStrike);
+                        AddLines(result, showdown.ArmorLines);
+                        AddLines(result, showdown.AfterBlow);
+                        AddLines(result, showdown.InterruptLines);
+                        AddLines(result, showdown.AfterStrike);
                     }
-                    if (stage.Number == FireDragonFinale.Stage && i == 1 && !stage.IsQuest) lines.AddRange(FireDragonFinale.RetreatLines);   // 비's words as he breaks off
+                    if (stage.Number == FireDragonFinale.Stage && i == 1 && !stage.IsQuest) AddLines(result, FireDragonFinale.RetreatLines);
                     var ev = stage.EventFor(i);
                     if (ev != null)
                     {
-                        lines.AddRange(ev.Opening);
-                        foreach (var choice in ev.Choices) lines.AddRange(choice.Outcome);
-                        lines.AddRange(ev.Ending);
+                        AddLines(result, ev.Opening);
+                        foreach (var choice in ev.Choices) AddLines(result, choice.Outcome);
+                        AddLines(result, ev.Ending);
                     }
                 }
-            if (stage.Outro != null) lines.AddRange(stage.Outro);
-            return lines.ToArray();
+            AddLines(result, stage.Outro, stage.OutroHeroArtKey);
+            if (EarlyStory.Supports(stage)) AddLines(result, StoryBriefings.Aftermath(stage.Number), stage.OutroHeroArtKey);
+            return result.ToArray();
+        }
+
+        private static void AddScenes(List<StoryScene> result, StoryScene[] scenes)
+        {
+            if (scenes == null) return;
+            foreach (var scene in scenes)
+                if (scene != null && scene.Lines != null) result.Add(scene);
+        }
+
+        private static void AddLines(List<StoryScene> result, string[] lines, string heroArtKey = null)
+        {
+            if (lines != null) result.Add(new StoryScene { Lines = lines, HeroArtKey = heroArtKey });
         }
 
         private static bool TryScenes(int key, out StoryScene[] scenes)
@@ -483,23 +535,12 @@ namespace BiRyeoDo.Core
             return StoryEscape.Episodes.TryGetValue(key, out scenes) || StoryRescue.Episodes.TryGetValue(key, out scenes) || StoryTournament.Episodes.TryGetValue(key, out scenes) || StoryMidgame.Episodes.TryGetValue(key, out scenes) || Before.TryGetValue(key, out scenes);
         }
 
-        private static void Append(List<string> lines, StoryScene[] scenes)
-        {
-            if (scenes == null) return;
-            foreach (var scene in scenes)
-            {
-                if (scene == null || scene.Lines == null) continue;
-                lines.Add("— " + scene.Title + " —");
-                lines.AddRange(scene.Lines);
-            }
-        }
-
         /// <summary>Continue story on an unfinished full run, including a saved resume; isolated fights and repeat clears skip it.</summary>
-        public static StoryScene[] BeforeFight(StageData stage, int encounter, SaveData save, bool singleFight = false)
+        public static StoryScene[] BeforeFight(StageData stage, int encounter, SaveData save, bool singleFight = false, bool replayStory = false)
         {
             if (FireDragonFinale.IsFinale(stage, encounter)) return FireDragonFinale.Departure;   // sets up the scripted fight, also on replays
             if (stage == null || save == null || stage.EventFor(encounter) != null || stage.IsQuest || stage.IsTower || singleFight
-                || save.ClearedStage >= stage.Number || stage.Encounters == null || encounter < 0 || encounter >= stage.Encounters.Length) return null;
+                || (save.ClearedStage >= stage.Number && !replayStory) || stage.Encounters == null || encounter < 0 || encounter >= stage.Encounters.Length) return null;
             StoryScene[] scenes;
             return TryScenes(stage.Number * 100 + encounter, out scenes) ? scenes : null;
         }

@@ -9,9 +9,9 @@ namespace BiRyeoDo.Game.UI
     /// <summary>이야기 줄거리 overlay: the plain-language recap of every stage reached so far, to read again at any time (no rewards).</summary>
     public sealed class StoryLogPanel : OverlayPanel
     {
-        private readonly Action<string, string[], Action> _play;
+        private readonly Action<string, StoryScene[], Action> _play;
 
-        public StoryLogPanel(RectTransform root, Action onChange, Action<string, string[], Action> play) : base(root, onChange)
+        public StoryLogPanel(RectTransform root, Action onChange, Action<string, StoryScene[], Action> play) : base(root, onChange)
         {
             _play = play;
         }
@@ -36,20 +36,20 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Label("Name", band, new Vector2(0.04f, 0.64f), new Vector2(0.96f, 0.96f), stage.Number + ". " + stage.Name, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
                 UiFactory.Label("Info", band, new Vector2(0.04f, 0.37f), new Vector2(0.96f, 0.61f), cleared ? "돌파한 이야기" : "다음 이야기", 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
                 var s = stage;
-                UiFactory.Button("Before", band, new Vector2(0.04f, 0.04f), new Vector2(0.255f, 0.30f), "배경", UiFactory.InkSoft, () => Play(s.Name + " — 배경", StoryBriefings.Briefing(s.Number)), 24);
+                UiFactory.Button("Before", band, new Vector2(0.04f, 0.04f), new Vector2(0.255f, 0.30f), "배경", UiFactory.InkSoft, () => Play(s.Name + " — 배경", new[] { EarlyStory.Background(s) ?? new StoryScene { Lines = StoryBriefings.Briefing(s.Number), HeroArtKey = s.IntroHeroArtKey } }), 24);
                 var between = StoryBriefings.Interlude(s.Number);
-                var fun = UiFactory.Button("Fun", band, new Vector2(0.275f, 0.04f), new Vector2(0.49f, 0.30f), "막간", UiFactory.InkSoft, () => Play("막간 — " + between.Title, between.Lines), 24);
+                var fun = UiFactory.Button("Fun", band, new Vector2(0.275f, 0.04f), new Vector2(0.49f, 0.30f), "막간", UiFactory.InkSoft, () => Play("막간 — " + between.Title, new[] { between }), 24);
                 fun.interactable = between != null;
                 var body = UiFactory.Button("Body", band, new Vector2(.51f, .04f), new Vector2(.725f, .30f), "본문", UiFactory.InkSoft,
-                    () => Play(s.Name + " — 본문", StoryEpisodes.Replay(s)), 24);
+                    () => Play(s.Name + " — 본문", StoryEpisodes.ReplayScenes(s)), 24);
                 body.interactable = cleared;
-                var after = UiFactory.Button("After", band, new Vector2(0.745f, 0.04f), new Vector2(0.96f, 0.30f), "그 뒤", UiFactory.InkSoft, () => Play(s.Name + " — 그 뒤", StoryBriefings.Aftermath(s.Number)), 24);
+                var after = UiFactory.Button("After", band, new Vector2(0.745f, 0.04f), new Vector2(0.96f, 0.30f), "그 뒤", UiFactory.InkSoft, () => Play(s.Name + " — 그 뒤", new[] { new StoryScene { Lines = StoryBriefings.Aftermath(s.Number), HeroArtKey = s.OutroHeroArtKey } }), 24);
                 after.interactable = cleared && StoryBriefings.Aftermath(s.Number) != null;
             }
             AddClose();
         }
 
-        private void Play(string title, string[] lines)
+        private void Play(string title, StoryScene[] lines)
         {
             if (_play == null || lines == null) return;
             Root.gameObject.SetActive(false);

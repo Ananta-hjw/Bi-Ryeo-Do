@@ -25,7 +25,7 @@ namespace BiRyeoDo.Game.UI
         private ReadingList _menuLayout;
         private bool _built;
 
-        public void Build(RectTransform root, Action<string, string[], Action> onStory, Action openStatus = null)
+        public void Build(RectTransform root, Action<string, string[], Action> onStory, Action openStatus = null, Action<string, StoryScene[], Action> onStoryScenes = null)
         {
             if (_built) return;
             _built = true;
@@ -47,7 +47,7 @@ namespace BiRyeoDo.Game.UI
             _ritualE = Tile(content, 5, "전승의식", "ritual", () => { CloseOverlays(); _ritual.Open(); Refresh(); });
             _menuLayout = content.GetComponent<ReadingList>();
             _codex = new CodexPanel(UiFactory.Rect("CodexOverlay", workspace, Vector2.zero, Vector2.one), UiFactory.Rect("AchievementOverlay", workspace, Vector2.zero, Vector2.one), Refresh) { Embedded = true };
-            _storyLog = new StoryLogPanel(UiFactory.Rect("StoryLogOverlay", workspace, Vector2.zero, Vector2.one), Refresh, onStory) { Embedded = true };
+            _storyLog = new StoryLogPanel(UiFactory.Rect("StoryLogOverlay", workspace, Vector2.zero, Vector2.one), Refresh, onStoryScenes) { Embedded = true };
             _memories = new MemoryPanel(UiFactory.Rect("MemoryOverlay", workspace, Vector2.zero, Vector2.one), Refresh, onStory) { Embedded = true };
             _factions = new FactionPanel(UiFactory.Rect("FactionOverlay", workspace, Vector2.zero, Vector2.one), Refresh) { Embedded = true };
             _ritual = new RitualPanel(UiFactory.Rect("RitualOverlay", workspace, Vector2.zero, Vector2.one), Refresh, onStory) { Embedded = true };

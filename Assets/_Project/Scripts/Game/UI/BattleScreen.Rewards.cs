@@ -189,7 +189,7 @@ namespace BiRyeoDo.Game.UI
                 if (after <= before) continue;
                 CombatStats previous;
                 if (!statsBefore.TryGetValue(unit.Id, out previous)) previous = unit.Stats;
-                AddLevelGrowth(content, ref index, unit.Id, unit.Name, before, after, previous, unit.Stats, true);
+                AddLevelGrowth(content, ref index, unit.Id, unit.Name, before, after, previous, unit.Stats, true, Roster.StoryArtKey(unit));
                 members++; gains += after - before;
             }
             int heroBefore;
@@ -216,12 +216,12 @@ namespace BiRyeoDo.Game.UI
         }
 
         private void AddLevelGrowth(RectTransform content, ref int index, string id, string name,
-            int before, int after, CombatStats previous, CombatStats current, bool fielded)
+            int before, int after, CombatStats previous, CombatStats current, bool fielded, string artKey = null)
         {
             var row = RewardRow(content, index++, fielded ? 400f : 220f);
             var portrait = UiFactory.Panel("Portrait", row, new Vector2(.03f, fielded ? .68f : .30f), new Vector2(.18f, .96f), Color.white);
             portrait.preserveAspect = true;
-            portrait.sprite = BattleFigure(id);
+            portrait.sprite = BattleFigure(artKey ?? id);
             if (portrait.sprite == null)
             {
                 portrait.color = Color.clear;
@@ -292,7 +292,7 @@ namespace BiRyeoDo.Game.UI
             var row = RewardRow(content, index, 210f);
             var portrait = UiFactory.Panel("Portrait", row, new Vector2(.03f, .24f), new Vector2(.17f, .94f), Color.white);
             portrait.preserveAspect = true;
-            portrait.sprite = BattleFigure(unit.Id);
+            portrait.sprite = BattleFigure(Roster.StoryArtKey(unit));
             if (portrait.sprite == null)
             {
                 portrait.color = Color.clear;

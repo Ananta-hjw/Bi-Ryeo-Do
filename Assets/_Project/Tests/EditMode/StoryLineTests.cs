@@ -29,7 +29,7 @@ namespace BiRyeoDo.Tests
             Assert.IsNull(first.IntroHeroArtKey); // the hero talks to his actual master before the waterfall
             Assert.AreEqual(StoryAppearance.OldMasterDisguise, first.OutroHeroArtKey);
             Assert.AreEqual(StoryAppearance.OldMasterDisguise, second.IntroHeroArtKey);
-            Assert.AreEqual(StoryAppearance.OldMasterDisguise, second.Prologue.Single(s => s.Title == "연장된 합숙").HeroArtKey);
+            Assert.AreEqual(StoryAppearance.OldMasterDisguise, second.Prologue.Single(s => s.Title == "회상 — 합숙 초기와 연장된 수련").HeroArtKey);
             Assert.AreEqual(StoryAppearance.OldMasterDisguise, third.IntroHeroArtKey); // farewell, before the party travels alone
             Assert.IsNull(third.OutroHeroArtKey);
             Assert.IsNull(StoryBriefings.Interlude(1).HeroArtKey); // actual master in the same early volume
