@@ -19,9 +19,9 @@ namespace BiRyeoDo.Tests
             var question = StoryLine.Parse(ev.Ending[0]);
             var answer = StoryLine.Parse(ev.Ending[1]);
             Assert.AreEqual("나예린", question.Speaker);
-            Assert.AreEqual("내릴 자리는 없느냐?", question.Text);
+            Assert.AreEqual("하마터면 배 시간에 늦을 뻔했군요. 이 배에 제가 탈 자리 정도는 남아 있겠죠, 류연?", question.Text);
             Assert.IsTrue(answer.IsProtagonist);
-            Assert.AreEqual("내 옆자리는 언제나 예린의 자리.", answer.Text);
+            Assert.AreEqual("그럼요, 내 옆자리는 언제나 비어 있는 걸요. 왜냐하면 거긴 항상 예린의 자리니까요.", answer.Text);
             string replay = string.Join(" ", StoryEpisodes.Replay(EarlyGameContent.FindStage(58)));
             StringAssert.Contains(ev.Choices[choice].Outcome[0], replay);
             Assert.Less(replay.IndexOf(ev.Ending[2], StringComparison.Ordinal),
