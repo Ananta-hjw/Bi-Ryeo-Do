@@ -6,6 +6,64 @@ namespace BiRyeoDo.Tests
 {
     public class StoryLineTests
     {
+        [TestCase("사부")]
+        [TestCase("사부님")]
+        [TestCase("노사부")]
+        [TestCase("노사부님")]
+        public void BorrowedMasterTitleUsesTheSceneIdentity(string speaker)
+        {
+            var line = StoryLine.Parse(speaker + "|제자야.");
+            Assert.IsFalse(StoryAppearance.IsHeroSpeaking(line, null));
+            Assert.IsTrue(StoryAppearance.IsHeroSpeaking(line, StoryAppearance.OldMasterDisguise));
+            Assert.AreEqual(speaker, line.Speaker); // the displayed name and dialogue remain intact
+            Assert.IsFalse(StoryAppearance.IsHeroSpeaking(StoryLine.Parse("주작단원|예, 사부님!"), StoryAppearance.OldMasterDisguise));
+            Assert.IsFalse(StoryAppearance.IsHeroSpeaking(StoryLine.Parse("노사부가 돌아갔다."), StoryAppearance.OldMasterDisguise));
+        }
+
+        [Test]
+        public void DisguiseScenesDoNotChangeTheRealMastersFlashback()
+        {
+            var first = EarlyGameContent.Stages.Single(s => s.Number == 1);
+            var second = EarlyGameContent.Stages.Single(s => s.Number == 2);
+            var third = EarlyGameContent.Stages.Single(s => s.Number == 3);
+            Assert.IsNull(first.IntroHeroArtKey); // the hero talks to his actual master before the waterfall
+            Assert.AreEqual(StoryAppearance.OldMasterDisguise, first.OutroHeroArtKey);
+            Assert.AreEqual(StoryAppearance.OldMasterDisguise, second.IntroHeroArtKey);
+            Assert.AreEqual(StoryAppearance.OldMasterDisguise, second.Prologue.Single(s => s.Title == "연장된 합숙").HeroArtKey);
+            Assert.AreEqual(StoryAppearance.OldMasterDisguise, third.IntroHeroArtKey); // farewell, before the party travels alone
+            Assert.IsNull(third.OutroHeroArtKey);
+            Assert.IsNull(StoryBriefings.Interlude(1).HeroArtKey); // actual master in the same early volume
+            Assert.AreEqual(StoryAppearance.OldMasterDisguise, StoryBriefings.Interlude(2).HeroArtKey);
+            var arrival = StoryEpisodes.BeforeFight(first, 3, new SaveData()).Single(s => s.Title == "노사부와 열여섯 제자");
+            Assert.AreEqual(StoryAppearance.OldMasterDisguise, arrival.HeroArtKey);
+        }
+
+        [Test]
+        public void DisguiseChangesAtTheWhiteTigerAndIsClearedAfterTheAgency()
+        {
+            var first = EarlyGameContent.Stages.Single(s => s.Number == 1);
+            var second = EarlyGameContent.Stages.Single(s => s.Number == 2);
+            var third = EarlyGameContent.Stages.Single(s => s.Number == 3);
+            var hero = Formation.BuildHero(new SaveData());
+            int hp = hero.Hp, qi = hero.Qi;
+            var party = new[] { hero };
+            Roster.PrepareStoryEncounter(first, 0, party);
+            Assert.AreEqual("player", Roster.StoryArtKey(hero));
+            Roster.PrepareStoryEncounter(first, 3, party);
+            Assert.AreEqual(StoryAppearance.OldMasterDisguise, Roster.StoryArtKey(hero));
+            Roster.PrepareStoryEncounter(second, 0, party);
+            Assert.AreEqual(StoryAppearance.OldMasterDisguise, Roster.StoryArtKey(hero));
+            Roster.PrepareStoryEncounter(third, 0, party);
+            Assert.AreEqual("player", Roster.StoryArtKey(hero));
+            Assert.AreEqual("비류연", hero.Name);
+            Assert.AreEqual(hp, hero.Hp);
+            Assert.AreEqual(qi, hero.Qi);
+            var tower = new StageData { Number = 2, IsTower = true };
+            Assert.AreEqual("player", StoryAppearance.HeroBattleKey(tower, 0));
+            var quest = new StageData { Number = 2, IsQuest = true };
+            Assert.AreEqual("player", StoryAppearance.HeroBattleKey(quest, 0));
+        }
+
         [Test]
         public void ParsesDialogueAndNarration()
         {

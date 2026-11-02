@@ -34,4 +34,35 @@ namespace BiRyeoDo.Core
         /// <summary>The line as shown, without the invented mark.</summary>
         public static string Clean(string raw) { return IsInvented(raw) ? raw.Substring(1) : raw; }
     }
+    /// <summary>Authored appearances distinguish a borrowed name from the person wearing it.</summary>
+    public static class StoryAppearance
+    {
+        public const string OldMasterDisguise = "biry_old_master";
+
+        public static bool IsHeroSpeaking(StoryLine line, string heroArtKey)
+        {
+            if (line.IsProtagonist) return true;
+            if (!line.IsDialogue || heroArtKey != OldMasterDisguise) return false;
+            return line.Speaker == "사부" || line.Speaker == "사부님" || line.Speaker == "노사부" || line.Speaker == "노사부님";
+        }
+
+        public static string HeroBattleKey(StageData stage, int encounter)
+        {
+            if (stage == null || stage.IsQuest || stage.IsTower) return "player";
+            // Volume 1: the waterfall precedes the disguise; the white tiger and escort-agency fights follow it.
+            if (stage.Number == 2 || (stage.Number == 1 && encounter == 3)) return OldMasterDisguise;
+            return "player";
+        }
+
+        public static void ApplyBattle(StageData stage, int encounter, System.Collections.Generic.IEnumerable<Combatant> party)
+        {
+            if (party == null) return;
+            foreach (var member in party)
+                if (member.Id == Inventory.Hero)
+                {
+                    if (HeroBattleKey(stage, encounter) == OldMasterDisguise) member.StoryArtId = OldMasterDisguise;
+                    else if (member.StoryArtId == OldMasterDisguise) member.StoryArtId = null;
+                }
+        }
+    }
 }

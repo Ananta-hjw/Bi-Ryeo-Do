@@ -432,7 +432,7 @@ namespace BiRyeoDo.Core
                     "사부|사부가 맡아 둔 거다, 맡아 둔 거. 이자는 술로 받으마. 어서 가거라.",
                     "비류연|…(이 사부님 손에 맡기느니 호랑이 잡아서 내 돈 모으는 게 낫지.)",
                 } } },
-            { 2, new StoryScene { Title = "지원금은 어디에", Lines = new[]
+            { 2, new StoryScene { HeroArtKey = StoryAppearance.OldMasterDisguise, Title = "지원금은 어디에", Lines = new[]
                 {
                     "수련원 마당. 남궁상이 슬며시 손을 든다.",
                     "남궁상|노사부님, 학관에서 나온다던 지원금은 언제 받습니까?",

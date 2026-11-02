@@ -18,7 +18,7 @@ namespace BiRyeoDo.Core
                             "+비류연|(가르치러 가던 사람이라……. 재미있을 것 같아. 그렇게 해 볼까.)",
                             "두 달 동안 사기술을 익힌 비류연은 노인의 얼굴을 쓰고 천무아미수련원으로 향했다.",
                         } },
-                    new StoryScene { Title = "노사부와 열여섯 제자", Lines = new[] {
+                    new StoryScene { HeroArtKey = StoryAppearance.OldMasterDisguise, Title = "노사부와 열여섯 제자", Lines = new[] {
                             "남궁상|누구요?",
                             "비류연|잘 왔다! 환영하지!",
                             "비류연|내 이름은 없다! 아니! 없다고 생각해라! 노부의 지금 이 얼굴은 나의 진짜 얼굴이 아니다! 인피면구라는 껍데기를 쓰고 있기 때문이다!",
@@ -27,7 +27,7 @@ namespace BiRyeoDo.Core
                             "비류연|그럼 이제부터 통성명 시간을 갖도록 하지! 너부터 해 봐라!",
                             "남궁상|전 남궁세가의 둘째 아들이며, 현재 주작단의 단주를 맡고 있는 남궁상이라고 합니다! 앞으로 잘 부탁드립니다!",
                         } },
-                    new StoryScene { Title = "뜻밖의 백호", Lines = new[] {
+                    new StoryScene { HeroArtKey = StoryAppearance.OldMasterDisguise, Title = "뜻밖의 백호", Lines = new[] {
                             "노사부의 서신을 받은 남궁상과 진령이 같은 숲에서 마주쳤다.",
                             "남궁상|진…… 진 소저! 이곳엔 어쩐 일로…….",
                             "진령|전 사부님이 부르셔서……. 여기에…….",

@@ -429,13 +429,13 @@ namespace BiRyeoDo.Game.UI
             if (!resume && !_fled && pickStart == 0 && !singleFight)
             {
                 var recap = !stage.IsTower && !stage.IsQuest && save.ClearedStage < stage.Number ? StoryBriefings.Briefing(stage.Number) : null;
-                if (recap != null) yield return ShowStory(stage.Name + " — 이야기 배경", recap);
+                if (recap != null) yield return ShowStory(stage.Name + " — 이야기 배경", recap, stage.IntroHeroArtKey);
                 var between = recap != null ? StoryBriefings.Interlude(stage.Number) : null;
-                if (between != null) yield return ShowStory("막간 — " + between.Title, between.Lines);
+                if (between != null) yield return ShowStory("막간 — " + between.Title, between.Lines, between.HeroArtKey);
                 if (stage.Prologue != null && save.ClearedStage < stage.Number)
                     foreach (var scene in stage.Prologue)
-                        yield return ShowStory(scene.Title, scene.Lines);
-                if (!stage.IsTower) yield return ShowStory(stage.Name, stage.Intro);
+                        yield return ShowStory(scene.Title, scene.Lines, scene.HeroArtKey);
+                if (!stage.IsTower) yield return ShowStory(stage.Name, stage.Intro, stage.IntroHeroArtKey);
             }
 
             bool again = !_fled;
@@ -463,7 +463,7 @@ namespace BiRyeoDo.Game.UI
                     _lastFightNumber = i + 1;
                     var episodes = StoryEpisodes.BeforeFight(stage, i, save, singleFight);
                     if (episodes != null)
-                        foreach (var scene in episodes) yield return ShowStory(scene.Title, scene.Lines);
+                        foreach (var scene in episodes) yield return ShowStory(scene.Title, scene.Lines, scene.HeroArtKey);
                     var storyEvent = stage.EventFor(i);
                     if (storyEvent != null)
                         yield return ShowChoiceEvent(storyEvent);
@@ -637,9 +637,9 @@ namespace BiRyeoDo.Game.UI
                     var joiners = Roster.NewJoiners(highestBefore, save.HighestUnlockedStage);
                     Roster.BenchNewcomers(save, joiners);
                     GameManager.Instance.SaveNow();
-                    yield return ShowStory(stage.Name + " 돌파", stage.Outro);
+                    yield return ShowStory(stage.Name + " 돌파", stage.Outro, stage.OutroHeroArtKey);
                     var after = firstClear ? StoryBriefings.Aftermath(stage.Number) : null;
-                    if (after != null) yield return ShowStory(stage.Name + " — 그 뒤", after);
+                    if (after != null) yield return ShowStory(stage.Name + " — 그 뒤", after, stage.OutroHeroArtKey);
                     string bondNote = AwardBonds(save);
                     var reward = Inventory.GrantStageReward(save, stage.Number);
                     int chests = StageStars.ClaimableCount(save);
@@ -1025,6 +1025,7 @@ namespace BiRyeoDo.Game.UI
                 party.Add(CompanionGrowth.Create(save, c));
                 if (bondLevel >= Bonds.RescueLevel && string.IsNullOrEmpty(hero.RescuerId)) hero.RescuerId = c.Id;
             }
+            StoryAppearance.ApplyBattle(stage, fight, party);
             Formation.Apply(party, save, stage);   // 앞줄/뒷줄 from the saved formation, or planned against this stage's enemies
             return party;
         }
@@ -2760,12 +2761,12 @@ namespace BiRyeoDo.Game.UI
 
         // ------------------------------------------------------------------ panels
 
-        private IEnumerator ShowStory(string title, string[] lines)
+        private IEnumerator ShowStory(string title, string[] lines, string heroArtKey = null)
         {
             SetCommandsVisible(false);
             _panel.SetActive(false);
             _storySkip = false;
-            string left = StoryLine.Protagonist, right = null;
+            string left = heroArtKey ?? StoryLine.Protagonist, right = null;
             _storyBackdrop.sprite = _backdropImage.sprite;
             _storyBackdrop.color = _backdropImage.sprite != null ? Color.white : Backdrop;
             _storyRoot.SetActive(true);
@@ -2773,17 +2774,18 @@ namespace BiRyeoDo.Game.UI
             for (int i = 0; i < lines.Length && !_fled && !_storySkip; i++)
             {
                 var line = StoryLine.Parse(lines[i]);
-                if (line.IsDialogue && !line.IsProtagonist) right = line.Speaker;
+                bool heroSpeaking = StoryAppearance.IsHeroSpeaking(line, heroArtKey);
+                if (line.IsDialogue && !heroSpeaking) right = line.Speaker;
                 _storyTitle.text = title;
-                ShowPortrait(0, line.IsDialogue || right != null ? left : null, line.IsProtagonist);
-                ShowPortrait(1, right, line.IsDialogue && !line.IsProtagonist);
+                ShowPortrait(0, line.IsDialogue || right != null ? left : null, heroSpeaking);
+                ShowPortrait(1, right, line.IsDialogue && !heroSpeaking);
 
-                bool rightSide = line.IsDialogue && !line.IsProtagonist;
+                bool rightSide = line.IsDialogue && !heroSpeaking;
                 _namePlate.gameObject.SetActive(line.IsDialogue);
                 _namePlate.anchorMin = new Vector2(rightSide ? .68f : .07f, .34f);
                 _namePlate.anchorMax = new Vector2(rightSide ? .93f : .32f, .405f);
                 _nameTag.text = line.IsDialogue ? line.Speaker : "";
-                _nameTag.color = line.IsProtagonist ? UiFactory.Gold : UiFactory.PaperText;
+                _nameTag.color = heroSpeaking ? UiFactory.Gold : UiFactory.PaperText;
                 _storyText.fontStyle = FontStyle.Normal;
                 _storyText.color = UiFactory.PaperText;
                 int offset = 0, pageIndex = 0;

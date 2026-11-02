@@ -247,6 +247,7 @@ namespace BiRyeoDo.Core
     {
         public string Title;
         public string[] Lines;
+        public string HeroArtKey; // authored appearance for this scene; null uses the ordinary protagonist
     }
 
     public sealed class StageData
@@ -260,6 +261,7 @@ namespace BiRyeoDo.Core
         /// <summary>Optional story scenes shown before Intro, only while the stage has not been cleared yet (bridges the volumes' plot between fights).</summary>
         public StoryScene[] Prologue;
         public string[] Intro, Outro;
+        public string IntroHeroArtKey, OutroHeroArtKey;
         /// <summary>Fights in order; each is a group of enemy ids (1-3). Trials may follow a boss.</summary>
         public string[][] Encounters;
         /// <summary>
@@ -1260,7 +1262,7 @@ namespace BiRyeoDo.Core
 
         public static readonly StageData[] Stages =
         {
-            new StageData { Number = 1, Name = "아미산 숲", RecommendedLevel = 1, DooTotal = 300,
+            new StageData { Number = 1, OutroHeroArtKey = StoryAppearance.OldMasterDisguise, Name = "아미산 숲", RecommendedLevel = 1, DooTotal = 300,
                 Intro = new[] {
                     "아미산의 새벽. 비류연의 검지가 까딱 움직이자 비도가 섬광처럼 솔방울을 꿰뚫었다.",
                     "비류연|휴우! 성공이군!",
@@ -1288,10 +1290,10 @@ namespace BiRyeoDo.Core
                     "진령|이런 걸 괜찮다고 하다니……. 보세요! 제가 상처를 치료해 드릴게요!",
                 },
                 Encounters = new[] { new[] { "tiger" }, new[] { "bear" }, new[] { "tiger", "tiger" }, new[] { "white_tiger" } } },
-            new StageData { Number = 2, RewardWeightBudget = 7, Name = "중양표국", RecommendedLevel = 4, DooTotal = 1400,
+            new StageData { Number = 2, IntroHeroArtKey = StoryAppearance.OldMasterDisguise, OutroHeroArtKey = StoryAppearance.OldMasterDisguise, RewardWeightBudget = 7, Name = "중양표국", RecommendedLevel = 4, DooTotal = 1400,
                 Prologue = new[]
                 {
-                    new StoryScene { Title = "연장된 합숙", Lines = new[] {
+                    new StoryScene { HeroArtKey = StoryAppearance.OldMasterDisguise, Title = "연장된 합숙", Lines = new[] {
                             "주작단원 열여섯이 손목과 발목에 묵환을 찬 채 장작과 빨래, 밥 짓기에 매달렸다. 며칠 만에 노학이 폭발했다.",
                             "노학|이런 잡일들이나 하려고 이 멀고 먼 아미산 깊은 곳의 훈련소를 찾아온 게 아니란 말이에요! 이 이상 무공을 가르쳐 주지 않으면 합숙 훈련이고 뭐고 다 때려치우고 천무학관으로 돌아갈 겁니다!",
                             "비류연|호오! 너 지금 나한테 반항하는 거냐!",
@@ -1338,7 +1340,7 @@ namespace BiRyeoDo.Core
                 },
                 RewardEncounters = new[] { new[] { "biaosa" }, new[] { "biaosa", "biaosa" }, new[] { "gang_janghan" }, new[] { "deung_yeoun", "deung_yeoho" }, new[] { "jang_uyang" } },
                 Encounters = new[] { new[] { "biaosa", "biaosa", "biaosa" }, new[] { "biaosa", "biaosa", "biaosa", "biaosa" }, new[] { "gang_janghan", "biaosa", "biaosa" }, new[] { "deung_yeoun", "deung_yeoho", "biaosa" }, new[] { "jang_uyang", "biaosa", "biaosa" } } },
-            new StageData { Number = 3, Name = "호골채 매복", RecommendedLevel = 7, DooTotal = 1600,
+            new StageData { Number = 3, IntroHeroArtKey = StoryAppearance.OldMasterDisguise, Name = "호골채 매복", RecommendedLevel = 7, DooTotal = 1600,
                 Intro = new[] {
                     "이별의 아침, 노사부가 묵룡환 하나를 내보였다.",
                     "사부|이 묵룡환은 나의 신표다. 다음에 언제 어디서라도 이 묵룡환을 보거든…… 그러는 게 신상에 이로울 거다. 알겠느냐!",

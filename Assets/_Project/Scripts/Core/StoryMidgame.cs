@@ -2341,7 +2341,7 @@ namespace BiRyeoDo.Core
                             "갈효봉은 물러갔다. 쓰러진 효룡을 청흔이 점혈하려 하자 비류연이 막아섰다.",
                             "+비류연|친구입니다. 손대지 마세요.",
                         } },
-                    new StoryScene { Title = "전원 생환을 위한 시간", Lines = new[] {
+                    new StoryScene { HeroArtKey = StoryAppearance.OldMasterDisguise, Title = "전원 생환을 위한 시간", Lines = new[] {
                             "노사부로 변장한 비류연이 초혼오귀검 앞을 막았다.",
                             "+비류연|노부의 제자들이 수련 중이다. 방해하지 말고 돌아가거라.",
                         } },

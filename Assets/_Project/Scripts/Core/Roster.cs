@@ -264,6 +264,7 @@ namespace BiRyeoDo.Core
             StoryTournament.PrepareParty(stage, encounter, result);
             StoryRescue.PrepareParty(stage, encounter, result);
             StoryEscape.PrepareParty(stage, encounter, result);
+            StoryAppearance.ApplyBattle(stage, encounter, result);
             foreach (var member in result) member.StoryControlled = true;
             Formation.Apply(result, null);   // Fixed scenes never rewrite the saved regular-party formation.
             return result;
@@ -272,6 +273,7 @@ namespace BiRyeoDo.Core
         /// <summary>A new technique in the same flashback changes commands without replacing the wounded body.</summary>
         public static void PrepareStoryEncounter(StageData stage, int encounter, IEnumerable<Combatant> party)
         {
+            StoryAppearance.ApplyBattle(stage, encounter, party);
             if (Reenacted(stage)) { AddSceneTechniques(stage, encounter, new List<Combatant>(party)); return; }
             if (StoryActorsFor(stage, encounter) == null) return;
             StoryTournament.PrepareParty(stage, encounter, party);
