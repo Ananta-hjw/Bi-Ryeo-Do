@@ -71,6 +71,7 @@ namespace BiRyeoDo.Core
         public int FixedHp;          // >0: exact max HP regardless of level and difficulty (a scripted obstacle, e.g. 화룡멸겁대진)
         /// <summary>A nameless follower (궁수, 도부수, 회원 ...) that fills out a story fight; never picked for the 무한 비무대 pool.</summary>
         public bool IsMinion;
+        public string RoleOf;   // 무한 비무대 clones: the story enemy whose 궁수형/방패·철갑형 profile they keep (null = this enemy's own id)
         public int Level;
         public float HpMul = 1f, AtkMul = 1f, DefMul = 1f;
         public int SpeedAdd;
@@ -139,14 +140,16 @@ namespace BiRyeoDo.Core
         public CombatStats BuildStatsBeforeRealm()
         {
             var b = Progression.StatsFor(Level);
-            int attack = Math.Max(1, (int)Math.Round(b.Attack * AtkMul)), defense = Math.Max(1, (int)Math.Round(b.Defense * DefMul));
+            float roleHp, roleAtk, roleDef;
+            SoldierRoles.Factors(SoldierRoles.Of(RoleOf ?? Id), out roleHp, out roleAtk, out roleDef);   // 궁수형 / 방패·철갑형 rank-and-file profile
+            int attack = Math.Max(1, (int)Math.Round(b.Attack * AtkMul * roleAtk)), defense = Math.Max(1, (int)Math.Round(b.Defense * DefMul * roleDef));
             // Shown attack and defense are re-balanced against each other (their product stays the same) so that an enemy reads like a party member:
             // the fight values are attack x AtkUnit and defense x DefUnit, exactly what they were before.
             double s = Math.Sqrt((double)attack / (defense * DisplayRatio));
             int shownAttack = Math.Max(1, (int)Math.Round(attack / s)), shownDefense = Math.Max(1, (int)Math.Round(defense * s));
             var stats = new CombatStats
             {
-                MaxHp = (int)Math.Round(b.MaxHp * HpMul),
+                MaxHp = (int)Math.Round(b.MaxHp * HpMul * roleHp),
                 MaxQi = QiPool,
                 Attack = shownAttack,
                 Defense = shownDefense,

@@ -114,7 +114,7 @@ namespace BiRyeoDo.Core
         {
             var enemy = new EnemyData
             {
-                Id = id, Name = t.Name, ArtId = t.ArtKey, IsBoss = t.IsBoss, Level = level,
+                Id = id, Name = t.Name, ArtId = t.ArtKey, RoleOf = t.RoleOf ?? t.Id, IsBoss = t.IsBoss, Level = level,
                 HpMul = t.IsBoss ? BossHpMul : NormalHpMul * FloorHpTune(floor),
                 AtkMul = AtkMulFor(floor, t.IsBoss),
                 DefMul = 1f, SpeedAdd = 0, Moves = t.IsBoss ? BossPatterns[(floor / BossEvery) % BossPatterns.Length] : NormalMoves

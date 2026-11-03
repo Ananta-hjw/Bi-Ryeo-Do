@@ -136,7 +136,7 @@ Key flow:
 
 - 뽑기 등급 미리보기(`GachaScreen.OpenPool`)는 5열·높이 320 고정 카드다. 긴 설명 대신 장비 효과/소모품 효과 요약과 세트 이름만 보여주며 `ReadingList` 자동 높이 확장은 사용하지 않는다. 장비 탭 선택창의 설명 오른쪽 `Costs`에는 선택 장비의 등급 개방 은자 또는 다음 강화 재료·은자의 보유/필요 수량을 보여준다.
 
-- 방어 공식·적 방어(2026-11): 받는 피해 = x K/(K+방어), K = `BattleEngine.DefenseConstant` 900(방어 900 = 피해 50%; 전에는 333). `Realm.Power`는 자체 방어 척도를 유지해 종합 수치·경지 사다리는 그대로다. 적의 기본 방어(장비 전)는 스테이지에 따라 x1.10(1)→x1.25(66)로 점점 올라간다(`StageStars.EnemyDefenseBoost`, `ScaleEnemy`가 이야기·의뢰·무한 비무대 적에 적용, 승급 비무 상대는 레벨에 맞는 스테이지 값 `EnemyDefenseBoostAtLevel`). 아군·장비 방어 수치는 그대로이고 난이도는 다시 재지 않았다.
+- 방어 공식·적 방어(2026-11): 받는 피해 = x K/(K+방어), K = `BattleEngine.DefenseConstant` 900(방어 900 = 피해 50%; 전에는 333). `Realm.Power`는 자체 방어 척도를 유지해 종합 수치·경지 사다리는 그대로다. 적의 기본 방어(장비 전)는 스테이지에 따라 x1.10(1)→x1.25(66)로 점점 올라간다(`StageStars.EnemyDefenseBoost`, `ScaleEnemy`가 이야기·의뢰·무한 비무대 적에 적용, 승급 비무 상대는 레벨에 맞는 스테이지 값 `EnemyDefenseBoostAtLevel`). 아군·장비 방어 수치는 그대로이고 난이도는 다시 재지 않았다. 적 공격도 스테이지 1 x1.05 → 마지막 x1.20(`StageStars.EnemyAttackBoost`, 승급은 `EnemyAttackBoostAtLevel`; 어려움·극악도 일반 분기를 거쳐 공격·방어 상향을 모두 받는다). 이름 없는 병사는 그 위에 `SoldierRoles` 유형 배율(궁수형 공격 x1.15·체력/방어 x0.85, 방패·철갑형 공격 x0.92·체력/방어 x1.15, 일반 무사 x1; id 기준, 무한 비무대 복제는 `EnemyData.RoleOf`로 이어받음).
 - 방어구 공격 상한(2026-11): 상의·하의·신발의 공격 효과는 같은 등급 무기 최고 공격의 약 1/3(일반 1.5%·고급 3%·희귀 4%·영웅 7%·전설 11%·신화 20%) 이하다. `Docs/EQUIPMENT_CATALOG_EXPANSION.md`「방어구 공격 상한과 신화 장비 조정」.
 
 - 장비 수량: `GearCatalogExpansion.All`이 162종을 보충하여 무기·상의·하의·신발·장신구 각각 일반 20/고급 17/희귀 15/영웅 12/전설 8/신화 6종이다. 초월 진비뢰도 포함 총 391종. 신규 아이콘은 `Readable/gear_expansion_*.png`와 catalog의 개별 측정 영역을 사용한다. `Docs/EQUIPMENT_CATALOG_EXPANSION.md`에 전체 신규 이름·효과가 있다.

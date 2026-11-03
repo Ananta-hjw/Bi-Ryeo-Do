@@ -108,7 +108,7 @@ namespace BiRyeoDo.Core
             float hard = HardnessFor(rank);
             int level = OpponentLevelFor(rank, playerLevel);
             // the high ranks' duelists hit for 100-200% of the protagonist's HP: attack eases to x0.755 at rank 10; the first ranks' duelists fall in 7 hits: HP x1.15
-            float atk = AtkMulByRank[rank] * TierAtk[tier] * hard * (rank >= 4 ? 1f - 0.035f * (rank - 3) : 1f);
+            float atk = AtkMulByRank[rank] * TierAtk[tier] * hard * (rank >= 4 ? 1f - 0.035f * (rank - 3) : 1f) * StageStars.EnemyAttackBoostAtLevel(level);
             float hpTune = rank <= 3 ? 1.15f : 1f;
             string t = TierName[tier];
             // the duelists wear the gear of enemies built for the protagonist's level (or the rank's, if higher)

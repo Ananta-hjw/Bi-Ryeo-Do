@@ -187,7 +187,7 @@ namespace BiRyeoDo.Tests
             int anchor = Tower.ReferenceStage(24);
             float late = anchor >= 24 ? .85f : 1f;
             Assert.AreEqual(Tower.NormalHpMul * Tower.FloorHpTune(24) * StageStars.NormalHpBoost(anchor) * late * StageStars.NormalHpTrim(anchor), towerEnemy.HpMul, .001f);
-            Assert.AreEqual(Tower.AtkMulFor(24, false) * StageStars.NormalAtkBoost(anchor) * StageStars.NormalStatEase * 1.25f, towerEnemy.AtkMul, .001f);
+            Assert.AreEqual(Tower.AtkMulFor(24, false) * StageStars.NormalAtkBoost(anchor) * StageStars.NormalStatEase * 1.25f * StageStars.EnemyAttackBoost(anchor), towerEnemy.AtkMul, .001f);
             Assert.AreEqual(StageStars.NormalStatEase * StageStars.EnemyDefenseBoost(anchor), towerEnemy.DefMul, .001f);   // plus the stage's base-defense rise
             Assert.Greater(Tower.BuildEnemies(35)[0].BuildStats().Attack, Tower.BuildEnemies(30)[0].BuildStats().Attack);
         }

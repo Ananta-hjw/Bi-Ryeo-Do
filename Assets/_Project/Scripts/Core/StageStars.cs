@@ -341,9 +341,27 @@ namespace BiRyeoDo.Core
         /// <summary>The boost of the last 일반 stage whose recommended (curve) level the given enemy level has reached.</summary>
         public static float EnemyDefenseBoostAtLevel(int curveLevel)
         {
+            return EnemyDefenseBoost(StageAtLevel(curveLevel));
+        }
+
+        /// <summary>Every enemy's base attack rises with the stage the same way: +5% at stage 1 up to +20% at the last stage (2026-11).</summary>
+        public const float EnemyAttackBoostFirst = 1.05f, EnemyAttackBoostLast = 1.20f;
+
+        public static float EnemyAttackBoost(int stage)
+        {
+            int last = Math.Max(2, EarlyGameContent.Stages.Length);
+            double t = Math.Max(0, Math.Min(1, (stage - 1) / (double)(last - 1)));
+            return (float)(EnemyAttackBoostFirst + (EnemyAttackBoostLast - EnemyAttackBoostFirst) * t);
+        }
+
+        /// <summary>The attack boost of the last 일반 stage whose recommended (curve) level the given enemy level has reached.</summary>
+        public static float EnemyAttackBoostAtLevel(int curveLevel) { return EnemyAttackBoost(StageAtLevel(curveLevel)); }
+
+        private static int StageAtLevel(int curveLevel)
+        {
             int stage = 1;
             foreach (var st in EarlyGameContent.Stages) if (st.RecommendedLevel <= curveLevel) stage = Math.Max(stage, st.Number);
-            return EnemyDefenseBoost(stage);
+            return stage;
         }
 
         public static EnemyData ScaleEnemy(EnemyData enemy, int stage, int difficulty, bool survive = false)
@@ -358,7 +376,7 @@ namespace BiRyeoDo.Core
                 float hp = NormalHpBoost(stage), atk = NormalAtkBoost(stage);
                 if (stage >= 24) { hp *= 0.85f; atk *= 1.25f; }
                 if (!survive) hp *= NormalHpTrim(stage, enemy);   // a 버티기 fight keeps its enemy's HP
-                return enemy.Scaled(hp, atk * soft, soft * defBoost);
+                return enemy.Scaled(hp, atk * soft * EnemyAttackBoost(stage), soft * defBoost);
             }
             // 어려움·극악: the 일반 enemy of the same stage (and fight), raised by the bot's extra levels, times the fitted correction.
             return ScaleEnemy(enemy, stage, 0, survive).Scaled(HardHpFix(stage, difficulty), HardAtkFix(stage, difficulty), 1f, LevelAdd(stage, difficulty));
