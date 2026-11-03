@@ -399,7 +399,8 @@ namespace BiRyeoDo.Core
         {
             if (Player.StoryControlled && Player.Id != Inventory.Hero) return false;
             return IsPlayerTurn && Current == _party[0] && partner != null && partner != Current && partner.IsAlive
-                && _party.Contains(partner) && Current.Spirit >= JointSpiritCost && AnyEnemyAlive;
+                && _party.Contains(partner) && Current.Spirit >= JointSpiritCost && AnyEnemyAlive
+                && !Current.Has(StatusKind.Seal) && !partner.Has(StatusKind.Seal) && !partner.Has(StatusKind.Deviation);
         }
 
         public Combatant FirstLivingEnemy()
@@ -464,6 +465,12 @@ namespace BiRyeoDo.Core
                 if (!FinaleWindowOpen) throw new InvalidOperationException("The window is closed.");
                 return FinaleStrike();
             }
+            // 봉혈: a sealed member can only throw the basic attack (the bot and any stale button press fall back to it)
+            if (Current.Has(StatusKind.Seal) && ((cmd.Kind == CommandKind.Skill && cmd.Skill != null && cmd.Skill.Id != "basic") || cmd.Kind == CommandKind.Joint))
+            {
+                var basic = Current.Skills.Find(x => x.Id == "basic") ?? SkillSpec.BasicAttack();
+                cmd = PlayerCommand.UseSkill(basic, cmd.Target);
+            }
             if (cmd.Kind == CommandKind.Item && (cmd.Item == null || cmd.Item.Kind != ItemKind.Consumable || cmd.Item.MasteryUses > 0)) throw new InvalidOperationException("Not a consumable.");
             // Validate everything before touching any state, so a rejected command leaves the turn intact.
             if (cmd.Kind == CommandKind.Joint && (cmd.Skill == null || !CanJoint(cmd.Partner))) throw new InvalidOperationException("Joint attack unavailable.");
@@ -509,14 +516,13 @@ namespace BiRyeoDo.Core
                     break;
                 case CommandKind.Meditate:
                     {
-                        int heal = (int)Math.Round(actor.Stats.MaxHp * MeditateHealPct);
+                        int heal = Healed(actor, (int)Math.Round(actor.Stats.MaxHp * MeditateHealPct));
                         actor.Hp = Math.Min(actor.Stats.MaxHp, actor.Hp + heal);
                         int qi = MeditateQiFor(actor.Stats.MaxQi);
                         actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + qi);
                         events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = "meditate", Kind = EventKind.Meditate, Heal = heal, TargetHpAfter = actor.Hp, Message = "운기조식. 내공 +" + qi });
                         // 운기 also clears one 상태 이상, the one that hurts most
-                        foreach (var k in Statuses.CurePriority)
-                            if (actor.RemoveStatus(k)) { events.Add(Cured(actor, actor, k, actor.Name + "의 " + Statuses.Name(k) + "이(가) 풀렸다.")); break; }
+                        CureOne(actor, actor, events);
                         break;
                     }
                 case CommandKind.Item:
@@ -529,7 +535,7 @@ namespace BiRyeoDo.Core
                         int heal = 0;
                         if (item.HealPct > 0f)
                         {
-                            heal = (int)Math.Round(target.Stats.MaxHp * item.HealPct);
+                            heal = Healed(target, (int)Math.Round(target.Stats.MaxHp * item.HealPct));
                             target.Hp = Math.Min(target.Stats.MaxHp, target.Hp + heal);
                         }
                         if (item.QiRestore > 0) target.Qi = Math.Min(target.Stats.MaxQi, target.Qi + item.QiRestore);
@@ -567,7 +573,9 @@ namespace BiRyeoDo.Core
         private void UseSkill(Combatant actor, PlayerCommand cmd, List<BattleEvent> events)
         {
             var skill = cmd.Skill;
-            actor.Qi -= skill.QiCost;
+            actor.Qi -= actor.QiCostOf(skill);
+            if (skill.Id != "basic" && actor.Has(StatusKind.BloodBackflow)) StatusHurt(actor, StatusKind.BloodBackflow, events);   // 혈맥 역류
+            if (!actor.IsAlive) return;
             actor.Spirit -= skill.SpiritCost;
             if (skill.Cooldown > 0) actor.Cooldowns[skill.Id] = skill.Cooldown;
 
@@ -581,6 +589,7 @@ namespace BiRyeoDo.Core
                 case SkillEffect.GuardParty:
                     StartPartyGuard(actor);
                     events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = skill.Id, Kind = EventKind.Guard, TargetHpAfter = actor.Hp, Message = actor.Name + "의 " + skill.Name + "! 모두가 방어 태세." });
+                    CureOne(actor, actor, events);   // 태을천강벽 steadies its caster: one 상태 이상 of its own goes
                     return;
                 case SkillEffect.Stealth:
                     actor.Stealthed = true; actor.StealthCrit = true;
@@ -590,7 +599,7 @@ namespace BiRyeoDo.Core
                     foreach (var m in _party)
                     {
                         if (!m.IsAlive) continue;
-                        int heal = (int)Math.Round(m.Stats.MaxHp * skill.HealPct);
+                        int heal = Healed(m, (int)Math.Round(m.Stats.MaxHp * skill.HealPct));
                         m.Hp = Math.Min(m.Stats.MaxHp, m.Hp + heal);
                         events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = m.Id, SkillId = skill.Id, Kind = EventKind.Heal, Heal = heal, TargetHpAfter = m.Hp, Message = actor.Name + "의 " + skill.Name + "! 일행 모두 회복." });
                     }
@@ -608,7 +617,7 @@ namespace BiRyeoDo.Core
                     events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = skill.Id, Kind = EventKind.Guard, Tag = "기세 +" + PartySpiritGain, TargetHpAfter = actor.Hp, Message = actor.Name + "의 " + skill.Name + "! 일행의 기세가 오른다." });
                     return;
                 case SkillEffect.Ward:
-                    foreach (var m in _party) if (m.IsAlive) m.WardTurns = WardTurns;
+                    foreach (var m in _party) if (m.IsAlive) { m.WardTurns = WardTurns; CureOne(actor, m, events); }   // 은하밀밀 also lifts one 상태 이상 from each
                     events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = skill.Id, Kind = EventKind.Guard, Tag = "결계", TargetHpAfter = actor.Hp, Message = actor.Name + "의 " + skill.Name + "! 일행이 상태 이상에 걸리지 않는다." });
                     return;
                 case SkillEffect.Focus:
@@ -618,7 +627,7 @@ namespace BiRyeoDo.Core
                 case SkillEffect.HealAlly:
                     {
                         var weakest = ResolveAlly(cmd.AllyTarget);
-                        int heal = (int)Math.Round(weakest.Stats.MaxHp * skill.HealPct);
+                        int heal = Healed(weakest, (int)Math.Round(weakest.Stats.MaxHp * skill.HealPct));
                         weakest.Hp = Math.Min(weakest.Stats.MaxHp, weakest.Hp + heal);
                         events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = weakest.Id, SkillId = skill.Id, Kind = EventKind.Heal, Heal = heal, TargetHpAfter = weakest.Hp, Message = actor.Name + "의 " + skill.Name + "! " + weakest.Name + " 회복." });
                         return;
@@ -627,7 +636,7 @@ namespace BiRyeoDo.Core
                     {
                         // the chosen ally, else the one carrying the most statuses (else the most wounded)
                         var who = cmd.AllyTarget != null && cmd.AllyTarget.IsAlive && _party.Contains(cmd.AllyTarget) ? cmd.AllyTarget : MostAfflicted() ?? MostWounded();
-                        int heal = (int)Math.Round(who.Stats.MaxHp * skill.HealPct);
+                        int heal = Healed(who, (int)Math.Round(who.Stats.MaxHp * skill.HealPct));
                         who.Hp = Math.Min(who.Stats.MaxHp, who.Hp + heal);
                         events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = who.Id, SkillId = skill.Id, Kind = EventKind.Heal, Heal = heal, TargetHpAfter = who.Hp, Message = actor.Name + "의 " + skill.Name + "! " + who.Name + "의 몸이 맑아진다." });
                         if (who.Statuses.Count > 0) { who.Statuses.Clear(); events.Add(Cured(actor, who, StatusKind.None, who.Name + "의 상태 이상이 모두 풀렸다.")); }
@@ -655,7 +664,7 @@ namespace BiRyeoDo.Core
             // 상태 이상: one roll per enemy the art struck (and that is still standing)
             if (skill.Inflict != StatusKind.None && skill.InflictChance > 0f)
                 foreach (var t in targets)
-                    if (t.IsAlive && _rng.NextDouble() < skill.InflictChance) Inflict(actor, t, skill.Inflict, events);
+                    if (t.IsAlive && Rolls(t, skill.Inflict, skill.InflictChance)) Inflict(actor, t, skill.Inflict, events);
             if (skill.SpiritCost == 0) actor.Spirit = Math.Min(MaxSpirit, actor.Spirit + SpiritOnDealt + actor.SpiritDealtBonus);
             if (targets.Count > 0) { actor.Focused = false; actor.StealthCrit = false; }   // 유성보·신은술 are spent on this attack
         }
@@ -666,6 +675,9 @@ namespace BiRyeoDo.Core
             int dmg = BattleEngine.CalcDamage(actor.Stats, t.Stats, skill, crit);
             if (actor.Focused) dmg = (int)Math.Round(dmg * FocusDamageFactor);
             if (actor.Has(StatusKind.Chill)) dmg = (int)Math.Round(dmg * ChillAttackFactor);
+            if (actor.Has(StatusKind.Disarm)) dmg = (int)Math.Round(dmg * Statuses.DisarmFactor);
+            int illusionBack = actor.Has(StatusKind.Illusion) ? (int)Math.Round(dmg * Statuses.IllusionSelfShare) : 0;   // 환각: part of the blow lands on the attacker
+            dmg -= illusionBack;
             if (_harmonyBoost) dmg = (int)Math.Round(dmg * HarmonyDamageFactor);
             Combatant counterTarget;
             bool counter = _counterStrikes.TryGetValue(actor, out counterTarget) && counterTarget == t;
@@ -675,7 +687,7 @@ namespace BiRyeoDo.Core
             t.Hp = Math.Max(0, t.Hp - dmg);
             if (IsFinale && t.Team == Team.Enemy && t.Hp < 1) t.Hp = 1;   // the 진 cannot be worn down
             if (t.UsesResources && t.IsAlive) t.Spirit = Math.Min(MaxSpirit, t.Spirit + SpiritOnEnemyHit);
-            if (actor.Lifesteal > 0f && actor.IsAlive) actor.Hp = Math.Min(actor.Stats.MaxHp, actor.Hp + (int)Math.Round(dmg * actor.Lifesteal));
+            if (actor.Lifesteal > 0f && actor.IsAlive) actor.Hp = Math.Min(actor.Stats.MaxHp, actor.Hp + Healed(actor, (int)Math.Round(dmg * actor.Lifesteal)));
             var ev = new BattleEvent
             {
                 Turn = Turn, ActorId = actor.Id, TargetId = t.Id, SkillId = skill.Id, Kind = EventKind.Attack,
@@ -701,7 +713,9 @@ namespace BiRyeoDo.Core
             if (ev.Interrupted) GrantCounter(actor, t, ev);
             ev.TargetHpAfter = ev.Retreated && t.HoldsAtOneHp ? 1 : t.Hp;
             ev.TargetDefeated = !t.IsAlive;
+            if (h == 0 && t.IsAlive && ChillStruck(t)) ApplyStun(t, ev, true);   // 한기: the third attack taken freezes it (once per attack command), bosses too
             events.Add(ev);
+            if (illusionBack > 0 && actor.IsAlive) SelfHurt(actor, illusionBack, StatusKind.Illusion, events);
             if (triggerBleed && h == 0 && t.IsAlive && t.Has(StatusKind.Bleed)) StatusHurt(t, StatusKind.Bleed, events);   // once per attack command
             if (!t.IsAlive && ev.CounterReady)
             {
@@ -726,7 +740,7 @@ namespace BiRyeoDo.Core
             if (bled) StatusHurt(t, StatusKind.Bleed, events);
             var next = t.IsAlive ? t : ResolveTarget(null, spec);
             if (next != null) DealHit(partner, next, spec, 0, 1, spec.Effect == SkillEffect.Stun, events, !bled).Joint = true;
-            if (next != null && spec.Inflict != StatusKind.None && next.IsAlive && _rng.NextDouble() < spec.InflictChance) Inflict(partner, next, spec.Inflict, events);   // 백혼합벽: 한기
+            if (next != null && spec.Inflict != StatusKind.None && next.IsAlive && Rolls(next, spec.Inflict, spec.InflictChance)) Inflict(partner, next, spec.Inflict, events);   // 백혼합벽: 한기
             actor.Focused = false; actor.StealthCrit = false; partner.Focused = false; partner.StealthCrit = false;
 
             switch (spec.Effect)
@@ -738,7 +752,7 @@ namespace BiRyeoDo.Core
                 case SkillEffect.HealAlly:
                     {
                         var weakest = MostWounded();
-                        int heal = (int)Math.Round(weakest.Stats.MaxHp * spec.HealPct);
+                        int heal = Healed(weakest, (int)Math.Round(weakest.Stats.MaxHp * spec.HealPct));
                         weakest.Hp = Math.Min(weakest.Stats.MaxHp, weakest.Hp + heal);
                         events.Add(new BattleEvent { Turn = Turn, ActorId = partner.Id, TargetId = weakest.Id, SkillId = spec.Id, Kind = EventKind.Heal, Joint = true, Heal = heal, TargetHpAfter = weakest.Hp, Message = spec.Name + "! " + weakest.Name + " \ud68c\ubcf5." });
                         break;
@@ -746,7 +760,7 @@ namespace BiRyeoDo.Core
             }
         }
 
-        private void ApplyStun(Combatant target, BattleEvent ev)
+        private void ApplyStun(Combatant target, BattleEvent ev, bool freeze = false)
         {
             if (target.AwakeningStrike != null)
             {
@@ -761,7 +775,7 @@ namespace BiRyeoDo.Core
                 target.MoveIndex++;
                 ev.Interrupted = true;
             }
-            if (!target.IsBoss)
+            if (!target.IsBoss || freeze)   // 점혈 never stuns a boss; 한기's freeze does
             {
                 target.Stunned = true;
                 ev.Stunned = true;
@@ -775,18 +789,82 @@ namespace BiRyeoDo.Core
             return new BattleEvent { ActorId = actor.Id, TargetId = target.Id, SkillId = "status", Kind = EventKind.Status, Status = kind, StatusCured = true, TargetHpAfter = target.Hp, Message = message };
         }
 
+        /// <summary>Does a status take hold: 주화입마 always at its own 20%, the rest at the source's chance; 강력한 보스 x0.5, 정말 강력한 보스 x0.2.</summary>
+        private bool Rolls(Combatant target, StatusKind kind, float chance)
+        {
+            if (kind == StatusKind.Deviation) chance = Statuses.DeviationChance;
+            chance *= Statuses.ChanceFactor(target);
+            return chance >= 1f || _rng.NextDouble() < chance;
+        }
+
+        /// <summary>Lifts one 상태 이상 (the one that hurts most) from the unit.</summary>
+        private void CureOne(Combatant actor, Combatant who, List<BattleEvent> events)
+        {
+            foreach (var k in Statuses.CurePriority)
+                if (who.RemoveStatus(k)) { events.Add(Cured(actor, who, k, who.Name + "의 " + Statuses.Name(k) + "이(가) 풀렸다.")); return; }
+        }
+
+        /// <summary>주화입마: the unit burns its own blood and throws a double basic attack at a random ally of its own side (none: the turn is wasted).</summary>
+        private void DeviationTurn(Combatant actor, List<BattleEvent> events)
+        {
+            if (actor.Charging) { actor.Charging = false; actor.ChargeTarget = null; actor.MoveIndex++; }   // the wound-up blow is lost
+            StatusHurt(actor, StatusKind.Deviation, events);
+            if (!actor.IsAlive) return;
+            var side = actor.Team == Team.Player ? _party : _enemies;
+            var allies = side.FindAll(x => x != actor && x.IsAlive);
+            if (allies.Count == 0)
+            {
+                events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = "deviation", Kind = EventKind.StunSkip, Tag = "주화입마", TargetHpAfter = actor.Hp, Message = actor.Name + "이(가) 주화입마에 빠져 허공에 손을 휘두른다!" });
+                return;
+            }
+            var victim = allies[Math.Min(allies.Count - 1, (int)(_rng.NextDouble() * allies.Count))];
+            var spec = new SkillSpec { Id = "deviation", Name = "주화입마", Power = Statuses.DeviationPower };
+            int dmg = BattleEngine.CalcDamage(actor.Stats, victim.Stats, spec, false);
+            if (actor.Has(StatusKind.Chill)) dmg = (int)Math.Round(dmg * ChillAttackFactor);
+            victim.Hp = Math.Max(0, victim.Hp - dmg);
+            if (IsFinale && victim.Team == Team.Enemy && victim.Hp < 1) victim.Hp = 1;
+            var ev = new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = victim.Id, SkillId = "deviation", Kind = EventKind.Attack, Tag = "주화입마", Damage = dmg, HitCount = 1, Message = actor.Name + "이(가) 주화입마에 빠져 " + victim.Name + "을(를) 공격한다!" };
+            if (victim.Hp == 0 && victim.Team == Team.Player) TryRescue(victim, ev);
+            if (victim.RetreatHpPct > 0f && victim.Hp <= victim.Stats.MaxHp * victim.RetreatHpPct) { victim.Hp = 0; ev.Retreated = true; }
+            else if (victim.HoldsAtOneHp && victim.Hp <= 0) Leave(victim, ev);
+            if (!victim.IsAlive) { victim.Charging = false; victim.ChargeTarget = null; victim.AwakeningStrike = null; }
+            ev.TargetHpAfter = ev.Retreated && victim.HoldsAtOneHp ? 1 : victim.Hp;
+            ev.TargetDefeated = !victim.IsAlive;
+            events.Add(ev);
+        }
+
+        /// <summary>중독 halves every heal the unit receives.</summary>
+        private static int Healed(Combatant who, int heal)
+        {
+            return who != null && who.Has(StatusKind.Poison) ? (int)Math.Round(heal * Statuses.PoisonHealFactor) : heal;
+        }
+
+        /// <summary>한기: counts an attack taken while chilled; true on the one that freezes the unit (the count starts again).</summary>
+        private static bool ChillStruck(Combatant t)
+        {
+            if (!t.Has(StatusKind.Chill)) return false;
+            if (++t.ChillHits < Statuses.ChillFreezeHits) return false;
+            t.ChillHits = 0;
+            return true;
+        }
+
         private void Inflict(Combatant source, Combatant target, StatusKind kind, List<BattleEvent> events)
         {
             if (kind == StatusKind.None || !target.IsAlive) return;
             if (target.WardTurns > 0) return;   // 은하밀밀
-            if (!target.AddStatus(kind, Statuses.DefaultTurns(kind))) return;   // already carries a status: nothing new takes hold
+            if (!target.AddStatus(kind, Statuses.TurnsFor(target, kind))) return;   // already carries a status: nothing new takes hold
             events.Add(new BattleEvent { Turn = Turn, ActorId = source.Id, TargetId = target.Id, SkillId = "status", Kind = EventKind.Status, Status = kind, TargetHpAfter = target.Hp, Message = target.Name + ": " + Statuses.Name(kind) + "!" });
         }
 
         /// <summary>중독·화상 at the unit's turn and 출혈 when struck: a share of max HP. Can fell the unit (a bonded companion may still save the protagonist; a story boss flees instead).</summary>
         private void StatusHurt(Combatant unit, StatusKind kind, List<BattleEvent> events)
         {
-            int dmg = Statuses.DotDamage(unit, kind);
+            SelfHurt(unit, Statuses.DotDamage(unit, kind), kind, events);
+        }
+
+        /// <summary>HP a unit loses to a 상태 이상 (중독·화상·출혈·혈맥 역류·주화입마, or its own blow coming back under 환각).</summary>
+        private void SelfHurt(Combatant unit, int dmg, StatusKind kind, List<BattleEvent> events)
+        {
             if (dmg <= 0 || !unit.IsAlive) return;
             unit.Hp = Math.Max(0, unit.Hp - dmg);
             if (IsFinale && unit.Team == Team.Enemy && unit.Hp < 1) unit.Hp = 1;
@@ -879,6 +957,18 @@ namespace BiRyeoDo.Core
                 if (!actor.IsAlive) continue;   // fell to 중독·화상 before acting
                 if (actor.Team == Team.Enemy) CheckPhases(events);   // 중독·화상 can push a boss into its next phase
 
+                if (actor.Team == Team.Player && !actor.Stunned && actor.Has(StatusKind.Deviation))
+                {
+                    DeviationTurn(actor, events);   // 주화입마: the member is not the player's to command this turn
+                    continue;
+                }
+                if (actor.Team == Team.Player && actor.Stunned)
+                {
+                    // 한기로 얼어붙은 아군: this turn is lost (its cooldowns and 내공 do not move either)
+                    actor.Stunned = false;
+                    events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = "stun", Kind = EventKind.StunSkip, TargetHpAfter = actor.Hp, Message = actor.Name + "은(는) 몸이 얼어붙어 움직이지 못한다!" });
+                    continue;
+                }
                 if (actor.Team == Team.Player)
                 {
                     // 46·43: enough of the 심도 (three of the enemy's blows, or 비류연 below the trigger) and the scene begins
@@ -967,12 +1057,30 @@ namespace BiRyeoDo.Core
                 events.Add(new BattleEvent { Turn = Turn, ActorId = enemy.Id, TargetId = enemy.Id, SkillId = "stun", Kind = EventKind.StunSkip, TargetHpAfter = enemy.Hp, Message = enemy.Name + "은(는) 몸이 굳어 움직이지 못한다!" });
                 return;
             }
+            // 운기 해독: a boss or veteran may spend the turn shaking off what ails it
+            if (enemy.Statuses.Count > 0 && enemy.CleansesLeft > 0 && _rng.NextDouble() < enemy.CleanseChance)
+            {
+                enemy.CleansesLeft--;
+                enemy.Statuses.Clear();
+                enemy.ChillHits = 0;
+                events.Add(Cured(enemy, enemy, StatusKind.None, enemy.Name + "이(가) 운기하여 상태 이상을 몰아냈다!"));
+                return;
+            }
+            if (enemy.Has(StatusKind.Deviation)) { DeviationTurn(enemy, events); return; }
 
             if (enemy.UsesResources && !wounded) enemy.Qi = Math.Min(enemy.Stats.MaxQi, enemy.Qi + EnemyQiRegen);
-            var move = enemy.PeekMove();
-            bool awakening = move.Awakening;
+            bool sealedTurn = enemy.Has(StatusKind.Seal);
+            if (sealedTurn && enemy.Charging)
+            {
+                // 봉혈: the wound-up blow cannot be thrown; the script moves past it
+                enemy.Charging = false;
+                enemy.ChargeTarget = null;
+                enemy.MoveIndex++;
+            }
+            var move = sealedTurn ? EnemyMove.Plain : enemy.PeekMove();
+            bool awakening = !sealedTurn && move.Awakening;
 
-            if (move.Charge)
+            if (!sealedTurn && move.Charge)
             {
                 enemy.MoveIndex++;
                 enemy.Charging = true;
@@ -985,15 +1093,16 @@ namespace BiRyeoDo.Core
             var target = !awakening && enemy.Charging && enemy.ChargeTarget != null && enemy.ChargeTarget.IsAlive ? enemy.ChargeTarget : FrontMember();
             if (target == null) return;
             // A 저격 move reaches every line and picks the back-most party member; everything else hits the front line.
-            if (move.Snipe && !enemy.Charging && !awakening)
+            if (!sealedTurn && move.Snipe && !enemy.Charging && !awakening)
             {
                 var far = BackMember(Math.Max(enemy.Range, SnipeReach));
                 if (far != null) target = far;
             }
             target = Redirect(target);
 
-            bool heavy = awakening || enemy.Charging;
-            if (awakening) enemy.AwakeningStrike = null;
+            bool heavy = !sealedTurn && (awakening || enemy.Charging);
+            if (sealedTurn) { }   // 봉혈: a plain blow; the script (and any 각성 strike) waits
+            else if (awakening) enemy.AwakeningStrike = null;
             else
             {
                 enemy.MoveIndex++;
@@ -1004,9 +1113,12 @@ namespace BiRyeoDo.Core
             int hits = Math.Max(1, move.Hits);
             float power = move.Power * move.DamageFactor;
             bool burst = false, dry = false;
+            bool backflow = enemy.Has(StatusKind.QiBackflow);
+            if (backflow && !enemy.UsesResources && !sealedTurn) power *= Statuses.QiBackflowNoQiPower;   // 내공 역류 on a body without 내공
             if (enemy.UsesResources)
             {
                 int cost = EnemyQiCost(move);
+                if (backflow) cost = (int)Math.Round(cost * Statuses.QiBackflowFactor);
                 if (cost > 0)
                 {
                     if (enemy.Qi >= cost) enemy.Qi -= cost;
@@ -1016,6 +1128,7 @@ namespace BiRyeoDo.Core
             }
             var spec = new SkillSpec { Id = move.Name, Name = move.Name, Power = power };
             bool hurt = false, struck = false;   // struck: at least one hit landed without a guard (only those leave a 상태 이상)
+            int selfHurt = 0;   // 환각: what the enemy's own blows send back to it
             bool bled = target.Has(StatusKind.Bleed);
             int firstHit = events.Count;
             BattleEvent lastHit = null;
@@ -1036,6 +1149,8 @@ namespace BiRyeoDo.Core
                     ev.IsCrit = _rng.NextDouble() < enemy.Stats.CritRate;
                     int dmg = BattleEngine.CalcDamage(enemy.Stats, target.Stats, spec, ev.IsCrit);
                     if (enemy.Has(StatusKind.Chill)) dmg = (int)Math.Round(dmg * ChillAttackFactor);
+                    if (enemy.Has(StatusKind.Disarm)) dmg = (int)Math.Round(dmg * Statuses.DisarmFactor);
+                    if (enemy.Has(StatusKind.Illusion)) { int back = (int)Math.Round(dmg * Statuses.IllusionSelfShare); selfHurt += back; dmg -= back; }
                     if (target.Focused) dmg = (int)Math.Round(dmg * FocusTakenFactor);
                     if (target.Covering) dmg = Math.Max(1, (int)Math.Round(dmg * CoverDamageFactor));
                     float guard = GuardFactorFor(target);
@@ -1058,9 +1173,14 @@ namespace BiRyeoDo.Core
                 if (LifelinesCut >= Trial.Limit) TrialFailed = true;
             }
             if (hurt && bled && target.IsAlive) StatusHurt(target, StatusKind.Bleed, events);
+            if (hurt && target.IsAlive && lastHit != null && ChillStruck(target))   // 한기: the third move that lands freezes the member
+            {
+                target.Stunned = true;
+                lastHit.Stunned = true;
+            }
             if (struck && target.IsAlive)
             {
-                if (move.Inflict != StatusKind.None && _rng.NextDouble() < (heavy ? Statuses.ChargedChance : Statuses.MoveChance)) Inflict(enemy, target, move.Inflict, events);
+                if (move.Inflict != StatusKind.None && Rolls(target, move.Inflict, heavy ? Statuses.ChargedChance : Statuses.MoveChance)) Inflict(enemy, target, move.Inflict, events);
                 if (heavy) Inflict(enemy, target, StatusKind.InnerWound, events);   // a charged blow taken without a guard leaves 내상
             }
             // Resolve the entire move first: partial evasion or dying to its last hit/bleed
@@ -1072,6 +1192,8 @@ namespace BiRyeoDo.Core
                 DealHit(target, enemy, new SkillSpec { Id = "counter_stance", Name = "반격", Power = CounterStancePower }, 0, 1, false, events).Counter = true;
             if (enemy.UsesResources && !burst) enemy.Spirit = Math.Min(MaxSpirit, enemy.Spirit + EnemySpiritOnDealt);
             for (int i = firstHit; i < events.Count; i++) events[i].TargetSpiritAfter = target.Spirit;
+            if (selfHurt > 0 && enemy.IsAlive) SelfHurt(enemy, selfHurt, StatusKind.Illusion, events);
+            if (!sealedTurn && enemy.IsAlive && enemy.Has(StatusKind.BloodBackflow)) StatusHurt(enemy, StatusKind.BloodBackflow, events);   // 혈맥 역류: every technique costs blood
         }
 
         /// <summary>내공 a 정예/보스 spends on a move: heavy strikes (power x hits of 2 or more) cost, light ones are free.</summary>

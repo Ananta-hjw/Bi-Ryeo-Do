@@ -535,7 +535,7 @@ namespace BiRyeoDo.Core
             {
                 Add(c.Id); Add(c.Team); Stats(c.Stats); Add(c.PhaseBaseStats.HasValue); if (c.PhaseBaseStats.HasValue) Stats(c.PhaseBaseStats.Value);
                 Add(c.Hp); Add(c.Qi); Add(c.Spirit); Add(c.Gauge); Add(c.StartSpirit); Add(c.QiRegenBonus); Add(c.SpiritDealtBonus); Add(c.SpiritTakenBonus); Add(c.Lifesteal);
-                Add(c.Guarding); Add(c.Evading); Add(c.EvadeChance); Add(c.Stunned); Add(c.Charging); Add(c.ChargeTarget?.Id); Add(c.Rank); Add(c.IsBoss); Add(c.RetreatHpPct); Add(c.Range);
+                Add(c.Guarding); Add(c.Evading); Add(c.EvadeChance); Add(c.Stunned); Add(c.ChillHits); Add(c.Charging); Add(c.ChargeTarget?.Id); Add(c.Rank); Add(c.IsBoss); Add(c.RetreatHpPct); Add(c.Range);
                 Add(c.RescuerId); Add(c.RescueUsed); Add(c.MoveIndex); Add(c.PhaseIndex); Move(c.AwakeningStrike);
                 if (positions) { Add(c.Col); Add(c.Row); }
                 Add("skills"); foreach (var s in c.Skills)

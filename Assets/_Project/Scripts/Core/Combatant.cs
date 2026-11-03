@@ -46,6 +46,10 @@ namespace BiRyeoDo.Core
         public bool Charging;              // enemy is winding up its next move (telegraph)
         public Combatant ChargeTarget;     // who the wound-up move will hit
         public bool Stunned;               // loses its next action
+        public int ChillHits;              // 한기: attacks taken since it took hold (ChillFreezeHits freeze the unit)
+        public int StatusTier;             // 0 = ordinary, 1 = 강력한 보스 (status chance x0.5), 2 = 정말 강력한 보스 / 시험 wall (x0.2)
+        public int CleansesLeft;           // enemies: times this fight it may spend a turn to shake off a status (운기 해독)
+        public float CleanseChance;        // chance per afflicted turn of doing so
         public EnemyRank Rank;             // enemies: 일반 / 정예 / 보스 (정예 and 보스 use 내공 and 기세)
         public bool IsBoss;                // bosses cannot be stun-locked, only interrupted
         public float RetreatHpPct;         // >0: a story boss that flees (leaves the fight) once its HP drops to this fraction of max
@@ -72,7 +76,7 @@ namespace BiRyeoDo.Core
                 StoryArtId = StoryArtId, StartSpirit = StartSpirit, Lifesteal = Lifesteal, RescuerId = RescuerId, RescueUsed = RescueUsed,
                 Col = Col, Row = Row, Range = Range, Guarding = Guarding, Evading = Evading, EvadeChance = EvadeChance,
                 Stealthed = Stealthed, StealthCrit = StealthCrit, Covering = Covering, CounterStance = CounterStance, WardTurns = WardTurns, Focused = Focused,
-                Charging = Charging, Stunned = Stunned, Rank = Rank, IsBoss = IsBoss, RetreatHpPct = RetreatHpPct, HoldsAtOneHp = HoldsAtOneHp, RetreatLines = RetreatLines,
+                Charging = Charging, Stunned = Stunned, ChillHits = ChillHits, StatusTier = StatusTier, CleansesLeft = CleansesLeft, CleanseChance = CleanseChance, Rank = Rank, IsBoss = IsBoss, RetreatHpPct = RetreatHpPct, HoldsAtOneHp = HoldsAtOneHp, RetreatLines = RetreatLines,
                 MoveIndex = MoveIndex, Moves = Moves, Phases = Phases, PhaseIndex = PhaseIndex, AwakeningStrike = AwakeningStrike
             };
             copy.Skills.Clear();
@@ -104,7 +108,14 @@ namespace BiRyeoDo.Core
         {
             int cd;
             Cooldowns.TryGetValue(skill.Id, out cd);
-            return cd <= 0 && Qi >= skill.QiCost && Spirit >= skill.SpiritCost;
+            if (Has(StatusKind.Seal) && skill.Id != "basic") return false;   // 봉혈: only the basic attack
+            return cd <= 0 && Qi >= QiCostOf(skill) && Spirit >= skill.SpiritCost;
+        }
+
+        /// <summary>내공 the art costs this unit now (내공 역류 doubles it).</summary>
+        public int QiCostOf(SkillSpec skill)
+        {
+            return Has(StatusKind.QiBackflow) ? (int)Math.Round(skill.QiCost * BiRyeoDo.Core.Statuses.QiBackflowFactor) : skill.QiCost;
         }
 
         public const float RestHealPct = 0.30f;   // share of max HP regained between fights of one stage
@@ -143,6 +154,7 @@ namespace BiRyeoDo.Core
         {
             if (kind == StatusKind.None || turns <= 0 || Statuses.Count > 0) return false;
             Statuses.Add(new StatusEffect { Kind = kind, Turns = turns });
+            if (kind == StatusKind.Chill) ChillHits = 0;   // the blow that chilled the unit is not counted
             return true;
         }
 

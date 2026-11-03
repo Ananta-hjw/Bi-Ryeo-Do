@@ -420,7 +420,11 @@ namespace BiRyeoDo.Core
         {
             bool survive = trial != null && trial.Kind == TrialKind.Survive;
             var scaled = ScaleEnemy(enemy, stage, difficulty, survive);
-            if (IsMilestoneBoss(enemy, stage)) scaled = scaled.Scaled(MilestoneBossBoost, MilestoneBossBoost, MilestoneBossBoost);
+            if (IsMilestoneBoss(enemy, stage))
+            {
+                scaled = scaled.Scaled(MilestoneBossBoost, MilestoneBossBoost, MilestoneBossBoost);
+                scaled.StatusTier = Math.Max(scaled.StatusTier, 1);   // 강력한 보스: statuses land at half the chance
+            }
             if (stage >= Roster.ReenactFrom)
             {
                 // a 시험 wall (huge HP so it is endured, not beaten) hit like a story body's sparring partner; against a party of four it gets the

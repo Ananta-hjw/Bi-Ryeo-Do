@@ -1727,8 +1727,10 @@ namespace BiRyeoDo.Game.UI
                 int cd = me.CooldownLeft(s);
                 bool reach = _battle.CanReach(s);
                 bool ok = _battle.CanUse(s) && reach;
-                string sub = cd > 0 ? "재사용 " + cd + "턴" : s.SpiritCost > 0 ? "기세 " + s.SpiritCost : s.QiCost > 0 ? "내공 " + s.QiCost : "";
-                if (cd == 0 && me.Qi < s.QiCost) sub = "내공 부족";
+                int qiCost = me.QiCostOf(s);   // 내공 역류 doubles it
+                string sub = cd > 0 ? "재사용 " + cd + "턴" : s.SpiritCost > 0 ? "기세 " + s.SpiritCost : qiCost > 0 ? "내공 " + qiCost : "";
+                if (me.Has(StatusKind.Seal)) sub = "봉혈";
+                else if (cd == 0 && me.Qi < qiCost) sub = "내공 부족";
                 else if (!reach) sub = "닿지 않음";
                 if (ok && _battle.Trial != null && _battle.Trial.Kind == TrialKind.Technique && _battle.RequiredTechniqueId == s.Id)
                     sub = _battle.TechniqueWindowOpen ? "목표 · 지금 대응" : "목표 · 예고 대기";
@@ -2255,6 +2257,29 @@ namespace BiRyeoDo.Game.UI
                 switch (ev.Kind)
                 {
                     case EventKind.Attack:
+                        if (ev.SkillId == "deviation")
+                        {
+                            // 주화입마: the unit strikes one of its own side; drawn without the attack motion (the target may be on either side)
+                            _log.text = ev.Message;
+                            var selfPanel = PanelOf(ev.ActorId); var selfCard = CardOf(ev.ActorId);
+                            if (selfPanel != null) Float(selfPanel.Center, "주화입마", ColorOf(StatusKind.Deviation), 60);
+                            else if (selfCard != null) Float(selfCard.Center, "주화입마", ColorOf(StatusKind.Deviation), 60);
+                            var hurtPanel = PanelOf(ev.TargetId); var hurtCard = CardOf(ev.TargetId);
+                            SoundManager.Sfx("hit");
+                            if (hurtPanel != null) { Float(hurtPanel.Center, "-" + ev.Damage, UiFactory.Red, 64); ShowHpAfter(ev.TargetId, ev.TargetHpAfter); }
+                            if (hurtCard != null)
+                            {
+                                Float(hurtCard.Center, "-" + ev.Damage, UiFactory.Red, 64);
+                                hurtCard.ShownHp = ev.TargetHpAfter;
+                                hurtCard.Hp.SetPct(hurtCard.Unit.Stats.MaxHp > 0 ? (float)ev.TargetHpAfter / hurtCard.Unit.Stats.MaxHp : 0f);
+                                hurtCard.HpText.text = ev.TargetHpAfter + " / " + hurtCard.Unit.Stats.MaxHp;
+                                if (ev.TargetDefeated) StartCoroutine(Collapse(hurtCard));
+                            }
+                            RefreshCards();
+                            RefreshParty();
+                            yield return new WaitForSeconds(Wait(SmallDelay));
+                            break;
+                        }
                         if (ev.HitIndex == 0) _log.text = actorName + "의 " + SkillLabel(ev, actorPanel) + (ev.HitCount > 1 ? " (" + ev.HitCount + "연타)" : "");
                         if (ev.Joint && _cutInKey != "joint")
                         {
@@ -2408,6 +2433,8 @@ namespace BiRyeoDo.Game.UI
                         _log.text = ev.Message;
                         var frozen = CardOf(ev.ActorId);
                         if (frozen != null) Float(frozen.Center, "굳음", GuardBlue, 64);
+                        var frozenAlly = PanelOf(ev.ActorId);
+                        if (frozenAlly != null) Float(frozenAlly.Center, string.IsNullOrEmpty(ev.Tag) ? "굳음" : ev.Tag, GuardBlue, 64);
                         RefreshCards();
                         yield return new WaitForSeconds(Wait(SmallDelay));
                         break;
@@ -2434,6 +2461,12 @@ namespace BiRyeoDo.Game.UI
                 case StatusKind.Chill: return new Color(0.6f, 0.85f, 1f, 1f);
                 case StatusKind.InnerWound: return new Color(0.85f, 0.6f, 1f, 1f);
                 case StatusKind.Bleed: return new Color(1f, 0.3f, 0.3f, 1f);
+                case StatusKind.Seal: return new Color(0.75f, 0.75f, 0.8f, 1f);
+                case StatusKind.Disarm: return new Color(0.95f, 0.85f, 0.45f, 1f);
+                case StatusKind.QiBackflow: return new Color(0.45f, 0.75f, 1f, 1f);
+                case StatusKind.BloodBackflow: return new Color(0.85f, 0.25f, 0.5f, 1f);
+                case StatusKind.Deviation: return new Color(1f, 0.35f, 0.8f, 1f);
+                case StatusKind.Illusion: return new Color(0.7f, 0.55f, 1f, 1f);
             }
             return StatusColor;
         }

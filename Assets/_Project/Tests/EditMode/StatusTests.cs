@@ -38,9 +38,9 @@ namespace BiRyeoDo.Tests
             Assert.IsTrue(ev.Any(x => x.Kind == EventKind.Status && x.Status == StatusKind.Poison && x.Damage == 0), "applied");
             var tick = ev.First(x => x.Kind == EventKind.Status && x.Damage > 0);
             Assert.AreEqual(Statuses.DotDamage(e, StatusKind.Poison), tick.Damage);
-            Assert.AreEqual(500, tick.Damage, "5% of max HP");
-            for (int i = 0; i < 4; i++) b.PlayerAct(PlayerCommand.Guard());
-            Assert.IsFalse(e.Has(StatusKind.Poison), "lasts three of its own turns");
+            Assert.AreEqual(400, tick.Damage, "4% of max HP");
+            for (int i = 0; i < 5; i++) b.PlayerAct(PlayerCommand.Guard());
+            Assert.IsFalse(e.Has(StatusKind.Poison), "lasts four of its own turns");
         }
 
         [Test]
@@ -57,7 +57,7 @@ namespace BiRyeoDo.Tests
             var e = Enemy("e", Stats(100000, 1, 100));
             Assert.AreEqual(2500, Statuses.DotDamage(e, StatusKind.Bleed));
             e.Rank = EnemyRank.Elite;
-            Assert.AreEqual(1500, Statuses.DotDamage(e, StatusKind.Bleed));
+            Assert.AreEqual(1625, Statuses.DotDamage(e, StatusKind.Bleed));
             e.Rank = EnemyRank.Boss;
             e.IsBoss = true;
             Assert.AreEqual(875, Statuses.DotDamage(e, StatusKind.Bleed));
@@ -212,6 +212,134 @@ namespace BiRyeoDo.Tests
             p.AddStatus(StatusKind.Poison, 3);
             p.RestBetweenFights();
             Assert.AreEqual(0, p.Statuses.Count);
+        }
+
+        [Test]
+        public void PoisonHalvesHealing()
+        {
+            var p = new Combatant("p", "비류연", Team.Player, Stats(1000, 1, 100), null);
+            var e = Enemy("e", Stats(10000, 1, 10), EnemyMove.Attack("x", 0.01f));
+            var b = new InteractiveBattle(p, new[] { e }, new SeededRandom(1));
+            b.Begin();
+            p.AddStatus(StatusKind.Poison, Statuses.DefaultTurns(StatusKind.Poison));
+            var ev = b.PlayerAct(PlayerCommand.Meditate());
+            int full = (int)System.Math.Round(1000 * InteractiveBattle.MeditateHealPct);
+            Assert.AreEqual((int)System.Math.Round(full * Statuses.PoisonHealFactor), ev.First(x => x.Kind == EventKind.Meditate).Heal);
+        }
+
+        [Test]
+        public void ThreeMoreAttacksOnAChilledEnemyFreezeIt()
+        {
+            var hit = new SkillSpec { Id = "h", Name = "h", Power = 0.01f };
+            var p = new Combatant("p", "비류연", Team.Player, Stats(1000, 1, 1000), new[] { hit });
+            var e = Enemy("e", Stats(100000, 1, 10), EnemyMove.Attack("x", 0.01f));
+            var b = new InteractiveBattle(p, new[] { e }, new SeededRandom(1));
+            b.Begin();
+            e.AddStatus(StatusKind.Chill, Statuses.DefaultTurns(StatusKind.Chill));
+            b.PlayerAct(PlayerCommand.UseSkill(hit, e));
+            b.PlayerAct(PlayerCommand.UseSkill(hit, e));
+            Assert.IsFalse(e.Stunned, "two attacks are not enough");
+            var third = b.PlayerAct(PlayerCommand.UseSkill(hit, e));
+            Assert.IsTrue(e.Stunned || third.Any(x => x.Kind == EventKind.StunSkip && x.ActorId == "e"), "the third attack freezes it");
+            Assert.AreEqual(0, e.ChillHits);
+        }
+
+        [Test]
+        public void AChilledMemberHitThreeTimesLosesATurn()
+        {
+            var p = new Combatant("p", "비류연", Team.Player, Stats(100000, 1, 100), null);
+            var e = Enemy("e", Stats(100000, 1, 1000), EnemyMove.Attack("x", 0.01f));
+            var b = new InteractiveBattle(p, new[] { e }, new SeededRandom(1));
+            b.Begin();
+            p.AddStatus(StatusKind.Chill, 50);
+            var ev = new List<BattleEvent>();
+            for (int i = 0; i < 3 && !ev.Any(x => x.Kind == EventKind.StunSkip); i++) ev.AddRange(b.PlayerAct(PlayerCommand.Guard()));
+            Assert.IsTrue(ev.Any(x => x.Kind == EventKind.StunSkip && x.ActorId == "p"));
+        }
+
+        [Test]
+        public void SealLeavesOnlyTheBasicAttack()
+        {
+            var art = new SkillSpec { Id = "a", Name = "a", Power = 2f, QiCost = 0 };
+            var p = new Combatant("p", "비류연", Team.Player, Stats(1000, 1, 100), new[] { art });
+            p.AddStatus(StatusKind.Seal, 2);
+            Assert.IsFalse(p.CanUse(art));
+            Assert.IsTrue(p.CanUse(p.Skills.First(x => x.Id == "basic")));
+        }
+
+        [Test]
+        public void QiBackflowDoublesTheCostOfAnArt()
+        {
+            var art = new SkillSpec { Id = "a", Name = "a", Power = 2f, QiCost = 30 };
+            var p = new Combatant("p", "비류연", Team.Player, Stats(1000, 1, 100), new[] { art });
+            p.Qi = 50;
+            Assert.IsTrue(p.CanUse(art));
+            p.AddStatus(StatusKind.QiBackflow, 3);
+            Assert.AreEqual(60, p.QiCostOf(art));
+            Assert.IsFalse(p.CanUse(art), "60 내공 needed, 50 held");
+        }
+
+        [Test]
+        public void BossesShakeStatusesOffOneTurnSooner()
+        {
+            var boss = Enemy("b", Stats(10000, 1, 100)); boss.IsBoss = true;
+            Assert.AreEqual(1, Statuses.TurnsFor(boss, StatusKind.Seal));
+            Assert.AreEqual(2, Statuses.TurnsFor(boss, StatusKind.Chill));
+            Assert.AreEqual(3, Statuses.TurnsFor(boss, StatusKind.Poison));
+            boss.StatusTier = 1; Assert.AreEqual(0.5f, Statuses.ChanceFactor(boss));
+            boss.StatusTier = 2; Assert.AreEqual(0.2f, Statuses.ChanceFactor(boss));
+        }
+
+        [Test]
+        public void ChillFreezesABossToo()
+        {
+            var hit = new SkillSpec { Id = "h", Name = "h", Power = 0.01f };
+            var p = new Combatant("p", "비류연", Team.Player, Stats(1000, 1, 1000), new[] { hit });
+            var e = Enemy("e", Stats(100000, 1, 10), EnemyMove.Attack("x", 0.01f)); e.IsBoss = true;
+            var b = new InteractiveBattle(p, new[] { e }, new SeededRandom(1));
+            b.Begin();
+            e.AddStatus(StatusKind.Chill, 3);
+            for (int i = 0; i < 3; i++) b.PlayerAct(PlayerCommand.UseSkill(hit, e));
+            Assert.IsTrue(e.Stunned);
+        }
+
+        [Test]
+        public void IllusionSendsAThirdBackAndDisarmCutsAQuarter()
+        {
+            var hit = new SkillSpec { Id = "h", Name = "h", Power = 5f };
+            CombatStats strong = Stats(100000, 300, 1000);
+            int Hit(StatusKind kind, out int self)
+            {
+                var p = new Combatant("p", "비류연", Team.Player, strong, new[] { hit });
+                var e = Enemy("e", Stats(1000000, 1, 10));
+                var b = new InteractiveBattle(p, new[] { e }, new SeededRandom(3));
+                b.Begin();
+                if (kind != StatusKind.None) p.AddStatus(kind, 2);
+                var ev = b.PlayerAct(PlayerCommand.UseSkill(hit, e));
+                self = ev.Where(x => x.Kind == EventKind.Status && x.TargetId == "p" && x.Damage > 0).Sum(x => x.Damage);
+                return ev.Where(x => x.Kind == EventKind.Attack && x.TargetId == "e").Sum(x => x.Damage);
+            }
+            int none = Hit(StatusKind.None, out _);
+            int illusion = Hit(StatusKind.Illusion, out int back);
+            int disarm = Hit(StatusKind.Disarm, out _);
+            Assert.AreEqual(none, illusion + back, 2);
+            Assert.AreEqual(none * 0.3, back, none * 0.02);
+            Assert.AreEqual(none * 0.75, disarm, none * 0.02);
+        }
+
+        [Test]
+        public void DeviationTurnsTheMemberOnItsAlly()
+        {
+            var p = new Combatant("p", "비류연", Team.Player, Stats(100000, 100, 100), null);
+            var ally = new Combatant("a", "효룡", Team.Player, Stats(100000, 100, 100), null);
+            var e = Enemy("e", Stats(1000000, 1, 10));
+            var b = new InteractiveBattle(new List<Combatant> { p, ally }, new[] { e }, new SeededRandom(1));
+            b.Begin();
+            var other = b.Current == p ? ally : p;
+            other.AddStatus(StatusKind.Deviation, 2);
+            var ev = b.PlayerAct(PlayerCommand.Guard());
+            Assert.IsTrue(ev.Any(x => x.Kind == EventKind.Attack && x.ActorId == other.Id && x.TargetId == b.Current?.Id || x.Tag == "주화입마"));
+            Assert.Less(other.Hp, other.Stats.MaxHp, "it burns its own blood");
         }
     }
 }
