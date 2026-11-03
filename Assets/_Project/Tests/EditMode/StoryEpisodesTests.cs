@@ -6,13 +6,80 @@ namespace BiRyeoDo.Tests
 {
     public class StoryEpisodesTests
     {
+        [Test]
+        public void TheYearEndMatchPrecedesTheNewYearCampAndFirstAttack()
+        {
+            var stage = EarlyGameContent.FindStage(14);
+            var opening = EarlyStory.Opening(stage);
+            StringAssert.StartsWith("회상", opening[0].Title);
+            StringAssert.StartsWith("현재", opening[1].Title);
+            Assert.IsFalse(opening.SelectMany(x => x.Lines).Contains(StoryBriefings.Briefing(14)[0]));
+            var departure = StoryEpisodes.BeforeFight(stage, 1, new SaveData());
+            StringAssert.Contains("맹연호|", departure[0].Lines[0]);
+            Assert.AreEqual(StoryBriefings.Interlude(14).Title, departure[1].Title);
+            Assert.AreEqual("새해의 목적지", departure[2].Title);
+            Assert.AreEqual("장강, 첫 번째 위기", departure.Last().Title);
+            var secondAttack = StoryEpisodes.BeforeFight(stage, 2, new SaveData());
+            CollectionAssert.AreEqual(StoryBriefings.Briefing(14).Skip(4), secondAttack[0].Lines);
+            var ending = EarlyStory.Ending(stage);
+            StringAssert.Contains("정신을 되찾았지", string.Join(" ", ending[1].Lines));
+            StringAssert.Contains("관주실", ending.Last().Lines[0]);
+        }
+
+        [Test]
+        public void CavalryMemoryReturnsToTheMemorialAfterItsRetreatAndHomewardPath()
+        {
+            var stage = EarlyGameContent.FindStage(15);
+            var opening = EarlyStory.Opening(stage);
+            Assert.AreSame(stage.Prologue[0], opening[0]);
+            StringAssert.Contains("회상", opening[1].Title);
+            var ending = EarlyStory.Ending(stage);
+            CollectionAssert.AreEqual(stage.Outro.Take(4), ending[0].Lines);
+            CollectionAssert.AreEqual(StoryBriefings.Aftermath(15), ending[1].Lines);
+            StringAssert.Contains("현재", ending[2].Title);
+            CollectionAssert.AreEqual(stage.Outro.Skip(4), ending[2].Lines);
+        }
+
+        [Test]
+        public void InspectorArrivalAndTheWhiteDragonDrawHaveTheirOwnBoundaries()
+        {
+            var inspector = EarlyGameContent.FindStage(16);
+            var arrival = EarlyStory.Opening(inspector);
+            Assert.AreSame(inspector.Prologue[1], arrival[1]);
+            StringAssert.Contains("조사관을 맞은 뒤", arrival[2].Title);
+            var assembly = EarlyStory.Opening(EarlyGameContent.FindStage(17));
+            StringAssert.Contains("회상", assembly.Single(x => x.Title.Contains("지키기로 한 맹세")).Title);
+            StringAssert.StartsWith("현재", assembly.Single(x => x.Title.Contains("전달되지 못한 경고")).Title);
+            var stage = EarlyGameContent.FindStage(18);
+            var draw = EarlyStory.Opening(stage);
+            CollectionAssert.AreEqual(StoryBriefings.Briefing(18).Take(5), draw[1].Lines);
+            CollectionAssert.AreEqual(stage.Intro, draw[2].Lines);
+            CollectionAssert.AreEqual(StoryBriefings.Briefing(18).Skip(5), draw[3].Lines);
+            Assert.AreEqual(StoryBriefings.Interlude(18).Title, draw[4].Title);
+        }
+
         [TestCase(1)]
         [TestCase(2)]
         [TestCase(3)]
+        [TestCase(4)]
+        [TestCase(5)]
+        [TestCase(6)]
+        [TestCase(7)]
+        [TestCase(8)]
+        [TestCase(9)]
+        [TestCase(10)]
+        [TestCase(11)]
+        [TestCase(12)]
+        [TestCase(13)]
+        [TestCase(14)]
+        [TestCase(15)]
+        [TestCase(16)]
+        [TestCase(17)]
+        [TestCase(18)]
         public void DetailedReplayUsesTheSameOpeningEncountersAndEndingAsBattle(int number)
         {
             var stage = EarlyGameContent.FindStage(number);
-            var completed = new SaveData { ClearedStage = 3 };
+            var completed = new SaveData { ClearedStage = 18 };
             var expected = new System.Collections.Generic.List<StoryScene>(EarlyStory.Opening(stage));
             for (int fight = 0; fight < stage.Encounters.Length; fight++)
             {
@@ -21,11 +88,90 @@ namespace BiRyeoDo.Tests
                 if (scenes != null) expected.AddRange(scenes);
                 Assert.IsNull(StoryEpisodes.BeforeFight(stage, fight, completed, true, true));
             }
-            expected.Add(new StoryScene { Lines = stage.Outro, HeroArtKey = stage.OutroHeroArtKey });
-            expected.Add(new StoryScene { Lines = StoryBriefings.Aftermath(number), HeroArtKey = stage.OutroHeroArtKey });
+            expected.AddRange(EarlyStory.Ending(stage));
             var actual = StoryEpisodes.ReplayScenes(stage);
             CollectionAssert.AreEqual(expected.SelectMany(x => x.Lines), actual.SelectMany(x => x.Lines));
             CollectionAssert.AreEqual(expected.Select(x => x.HeroArtKey), actual.Select(x => x.HeroArtKey));
+        }
+
+        [TestCase(9)]
+        [TestCase(10)]
+        public void PreparationAndInformationBuyingPrecedeTheDiscovery(int number)
+        {
+            var stage = EarlyGameContent.FindStage(number);
+            var opening = EarlyStory.Opening(stage);
+            CollectionAssert.AreEqual(StoryBriefings.Briefing(number), opening[0].Lines);
+            CollectionAssert.AreEqual(StoryBriefings.Interlude(number).Lines, opening[1].Lines);
+            Assert.AreSame(stage.Prologue[0], opening[2]);
+        }
+
+        [Test]
+        public void SettlementAndOpeningCeremonyDoNotRunAheadOfTheirChapters()
+        {
+            var tenth = EarlyGameContent.FindStage(10);
+            var eleventh = EarlyGameContent.FindStage(11);
+            var twelfth = EarlyGameContent.FindStage(12);
+            var night = EarlyStory.Ending(tenth).SelectMany(x => x.Lines).ToArray();
+            Assert.IsTrue(night.Contains(StoryBriefings.Aftermath(10)[1]));
+            Assert.IsFalse(night.Contains(StoryBriefings.Aftermath(10)[3]));
+            var nextMorning = EarlyStory.Opening(eleventh).SelectMany(x => x.Lines).ToArray();
+            Assert.Less(System.Array.IndexOf(nextMorning, eleventh.Prologue[0].Lines.Last()),
+                System.Array.IndexOf(nextMorning, StoryBriefings.Aftermath(10)[3]));
+            Assert.IsFalse(EarlyStory.Ending(eleventh).SelectMany(x => x.Lines).Contains(eleventh.Outro[5]));
+            var opening = EarlyStory.Opening(twelfth);
+            CollectionAssert.AreEqual(eleventh.Outro.Skip(5), opening[0].Lines);
+            Assert.AreSame(twelfth.Prologue[0], opening[1]);
+            CollectionAssert.AreEqual(twelfth.Intro.Take(3), opening[2].Lines);
+            CollectionAssert.AreEqual(StoryBriefings.Briefing(12), opening[3].Lines);
+            Assert.IsFalse(opening.Any(x => x.Title == StoryBriefings.Interlude(12).Title));
+            Assert.AreEqual(StoryBriefings.Interlude(12).Title, StoryEpisodes.BeforeFight(twelfth, 1, new SaveData())[0].Title);
+        }
+
+        [Test]
+        public void CafeteriaFightTransitionsRemainImaginedUntilMoyongHwiIntervenes()
+        {
+            var stage = EarlyGameContent.FindStage(8);
+            foreach (int fight in new[] { 1, 2 })
+                StringAssert.Contains("머릿속", string.Join(" ", StoryEpisodes.BeforeFight(stage, fight, new SaveData()).SelectMany(x => x.Lines)));
+            StringAssert.Contains("모용휘|그만두시오!", string.Join(" ", EarlyStory.Ending(stage).SelectMany(x => x.Lines)));
+        }
+
+        [Test]
+        public void FourthAndFifthChaptersPlaceRecordDetailsBetweenTheirFights()
+        {
+            var fourth = EarlyGameContent.FindStage(4);
+            Assert.IsFalse(EarlyStory.Opening(fourth).Any(x => x.Title == StoryBriefings.Interlude(4).Title));
+            Assert.AreEqual(StoryBriefings.Interlude(4).Title, StoryEpisodes.BeforeFight(fourth, 1, new SaveData())[0].Title);
+            StringAssert.Contains("패룡 우악", StoryEpisodes.BeforeFight(fourth, 2, new SaveData())[0].Title);
+            var fifth = EarlyGameContent.FindStage(5);
+            var opening = EarlyStory.Opening(fifth);
+            StringAssert.Contains("회상", opening[0].Title);
+            StringAssert.Contains("계절이 흘러", opening[1].Title);
+            Assert.IsFalse(opening.Any(x => x.Title == StoryBriefings.Interlude(5).Title));
+            var inn = StoryEpisodes.BeforeFight(fifth, 1, new SaveData());
+            Assert.AreEqual("현재 — 윤하루에서 들은 이름", inn[0].Title);
+            Assert.AreEqual(StoryBriefings.Interlude(5).Title, inn[1].Title);
+            Assert.AreEqual("염도와 내기", inn[2].Title);
+            var all = StoryEpisodes.ReplayScenes(fifth).SelectMany(x => x.Lines).ToArray();
+            foreach (var line in StoryBriefings.Briefing(5).Concat(StoryBriefings.Interlude(5).Lines).Concat(StoryBriefings.Aftermath(5)))
+                Assert.AreEqual(1, all.Count(x => x == line), line);
+            Assert.IsTrue(StoryEpisodes.ReplayScenes(fifth).All(x => x.HeroArtKey == null));
+        }
+
+        [Test]
+        public void SixthChapterIntroducesTheLordAfterTheDisciplesWithoutRepeatingTheGate()
+        {
+            var sixth = EarlyGameContent.FindStage(6);
+            var opening = EarlyStory.Opening(sixth);
+            Assert.Less(System.Array.FindIndex(opening, x => x.Title == StoryBriefings.Interlude(6).Title),
+                System.Array.FindIndex(opening, x => x.Title == "호아장 정문"));
+            Assert.IsFalse(opening.SelectMany(x => x.Lines).Any(x => x.StartsWith("호천상|")));
+            var lord = StoryEpisodes.BeforeFight(sixth, 2, new SaveData());
+            Assert.IsTrue(lord.SelectMany(x => x.Lines).Any(x => x.StartsWith("호천상|")));
+            var all = StoryEpisodes.ReplayScenes(sixth).SelectMany(x => x.Lines).ToArray();
+            foreach (var line in sixth.Intro.Concat(StoryBriefings.Briefing(6)).Concat(StoryBriefings.Interlude(6).Lines).Concat(StoryBriefings.Aftermath(6)))
+                Assert.AreEqual(1, all.Count(x => x == line), line);
+            Assert.IsTrue(StoryEpisodes.ReplayScenes(sixth).All(x => x.HeroArtKey == null));
         }
 
         [Test]
@@ -46,7 +192,7 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(StoryAppearance.OldMasterDisguise, third[0].HeroArtKey);
             Assert.IsTrue(third.Skip(1).All(x => x.HeroArtKey == null));
             Assert.IsNull(EarlyStory.Background(EarlyGameContent.FindStage(3)).HeroArtKey);
-            Assert.IsNull(EarlyStory.Opening(EarlyGameContent.FindStage(4)));
+            Assert.IsNull(EarlyStory.Opening(EarlyGameContent.FindStage(19)));
             Assert.IsFalse(EarlyStory.Supports(new StageData { Number = 1, IsQuest = true }));
             Assert.IsFalse(EarlyStory.Supports(new StageData { Number = 1, IsTower = true }));
         }

@@ -56,6 +56,14 @@ namespace BiRyeoDo.Core
                             "그때 수풀이 갈라지며 몸길이만 한 장 반은 되어 보이는 백호가 뛰쳐나왔다. 남궁상이 진령을 덮쳐 감쌌다. 나무 위에서 지켜보던 비류연이 뛰어내렸다.",
                         } },
                 } },
+            { 402, new[] { new StoryScene { Title = "용골채 두목 패룡 우악", Lines = new[] {
+                "용골채의 두목 패룡 우악이 길을 막고 있었다. 주작단은 표사와 표물을 지키며 마지막 길목을 넘으려 했다.",
+                "당철영은 암기가 아니라 돌멩이로도 맞설 수 있다고 했다. 그 말이 허풍인지 드러날 차례였다.",
+            } } } },
+            { 601, new[] { new StoryScene { Title = "추천패를 둘러싼 충돌", Lines = new[] {
+                "승룡패를 받아 특별전형으로 들어가려는 비류연과, 추천 자리를 내주려 하지 않는 호아장. 문하의 저항은 쉽게 끝나지 않았다.",
+                "+비류연|(일 년을 기다릴 생각은 없어. 오늘 여기서 길을 찾아야지.)",
+            } } } },
             { 501, new[]
                 {
                     new StoryScene { Title = "염도와 내기", Lines = new[] {
@@ -75,6 +83,18 @@ namespace BiRyeoDo.Core
                             "비류연|당연히 그러셔야죠. 그럼, 시작할까요!",
                         } },
                 } },
+            { 701, new[] { new StoryScene { Title = "특별전형 — 이어지는 응시자", Lines = new[] {
+                "추천패는 응시 자격일 뿐이었다. 비류연은 다음 응시생을 마주하며 특별전형을 계속했다.",
+            } } } },
+            { 703, new[] { new StoryScene { Title = "특별전형 — 마지막 승부", Lines = new[] {
+                "입관을 결정할 마지막 응시생이 남았다. 그 뒤에야 비류연의 학관 생활이 시작될 터였다.",
+            } } } },
+            { 801, new[] { new StoryScene { Title = "식판을 쥔 채 되짚는 공방", Lines = new[] {
+                "+눈앞의 선배들이 칼을 뽑는다면 어떻게 될까. 식판을 쥔 비류연의 머릿속에서만 검세가 이어졌다.",
+            } } } },
+            { 802, new[] { new StoryScene { Title = "추가연의 기세까지", Lines = new[] {
+                "+추가연의 기세까지 겹쳐 보였다. 머릿속의 공방과 달리, 현실의 식당에서는 아직 말다툼이 이어지고 있었다.",
+            } } } },
             { 900, new[]
                 {
                     new StoryScene { Title = "동호회 거리의 대치", Lines = new[] {
@@ -513,8 +533,8 @@ namespace BiRyeoDo.Core
                         AddLines(result, ev.Ending);
                     }
                 }
-            AddLines(result, stage.Outro, stage.OutroHeroArtKey);
-            if (EarlyStory.Supports(stage)) AddLines(result, StoryBriefings.Aftermath(stage.Number), stage.OutroHeroArtKey);
+            if (EarlyStory.Supports(stage)) AddScenes(result, EarlyStory.Ending(stage));
+            else AddLines(result, stage.Outro, stage.OutroHeroArtKey);
             return result.ToArray();
         }
 
@@ -532,7 +552,9 @@ namespace BiRyeoDo.Core
 
         private static bool TryScenes(int key, out StoryScene[] scenes)
         {
-            return StoryEscape.Episodes.TryGetValue(key, out scenes) || StoryRescue.Episodes.TryGetValue(key, out scenes) || StoryTournament.Episodes.TryGetValue(key, out scenes) || StoryMidgame.Episodes.TryGetValue(key, out scenes) || Before.TryGetValue(key, out scenes);
+            bool found = StoryEscape.Episodes.TryGetValue(key, out scenes) || StoryRescue.Episodes.TryGetValue(key, out scenes) || StoryTournament.Episodes.TryGetValue(key, out scenes) || StoryMidgame.Episodes.TryGetValue(key, out scenes) || Before.TryGetValue(key, out scenes);
+            scenes = EarlyStory.ArrangeBeforeFight(key / 100, key % 100, scenes);
+            return found || scenes != null;
         }
 
         /// <summary>Continue story on an unfinished full run, including a saved resume; isolated fights and repeat clears skip it.</summary>

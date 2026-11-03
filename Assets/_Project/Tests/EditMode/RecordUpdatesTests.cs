@@ -7,9 +7,24 @@ namespace BiRyeoDo.Tests
     public class RecordUpdatesTests
     {
         [Test]
-        public void AcknowledgingOnePageDoesNotClearAnotherAndNewDiscoveriesReappear()
+        public void EarlyStoryBadgesAppearAfterClearingAndNotOnUnlockingTheNextChapter()
         {
             var save = new SaveData();
+            Assert.AreEqual(0, RecordUpdates.Unread(save, RecordUpdates.StoryPage));
+            for (int cleared = 1; cleared <= 17; cleared++)
+            {
+                save.ClearedStage = cleared;
+                Assert.AreEqual(1, RecordUpdates.Unread(save, RecordUpdates.StoryPage));
+                Assert.IsFalse(StoryBriefings.CanRead(save, cleared + 1));
+                RecordUpdates.Acknowledge(save, RecordUpdates.StoryPage);
+                Assert.AreEqual(0, RecordUpdates.Unread(save, RecordUpdates.StoryPage));
+            }
+        }
+
+        [Test]
+        public void AcknowledgingOnePageDoesNotClearAnotherAndNewDiscoveriesReappear()
+        {
+            var save = new SaveData { ClearedStage = 1 };
             Codex.SeeItem(save, "cloth_robe");
             Codex.SeeEnemy(save, EarlyGameContent.Enemies[0].Id);
             Assert.AreEqual(2, RecordUpdates.Unread(save, RecordUpdates.CodexPage));
