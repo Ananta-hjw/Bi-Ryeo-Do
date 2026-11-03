@@ -117,13 +117,13 @@ namespace BiRyeoDo.Core
                 return new EnemyData
                 {
                     Gear = gear,
-                    Id = "duel_fast_" + rank, Name = t + " 쾌검수", Level = level, HpMul = 1.0f * TierHp[tier] * hard * hpTune, AtkMul = atk, SpeedAdd = 8,
+                    Id = "duel_fast_" + rank, Name = t + " 쾌검수", Level = level, DefMul = StageStars.EnemyDefenseBoostAtLevel(level), HpMul = 1.0f * TierHp[tier] * hard * hpTune, AtkMul = atk, SpeedAdd = 8,
                     Moves = new[] { EnemyMove.Attack("쾌검", 0.8f, 2), EnemyMove.Attack("찌르기", 1.1f) }
                 };
             return new EnemyData
             {
                 Gear = gear,
-                Id = "duel_heavy_" + rank, Name = t + " 중검수", Level = level, HpMul = 1.4f * TierHp[tier] * hard * hpTune, AtkMul = atk, SpeedAdd = -4,
+                Id = "duel_heavy_" + rank, Name = t + " 중검수", Level = level, DefMul = StageStars.EnemyDefenseBoostAtLevel(level), HpMul = 1.4f * TierHp[tier] * hard * hpTune, AtkMul = atk, SpeedAdd = -4,
                 Moves = new[] { EnemyMove.Attack("베기", 1.0f), EnemyMove.Wind("검을 높이 든다"), EnemyMove.Attack("중검 내려치기", 2.6f) }
             };
         }

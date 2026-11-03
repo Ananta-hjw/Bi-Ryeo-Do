@@ -325,18 +325,40 @@ namespace BiRyeoDo.Core
         /// <summary>Stage 6's boss 호천상 keeps full HP: the bot (solo, at its level) lost far more often with a weaker boss there (87% → 41%), one level up it made no difference.</summary>
         public static float NormalHpTrim(int stage, EnemyData enemy) { return stage == 6 && enemy != null && enemy.IsBoss ? 1f : NormalHpTrim(stage); }
 
+        /// <summary>
+        /// Every enemy's base defense (before gear) rises with the stage: +10% at stage 1 up to +25% at the last stage, a little more each stage
+        /// (2026-11, alongside <see cref="BattleEngine.DefenseConstant"/> 900). Story, quest and tower enemies get it here; duelists by their level.
+        /// </summary>
+        public const float EnemyDefenseBoostFirst = 1.10f, EnemyDefenseBoostLast = 1.25f;
+
+        public static float EnemyDefenseBoost(int stage)
+        {
+            int last = Math.Max(2, EarlyGameContent.Stages.Length);
+            double t = Math.Max(0, Math.Min(1, (stage - 1) / (double)(last - 1)));
+            return (float)(EnemyDefenseBoostFirst + (EnemyDefenseBoostLast - EnemyDefenseBoostFirst) * t);
+        }
+
+        /// <summary>The boost of the last 일반 stage whose recommended (curve) level the given enemy level has reached.</summary>
+        public static float EnemyDefenseBoostAtLevel(int curveLevel)
+        {
+            int stage = 1;
+            foreach (var st in EarlyGameContent.Stages) if (st.RecommendedLevel <= curveLevel) stage = Math.Max(stage, st.Number);
+            return EnemyDefenseBoost(stage);
+        }
+
         public static EnemyData ScaleEnemy(EnemyData enemy, int stage, int difficulty, bool survive = false)
         {
             difficulty = Clamp(difficulty);
             if (difficulty == 0)
             {
+                float defBoost = EnemyDefenseBoost(stage);
                 // 일반 only: attack and defense eased from stage 7 (x0.93, x0.87, then x0.8); the harder difficulties keep their values.
-                if (enemy.HpMul > 10f) return enemy;   // survival-only enemies keep their stats
+                if (enemy.HpMul > 10f) return enemy;   // survival-only enemies keep their stats (defense included: nobody is meant to beat them)
                 float soft = NormalStatEaseFor(stage);
                 float hp = NormalHpBoost(stage), atk = NormalAtkBoost(stage);
                 if (stage >= 24) { hp *= 0.85f; atk *= 1.25f; }
                 if (!survive) hp *= NormalHpTrim(stage, enemy);   // a 버티기 fight keeps its enemy's HP
-                return enemy.Scaled(hp, atk * soft, soft);
+                return enemy.Scaled(hp, atk * soft, soft * defBoost);
             }
             // 어려움·극악: the 일반 enemy of the same stage (and fight), raised by the bot's extra levels, times the fitted correction.
             return ScaleEnemy(enemy, stage, 0, survive).Scaled(HardHpFix(stage, difficulty), HardAtkFix(stage, difficulty), 1f, LevelAdd(stage, difficulty));

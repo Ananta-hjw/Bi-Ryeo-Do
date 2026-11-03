@@ -78,8 +78,9 @@ namespace BiRyeoDo.Core
         /// </summary>
         public const double AttackScale = 3.0, DefenseScale = 3.0;
 
-        /// <summary>Damage taken is x K/(K+Defense): defense 460 = x0.42 (1380 on the original scale).</summary>
-        public const double DefenseConstant = 1000.0 / DefenseScale;
+        /// <summary>Damage taken is x K/(K+Defense): defense 900 = x0.5 (2026-11; it was 1000 / DefenseScale = 333, where 333 already halved the damage).
+        /// <see cref="Realm.Power"/> keeps its own defense scale, so the composite power and the realm ladder do not move with this.</summary>
+        public const double DefenseConstant = 900.0;
 
         public static int CalcDamage(CombatStats attacker, CombatStats defender, SkillSpec skill, bool crit)
         {
