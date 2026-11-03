@@ -2,12 +2,12 @@ using System.Collections.Generic;
 
 namespace BiRyeoDo.Core
 {
-    /// <summary>The first fifty-five chapters share one detailed timeline between battle and the record.</summary>
+    /// <summary>The first sixty-six chapters share one detailed timeline between battle and the record.</summary>
     public static class EarlyStory
     {
         public static bool Supports(StageData stage)
         {
-            return stage != null && !stage.IsQuest && !stage.IsTower && stage.Number >= 1 && stage.Number <= 55;
+            return stage != null && !stage.IsQuest && !stage.IsTower && stage.Number >= 1 && stage.Number <= 66;
         }
 
         public static StoryScene Background(StageData stage)
@@ -25,6 +25,133 @@ namespace BiRyeoDo.Core
         {
             if (!Supports(stage)) return null;
             var scenes = new List<StoryScene>();
+            if (stage.Number == 61)
+            {
+                var background = StoryBriefings.Briefing(61);
+                scenes.Add(stage.Prologue[0]);
+                scenes.Add(Segment("살아 있는 포로 — 다시 구할 가능성을 남기다", background, 0, 3));
+                scenes.Add(Segment("남문 앞 — 흑견의 소리와 포승줄", stage.Prologue[1].Lines, 0, 5));
+                scenes.Add(Segment("성문 밖으로 나갈 길", background, 3, 2));
+                scenes.Add(stage.Prologue[2]);
+                scenes.Add(Segment("다른 길의 동료들과 수색조의 목적", background, 6, 2));
+                scenes.Add(new StoryScene { Title = "남문 돌파 — 나백천을 찾기 위한 후퇴", Lines = stage.Intro });
+                return scenes.ToArray();
+            }
+            if (stage.Number == 62)
+            {
+                var background = StoryBriefings.Briefing(62);
+                scenes.Add(new StoryScene { Title = "별도 시점 — 검은 불꽃을 바라본 갈중하", Lines = stage.Prologue[2].Lines });
+                scenes.Add(Segment("구출대가 모르는 잠적자의 결심", background, 6, 2));
+                scenes.Add(new StoryScene { Title = "남문을 빠져나온 밤 — 알림 방울과 웃음", Lines = stage.Prologue[0].Lines });
+                scenes.Add(Segment("수색조의 길 — 냄새를 바꾼 웃음", background, 0, 3));
+                scenes.Add(new StoryScene { Title = "멈칫한 추격대의 틈", Lines = stage.Intro });
+                return scenes.ToArray();
+            }
+            if (stage.Number == 63)
+            {
+                var background = StoryBriefings.Briefing(63);
+                scenes.Add(new StoryScene { Title = "교차 시점 — 같은 밤 신용산객잔의 비밀 통로", Lines = stage.Prologue[0].Lines });
+                scenes.Add(Segment("가짜 문을 지나 — 출구의 무음탄주", background, 0, 3));
+                scenes.Add(stage.Prologue[1]);
+                scenes.Add(Segment("지휘 위임 — 아직 완성되지 않은 인정", background, 3, 3));
+                scenes.Add(Segment("앞을 여는 사람과 뒤에 남을 사람", stage.Prologue[2].Lines, 1, 1));
+                scenes.Add(Segment("미리 나눈 후위의 약속", background, 7, 1));
+                scenes.Add(new StoryScene { Title = "네 역할을 엮는 마하령의 지휘", Lines = stage.Intro });
+                return scenes.ToArray();
+            }
+            if (stage.Number == 64)
+            {
+                scenes.Add(stage.Prologue[0]);
+                scenes.Add(Segment("홀로 남은 나예린 — 보이는 창과 남은 한계", StoryBriefings.Briefing(64), 0, 3));
+                return scenes.ToArray();
+            }
+            if (stage.Number == 65)
+            {
+                scenes.Add(new StoryScene { Title = "이튿날 새벽 — 수색조 앞에 펼쳐진 삼천의 포위", Lines = stage.Prologue[0].Lines });
+                scenes.Add(Segment("세 문파 사이 — 정면 승부 대신 불신의 틈", StoryBriefings.Briefing(65), 0, 3));
+                return scenes.ToArray();
+            }
+            if (stage.Number == 66)
+            {
+                var wound = stage.Prologue[0];
+                var history = stage.Prologue[1];
+                var background = StoryBriefings.Briefing(66);
+                scenes.Add(Segment("대난원 — 안도 뒤에도 멎지 않는 피", wound.Lines, 0, 6));
+                scenes.Add(Segment("상처에서 떠오른 기억", background, 0, 2));
+                scenes.Add(Segment("회상 — 백이 년 전 천무봉에 남은 나백천", wound.Lines, 7, 2));
+                scenes.Add(Segment("회상 — 인의 열쇠를 맡긴 형님들", wound.Lines, 6, 1));
+                scenes.Add(Segment("회상 — 지켜야 할 열쇠", background, 2, 1));
+                scenes.Add(Segment("회상 — 방패를 지난 일격과 보지 못한 싸움", history.Lines, 0, 1));
+                scenes.Add(Segment("회상 — 환살 너머는 알 수 없었다", background, 3, 1));
+                scenes.Add(Segment("회상 — 싸움 뒤, 지켜 낸 것의 의미", wound.Lines, 9, 2));
+                scenes.Add(Segment("현재로 — 천붕금시를 지키는 맹주의 임무", history.Lines, 1, 1));
+                scenes.Add(Segment(null, background, 4, 1));
+                scenes.Add(Segment("대난원 — 천하군림궤의 내용과 개봉의 위험", StoryEscape.Episodes[6600][0].Lines, 0, 1));
+                scenes.Add(Segment("군림삼보와 빈 신무림기", history.Lines, 2, 7));
+                scenes.Add(Segment("권위의 증표와 청룡은장의 희생", background, 5, 2));
+                scenes.Add(Segment("설명을 마친 뒤 — 나백천을 데리고 밖으로", history.Lines, 9, 1));
+                scenes.Add(Segment(null, background, 7, 1));
+                scenes.Add(Segment("교차 시점 — 구출대가 모르는 첫 자물쇠", stage.Prologue[2].Lines, 0, 2));
+                scenes.Add(Segment("별도 장소 — 두 가면과 아직 남은 잠금", background, 8, 2));
+                scenes.Add(Segment("대난원 밖으로 — 준비된 환영식", stage.Prologue[2].Lines, 2, 1));
+                scenes.Add(Segment(null, background, 10, 1));
+                scenes.Add(new StoryScene { Title = "현재의 구출대 — 다친 사람을 지킬 공방", Lines = stage.Intro });
+                return scenes.ToArray();
+            }
+            if (stage.Number == 56)
+            {
+                var departure = stage.Prologue[0];
+                var background = StoryBriefings.Briefing(56);
+                scenes.Add(Segment("제십삼 기숙사 — 구출 전서와 배의 준비", departure.Lines, 0, 8));
+                scenes.Add(Segment("숙소에 남은 사람들의 책임", background, 0, 6));
+                scenes.Add(Segment("안락휴 — 포위망을 재울 준비", departure.Lines, 8, 2));
+                scenes.Add(Segment("당가 남매와 백무영의 몫", background, 6, 2));
+                scenes.Add(Segment("포위 돌파를 앞두고", stage.Intro, 0, 2));
+                return scenes.ToArray();
+            }
+            if (stage.Number == 57)
+            {
+                scenes.Add(Segment("출항 뒤 — 현천은린을 펼친 물길", stage.Prologue[0].Lines, 0, 3));
+                scenes.Add(Segment("먼저 떠난 배를 따라", StoryBriefings.Briefing(57), 0, 5));
+                scenes.Add(Segment("돌아오는 우산 위", stage.Intro, 0, 1));
+                scenes.Add(Segment("배 위의 재회 — 끝나지 못한 우산의 물음", stage.Prologue[0].Lines, 3, 5));
+                scenes.Add(Segment("돌아온 사람과 돌아오지 못할 사람", StoryBriefings.Briefing(57), 5, 3));
+                return scenes.ToArray();
+            }
+            if (stage.Number == 58)
+            {
+                var background = StoryBriefings.Briefing(58);
+                scenes.Add(new StoryScene { Title = "교차 시점 — 구출대가 모르는 폭우 속 나백천", Lines = stage.Prologue[0].Lines });
+                scenes.Add(Segment("시점을 돌려 — 섬으로 돌아가는 배", background, 0, 1));
+                scenes.Add(Segment("강호란도 — 상실을 안고 돌아온 일행", stage.Prologue[1].Lines, 0, 5));
+                scenes.Add(Segment("자책하는 남궁상과 모녀의 재회", background, 1, 1));
+                scenes.Add(Segment("예청의 부탁 — 예린의 아버지를 구하는 일", stage.Prologue[1].Lines, 5, 6));
+                scenes.Add(Segment("값을 매기지 않은 이유", background, 2, 1));
+                scenes.Add(Segment("구출의 조건과 예린 자신의 선택", stage.Prologue[2].Lines, 0, 4));
+                scenes.Add(Segment("아직 남아 있는 승낙의 조건", background, 3, 1));
+                scenes.Add(Segment("같은 무렵 — 효룡과 조부의 쌍도", stage.Prologue[2].Lines, 4, 10));
+                scenes.Add(Segment("계승한 쌍붕도 중천", background, 4, 1));
+                scenes.Add(Segment("출발 전 — 노학에게 남은 한 손", stage.Prologue[2].Lines, 14, 7));
+                scenes.Add(Segment("역린검을 향한 결심", background, 5, 1));
+                scenes.Add(Segment("아직 완성이 아닌 두 사람의 수련", background, 7, 1));
+                scenes.Add(stage.Prologue[3]);
+                scenes.Add(Segment("선발 뒤 — 돌아갈 사람과 남을 사람", background, 6, 1));
+                scenes.Add(new StoryScene { Title = "강호란도 출항 — 절벽 밑을 떠나는 배", Lines = stage.Intro });
+                return scenes.ToArray();
+            }
+            if (stage.Number == 59)
+            {
+                scenes.Add(Segment("무한의 밤 — 객잔과 떨어진 조사조", StoryBriefings.Briefing(59), 0, 1));
+                scenes.Add(stage.Prologue[0]);
+                scenes.Add(stage.Prologue[1]);
+                return scenes.ToArray();
+            }
+            if (stage.Number == 60)
+            {
+                scenes.Add(stage.Prologue[0]);
+                scenes.Add(Segment("신용산객잔 앞 — 두 노사가 맡은 시간", StoryBriefings.Briefing(60), 0, 3));
+                return scenes.ToArray();
+            }
             if (stage.Number == 51)
             {
                 var market = stage.Prologue[0];
@@ -584,9 +711,180 @@ namespace BiRyeoDo.Core
             return null;
         }
 
+        /// <summary>Explanations between noncombat choices, shared by play and the completed record.</summary>
+        public static StoryScene[] BeforeEvent(StageData stage, int encounter)
+        {
+            if (!Supports(stage) || stage.EventFor(encounter) == null) return null;
+            if (stage.Number == 58 && encounter == 1)
+                return new[] { Segment("출항선에 오른 뒤 — 스스로 택한 자리", StoryBriefings.Briefing(58), 8, 1) };
+            if (stage.Number == 59 && encounter == 1)
+                return new[]
+                {
+                    Segment("푸줏간에서 상현을 찾은 뒤 — 끊어진 네 연락망", StoryBriefings.Briefing(59), 1, 2),
+                    new StoryScene { Title = "최후 보고를 앞두고", Lines = stage.Intro }
+                };
+            if (stage.Number == 59 && encounter == 2)
+                return new[]
+                {
+                    Segment("보고를 들은 조사조 — 남겨 둔 다섯째 거점", StoryBriefings.Briefing(59), 3, 2),
+                    new StoryScene { Title = "교차 시점 — 같은 시각 객잔에서", Lines = stage.Prologue[2].Lines },
+                    Segment("객잔 안과 밖 — 서로 모르는 두 판단", StoryBriefings.Briefing(59), 5, 3)
+                };
+            return null;
+        }
+
         /// <summary>Place background passages after the event they describe, sharing this order with battle and replay.</summary>
         public static StoryScene[] ArrangeBeforeFight(int stageNumber, int encounter, StoryScene[] authored)
         {
+            if (stageNumber == 61 && encounter == 3 && authored != null)
+            {
+                var stage = EarlyGameContent.FindStage(61);
+                return new[]
+                {
+                    Segment("흑견을 넘긴 뒤 — 문을 열 세 검", stage.Prologue[1].Lines, 5, 1),
+                    Segment("수색조 동료들의 차례", StoryBriefings.Briefing(61), 5, 1),
+                    Segment(authored[0].Title, authored[0].Lines, 0, 4)
+                };
+            }
+            if (stageNumber == 62 && encounter == 0 && authored != null)
+                return new[] { authored[0] };
+            if (stageNumber == 62 && encounter == 1 && authored != null)
+            {
+                var stage = EarlyGameContent.FindStage(62);
+                return new[]
+                {
+                    StoryEscape.Episodes[6200][1],
+                    Segment("제삼대 제압 뒤 — 물품과 복장", stage.Prologue[1].Lines, 0, 1),
+                    Segment("추격을 뒤집을 단서", StoryBriefings.Briefing(62), 3, 1),
+                    Segment("다음 추격조 — 풀린 점혈과 휘파람", stage.Prologue[1].Lines, 1, 1),
+                    Segment("소리가 닿을 곳에 필요한 준비", StoryBriefings.Briefing(62), 4, 1),
+                    Segment(authored[0].Title, authored[0].Lines, 0, 3)
+                };
+            }
+            if (stageNumber == 62 && encounter == 2 && authored != null)
+            {
+                var stage = EarlyGameContent.FindStage(62);
+                var whistle = StoryEscape.Episodes[6201][0];
+                var result = new List<StoryScene>
+                {
+                    Segment("휘파람을 막은 뒤 — 차음막과 거짓 연기", whistle.Lines, 3, whistle.Lines.Length - 3),
+                    Segment("수색을 이어 갈 복장과 정보", stage.Prologue[1].Lines, 2, 1),
+                    Segment("추격의 방향을 거꾸로 읽다", StoryBriefings.Briefing(62), 5, 1)
+                };
+                result.AddRange(authored);
+                return result.ToArray();
+            }
+            if (stageNumber == 63 && encounter == 2 && authored != null)
+                return new[]
+                {
+                    Segment("첫 중단 뒤 — 합주 최고조를 기다리는 이유", EarlyGameContent.FindStage(63).Prologue[2].Lines, 0, 1),
+                    Segment("모두 이탈할 시간을 위한 공진 저지", StoryBriefings.Briefing(63), 6, 1),
+                    Segment(authored[0].Title, authored[0].Lines, 0, 1)
+                };
+            if (stageNumber == 63 && encounter == 3 && authored != null)
+            {
+                var peak = StoryEscape.Episodes[6302][0];
+                var result = new List<StoryScene>
+                {
+                    Segment("사자후 뒤 — 기다림의 끝", peak.Lines, 1, peak.Lines.Length - 1)
+                };
+                result.AddRange(authored);
+                return result.ToArray();
+            }
+            if (stageNumber == 64 && encounter == 1 && authored != null)
+                return new[]
+                {
+                    Segment(authored[0].Title, authored[0].Lines, 0, 4),
+                    Segment("회상 — 남해의 폭풍과 사익비홍 시련", authored[0].Lines, 4, 1)
+                };
+            if (stageNumber == 64 && encounter == 2 && authored != null)
+            {
+                var stage = EarlyGameContent.FindStage(64);
+                var result = new List<StoryScene>
+                {
+                    Segment("현재로 — 폭풍을 뚫은 뒤 날아온 나뭇잎", StoryEscape.Episodes[6401][0].Lines, 5, 1),
+                    new StoryScene { Title = "교차 시점 — 먼저 떠난 일행과 돌아가는 영령", Lines = stage.Prologue[1].Lines },
+                    Segment("기억의 답보다 먼저 택한 귀환", StoryBriefings.Briefing(64), 3, 3),
+                    Segment("아직 만나기 전 — 후위와 돌아오는 사람", stage.Prologue[2].Lines, 1, 1),
+                    Segment("두 사람 사이에 남은 거리", StoryBriefings.Briefing(64), 7, 1),
+                    new StoryScene { Title = "후위의 현재 — 창끝 다음의 피리", Lines = stage.Intro }
+                };
+                result.AddRange(authored);
+                return result.ToArray();
+            }
+            if (stageNumber == 64 && encounter == 3 && authored != null)
+                return new[]
+                {
+                    Segment("무혼초령음 뒤 — 풀숲을 향한 시선", EarlyGameContent.FindStage(64).Prologue[2].Lines, 0, 1),
+                    Segment("피리와 다가오는 존재", StoryBriefings.Briefing(64), 6, 1),
+                    Segment(authored[0].Title, authored[0].Lines, 0, 3)
+                };
+            if (stageNumber == 65 && encounter == 1 && authored != null)
+            {
+                var stage = EarlyGameContent.FindStage(65);
+                return new[]
+                {
+                    authored[0],
+                    Segment("통과 뒤 — 지나치게 쉬운 길에 남은 의문", authored[1].Lines, 1, 1),
+                    stage.Prologue[1],
+                    Segment("흑견대 물품에서 — 암시 봉인과 붉은 꽃", StoryBriefings.Briefing(65), 3, 3)
+                };
+            }
+            if (stageNumber == 66 && encounter == 0 && authored != null)
+                return new[] { Segment(authored[0].Title, authored[0].Lines, 1, authored[0].Lines.Length - 1) };
+            if (stageNumber == 56 && encounter == 0)
+                return new[] { Segment("안락휴 — 포위망을 향한 부채", EarlyGameContent.FindStage(56).Intro, 2, 2) };
+            if (stageNumber == 56 && encounter == 1 && authored != null)
+            {
+                var result = new List<StoryScene>(StoryRescue.Episodes[5600]);
+                result.AddRange(authored);
+                return result.ToArray();
+            }
+            if (stageNumber == 57 && encounter == 0 && authored != null)
+            {
+                var result = new List<StoryScene>
+                {
+                    new StoryScene { Title = "회고 — 봉익일우와 끝나지 못한 물음", Lines = authored[0].Lines, HeroArtKey = authored[0].HeroArtKey }
+                };
+                for (int i = 1; i < authored.Length; i++) result.Add(authored[i]);
+                result.Add(Segment("장송 뒤 — 살아 있는 이들의 귀환을 위해", EarlyGameContent.FindStage(57).Intro, 1, 1));
+                return result.ToArray();
+            }
+            if (stageNumber == 60 && encounter == 1 && authored != null)
+            {
+                var stage = EarlyGameContent.FindStage(60);
+                var identity = stage.Prologue[1];
+                var background = StoryBriefings.Briefing(60);
+                var result = new List<StoryScene>
+                {
+                    Segment("순찰단을 물린 뒤 — 드러난 위장", identity.Lines, 0, 8),
+                    Segment("표행 때부터 이어진 감시", background, 3, 2),
+                    Segment("옷으로 감출 수 없는 걸음과 기세", identity.Lines, 10, 1),
+                    Segment("이화합격진을 준비하는 쌍둥이", identity.Lines, 11, 1),
+                    Segment("쌍둥이가 준비한 합격진", background, 5, 1),
+                    stage.Prologue[2],
+                    Segment("합공을 거부하던 두 노사", background, 6, 2),
+                    new StoryScene { Title = "일행을 보낼 시간 — 쌍둥이와의 공방", Lines = stage.Intro }
+                };
+                result.AddRange(authored);
+                return result.ToArray();
+            }
+            if (stageNumber == 60 && encounter == 2 && authored != null)
+            {
+                var result = new List<StoryScene>
+                {
+                    Segment("쌍둥이의 공방 뒤 — 직접 나서는 무화", EarlyGameContent.FindStage(60).Prologue[1].Lines, 8, 2)
+                };
+                result.AddRange(authored);
+                return result.ToArray();
+            }
+            if (stageNumber == 60 && encounter == 3 && authored != null)
+            {
+                var rescue = authored[0];
+                var result = new List<StoryScene> { Segment(rescue.Title, rescue.Lines, 0, 2) };
+                for (int i = 1; i < authored.Length; i++) result.Add(authored[i]);
+                return result.ToArray();
+            }
             if (stageNumber == 51 && encounter == 3 && authored != null)
             {
                 var wind = authored[0];
@@ -1005,6 +1303,150 @@ namespace BiRyeoDo.Core
         {
             if (!Supports(stage)) return null;
             var scenes = new List<StoryScene>();
+            if (stage.Number == 61)
+            {
+                scenes.Add(Segment("삼인연환 뒤 — 열린 남문", StoryEscape.Episodes[6103][0].Lines, 4, 1));
+                scenes.Add(Segment("성문 밖으로 — 계속되는 수색", stage.Outro, 0, 4));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(61), 0, 1));
+                scenes.Add(Segment("뒤에 남은 남문 — 흑견의 연기와 진짜 내상", stage.Outro, 4, 4));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(61), 1, 1));
+                scenes.Add(Segment("교차 시점 — 흑천맹의 임시 맹주와 출병 명령", stage.Outro, 8, 2));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(61), 2, 2));
+                return scenes.ToArray();
+            }
+            if (stage.Number == 62)
+            {
+                scenes.Add(Segment("흑견 생포 뒤 — 얼굴을 본뜨고 임시 보관하다", stage.Outro, 0, 6));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(62), 0, 1));
+                scenes.Add(Segment("알려진 연기 뒤에도 남은 더 큰 감시", stage.Outro, 6, 1));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(62), 1, 1));
+                scenes.Add(Segment("갈라진 두 길 — 계속 수색하는 네 사람", stage.Outro, 7, 1));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(62), 2, 1));
+                return scenes.ToArray();
+            }
+            if (stage.Number == 63)
+            {
+                scenes.Add(Segment("대지의 파도 뒤 — 사상자 없는 이탈", stage.Outro, 0, 1));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(63), 0, 1));
+                scenes.Add(Segment("네 역할로 연 길과 아직 남은 인정", stage.Outro, 1, 1));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(63), 1, 1));
+                scenes.Add(Segment("후위의 약속 — 홀로 남은 나예린", stage.Outro, 2, 1));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(63), 2, 1));
+                return scenes.ToArray();
+            }
+            if (stage.Number == 64)
+            {
+                scenes.Add(Segment("연막으로 빠져나온 뒤 — 돌아온 이유", StoryEscape.Episodes[6403][0].Lines, 3, 2));
+                scenes.Add(Segment("자매들 쪽에서 — 의도된 인질과 이어지는 계획", stage.Outro, 0, 1));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(64), 0, 1));
+                scenes.Add(Segment("임시 동행과 아직 돌아오지 않은 기억", stage.Outro, 1, 1));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(64), 1, 1));
+                scenes.Add(Segment("교차 시점 — 굉천의 무당 진군과 포로들의 합의", stage.Outro, 2, 1));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(64), 2, 1));
+                scenes.Add(Segment("효혜의 판단 — 잠적한 둘째를 부를 때", stage.Outro, 3, 1));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(64), 3, 1));
+                return scenes.ToArray();
+            }
+            if (stage.Number == 65)
+            {
+                var memory = StoryEscape.Episodes[6501][1];
+                scenes.Add(Segment("암시 봉인 해제 뒤 — 되찾은 남천의 기억", memory.Lines, 0, 1));
+                scenes.Add(Segment("붉은 꽃을 찾다", memory.Lines, 2, 1));
+                scenes.Add(new StoryScene { Title = "삼천의 틈에서 물 아래로", Lines = stage.Intro });
+                scenes.Add(stage.Prologue[2]);
+                scenes.Add(Segment("먼저 들어갈 사람과 따라갈 사람", StoryBriefings.Briefing(65), 6, 2));
+                scenes.Add(Segment("급류 앞 — 먼저 뛴 장홍에게", stage.Outro, 1, 3));
+                scenes.Add(Segment("뇌령사로 확인한 생존 — 대난원 입수", stage.Outro, 0, 1));
+                scenes.Add(Segment("대난원 — 발견과 안도의 시간", stage.Outro, 4, 2));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(65), 0, 2));
+                scenes.Add(Segment("멎지 않는 피 — 떠오르는 천무봉의 기억", stage.Outro, 6, 1));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(65), 2, 1));
+                return scenes.ToArray();
+            }
+            if (stage.Number == 66)
+            {
+                scenes.Add(Segment("쌍룡귀천 뒤 — 장홍이 맡은 나백천의 이송", stage.Outro, 0, 2));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(66), 0, 1));
+                scenes.Add(Segment("신마가 쪽 — 무당산을 가리킨 서찰", stage.Outro, 2, 3));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(66), 1, 1));
+                scenes.Add(Segment("구출대 쪽 — 실제로 택한 남쪽 무한", stage.Outro, 5, 5));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(66), 2, 1));
+                scenes.Add(Segment("그날 저녁에서 밤으로 — 흑견의 시찰과 신 녹호객잔", stage.Outro, 10, 1));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(66), 3, 1));
+                scenes.Add(Segment("객잔의 술자리 — 합석을 청한 쌍도의 사내", stage.Outro, 12, 3));
+                scenes.Add(Segment("삼층의 호위와 아래층의 새로운 만남", stage.Outro, 11, 1));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(66), 4, 1));
+                return scenes.ToArray();
+            }
+            if (stage.Number == 56)
+            {
+                scenes.Add(Segment("출항을 확보한 뒤 — 서천에게 남긴 상흔", stage.Outro, 0, 2));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(56), 0, 2));
+                scenes.Add(Segment("먼저 떠난 배 — 돌아가야 할 약속", stage.Outro, 2, 2));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(56), 3, 1));
+                scenes.Add(Segment("해명되지 않은 과거", stage.Outro, 4, 1));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(56), 2, 1));
+                return scenes.ToArray();
+            }
+            if (stage.Number == 57)
+            {
+                var after = StoryBriefings.Aftermath(57);
+                scenes.Add(Segment("호수의 물기둥 — 당문혜를 위한 장송", stage.Outro, 0, 2));
+                scenes.Add(Segment(null, after, 0, 2));
+                scenes.Add(Segment("풍신을 알아본 동료들", stage.Outro, 2, 1));
+                scenes.Add(Segment(null, after, 2, 1));
+                scenes.Add(Segment("물길을 따라온 무명과 장소옥", stage.Outro, 3, 4));
+                scenes.Add(Segment(null, after, 4, 3));
+                scenes.Add(Segment("배 위 — 소진된 기력과 잠시의 휴식", stage.Outro, 7, 3));
+                scenes.Add(Segment(null, after, 3, 1));
+                scenes.Add(Segment(null, after, 7, 1));
+                scenes.Add(Segment("교차 시점 — 그날 밤 흑상루의 협박", stage.Outro, 10, 3));
+                scenes.Add(Segment("백뢰 위탁과 아직 모르는 검의 행방", after, 8, 3));
+                scenes.Add(Segment("다른 장소, 집무실 — 먼저 온 마천각주", stage.Outro, 13, 4));
+                scenes.Add(Segment(null, after, 12, 1));
+                scenes.Add(Segment("접객당 — 나백천의 기세를 확인한 검마", stage.Outro, 17, 2));
+                scenes.Add(Segment(null, after, 11, 1));
+                scenes.Add(Segment("구출 전서 — 안도한 나백천", stage.Outro, 19, 2));
+                scenes.Add(Segment(null, after, 13, 1));
+                scenes.Add(Segment("집무실 — 이미 죽어 있던 갈중천", stage.Outro, 21, 2));
+                scenes.Add(Segment(null, after, 14, 1));
+                scenes.Add(Segment("백뢰를 뽑는 순간 — 별개로 준비된 누명", stage.Outro, 23, 3));
+                scenes.Add(Segment(null, after, 15, 4));
+                return scenes.ToArray();
+            }
+            if (stage.Number == 58)
+            {
+                scenes.Add(Segment("남문 통과 뒤 — 용산객잔으로", stage.Outro, 0, 1));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(58), 0, 1));
+                scenes.Add(Segment("교차 시점, 흑천맹 대전 — 무화와 은설란", stage.Outro, 1, 8));
+                scenes.Add(Segment("대전에서 — 환살과 출진의 각오", StoryBriefings.Aftermath(58), 1, 1));
+                scenes.Add(Segment("출진 — 나 씨의 이름을 적은 살생부", stage.Outro, 9, 2));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(58), 2, 1));
+                return scenes.ToArray();
+            }
+            if (stage.Number == 59)
+            {
+                scenes.Add(Segment("객잔의 포위 — 두 갈래 판단의 끝", stage.Outro, 0, 2));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(59), 0, 2));
+                scenes.Add(Segment("수색조가 얻은 단서 — 아직 끝나지 않은 탈출", stage.Outro, 2, 1));
+                scenes.Add(Segment(null, StoryBriefings.Aftermath(59), 2, 1));
+                return scenes.ToArray();
+            }
+            if (stage.Number == 60)
+            {
+                var after = StoryBriefings.Aftermath(60);
+                var rescue = StoryEscape.Episodes[6003][0];
+                scenes.Add(Segment("화륜참 뒤 — 붙잡힌 검을 놓은 손", rescue.Lines, 2, rescue.Lines.Length - 2));
+                scenes.Add(Segment("서로를 구한 뒤 — 함께 펼친 빙폭우와 화륜람", stage.Outro, 0, 1));
+                scenes.Add(Segment(null, after, 0, 1));
+                scenes.Add(Segment("무화의 요구 — 미완성의 건곤일월합격진", stage.Outro, 1, 1));
+                scenes.Add(Segment("회상 — 사부가 남긴 유언", stage.Outro, 2, 1));
+                scenes.Add(Segment("현재로 — 이십 년 동안 이루지 못한 조화", stage.Outro, 3, 4));
+                scenes.Add(Segment(null, after, 1, 1));
+                scenes.Add(Segment("효홍의 용근삭 — 살아 있는 포로", stage.Outro, 7, 3));
+                scenes.Add(Segment(null, after, 2, 1));
+                return scenes.ToArray();
+            }
             if (stage.Number == 51)
             {
                 scenes.Add(Segment("휘어진 동전 — 풍우만곡과 승리", stage.Outro, 0, 3));
