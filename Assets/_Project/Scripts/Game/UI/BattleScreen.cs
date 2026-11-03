@@ -328,6 +328,7 @@ namespace BiRyeoDo.Game.UI
 
         private int _lastFightNumber;
         private GameObject _pickRoot;
+        private RectTransform _pickContent;
         private Text _pickTitle, _pickToggleLabel;
         private readonly List<Button> _pickButtons = new List<Button>();
         private readonly List<Text> _pickLabels = new List<Text>();
@@ -374,13 +375,7 @@ namespace BiRyeoDo.Game.UI
             var card = UiFactory.Panel("Card", rect, new Vector2(.12f, .08f), new Vector2(.88f, .92f), UiFactory.ModalInk);
             UiFactory.Frame(card.transform, UiFactory.Gold, 3f);
             _pickTitle = UiFactory.Label("Title", card.transform, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.99f), "", 38, UiFactory.Gold);
-            for (int i = 0; i < 5; i++)
-            {
-                int index = i;
-                var btn = UiFactory.Button("Fight" + i, card.transform, new Vector2(.05f + (i % 2) * .46f, .70f - (i / 2) * .20f), new Vector2(.49f + (i % 2) * .46f, .88f - (i / 2) * .20f), "", UiFactory.InkSoft, () => { _pickIndex = index; _pickDone = true; }, 28);
-                _pickButtons.Add(btn);
-                _pickLabels.Add(btn.GetComponentInChildren<Text>());
-            }
+            _pickContent = CodexPanel.Scroller(card.rectTransform, .31f, .89f);
             var toggle = UiFactory.Button("Single", card.transform, new Vector2(0.05f, .15f), new Vector2(0.95f, .28f), "", UiFactory.InkSoft, () => { _pickSingle = !_pickSingle; UpdatePickToggle(); }, 28);
             _pickToggleLabel = toggle.GetComponentInChildren<Text>();
             UiFactory.Button("Cancel", card.transform, new Vector2(0.30f, .015f), new Vector2(0.70f, .135f), "강호로", UiFactory.InkSoft, () => { _pickIndex = -1; _pickDone = true; }, 30);
@@ -400,11 +395,29 @@ namespace BiRyeoDo.Game.UI
             SetCommandsVisible(false);
             _panel.SetActive(false);
             _pickTitle.text = "구간 선택 · " + stage.Name;
-            for (int i = 0; i < _pickButtons.Count; i++)
+            foreach (var button in _pickButtons)
             {
-                bool has = i < stage.Encounters.Length;
-                _pickButtons[i].gameObject.SetActive(has);
-                if (!has) continue;
+                button.gameObject.SetActive(false);
+                Destroy(button.gameObject);
+            }
+            _pickButtons.Clear();
+            _pickLabels.Clear();
+            const float rowHeight = 140f, rowGap = 12f;
+            _pickContent.sizeDelta = new Vector2(0f, rowGap + ((stage.Encounters.Length + 1) / 2) * (rowHeight + rowGap));
+            _pickContent.parent.GetComponent<ScrollRect>().StopMovement();
+            _pickContent.anchoredPosition = Vector2.zero;
+            for (int i = 0; i < stage.Encounters.Length; i++)
+            {
+                int index = i;
+                var button = UiFactory.Button("Fight" + i, _pickContent,
+                    new Vector2(.04f + (i % 2) * .48f, 1f), new Vector2(.48f + (i % 2) * .48f, 1f),
+                    "", UiFactory.InkSoft, () => { _pickIndex = index; _pickDone = true; }, 28);
+                var rect = (RectTransform)button.transform;
+                rect.pivot = new Vector2(.5f, 1f);
+                rect.sizeDelta = new Vector2(0f, rowHeight);
+                rect.anchoredPosition = new Vector2(0f, -rowGap - (i / 2) * (rowHeight + rowGap));
+                _pickButtons.Add(button);
+                _pickLabels.Add(button.GetComponentInChildren<Text>());
                 var names = new List<string>();
                 foreach (var id in stage.Encounters[i])
                 {
@@ -692,9 +705,18 @@ namespace BiRyeoDo.Game.UI
                     var joiners = Roster.NewJoiners(highestBefore, save.HighestUnlockedStage);
                     Roster.BenchNewcomers(save, joiners);
                     GameManager.Instance.SaveNow();
-                    yield return ShowStory(stage.Name + " 돌파", stage.Outro, stage.OutroHeroArtKey);
-                    var after = firstClear || (earlyReplay && _watchEarlyStory) ? StoryBriefings.Aftermath(stage.Number) : null;
-                    if (after != null) yield return ShowStory(stage.Name + " — 그 뒤", after, stage.OutroHeroArtKey);
+                    if (detailedStory)
+                    {
+                        if (!_combatOnly)
+                            foreach (var scene in EarlyStory.Ending(stage))
+                                yield return ShowStory(scene.Title ?? stage.Name + " — 그 뒤", scene.Lines, scene.HeroArtKey);
+                    }
+                    else
+                    {
+                        yield return ShowStory(stage.Name + " 돌파", stage.Outro, stage.OutroHeroArtKey);
+                        var after = firstClear ? StoryBriefings.Aftermath(stage.Number) : null;
+                        if (after != null) yield return ShowStory(stage.Name + " — 그 뒤", after, stage.OutroHeroArtKey);
+                    }
                     string bondNote = AwardBonds(save);
                     var reward = Inventory.GrantStageReward(save, stage.Number);
                     int chests = StageStars.ClaimableCount(save);

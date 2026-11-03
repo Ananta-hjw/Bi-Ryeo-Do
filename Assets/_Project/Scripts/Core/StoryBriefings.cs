@@ -29,12 +29,21 @@ namespace BiRyeoDo.Core
             return Between.TryGetValue(stage, out scene) ? scene : null;
         }
 
-        /// <summary>Stages whose summary can be read again (the cleared ones and the next one).</summary>
+        /// <summary>Early chapters unlock only after clearing; later chapters keep their existing preview rule.</summary>
+        public static bool CanRead(SaveData save, int stageNumber)
+        {
+            if (save == null) return false;
+            var stage = EarlyGameContent.FindStage(stageNumber);
+            if (stage == null || Briefing(stageNumber) == null) return false;
+            return stageNumber <= save.ClearedStage + (EarlyStory.Supports(stage) ? 0 : 1);
+        }
+
+        /// <summary>Chapters available in the story record.</summary>
         public static List<int> Readable(SaveData save)
         {
             var list = new List<int>();
             foreach (var s in EarlyGameContent.Stages)
-                if (s.Number <= save.ClearedStage + 1 && Briefing(s.Number) != null) list.Add(s.Number);
+                if (CanRead(save, s.Number)) list.Add(s.Number);
             return list;
         }
     }
