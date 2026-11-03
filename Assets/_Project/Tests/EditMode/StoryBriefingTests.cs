@@ -23,12 +23,49 @@ namespace BiRyeoDo.Tests
         [TestCase(15, 15)]
         [TestCase(16, 16)]
         [TestCase(17, 17)]
+        [TestCase(18, 18)]
+        [TestCase(19, 19)]
+        [TestCase(20, 20)]
+        [TestCase(21, 21)]
+        [TestCase(22, 22)]
+        [TestCase(23, 23)]
+        [TestCase(24, 24)]
+        [TestCase(25, 25)]
+        [TestCase(26, 26)]
+        [TestCase(27, 27)]
+        [TestCase(28, 28)]
+        [TestCase(29, 29)]
+        [TestCase(30, 30)]
+        [TestCase(31, 31)]
+        [TestCase(32, 32)]
+        [TestCase(33, 33)]
+        [TestCase(34, 34)]
+        [TestCase(35, 35)]
+        [TestCase(36, 36)]
+        [TestCase(37, 37)]
+        [TestCase(38, 38)]
+        [TestCase(39, 39)]
+        [TestCase(40, 40)]
+        [TestCase(41, 41)]
+        [TestCase(42, 42)]
+        [TestCase(43, 43)]
+        [TestCase(44, 44)]
+        [TestCase(45, 45)]
+        [TestCase(46, 46)]
+        [TestCase(47, 47)]
+        [TestCase(48, 48)]
+        [TestCase(49, 49)]
+        [TestCase(50, 50)]
+        [TestCase(51, 51)]
+        [TestCase(52, 52)]
+        [TestCase(53, 53)]
+        [TestCase(54, 54)]
         public void EarlyStoriesCannotBePreviewedBeforeClearing(int cleared, int readableCount)
         {
             var save = new SaveData { ClearedStage = cleared };
             var readable = StoryBriefings.Readable(save);
             Assert.AreEqual(readableCount, readable.Count);
-            for (int chapter = 1; chapter <= 18; chapter++)
+            for (int chapter = 1; chapter <= 55; chapter++)
                 Assert.AreEqual(chapter <= cleared, StoryBriefings.CanRead(save, chapter));
             Assert.IsFalse(StoryBriefings.CanRead(save, 0));
             Assert.IsFalse(StoryBriefings.CanRead(save, 999));
@@ -97,10 +134,10 @@ namespace BiRyeoDo.Tests
         [Test]
         public void LaterStoriesKeepTheirExistingNextChapterPreview()
         {
-            var save = new SaveData { ClearedStage = 18 };
+            var save = new SaveData { ClearedStage = 55 };
             var list = StoryBriefings.Readable(save);
-            Assert.AreEqual(19, list.Count);
-            Assert.AreEqual(19, list[list.Count - 1]);
+            Assert.AreEqual(56, list.Count);
+            Assert.AreEqual(56, list[list.Count - 1]);
         }
     }
 }

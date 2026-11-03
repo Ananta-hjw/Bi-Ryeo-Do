@@ -12,7 +12,7 @@ namespace BiRyeoDo.Tests
             int previous = -1;
             foreach (var marker in markers)
             {
-                int position = text.IndexOf(marker, System.StringComparison.Ordinal);
+                int position = text.IndexOf(marker, previous + 1, System.StringComparison.Ordinal);
                 Assert.GreaterOrEqual(position, 0, "Missing scene: " + marker);
                 Assert.Greater(position, previous, "Out of order: " + marker);
                 previous = position;
@@ -34,7 +34,7 @@ namespace BiRyeoDo.Tests
         public void TheBatonAndWitnessStoryKeepPartialKnowledgeAndUnfinishedRecovery()
         {
             string text = Replay(28);
-            Ordered(text, "비전을 지키는 두 사람", "영혼의 자매", "은명이라는 임시 이름", "추첨 뒤의 아홉 사람", "넘어진 뒤에도 바통을", "밤길의 두 방해자", "공동 일위, 남은 증언", "거지 차림의 조사관", "저항하는 만근검익진", "명령이 버린 목숨", "한편 금요관");
+            Ordered(text, "풀려난 두 사람", "영혼의 자매", "보타암에서 만난 은명", "추첨 뒤의 아홉 사람", "넘어진 뒤에도 바통을", "밤길의 두 방해자", "목요관 결승선 — 공동 일위", "거지 차림의 조사관", "저항하는 만근검익진", "명령이 버린 목숨", "응급조치 뒤 — 환자를 옮길 사람");
             StringAssert.Contains("왼눈을 강제로", text);
             StringAssert.Contains("누구의 손이 준호를 넘어뜨렸는지", text);
             StringAssert.Contains("애써 전하려던 말은 끝내 음절로 흩어졌다", text);
@@ -44,7 +44,7 @@ namespace BiRyeoDo.Tests
         public void RescueChoiceLeadsToCooperationThenTheWitnessMurderAndFalseAccusation()
         {
             string text = Replay(29);
-            Ordered(text, "잠행과 잘린 생명줄", "절이 아닌 박의 속성", "걱정은 화가 되어", "아홉 기류의 조화", "지연된 결과와 거점", "오 일째의 비탄", "미끼 인형과 진짜 증인", "원에서 나선, 한 점으로", "교옥은 장송곡", "기다리던 나예린");
+            Ordered(text, "금요관 전날 밤의 잠행", "절이 아닌 박의 속성", "구조 뒤 — 걱정과 책임 추궁", "아홉 기류의 조화", "지연된 결과와 거점", "오 일째의 비탄", "미끼 인형과 진짜 증인", "원에서 나선, 한 점으로", "교옥은 장송곡", "기다리던 나예린");
             StringAssert.Contains("살아 있었다", text);
             StringAssert.Contains("피를 토한 복면인은 도주했다", text);
             StringAssert.Contains("뇌령사의 박", text);
@@ -55,8 +55,8 @@ namespace BiRyeoDo.Tests
         {
             // 어려움·극악 keep the earlier four fights; 일반 plays the scripted 화룡멸겁대진 (FireDragonFinale)
             string text = string.Join(" ", StoryEpisodes.Replay(EarlyGameContent.FindStage(30).WithDifficulty(1)));
-            Ordered(text, "은가면의 정체", "잠꼬대와 주방", "이의 있음!", "불꽃의 봉화로", "화룡멸겁대진 발동", "같지 않은 그림자", "용이 날아오를 시간이다", "불의 성벽", "남은 사람을 살리는 힘", "용권승룡", "수고하셨어요, 류연", "사망 세 명", "한때 은명이라 불렸던 남자", "청룡은장");
-            Ordered(Replay(30), "은가면의 정체", "이의 있음!", "같지 않은 그림자", "용이 날아오를 시간이다", "독고령", "막대한 내력을 소진하는 일", "모든 조력을 아끼지 않겠네", "배당금", "여신의 입맞춤", "중독사할지도", "살았어요, 류연", "수고하셨어요, 류연", "사망 세 명", "한때 은명이라 불렸던 남자", "청룡은장");
+            Ordered(text, "은가면의 정체", "잠꼬대와 주방", "최우수 조 발표", "불꽃의 봉화로", "화룡멸겁대진 발동", "같지 않은 그림자", "용이 날아오를 시간이다", "불의 성벽", "남은 사람을 살리는 힘", "용권승룡", "수고하셨어요, 류연", "사망 세 명", "한때 은명이라 불렸던 남자", "청룡은장");
+            Ordered(Replay(30), "은가면의 정체", "최우수 조 발표", "같지 않은 그림자", "용이 날아오를 시간이다", "독고령", "막대한 내력을 소진하는 일", "모든 조력을 아끼지 않겠네", "배당금", "여신의 입맞춤", "중독사할지도", "살았어요, 류연", "수고하셨어요, 류연", "사망 세 명", "한때 은명이라 불렸던 남자", "청룡은장");
             StringAssert.Contains("혼자 힘으로는 완벽하게 구현해 낼 자신이 없거든요", text);
             StringAssert.Contains("반드시 이겨야만 하는 적입니다", text);
             Assert.IsFalse(Replay(30).Contains("하.. 죽겠네"), "the user's placeholder lines gave way to vol16's");
@@ -67,7 +67,7 @@ namespace BiRyeoDo.Tests
         {
             Ordered(Replay(21), "장례 뒤의 물음", "거울 신호와 돌아올 힘", "구궁산의 청혼", "흑랑부의 빈틈", "임개를 구한 군자소요검", "노사들이 중재");
             string valley = Replay(22);
-            Ordered(valley, "흑랑채에 남은 흔적", "순풍루에서 들은 마음", "함께 가기로 한 사람들", "대홍산의 첫 추궁", "도와 곤", "숲에서 만난 생존자", "처음 칼을 겨눈 뒤", "볼을 스친 첫 화살", "되던진 것은 다른 화살", "쇠사슬 위의 도약");
+            Ordered(valley, "흑랑채에 남은 흔적", "순평루 앞에서 들은 마음", "함께 가기로 한 사람들", "대홍산의 첫 추궁", "도와 곤", "숲에서 만난 생존자", "처음 칼을 겨눈 뒤", "볼을 스친 첫 화살", "되던진 것은 다른 화살", "쇠사슬 위의 도약");
             StringAssert.Contains("물을 말을 남기지 않았다", valley);
             StringAssert.Contains("다른 화살을 되던져 혈궁을 죽였다", valley);
             StringAssert.Contains("무승부", valley);
@@ -88,7 +88,7 @@ namespace BiRyeoDo.Tests
         public void TheThreeGatesLeadToAnInvestigationAndARescueRatherThanACompletedRevenge()
         {
             string text = Replay(25);
-            Ordered(text, "천겁간, 대표 한 사람", "겁흔벽에 남긴 자국", "검치의 세 치", "붉은 꽃 아래의 경계", "사라진 조사관", "기록이 가리킨 한 장원", "조용히 연 문", "깨어난 효룡", "구출한 사람을 먼저", "극안의 중심에 둔 사람", "비류연|선수교체를 해도 될까요?");
+            Ordered(text, "종쾌의 증언 — 백 년 전의 패배", "겁흔벽에 남긴 자국", "검치의 세 치", "붉은 꽃 아래의 경계", "사라진 조사관", "기록이 가리킨 한 장원", "조용히 연 문", "깨어난 효룡", "구출한 사람을 먼저", "극안의 중심에 둔 사람", "비류연|선수교체를 해도 될까요?");
             StringAssert.Contains("백칠십팔 패", text);
             StringAssert.Contains("친구의 위험을 보고 그냥 지나칠 수는 없죠", text);
             StringAssert.Contains("지살은 왼팔을 잃고 오른팔", text);
