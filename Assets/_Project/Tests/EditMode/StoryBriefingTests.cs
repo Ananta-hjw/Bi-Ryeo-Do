@@ -41,12 +41,31 @@ namespace BiRyeoDo.Tests
         [TestCase(33, 33)]
         [TestCase(34, 34)]
         [TestCase(35, 35)]
+        [TestCase(36, 36)]
+        [TestCase(37, 37)]
+        [TestCase(38, 38)]
+        [TestCase(39, 39)]
+        [TestCase(40, 40)]
+        [TestCase(41, 41)]
+        [TestCase(42, 42)]
+        [TestCase(43, 43)]
+        [TestCase(44, 44)]
+        [TestCase(45, 45)]
+        [TestCase(46, 46)]
+        [TestCase(47, 47)]
+        [TestCase(48, 48)]
+        [TestCase(49, 49)]
+        [TestCase(50, 50)]
+        [TestCase(51, 51)]
+        [TestCase(52, 52)]
+        [TestCase(53, 53)]
+        [TestCase(54, 54)]
         public void EarlyStoriesCannotBePreviewedBeforeClearing(int cleared, int readableCount)
         {
             var save = new SaveData { ClearedStage = cleared };
             var readable = StoryBriefings.Readable(save);
             Assert.AreEqual(readableCount, readable.Count);
-            for (int chapter = 1; chapter <= 36; chapter++)
+            for (int chapter = 1; chapter <= 55; chapter++)
                 Assert.AreEqual(chapter <= cleared, StoryBriefings.CanRead(save, chapter));
             Assert.IsFalse(StoryBriefings.CanRead(save, 0));
             Assert.IsFalse(StoryBriefings.CanRead(save, 999));
@@ -115,10 +134,10 @@ namespace BiRyeoDo.Tests
         [Test]
         public void LaterStoriesKeepTheirExistingNextChapterPreview()
         {
-            var save = new SaveData { ClearedStage = 36 };
+            var save = new SaveData { ClearedStage = 55 };
             var list = StoryBriefings.Readable(save);
-            Assert.AreEqual(37, list.Count);
-            Assert.AreEqual(37, list[list.Count - 1]);
+            Assert.AreEqual(56, list.Count);
+            Assert.AreEqual(56, list[list.Count - 1]);
         }
     }
 }
