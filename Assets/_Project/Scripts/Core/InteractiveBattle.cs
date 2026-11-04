@@ -522,7 +522,7 @@ namespace BiRyeoDo.Core
                         actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + qi);
                         events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = "meditate", Kind = EventKind.Meditate, Heal = heal, TargetHpAfter = actor.Hp, Message = "운기조식. 내공 +" + qi });
                         // 운기 also clears one 상태 이상, the one that hurts most
-                        CureOne(actor, actor, events);
+                        if (actor.Statuses.Count > 0 && _rng.NextDouble() < Statuses.MeditateCureChance) CureOne(actor, actor, events);   // 운기: 40% to shake off one
                         break;
                     }
                 case CommandKind.Item:
@@ -1111,7 +1111,7 @@ namespace BiRyeoDo.Core
             }
 
             int hits = Math.Max(1, move.Hits);
-            float power = move.Power * move.DamageFactor;
+            float power = move.Power * move.DamageFactor * enemy.MovePowerFactor;   // story rank
             bool burst = false, dry = false;
             bool backflow = enemy.Has(StatusKind.QiBackflow);
             if (backflow && !enemy.UsesResources && !sealedTurn) power *= Statuses.QiBackflowNoQiPower;   // 내공 역류 on a body without 내공
@@ -1189,7 +1189,7 @@ namespace BiRyeoDo.Core
                 GrantCounter(target, enemy, lastHit);
             if (hurt) target.Spirit = Math.Min(MaxSpirit, target.Spirit + SpiritOnTaken + target.SpiritTakenBonus);
             if (target.CounterStance && target.IsAlive && enemy.IsAlive && lastHit != null)   // 성막밀밀: the striker is struck back once per move
-                DealHit(target, enemy, new SkillSpec { Id = "counter_stance", Name = "반격", Power = CounterStancePower }, 0, 1, false, events).Counter = true;
+                DealHit(target, enemy, new SkillSpec { Id = "counter_stance", Name = "반격", Power = CounterStancePower, Tuned = true }, 0, 1, false, events).Counter = true;
             if (enemy.UsesResources && !burst) enemy.Spirit = Math.Min(MaxSpirit, enemy.Spirit + EnemySpiritOnDealt);
             for (int i = firstHit; i < events.Count; i++) events[i].TargetSpiritAfter = target.Spirit;
             if (selfHurt > 0 && enemy.IsAlive) SelfHurt(enemy, selfHurt, StatusKind.Illusion, events);

@@ -116,7 +116,7 @@ namespace BiRyeoDo.Core
             if (q.RefStage >= 14)
             {
                 bool survive = q.Trial != null && q.Trial.Kind == TrialKind.Survive;
-                enemy = StageStars.ScaleEnemy(enemy, q.RefStage, 0, survive);
+                enemy = StageStars.TuneLateBossMoves(StageStars.ScaleEnemy(enemy, q.RefStage, 0, survive), q.RefStage);
                 if (survive) enemy = enemy.Scaled(1.25f, 1f);
             }
             var gear = Realm.HasRealm(enemy) ? GearLoadout.ForEnemies(q.RefStage, 0) : null;

@@ -7,6 +7,9 @@ namespace BiRyeoDo.Core
     /// <summary>Deterministic, role-aware loadout search over owned free copies and the selected person's gear.</summary>
     public static class EquipmentRecommendation
     {
+        /// <summary>비류연 is the party's striker: survival counts for less than a companion's, so attack-side gear (공격·치명타·속도) wins ties (2026-11).</summary>
+        public const double HeroSurvivalWeight = .35;
+
         private const int BeamWidth = 64, ExactLimit = 60000;
 
         private sealed class Candidate
@@ -97,7 +100,7 @@ namespace BiRyeoDo.Core
                 }
                 double output = Math.Max(1, value / Math.Max(1, weights)) * Math.Max(1, stats.Speed) / 100.0;
                 double survival = Math.Max(1, stats.MaxHp) * (BattleEngine.DefenseConstant + Math.Max(0, stats.EffDefense)) / BattleEngine.DefenseConstant;
-                double score = Math.Log(output) + (Protector ? 1.05 : Healer ? .85 : .55) * Math.Log(survival);
+                double score = Math.Log(output) + (Protector ? 1.05 : Healer ? .85 : Companion == null ? HeroSurvivalWeight : .55) * Math.Log(survival);
                 int changes = 0;
                 for (int i = 0; i < 6; i++) if (slots[i] != Original[i]) changes++;
                 return new Candidate { Slots = (string[])slots.Clone(), Score = score, Changes = changes, Filled = slots.Count(id => id != null) };

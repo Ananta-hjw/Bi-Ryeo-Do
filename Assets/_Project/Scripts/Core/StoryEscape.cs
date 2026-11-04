@@ -30,7 +30,7 @@ namespace BiRyeoDo.Core
         }
         private static SkillSpec Hit(string id, string name, float power, int hits = 1)
         {
-            return new SkillSpec { Id = id, Name = name, Description = "이 공방에서 사용하는 이야기 전용 기술입니다.", Power = power, Hits = hits, QiCost = 16, Cooldown = 1, Range = 3 };
+            return new SkillSpec { Id = id, Name = name, Description = "이 공방에서 사용하는 이야기 전용 기술입니다.", Power = ArtData.ScenePower(power, hits), Tuned = true, Hits = hits, QiCost = 16, Cooldown = 1, Range = 3 };
         }
         private static SkillSpec Avoid(string id, string name)
         {
@@ -44,7 +44,7 @@ namespace BiRyeoDo.Core
                 List<SkillSpec> skills = null;
                 switch (member.Id)
                 {
-                    case "story_biry_escape": skills = new List<SkillSpec> { Hit("scene_escape_fist", "삼복구타권법", 3f, 2), new SkillSpec { Id = "scene_escape_sweep", Name = "비뢰도 · 제압", Power = 4f, AllEnemies = true, Range = 3, QiCost = 24, Cooldown = 1 }, Avoid("scene_escape_step", "봉황무") }; break;
+                    case "story_biry_escape": skills = new List<SkillSpec> { Hit("scene_escape_fist", "삼복구타권법", 3f, 2), new SkillSpec { Id = "scene_escape_sweep", Name = "비뢰도 · 제압", Power = ArtData.ScenePower(4f, 1), Tuned = true, AllEnemies = true, Range = 3, QiCost = 24, Cooldown = 1 }, Avoid("scene_escape_step", "봉황무") }; break;
                     case "jang_hong": skills = new List<SkillSpec> { Hit("scene_escape_gray", "잿빛 검강", 3f, 2), Avoid("scene_escape_shadow", "신은술") }; break;
                     case "story_mo_yonghwi": skills = new List<SkillSpec> { Hit("scene_escape_galaxy", "은하일섬", 3f, 2), Avoid("scene_escape_star_step", "유성보") }; break;
                     case "story_namgung_sang": skills = new List<SkillSpec> { Hit("scene_escape_thunder", "뇌전검", 3f, 2), Avoid("scene_escape_namgung_step", "뇌광산란") }; break;

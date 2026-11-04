@@ -35,14 +35,14 @@ namespace BiRyeoDo.Tests
         {
             var save = Opened();
             var art = Mastery_AttackArtWithCost();
-            float basePower = art.Power;
+            float basePower = ArtData.TunedPower(art);   // the 2026-11 retune is part of every art's spec
             for (int i = 0; i < 10; i++) Mastery.RecordUse(save, art.Id);
-            Assert.AreEqual(basePower * 1.03f, Mastery.Apply(save, art).Power, 0.001f);
+            Assert.AreEqual(basePower * 1.05f, Mastery.Apply(save, art).Power, 0.001f);
             for (int i = 0; i < 15; i++) Mastery.RecordUse(save, art.Id);
-            Assert.AreEqual(basePower * 1.07f, Mastery.Apply(save, art).Power, 0.001f);   // 대성
+            Assert.AreEqual(basePower * 1.10f, Mastery.Apply(save, art).Power, 0.001f);   // 대성
             Assert.AreEqual(ArtVariant.None, Mastery.CycleVariant(save, art));   // not 극성 yet
             for (int i = 0; i < 25; i++) Mastery.RecordUse(save, art.Id);
-            Assert.AreEqual(basePower * 1.15f, Mastery.Apply(save, art).Power, 0.001f);   // 극성
+            Assert.AreEqual(basePower * 1.20f, Mastery.Apply(save, art).Power, 0.001f);   // 극성
             Assert.AreNotEqual(ArtVariant.None, Mastery.CycleVariant(save, art));
         }
 
@@ -96,7 +96,7 @@ namespace BiRyeoDo.Tests
         public void ThresholdsAreTenTwentyFiveFiftyEighty()
         {
             CollectionAssert.AreEqual(new[] { 0, 10, 25, 50, 80 }, Mastery.Thresholds);
-            CollectionAssert.AreEqual(new[] { 0f, 0.03f, 0.07f, 0.15f, 0.30f }, Mastery.PowerBonus);
+            CollectionAssert.AreEqual(new[] { 0f, 0.05f, 0.10f, 0.20f, 0.40f }, Mastery.PowerBonus);
             Assert.AreEqual(3, Mastery.VariantLevel);
             Assert.AreEqual(4, Mastery.MasterLevel);
             var save = Opened();
@@ -212,17 +212,17 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void UltimatesGainFiveTenTwentyFortyPercentInsteadOfVariants()
+        public void UltimatesGainTenTwentyFortyEightyPercentInsteadOfVariants()
         {
             var ult = EarlyGameContent.Arts.First(a => a.OwnerId == null && a.SpiritCost > 0 && a.Power > 0);
             var save = Opened();
-            float[] expect = { 1f, 1.05f, 1.10f, 1.20f, 1.40f };
+            float[] expect = { 1f, 1.10f, 1.20f, 1.40f, 1.80f };
             int[] uses = { 0, 2, 5, 10, 20 };
             for (int lv = 0; lv < 5; lv++)
             {
                 for (int i = Mastery.Uses(save, ult.Id); i < uses[lv]; i++) Mastery.RecordUse(save, ult.Id);
                 Assert.AreEqual(lv, Mastery.Level(save, ult.Id), "uses " + uses[lv]);
-                Assert.AreEqual(ult.Power * expect[lv], Mastery.Apply(save, ult).Power, 0.001f, "level " + lv);
+                Assert.AreEqual(ArtData.TunedPower(ult) * expect[lv], Mastery.Apply(save, ult).Power, 0.001f, "level " + lv);
             }
             Assert.AreEqual(0, Mastery.AvailableVariants(ult).Count);
         }

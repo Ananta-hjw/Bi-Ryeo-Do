@@ -163,7 +163,7 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(0, report[0].From);
             Assert.AreEqual(1, report[0].To);
             Assert.IsEmpty(Mastery.PollReport(save));
-            StringAssert.Contains("위력 +3%", Mastery.TierEffect(EarlyGameContent.FindArt("bunroesu"), 1));
+            StringAssert.Contains("위력 +5%", Mastery.TierEffect(EarlyGameContent.FindArt("bunroesu"), 1));
             StringAssert.StartsWith("다음 대성: 25회 · ", Mastery.NextStepText(EarlyGameContent.FindArt("bunroesu"), 1));
         }
 

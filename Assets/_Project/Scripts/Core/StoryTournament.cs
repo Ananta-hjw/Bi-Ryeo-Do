@@ -30,7 +30,7 @@ namespace BiRyeoDo.Core
 
         private static SkillSpec Hit(string id, string name, float power, int hits = 1)
         {
-            return new SkillSpec { Id = id, Name = name, Description = "이 공방에서 사용하는 이야기 전용 기술입니다.", Power = power, Hits = hits, QiCost = 18, Cooldown = 1, Range = 3 };
+            return new SkillSpec { Id = id, Name = name, Description = "이 공방에서 사용하는 이야기 전용 기술입니다.", Power = ArtData.ScenePower(power, hits), Tuned = true, Hits = hits, QiCost = 18, Cooldown = 1, Range = 3 };
         }
         private static SkillSpec Avoid(string id, string name)
         {

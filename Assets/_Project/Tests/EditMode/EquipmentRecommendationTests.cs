@@ -129,7 +129,8 @@ namespace BiRyeoDo.Tests
         [Test]
         public void SupportAndAttackRolesPreferDifferentTradeoffs()
         {
-            var save = Save(); Add(save, "cloth_robe", "gen_arm_nor05");
+            // level 19: at 20 the realm bonus rounds 효룡's +1 speed up to +2, which flips this near-tie for reasons unrelated to roles
+            var save = Save(); save.Level = 19; Add(save, "cloth_robe", "gen_arm_nor05");
             Assert.AreEqual("cloth_robe", EquipmentRecommendation.Suggest(save, "hyo_ryong")[1]);
             Assert.AreEqual("gen_arm_nor05", EquipmentRecommendation.Suggest(save, Inventory.Hero)[1]);
             Assert.AreEqual("cloth_robe", EquipmentRecommendation.Suggest(save, "yun_junho")[1]);
@@ -138,9 +139,11 @@ namespace BiRyeoDo.Tests
         [Test]
         public void HealersUseTheirLearnedSkillResourceNeeds()
         {
+            // Gear 내공 is tiny (a 면갑 gives +0.9%) and 윤준호's arts (22~40 내공) never run his pool dry after the 2026-11 retune,
+            // so his learned costs leave the qi armour worthless: he takes the robe's HP like everyone else whose 내공 is not short.
             var save = Save(); Add(save, "cloth_robe", "gen_arm_fin04");
             Assert.AreEqual("cloth_robe", EquipmentRecommendation.Suggest(save, Inventory.Hero)[1]);
-            Assert.AreEqual("gen_arm_fin04", EquipmentRecommendation.Suggest(save, "yun_junho")[1]);
+            Assert.AreEqual("cloth_robe", EquipmentRecommendation.Suggest(save, "yun_junho")[1]);
         }
 
         [Test]

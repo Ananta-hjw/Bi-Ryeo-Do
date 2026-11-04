@@ -14,6 +14,7 @@ namespace BiRyeoDo.Core
         public StatusKind Inflict;   // 상태 이상 the move may leave when it lands (from its name, see Statuses.ForMove)
 
         public EnemyMove FromDistance() { Ranged = true; return this; }
+        public EnemyMove Copy() { return (EnemyMove)MemberwiseClone(); }
 
         public EnemyMove Sniping() { Snipe = true; return this; }
 

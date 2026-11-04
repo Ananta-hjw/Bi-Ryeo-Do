@@ -91,15 +91,23 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
-        public void MeditateCuresOneAndTheAntidoteCuresAll()
+        public void MeditateSometimesCuresOneAndTheAntidoteCuresAll()
         {
             var p = new Combatant("p", "비류연", Team.Player, Stats(100000, 1, 100), null);
             var e = Enemy("e", Stats(100000, 1, 1));
             var b = new InteractiveBattle(p, new[] { e }, new SeededRandom(1));
             b.Begin();
-            p.AddStatus(StatusKind.Burn, 9);
-            b.PlayerAct(PlayerCommand.Meditate());
-            Assert.AreEqual(0, p.Statuses.Count, "운기 cures the status");
+            int cured = 0;
+            for (int seed = 0; seed < 300; seed++)
+            {
+                var q = new Combatant("q", "비류연", Team.Player, Stats(100000, 1, 100), null);
+                var qb = new InteractiveBattle(q, new[] { Enemy("e", Stats(100000, 1, 1)) }, new SeededRandom(seed));
+                qb.Begin();
+                q.AddStatus(StatusKind.Burn, 9);
+                var ev = qb.PlayerAct(PlayerCommand.Meditate());
+                if (ev.Any(x => x.Kind == EventKind.Status && x.StatusCured)) cured++;
+            }
+            Assert.That(cured, Is.InRange(90, 150), "운기 lifts a status about 40% of the time");
             p.AddStatus(StatusKind.Poison, 9);
             b.PlayerAct(PlayerCommand.UseItem(EarlyGameContent.FindItem("antidote")));
             Assert.AreEqual(0, p.Statuses.Count);

@@ -21,7 +21,7 @@ namespace BiRyeoDo.Core
         public static string ArtKey(string id) { return id == "story_biry_rescue" ? "player" : id == "story_dangsam" ? "dang_cheolyeong" : null; }
         private static SkillSpec Hit(string id, string name, float power, int hits = 1)
         {
-            return new SkillSpec { Id = id, Name = name, Description = "이 공방에서 사용하는 이야기 전용 기술입니다.", Power = power, Hits = hits, QiCost = 16, Cooldown = 1, Range = 3 };
+            return new SkillSpec { Id = id, Name = name, Description = "이 공방에서 사용하는 이야기 전용 기술입니다.", Power = ArtData.ScenePower(power, hits), Tuned = true, Hits = hits, QiCost = 16, Cooldown = 1, Range = 3 };
         }
         private static SkillSpec Avoid(string id, string name)
         {
@@ -150,7 +150,7 @@ namespace BiRyeoDo.Core
                     skills.Add(Hit("scene_water_funeral", "편수 풍신 · 수룡의 번 승천", 1f, 5));
                 }
                 if (stage.Number == 56 && encounter == 2 && member.Id == "story_biry_rescue")
-                    skills.Add(new SkillSpec { Id = "scene_five_sweep", Name = "다섯 비뢰도 · 제압", Power = 4f, AllEnemies = true, Range = 3, QiCost = 24, Cooldown = 1 });
+                    skills.Add(new SkillSpec { Id = "scene_five_sweep", Name = "다섯 비뢰도 · 제압", Power = ArtData.ScenePower(4f, 1), Tuned = true, AllEnemies = true, Range = 3, QiCost = 24, Cooldown = 1 });
                 if (stage.Number == 55 && encounter == 4 && member.Id == "story_biry_rescue")
                     skills = new List<SkillSpec> { Hit("scene_fist_clash", "첫 수 · 주먹으로 맞선다", .1f), Avoid("scene_rain_step", "둘째 수 · 우중거 불점의 극쾌식"), Hit("scene_roegwang_response", "셋째 수 · 뇌광류하곡", .1f), Avoid("scene_rescue_step", "다음 수를 기다린다") };
                 if (skills == null) continue;

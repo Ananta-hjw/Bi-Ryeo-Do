@@ -42,7 +42,7 @@ namespace BiRyeoDo.Core
         /// <summary>The last action (기세 100 so the screen plays the full 필살기 cut-in, unless the cut-in already played before a second button).</summary>
         public SkillSpec Skill()
         {
-            return new SkillSpec { Id = SkillId, Name = SkillName, Power = 30f, AllEnemies = true, Range = 3, SpiritCost = TwoStep || QuietStrike ? 0 : 100 };
+            return new SkillSpec { Id = SkillId, Name = SkillName, Tuned = true, Power = 30f, AllEnemies = true, Range = 3, SpiritCost = TwoStep || QuietStrike ? 0 : 100 };
         }
     }
 

@@ -20,7 +20,7 @@ namespace BiRyeoDo.Core
         public static readonly int[] Thresholds = { 0, 3, 8, 15 };
         public static readonly string[] LevelNames = { "서먹", "친분", "신뢰", "의기투합" };
         public const float PowerPerLevel = 0.15f;
-        public const float JointBasePower = 2.0f;
+        public const float JointBasePower = 2.0f * ArtData.SingleHitScale;   // the floor follows the 2026-11 ally art retune
         public const float JointReferenceFactor = 0.8f;   // each strike is 80% of the protagonist's strongest art, so 합공 keeps up with later arts
 
         // What a deeper bond gives the companion himself (on top of the 합공 power above)
@@ -90,7 +90,7 @@ namespace BiRyeoDo.Core
             float basePower = Math.Max(JointBasePower, referencePower * JointReferenceFactor);
             return new SkillSpec
             {
-                Id = "joint", Name = companion.JointName, Power = basePower * companion.JointPower * (1f + PowerPerLevel * (level - 1)),
+                Id = "joint", Tuned = true, Name = companion.JointName, Power = basePower * companion.JointPower * (1f + PowerPerLevel * (level - 1)),
                 Effect = companion.JointEffect, HealPct = 0.20f, Range = 3,
                 Inflict = companion.JointInflict, InflictChance = companion.JointInflict == StatusKind.None ? 0f : 1f
             };

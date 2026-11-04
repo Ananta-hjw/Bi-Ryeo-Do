@@ -81,8 +81,9 @@ namespace BiRyeoDo.Core
         public static int PlayerLevelAt(int curveLevel) { return Math.Max(1, 1 + (int)Math.Round(Math.Max(1, curveLevel) / CurvePerPlayerLevel)); }
 
         // The party is stronger than the plain level curve (which enemies and balance clones use): the protagonist most, companions a bit less.
-        public const float HeroHp = 1.08f, HeroAtk = 1.06f, HeroDef = 1.04f, HeroQi = 1.296f;
-        public const float AllyHp = 1.45f, AllyAtk = 1.50f, AllyDef = 1.30f, AllyQi = 1.68f;
+        // 2026-11: the gap closed from both sides (before: hero 1.08/1.06/1.04/1.296, companions 1.45/1.50/1.30/1.68).
+        public const float HeroHp = 1.28f, HeroAtk = 1.40f, HeroDef = 1.18f, HeroQi = 1.60f;
+        public const float AllyHp = 1.25f, AllyAtk = 1.25f, AllyDef = 1.15f, AllyQi = 1.50f;
 
         private static CombatStats Scaled(CombatStats b, float hp, float atk, float def, float qi)
         {

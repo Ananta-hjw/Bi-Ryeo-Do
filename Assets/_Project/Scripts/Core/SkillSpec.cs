@@ -36,6 +36,7 @@ namespace BiRyeoDo.Core
         public float HealPct;      // for HealAlly
         public StatusKind Inflict;       // 상태 이상 the art may leave on each enemy it hits
         public float InflictChance;      // chance per enemy hit (rolled once per use)
+        public bool Tuned;          // power already carries the 2026-11 ally retune (ArtData.ToSpec, 합공, set pieces); untuned party arts are scaled when they land
         public float EvadeChance = 1f;   // for Evade: chance that each incoming hit is dodged (mastery lowers it for the protagonist's 삼첩영)
 
         /// <summary>"맨 앞 줄" / "모든 줄": which of the enemy lines an art of this reach touches (a reach of 2 or more covers every line).</summary>
@@ -46,7 +47,7 @@ namespace BiRyeoDo.Core
 
         public static SkillSpec BasicAttack()
         {
-            return new SkillSpec { Id = "basic", Name = "기본 공격", Power = 1f, QiCost = 0, Cooldown = 0 };
+            return new SkillSpec { Id = "basic", Name = "기본 공격", Power = 1f, QiCost = 0, Cooldown = 0, Tuned = true };
         }
     }
 }

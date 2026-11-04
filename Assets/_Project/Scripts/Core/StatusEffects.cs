@@ -27,6 +27,7 @@ namespace BiRyeoDo.Core
         public const int ChillFreezeHits = 3;         // 한기: three more attacks taken while chilled freeze the unit for one turn (the one that chilled it does not count)
         public const float ChillSpeed = 0.7f, BossChillSpeed = 0.85f;   // action gauge speed while chilled
         public const float EliteDotFactor = 0.65f, BossDotFactor = 0.35f;
+        public const float MeditateCureChance = 0.40f;       // 운기 lifts one 상태 이상 only at this chance
         public const float DisarmFactor = 0.75f;             // 탈기: damage dealt
         public const float QiBackflowFactor = 2f;            // 내공 역류: 내공 a martial art costs
         public const float QiBackflowNoQiPower = 0.75f;      // 내공 역류 on an enemy without 내공 (일반 rank): its moves hit x0.75
@@ -134,8 +135,15 @@ namespace BiRyeoDo.Core
             return unit.StatusTier >= 2 ? MightyBossChance : unit.StatusTier == 1 ? StrongBossChance : 1f;
         }
 
-        /// <summary>Enemies the original treats as beyond reach: statuses land at x0.2 (with every 시험 wall, see <see cref="EnemyData.CreateCombatant"/>).</summary>
-        public static readonly HashSet<string> MightyBosses = new HashSet<string> { "bi_daegongja", "chilsang_heart", "seocheon_scar", "ice_dragon_wall" };
+        /// <summary>Enemies the original treats as beyond reach (절대고수): statuses land at x0.2 and their moves hit x1.5.</summary>
+        public static readonly HashSet<string> MightyBosses = new HashSet<string>
+        {
+            "bi_daegongja", "chilsang_heart", "seocheon_scar", "seocheon_delay", "seocheon_whirl", "ice_dragon_wall",
+            "geomhu_ioksang", "geomjon_gongson", "muhwa_drain_fire", "muhwa_drain_ice", "mumyeong_escape", "mumyeong_steps", "mumyeong_three"
+        };
+
+        /// <summary>2026-11: every move of a story enemy hits harder by rank: 보스 x1.15, 강력한 보스 (every fifth stage) x1.3, 절대고수 x1.5.</summary>
+        public const float BossMovePower = 1.15f, StrongBossMovePower = 1.3f, MightyMovePower = 1.5f;
 
         /// <summary>Speed factor of the action gauge (한기 slows it).</summary>
         public static float SpeedFactor(Combatant unit)

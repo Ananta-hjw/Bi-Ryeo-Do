@@ -419,7 +419,7 @@ namespace BiRyeoDo.Core
         public static EnemyData StoryEnemy(EnemyData enemy, int stage, int difficulty, TrialRule trial = null)
         {
             bool survive = trial != null && trial.Kind == TrialKind.Survive;
-            var scaled = ScaleEnemy(enemy, stage, difficulty, survive);
+            var scaled = TuneLateBossMoves(ScaleEnemy(enemy, stage, difficulty, survive), stage);
             if (IsMilestoneBoss(enemy, stage))
             {
                 scaled = scaled.Scaled(MilestoneBossBoost, MilestoneBossBoost, MilestoneBossBoost);
@@ -435,6 +435,33 @@ namespace BiRyeoDo.Core
             }
             var gear = GearLoadout.ForEnemies(stage, difficulty);
             return gear == null || !Realm.HasRealm(enemy) || (trial != null && !survive) ? scaled : scaled.WithGear(gear);
+        }
+
+        /// <summary>2026-11: bosses from stage 37 had heavy blows of only 1.5–2.8; their strongest move is raised to the earlier bosses' range,
+        /// 3.0 at stage 37 rising to 3.6 at the last stage (power x hits, as a damage factor so the 내공 cost stays). Before the rank factor.</summary>
+        public const int LateBossFrom = 37;
+        public const float LateBossHeavyFirst = 3.0f, LateBossHeavyLast = 3.6f;
+
+        public static EnemyData TuneLateBossMoves(EnemyData enemy, int stage)
+        {
+            if (enemy == null || !enemy.IsBoss || stage < LateBossFrom || enemy.Moves == null || enemy.Moves.Length == 0) return enemy;
+            int last = Math.Max(LateBossFrom + 1, EarlyGameContent.Stages.Length);
+            float target = LateBossHeavyFirst + (LateBossHeavyLast - LateBossHeavyFirst) * Math.Min(1f, (stage - LateBossFrom) / (float)(last - LateBossFrom));
+            int best = -1; float top = 0f;
+            for (int i = 0; i < enemy.Moves.Length; i++)
+            {
+                var m = enemy.Moves[i];
+                if (m.Charge) continue;
+                float total = m.Power * m.DamageFactor * Math.Max(1, m.Hits);
+                if (total > top) { top = total; best = i; }
+            }
+            if (best < 0 || top <= 0f || top >= target) return enemy;
+            var copy = enemy.Scaled(1f, 1f);
+            copy.Moves = (EnemyMove[])enemy.Moves.Clone();
+            var tuned = copy.Moves[best].Copy();
+            tuned.DamageFactor *= target / top;
+            copy.Moves[best] = tuned;
+            return copy;
         }
 
         public static string TagFor(int difficulty) { return difficulty <= 0 ? "" : "[" + DifficultyNames[Math.Min(DifficultyCount - 1, difficulty)] + "] "; }

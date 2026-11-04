@@ -39,8 +39,8 @@ namespace BiRyeoDo.Core
 
         public static int[] ThresholdsFor(ArtData art) { return art != null && art.SpiritCost > 0 ? UltimateThresholds : Thresholds; }
         public static readonly string[] LevelNames = { "입문", "소성", "대성", "극성", "극의" };
-        public static readonly float[] PowerBonus = { 0f, 0.03f, 0.07f, 0.15f, 0.30f };
-        public static readonly float[] UltimatePowerBonus = { 0f, 0.05f, 0.10f, 0.20f, 0.40f };   // 비기 have no 변초, so they grow more
+        public static readonly float[] PowerBonus = { 0f, 0.05f, 0.10f, 0.20f, 0.40f };
+        public static readonly float[] UltimatePowerBonus = { 0f, 0.10f, 0.20f, 0.40f, 0.80f };   // 비기 have no 변초, so they grow more
         public static readonly float[] EvadeChanceByLevel = { 0.50f, 0.65f, 0.80f, 0.90f, 1.00f };   // 삼첩영: share of hits dodged
         public const int VariantLevel = 3;      // 극성: the 변초 opens
         public const int MasterLevel = 4;       // 극의: one turn faster recharge (never below 0) and 20% less qi

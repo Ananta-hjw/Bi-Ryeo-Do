@@ -74,7 +74,7 @@ namespace BiRyeoDo.Core
             foreach (var m in party) if (m.Id == "na_yerin") heroine = m;
             if (heroine == null) return;
             heroine.Skills.RemoveAll(skill => skill.Id == "ny_baekhon" || CompanionTraining.Succeeds(skill.Id, "ny_baekhon"));
-            heroine.Skills.Insert(1, new SkillSpec { Id = "scene_silver_snow", Name = "새 검기", Description = "비설보를 바탕으로 펼치는 미완의 검기. 이 공방에서만 사용합니다.", Power = 6f, AllEnemies = true, Range = 3, QiCost = 24, Cooldown = 1 });
+            heroine.Skills.Insert(1, new SkillSpec { Id = "scene_silver_snow", Name = "새 검기", Description = "비설보를 바탕으로 펼치는 미완의 검기. 이 공방에서만 사용합니다.", Power = ArtData.ScenePower(6f, 1), Tuned = true, AllEnemies = true, Range = 3, QiCost = 24, Cooldown = 1 });
         }
 
         /// <summary>True when the companion is needed in any fight of the stage (it cannot be benched for it).</summary>
@@ -292,22 +292,22 @@ namespace BiRyeoDo.Core
             var arts = new List<SkillSpec>();
             if (id == "story_young_yeonbi")
             {
-                if (encounter == 0) arts.Add(new SkillSpec { Id = "scene_palhwa", Name = "팔화난무", Power = .7f, Hits = 4, QiCost = 16, Cooldown = 1 });
-                else arts.Add(new SkillSpec { Id = "scene_ssangseom", Name = "충각 쌍섬일격뢰", Power = 8f, QiCost = 24, Cooldown = 1 });
+                if (encounter == 0) arts.Add(new SkillSpec { Id = "scene_palhwa", Name = "팔화난무", Power = ArtData.ScenePower(.7f, 4), Tuned = true, Hits = 4, QiCost = 16, Cooldown = 1 });
+                else arts.Add(new SkillSpec { Id = "scene_ssangseom", Name = "충각 쌍섬일격뢰", Power = ArtData.ScenePower(8f, 1), Tuned = true, QiCost = 24, Cooldown = 1 });
                 arts.Add(new SkillSpec { Id = "scene_young_evade", Name = "비늘의 틈 읽기", Effect = SkillEffect.Evade, Power = 0, QiCost = 12, Cooldown = 2 });
                 return arts;
             }
             if (id == "story_yeonbi")
             {
-                arts.Add(new SkillSpec { Id = "scene_umbrella", Name = "현천은린 · 타격", Power = 2.5f, Hits = 2, QiCost = 18, Cooldown = 1 });
+                arts.Add(new SkillSpec { Id = "scene_umbrella", Name = "현천은린 · 타격", Power = ArtData.ScenePower(2.5f, 2), Tuned = true, Hits = 2, QiCost = 18, Cooldown = 1 });
                 arts.Add(new SkillSpec { Id = "scene_sanmak", Name = "산막", Effect = SkillEffect.GuardParty, Power = 0, QiCost = 16, Cooldown = 2 });
-                arts.Add(new SkillSpec { Id = "scene_sambok", Name = "삼복구타산", Power = 1.8f, Hits = 4, QiCost = 24, Cooldown = 2 });
+                arts.Add(new SkillSpec { Id = "scene_sambok", Name = "삼복구타산", Power = ArtData.ScenePower(1.8f, 4), Tuned = true, Hits = 4, QiCost = 24, Cooldown = 2 });
                 return arts;
             }
             if (id == "story_ma_haryeong")
             {
-                arts.Add(new SkillSpec { Id = "scene_taesanbong", Name = "붕결 일도광 태산봉", Power = 7f, QiCost = 24, Cooldown = 1 });
-                arts.Add(new SkillSpec { Id = "scene_pyoru", Name = "표류무상도법", Power = 3f, QiCost = 16, Cooldown = 1 });
+                arts.Add(new SkillSpec { Id = "scene_taesanbong", Name = "붕결 일도광 태산봉", Power = ArtData.ScenePower(7f, 1), Tuned = true, QiCost = 24, Cooldown = 1 });
+                arts.Add(new SkillSpec { Id = "scene_pyoru", Name = "표류무상도법", Power = ArtData.ScenePower(3f, 1), Tuned = true, QiCost = 16, Cooldown = 1 });
                 return arts;
             }
             if (id == "story_yu_gyeongyeong")
@@ -316,8 +316,8 @@ namespace BiRyeoDo.Core
                 return arts;
             }
             string sword = id == "story_yu_jaeryong" ? "청룡검" : id == "story_namgung_sang" ? "뇌전검" : id == "story_mo_yonghwi" ? "은하유성검" : id == "story_gongson_jeolhwi" ? "지존검" : id == "story_yu_eunseong" ? "낙일검" : id == "story_i_jinseol" ? "쌍검" : "호위 공방";
-            arts.Add(new SkillSpec { Id = "story_strike", Name = sword + " 연격", Description = "빈틈을 노려 두 번 공격합니다.", Power = 2.4f, Hits = 2, QiCost = 18, Cooldown = 1 });
-            arts.Add(new SkillSpec { Id = "story_sweep", Name = sword + " 횡격", Description = "앞을 가로막은 상대들을 공격합니다.", Power = 2.6f, AllEnemies = true, Range = 3, QiCost = 24, Cooldown = 2 });
+            arts.Add(new SkillSpec { Id = "story_strike", Name = sword + " 연격", Description = "빈틈을 노려 두 번 공격합니다.", Power = ArtData.ScenePower(2.4f, 2), Tuned = true, Hits = 2, QiCost = 18, Cooldown = 1 });
+            arts.Add(new SkillSpec { Id = "story_sweep", Name = sword + " 횡격", Description = "앞을 가로막은 상대들을 공격합니다.", Power = ArtData.ScenePower(2.6f, 1), Tuned = true, AllEnemies = true, Range = 3, QiCost = 24, Cooldown = 2 });
             arts.Add(new SkillSpec { Id = "story_footwork", Name = id == "story_namgung_sang" ? "일촌간파" : "틈새 보법", Description = "움직임을 읽고 다음 공세를 피합니다.", Effect = SkillEffect.Evade, Power = 0, QiCost = 16, Cooldown = 2 });
             return arts;
         }
