@@ -199,7 +199,11 @@ namespace BiRyeoDo.Tests
                 if (FireDragonFinale.IsFinale(stage, i)) { Assert.AreSame(FireDragonFinale.Departure, scenes); continue; }   // sets up the scripted fight on every run
                 if (stage.EventFor(i) != null)
                 {
-                    Assert.IsNull(scenes);
+                    if (scenes != null)
+                    {
+                        foreach (var scene in scenes) StringAssert.Contains(scene.Title, Replay(number));
+                        Assert.IsNull(StoryEpisodes.BeforeFight(stage, i, save, true));
+                    }
                     foreach (var line in stage.EventFor(i).Opening) StringAssert.Contains(line, Replay(number));
                     continue;
                 }

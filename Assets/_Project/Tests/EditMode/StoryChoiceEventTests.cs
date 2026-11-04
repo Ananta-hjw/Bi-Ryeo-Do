@@ -7,6 +7,33 @@ namespace BiRyeoDo.Tests
 {
     public class StoryChoiceEventTests
     {
+        [TestCase(58, 1)]
+        [TestCase(59, 1)]
+        [TestCase(59, 2)]
+        public void EventTransitionsFollowStoryReplayGatesAndPreserveTheSavedSlot(int number, int slot)
+        {
+            for (int difficulty = 0; difficulty < 3; difficulty++)
+            {
+                var stage = EarlyGameContent.FindStage(number).WithDifficulty(difficulty);
+                var save = new SaveData { ClearedStage = number - 1, Doo = 12345 };
+                var party = BalanceSimulation.StoryParty(stage, slot, save);
+                StageProgress.Store(save, number, slot, party, difficulty);
+                var scenes = StoryEpisodes.BeforeFight(stage, slot, save);
+                Assert.IsNotNull(scenes);
+                Assert.IsTrue(scenes.All(x => x.Lines.Length > 0));
+                Assert.IsNull(StoryEpisodes.BeforeFight(stage, slot, save, true));
+                save.ClearedStage = number;
+                Assert.IsNull(StoryEpisodes.BeforeFight(stage, slot, save));
+                CollectionAssert.AreEqual(scenes.SelectMany(x => x.Lines),
+                    StoryEpisodes.BeforeFight(stage, slot, save, false, true).SelectMany(x => x.Lines));
+                Assert.IsNull(StoryEpisodes.BeforeFight(stage, slot, save, true, true));
+                Assert.AreEqual(number, save.ProgressStage);
+                Assert.AreEqual(slot, save.ProgressNext);
+                Assert.AreEqual(difficulty, save.ProgressDifficulty);
+                Assert.AreEqual(12345, save.Doo);
+            }
+        }
+
         [TestCase(0)] [TestCase(1)]
         public void BothDepartureChoicesKeepYerinsAgencyAndTheCanonicalSeatExchange(int choice)
         {
@@ -92,7 +119,8 @@ namespace BiRyeoDo.Tests
             Assert.IsFalse(party.Any(m => m.Skills.Any(s => s.Id == "scene_escape_badge")));
             StageProgress.Store(save, 58, 1, party, difficulty);
             Assert.AreSame(StoryChoiceEvents.HubeiEscort, stage.EventFor(save.ProgressNext));
-            Assert.IsNull(StoryEpisodes.BeforeFight(stage, 1, save));
+            CollectionAssert.AreEqual(StoryBriefings.Briefing(58).Skip(8),
+                StoryEpisodes.BeforeFight(stage, 1, save).SelectMany(x => x.Lines));
             Recommend.FightReward(save, stage, 1, false, out long exp, out long doo);
             var legacy = new StageData { Number = 58, RecommendedLevel = stage.RecommendedLevel,
                 DooTotal = stage.DooTotal, RewardWeightBudget = 3, Difficulty = difficulty,
@@ -191,7 +219,9 @@ namespace BiRyeoDo.Tests
                 StageProgress.Store(save, 59, 1, party, d);
                 Assert.IsTrue(StageProgress.Has(save, 59));
                 Assert.AreSame(StoryChoiceEvents.LastReport, scaled.EventFor(save.ProgressNext));
-                Assert.IsNull(StoryEpisodes.BeforeFight(scaled, 1, save));
+                var lead = StoryEpisodes.BeforeFight(scaled, 1, save);
+                Assert.IsFalse(lead.SelectMany(x => x.Lines).Contains(StoryChoiceEvents.LastReport.Opening[3]));
+                CollectionAssert.AreEqual(stage.Intro, lead.Last().Lines);
                 Assert.IsFalse(party.Any(m => m.Skills.Any(s => s.Id == "scene_escape_report")));
                 Assert.IsFalse(BalanceSimulation.StoryParty(scaled, 0, save).Any(m => m.Skills.Any(s => s.Id == "scene_escape_contacts")));
             }

@@ -534,7 +534,9 @@ namespace BiRyeoDo.Game.UI
                         foreach (var scene in episodes) yield return ShowStory(scene.Title, scene.Lines, scene.HeroArtKey);
                     var storyEvent = stage.EventFor(i);
                     if (storyEvent != null)
-                        yield return ShowChoiceEvent(storyEvent);
+                    {
+                        if (!_combatOnly) yield return ShowChoiceEvent(storyEvent);
+                    }
                     else
                     {
                         yield return Banner(i == stage.Encounters.Length - 1 ? "결전!" : "전투 " + (i + 1), 0.7f);

@@ -515,7 +515,8 @@ namespace BiRyeoDo.Core
                 {
                     StoryScene[] scenes;
                     if (FireDragonFinale.IsFinale(stage, i)) AddScenes(result, FireDragonFinale.Departure);
-                    else if (stage.EventFor(i) == null && TryScenes(stage.Number * 100 + i, out scenes)) AddScenes(result, scenes);
+                    else if (stage.EventFor(i) != null) AddScenes(result, EarlyStory.BeforeEvent(stage, i));
+                    else if (TryScenes(stage.Number * 100 + i, out scenes)) AddScenes(result, scenes);
                     var showdown = Showdowns.Is(stage, i) ? stage.TrialFor(i).Script : null;
                     if (showdown != null)
                     {
@@ -561,9 +562,10 @@ namespace BiRyeoDo.Core
         public static StoryScene[] BeforeFight(StageData stage, int encounter, SaveData save, bool singleFight = false, bool replayStory = false)
         {
             if (FireDragonFinale.IsFinale(stage, encounter)) return FireDragonFinale.Departure;   // sets up the scripted fight, also on replays
-            if (stage == null || save == null || stage.EventFor(encounter) != null || stage.IsQuest || stage.IsTower || singleFight
+            if (stage == null || save == null || stage.IsQuest || stage.IsTower || singleFight
                 || (save.ClearedStage >= stage.Number && !replayStory) || stage.Encounters == null || encounter < 0 || encounter >= stage.Encounters.Length) return null;
             StoryScene[] scenes;
+            if (stage.EventFor(encounter) != null) return EarlyStory.BeforeEvent(stage, encounter);
             return TryScenes(stage.Number * 100 + encounter, out scenes) ? scenes : null;
         }
     }

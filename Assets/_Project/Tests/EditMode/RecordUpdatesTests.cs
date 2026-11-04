@@ -11,7 +11,7 @@ namespace BiRyeoDo.Tests
         {
             var save = new SaveData();
             Assert.AreEqual(0, RecordUpdates.Unread(save, RecordUpdates.StoryPage));
-            for (int cleared = 1; cleared <= 54; cleared++)
+            for (int cleared = 1; cleared <= 66; cleared++)
             {
                 save.ClearedStage = cleared;
                 Assert.AreEqual(1, RecordUpdates.Unread(save, RecordUpdates.StoryPage));

@@ -15,13 +15,24 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(3, dogs.Encounters.Length); Assert.AreEqual(2, sects.Encounters.Length);
             Assert.IsFalse(dogs.Encounters.SelectMany(x => x).Contains("tracking_scent"));
             Assert.IsFalse(sects.Encounters.SelectMany(x => x).Contains("distrust_corridor"));
-            string pursuit = string.Join(" ", StoryEpisodes.BeforeFight(dogs, 0, new SaveData()).SelectMany(s => s.Lines));
-            Assert.Less(pursuit.IndexOf("긴장의 냄새", StringComparison.Ordinal), pursuit.IndexOf("최와와의 제삼대", StringComparison.Ordinal));
+            string pursuit = string.Join(" ", StoryEpisodes.Replay(dogs));
+            int laughter = pursuit.IndexOf("긴장의 냄새", StringComparison.Ordinal);
+            int uniforms = pursuit.IndexOf("최와와의 제삼대", StringComparison.Ordinal);
+            Assert.GreaterOrEqual(laughter, 0); Assert.GreaterOrEqual(uniforms, 0);
+            Assert.Less(laughter, uniforms);
+            StringAssert.DoesNotContain("최와와의 제삼대", string.Join(" ", StoryEpisodes.BeforeFight(dogs, 0, new SaveData()).SelectMany(s => s.Lines)));
+            StringAssert.Contains("최와와의 제삼대", string.Join(" ", StoryEpisodes.BeforeFight(dogs, 1, new SaveData()).SelectMany(s => s.Lines)));
             string setup = string.Join(" ", StoryEpisodes.BeforeFight(sects, 0, new SaveData()).SelectMany(s => s.Lines));
             StringAssert.DoesNotContain("나전의 검이 흑저를 베었다", setup);
             string result = string.Join(" ", StoryEpisodes.BeforeFight(sects, 1, new SaveData()).SelectMany(s => s.Lines));
-            Assert.Less(result.IndexOf("나전의 검이 흑저를 베었다", StringComparison.Ordinal), result.IndexOf("지나치게 쉬운 통과", StringComparison.Ordinal));
+            StringAssert.Contains("나전의 검이 흑저를 베었다", result);
             StringAssert.Contains("암시 봉인", result);
+            StringAssert.DoesNotContain("대난원이 저곳에 있네", result);
+            string discovery = string.Join(" ", EarlyStory.Ending(sects).SelectMany(s => s.Lines));
+            StringAssert.Contains("지나치게 쉬운 통과", discovery);
+            StringAssert.Contains("대난원이 저곳에 있네", discovery);
+            string sequence = string.Join(" ", StoryEpisodes.Replay(sects));
+            Assert.Less(sequence.IndexOf("나전의 검이 흑저를 베었다", StringComparison.Ordinal), sequence.IndexOf("지나치게 쉬운 통과", StringComparison.Ordinal));
             Assert.IsNotNull(EarlyGameContent.FindArt("umin_gunmu"));
             foreach (var stage in new[] { dogs, sects })
             {
