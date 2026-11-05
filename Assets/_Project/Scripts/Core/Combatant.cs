@@ -46,6 +46,7 @@ namespace BiRyeoDo.Core
         public bool Charging;              // enemy is winding up its next move (telegraph)
         public Combatant ChargeTarget;     // who the wound-up move will hit
         public bool Stunned;               // loses its next action
+        public string StunReason;          // "빙결" or "점혈": shown when the turn is lost
         public int ChillHits;              // 한기: attacks taken since it took hold (ChillFreezeHits freeze the unit)
         public float MovePowerFactor = 1f;   // enemies: every move's power by story rank (Statuses.BossMovePower …)
         public int StatusTier;             // 0 = ordinary, 1 = 강력한 보스 (status chance x0.5), 2 = 정말 강력한 보스 / 시험 wall (x0.2)
@@ -77,7 +78,7 @@ namespace BiRyeoDo.Core
                 StoryArtId = StoryArtId, StartSpirit = StartSpirit, Lifesteal = Lifesteal, RescuerId = RescuerId, RescueUsed = RescueUsed,
                 Col = Col, Row = Row, Range = Range, Guarding = Guarding, Evading = Evading, EvadeChance = EvadeChance,
                 Stealthed = Stealthed, StealthCrit = StealthCrit, Covering = Covering, CounterStance = CounterStance, WardTurns = WardTurns, Focused = Focused,
-                Charging = Charging, Stunned = Stunned, ChillHits = ChillHits, MovePowerFactor = MovePowerFactor, StatusTier = StatusTier, CleansesLeft = CleansesLeft, CleanseChance = CleanseChance, Rank = Rank, IsBoss = IsBoss, RetreatHpPct = RetreatHpPct, HoldsAtOneHp = HoldsAtOneHp, RetreatLines = RetreatLines,
+                Charging = Charging, Stunned = Stunned, StunReason = StunReason, ChillHits = ChillHits, MovePowerFactor = MovePowerFactor, StatusTier = StatusTier, CleansesLeft = CleansesLeft, CleanseChance = CleanseChance, Rank = Rank, IsBoss = IsBoss, RetreatHpPct = RetreatHpPct, HoldsAtOneHp = HoldsAtOneHp, RetreatLines = RetreatLines,
                 MoveIndex = MoveIndex, Moves = Moves, Phases = Phases, PhaseIndex = PhaseIndex, AwakeningStrike = AwakeningStrike
             };
             copy.Skills.Clear();

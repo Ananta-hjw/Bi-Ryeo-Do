@@ -48,6 +48,7 @@ namespace BiRyeoDo.Core
         public string Quip;
         /// <summary>A short floating label for a support effect (「은신」, 「반격 태세」, 「기세 +25」 …) on the target; null = the kind's default.</summary>
         public string Tag;          // a short line the log shows after the hit (scripted showdowns: "거리가 줄지 않는다!")
+        public string Notice;       // a turn lost or spent (빙결, 점혈, 운기 해독, 주화입마): the battle screen shows it as a banner so it is not missed
     }
 
     public sealed class BattleResult

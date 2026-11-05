@@ -1091,12 +1091,52 @@ namespace BiRyeoDo.Game.UI
             _fightWindowsMissed = _battle.WindowsMissed;
             _fightFell = _party.Exists(m => !m.IsAlive);
             if (trial != null && _battle.TrialFailed) _log.text = _battle.TrialFailReason;
+            if (trial != null && _battle.TrialFailed && !_fled) yield return TrialFailedNotice(trial);
             if (turnLimit > 0 || trial != null) _stageLabel.text = label;
 
             RefreshParty();
             RefreshCards();
             SetCommandsVisible(false);
             yield return new WaitForSeconds(Wait(0.25f));
+        }
+
+        /// <summary>A lost 시험 (행동 제한·생명줄·대응) is not a knock-out: say plainly why the fight was lost before the defeat panel.</summary>
+        private IEnumerator TrialFailedNotice(TrialRule trial)
+        {
+            string title, body;
+            switch (trial.Kind)
+            {
+                case TrialKind.Deadline:
+                case TrialKind.Harmony:
+                    title = "제한 행동 초과";
+                    body = "제한 행동 " + trial.Limit + "번 안에 적을 모두 쓰러뜨리지 못해 패배했습니다.\n(사용한 행동 " + _battle.PartyActions + "번)\n\n아군이 쓰러진 것이 아니라 행동 횟수가 다 되어 진 것입니다. 행동 횟수는 위쪽 목표 표시에서 확인할 수 있습니다.";
+                    break;
+                case TrialKind.Lifeline:
+                    title = "생명줄이 끊어졌습니다";
+                    body = "큰 공격을 맞아 생명줄 " + trial.Limit + "개가 모두 끊어져 패배했습니다.\n\n예고된 큰 공격은 피하면 생명줄이 끊어지지 않습니다.";
+                    break;
+                case TrialKind.Technique:
+                    title = "대응 실패";
+                    body = "정해진 대응을 행동 " + trial.Limit + "번 안에 마치지 못해 패배했습니다.";
+                    break;
+                default:
+                    title = "시험 실패";
+                    body = _battle.TrialFailReason;
+                    break;
+            }
+            bool closed = false;
+            var window = UiFactory.Rect("TrialFailedWindow", transform, Vector2.zero, Vector2.one);
+            window.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.78f);
+            var card = UiFactory.Panel("Card", window, new Vector2(.20f, .24f), new Vector2(.80f, .76f), UiFactory.ModalInk);
+            UiFactory.Frame(card.transform, UiFactory.Red, 3f);
+            card.raycastTarget = true;
+            UiFactory.Label("Title", card.transform, new Vector2(.05f, .80f), new Vector2(.95f, .96f), title, 42, UiFactory.Red);
+            UiFactory.Body(UiFactory.Label("Body", card.transform, new Vector2(.07f, .28f), new Vector2(.93f, .78f), body, 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 1.3f);
+            UiFactory.Button("Ok", card.transform, new Vector2(.30f, .05f), new Vector2(.70f, .22f), "확인", UiFactory.Red, () => closed = true, 34);
+            window.SetAsLastSibling();
+            SoundManager.Sfx("lose");
+            while (!closed && !_fled) yield return null;
+            Destroy(window.gameObject);
         }
 
         // ------------------------------------------------------------------ setup
@@ -2321,6 +2361,8 @@ namespace BiRyeoDo.Game.UI
                         }
                         if (ev.CounterReady)
                         {
+                            var readyPanel = PanelOf(ev.Interrupted ? ev.ActorId : ev.TargetId);
+                            if (readyPanel != null) Float(readyPanel.Center + new Vector2(0f, 0.1f), "반격 기회!", UiFactory.Gold, 62);
                             if (!byParty)
                             {
                                 StartCoroutine(EdgePulse(_edgeFlash, .4f, .4f));
@@ -2434,13 +2476,16 @@ namespace BiRyeoDo.Game.UI
                     case EventKind.StunSkip:
                         _log.text = ev.Message;
                         var frozen = CardOf(ev.ActorId);
-                        if (frozen != null) Float(frozen.Center, "굳음", GuardBlue, 64);
+                        if (frozen != null) Float(frozen.Center, string.IsNullOrEmpty(ev.Tag) ? "굳음" : ev.Tag, GuardBlue, 64);
                         var frozenAlly = PanelOf(ev.ActorId);
                         if (frozenAlly != null) Float(frozenAlly.Center, string.IsNullOrEmpty(ev.Tag) ? "굳음" : ev.Tag, GuardBlue, 64);
                         RefreshCards();
-                        yield return new WaitForSeconds(Wait(SmallDelay));
+                        RefreshParty();
+                        yield return Banner(ev.Message, 1.0f);   // a lost turn must not slip by unnoticed
                         break;
                 }
+                // 빙결·점혈 that cost the next turn (and any 각성:강타 cancelled), 운기 해독, 주화입마: a banner says why
+                if (!string.IsNullOrEmpty(ev.Notice) && !_fled) yield return Banner(ev.Notice, 1.0f);
                 // a boss that holds at 1 HP says its exit lines as it leaves (일반 30's 대공자 비)
                 if (ev.Retreated && ev.Lines != null && ev.Lines.Length > 0 && !_fled)
                 {
@@ -2525,6 +2570,7 @@ namespace BiRyeoDo.Game.UI
             card.ShownHp = ev.TargetHpAfter;
             RefreshFocusHud();
             if (ev.Counter) ResponseNotice(ev.TargetId, NameOf(ev.ActorId) + "의 반격! 피해 +25%" + (ev.Harmony ? " · 내공합격" : ""));
+            if (ev.Counter && ev.HitIndex == 0) Float(card.Center + new Vector2(0f, 0.12f), "반격!", UiFactory.Gold, 68);
             card.Hp.SetPct(card.Unit.Stats.MaxHp > 0 ? (float)ev.TargetHpAfter / card.Unit.Stats.MaxHp : 0f);
             card.HpText.text = ev.TargetHpAfter + " / " + card.Unit.Stats.MaxHp;
             card.Spirit.SetPct(card.Unit.Spirit / (float)InteractiveBattle.MaxSpirit);

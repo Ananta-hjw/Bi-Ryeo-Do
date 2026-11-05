@@ -292,6 +292,7 @@ namespace BiRyeoDo.Core
             if (!member.IsAlive || !enemy.IsAlive) return;
             _counterOpenings[member] = enemy;  // refresh/replace, never stack
             ev.CounterReady = true;
+            AddNotice(ev, (ev.Interrupted ? member.Name + "의 파훼!" : member.Name + "의 대응 성공!") + " 반격 기회 — 다음 행동에서 " + enemy.Name + "에게 피해 +25%");
         }
 
         public InteractiveBattle(Combatant player, IEnumerable<Combatant> enemies, IRandom rng)
@@ -682,6 +683,7 @@ namespace BiRyeoDo.Core
             Combatant counterTarget;
             bool counter = _counterStrikes.TryGetValue(actor, out counterTarget) && counterTarget == t;
             if (counter) dmg = (int)Math.Round(dmg * CounterDamageFactor);
+            bool announceCounter = counter && h == 0;
             if (IsUnavoidable && t.Team == Team.Enemy) dmg = 0;   // 46: no blow reaches the 심도
             if (IsWindow && t.Team == Team.Enemy) dmg = Math.Max(1, (int)Math.Round(dmg * Trial.ArmorFactor));   // 20: the old scales throw most of it back
             t.Hp = Math.Max(0, t.Hp - dmg);
@@ -713,12 +715,14 @@ namespace BiRyeoDo.Core
             if (ev.Interrupted) GrantCounter(actor, t, ev);
             ev.TargetHpAfter = ev.Retreated && t.HoldsAtOneHp ? 1 : t.Hp;
             ev.TargetDefeated = !t.IsAlive;
+            if (announceCounter) AddNotice(ev, actor.Name + "의 반격! 피해 +25%");
             if (h == 0 && t.IsAlive && ChillStruck(t)) ApplyStun(t, ev, true);   // 한기: the third attack taken freezes it (once per attack command), bosses too
             events.Add(ev);
             if (illusionBack > 0 && actor.IsAlive) SelfHurt(actor, illusionBack, StatusKind.Illusion, events);
             if (triggerBleed && h == 0 && t.IsAlive && t.Has(StatusKind.Bleed)) StatusHurt(t, StatusKind.Bleed, events);   // once per attack command
             if (!t.IsAlive && ev.CounterReady)
             {
+                ev.Notice = null;   // the opening died with the enemy
                 _counterOpenings.Remove(actor);
                 ev.CounterReady = false;
             }
@@ -762,10 +766,12 @@ namespace BiRyeoDo.Core
 
         private void ApplyStun(Combatant target, BattleEvent ev, bool freeze = false)
         {
+            string lost = null;
             if (target.AwakeningStrike != null)
             {
                 target.AwakeningStrike = null;
                 ev.Interrupted = true;
+                lost = "각성:강타";
             }
             else if (target.Charging && !IsWindow)   // 20: a stun cannot shut the opened mouth (the showdown's window)
             {
@@ -774,12 +780,20 @@ namespace BiRyeoDo.Core
                 target.ChargeTarget = null;
                 target.MoveIndex++;
                 ev.Interrupted = true;
+                lost = "준비하던 강타";
             }
-            if (!target.IsBoss || freeze)   // 점혈 never stuns a boss; 한기's freeze does
+            bool stunned = !target.IsBoss || freeze;   // 점혈 never stuns a boss; 한기's freeze does
+            if (stunned)
             {
                 target.Stunned = true;
+                target.StunReason = freeze ? "빙결" : "점혈";
                 ev.Stunned = true;
             }
+            // what the player should notice: the banner text of the blow
+            if (freeze) ev.Tag = "빙결";
+            if (freeze || lost != null)
+                AddNotice(ev, target.Name + (freeze ? "이(가) 얼어붙었다! 다음 차례를 잃는다" : stunned ? "의 혈도가 막혔다! 다음 차례를 잃는다" : "의 기세가 끊겼다")
+                    + (lost != null ? " (" + lost + " 취소)" : ""));
         }
 
         // ------------------------------------------------------------------ 상태 이상
@@ -787,6 +801,12 @@ namespace BiRyeoDo.Core
         private static BattleEvent Cured(Combatant actor, Combatant target, StatusKind kind, string message)
         {
             return new BattleEvent { ActorId = actor.Id, TargetId = target.Id, SkillId = "status", Kind = EventKind.Status, Status = kind, StatusCured = true, TargetHpAfter = target.Hp, Message = message };
+        }
+
+        /// <summary>Adds a banner line to the event (several reasons on one blow are joined).</summary>
+        private static void AddNotice(BattleEvent ev, string line)
+        {
+            ev.Notice = string.IsNullOrEmpty(ev.Notice) ? line : ev.Notice + "\n" + line;
         }
 
         /// <summary>Does a status take hold: 주화입마 always at its own 20%, the rest at the source's chance; 강력한 보스 x0.5, 정말 강력한 보스 x0.2.</summary>
@@ -814,7 +834,7 @@ namespace BiRyeoDo.Core
             var allies = side.FindAll(x => x != actor && x.IsAlive);
             if (allies.Count == 0)
             {
-                events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = "deviation", Kind = EventKind.StunSkip, Tag = "주화입마", TargetHpAfter = actor.Hp, Message = actor.Name + "이(가) 주화입마에 빠져 허공에 손을 휘두른다!" });
+                events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = "deviation", Kind = EventKind.StunSkip, Tag = "주화입마", TargetHpAfter = actor.Hp, Message = actor.Name + "이(가) 주화입마에 빠져 허공에 손을 휘두른다! (차례를 넘깁니다)" });
                 return;
             }
             var victim = allies[Math.Min(allies.Count - 1, (int)(_rng.NextDouble() * allies.Count))];
@@ -823,7 +843,7 @@ namespace BiRyeoDo.Core
             if (actor.Has(StatusKind.Chill)) dmg = (int)Math.Round(dmg * ChillAttackFactor);
             victim.Hp = Math.Max(0, victim.Hp - dmg);
             if (IsFinale && victim.Team == Team.Enemy && victim.Hp < 1) victim.Hp = 1;
-            var ev = new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = victim.Id, SkillId = "deviation", Kind = EventKind.Attack, Tag = "주화입마", Damage = dmg, HitCount = 1, Message = actor.Name + "이(가) 주화입마에 빠져 " + victim.Name + "을(를) 공격한다!" };
+            var ev = new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = victim.Id, SkillId = "deviation", Kind = EventKind.Attack, Tag = "주화입마", Damage = dmg, HitCount = 1, Message = actor.Name + "이(가) 주화입마에 빠져 " + victim.Name + "을(를) 공격한다!", Notice = actor.Name + " — 주화입마! 제어를 잃고 " + victim.Name + "을(를) 공격한다" };
             if (victim.Hp == 0 && victim.Team == Team.Player) TryRescue(victim, ev);
             if (victim.RetreatHpPct > 0f && victim.Hp <= victim.Stats.MaxHp * victim.RetreatHpPct) { victim.Hp = 0; ev.Retreated = true; }
             else if (victim.HoldsAtOneHp && victim.Hp <= 0) Leave(victim, ev);
@@ -966,7 +986,7 @@ namespace BiRyeoDo.Core
                 {
                     // 한기로 얼어붙은 아군: this turn is lost (its cooldowns and 내공 do not move either)
                     actor.Stunned = false;
-                    events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = "stun", Kind = EventKind.StunSkip, TargetHpAfter = actor.Hp, Message = actor.Name + "은(는) 몸이 얼어붙어 움직이지 못한다!" });
+                    events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = "stun", Kind = EventKind.StunSkip, Tag = "빙결", TargetHpAfter = actor.Hp, Message = actor.Name + "은(는) 얼어붙어 움직이지 못한다! (차례를 넘깁니다)" });
                     continue;
                 }
                 if (actor.Team == Team.Player)
@@ -1054,7 +1074,9 @@ namespace BiRyeoDo.Core
             if (enemy.Stunned)
             {
                 enemy.Stunned = false;
-                events.Add(new BattleEvent { Turn = Turn, ActorId = enemy.Id, TargetId = enemy.Id, SkillId = "stun", Kind = EventKind.StunSkip, TargetHpAfter = enemy.Hp, Message = enemy.Name + "은(는) 몸이 굳어 움직이지 못한다!" });
+                string why = enemy.StunReason == "빙결" ? "얼어붙어" : "몸이 굳어";
+                events.Add(new BattleEvent { Turn = Turn, ActorId = enemy.Id, TargetId = enemy.Id, SkillId = "stun", Kind = EventKind.StunSkip, Tag = enemy.StunReason, TargetHpAfter = enemy.Hp, Message = enemy.Name + "은(는) " + why + " 움직이지 못한다! (차례를 넘깁니다)" });
+                enemy.StunReason = null;
                 return;
             }
             // 운기 해독: a boss or veteran may spend the turn shaking off what ails it
@@ -1063,7 +1085,9 @@ namespace BiRyeoDo.Core
                 enemy.CleansesLeft--;
                 enemy.Statuses.Clear();
                 enemy.ChillHits = 0;
-                events.Add(Cured(enemy, enemy, StatusKind.None, enemy.Name + "이(가) 운기하여 상태 이상을 몰아냈다!"));
+                var cleansed = Cured(enemy, enemy, StatusKind.None, enemy.Name + "이(가) 운기하여 상태 이상을 몰아냈다!");
+                cleansed.Notice = enemy.Name + " — 운기 해독! 이번 차례를 써서 상태 이상을 풀었다";
+                events.Add(cleansed);
                 return;
             }
             if (enemy.Has(StatusKind.Deviation)) { DeviationTurn(enemy, events); return; }
@@ -1176,7 +1200,9 @@ namespace BiRyeoDo.Core
             if (hurt && target.IsAlive && lastHit != null && ChillStruck(target))   // 한기: the third move that lands freezes the member
             {
                 target.Stunned = true;
+                target.StunReason = "빙결";
                 lastHit.Stunned = true;
+                lastHit.Notice = target.Name + "이(가) 얼어붙었다! 다음 차례를 잃는다";
             }
             if (struck && target.IsAlive)
             {
@@ -1189,7 +1215,11 @@ namespace BiRyeoDo.Core
                 GrantCounter(target, enemy, lastHit);
             if (hurt) target.Spirit = Math.Min(MaxSpirit, target.Spirit + SpiritOnTaken + target.SpiritTakenBonus);
             if (target.CounterStance && target.IsAlive && enemy.IsAlive && lastHit != null)   // 성막밀밀: the striker is struck back once per move
-                DealHit(target, enemy, new SkillSpec { Id = "counter_stance", Name = "반격", Power = CounterStancePower, Tuned = true }, 0, 1, false, events).Counter = true;
+            {
+                var back = DealHit(target, enemy, new SkillSpec { Id = "counter_stance", Name = "반격", Power = CounterStancePower, Tuned = true }, 0, 1, false, events);
+                back.Counter = true;
+                AddNotice(back, target.Name + "의 반격 태세! " + enemy.Name + "에게 되받아친다");
+            }
             if (enemy.UsesResources && !burst) enemy.Spirit = Math.Min(MaxSpirit, enemy.Spirit + EnemySpiritOnDealt);
             for (int i = firstHit; i < events.Count; i++) events[i].TargetSpiritAfter = target.Spirit;
             if (selfHurt > 0 && enemy.IsAlive) SelfHurt(enemy, selfHurt, StatusKind.Illusion, events);
