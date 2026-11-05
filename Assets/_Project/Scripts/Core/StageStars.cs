@@ -120,73 +120,74 @@ namespace BiRyeoDo.Core
         public static readonly float[] RewardFactor = { 1.0f, 1.5f, 2.2f };   // 두 and exp
         public static readonly string[] StarNames = { "돌파", "전원 생존", "신속" };
 
-        /// <summary>Party actions allowed for the 신속 star of each fight (index = stage - 1, then fight). About 90% of the balance bot's median, plus one; fights that gained followers (전투 인원 확장) were scaled by the bot's new median over its old one; the bot plays the 일반 enemies with their HP boost (<see cref="NormalHpBoost"/>) at <c>BalanceSimulation.BotLevel</c>.</summary>
+        /// <summary>Party actions allowed for the 신속 star of each fight (index = stage - 1, then fight). About 90% of the balance bot's median, plus one; fights that gained followers (전투 인원 확장) were scaled by the bot's new median over its old one; the bot plays the 일반 enemies with their HP boost (<see cref="NormalHpBoost"/>) at <c>BalanceSimulation.BotLevel</c>.
+        /// 2026-11: re-measured after the ally art retune (12 bot runs per stage, 90% of the median + 1, never below the old limit); fights the bot no longer reaches were raised by the median ratio (x1.38).</summary>
         private static readonly int[][] FastLimits =
         {
-            new[] { 4, 8, 7, 10 },   // 1
-            new[] { 9, 10, 11, 9, 18 },   // 2
-            new[] { 6, 9, 8 },   // 3
-            new[] { 8, 10, 10 },   // 4
-            new[] { 11, 10 },   // 5
-            new[] { 8, 12, 8 },   // 6
-            new[] { 3, 3, 4, 4, 4, 5, 6, 10 },   // 7
-            new[] { 12, 13, 19 },   // 8
-            new[] { 19, 19, 27, 13 },   // 9
-            new[] { 6, 12, 20 },   // 10
-            new[] { 6, 5, 5, 15 },   // 11
-            new[] { 8, 7, 7, 8, 8, 19 },   // 12
-            new[] { 7, 15, 16, 21 },   // 13
-            new[] { 8, 9, 7, 8, 7, 14, 13, 9, 11, 11, 24 },   // 14
-            new[] { 12, 21, 14, 8, 18 },   // 15
-            new[] { 29, 22, 24 },   // 16
-            new[] { 7, 18, 13 },   // 17
-            new[] { 10, 7, 13, 15 },   // 18
-            new[] { 13, 11, 13, 11, 14, 21 },   // 19
+            new[] { 5, 8, 8, 14 },   // 1
+            new[] { 9, 12, 14, 13, 25 },   // 2
+            new[] { 7, 10, 11 },   // 3
+            new[] { 8, 14, 14 },   // 4
+            new[] { 11, 14 },   // 5
+            new[] { 8, 17, 11 },   // 6
+            new[] { 5, 5, 5, 5, 5, 7, 12, 12 },   // 7
+            new[] { 16, 17, 27 },   // 8
+            new[] { 23, 23, 38, 18 },   // 9
+            new[] { 12, 20, 20 },   // 10
+            new[] { 10, 6, 6, 27 },   // 11
+            new[] { 10, 10, 10, 9, 13, 22 },   // 12
+            new[] { 15, 23, 27, 29 },   // 13
+            new[] { 14, 15, 9, 16, 16, 22, 18, 15, 20, 17, 33 },   // 14
+            new[] { 12, 22, 14, 8, 18 },   // 15
+            new[] { 29, 31, 33 },   // 16
+            new[] { 14, 34, 20 },   // 17
+            new[] { 17, 14, 23, 28 },   // 18
+            new[] { 17, 15, 15, 17, 17, 31 },   // 19
             new[] { 43, 26, 20 },   // 20 (the 혈망 showdown ends at the first opened mouth: the bot needs 17)
-            new[] { 24, 20, 11 },   // 21
-            new[] { 15, 27, 18, 28, 24, 25 },   // 22
+            new[] { 36, 32, 21 },   // 21
+            new[] { 21, 34, 26, 37, 38, 42 },   // 22
             new[] { 46, 37, 22, 48 },   // 23
-            new[] { 24, 2, 25, 13 },   // 24
-            new[] { 29, 24, 21, 31 },   // 25
-            new[] { 21, 24, 19, 32, 23, 23 },   // 26
-            new[] { 23, 14, 9, 14, 14, 14, 14 },   // 27
-            new[] { 7, 21, 19, 17, 16 },   // 28
-            new[] { 15, 39, 10, 12, 14, 16, 13 },   // 29
-            new[] { 31, 44, 5, 38 },   // 30
-            new[] { 41, 23, 36 },   // 31 (party of four)
-            new[] { 10, 28, 33 },   // 32 (party of four)
-            new[] { 39, 11, 17, 34 },   // 33 (party of four)
-            new[] { 18, 21, 31 },   // 34 (party of four)
-            new[] { 8, 14, 26, 23 },   // 35 (party of four)
-            new[] { 26, 15, 16, 16 },   // 36 (party of four)
-            new[] { 12, 2 },   // 37 (party of four)
-            new[] { 16, 7, 15 },   // 38 (party of four)
-            new[] { 6, 6, 7 },   // 39 (party of four)
-            new[] { 19, 19, 18, 5 },   // 40 (party of four)
-            new[] { 6 },   // 41 (party of four)
-            new[] { 17, 5, 5, 5 },   // 42 (party of four)
-            new[] { 16, 13, 3 },   // 43 (party of four; the last entries belong to fights merged into the showdown)
-            new[] { 15, 16, 4, 8, 15 },   // 44 (party of four)
-            new[] { 22, 4, 4, 4 },   // 45 (party of four)
-            new[] { 16, 5, 10, 16, 4 },   // 46 (party of four; the last entries belong to fights merged into the showdown)
-            new[] { 25 },   // 47 (party of four)
-            new[] { 18, 16, 16 },   // 48 (party of four)
-            new[] { 10, 2, 5, 5, 5, 2, 5 },   // 49 (party of four)
-            new[] { 28, 8, 4, 7 },   // 50 (party of four)
-            new[] { 40, 20, 10, 7 },   // 51 (party of four)
-            new[] { 30, 4 },   // 52 (party of four)
+            new[] { 33, 2, 42, 19 },   // 24
+            new[] { 33, 33, 29, 43 },   // 25
+            new[] { 39, 24, 33, 42, 31, 34 },   // 26
+            new[] { 29, 15, 15, 15, 16, 16, 15 },   // 27
+            new[] { 11, 29, 30, 19, 23 },   // 28
+            new[] { 17, 51, 13, 17, 16, 20, 16 },   // 29
+            new[] { 42, 61, 5, 38 },   // 30
+            new[] { 57, 32, 50 },   // 31 (party of four)
+            new[] { 14, 41, 46 },   // 32 (party of four)
+            new[] { 52, 16, 24, 40 },   // 33 (party of four)
+            new[] { 20, 31, 43 },   // 34 (party of four)
+            new[] { 12, 17, 36, 32 },   // 35 (party of four)
+            new[] { 26, 18, 21, 23 },   // 36 (party of four)
+            new[] { 16, 2 },   // 37 (party of four)
+            new[] { 28, 12, 29 },   // 38 (party of four)
+            new[] { 16, 15, 16 },   // 39 (party of four)
+            new[] { 26, 22, 25, 8 },   // 40 (party of four)
+            new[] { 14 },   // 41 (party of four)
+            new[] { 29, 5, 5, 5 },   // 42 (party of four)
+            new[] { 25, 13, 3 },   // 43 (party of four; the last entries belong to fights merged into the showdown)
+            new[] { 25, 22, 4, 18, 20 },   // 44 (party of four)
+            new[] { 39, 4, 4, 4 },   // 45 (party of four)
+            new[] { 26, 5, 15, 16, 4 },   // 46 (party of four; the last entries belong to fights merged into the showdown)
+            new[] { 26 },   // 47 (party of four)
+            new[] { 36, 22, 30 },   // 48 (party of four)
+            new[] { 17, 2, 5, 5, 5, 2, 5 },   // 49 (party of four)
+            new[] { 37, 12, 4, 7 },   // 50 (party of four)
+            new[] { 72, 28, 16, 18 },   // 51 (party of four)
+            new[] { 51, 4 },   // 52 (party of four)
             new[] { 6, 2, 5 },   // 53 (party of four)
-            new[] { 14, 11, 11, 7, 9 },   // 54 (party of four)
+            new[] { 22, 12, 11, 7, 9 },   // 54 (party of four)
             new[] { 4, 4, 7, 5, 27 },   // 55 (party of four)
-            new[] { 26, 15, 75, 5, 5 },   // 56 (party of four)
+            new[] { 30, 15, 123, 5, 5 },   // 56 (party of four)
             new[] { 5 },   // 57 (party of four)
             new[] { 3, 3, 5 },   // 58 (party of four)
             new[] { 6, 6, 3 },   // 59 (party of four)
-            new[] { 50, 17, 24, 24 },   // 60 (party of four)
+            new[] { 70, 18, 24, 24 },   // 60 (party of four)
             new[] { 5, 5, 5, 11 },   // 61 (party of four)
-            new[] { 19, 8, 5 },   // 62 (party of four)
-            new[] { 22, 21, 22, 20 },   // 63 (party of four)
-            new[] { 7, 7, 7, 30 },   // 64 (party of four)
+            new[] { 26, 8, 5 },   // 62 (party of four)
+            new[] { 27, 21, 24, 21 },   // 63 (party of four)
+            new[] { 7, 7, 7, 38 },   // 64 (party of four)
             new[] { 2, 5 },   // 65 (party of four)
             new[] { 5, 5, 5, 5 },   // 66 (party of four)
         };
@@ -201,7 +202,9 @@ namespace BiRyeoDo.Core
         public static int FastLimit(int stage, int fight, int difficulty)
         {
             if (difficulty <= 0) return FastLimit(stage, fight);
-            return (int)Math.Ceiling(FastLimit(stage, fight) * FastLimitFactor[Clamp(difficulty)]);
+            // stages 1-6 on 어려움·극악: the party factor makes the enemies x2.45 tougher, so the limit grows with it
+            double solo = Math.Pow(SoloPartyHarden(stage, difficulty), HardenHpExp);
+            return (int)Math.Ceiling(FastLimit(stage, fight) * FastLimitFactor[Clamp(difficulty)] * solo);
         }
 
         static readonly float[] FastLimitFactor = { 1f, 1.2f, 1.3f };
@@ -400,7 +403,17 @@ namespace BiRyeoDo.Core
             return (float)Math.Max(1.0, Math.Min(EarlyGameContent.MaxCompanions + 1, f) * PartyHardenScale);
         }
 
-        public static double PartyHardenScale = 1.5;   // a little above the plain head count: the party also brings 합공, healing and guards
+        public static double PartyHardenScale = 1.5;
+
+        /// <summary>Stages 1-6 are 비류연's solo fights on 일반, but 어려움·극악 bring the whole party of four (Roster.PartyStage): their enemies
+        /// get the same party factor as a scene fought alone from stage 31 (4 / 1 people x <see cref="PartyHardenScale"/> = x6, HP and attack x2.45). 2026-11.</summary>
+        public const int SoloStageLast = 6;
+
+        public static float SoloPartyHarden(int stage, int difficulty)
+        {
+            if (Clamp(difficulty) == 0 || stage < 1 || stage > SoloStageLast) return 1f;
+            return (float)((EarlyGameContent.MaxCompanions + 1) * PartyHardenScale);
+        }   // a little above the plain head count: the party also brings 합공, healing and guards
 
         /// <summary>The boss of every fifth story stage from 10 (10, 15, … 35) has HP, attack and defense x1.3 on every difficulty (story stages only; 의뢰·무한 비무대 clones are unchanged).</summary>
         public const float MilestoneBossBoost = 1.3f;
@@ -433,6 +446,8 @@ namespace BiRyeoDo.Core
                 float party = difficulty == 0 ? PartyHarden(stage) : 1f;   // 어려움·극악 keep their own fitted tables (HardLengthTable, HardAtkTune)
                 if (party != 1f) scaled = scaled.Scaled((float)Math.Pow(party, HardenHpExp), (float)Math.Pow(party, HardenAtkExp), 1f);
             }
+            float solo = SoloPartyHarden(stage, difficulty);
+            if (solo != 1f) scaled = scaled.Scaled((float)Math.Pow(solo, HardenHpExp), (float)Math.Pow(solo, HardenAtkExp), 1f);
             var gear = GearLoadout.ForEnemies(stage, difficulty);
             return gear == null || !Realm.HasRealm(enemy) || (trial != null && !survive) ? scaled : scaled.WithGear(gear);
         }
