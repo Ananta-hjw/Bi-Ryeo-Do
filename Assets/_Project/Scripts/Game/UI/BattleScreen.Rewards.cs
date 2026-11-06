@@ -14,6 +14,7 @@ namespace BiRyeoDo.Game.UI
 
         private void HideFightRewards()
         {
+            CloseFightStats();
             if (_fightRewards != null) _fightRewards.gameObject.SetActive(false);
         }
 
@@ -58,6 +59,7 @@ namespace BiRyeoDo.Game.UI
                 RewardText("OtherRewards", row, new Vector2(.04f, .08f), new Vector2(.96f, .92f),
                     (levels > 0 ? "레벨 상승  Lv." + GameManager.Instance.Save.Level + "\n" : "") + reputation, 28, UiFactory.PaperText);
             }
+            AddStatsButton(card, new Vector2(.025f, .025f), new Vector2(.18f, .12f));
             yield return WaitForRewardConfirmation(card, "확인 · 계속");
         }
 

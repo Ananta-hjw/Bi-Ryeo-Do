@@ -186,6 +186,7 @@ namespace BiRyeoDo.Game.UI
             _panelNext = UiFactory.Button("Next", rect, new Vector2(0.30f, 0.05f), new Vector2(0.70f, 0.20f), "다음", UiFactory.Red, () => _panelDone = true, 40).gameObject;
             _panelRetry = UiFactory.Button("Retry", rect, new Vector2(0.06f, 0.05f), new Vector2(0.48f, 0.20f), "다시 도전", UiFactory.Red, () => { _retry = true; _panelDone = true; }, 36).gameObject;
             _panelBack = UiFactory.Button("Back", rect, new Vector2(0.52f, 0.05f), new Vector2(0.94f, 0.20f), "강호로", UiFactory.InkSoft, () => { _retry = false; _leave = true; _panelDone = true; }, 36).gameObject;
+            _panelStats = UiFactory.Button("Stats", rect, new Vector2(0.74f, 0.91f), new Vector2(0.95f, 0.985f), "전투 통계", UiFactory.InkSoft, () => OpenFightStats(rect), 28).gameObject;
             _panel.SetActive(false);
         }
 
@@ -998,6 +999,7 @@ namespace BiRyeoDo.Game.UI
             string label = _stageLabel.text;
             SpawnCards(enemies);
             _battle = new InteractiveBattle(_party, _cards.ConvertAll(c => c.Unit), new SeededRandom(Environment.TickCount)) { Trial = trial };
+            BeginFightStats();
             RefreshParty();
             RefreshCards();
 
@@ -1072,6 +1074,7 @@ namespace BiRyeoDo.Game.UI
                     Inventory.Remove(GameManager.Instance.Save, _command.Item.Id, 1);
                     GameManager.Instance.SaveNow();
                 }
+                _statsCommand = _command;
                 yield return PlayEvents(events);
                 if (_masteryNotice != null)
                 {
@@ -2257,6 +2260,7 @@ namespace BiRyeoDo.Game.UI
 
         private IEnumerator PlayEvents(List<BattleEvent> events)
         {
+            RecordFightStats(events);
             _animating = true;
             _hudActor = null; _actorAction = null;
             RefreshActorHud();
@@ -3037,11 +3041,13 @@ namespace BiRyeoDo.Game.UI
             _panelNext.SetActive(!defeat);
             _panelRetry.SetActive(defeat && allowRetry);
             _panelBack.SetActive(defeat);
+            _panelStats.SetActive(defeat && _fightStats != null);   // why the fight was lost
             _panel.SetActive(true);
             _panelDone = false;
             _retry = false;
             _leave = false;
             while (!_panelDone) yield return null;
+            CloseFightStats();
             _panel.SetActive(false);
             StartCoroutine(GuardTaps());
         }

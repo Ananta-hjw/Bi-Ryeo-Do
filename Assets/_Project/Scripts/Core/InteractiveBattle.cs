@@ -872,7 +872,7 @@ namespace BiRyeoDo.Core
         {
             if (kind == StatusKind.None || !target.IsAlive) return;
             if (target.WardTurns > 0) return;   // 은하밀밀
-            if (!target.AddStatus(kind, Statuses.TurnsFor(target, kind))) return;   // already carries a status: nothing new takes hold
+            if (!target.AddStatus(kind, Statuses.TurnsFor(target, kind), source.Id)) return;   // already carries a status: nothing new takes hold
             events.Add(new BattleEvent { Turn = Turn, ActorId = source.Id, TargetId = target.Id, SkillId = "status", Kind = EventKind.Status, Status = kind, TargetHpAfter = target.Hp, Message = target.Name + ": " + Statuses.Name(kind) + "!" });
         }
 
@@ -888,7 +888,7 @@ namespace BiRyeoDo.Core
             if (dmg <= 0 || !unit.IsAlive) return;
             unit.Hp = Math.Max(0, unit.Hp - dmg);
             if (IsFinale && unit.Team == Team.Enemy && unit.Hp < 1) unit.Hp = 1;
-            var ev = new BattleEvent { Turn = Turn, ActorId = unit.Id, TargetId = unit.Id, SkillId = "status", Kind = EventKind.Status, Status = kind, Damage = dmg, Message = unit.Name + ": " + Statuses.Name(kind) + " -" + dmg };
+            var ev = new BattleEvent { Turn = Turn, ActorId = unit.Id, TargetId = unit.Id, SkillId = "status", Kind = EventKind.Status, Status = kind, Damage = dmg, Message = unit.Name + ": " + Statuses.Name(kind) + " -" + dmg, SourceId = kind == StatusKind.Poison || kind == StatusKind.Burn || kind == StatusKind.Bleed ? unit.StatusSource(kind) : null };
             if (unit.Hp == 0 && unit.Team == Team.Player) TryRescue(unit, ev);
             if (unit.RetreatHpPct > 0f && unit.Hp <= unit.Stats.MaxHp * unit.RetreatHpPct)
             {

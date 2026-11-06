@@ -43,6 +43,7 @@ namespace BiRyeoDo.Core
         // Kind == Status: a 상태 이상 was applied to TargetId (Damage 0), hurt it (Damage > 0: 중독·화상 at its turn, 출혈 when struck) or was cured (StatusCured)
         public StatusKind Status;
         public bool StatusCured;
+        public string SourceId;     // Kind == Status with Damage > 0: who inflicted the status that hurt (null for self-inflicted 환각·혈맥 역류·주화입마)
         // Kind == Phase: the boss ActorId began phase HitIndex (1-based) of its fight; Lines are the StoryLine lines to play
         public string[] Lines;
         public string Quip;

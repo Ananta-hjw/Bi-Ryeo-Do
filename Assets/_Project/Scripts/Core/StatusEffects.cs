@@ -10,6 +10,7 @@ namespace BiRyeoDo.Core
     {
         public StatusKind Kind;
         public int Turns;   // own turns left
+        public string SourceId;   // who inflicted it (battle statistics credit its damage to them); null = unknown
     }
 
     /// <summary>

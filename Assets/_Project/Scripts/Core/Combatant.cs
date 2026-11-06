@@ -148,14 +148,17 @@ namespace BiRyeoDo.Core
 
         public bool Has(StatusKind kind) { foreach (var s in Statuses) if (s.Kind == kind) return true; return false; }
 
+        /// <summary>Who inflicted the unit's status of this kind (null when it carries none or nobody is known).</summary>
+        public string StatusSource(StatusKind kind) { foreach (var s in Statuses) if (s.Kind == kind) return s.SourceId; return null; }
+
         /// <summary>
         /// Gives the unit a status. A unit carries one status at a time: while it has one (even the same kind), nothing new takes hold
         /// and the current one is not lengthened, so it always runs out. Returns false when it did not take.
         /// </summary>
-        public bool AddStatus(StatusKind kind, int turns)
+        public bool AddStatus(StatusKind kind, int turns, string sourceId = null)
         {
             if (kind == StatusKind.None || turns <= 0 || Statuses.Count > 0) return false;
-            Statuses.Add(new StatusEffect { Kind = kind, Turns = turns });
+            Statuses.Add(new StatusEffect { Kind = kind, Turns = turns, SourceId = sourceId });
             if (kind == StatusKind.Chill) ChillHits = 0;   // the blow that chilled the unit is not counted
             return true;
         }
