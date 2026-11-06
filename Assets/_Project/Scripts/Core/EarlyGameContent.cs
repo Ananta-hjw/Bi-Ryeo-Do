@@ -538,9 +538,9 @@ namespace BiRyeoDo.Core
                 Moves = new[] { EnemyMove.Attack("검격", 1.15f, 1), EnemyMove.Attack("검격", 0.65f, 2) } },
             new EnemyData { Id = "jang_daepyeong", Name = "천웅보 장대평", Level = 27, HpMul = 1.35f, AtkMul = 1.430f,
                 Moves = new[] { EnemyMove.Attack("일격", 1.2f, 1), EnemyMove.Attack("연환 타격", 0.65f, 2) } },
-            new EnemyData { Id = "gwan_seolji_story", RetreatHpPct = .15f, Name = "청설옥검녀 관설지", Level = 31, HpMul = 8.0f, AtkMul = 1.350f,
+            new EnemyData { Id = "gwan_seolji_story", RetreatHpPct = .15f, Name = "청설옥검녀 관설지", Level = 31, HpMul = 4.0f, AtkMul = 5.3f, DefMul = 1.15f,   // 한빙벽: a defensive duellist
                 Moves = new[] { EnemyMove.Attack("빙령수류검", 0.7f, 2), EnemyMove.Attack("한빙벽", 1.1f, 1) } },
-            new EnemyData { Id = "cheong_heun_story", RetreatHpPct = .15f, Name = "삼절검 청흔", ArtId = "cheong_heun", Level = 31, HpMul = 8.0f, AtkMul = 1.350f,
+            new EnemyData { Id = "cheong_heun_story", RetreatHpPct = .15f, Name = "삼절검 청흔", ArtId = "cheong_heun", Level = 31, HpMul = 5.0f, AtkMul = 6.5f,
                 Moves = new[] { EnemyMove.Attack("삼환회선비검", 0.65f, 3), EnemyMove.Wind("네 번째 검을 펼친다"), EnemyMove.Attack("무극검", 2.1f, 1) } },
             // Stage 7: 검혼관 기관 노방 (2권)
             new EnemyData { Id = "trap_arrow", Name = "기관 화살대", Level = 19, HpMul = 1.403f, AtkMul = 3.188f, SpeedAdd = 6,
