@@ -14,8 +14,8 @@ namespace BiRyeoDo.Game.UI
         private readonly Action _onChange;
         private RectTransform _detail;
         public bool Embedded;
-        private int _tab;                       // 0 enemies, 1 items, 2 arts
-        private static readonly string[] TabNames = { "캐릭터", "물품", "무공" };
+        private int _tab;                       // 0 enemies, 1 items, 2 arts, 3 영수
+        private static readonly string[] TabNames = { "캐릭터", "물품", "무공", "영수" };
         internal const float RowH = 220f, RowGap = 16f;   // tall enough for two stacked, easy-to-hit buttons
 
         public CodexPanel(RectTransform codexRoot, RectTransform achRoot, Action onChange)
@@ -96,9 +96,9 @@ namespace BiRyeoDo.Game.UI
             for (int t = 0; t < TabNames.Length; t++)
             {
                 int tab = t;
-                float x0 = 0.05f + t * 0.31f;
+                float x0 = 0.05f + t * 0.2325f;
                 int fresh = t == 0 ? FreshCount("enemy:") : t == 1 ? FreshCount("item:") : 0;
-                var btn = UiFactory.Button("Tab" + t, _codexRoot, new Vector2(x0, .79f), new Vector2(x0 + 0.29f, 0.91f), TabNames[t] + (fresh > 0 ? "  <color=#FF8A7A>" + fresh + "</color>" : ""), t == _tab ? UiFactory.Red : UiFactory.InkSoft, () => { _tab = tab; OpenCodex(); }, 30);
+                var btn = UiFactory.Button("Tab" + t, _codexRoot, new Vector2(x0, .79f), new Vector2(x0 + 0.2175f, 0.91f), TabNames[t] + (fresh > 0 ? "  <color=#FF8A7A>" + fresh + "</color>" : ""), t == _tab ? UiFactory.Red : UiFactory.InkSoft, () => { _tab = tab; OpenCodex(); }, 30);
             }
 
             string summary;
@@ -153,6 +153,30 @@ namespace BiRyeoDo.Game.UI
                         var button = card.gameObject.AddComponent<Button>();
                         button.targetGraphic = card.GetComponent<Image>();
                         button.onClick.AddListener(() => ShowDetail(UiFactory.GradedName(item), item.Description + (item.IsGear ? "\n\n" + StatusSheet.EffectText(item) + "\n세트: " + (Gear.SetOf(item.Id)?.Name ?? "없음") : "")));
+                    }
+                }
+            }
+            else if (_tab == 3)
+            {
+                Beasts.Sync(save);
+                summary = "만난 영수 " + save.Beasts.Count + " / " + Beasts.All.Length;
+                foreach (var b in Beasts.All)
+                {
+                    bool owned = Beasts.Owns(save, b.Id);
+                    var card = grid.Add("Beast" + n++);
+                    var icon = UiFactory.Panel("Icon", card, new Vector2(.04f, .57f), new Vector2(.25f, .94f), UiFactory.InkSoft);
+                    var art = owned ? ArtLibrary.Beast(b) : null;
+                    if (art != null) { icon.sprite = art; icon.color = Color.white; icon.preserveAspect = true; }
+                    else UiFactory.Label("Glyph", icon.transform, Vector2.zero, Vector2.one, owned ? b.Name.Substring(0, 1) : "?", 44, owned ? UiFactory.PaperText : UiFactory.Dim);
+                    UiFactory.Label("Name", card, new Vector2(.29f, .57f), new Vector2(.96f, .95f), owned ? b.Name : "???", 30, owned ? UiFactory.PaperText : UiFactory.Dim, TextAnchor.MiddleLeft);
+                    UiFactory.Label("Info", card, new Vector2(.04f, .19f), new Vector2(.96f, .54f), owned ? b.Kind + " · 친밀도 " + Beasts.Bond(save, b.Id) + "/" + Beasts.MaxBond + "\n" + b.Skills[0].Name + " / " + b.Skills[1].Name : "일반 스테이지 " + b.JoinStage + " 돌파 후", 26, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    UiFactory.Label("State", card, new Vector2(.04f, .035f), new Vector2(.96f, .16f), owned ? (b.Original ? "게임 오리지널 · " : "원작 · ") + "눌러서 상세 보기" : "미발견", 24, owned ? UiFactory.Gold : UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
+                    if (owned)
+                    {
+                        var beast = b;
+                        var button = card.gameObject.AddComponent<Button>();
+                        button.targetGraphic = card.GetComponent<Image>();
+                        button.onClick.AddListener(() => ShowDetail(beast.Name + " · " + beast.Kind, beast.Description + "\n\n" + beast.Source + "\n\n" + beast.Skills[0].Name + ": " + beast.Skills[0].Description + "\n" + beast.Skills[1].Name + ": " + beast.Skills[1].Description));
                     }
                 }
             }

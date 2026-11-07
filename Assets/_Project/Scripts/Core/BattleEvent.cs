@@ -34,6 +34,7 @@ namespace BiRyeoDo.Core
         public bool CounterReady;    // the recipient earned an opening; attack events name the defender, interrupts the actor
         public bool Harmony;         // 내공합격: this hit was powered up by an unbroken chain of attacks
         public bool Joint;           // part of a 합공 (joint attack)
+        public bool Beast;           // a 영수 call (ActorId is the 영수 "beast_<id>", not a unit on the board)
         public bool Rescued;         // the target would have fallen but a bonded companion saved them (see Bonds.RescueLevel)
         public bool Awakening;      // a boss phase-transition strike
         public bool Heavy;           // an enemy's charged (telegraphed) or awakening strike

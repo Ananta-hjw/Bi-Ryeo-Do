@@ -139,6 +139,7 @@ namespace BiRyeoDo.Game.UI
                 btn.gameObject.AddComponent<LongPress>().OnLong = () => ShowCommandTip(index);
             }
             LayoutCommands(false);
+            BuildBeastButton(root);
         }
 
         private static string CommandGlyph(int slot)
@@ -202,6 +203,8 @@ namespace BiRyeoDo.Game.UI
 
         private Sprite UnitPortrait(Combatant unit)
         {
+            var beast = Beasts.OfUnit(unit.Id);
+            if (beast != null) return ArtLibrary.Beast(beast);
             var card = CardOf(unit.Id);
             string key = card != null ? card.Data.ArtKey : Roster.StoryArtKey(unit);
             return BattleFigure(key);

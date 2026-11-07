@@ -47,6 +47,13 @@ namespace BiRyeoDo.Game.Systems
         /// <summary>SD figure source: <c>Battle/&lt;id&gt;.png</c>, used on the field, combat summaries and compact character pickers.</summary>
         public static Sprite Chibi(string id) { return string.IsNullOrEmpty(id) ? null : Load("Battle/" + id); }
         /// <summary>Stand-in SD figure when a dedicated <c>Battle/</c> picture is missing: <c>Battle/default_assassin.png</c> for bandits and assassins, <c>default_woman.png</c> for the women listed in <c>Genders</c>, else <c>default_man.png</c> (all under <c>Battle/</c>). Null when that file is missing too.</summary>
+        /// <summary>영수 art: <c>Beasts/&lt;id&gt;.png</c>, else the battle figure of its art key (청홍쌍각사, 백무후 = white_tiger), else null.</summary>
+        public static Sprite Beast(BiRyeoDo.Core.BeastData beast)
+        {
+            if (beast == null) return null;
+            return Load("Beasts/" + beast.Id) ?? Chibi(beast.ArtKey);
+        }
+
         public static Sprite DefaultChibi(string artKey) { return Load("Battle/" + BiRyeoDo.Core.Genders.DefaultFigure(artKey)); }
 
         /// <summary>Stable filename for a character name or ID; enemy art keys may differ from their battle IDs.</summary>

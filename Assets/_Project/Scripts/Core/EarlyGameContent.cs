@@ -1129,6 +1129,9 @@ namespace BiRyeoDo.Core
             new ItemData { Id = "ilgeup_yeongdan", Grade = ItemGrade.Legendary, InGacha = true, Name = "일급영단", Kind = ItemKind.Consumable, HealPct = 1.0f, QiRestore = 999, SpiritGain = 100, Description = "삼성무제 우승 부상. 가장 다친 동료를 완전히 회복하고 내공을 채우며 기세를 100까지 끌어올린다." },
             new ItemData { Id = "seungryong_pae", Grade = ItemGrade.Rare, Name = "승룡패", Kind = ItemKind.Key, Description = "녹옥으로 된 추천패. 천무학관 특별전형 입관의 증표." },
             new ItemData { Id = "mukrin_talisman", Grade = ItemGrade.Rare, Name = "묵린혈망 독아 부적", Kind = ItemKind.Accessory, DefPct = 0.082f, HpPct = 0.05f, Description = "묵린혈망의 독아를 은세공한 초승달 장신구. 뱀이 다가오지 못한다. 방어 +8.2%, 체력 +5%." },
+            // 영수 먹이 (game design): battle drops and the 객잔; fed to a 영수 from its page, never used in battle
+            new ItemData { Id = Beasts.FoodId, Grade = ItemGrade.Fine, Name = "영수 먹이", Kind = ItemKind.Material, SellValue = 0, Description = "말린 고기와 곡식을 뭉친 먹이. 협객 화면의 「영수」에서 영수에게 먹이면 친밀도가 1 오른다. 팔 수 없다." },
+            new ItemData { Id = Beasts.FeastId, Grade = ItemGrade.Epic, Name = "영수 보양식", Kind = ItemKind.Material, SellValue = 0, Description = "약초와 영약 찌꺼기를 넣고 고은 보양식. 영수에게 먹이면 친밀도가 5 오른다. 보스를 쓰러뜨리면 가끔 얻는다. 팔 수 없다." },
             // 객잔 shop goods (game design, not from the novel): sold by the factions at higher reputation, never dropped or pulled
             new ItemData { Id = "meal_academy", Grade = ItemGrade.Normal, Name = "학관 정식", Kind = ItemKind.Consumable, HealPct = 0.50f, QiRestore = 20, Description = "학관 식당의 든든한 한 끼. 가장 다친 동료의 체력을 50% 회복하고 내공 20을 얻는다." },
             new ItemData { Id = "biaoguk_ration", Grade = ItemGrade.Normal, Name = "표국 건량", Kind = ItemKind.Consumable, HealPct = 0.35f, Description = "표행길에 챙기는 마른 식량. 체력을 35% 회복한다." },

@@ -206,6 +206,8 @@ namespace BiRyeoDo.Core
             Item("inn_gall", null, 0, "bear_gall", 600),
             Item("inn_okruju", null, 0, "okruju", 800),
             Item("inn_antidote", null, 0, "antidote", 700),
+            Item("inn_beast_food", null, 0, Beasts.FoodId, 900),
+            Item("inn_beast_feast", null, 0, Beasts.FeastId, 4200),
             // 천무학관
             Item("aca_meal", "academy", 1, "meal_academy", 500),
             Item("aca_snow", "academy", 1, "snow_ginseng", 1800),

@@ -48,6 +48,10 @@ namespace BiRyeoDo.Core
         public int AcademyCredits;                                    // 학점 earned in all 학기
         public string AcademyClub = "";                               // the 동호회 joined ("" = none)
         public int AcademyClubSemester;                               // the 학기 the club was last chosen in (one change per 학기)
+        // 영수 (see Beasts; additive fields)
+        public List<string> Beasts = new List<string>();              // 영수 owned, in the order they came
+        public List<string> BeastFed = new List<string>();            // "beastId:points" fed so far (친밀도)
+        public string ActiveBeast = "";                               // the 영수 taken along to fights ("" = none)
         public List<string> SeenEnemies = new List<string>();      // 도감: enemies fought and beaten (additive field)
         public List<string> SeenItems = new List<string>();        // 도감: items ever owned or pulled (additive field)
         public List<string> ClaimedAchievements = new List<string>();   // 업적 rewards already taken (additive field)

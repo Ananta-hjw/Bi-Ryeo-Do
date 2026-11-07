@@ -621,6 +621,12 @@ namespace BiRyeoDo.Game.UI
                     }
                     if (storyEvent == null && !stage.IsQuest && !stage.IsTower) materialLines.Add("전투 " + (i + 1) + ": " + (materialNames.Count > 0 ? string.Join(" · ", materialNames) : "없음"));
                     if (storyEvent == null && !stage.IsQuest && !stage.IsTower) for (int roll = 0; roll < StageStars.DropRolls(diff); roll++) drops.AddRange(RollDrops(EarlyGameContent.RewardIds(stage, i)));
+                    if (storyEvent == null && !stage.NoReward)   // 영수 먹이: every rewarded win (stage, 의뢰, 무한 비무대, 천무학관)
+                    {
+                        bool bossWin = false;
+                        foreach (var id in stage.Encounters[i]) { var en = stage.EnemyFor(id); if (en != null && en.IsBoss) bossWin = true; }
+                        drops.AddRange(Beasts.RollFood(save, new SeededRandom(Environment.TickCount + 7), bossWin, diff));
+                    }
                     CompanionGrowth.EnsureRecords(save);   // before the protagonist levels, so old saves' companions start at the old level
                     // Capture presentation snapshots before experience changes anyone's level.
                     var levelsBefore = new Dictionary<string, int> { { Inventory.Hero, save.Level } };
@@ -756,6 +762,7 @@ namespace BiRyeoDo.Game.UI
                     Daily.Record(save, DailyEvent.StageClear);
                     var joiners = Roster.NewJoiners(highestBefore, save.HighestUnlockedStage);
                     Roster.BenchNewcomers(save, joiners);
+                    var newBeasts = Beasts.Sync(save);
                     GameManager.Instance.SaveNow();
                     if (detailedStory)
                     {
@@ -780,6 +787,12 @@ namespace BiRyeoDo.Game.UI
                         foreach (var j in joiners) joinNames.Add(j.Name);
                         SoundManager.Sfx("levelup");
                         yield return ShowResult("새 동료 합류!", string.Join(", ", joinNames) + (joiners.Count > 1 ? " 이(가) " : "이(가) ") + "파티에 합류했습니다.\n\n지금은 대기 상태입니다. 강호 탭의 「파티 편성」에서 출전 여부와 자리를 정해 주세요.", false);
+                    }
+                    if (newBeasts.Count > 0)
+                    {
+                        SoundManager.Sfx("levelup");
+                        yield return ShowResult("새 영수!", BeastArrival(newBeasts), false);
+                        if (HelpPanel.Instance != null) yield return HelpPanel.Instance.ShowOnce("beast");
                     }
                 }
                 else
@@ -1034,6 +1047,7 @@ namespace BiRyeoDo.Game.UI
                 string topic = Tutorial.TrialTopic(trial.Kind);
                 if (topic != null && HelpPanel.Instance != null) yield return HelpPanel.Instance.ShowOnce(topic);
             }
+            _beastForFight = trial != null && trial.Kind == TrialKind.Finale ? null : Beasts.LoadoutFor(GameManager.Instance.Save);
             yield return Fight(data, 0, trial);
         }
 
@@ -1047,7 +1061,8 @@ namespace BiRyeoDo.Game.UI
             int actions = 0;
             string label = _stageLabel.text;
             SpawnCards(enemies);
-            _battle = new InteractiveBattle(_party, _cards.ConvertAll(c => c.Unit), new SeededRandom(Environment.TickCount)) { Trial = trial };
+            _battle = new InteractiveBattle(_party, _cards.ConvertAll(c => c.Unit), new SeededRandom(Environment.TickCount)) { Trial = trial, Beast = _beastForFight };
+            _beastForFight = null;   // set again by the next stage fight; 승급 비무 never sets it
             BeginFightStats();
             RefreshParty();
             RefreshCards();
@@ -1059,6 +1074,7 @@ namespace BiRyeoDo.Game.UI
                 EndAim();
                 _itemMode = false;
                 _jointMode = false;
+                _beastMode = false;
                 if (turnLimit > 0) _stageLabel.text = label + "   " + actions + "/" + turnLimit + "턴";
                 else if (trial != null) _stageLabel.text = label + "   " + _battle.TrialStatus;
                 RefreshCards();
@@ -1102,6 +1118,22 @@ namespace BiRyeoDo.Game.UI
                     _hasCommand = false;
                     while (!_hasCommand && !_fled) yield return null;
                     if (_fled) yield break;
+                    // 영수: a free action. Play it, then wait for the same member's real command.
+                    while (_command.Kind == CommandKind.Beast && !_fled)
+                    {
+                        yield return CallBeast(_command);
+                        if (_battle.IsOver || _fled) break;
+                        EndAim();
+                        _beastMode = false;
+                        RefreshCards();
+                        RefreshParty();
+                        RefreshCommands();
+                        RefreshTurnOrder();
+                        _hasCommand = false;
+                        while (!_hasCommand && !_fled) yield return null;
+                    }
+                    if (_fled) yield break;
+                    if (_battle.IsOver) break;
                 }
 
                 SetCommandsInteractable(false);
@@ -1554,6 +1586,7 @@ namespace BiRyeoDo.Game.UI
             _aimSkill = null;
             _aimPartner = null;
             _allyAim = null;
+            _aimBeast = null;
         }
 
         private void CancelAim()
@@ -1576,9 +1609,10 @@ namespace BiRyeoDo.Game.UI
                 StartCoroutine(Shake(card.Root, 8f));
                 return;
             }
-            var skill = _aimSkill; var partner = _aimPartner;
+            var skill = _aimSkill; var partner = _aimPartner; var beastSkill = _aimBeast;
             EndAim();
             RefreshCards();
+            if (beastSkill != null) { Issue(PlayerCommand.CallBeast(beastSkill, card.Unit)); return; }
             Issue(partner != null ? PlayerCommand.Joint(skill, partner, card.Unit) : PlayerCommand.UseSkill(skill, card.Unit));
         }
 
@@ -1773,10 +1807,26 @@ namespace BiRyeoDo.Game.UI
             LayoutCommands(_itemMode || _jointMode);
             RefreshActorHud();
 
+            RefreshBeastButton();
             if (Aiming || AimingAlly)
             {
                 for (int i = 0; i < _commands.Length; i++) if (i != 7) _commands[i].Root.SetActive(false);
                 SetCommand(7, "취소", "다시 고르기", true);
+                return;
+            }
+
+            if (_beastMode)
+            {
+                var skills = _battle.Beast != null ? _battle.Beast.Skills : new List<BeastSkill>();
+                var art = _battle.Beast != null ? ArtLibrary.Beast(_battle.Beast.Data) : null;
+                for (int i = 0; i < 7; i++)
+                {
+                    if (i >= skills.Count) { _commands[i].Root.SetActive(false); continue; }
+                    SetCommand(i, skills[i].Name, Beasts.TargetText(skills[i]), _battle.CanUseBeastSkill(skills[i]), art);
+                }
+                SetCommand(7, "취소", "", true);
+                _commands[8].Root.SetActive(false);
+                _commands[9].Root.SetActive(false);
                 return;
             }
 
@@ -2163,11 +2213,13 @@ namespace BiRyeoDo.Game.UI
             if (_commandHeader != null) _commandHeader.SetActive(visible);
             if (!visible && _turnNotice != null) _turnNotice.text = "";
             foreach (var c in _commands) if (c != null) c.Root.SetActive(visible);
+            if (!visible && _beastButton != null) _beastButton.Root.SetActive(false);
         }
 
         private void SetCommandsInteractable(bool on)
         {
             foreach (var c in _commands) if (c != null) c.Button.interactable = on;
+            if (_beastButton != null) _beastButton.Button.interactable = on && _battle != null && _battle.CanCallBeast;
         }
 
         // ------------------------------------------------------------------ input
@@ -2181,6 +2233,15 @@ namespace BiRyeoDo.Game.UI
             if (Aiming || AimingAlly)
             {
                 if (slot == 7) CancelAim();
+                return;
+            }
+
+            if (_beastMode)
+            {
+                if (slot == 7) { _beastMode = false; RefreshCommands(); return; }
+                if (_battle.Beast == null || slot >= _battle.Beast.Skills.Count) return;
+                _beastMode = false;
+                StartBeastSkill(_battle.Beast.Skills[slot]);
                 return;
             }
 
@@ -2298,7 +2359,9 @@ namespace BiRyeoDo.Game.UI
             var p = PanelOf(unitId);
             if (p != null) return p.Unit.Name;
             var c = CardOf(unitId);
-            return c != null ? c.Unit.Name : "";
+            if (c != null) return c.Unit.Name;
+            var beast = Beasts.OfUnit(unitId);
+            return beast != null ? beast.Name : "";
         }
 
         private string _cutInKey = "", _masteryNotice;
@@ -2344,7 +2407,8 @@ namespace BiRyeoDo.Game.UI
                 // A 상태 이상 tick inside an attack (출혈 between the two strikes of a 합공) is part of that attack: it must not let the cut-in play again.
                 if (ev.Kind != EventKind.Attack && ev.Kind != EventKind.Status) _cutInKey = "";
                 var actorPanel = PanelOf(ev.ActorId);
-                bool byParty = actorPanel != null;
+                bool byParty = actorPanel != null || ev.Beast;   // a 영수 strikes from the party's side
+                if (ev.Beast && (eventIndex == 0 || !events[eventIndex - 1].Beast)) yield return BeastEntrance(ev);
                 if (actorPanel != null && ev.Kind != EventKind.Status) { actorPanel.ShownQi = ev.ActorQiAfter; actorPanel.ShownSpirit = ev.ActorSpiritAfter; }   // status events carry no gauges
                 string actorName = NameOf(ev.ActorId);
                 PresentAction(ev);
@@ -2387,7 +2451,7 @@ namespace BiRyeoDo.Game.UI
                             yield return SkillCutIn(_jointName, true, hero != null ? Roster.StoryArtKey(hero.Unit) : "player", partnerKey);
                             _sequenceImpactPunched = true;
                         }
-                        else if (byParty && ev.HitIndex == 0 && !ev.Joint)
+                        else if (actorPanel != null && ev.HitIndex == 0 && !ev.Joint)
                         {
                             string key = ev.ActorId + "|" + ev.SkillId;
                             if (key != _cutInKey)
@@ -2430,6 +2494,7 @@ namespace BiRyeoDo.Game.UI
                         if (finishStrike) _sequenceImpactPunched = false;
                         break;
                     case EventKind.Guard:
+                        if (ev.Beast) { yield return BeastSupport(ev); break; }
                         SoundManager.Sfx("guard");
                         _log.text = ev.Message;
                         if (ev.Tag != null) { var tagged = PanelOf(ev.TargetId); if (tagged != null) Float(tagged.Center, ev.Tag, GuardBlue, 52); }   // 대신 막기, 반격 태세, 기세, 결계, 집중
@@ -2574,6 +2639,7 @@ namespace BiRyeoDo.Game.UI
         private string SkillLabel(BattleEvent ev, PartyPanel actor)
         {
             if (ev.Joint) return _jointName;
+            if (ev.Beast) { var bs = Beasts.FindSkill(ev.SkillId); return bs != null ? bs.Name : ev.SkillId; }
             if (actor != null)
             {
                 var s = actor.Unit.Skills.Find(x => x.Id == ev.SkillId);

@@ -310,6 +310,8 @@ namespace BiRyeoDo.Core
             var u = Unit(actorId);
             if (u != null) foreach (var sk in u.Skills) if (sk.Id == skillId) return sk.Name;
             if (skillId == "joint") return "합공";
+            var beastSkill = Beasts.FindSkill(skillId);
+            if (beastSkill != null) return beastSkill.Name;
             var known = EarlyGameContent.FindItem(skillId);
             if (known != null) return known.Name;
             return skillId;   // enemy moves are named by their id

@@ -11,7 +11,7 @@ namespace BiRyeoDo.Game.UI
     /// <summary>Shared landscape workspace for the protagonist and joined companions.</summary>
     public sealed class CompanionScreen : MonoBehaviour
     {
-        private static readonly string[] Pages = { "상태", "무공", "심법", "인연" };
+        private static readonly string[] Pages = { "상태", "무공", "심법", "인연", "영수" };
         private RectTransform _page, _identity, _picker, _tabs, _message;
         private string _owner = Inventory.Hero, _toast;
         private int _tab;
@@ -94,6 +94,7 @@ namespace BiRyeoDo.Game.UI
                 case 1: BuildArts(); break;
                 case 2: BuildInner(); break;
                 case 3: BuildBonds(); break;
+                case 4: BuildBeasts(); break;
             }
             Canvas.ForceUpdateCanvases();
             var newList = _page.Find("List/Viewport");
@@ -106,7 +107,7 @@ namespace BiRyeoDo.Game.UI
                 scroll.verticalNormalizedPosition = position;
             }
             _resetScroll = false;
-            Reading(_message, "Feedback", 0f, 0f, 1f, 1f, _toast ?? (_tab == 1 ? "현재 전투에서 사용하는 무공만 표시합니다." : _tab == 2 ? "장착한 심법은 늘 적용됩니다." : "인물을 바꿔도 선택한 탭을 유지합니다."), 26).color = UiFactory.Gold;
+            Reading(_message, "Feedback", 0f, 0f, 1f, 1f, _toast ?? (_tab == 1 ? "현재 전투에서 사용하는 무공만 표시합니다." : _tab == 2 ? "장착한 심법은 늘 적용됩니다." : _tab == 4 ? "영수는 비류연 차례에 부르며 차례를 쓰지 않습니다." : "인물을 바꿔도 선택한 탭을 유지합니다."), 26).color = UiFactory.Gold;
         }
 
         private void OpenCharacterPicker()
@@ -332,6 +333,71 @@ namespace BiRyeoDo.Game.UI
                 }, training < cap && training < CompanionTraining.MaxLevel && Save.Doo >= cost);
             }
             if (companions.Count == 0) Reading(_page, "Empty", .05f, .2f, .95f, .8f, "동료가 합류하면 인연과 합공 효과를 확인할 수 있습니다.");
+        }
+
+        /// <summary>영수 page (비응각): owned 영수 cards with 친밀도, skills, feeding and the one taken along (shared by everyone, shown on any character).</summary>
+        private void BuildBeasts()
+        {
+            var arrived = Beasts.Sync(Save);   // old saves and stages cleared before this page existed
+            if (arrived.Count > 0) { GameManager.Instance.SaveNow(); _toast = "새 영수: " + string.Join(", ", arrived.Select(b => b.Name)); }
+            int food = Inventory.Count(Save, Beasts.FoodId), feast = Inventory.Count(Save, Beasts.FeastId);
+            var active = Beasts.Find(Save.ActiveBeast);
+            var summary = UiFactory.Panel("BeastSummary", _page, new Vector2(0f, .86f), Vector2.one, UiFactory.Ink).rectTransform;
+            Text(summary, "Heading", .03f, .47f, .97f, .98f, "비응각 · 데려가는 영수: " + (active != null ? active.Name : "없음"), 30, UiFactory.Gold);
+            Text(summary, "Note", .03f, .03f, .97f, .46f, "영수 먹이 " + food + "개 · 영수 보양식 " + feast + "개  (전투 승리·객잔에서 얻습니다)", 24, UiFactory.Dim);
+            var shown = Beasts.All.Where(b => Beasts.Owns(Save, b.Id) || b.JoinStage <= Save.ClearedStage + 10).ToList();
+            var list = List(_page, 0f, 0f, 1f, .84f, shown.Count, 330f);
+            for (int i = 0; i < shown.Count; i++)
+            {
+                var beast = shown[i];
+                var row = Row(list, i, 330f);
+                bool owned = Beasts.Owns(Save, beast.Id);
+                var icon = UiFactory.Panel("Icon", row, new Vector2(.015f, .52f), new Vector2(.015f, .52f), Color.white);
+                icon.rectTransform.pivot = new Vector2(0f, .5f);
+                icon.rectTransform.sizeDelta = new Vector2(190f, 190f);
+                icon.sprite = ArtLibrary.Beast(beast); icon.preserveAspect = true;
+                if (icon.sprite == null) { icon.color = Color.clear; UiFactory.Glyph("fortune", icon.transform, Vector2.zero, Vector2.one, owned ? UiFactory.Gold : UiFactory.Dim); }
+                else if (!owned) icon.color = new Color(.2f, .22f, .22f, .9f);
+                if (!owned)
+                {
+                    Text(row, "Name", .19f, .70f, .97f, .96f, "??? · " + beast.Kind, 32, UiFactory.Dim);
+                    Text(row, "Lock", .19f, .30f, .97f, .68f, "일반 스테이지 " + beast.JoinStage + " 돌파 후 만납니다.", 28, UiFactory.Dim);
+                    continue;
+                }
+                int bond = Beasts.Bond(Save, beast.Id), toNext = Beasts.ToNext(Save, beast.Id);
+                bool isActive = Save.ActiveBeast == beast.Id;
+                Text(row, "Name", .19f, .80f, .70f, .97f, beast.Name + " · " + beast.Kind + (beast.Original ? "  (게임 오리지널)" : ""), 30, UiFactory.Gold);
+                Text(row, "Bond", .19f, .66f, .70f, .80f, "친밀도 " + bond + "/" + Beasts.MaxBond + (toNext > 0 ? " · 다음 단계까지 " + toNext : " · 최고") + " · 휴식 " + Beasts.CooldownFor(beast, bond) + "턴", 24, UiFactory.PaperText);
+                var bar = UiFactory.MakeBar("BondBar", row, new Vector2(.19f, .62f), new Vector2(.70f, .655f), UiFactory.InkSoft, UiFactory.Gold);
+                bar.SetPct(Beasts.Fed(Save, beast.Id) / (float)Beasts.BondThresholds[Beasts.MaxBond - 1]);
+                var sb = new System.Text.StringBuilder();
+                for (int k = 0; k < beast.Skills.Length; k++)
+                {
+                    var sk = beast.Skills[k];
+                    bool open = k == 0 || bond >= Beasts.SecondSkillBond;
+                    sb.Append((open ? "<color=#D9B86A>" + sk.Name + "</color>" : "<color=#7E8580>" + sk.Name + " (친밀도 " + Beasts.SecondSkillBond + ")</color>") + " · " + Beasts.TargetText(sk) + " · " + Beasts.EffectText(sk, bond) + "\n");
+                }
+                Text(row, "Skills", .19f, .24f, .70f, .60f, sb.ToString().TrimEnd(), 23, UiFactory.PaperText);
+                Text(row, "Description", .19f, .02f, .97f, .23f, beast.Description + "  " + beast.Source, 21, UiFactory.Dim);
+                string id = beast.Id;
+                Button(row, "Active", .72f, .72f, .97f, .96f, isActive ? "데려가는 중" : "데려가기", () =>
+                {
+                    Save.ActiveBeast = id;
+                    Complete(true, null, beast.Name + "을(를) 전투에 데려갑니다.");
+                }, !isActive);
+                bool canFeed = bond < Beasts.MaxBond;
+                Button(row, "Feed", .72f, .47f, .97f, .70f, "먹이 주기\n(" + food + "개)", () =>
+                {
+                    int used = Beasts.Feed(Save, id, Beasts.FoodId, 1);
+                    Complete(used > 0, "영수 먹이가 없습니다.", beast.Name + "에게 먹이를 주었습니다. 친밀도 " + Beasts.Bond(Save, id) + "/" + Beasts.MaxBond);
+                }, canFeed && food > 0);
+                Button(row, "Feast", .72f, .245f, .97f, .45f, "보양식 주기\n(" + feast + "개)", () =>
+                {
+                    int used = Beasts.Feed(Save, id, Beasts.FeastId, 1);
+                    Complete(used > 0, "영수 보양식이 없습니다.", beast.Name + "에게 보양식을 주었습니다. 친밀도 " + Beasts.Bond(Save, id) + "/" + Beasts.MaxBond);
+                }, canFeed && feast > 0);
+            }
+            if (shown.Count == 0) Reading(_page, "Empty", .05f, .2f, .95f, .7f, "아직 만난 영수가 없습니다. 일반 스테이지 " + Beasts.All.Min(b => b.JoinStage) + "을(를) 돌파하면 첫 영수가 따라옵니다.");
         }
 
         private void Complete(bool success, string error, string message)

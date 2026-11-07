@@ -43,6 +43,8 @@ namespace BiRyeoDo.Core
         public int WardTurns;              // own turns left with no 상태 이상 taking hold (은하밀밀)
         public bool Focused;               // the next attack deals more, and this unit takes more until then (유성보)
         public float EvadeChance = 1f;     // chance each hit misses while Evading
+        public float ShellFactor = 1f;     // 영수 등껍질: the next hit that lands is multiplied by this (then back to 1)
+        public float DodgeBonus;           // 영수 학의 춤: chance each hit misses until this unit's next turn
         public bool Charging;              // enemy is winding up its next move (telegraph)
         public Combatant ChargeTarget;     // who the wound-up move will hit
         public bool Stunned;               // loses its next action
@@ -77,7 +79,7 @@ namespace BiRyeoDo.Core
                 QiRegenBonus = QiRegenBonus, SpiritDealtBonus = SpiritDealtBonus, SpiritTakenBonus = SpiritTakenBonus,
                 StoryArtId = StoryArtId, StartSpirit = StartSpirit, Lifesteal = Lifesteal, RescuerId = RescuerId, RescueUsed = RescueUsed,
                 Col = Col, Row = Row, Range = Range, Guarding = Guarding, Evading = Evading, EvadeChance = EvadeChance,
-                Stealthed = Stealthed, StealthCrit = StealthCrit, Covering = Covering, CounterStance = CounterStance, WardTurns = WardTurns, Focused = Focused,
+                Stealthed = Stealthed, StealthCrit = StealthCrit, Covering = Covering, CounterStance = CounterStance, WardTurns = WardTurns, Focused = Focused, ShellFactor = ShellFactor, DodgeBonus = DodgeBonus,
                 Charging = Charging, Stunned = Stunned, StunReason = StunReason, ChillHits = ChillHits, MovePowerFactor = MovePowerFactor, StatusTier = StatusTier, CleansesLeft = CleansesLeft, CleanseChance = CleanseChance, Rank = Rank, IsBoss = IsBoss, RetreatHpPct = RetreatHpPct, HoldsAtOneHp = HoldsAtOneHp, RetreatLines = RetreatLines,
                 MoveIndex = MoveIndex, Moves = Moves, Phases = Phases, PhaseIndex = PhaseIndex, AwakeningStrike = AwakeningStrike
             };
@@ -132,6 +134,8 @@ namespace BiRyeoDo.Core
             Guarding = false;
             Evading = false;
             Stunned = false;
+            ShellFactor = 1f;
+            DodgeBonus = 0f;
             Statuses.Clear();
             Cooldowns.Clear();
         }

@@ -38,6 +38,8 @@ namespace BiRyeoDo.Game.UI
             _fightUnits.Clear();
             foreach (var u in _party) _fightUnits[u.Id] = u;
             foreach (var u in enemies) _fightUnits[u.Id] = u;
+            var beast = _battle != null ? _battle.BeastBody : null;   // 영수: its own line among the party
+            if (beast != null) { _fightStats.Track(beast); _fightUnits[beast.Id] = beast; }
             _statsCommand = null;
         }
 

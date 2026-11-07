@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace BiRyeoDo.Core
 {
-    public enum CommandKind { Skill, Guard, Meditate, Item, Joint, Finale }
+    public enum CommandKind { Skill, Guard, Meditate, Item, Joint, Finale, Beast }
 
     public struct PlayerCommand
     {
@@ -12,6 +12,7 @@ namespace BiRyeoDo.Core
         public Combatant Target;     // single-target skills; null/dead falls back to the first living enemy
         public ItemData Item;        // for Kind == Item (a consumable; the caller removes it from the bag)
         public Combatant Partner;    // for Kind == Joint: the ally who strikes together with the protagonist (Skill holds the joint spec)
+        public BeastSkill BeastSkill; // for Kind == Beast: the 영수 skill (Target / AllyTarget as for arts)
 
         public static PlayerCommand UseSkill(SkillSpec skill, Combatant target)
         {
@@ -35,6 +36,8 @@ namespace BiRyeoDo.Core
         public static PlayerCommand Meditate() { return new PlayerCommand { Kind = CommandKind.Meditate }; }
         /// <summary>The showdown's art while its window is open (<see cref="InteractiveBattle.FinaleWindowOpen"/>, 20 섬뢰창).</summary>
         public static PlayerCommand Finale() { return new PlayerCommand { Kind = CommandKind.Finale }; }
+        /// <summary>Calls the fight's 영수 (a free action on 비류연's turn, see <see cref="InteractiveBattle.CallBeast"/>).</summary>
+        public static PlayerCommand CallBeast(BeastSkill skill, Combatant target) { return new PlayerCommand { Kind = CommandKind.Beast, BeastSkill = skill, Target = target }; }
     }
 
     /// <summary>
@@ -459,6 +462,7 @@ namespace BiRyeoDo.Core
         public List<BattleEvent> PlayerAct(PlayerCommand cmd)
         {
             if (!IsPlayerTurn) throw new InvalidOperationException("Not the player's turn.");
+            if (cmd.Kind == CommandKind.Beast) return CallBeast(cmd);   // a free action: the turn stays
             if (FinaleReady) return FinaleStrike();
             if (FinaleWindowOpen && cmd.Kind != CommandKind.Finale) WindowsMissed++;   // 20: the mouth was open and 섬뢰창 was not thrown
             if (cmd.Kind == CommandKind.Finale)
@@ -563,6 +567,168 @@ namespace BiRyeoDo.Core
             if (IsOver) return events;
             events.AddRange(RunUntilParty());
             return events;
+        }
+
+        // ------------------------------------------------------------------ 영수 (see Beasts)
+
+        /// <summary>The 영수 this fight takes along (set before Begin; null = none, e.g. 승급 비무 and scripted showdowns).</summary>
+        public BeastLoadout Beast { get; set; }
+        /// <summary>비류연's own turns left before the 영수 can be called again (0 = ready).</summary>
+        public int BeastCooldownLeft { get; private set; }
+        public int BeastCalls { get; private set; }
+        private Combatant _beastUnit;
+        /// <summary>The 영수's stand-in unit (for statistics and names), or null without a 영수.</summary>
+        public Combatant BeastBody { get { return Beast == null ? null : BeastUnit(); } }
+
+        /// <summary>The 영수 can be called now: 비류연's turn, a 영수 along, off cooldown, and not a scripted showdown.</summary>
+        public bool CanCallBeast
+        {
+            get { return Beast != null && IsPlayerTurn && Current == Player && Player.Id == Inventory.Hero && BeastCooldownLeft <= 0 && !IsFinale; }
+        }
+
+        /// <summary>The skill can be used now (a target it needs exists).</summary>
+        public bool CanUseBeastSkill(BeastSkill skill)
+        {
+            if (skill == null || !CanCallBeast || !Beast.Skills.Contains(skill)) return false;
+            if (skill.Target == BeastTarget.FrontEnemy) return EnemiesInRange(1).Count > 0;
+            if (skill.Target == BeastTarget.Enemy || skill.Target == BeastTarget.AllEnemies) return AnyEnemyAlive;
+            return true;
+        }
+
+        /// <summary>The 영수's own body for damage: 비류연's stats with a plain crit rate (never on the board, never targeted).</summary>
+        private Combatant BeastUnit()
+        {
+            if (_beastUnit != null) return _beastUnit;
+            var stats = Player.Stats;
+            stats.CritRate = 0.10f;
+            stats.CritDamage = 1.5f;
+            _beastUnit = new Combatant(Beasts.UnitPrefix + Beast.Data.Id, Beast.Data.Name, Team.Player, stats, null);
+            return _beastUnit;
+        }
+
+        /// <summary>
+        /// Calls the 영수: a free action on 비류연's turn. The turn stays his (no enemy acts, no party action is counted),
+        /// and the 영수 rests for <see cref="BeastLoadout.Cooldown"/> of his own turns.
+        /// </summary>
+        public List<BattleEvent> CallBeast(PlayerCommand cmd)
+        {
+            var skill = cmd.BeastSkill;
+            if (!CanUseBeastSkill(skill)) throw new InvalidOperationException("The 영수 cannot be called now.");
+            var events = new List<BattleEvent>();
+            var beast = BeastUnit();
+            float f = Beast.PowerFactor;
+            BeastCooldownLeft = Beast.Cooldown;
+            BeastCalls++;
+            _harmonyBoost = false;   // the chain belongs to the party's own attacks
+            string head = Beast.Data.Name + "의 " + skill.Name + "!";
+            Func<Combatant, string, BattleEvent> support = (who, tag) => new BattleEvent { Turn = Turn, ActorId = beast.Id, TargetId = who.Id, SkillId = skill.Id, Kind = EventKind.Guard, Beast = true, Tag = tag, TargetHpAfter = who.Hp, Message = head };
+            switch (skill.Effect)
+            {
+                case BeastEffect.Spirit:
+                    {
+                        var who = ResolveAlly(cmd.AllyTarget);
+                        int gain = (int)Math.Round(skill.Value * f);
+                        who.Spirit = Math.Min(MaxSpirit, who.Spirit + gain);
+                        events.Add(support(who, "기세 +" + gain));
+                        break;
+                    }
+                case BeastEffect.Heal:
+                case BeastEffect.CleanseHeal:
+                    {
+                        var who = ResolveAlly(cmd.AllyTarget);
+                        int heal = Healed(who, (int)Math.Round(who.Stats.MaxHp * skill.Value * f));
+                        who.Hp = Math.Min(who.Stats.MaxHp, who.Hp + heal);
+                        events.Add(new BattleEvent { Turn = Turn, ActorId = beast.Id, TargetId = who.Id, SkillId = skill.Id, Kind = EventKind.Heal, Beast = true, Heal = heal, TargetHpAfter = who.Hp, Message = head + " " + who.Name + " 회복." });
+                        if (skill.Effect == BeastEffect.CleanseHeal && who.Statuses.Count > 0) { who.Statuses.Clear(); events.Add(Cured(beast, who, StatusKind.None, who.Name + "의 상태 이상이 모두 풀렸다.")); }
+                        break;
+                    }
+                case BeastEffect.Shell:
+                    {
+                        var who = ResolveAlly(cmd.AllyTarget);
+                        who.ShellFactor = Math.Min(who.ShellFactor, skill.Value);
+                        events.Add(support(who, "등껍질"));
+                        break;
+                    }
+                case BeastEffect.PartyShell:
+                    foreach (var m in _party) if (m.IsAlive) m.ShellFactor = Math.Min(m.ShellFactor, skill.Value);
+                    events.Add(support(Player, "바위 진"));
+                    break;
+                case BeastEffect.Dodge:
+                    foreach (var m in _party) if (m.IsAlive) m.DodgeBonus = Math.Max(m.DodgeBonus, skill.Value);
+                    events.Add(support(Player, "회피 +" + Math.Round(skill.Value * 100f) + "%"));
+                    break;
+                case BeastEffect.PartyQi:
+                    foreach (var m in _party)
+                    {
+                        if (!m.IsAlive) continue;
+                        m.Qi = Math.Min(m.Stats.MaxQi, m.Qi + (int)Math.Round(m.Stats.MaxQi * skill.Value * f));
+                    }
+                    events.Add(support(Player, "내공 회복"));
+                    foreach (var m in _party) if (m.IsAlive) CureOne(beast, m, events);
+                    break;
+                default:
+                    BeastStrike(beast, skill, cmd.Target, f, events);
+                    break;
+            }
+            CheckPhases(events);
+            return events;
+        }
+
+        private void BeastStrike(Combatant beast, BeastSkill skill, Combatant wanted, float f, List<BattleEvent> events)
+        {
+            var spec = new SkillSpec { Id = skill.Id, Name = skill.Name, Power = skill.Power * f, Tuned = true, Hits = Math.Max(1, skill.Hits),
+                Range = skill.Target == BeastTarget.FrontEnemy ? 1 : 5, AllEnemies = skill.Target == BeastTarget.AllEnemies, Ranged = true };
+            var targets = new List<Combatant>();
+            if (spec.AllEnemies) targets = EnemiesInRange(spec.Range);
+            else { var t = ResolveTarget(wanted, spec); if (t != null) targets.Add(t); }
+            beast.StealthCrit = skill.SureCrit;
+            bool first = true;
+            for (int h = 0; h < spec.Hits; h++)
+                foreach (var t in targets)
+                {
+                    if (!t.IsAlive) continue;
+                    var ev = DealHit(beast, t, spec, h, spec.Hits, skill.Effect == BeastEffect.Paralyze && h == spec.Hits - 1, events);
+                    ev.Beast = true;
+                    if (first) { ev.Message = Beast.Data.Name + "의 " + skill.Name + "!"; first = false; }
+                }
+            beast.StealthCrit = false;
+            foreach (var t in targets)
+            {
+                if (!t.IsAlive) continue;
+                switch (skill.Effect)
+                {
+                    case BeastEffect.Poison: Inflict(beast, t, StatusKind.Poison, events); break;
+                    case BeastEffect.Bleed: Inflict(beast, t, StatusKind.Bleed, events); break;
+                    case BeastEffect.Roar:
+                        if (t.UsesResources) t.Spirit = Math.Max(0, t.Spirit - (int)Math.Round(skill.Value));
+                        break;
+                    case BeastEffect.Scout:
+                        events.Add(new BattleEvent { Turn = Turn, ActorId = beast.Id, TargetId = t.Id, SkillId = skill.Id, Kind = EventKind.Guard, Beast = true, Tag = "정찰", TargetHpAfter = t.Hp, Message = ScoutReport(t), Notice = ScoutReport(t) });
+                        break;
+                }
+            }
+            if (skill.Effect == BeastEffect.Roar)
+            {
+                foreach (var m in _party) if (m.IsAlive) m.Spirit = Math.Min(MaxSpirit, m.Spirit + Beasts.RoarPartySpirit);
+                events.Add(new BattleEvent { Turn = Turn, ActorId = beast.Id, TargetId = Player.Id, SkillId = skill.Id, Kind = EventKind.Guard, Beast = true, Tag = "기세 +" + Beasts.RoarPartySpirit, TargetHpAfter = Player.Hp, Message = "포효에 적의 기세가 꺾이고 일행의 기세가 오른다." });
+            }
+        }
+
+        /// <summary>우뢰 정찰: what the enemy will do next and what it carries.</summary>
+        public static string ScoutReport(Combatant enemy)
+        {
+            var move = enemy.PeekMove();
+            string next = enemy.Charging ? "준비한 강타" + (enemy.ChargeTarget != null ? " → " + enemy.ChargeTarget.Name : "")
+                : move.Charge ? move.Name + " (강타 준비)" : move.Name;
+            if (enemy.AwakeningStrike != null) next = "각성:강타";
+            if (enemy.Stunned) next = "행동 불능";
+            var sb = new System.Text.StringBuilder("정찰 — " + enemy.Name + "의 다음 행동: " + next);
+            if (enemy.Statuses.Count > 0)
+            {
+                sb.Append(" · 상태 이상: ");
+                for (int i = 0; i < enemy.Statuses.Count; i++) sb.Append((i > 0 ? ", " : "") + Statuses.Name(enemy.Statuses[i].Kind) + " " + enemy.Statuses[i].Turns + "턴");
+            }
+            return sb.ToString();
         }
 
         /// <summary>The ally a heal goes to: the player's pick if that member is alive and in the party, otherwise the most wounded one.</summary>
@@ -712,7 +878,7 @@ namespace BiRyeoDo.Core
             else if (t.HoldsAtOneHp && t.Hp <= 0) Leave(t, ev);
             if (!t.IsAlive) { t.Charging = false; t.ChargeTarget = null; t.AwakeningStrike = null; }
             else if (stun) ApplyStun(t, ev);
-            if (ev.Interrupted) GrantCounter(actor, t, ev);
+            if (ev.Interrupted && _party.Contains(actor)) GrantCounter(actor, t, ev);   // a 영수 opens no counter for anyone
             ev.TargetHpAfter = ev.Retreated && t.HoldsAtOneHp ? 1 : t.Hp;
             ev.TargetDefeated = !t.IsAlive;
             if (announceCounter) AddNotice(ev, actor.Name + "의 반격! 피해 +25%");
@@ -967,6 +1133,7 @@ namespace BiRyeoDo.Core
                 actor.Guarding = false;
                 actor.Evading = false;
                 actor.Stealthed = false; actor.Covering = false; actor.CounterStance = false;   // stances last until the unit's next turn
+                actor.DodgeBonus = 0f;   // 학의 춤
                 if (actor.WardTurns > 0) actor.WardTurns--;
                 // A party-wide guard lasts for three of its caster's turns; if the caster fell, until the next ally acts.
                 if (actor == _partyGuardOwner && --_partyGuardTurns <= 0) _partyGuardOwner = null;
@@ -995,6 +1162,7 @@ namespace BiRyeoDo.Core
                     // (counted in the enemy's blows, so a party of four still feels the 심도 a few times before the scene)
                     if (IsUnavoidable && !FinaleStruck && (EnemyActions >= Trial.FinaleTurns || Player.Hp <= Player.Stats.MaxHp * Trial.TriggerHpPct)) FinaleStruck = true;
                     actor.TickCooldowns();
+                    if (actor == Player && BeastCooldownLeft > 0) BeastCooldownLeft--;
                     if (!wounded) actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + QiRegenFor(actor.Stats.MaxQi) + actor.QiRegenBonus);
                     Current = actor;
                     return events;
@@ -1163,7 +1331,8 @@ namespace BiRyeoDo.Core
                     Turn = Turn, ActorId = enemy.Id, TargetId = target.Id, SkillId = move.Name, Kind = EventKind.Attack,
                     HitIndex = h, HitCount = hits, Ranged = move.Ranged, Awakening = awakening, Heavy = heavy, Burst = burst && h == 0, Weakened = dry && h == 0
                 };
-                if (target.Evading && (target.EvadeChance >= 1f || _rng.NextDouble() < target.EvadeChance))
+                if ((target.Evading && (target.EvadeChance >= 1f || _rng.NextDouble() < target.EvadeChance))
+                    || (target.DodgeBonus > 0f && _rng.NextDouble() < target.DodgeBonus))
                 {
                     ev.Dodged = true;
                     ev.TargetHpAfter = target.Hp;
@@ -1179,6 +1348,7 @@ namespace BiRyeoDo.Core
                     if (target.Covering) dmg = Math.Max(1, (int)Math.Round(dmg * CoverDamageFactor));
                     float guard = GuardFactorFor(target);
                     if (guard < 1f) { dmg = Math.Max(1, (int)Math.Round(dmg * guard)); ev.Guarded = true; }
+                    if (target.ShellFactor < 1f) { dmg = Math.Max(1, (int)Math.Round(dmg * target.ShellFactor)); target.ShellFactor = 1f; ev.Tag = "등껍질"; }   // 영수: one hit
                     target.Hp = Math.Max(0, target.Hp - dmg);
                     if (target.Hp == 0) TryRescue(target, ev);
                     ev.Damage = dmg;

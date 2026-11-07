@@ -828,6 +828,14 @@ namespace BiRyeoDo.Game.UI
             return lines;
         }
 
+        /// <summary>출전 준비: the 영수 that comes along (협객 ▸ 영수 changes it).</summary>
+        private static string PrepBeastLine(SaveData save)
+        {
+            Beasts.Sync(save);
+            var beast = Beasts.Find(save.ActiveBeast);
+            return beast == null ? "" : "\n영수  " + beast.Name + " · 친밀도 " + Beasts.Bond(save, beast.Id) + "/" + Beasts.MaxBond + " (협객 ▸ 영수에서 변경)";
+        }
+
         /// <summary>Shown before a fight: look at the enemies, set who stands in front (defence) and who behind (attack), then start.</summary>
         private void OpenPrep(StageData st, Action go)
         {
@@ -856,7 +864,7 @@ namespace BiRyeoDo.Game.UI
             bool enough = pastStory || Recommend.Meets(save, need);
             string payNote = Recommend.IsReplay(save, st) ? "  (이미 깬 곳이라 절반)" : "";
             UiFactory.Body(UiFactory.ScrollBody(UiFactory.Label("Reward", _prepOverlay, new Vector2(0.05f, 0.645f), new Vector2(0.95f, 0.775f),
-                "예상 보상  경험 " + rewardExp.ToString("N0") + " · 은자 " + rewardDoo.ToString("N0") + payNote + "\n" + (pastStory ? "회상 전투 · 당시의 고정 능력치와 무공을 사용합니다." : Recommend.Line(save, need)), 30, enough ? UiFactory.PaperText : UiFactory.Red, TextAnchor.UpperLeft, FontStyle.Normal), 32), 1.15f);
+                "예상 보상  경험 " + rewardExp.ToString("N0") + " · 은자 " + rewardDoo.ToString("N0") + payNote + "\n" + (pastStory ? "회상 전투 · 당시의 고정 능력치와 무공을 사용합니다." : Recommend.Line(save, need)) + PrepBeastLine(save), 30, enough ? UiFactory.PaperText : UiFactory.Red, TextAnchor.UpperLeft, FontStyle.Normal), 32), 1.15f);
 
             var enemyText = new System.Text.StringBuilder("나올 적\n");
             foreach (var l in lines) enemyText.Append(l).Append('\n');
