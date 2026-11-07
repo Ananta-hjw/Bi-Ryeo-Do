@@ -52,6 +52,10 @@ namespace BiRyeoDo.Core
         public List<string> Beasts = new List<string>();              // 영수 owned, in the order they came
         public List<string> BeastFed = new List<string>();            // "beastId:points" fed so far (친밀도)
         public string ActiveBeast = "";                               // the 영수 taken along to fights ("" = none)
+        // 사부의 시련 (see MasterTrial; additive fields)
+        public MasterTrialRun MasterTrialRun = new MasterTrialRun();  // the run in progress (or the last one, until closed)
+        public int MasterTrialBest;                                   // highest tier cleared
+        public int MasterTrialRuns;                                   // runs finished (cleared or fallen)
         public List<string> SeenEnemies = new List<string>();      // 도감: enemies fought and beaten (additive field)
         public List<string> SeenItems = new List<string>();        // 도감: items ever owned or pulled (additive field)
         public List<string> ClaimedAchievements = new List<string>();   // 업적 rewards already taken (additive field)

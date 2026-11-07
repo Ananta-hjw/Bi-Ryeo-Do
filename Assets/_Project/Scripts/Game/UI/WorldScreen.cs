@@ -15,6 +15,8 @@ namespace BiRyeoDo.Game.UI
         private SaveData _syncedSave;
         private DailyPanel _daily;
         private AcademyPanel _academy;
+        private MasterTrialPanel _masterTrial;
+        private bool _reopenTrial;
         private bool _reopenAcademy;
         private FactionPanel _shop;   // 객잔, opened from the 강호 side buttons
         private Text _dailyRowDetail, _dailyBadge;
@@ -154,6 +156,7 @@ namespace BiRyeoDo.Game.UI
             _stars = new StarPanel(UiFactory.Rect("StarOverlay", root, Vector2.zero, Vector2.one), Refresh);
             _shop = new FactionPanel(UiFactory.Rect("ShopOverlay", root, Vector2.zero, Vector2.one), Refresh, true);
             _academy = new AcademyPanel(UiFactory.Rect("AcademyOverlay", root, Vector2.zero, Vector2.one), Refresh, StartAcademy);
+            _masterTrial = new MasterTrialPanel(UiFactory.Rect("MasterTrialOverlay", root, Vector2.zero, Vector2.one), Refresh, StartMasterTrial);
             Refresh();
         }
 
@@ -593,6 +596,7 @@ namespace BiRyeoDo.Game.UI
             Refresh();
             if (_reopenTower) { _reopenTower = false; OpenTowerOverlay(); }
             else if (_reopenAcademy) { _reopenAcademy = false; _academy.Open(); }
+            else if (_reopenTrial) { _reopenTrial = false; _masterTrial.Open(); }
             else if (_reopenStages) { _reopenStages = false; OpenStageOverlay(); }
         }
 
@@ -614,6 +618,19 @@ namespace BiRyeoDo.Game.UI
             {
                 _academy.Hide();
                 _reopenAcademy = true;
+                _reopenTower = false;
+                _reopenStages = false;
+                _onStart(st);
+            });
+        }
+
+        private void StartMasterTrial(StageData st)
+        {
+            OpenPrep(st, () =>
+            {
+                _masterTrial.Hide();
+                _reopenTrial = true;
+                _reopenAcademy = false;
                 _reopenTower = false;
                 _reopenStages = false;
                 _onStart(st);
@@ -924,7 +941,7 @@ namespace BiRyeoDo.Game.UI
             _onPromote(offer);
         }
 
-        public enum Menu { Featured, Stages, Quests, Fortunes, Party, Tower, Promotion, Daily, Stars, Settings, Shop, Academy }
+        public enum Menu { Featured, Stages, Quests, Fortunes, Party, Tower, Promotion, Daily, Stars, Settings, Shop, Academy, MasterTrial }
 
         public StageData FeaturedStage { get { return _featStage; } }
 
@@ -956,6 +973,7 @@ namespace BiRyeoDo.Game.UI
                 case Menu.Settings: OpenSettingsOverlay(); break;
                 case Menu.Shop: _shop.Open(); break;
                 case Menu.Academy: _academy.Open(); break;
+                case Menu.MasterTrial: _masterTrial.Open(); break;
             }
         }
 
@@ -972,6 +990,7 @@ namespace BiRyeoDo.Game.UI
             if (_daily != null) _daily.Hide();
             if (_shop != null) _shop.Hide();
             if (_academy != null) _academy.Hide();
+            if (_masterTrial != null) _masterTrial.Hide();
         }
 
         private void OnStagePressed(StageData st, Action<StageData> onStart, bool fromList, int forcedDifficulty = -1)

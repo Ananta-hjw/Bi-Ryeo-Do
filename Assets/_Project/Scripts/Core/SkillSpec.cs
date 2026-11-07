@@ -21,6 +21,9 @@ namespace BiRyeoDo.Core
     /// <summary>A usable martial art in battle (무공).</summary>
     public sealed class SkillSpec
     {
+        /// <summary>A shallow copy (for run-only changes such as 사부의 시련 가르침).</summary>
+        public SkillSpec Copy() { return (SkillSpec)MemberwiseClone(); }
+
         public string Id;
         public string Name;
         public string Description;

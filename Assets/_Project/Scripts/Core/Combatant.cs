@@ -45,6 +45,14 @@ namespace BiRyeoDo.Core
         public float EvadeChance = 1f;     // chance each hit misses while Evading
         public float ShellFactor = 1f;     // 영수 등껍질: the next hit that lands is multiplied by this (then back to 1)
         public float DodgeBonus;           // 영수 학의 춤: chance each hit misses until this unit's next turn
+        // 사부의 시련 가르침 (MasterTrial; neutral by default, so every other fight is unchanged)
+        public float DamageDealtMul = 1f, DamageTakenMul = 1f;
+        public float VsAfflictedBonus;     // extra share of damage on a target carrying a 상태 이상
+        public float HealTakenBonus;       // extra share of every heal this unit receives
+        public int MeditateSpiritBonus;    // 기세 gained when meditating
+        public float GuardStrikeBonus;     // after a guard, the next attack deals this much more
+        public bool GuardStrikeReady;
+        public int JointCostCut;           // 기세 off the 합공 cost
         public bool Charging;              // enemy is winding up its next move (telegraph)
         public Combatant ChargeTarget;     // who the wound-up move will hit
         public bool Stunned;               // loses its next action
@@ -79,7 +87,7 @@ namespace BiRyeoDo.Core
                 QiRegenBonus = QiRegenBonus, SpiritDealtBonus = SpiritDealtBonus, SpiritTakenBonus = SpiritTakenBonus,
                 StoryArtId = StoryArtId, StartSpirit = StartSpirit, Lifesteal = Lifesteal, RescuerId = RescuerId, RescueUsed = RescueUsed,
                 Col = Col, Row = Row, Range = Range, Guarding = Guarding, Evading = Evading, EvadeChance = EvadeChance,
-                Stealthed = Stealthed, StealthCrit = StealthCrit, Covering = Covering, CounterStance = CounterStance, WardTurns = WardTurns, Focused = Focused, ShellFactor = ShellFactor, DodgeBonus = DodgeBonus,
+                Stealthed = Stealthed, StealthCrit = StealthCrit, Covering = Covering, CounterStance = CounterStance, WardTurns = WardTurns, Focused = Focused, ShellFactor = ShellFactor, DodgeBonus = DodgeBonus, DamageDealtMul = DamageDealtMul, DamageTakenMul = DamageTakenMul, VsAfflictedBonus = VsAfflictedBonus, HealTakenBonus = HealTakenBonus, MeditateSpiritBonus = MeditateSpiritBonus, GuardStrikeBonus = GuardStrikeBonus, GuardStrikeReady = GuardStrikeReady, JointCostCut = JointCostCut,
                 Charging = Charging, Stunned = Stunned, StunReason = StunReason, ChillHits = ChillHits, MovePowerFactor = MovePowerFactor, StatusTier = StatusTier, CleansesLeft = CleansesLeft, CleanseChance = CleanseChance, Rank = Rank, IsBoss = IsBoss, RetreatHpPct = RetreatHpPct, HoldsAtOneHp = HoldsAtOneHp, RetreatLines = RetreatLines,
                 MoveIndex = MoveIndex, Moves = Moves, Phases = Phases, PhaseIndex = PhaseIndex, AwakeningStrike = AwakeningStrike
             };
@@ -141,6 +149,15 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>보스 단계: attack and defense become these multiples of what the unit started the fight with (not compounded phase on phase).</summary>
+        /// <summary>사부의 시련: replaces the stats for the run's 가르침, keeping the share of HP and 내공 the unit had.</summary>
+        public void ReplaceStats(CombatStats stats)
+        {
+            float hp = _stats.MaxHp > 0 ? (float)Hp / _stats.MaxHp : 1f, qi = _stats.MaxQi > 0 ? (float)Qi / _stats.MaxQi : 1f;
+            _stats = stats;
+            Hp = Math.Max(IsAlive ? 1 : 0, (int)Math.Round(stats.MaxHp * hp));
+            Qi = (int)Math.Round(stats.MaxQi * qi);
+        }
+
         public void ScaleAttackDefense(float attack, float defense)
         {
             if (_baseStats == null) _baseStats = _stats;

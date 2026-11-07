@@ -17,6 +17,7 @@ namespace BiRyeoDo.Game.UI
         private bool _beastMode;              // the 영수's skills are listed on the command row
         private BeastSkill _aimBeast;         // a 영수 skill waiting for its enemy
         private BeastLoadout _beastForFight;  // handed to the next InteractiveBattle (stage fights only)
+        private bool _trialRunFight;          // the stage being played is a 사부의 시련 관문 (giving up ends the run)
 
         private void BuildBeastButton(RectTransform root)
         {

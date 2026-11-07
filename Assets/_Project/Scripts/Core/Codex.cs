@@ -57,7 +57,7 @@ namespace BiRyeoDo.Core
         }
     }
 
-    public enum AchMetric { StageCleared, TowerFloor, Level, SwordRank, EnemiesSeen, ItemsSeen, ArtsLearned, GachaPulls, BattleWins, QuestsDone, FortunesDone, TrustedBonds, LegendarySeen, TotalStars, FactionsRespected, CompanionTraining, Memories, DailyStreak }
+    public enum AchMetric { StageCleared, TowerFloor, Level, SwordRank, EnemiesSeen, ItemsSeen, ArtsLearned, GachaPulls, BattleWins, QuestsDone, FortunesDone, TrustedBonds, LegendarySeen, TotalStars, FactionsRespected, CompanionTraining, Memories, DailyStreak, MasterTrialTier }
 
     public sealed class AchievementData
     {
@@ -93,6 +93,9 @@ namespace BiRyeoDo.Core
             A("tower_10", "탑의 중턱", "무한 비무대 10층 돌파", AchMetric.TowerFloor, 10, 2500, "ginseng"),
             A("tower_20", "하늘이 가깝다", "무한 비무대 20층 돌파", AchMetric.TowerFloor, 20, 6000),
             A("tower_30", "탑의 주인", "무한 비무대 30층 돌파", AchMetric.TowerFloor, 30, 12000, "ilgeup_yeongdan"),
+            A("trial_1", "사부의 첫 매", "사부의 시련 1단계 돌파", AchMetric.MasterTrialTier, 1, 3000),
+            A("trial_5", "매를 버티다", "사부의 시련 5단계 돌파", AchMetric.MasterTrialTier, 5, 9000, "ginseng"),
+            A("trial_10", "청출어람?", "사부의 시련 10단계 돌파", AchMetric.MasterTrialTier, 10, 20000, "ilgeup_yeongdan"),
             A("rank_3", "삼검룡", "검룡위 3 달성", AchMetric.SwordRank, 3, 800),
             A("rank_5", "오검룡", "검룡위 5 달성", AchMetric.SwordRank, 5, 2000),
             A("rank_8", "팔검룡", "검룡위 8 달성", AchMetric.SwordRank, 8, 5000),
@@ -162,6 +165,7 @@ namespace BiRyeoDo.Core
             {
                 case AchMetric.StageCleared: return save.ClearedStage;
                 case AchMetric.TowerFloor: return save.TowerBest;
+                case AchMetric.MasterTrialTier: return save.MasterTrialBest;
                 case AchMetric.Level: return save.Level;
                 case AchMetric.SwordRank: return Promotion.EffectiveRank(save);
                 case AchMetric.EnemiesSeen: return save.SeenEnemies.Count;

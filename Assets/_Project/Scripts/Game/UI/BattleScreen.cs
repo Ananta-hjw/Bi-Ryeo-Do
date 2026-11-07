@@ -448,6 +448,7 @@ namespace BiRyeoDo.Game.UI
             _fled = false;
             _combatOnly = false;
             int diff = stage.IsTower || stage.IsQuest ? 0 : stage.Difficulty;
+            _trialRunFight = stage.MasterTrialFloor > 0;
             string tag = StageStars.TagFor(diff);
             _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + tag + stage.Name;
             var bg = SceneryArt.Battle(stage);
@@ -522,6 +523,7 @@ namespace BiRyeoDo.Game.UI
                 bool singleDone = false;
                 int leagueWins = 0, leagueLosses = 0;              // 단 대항전: best of three
                 var academyGrades = new List<int>();               // 천무학관: the grade of each lesson / exam fight
+                List<string> trialNotes = null;                    // 사부의 시련: what the won 관문 led to
 
                 for (int i = startIndex; i < stage.Encounters.Length; i++)
                 {
@@ -557,6 +559,8 @@ namespace BiRyeoDo.Game.UI
                     }
                     if (storyEvent == null && !_battle.PlayerWon) { cleared = false; break; }
                     if (stage.BestOfThree) leagueWins++;
+                    // 사부의 시련: keep the party's state as the fight ended (before the rest below) and offer a 가르침
+                    if (stage.MasterTrialFloor > 0) { trialNotes = MasterTrial.CompleteFight(save, _party, new SeededRandom(Environment.TickCount)); GameManager.Instance.SaveNow(); }
                     var lessonCourse = Academy.CourseOf(save, stage, i);
                     if (lessonCourse != null)
                     {
@@ -701,6 +705,7 @@ namespace BiRyeoDo.Game.UI
 
                 if (_fled)
                 {
+                    if (stage.MasterTrialFloor > 0) { MasterTrial.Fail(save); GameManager.Instance.SaveNow(); }   // giving up ends the run
                     SetCommandsVisible(false);
                     break;
                 }
@@ -710,7 +715,15 @@ namespace BiRyeoDo.Game.UI
                     yield return ShowResult((stage.EventFor(_lastFightNumber - 1) != null ? "이벤트 " + _lastFightNumber + " 완료!" : "전투 " + _lastFightNumber + " 승리!"), "획득  경험 " + gainedExp + " · 은자 " + gainedDoo + MaterialSummary(materialLines) + (_lastStarLine.Length > 0 ? "\n" + _lastStarLine : "") + "\n\n다른 구간은 스테이지를 다시 눌러 고를 수 있습니다.", false);
                     break;
                 }
-                if (cleared && stage.AcademyId != null)
+                if (cleared && stage.MasterTrialFloor > 0)
+                {
+                    var trialRun = MasterTrial.Run(save);
+                    bool trialDone = trialRun.Pending == "done";
+                    GameManager.Instance.SaveNow();
+                    yield return ShowResult(trialDone ? "사부의 시련 돌파!" : stage.MasterTrialFloor + "관문 돌파!",
+                        "획득  경험 " + gainedExp + " · 은자 " + gainedDoo + (trialNotes != null && trialNotes.Count > 0 ? "\n" + string.Join("\n", trialNotes) : ""), false);
+                }
+                else if (cleared && stage.AcademyId != null)
                 {
                     string academyTitle, academyNote = "";
                     List<string> academyNotes;
@@ -794,6 +807,12 @@ namespace BiRyeoDo.Game.UI
                         yield return ShowResult("새 영수!", BeastArrival(newBeasts), false);
                         if (HelpPanel.Instance != null) yield return HelpPanel.Instance.ShowOnce("beast");
                     }
+                }
+                else if (stage.MasterTrialFloor > 0)
+                {
+                    string end = MasterTrial.Fail(save);
+                    GameManager.Instance.SaveNow();
+                    yield return ShowResult("시련 실패", end + "\n\n관문마다 받은 보상은 그대로 남습니다. 사부의 시련 창에서 새로 시작할 수 있습니다.", false);
                 }
                 else
                 {
@@ -1048,6 +1067,7 @@ namespace BiRyeoDo.Game.UI
                 if (topic != null && HelpPanel.Instance != null) yield return HelpPanel.Instance.ShowOnce(topic);
             }
             _beastForFight = trial != null && trial.Kind == TrialKind.Finale ? null : Beasts.LoadoutFor(GameManager.Instance.Save);
+            if (stage.MasterTrialFloor > 0) MasterTrial.ApplyToBeast(GameManager.Instance.Save, _beastForFight);
             yield return Fight(data, 0, trial);
         }
 
@@ -1255,6 +1275,7 @@ namespace BiRyeoDo.Game.UI
             }
             StoryAppearance.ApplyBattle(stage, fight, party);
             Formation.Apply(party, save, stage);   // 앞줄/뒷줄 from the saved formation, or planned against this stage's enemies
+            if (stage.MasterTrialFloor > 0) MasterTrial.ApplyToParty(save, party);   // the run's 가르침 and the wounds carried from the last 관문
             return party;
         }
 
@@ -1899,7 +1920,7 @@ namespace BiRyeoDo.Game.UI
             }
             if (me.Id != "player") { }   // slot 8 already holds the companion's fifth art (or is hidden)
             else if (_jointPartners.Count == 0) _commands[8].Root.SetActive(false);
-            else SetCommand(8, "합공", me.Spirit >= InteractiveBattle.JointSpiritCost ? "기세 " + InteractiveBattle.JointSpiritCost : "기세 부족", me.Spirit >= InteractiveBattle.JointSpiritCost, ArtLibrary.Icon("cmd_joint"));
+            else SetCommand(8, "합공", me.Spirit >= InteractiveBattle.JointCostFor(me) ? "기세 " + InteractiveBattle.JointCostFor(me) : "기세 부족", me.Spirit >= InteractiveBattle.JointCostFor(me), ArtLibrary.Icon("cmd_joint"));
         }
 
         /// <summary>Living companions whose bond with the protagonist allows a 합공 (only on the protagonist's turn).</summary>
@@ -2287,7 +2308,7 @@ namespace BiRyeoDo.Game.UI
             }
             else if (slot == 8)
             {
-                if (me.Spirit < InteractiveBattle.JointSpiritCost || _jointPartners.Count == 0) return;
+                if (me.Spirit < InteractiveBattle.JointCostFor(me) || _jointPartners.Count == 0) return;
                 if (_jointPartners.Count == 1) { IssueJoint(_jointPartners[0]); return; }
                 _jointMode = true;
                 RefreshCommands();
@@ -2332,6 +2353,7 @@ namespace BiRyeoDo.Game.UI
             if (_fled || _fleeAsking) return;
             _fleeAsking = true;
             string body = _promotionRun ? "지금 비무를 그만두고 돌아갑니다.\n낸 입장료는 돌려받지 못합니다."
+                : _trialRunFight ? "사부의 시련에서 포기하면 이번 시련이 끝납니다.\n앞 관문에서 받은 보상은 남습니다."
                 : "지금 전투를 그만두고 돌아갑니다.\n이번 전투의 보상은 받지 못합니다. 이미 이긴 전투에서 얻은 경험과 은자는 남습니다.";
             var window = UiFactory.Confirm(_root, "전투를 포기할까요?", body, "포기", () => { _fleeAsking = false; Flee(); });
             // 「취소」 destroys the window without a callback: clear the flag when it goes away

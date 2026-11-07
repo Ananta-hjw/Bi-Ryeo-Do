@@ -399,11 +399,14 @@ namespace BiRyeoDo.Core
         public bool CanUse(SkillSpec skill) { return IsPlayerTurn && Current.CanUse(skill); }
 
         /// <summary>합공: the protagonist (on their turn) strikes together with a living ally for 기세 <see cref="JointSpiritCost"/>; the ally loses their next action.</summary>
+        /// <summary>기세 a 합공 costs this member (사부의 시련 can lower it).</summary>
+        public static int JointCostFor(Combatant actor) { return Math.Max(0, JointSpiritCost - (actor != null ? actor.JointCostCut : 0)); }
+
         public bool CanJoint(Combatant partner)
         {
             if (Player.StoryControlled && Player.Id != Inventory.Hero) return false;
             return IsPlayerTurn && Current == _party[0] && partner != null && partner != Current && partner.IsAlive
-                && _party.Contains(partner) && Current.Spirit >= JointSpiritCost && AnyEnemyAlive
+                && _party.Contains(partner) && Current.Spirit >= JointCostFor(Current) && AnyEnemyAlive
                 && !Current.Has(StatusKind.Seal) && !partner.Has(StatusKind.Seal) && !partner.Has(StatusKind.Deviation);
         }
 
@@ -517,6 +520,7 @@ namespace BiRyeoDo.Core
                 case CommandKind.Guard:
                     actor.Guarding = true;
                     actor.Spirit = Math.Min(MaxSpirit, actor.Spirit + SpiritOnGuard);
+                    if (actor.GuardStrikeBonus > 0f) actor.GuardStrikeReady = true;   // 사부의 시련: the next attack hits harder
                     events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = "guard", Kind = EventKind.Guard, Message = actor.Name + "이(가) 자세를 가다듬는다.", TargetHpAfter = actor.Hp });
                     break;
                 case CommandKind.Meditate:
@@ -525,6 +529,7 @@ namespace BiRyeoDo.Core
                         actor.Hp = Math.Min(actor.Stats.MaxHp, actor.Hp + heal);
                         int qi = MeditateQiFor(actor.Stats.MaxQi);
                         actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + qi);
+                        if (actor.MeditateSpiritBonus > 0) actor.Spirit = Math.Min(MaxSpirit, actor.Spirit + actor.MeditateSpiritBonus);
                         events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = "meditate", Kind = EventKind.Meditate, Heal = heal, TargetHpAfter = actor.Hp, Message = "운기조식. 내공 +" + qi });
                         // 운기 also clears one 상태 이상, the one that hurts most
                         if (actor.Statuses.Count > 0 && _rng.NextDouble() < Statuses.MeditateCureChance) CureOne(actor, actor, events);   // 운기: 40% to shake off one
@@ -833,7 +838,7 @@ namespace BiRyeoDo.Core
                 foreach (var t in targets)
                     if (t.IsAlive && Rolls(t, skill.Inflict, skill.InflictChance)) Inflict(actor, t, skill.Inflict, events);
             if (skill.SpiritCost == 0) actor.Spirit = Math.Min(MaxSpirit, actor.Spirit + SpiritOnDealt + actor.SpiritDealtBonus);
-            if (targets.Count > 0) { actor.Focused = false; actor.StealthCrit = false; }   // 유성보·신은술 are spent on this attack
+            if (targets.Count > 0) { actor.Focused = false; actor.StealthCrit = false; actor.GuardStrikeReady = false; }   // 유성보·신은술 (and a 시련 guard strike) are spent on this attack
         }
 
         private BattleEvent DealHit(Combatant actor, Combatant t, SkillSpec skill, int h, int hits, bool stun, List<BattleEvent> events, bool triggerBleed = true)
@@ -841,6 +846,8 @@ namespace BiRyeoDo.Core
             bool crit = actor.StealthCrit || _rng.NextDouble() < actor.Stats.CritRate;
             int dmg = BattleEngine.CalcDamage(actor.Stats, t.Stats, skill, crit);
             if (actor.Focused) dmg = (int)Math.Round(dmg * FocusDamageFactor);
+            float run = actor.DamageDealtMul * (actor.GuardStrikeReady ? 1f + actor.GuardStrikeBonus : 1f) * (t.Statuses.Count > 0 ? 1f + actor.VsAfflictedBonus : 1f);
+            if (run != 1f) dmg = (int)Math.Round(dmg * run);   // 사부의 시련 가르침
             if (actor.Has(StatusKind.Chill)) dmg = (int)Math.Round(dmg * ChillAttackFactor);
             if (actor.Has(StatusKind.Disarm)) dmg = (int)Math.Round(dmg * Statuses.DisarmFactor);
             int illusionBack = actor.Has(StatusKind.Illusion) ? (int)Math.Round(dmg * Statuses.IllusionSelfShare) : 0;   // 환각: part of the blow lands on the attacker
@@ -901,7 +908,7 @@ namespace BiRyeoDo.Core
             var partner = cmd.Partner;
             var t = ResolveTarget(cmd.Target, spec);
             if (t == null) return;   // nothing to hit: nothing is paid
-            actor.Spirit -= JointSpiritCost;
+            actor.Spirit -= JointCostFor(actor);
             partner.Gauge -= GaugeThreshold;   // the partner spends their next action on this strike
 
             var first = DealHit(actor, t, spec, 0, 1, false, events, false);
@@ -912,6 +919,7 @@ namespace BiRyeoDo.Core
             if (next != null) DealHit(partner, next, spec, 0, 1, spec.Effect == SkillEffect.Stun, events, !bled).Joint = true;
             if (next != null && spec.Inflict != StatusKind.None && next.IsAlive && Rolls(next, spec.Inflict, spec.InflictChance)) Inflict(partner, next, spec.Inflict, events);   // 백혼합벽: 한기
             actor.Focused = false; actor.StealthCrit = false; partner.Focused = false; partner.StealthCrit = false;
+            actor.GuardStrikeReady = false; partner.GuardStrikeReady = false;
 
             switch (spec.Effect)
             {
@@ -1022,6 +1030,7 @@ namespace BiRyeoDo.Core
         /// <summary>중독 halves every heal the unit receives.</summary>
         private static int Healed(Combatant who, int heal)
         {
+            if (who != null && who.HealTakenBonus > 0f) heal = (int)Math.Round(heal * (1f + who.HealTakenBonus));   // 사부의 시련
             return who != null && who.Has(StatusKind.Poison) ? (int)Math.Round(heal * Statuses.PoisonHealFactor) : heal;
         }
 
@@ -1345,6 +1354,7 @@ namespace BiRyeoDo.Core
                     if (enemy.Has(StatusKind.Disarm)) dmg = (int)Math.Round(dmg * Statuses.DisarmFactor);
                     if (enemy.Has(StatusKind.Illusion)) { int back = (int)Math.Round(dmg * Statuses.IllusionSelfShare); selfHurt += back; dmg -= back; }
                     if (target.Focused) dmg = (int)Math.Round(dmg * FocusTakenFactor);
+                    if (target.DamageTakenMul != 1f) dmg = Math.Max(1, (int)Math.Round(dmg * target.DamageTakenMul));   // 사부의 시련 가르침
                     if (target.Covering) dmg = Math.Max(1, (int)Math.Round(dmg * CoverDamageFactor));
                     float guard = GuardFactorFor(target);
                     if (guard < 1f) { dmg = Math.Max(1, (int)Math.Round(dmg * guard)); ev.Guarded = true; }
