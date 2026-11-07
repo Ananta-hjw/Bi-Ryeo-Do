@@ -520,6 +520,8 @@ namespace BiRyeoDo.Game.UI
                 bool replay = !stage.IsQuest && !stage.IsTower && (diff == 0 ? save.ClearedStage >= stage.Number : StageStars.StageCleared(save, stage.Number, diff));
                 bool towerFirst = stage.IsTower && stage.TowerFloor > save.TowerBest;
                 bool singleDone = false;
+                int leagueWins = 0, leagueLosses = 0;              // 단 대항전: best of three
+                var academyGrades = new List<int>();               // 천무학관: the grade of each lesson / exam fight
 
                 for (int i = startIndex; i < stage.Encounters.Length; i++)
                 {
@@ -540,16 +542,35 @@ namespace BiRyeoDo.Game.UI
                     }
                     else
                     {
-                        yield return Banner(i == stage.Encounters.Length - 1 ? "결전!" : "전투 " + (i + 1), 0.7f);
+                        yield return Banner(stage.BestOfThree ? LeagueBoutName(i) : i == stage.Encounters.Length - 1 ? "결전!" : "전투 " + (i + 1), 0.7f);
                         yield return Fight(stage.Encounters[i], stage.TrialFor(i), stage);
                     }
 
                     if (_fled) { cleared = false; break; }
+                    if (storyEvent == null && !_battle.PlayerWon && stage.BestOfThree && ++leagueLosses < 2 && i < stage.Encounters.Length - 1)
+                    {
+                        // 단 대항전: one lost bout is not the match; patch up and go on to the next one
+                        foreach (var m in _party) m.RestBetweenFights(Combatant.RestHealPct + Factions.Bonus(save, PerkKind.RestHeal));
+                        RefreshParty();
+                        yield return Banner(LeagueBoutName(i) + " 패배 · " + leagueWins + "승 " + leagueLosses + "패", 1.4f);
+                        continue;
+                    }
                     if (storyEvent == null && !_battle.PlayerWon) { cleared = false; break; }
+                    if (stage.BestOfThree) leagueWins++;
+                    var lessonCourse = Academy.CourseOf(save, stage, i);
+                    if (lessonCourse != null)
+                    {
+                        int srcStage, srcFight;
+                        Academy.SourceOf(save, lessonCourse, out srcStage, out srcFight);
+                        long hpNow = 0, hpMax = 0;
+                        foreach (var m in _party) { hpNow += Math.Max(0, m.Hp); hpMax += m.Stats.MaxHp; }
+                        academyGrades.Add(Academy.Grade(lessonCourse, srcStage, srcFight, _fightActions, _fightFell, _battle.LifelinesCut, hpMax > 0 ? (double)hpNow / hpMax : 0));
+                    }
 
                     // Every fight has its own stars: won, nobody fell, and fast enough.
                     _lastStarLine = "";
                     string repLine = "";
+                    if (lessonCourse != null && academyGrades.Count > 0) repLine = "성적 " + Academy.GradeNames[academyGrades[academyGrades.Count - 1]] + "  (승리 · 전원 생존 · " + lessonCourse.GoalText + " 중 " + academyGrades[academyGrades.Count - 1] + "개)";
                     var found = new List<string>();   // 심득석 / 수련서 discovered by this win
                     bool firstWin = true;
                     int rewardMask = -1, rewardNewStars = 0;
@@ -655,6 +676,7 @@ namespace BiRyeoDo.Game.UI
                     RefreshParty();
 
                     if (singleFight && i < stage.Encounters.Length - 1) { singleDone = true; break; }
+                    if (stage.BestOfThree && leagueWins >= 2) break;   // the match is won
 
                     // Between fights the player decides when to go on (the next fight may be the boss).
                     if (i < stage.Encounters.Length - 1)
@@ -682,7 +704,34 @@ namespace BiRyeoDo.Game.UI
                     yield return ShowResult((stage.EventFor(_lastFightNumber - 1) != null ? "이벤트 " + _lastFightNumber + " 완료!" : "전투 " + _lastFightNumber + " 승리!"), "획득  경험 " + gainedExp + " · 은자 " + gainedDoo + MaterialSummary(materialLines) + (_lastStarLine.Length > 0 ? "\n" + _lastStarLine : "") + "\n\n다른 구간은 스테이지를 다시 눌러 고를 수 있습니다.", false);
                     break;
                 }
-                if (cleared && stage.IsQuest)
+                if (cleared && stage.AcademyId != null)
+                {
+                    string academyTitle, academyNote = "";
+                    List<string> academyNotes;
+                    if (stage.BestOfThree)
+                    {
+                        academyNotes = Academy.CompleteLeague(save, stage.AcademyId.Substring(7));
+                        academyTitle = "대항전 승리! (" + leagueWins + "승 " + leagueLosses + "패)";
+                    }
+                    else if (stage.AcademyId == "exam")
+                    {
+                        double sum = 0;
+                        foreach (var g in academyGrades) sum += g;
+                        int examGrade = academyGrades.Count > 0 ? (int)Math.Round(sum / academyGrades.Count) : 1;
+                        academyNotes = Academy.CompleteExam(save, examGrade);
+                        academyTitle = "연말 평가 통과!";
+                    }
+                    else
+                    {
+                        int grade = academyGrades.Count > 0 ? academyGrades[0] : 1;
+                        academyNotes = Academy.CompleteLesson(save, stage.AcademyId.Substring(7), grade);
+                        academyTitle = "수업 이수 · 성적 " + Academy.GradeNames[grade];
+                    }
+                    if (academyNotes.Count > 0) academyNote = "\n" + string.Join("\n", academyNotes);
+                    GameManager.Instance.SaveNow();
+                    yield return ShowResult(academyTitle, (stage.NoReward ? "다시 치른 시험이라 경험과 은자는 없습니다." : "획득  경험 " + gainedExp + " · 은자 " + gainedDoo) + academyNote, false);
+                }
+                else if (cleared && stage.IsQuest)
                 {
                     var quest = Quests.Find(stage.QuestId);
                     string questNote = quest != null ? Quests.Complete(save, quest) : "";

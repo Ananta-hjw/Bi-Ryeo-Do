@@ -14,6 +14,8 @@ namespace BiRyeoDo.Game.UI
         private StarPanel _stars;
         private SaveData _syncedSave;
         private DailyPanel _daily;
+        private AcademyPanel _academy;
+        private bool _reopenAcademy;
         private FactionPanel _shop;   // 객잔, opened from the 강호 side buttons
         private Text _dailyRowDetail, _dailyBadge;
         private Action _onStatus;
@@ -151,6 +153,7 @@ namespace BiRyeoDo.Game.UI
             _daily = new DailyPanel(UiFactory.Rect("DailyOverlay", root, Vector2.zero, Vector2.one), Refresh);
             _stars = new StarPanel(UiFactory.Rect("StarOverlay", root, Vector2.zero, Vector2.one), Refresh);
             _shop = new FactionPanel(UiFactory.Rect("ShopOverlay", root, Vector2.zero, Vector2.one), Refresh, true);
+            _academy = new AcademyPanel(UiFactory.Rect("AcademyOverlay", root, Vector2.zero, Vector2.one), Refresh, StartAcademy);
             Refresh();
         }
 
@@ -589,6 +592,7 @@ namespace BiRyeoDo.Game.UI
             CloseOverlays();
             Refresh();
             if (_reopenTower) { _reopenTower = false; OpenTowerOverlay(); }
+            else if (_reopenAcademy) { _reopenAcademy = false; _academy.Open(); }
             else if (_reopenStages) { _reopenStages = false; OpenStageOverlay(); }
         }
 
@@ -599,6 +603,18 @@ namespace BiRyeoDo.Game.UI
             {
                 _towerOverlay.gameObject.SetActive(false);
                 _reopenTower = true;
+                _reopenStages = false;
+                _onStart(st);
+            });
+        }
+
+        private void StartAcademy(StageData st)
+        {
+            OpenPrep(st, () =>
+            {
+                _academy.Hide();
+                _reopenAcademy = true;
+                _reopenTower = false;
                 _reopenStages = false;
                 _onStart(st);
             });
@@ -900,7 +916,7 @@ namespace BiRyeoDo.Game.UI
             _onPromote(offer);
         }
 
-        public enum Menu { Featured, Stages, Quests, Fortunes, Party, Tower, Promotion, Daily, Stars, Settings, Shop }
+        public enum Menu { Featured, Stages, Quests, Fortunes, Party, Tower, Promotion, Daily, Stars, Settings, Shop, Academy }
 
         public StageData FeaturedStage { get { return _featStage; } }
 
@@ -931,6 +947,7 @@ namespace BiRyeoDo.Game.UI
                 case Menu.Stars: _stars.Open(); break;
                 case Menu.Settings: OpenSettingsOverlay(); break;
                 case Menu.Shop: _shop.Open(); break;
+                case Menu.Academy: _academy.Open(); break;
             }
         }
 
@@ -946,6 +963,7 @@ namespace BiRyeoDo.Game.UI
             if (_stars != null) _stars.Hide();
             if (_daily != null) _daily.Hide();
             if (_shop != null) _shop.Hide();
+            if (_academy != null) _academy.Hide();
         }
 
         private void OnStagePressed(StageData st, Action<StageData> onStart, bool fromList, int forcedDifficulty = -1)

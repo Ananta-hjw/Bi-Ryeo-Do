@@ -315,6 +315,9 @@ namespace BiRyeoDo.Core
         public int TowerFloor;
         public bool IsQuest;    // a 의뢰 built from an earlier stage's fight (see Quests): no stage progress, own exp and rewards
         public string QuestId;
+        public string AcademyId;  // a 천무학관 activity (see Academy; also IsQuest): "lesson:<course>", "exam" or "league:<house>"
+        public bool NoReward;     // a retaken 천무학관 activity: no 경험 or 은자
+        public bool BestOfThree;  // 단 대항전: winning two of the three fights wins the match
         public int Difficulty;  // 0 일반, 1 어려움, 2 극악 (see StageStars); set on a copy made by WithDifficulty
 
         /// <summary>Enemy data for this workflow, shared by combat, previews and formation planning. Pass the fight's trial so a 버티기 fight keeps full enemy HP.</summary>
@@ -322,6 +325,7 @@ namespace BiRyeoDo.Core
         {
             var enemy = EarlyGameContent.FindEnemy(id);
             if (enemy == null || IsTower) return enemy;
+            if (AcademyId != null) return Academy.ScaleEnemy(enemy, Number);
             if (IsQuest) return Quests.Scale(QuestId, enemy);
             var scaled = StageStars.StoryEnemy(enemy, Number, Difficulty, trial);
             if (Number != FireDragonFinale.Stage || id != FireDragonFinale.BiId) return scaled;

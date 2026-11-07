@@ -145,11 +145,12 @@ namespace BiRyeoDo.Game.UI
             _stars = FlyoutItem(_missionsFlyout, "Stars", "별 보상", "star", .24f, .41f, WorldScreen.Menu.Stars);
             _fortune = FlyoutItem(_missionsFlyout, "Fortunes", "기연", "fortune", .045f, .215f, WorldScreen.Menu.Fortunes);
 
-            _challengeFlyout = UiFactory.Panel("Challenges", _flyoutLayer, new Vector2(.125f, .28f), new Vector2(.415f, .64f), UiFactory.Ink).rectTransform;
+            _challengeFlyout = UiFactory.Panel("Challenges", _flyoutLayer, new Vector2(.125f, .20f), new Vector2(.415f, .70f), UiFactory.Ink).rectTransform;
             UiFactory.Frame(_challengeFlyout, UiFactory.GoldDim, 2f);
-            HomeText("Title", _challengeFlyout, .06f, .80f, .94f, .98f, "도전", 32, UiFactory.Gold);
-            FlyoutItem(_challengeFlyout, "Tower", "무한 비무대", "tower", .43f, .75f, WorldScreen.Menu.Tower);
-            FlyoutItem(_challengeFlyout, "Promotion", "승급 시험", "promotion", .055f, .375f, WorldScreen.Menu.Promotion);
+            HomeText("Title", _challengeFlyout, .06f, .83f, .94f, .98f, "도전", 32, UiFactory.Gold);
+            FlyoutItem(_challengeFlyout, "Tower", "무한 비무대", "tower", .57f, .80f, WorldScreen.Menu.Tower);
+            FlyoutItem(_challengeFlyout, "Promotion", "승급 시험", "promotion", .31f, .54f, WorldScreen.Menu.Promotion);
+            FlyoutItem(_challengeFlyout, "Academy", "천무학관", "arts", .05f, .28f, WorldScreen.Menu.Academy);
 
             var missions = SideButton(root, "MissionsMenu", "임무/보상", "missions", .64f, () => ToggleFlyout(true));
             _missionsButton = missions.GetComponent<Image>();

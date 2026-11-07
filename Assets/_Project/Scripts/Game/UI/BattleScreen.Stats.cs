@@ -27,6 +27,9 @@ namespace BiRyeoDo.Game.UI
         private RectTransform _statsWindow;
         private GameObject _panelStats;
 
+        /// <summary>단 대항전 bout names: 선봉전 · 중견전 · 대장전.</summary>
+        private static string LeagueBoutName(int fight) { return fight == 0 ? "선봉전" : fight == 1 ? "중견전" : "대장전"; }
+
         /// <summary>Starts the statistics of a new fight (called once its units exist).</summary>
         private void BeginFightStats()
         {

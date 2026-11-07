@@ -39,6 +39,15 @@ namespace BiRyeoDo.Core
         public List<string> Placement = new List<string>();          // "id:col:row" of every party member when PlacementCustom
         public List<string> BenchedCompanions = new List<string>();   // companions the player explicitly sat out (never auto-filled)
         public int TowerBest;                                       // highest 무한 비무대 floor cleared (additive field)
+        // 천무학관 생활 (see Academy; additive fields)
+        public int AcademySemester = 1;                               // the current 학기 (starts at 1)
+        public List<string> AcademyCourses = new List<string>();      // the three courses signed up for this 학기
+        public List<string> AcademyGrades = new List<string>();       // "courseId:grade" passed this 학기 (best of the 학기, 1 병 .. 3 갑)
+        public List<string> AcademyBest = new List<string>();         // "courseId:grade" best ever (the lasting bonuses)
+        public List<string> AcademyLeague = new List<string>();       // houses beaten in this 학기's 단 대항전
+        public int AcademyCredits;                                    // 학점 earned in all 학기
+        public string AcademyClub = "";                               // the 동호회 joined ("" = none)
+        public int AcademyClubSemester;                               // the 학기 the club was last chosen in (one change per 학기)
         public List<string> SeenEnemies = new List<string>();      // 도감: enemies fought and beaten (additive field)
         public List<string> SeenItems = new List<string>();        // 도감: items ever owned or pulled (additive field)
         public List<string> ClaimedAchievements = new List<string>();   // 업적 rewards already taken (additive field)
