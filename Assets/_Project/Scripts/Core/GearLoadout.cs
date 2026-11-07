@@ -13,7 +13,7 @@ namespace BiRyeoDo.Core
     public static class GearLoadout
     {
         /// <summary>Enemies assume this share of the measured gear bonus (players are assumed to have <see cref="ExpectedGear.Share"/>).</summary>
-        public const float EnemyShare = 0.6f;
+        public const float EnemyShare = 0.8f;
 
         /// <summary>Enemies wear this many grades below the simulated player's average.</summary>
         public const float EnemyGradeGap = 0.5f;

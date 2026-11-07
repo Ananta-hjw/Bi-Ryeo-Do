@@ -12,12 +12,12 @@ namespace BiRyeoDo.Tests
             var crimson = EarlyGameContent.FindItem("crimson_saber");
             var storm = EarlyGameContent.FindItem("storm_blade");
             Assert.AreEqual(ItemGrade.Legendary, crimson.Grade);
-            Assert.AreEqual(.33f, crimson.AtkPct);   // 전설 x1.5 grade scale
-            Assert.AreEqual(.045f, crimson.CritAdd);
+            Assert.AreEqual(.297f, crimson.AtkPct);   // 전설 x1.5 grade scale, then the 2026-11 rebalance (x0.9)
+            Assert.AreEqual(.041f, crimson.CritAdd);
             Assert.AreEqual(5, crimson.SpeedAdd);
             Assert.AreEqual(0f, crimson.HpPct);
             Assert.AreEqual(ItemGrade.Epic, storm.Grade);
-            Assert.AreEqual(.208f, storm.AtkPct);   // 영웅 x1.3 grade scale
+            Assert.AreEqual(.187f, storm.AtkPct);   // 영웅 x1.3 grade scale, then the 2026-11 rebalance (x0.9)
             Assert.AreEqual(.039f, storm.HpPct);
             Assert.AreEqual(0f, storm.CritAdd);
             Assert.AreEqual(0, storm.SpeedAdd);

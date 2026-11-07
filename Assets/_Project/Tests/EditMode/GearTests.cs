@@ -50,7 +50,7 @@ namespace BiRyeoDo.Tests
             for (int i = 1; i < 10; i++) Assert.IsTrue(Gear.Enhance(save, "iron_sword", out error), error);
             Assert.AreEqual(10, Gear.Level(save, "iron_sword"));
             Assert.IsFalse(Gear.Enhance(save, "iron_sword", out error), "unduplicated equipment caps at ten");
-            Assert.AreEqual(105, Inventory.ApplyGear(Base(), save.EquippedGear, Gear.LevelsFor(save, Inventory.Hero)).Attack);
+            Assert.AreEqual(104, Inventory.ApplyGear(Base(), save.EquippedGear, Gear.LevelsFor(save, Inventory.Hero)).Attack);   // 3.5% iron sword (2026-11 rebalance)
         }
 
         [Test]

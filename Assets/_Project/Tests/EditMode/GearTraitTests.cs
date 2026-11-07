@@ -201,12 +201,12 @@ namespace BiRyeoDo.Tests
             var item = EarlyGameContent.FindItem(Ritual.RewardId);
             var fresh = Gear.EffectsFor(item);
             var enhanced = Gear.EffectsFor(item, 100);
-            Assert.AreEqual(.083f * 2f / 1.3f, fresh.QiPct, .00001f);   // +12.77% at five stars, no enhancement
-            Assert.AreEqual(.774f * 2f / 1.3f, fresh.DefPct, .00001f);   // +119.08%
-            Assert.AreEqual(.083f * 6.9f / 1.3f, enhanced.QiPct, .00001f);
-            Assert.AreEqual(.774f * 6.9f / 1.3f, enhanced.DefPct, .00001f);
-            StringAssert.Contains("내공 +44.1%", StatusSheet.EffectText(item, 100));
-            StringAssert.Contains("방어 +410.8%", StatusSheet.EffectText(item, 100));
+            Assert.AreEqual(.0789f * 2f / 1.3f, fresh.QiPct, .00001f);   // +12.14% at five stars, no enhancement (2026-11: -5%)
+            Assert.AreEqual(.7353f * 2f / 1.3f, fresh.DefPct, .00001f);   // +113.12%
+            Assert.AreEqual(.0789f * 6.9f / 1.3f, enhanced.QiPct, .00001f);
+            Assert.AreEqual(.7353f * 6.9f / 1.3f, enhanced.DefPct, .00001f);
+            StringAssert.Contains("내공 +41.9%", StatusSheet.EffectText(item, 100));
+            StringAssert.Contains("방어 +390.3%", StatusSheet.EffectText(item, 100));
             Assert.IsEmpty(Gear.BreakthroughTraits(item), "these are base effects, not fixed breakthrough traits");
         }
 
@@ -228,7 +228,8 @@ namespace BiRyeoDo.Tests
         public void CriticalChanceKeepsBaseWithHalfStarBonusAndOneTenthEnhancement(int level, int stars, float expected)
         {
             var item = EarlyGameContent.FindItem("biroe_blade");
-            Assert.AreEqual(expected, Gear.EffectsFor(item, level, stars).CritAdd, .00001f);
+            // the cases were written for a 13.6% base; the 2026-11 rebalance changed the base, the scaling rule is the same
+            Assert.AreEqual(expected / .136f * item.CritAdd, Gear.EffectsFor(item, level, stars).CritAdd, .00001f);
             Assert.AreEqual(item.CritDmgAdd * Gear.EffectMultiplier(item, level, stars)
                 + (stars >= 1 ? .32f : 0f), Gear.EffectsFor(item, level, stars).CritDmgAdd, .00001f);
         }

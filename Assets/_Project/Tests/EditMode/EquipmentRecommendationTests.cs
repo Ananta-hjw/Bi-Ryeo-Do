@@ -118,8 +118,9 @@ namespace BiRyeoDo.Tests
         [Test]
         public void SetCompletionCanBeatTheIndividuallyStrongerWeapon()
         {
-            var save = Save(); Add(save, "laundry_bat", "twin_daggers");
-            Assert.AreEqual("twin_daggers", EquipmentRecommendation.Suggest(save, Inventory.Hero)[0]);
+            // 2026-11 rebalance: 쌍비수 no longer beats the bat on its own; 비연검 (rare) still does
+            var save = Save(); Add(save, "laundry_bat", "gen_wea_rar07");
+            Assert.AreEqual("gen_wea_rar07", EquipmentRecommendation.Suggest(save, Inventory.Hero)[0]);
             Add(save, "cloth_robe");
             var result = EquipmentRecommendation.Suggest(save, Inventory.Hero);
             Assert.AreEqual("laundry_bat", result[0]);
@@ -130,9 +131,10 @@ namespace BiRyeoDo.Tests
         public void SupportAndAttackRolesPreferDifferentTradeoffs()
         {
             // level 19: at 20 the realm bonus rounds 효룡's +1 speed up to +2, which flips this near-tie for reasons unrelated to roles
-            var save = Save(); save.Level = 19; Add(save, "cloth_robe", "gen_arm_nor05");
+            // 2026-11 rebalance: the near-tie partner is now 덧댄 장삼 (방어 + a little 공격)
+            var save = Save(); save.Level = 19; Add(save, "cloth_robe", "catalog_normal_armor_07");
             Assert.AreEqual("cloth_robe", EquipmentRecommendation.Suggest(save, "hyo_ryong")[1]);
-            Assert.AreEqual("gen_arm_nor05", EquipmentRecommendation.Suggest(save, Inventory.Hero)[1]);
+            Assert.AreEqual("catalog_normal_armor_07", EquipmentRecommendation.Suggest(save, Inventory.Hero)[1]);
             Assert.AreEqual("cloth_robe", EquipmentRecommendation.Suggest(save, "yun_junho")[1]);
         }
 
