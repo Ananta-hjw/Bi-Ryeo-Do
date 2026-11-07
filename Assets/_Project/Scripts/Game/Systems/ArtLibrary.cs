@@ -319,6 +319,7 @@ namespace BiRyeoDo.Game.Systems
             { "석류화", "seok_ryuhwa" },
             { "진홍의 검희", "seok_ryuhwa" },
             { "노학", "no_hak" },
+            { "당문혜", "dang_munhye" },
             { "마진가", "ma_jinga" },
             { "천무학관주", "ma_jinga" },
             { "나백천", "na_baekcheon" },
