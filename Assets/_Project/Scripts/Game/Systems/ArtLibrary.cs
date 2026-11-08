@@ -408,6 +408,18 @@ namespace BiRyeoDo.Game.Systems
             { "옥현진인", "okhyeon_jinin" },
             { "허주운", "heo_juun" },
             { "천수신의", "heo_juun" },
+            { "남궁진", "namgung_jin" },
+            { "전광검", "namgung_jin" },
+            { "전광검 남궁진", "namgung_jin" },
+            { "백결", "baek_gyeol" },
+            { "단목강", "danmok_gang" },
+            { "철혈장창", "danmok_gang" },
+            { "철혈장창 단목강", "danmok_gang" },
+            { "노주생", "no_jusaeng" },
+            { "곤륜일검 노주생", "no_jusaeng" },
+            { "곤륜쌍검 노주생", "no_jusaeng" },
+            { "채하군", "chae_hagun" },
+            { "곤륜쌍검 채하군", "chae_hagun" },
         };
 
         /// <summary>All compact/combat character contexts stay in Battle/, including the fallback.</summary>
