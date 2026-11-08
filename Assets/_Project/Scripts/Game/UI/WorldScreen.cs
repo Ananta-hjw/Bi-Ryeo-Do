@@ -951,7 +951,8 @@ namespace BiRyeoDo.Game.UI
             {
                 foreach (var overlay in new[] { _promoOverlay, _partyOverlay, _prepOverlay, _questOverlay, _fortuneOverlay, _settingsOverlay, _towerOverlay, _stageOverlay })
                     if (overlay != null && overlay.gameObject.activeSelf) return true;
-                return (_stars != null && _stars.IsOpen) || (_daily != null && _daily.IsOpen) || (_shop != null && _shop.IsOpen);
+                return (_stars != null && _stars.IsOpen) || (_daily != null && _daily.IsOpen) || (_shop != null && _shop.IsOpen)
+                    || (_academy != null && _academy.IsOpen) || (_masterTrial != null && _masterTrial.IsOpen);
             }
         }
 

@@ -148,7 +148,6 @@ namespace BiRyeoDo.Core
             Cooldowns.Clear();
         }
 
-        /// <summary>보스 단계: attack and defense become these multiples of what the unit started the fight with (not compounded phase on phase).</summary>
         /// <summary>사부의 시련: replaces the stats for the run's 가르침, keeping the share of HP and 내공 the unit had.</summary>
         public void ReplaceStats(CombatStats stats)
         {
@@ -158,6 +157,7 @@ namespace BiRyeoDo.Core
             Qi = (int)Math.Round(stats.MaxQi * qi);
         }
 
+        /// <summary>보스 단계: attack and defense become these multiples of what the unit started the fight with (not compounded phase on phase).</summary>
         public void ScaleAttackDefense(float attack, float defense)
         {
             if (_baseStats == null) _baseStats = _stats;

@@ -255,6 +255,51 @@ namespace BiRyeoDo.Tests
             Assert.IsNotNull(Tutorial.All.FirstOrDefault(t => t.Id == "master_trial"));
         }
 
+        [Test]
+        public void TheFirstBossWinPaysFullExpAndAnAbandonedFightEndsTheRun()
+        {
+            var save = Save(40);
+            MasterTrial.Start(save, 1, 3);
+            var run = save.MasterTrialRun;
+            run.Floor = MasterTrial.Floors;
+            var boss = MasterTrial.Options(save)[0];
+            var st = MasterTrial.Choose(save, boss);
+            Assert.IsNotNull(st);
+            MasterTrial.BeginFight(save);
+            Assert.AreEqual("fight", run.Pending);
+            Assert.IsNull(MasterTrial.Choose(save, boss), "no new path while the fight is on");
+            long full = (long)System.Math.Round(Progression.ExpToNext(save.Level) * .20);
+            MasterTrial.CompleteFight(save, new List<Combatant> { Formation.BuildHero(save) }, new SeededRandom(1));
+            Assert.AreEqual(1, save.MasterTrialBest);
+            Assert.AreEqual(full, MasterTrial.NodeExp(save, st), "the boss win raised the best tier but still pays a first clear");
+
+            MasterTrial.Close(save);
+            MasterTrial.Start(save, 1, 4);
+            Assert.IsTrue(save.MasterTrialRun.Repeat);
+            MasterTrial.Choose(save, MasterTrial.Options(save)[0]);
+            MasterTrial.BeginFight(save);
+            StringAssert.Contains("떠났습니다", MasterTrial.FailAbandoned(save));
+            Assert.IsFalse(save.MasterTrialRun.Active);
+        }
+
+        [Test]
+        public void BenchedMembersKeepTheirWoundsAndCostsNeverFellAnyone()
+        {
+            var save = Save(40);
+            MasterTrial.Start(save, 1, 3);
+            var run = save.MasterTrialRun;
+            run.Party.Add("hyo_ryong:100:500:20");
+            var hero = Formation.BuildHero(save);
+            hero.Hp = hero.Stats.MaxHp / 2;
+            MasterTrial.CompleteFight(save, new List<Combatant> { hero }, new SeededRandom(1));
+            Assert.IsTrue(MasterTrial.PartyState(run).Any(m => m.Id == "hyo_ryong" && m.HpPermil == 100), "the benched companion keeps 10%");
+            MasterTrial.Pick(save, -1);
+            run.Party.Add("jang_hong:50:500:0");
+            run.Pending = "event:test";
+            MasterTrial.ChooseEvent(save, 0, new SeededRandom(1));
+            foreach (var m in MasterTrial.PartyState(run)) Assert.GreaterOrEqual(m.HpPermil, 1, m.Id);
+        }
+
         /// <summary>Informational only (not tuning): how often the balance bot clears a run at the stage's bot level, picking the first 가르침 and always resting.</summary>
         [Test, Explicit]
         public void BotRunReport()

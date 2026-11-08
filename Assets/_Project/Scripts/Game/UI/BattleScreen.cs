@@ -449,6 +449,7 @@ namespace BiRyeoDo.Game.UI
             _combatOnly = false;
             int diff = stage.IsTower || stage.IsQuest ? 0 : stage.Difficulty;
             _trialRunFight = stage.MasterTrialFloor > 0;
+            if (_trialRunFight) { MasterTrial.BeginFight(GameManager.Instance.Save); GameManager.Instance.SaveNow(); }   // leaving the game mid-fight now ends the run
             string tag = StageStars.TagFor(diff);
             _stageLabel.text = stage.IsTower ? stage.Name : "스테이지 " + stage.Number + " · " + tag + stage.Name;
             var bg = SceneryArt.Battle(stage);
@@ -2482,8 +2483,8 @@ namespace BiRyeoDo.Game.UI
                                 var spec = actorPanel.Unit.Skills.Find(x => x.Id == ev.SkillId);
                                 if (spec != null && spec.Id != "basic")
                                 {
-                                    yield return SkillCutIn(spec.Name, spec.SpiritCost >= 100, Roster.StoryArtKey(actorPanel.Unit));
-                                    if (spec.SpiritCost >= 100) _sequenceImpactPunched = true;
+                                    yield return SkillCutIn(spec.Name, spec.SpiritCost > 0, Roster.StoryArtKey(actorPanel.Unit));   // a 비기 (a 사부의 시련 가르침 can lower its cost below 100)
+                                    if (spec.SpiritCost > 0) _sequenceImpactPunched = true;
                                 }
                             }
                         }
@@ -2685,7 +2686,7 @@ namespace BiRyeoDo.Game.UI
             else if (!approach && !ev.Ranged && striker != null && ev.HitIndex == 0) StartCoroutine(Lunge(striker.Root, new Vector2(130f, 0f)));
             var spec = striker != null ? striker.Unit.Skills.Find(x => x.Id == ev.SkillId) : null;
             var style = StyleOf(spec, ev);
-            bool ultimate = spec != null && spec.SpiritCost >= 100;
+            bool ultimate = spec != null && spec.SpiritCost > 0;
             bool finale = ev.HitCount > 1 && (finishStrike || ev.HitIndex == ev.HitCount - 1 || ev.TargetDefeated);
             if (style == StrikeStyle.Projectile && striker != null)
                 yield return ProjectileFx(striker.Center, card.Center, ev.IsCrit || finale || ultimate);

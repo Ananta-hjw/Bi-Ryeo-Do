@@ -37,6 +37,8 @@ namespace BiRyeoDo.Game.UI
                 AddClose();
                 return;
             }
+            string abandoned = MasterTrial.FailAbandoned(save);   // the game was closed during a 관문 fight
+            if (abandoned != null) { GameManager.Instance.SaveNow(); toast = abandoned; }
             var run = MasterTrial.Run(save);
             T("Summary", Root, .05f, .865f, .95f, .92f, "최고 " + save.MasterTrialBest + "단계 · 마친 시련 " + save.MasterTrialRuns + "번" + (run.Active ? "  ·  진행 중: " + run.Tier + "단계 " + Math.Min(run.Floor, MasterTrial.Floors) + " / " + MasterTrial.Floors + "관문" : ""), 28, UiFactory.PaperText, TextAnchor.MiddleCenter);
             T("Toast", Root, .04f, .015f, .96f, .075f, toast ?? Hint(run), 26, toast != null ? UiFactory.Gold : UiFactory.Dim, TextAnchor.MiddleCenter);
@@ -87,7 +89,7 @@ namespace BiRyeoDo.Game.UI
                 bool locked = tier > open, cleared = tier <= save.MasterTrialBest;
                 T("Name", card, .05f, .78f, .95f, .97f, tier + "단계" + (cleared ? "  <size=22>· 돌파</size>" : ""), 32, locked ? UiFactory.Dim : UiFactory.Gold);
                 T("Info", card, .05f, .30f, .95f, .78f,
-                    "적 체력 +" + Math.Round((MasterTrial.TierHp(tier) - 1f) * 100f) + "% · 공격 +" + Math.Round((MasterTrial.TierAtk(tier) - 1f) * 100f) + "%\n휴식 회복 " + Math.Round(MasterTrial.RestHeal(tier) * 100f) + "%\n돌파 보상 은자 " + Income.Boost(MasterTrial.ClearDoo(tier) * 2).ToString("N0") + " (첫 돌파)" + (MasterTrial.ClearInsight(tier) > 0 ? " · 심득석" : "") + (cleared ? "\n다시 하면 보상 절반" : ""),
+                    "적 체력 +" + Math.Round((MasterTrial.TierHp(tier) - 1f) * 100f) + "% · 공격 +" + Math.Round((MasterTrial.TierAtk(tier) - 1f) * 100f) + "%\n휴식 회복 " + Math.Round(MasterTrial.RestHeal(tier) * 100f) + "%\n돌파 보상 은자 " + (cleared ? Income.Boost(MasterTrial.ClearDoo(tier) / 2).ToString("N0") + " (다시 돌파 · 관문 보상도 절반)" : Income.Boost(MasterTrial.ClearDoo(tier) * 2).ToString("N0") + " (첫 돌파)") + (MasterTrial.ClearInsight(tier) > 0 ? " · 심득석" : ""),
                     22, locked ? UiFactory.Dim : UiFactory.PaperText);
                 var go = UiFactory.Button("Go", card, new Vector2(.08f, .05f), new Vector2(.92f, .26f), locked ? (tier - 1) + "단계 돌파 필요" : "도전", locked ? UiFactory.InkSoft : UiFactory.Red, () =>
                 {
@@ -148,7 +150,7 @@ namespace BiRyeoDo.Game.UI
         {
             var card = grid.Add("Bless_" + key);
             int rarity = MasterTrial.RarityOf(key), have = 0;
-            foreach (var e in run.Blessings) { string id, arg; int s; MasterTrial.Parse(e, out id, out arg, out s); if ((arg.Length > 0 ? id + "|" + arg : id) == key) have = s; }
+            foreach (var e in run.Blessings) { string id, arg; int s; MasterTrial.Parse(e, out id, out arg, out s); if (MasterTrial.KeyOf(e) == key) have = s; }
             UiFactory.Frame(card, RarityColors[rarity], 3f);
             bool cost = MasterTrial.IsCost(key);
             T("Name", card, .05f, .78f, .95f, .97f, MasterTrial.NameOf(key) + "  <size=22><color=" + RarityHex[rarity] + ">" + MasterTrial.RarityNames[rarity] + "</color>" + (cost ? " · <color=#E07A6A>대가</color>" : "") + "</size>", 30, UiFactory.Gold);
@@ -181,9 +183,7 @@ namespace BiRyeoDo.Game.UI
             grid.Heading("또는 수련한다 (가르침 하나 +1단계)");
             foreach (var e in run.Blessings)
             {
-                string id, arg; int s;
-                MasterTrial.Parse(e, out id, out arg, out s);
-                string key = arg.Length > 0 ? id + "|" + arg : id;
+                string key = MasterTrial.KeyOf(e);
                 BlessingCard(grid, run, key, "수련", () => { MasterTrial.RestTrain(save, key); Save(); Open(MasterTrial.NameOf(key) + "이(가) 강해졌습니다."); });
             }
         }
@@ -225,13 +225,8 @@ namespace BiRyeoDo.Game.UI
             grid.Heading("일행 상태 · 얻은 가르침 " + run.Blessings.Count + "개");
             var party = grid.Add("Party");
             var lines = new List<string>();
-            foreach (var e in run.Party)
-            {
-                var p = e.Split(':');
-                if (p.Length < 4) continue;
-                int hp, qi; int.TryParse(p[1], out hp); int.TryParse(p[2], out qi);
-                lines.Add(MemberName(p[0]) + "  체력 " + Math.Round(hp / 10.0) + "% · 내공 " + Math.Round(qi / 10.0) + "% · 기세 " + p[3]);
-            }
+            foreach (var m in MasterTrial.PartyState(run))
+                lines.Add(MemberName(m.Id) + "  체력 " + Math.Round(m.HpPermil / 10.0) + "% · 내공 " + Math.Round(m.QiPermil / 10.0) + "% · 기세 " + m.Spirit);
             T("Info", party, .05f, .05f, .95f, .95f, lines.Count > 0 ? string.Join("\n", lines) : "모두 온전합니다.", 23, UiFactory.PaperText);
             foreach (var e in run.Blessings)
             {

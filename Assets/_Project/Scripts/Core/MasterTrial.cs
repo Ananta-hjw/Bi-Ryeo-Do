@@ -18,6 +18,7 @@ namespace BiRyeoDo.Core
         public List<string> Party = new List<string>();         // "unitId:hpPermil:qiPermil:spirit" after the last fight (empty = fresh)
         public long EarnedDoo, EarnedExp;
         public int Wins;
+        public bool Repeat;                                     // the tier was already cleared when the run began (rewards halved)
     }
 
     public enum TrialNodeKind { Fight, Elite, Rest, Event, Boss }
@@ -141,7 +142,8 @@ namespace BiRyeoDo.Core
             arg = bar >= 0 ? head.Substring(bar + 1) : "";
         }
 
-        private static string KeyOf(string entry) { string id, arg; int s; Parse(entry, out id, out arg, out s); return arg.Length > 0 ? id + "|" + arg : id; }
+        /// <summary>The key of a stored 가르침 ("id" or "id|arg", without the stacks).</summary>
+        public static string KeyOf(string entry) { string id, arg; int s; Parse(entry, out id, out arg, out s); return arg.Length > 0 ? id + "|" + arg : id; }
 
         public static int Stacks(MasterTrialRun run, string id, string arg = "")
         {
@@ -189,7 +191,7 @@ namespace BiRyeoDo.Core
         public static bool Start(SaveData save, int tier, int seed)
         {
             if (!Unlocked(save) || tier < 1 || tier > OpenTier(save) || Run(save).Active) return false;
-            save.MasterTrialRun = new MasterTrialRun { Active = true, Tier = tier, Seed = seed & 0x7fffffff };
+            save.MasterTrialRun = new MasterTrialRun { Active = true, Tier = tier, Seed = seed & 0x7fffffff, Repeat = Repeat(save, tier) };
             return true;
         }
 
@@ -226,10 +228,9 @@ namespace BiRyeoDo.Core
 
         private static Random Rng(MasterTrialRun run, int salt) { return new Random(unchecked(run.Seed * 31 + run.Floor * 7919 + salt)); }
 
-        private static TrialNode FightNode(SaveData save, TrialNodeKind kind, Random rng)
+        private static TrialNode FightNode(List<int[]> ordinary, List<int[]> bosses, TrialNodeKind kind, Random rng)
         {
-            var pool = Candidates(save, kind == TrialNodeKind.Boss);
-            if (pool.Count == 0) pool = Candidates(save, false);
+            var pool = kind == TrialNodeKind.Boss && bosses.Count > 0 ? bosses : ordinary;
             var pick = pool[rng.Next(pool.Count)];
             string tag = kind == TrialNodeKind.Boss ? "boss" : kind == TrialNodeKind.Elite ? "elite" : "fight";
             return new TrialNode { Kind = kind, Stage = pick[0], Fight = pick[1], Code = tag + ":" + pick[0] + ":" + pick[1] };
@@ -243,23 +244,25 @@ namespace BiRyeoDo.Core
             var run = Run(save);
             var rng = Rng(run, 1);
             var list = new List<TrialNode>();
-            if (run.Floor >= Floors) { list.Add(FightNode(save, TrialNodeKind.Boss, rng)); return list; }
+            var ordinary = Candidates(save, false);
+            var bosses = run.Floor >= Floors ? Candidates(save, true) : new List<int[]>();
+            if (run.Floor >= Floors) { list.Add(FightNode(ordinary, bosses, TrialNodeKind.Boss, rng)); return list; }
             if (run.Floor == 1)
             {
-                list.Add(FightNode(save, TrialNodeKind.Fight, rng));
-                list.Add(FightNode(save, TrialNodeKind.Fight, rng));
+                list.Add(FightNode(ordinary, bosses, TrialNodeKind.Fight, rng));
+                list.Add(FightNode(ordinary, bosses, TrialNodeKind.Fight, rng));
                 return list;
             }
             int count = rng.Next(2) == 0 ? 2 : 3;
-            list.Add(FightNode(save, TrialNodeKind.Fight, rng));   // a plain fight is always there
+            list.Add(FightNode(ordinary, bosses, TrialNodeKind.Fight, rng));   // a plain fight is always there
             bool rest = false, ev = false, elite = false;
             while (list.Count < count)
             {
                 int roll = rng.Next(100);
-                if (roll < 30 && !elite) { list.Add(FightNode(save, TrialNodeKind.Elite, rng)); elite = true; }
+                if (roll < 30 && !elite) { list.Add(FightNode(ordinary, bosses, TrialNodeKind.Elite, rng)); elite = true; }
                 else if (roll < 60 && !rest && run.Floor > 2) { list.Add(new TrialNode { Kind = TrialNodeKind.Rest, Code = "rest" }); rest = true; }
                 else if (roll < 85 && !ev) { string id = EventIds[rng.Next(EventIds.Length)]; list.Add(new TrialNode { Kind = TrialNodeKind.Event, EventId = id, Code = "event:" + id }); ev = true; }
-                else list.Add(FightNode(save, TrialNodeKind.Fight, rng));
+                else list.Add(FightNode(ordinary, bosses, TrialNodeKind.Fight, rng));
             }
             return list;
         }
@@ -280,6 +283,21 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>Picks a 관문. A fight returns the stage to play; 휴식 and 기연 wait for their choice (<see cref="MasterTrialRun.Pending"/>).</summary>
+        /// <summary>A 관문 fight has begun: until it is won or lost the run cannot pick a path again (leaving the game mid-fight ends the run).</summary>
+        public static void BeginFight(SaveData save)
+        {
+            var run = Run(save);
+            if (run.Active && run.Pending.Length == 0 && run.Node.Length > 0) run.Pending = "fight";
+        }
+
+        /// <summary>A fight that was started but never finished (the game was closed mid-fight) ends the run. Returns the note, or null.</summary>
+        public static string FailAbandoned(SaveData save)
+        {
+            var run = Run(save);
+            if (!run.Active || run.Pending != "fight") return null;
+            return Fail(save) + " 전투 도중 시련을 떠났습니다.";
+        }
+
         public static StageData Choose(SaveData save, TrialNode node)
         {
             var run = Run(save);
@@ -299,7 +317,7 @@ namespace BiRyeoDo.Core
             float hp = TierHp(run.Tier) * FloorMul(run.Floor), atk = TierAtk(run.Tier) * FloorMul(run.Floor);
             double pay = node.Kind == TrialNodeKind.Boss ? 2.0 : node.Kind == TrialNodeKind.Elite ? 1.4 : 1.0;
             if (node.Kind == TrialNodeKind.Elite) { hp *= EliteHp; atk *= EliteAtk; }
-            if (Repeat(save, run.Tier)) pay *= .5;
+            if (run.Repeat) pay *= .5;
             return new StageData
             {
                 Number = node.Stage, Name = "사부의 시련 " + run.Tier + "단계 · " + run.Floor + "관문 (" + node.KindName + ")", IsQuest = true,
@@ -323,15 +341,16 @@ namespace BiRyeoDo.Core
         {
             var node = Decode(Run(save).Node);
             double share = node != null && node.Kind == TrialNodeKind.Boss ? .20 : node != null && node.Kind == TrialNodeKind.Elite ? .14 : .10;
-            if (Repeat(save, Run(save).Tier)) share *= .5;
+            if (Run(save).Repeat) share *= .5;   // fixed at the start, so the boss win (which raises the best tier) still pays in full
             return (long)Math.Round(Progression.ExpToNext(save.Level) * share);
         }
 
         // ------------------------------------------------------------------ the party in a run
 
+        /// <summary>Records the fielded members' state; members who sat this fight out keep theirs (swapping companions does not heal them).</summary>
         private static void Snapshot(MasterTrialRun run, IList<Combatant> party)
         {
-            run.Party.Clear();
+            foreach (var m in party) run.Party.RemoveAll(e => e.StartsWith(m.Id + ":", StringComparison.Ordinal));
             foreach (var m in party)
             {
                 int hp = m.Stats.MaxHp > 0 ? (int)Math.Round(1000.0 * Math.Max(0, m.Hp) / m.Stats.MaxHp) : 1000;
@@ -340,14 +359,30 @@ namespace BiRyeoDo.Core
             }
         }
 
+        /// <summary>One member's carried state: HP and 내공 in per mille of max, and 기세.</summary>
+        public sealed class MemberState { public string Id; public int HpPermil, QiPermil, Spirit; }
+
+        public static List<MemberState> PartyState(MasterTrialRun run)
+        {
+            var list = new List<MemberState>();
+            foreach (var e in run.Party)
+            {
+                var p = e.Split(':');
+                if (p.Length < 4) continue;
+                var m = new MemberState { Id = p[0] };
+                int.TryParse(p[1], out m.HpPermil); int.TryParse(p[2], out m.QiPermil); int.TryParse(p[3], out m.Spirit);
+                list.Add(m);
+            }
+            return list;
+        }
+
         private static bool TryGetSnapshot(MasterTrialRun run, string id, out int hp, out int qi, out int spirit)
         {
             hp = qi = 1000; spirit = 0;
-            foreach (var e in run.Party)
+            foreach (var m in PartyState(run))
             {
-                var parts = e.Split(':');
-                if (parts.Length < 4 || parts[0] != id) continue;
-                int.TryParse(parts[1], out hp); int.TryParse(parts[2], out qi); int.TryParse(parts[3], out spirit);
+                if (m.Id != id) continue;
+                hp = m.HpPermil; qi = m.QiPermil; spirit = m.Spirit;
                 return true;
             }
             return false;
@@ -538,14 +573,15 @@ namespace BiRyeoDo.Core
 
         private static void Heal(MasterTrialRun run, float hpShare, float qiShare)
         {
-            for (int i = 0; i < run.Party.Count; i++)
+            var members = PartyState(run);
+            run.Party.Clear();
+            foreach (var m in members)
             {
-                var p = run.Party[i].Split(':');
-                if (p.Length < 4) continue;
-                int hp, qi; int.TryParse(p[1], out hp); int.TryParse(p[2], out qi);
-                hp = Math.Min(1000, Math.Max(hp, (int)(FallenRevive * 1000)) + (int)Math.Round(hpShare * 1000));
-                qi = Math.Min(1000, qi + (int)Math.Round(qiShare * 1000));
-                run.Party[i] = p[0] + ":" + hp + ":" + qi + ":" + p[3];
+                int hp = m.HpPermil, delta = (int)Math.Round(hpShare * 1000);
+                if (delta >= 0) hp = Math.Min(1000, Math.Max(hp, (int)(FallenRevive * 1000)) + delta);   // a heal also stands the fallen up
+                else if (hp > 0) hp = Math.Max(1, hp + delta);                                       // a cost never fells anyone
+                int qi = Math.Max(0, Math.Min(1000, m.QiPermil + (int)Math.Round(qiShare * 1000)));
+                run.Party.Add(m.Id + ":" + hp + ":" + qi + ":" + m.Spirit);
             }
         }
 
@@ -622,7 +658,7 @@ namespace BiRyeoDo.Core
         {
             var run = Run(save);
             var notes = new List<string>();
-            bool first = run.Tier > save.MasterTrialBest;
+            bool first = !run.Repeat && run.Tier > save.MasterTrialBest;
             long doo = ClearDoo(run.Tier) * (first ? 2 : 1) / (first ? 1 : 2);
             doo = Income.Boost(doo);
             int stones = ClearInsight(run.Tier) + (first && run.Tier >= 4 ? 1 : 0);

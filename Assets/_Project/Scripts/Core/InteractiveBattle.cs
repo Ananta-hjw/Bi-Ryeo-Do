@@ -398,10 +398,10 @@ namespace BiRyeoDo.Core
 
         public bool CanUse(SkillSpec skill) { return IsPlayerTurn && Current.CanUse(skill); }
 
-        /// <summary>합공: the protagonist (on their turn) strikes together with a living ally for 기세 <see cref="JointSpiritCost"/>; the ally loses their next action.</summary>
         /// <summary>기세 a 합공 costs this member (사부의 시련 can lower it).</summary>
         public static int JointCostFor(Combatant actor) { return Math.Max(0, JointSpiritCost - (actor != null ? actor.JointCostCut : 0)); }
 
+        /// <summary>합공: the protagonist (on their turn) strikes together with a living ally for 기세 <see cref="JointCostFor"/>; the ally loses their next action.</summary>
         public bool CanJoint(Combatant partner)
         {
             if (Player.StoryControlled && Player.Id != Inventory.Hero) return false;
