@@ -846,7 +846,8 @@ namespace BiRyeoDo.Core
             bool crit = actor.StealthCrit || _rng.NextDouble() < actor.Stats.CritRate;
             int dmg = BattleEngine.CalcDamage(actor.Stats, t.Stats, skill, crit);
             if (actor.Focused) dmg = (int)Math.Round(dmg * FocusDamageFactor);
-            float run = actor.DamageDealtMul * (actor.GuardStrikeReady ? 1f + actor.GuardStrikeBonus : 1f) * (t.Statuses.Count > 0 ? 1f + actor.VsAfflictedBonus : 1f);
+            // the guard strike waits for the unit's own attack (not a 반격 태세 counter)
+            float run = actor.DamageDealtMul * (actor.GuardStrikeReady && skill.Id != "counter_stance" ? 1f + actor.GuardStrikeBonus : 1f) * (t.Statuses.Count > 0 ? 1f + actor.VsAfflictedBonus : 1f);
             if (run != 1f) dmg = (int)Math.Round(dmg * run);   // 사부의 시련 가르침
             if (actor.Has(StatusKind.Chill)) dmg = (int)Math.Round(dmg * ChillAttackFactor);
             if (actor.Has(StatusKind.Disarm)) dmg = (int)Math.Round(dmg * Statuses.DisarmFactor);
@@ -1015,6 +1016,7 @@ namespace BiRyeoDo.Core
             var spec = new SkillSpec { Id = "deviation", Name = "주화입마", Power = Statuses.DeviationPower };
             int dmg = BattleEngine.CalcDamage(actor.Stats, victim.Stats, spec, false);
             if (actor.Has(StatusKind.Chill)) dmg = (int)Math.Round(dmg * ChillAttackFactor);
+            if (victim.DamageTakenMul != 1f) dmg = Math.Max(1, (int)Math.Round(dmg * victim.DamageTakenMul));
             victim.Hp = Math.Max(0, victim.Hp - dmg);
             if (IsFinale && victim.Team == Team.Enemy && victim.Hp < 1) victim.Hp = 1;
             var ev = new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = victim.Id, SkillId = "deviation", Kind = EventKind.Attack, Tag = "주화입마", Damage = dmg, HitCount = 1, Message = actor.Name + "이(가) 주화입마에 빠져 " + victim.Name + "을(를) 공격한다!", Notice = actor.Name + " — 주화입마! 제어를 잃고 " + victim.Name + "을(를) 공격한다" };
@@ -1061,6 +1063,7 @@ namespace BiRyeoDo.Core
         private void SelfHurt(Combatant unit, int dmg, StatusKind kind, List<BattleEvent> events)
         {
             if (dmg <= 0 || !unit.IsAlive) return;
+            if (unit.DamageTakenMul != 1f) dmg = Math.Max(1, (int)Math.Round(dmg * unit.DamageTakenMul));   // 사부의 시련: every damage taken
             unit.Hp = Math.Max(0, unit.Hp - dmg);
             if (IsFinale && unit.Team == Team.Enemy && unit.Hp < 1) unit.Hp = 1;
             var ev = new BattleEvent { Turn = Turn, ActorId = unit.Id, TargetId = unit.Id, SkillId = "status", Kind = EventKind.Status, Status = kind, Damage = dmg, Message = unit.Name + ": " + Statuses.Name(kind) + " -" + dmg, SourceId = kind == StatusKind.Poison || kind == StatusKind.Burn || kind == StatusKind.Bleed ? unit.StatusSource(kind) : null };

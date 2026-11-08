@@ -560,8 +560,6 @@ namespace BiRyeoDo.Game.UI
                     }
                     if (storyEvent == null && !_battle.PlayerWon) { cleared = false; break; }
                     if (stage.BestOfThree) leagueWins++;
-                    // 사부의 시련: keep the party's state as the fight ended (before the rest below) and offer a 가르침
-                    if (stage.MasterTrialFloor > 0) { trialNotes = MasterTrial.CompleteFight(save, _party, new SeededRandom(Environment.TickCount)); GameManager.Instance.SaveNow(); }
                     var lessonCourse = Academy.CourseOf(save, stage, i);
                     if (lessonCourse != null)
                     {
@@ -683,6 +681,8 @@ namespace BiRyeoDo.Game.UI
                         GameManager.Instance.SaveNow();
                         yield return ShowResult("발견!", "전투 도중 귀한 물건을 발견했습니다.\n\n" + string.Join("\n", found) + "\n\n행낭에서 확인할 수 있습니다.", false);
                     }
+                    // 사부의 시련: keep the party's state as the fight ended — after level-ups restored whoever levelled, before the rest below — and offer a 가르침
+                    if (stage.MasterTrialFloor > 0) { trialNotes = MasterTrial.CompleteFight(save, _party, new SeededRandom(Environment.TickCount)); GameManager.Instance.SaveNow(); }
                     if (storyEvent == null) foreach (var m in _party) m.RestBetweenFights(Combatant.RestHealPct + Factions.Bonus(save, PerkKind.RestHeal));
                     RefreshParty();
 
@@ -1408,7 +1408,8 @@ namespace BiRyeoDo.Game.UI
             {
                 // A new Combatant starts with full 체력 and 내공, which is exactly what a character who levelled up gets.
                 // Everyone else keeps their wounds and 내공 by ratio (the stats may still have changed through the protagonist's rank-ups etc.); 기세 is carried over for everyone.
-                if (!leveledIds.Contains(fresh[i].Id))
+                if (leveledIds.Contains(fresh[i].Id)) { fresh[i].Hp = fresh[i].Stats.MaxHp; fresh[i].Qi = fresh[i].Stats.MaxQi; }   // a 사부의 시련 party is built with its carried wounds
+                else
                 {
                     float ratio = (float)_party[i].Hp / Math.Max(1, _party[i].Stats.MaxHp);
                     fresh[i].Hp = _party[i].IsAlive ? Math.Max(1, (int)Math.Round(fresh[i].Stats.MaxHp * ratio)) : 0;
@@ -2127,7 +2128,7 @@ namespace BiRyeoDo.Game.UI
             else if (slot == 8 && _jointPartners.Count > 0)
             {
                 if (_jointPartners.Count == 1) ShowJointTip(_jointPartners[0]);
-                else ShowTip("합공", "기세 " + InteractiveBattle.JointSpiritCost + "를 쓰고 인연 있는 동료와 함께 연달아 칩니다. 동료는 다음 행동을 씁니다.", ArtLibrary.Icon("cmd_joint"));
+                else ShowTip("합공", "기세 " + InteractiveBattle.JointCostFor(_battle != null ? _battle.Current : null) + "를 쓰고 인연 있는 동료와 함께 연달아 칩니다. 동료는 다음 행동을 씁니다.", ArtLibrary.Icon("cmd_joint"));
             }
         }
 
@@ -2147,7 +2148,7 @@ namespace BiRyeoDo.Game.UI
             var spec = companion != null ? Bonds.JointSpec(companion, Bonds.Level(GameManager.Instance.Save, partner.Id), Bonds.ReferencePower(_battle.Player.Skills)) : null;
             string name = companion != null && !string.IsNullOrEmpty(companion.JointName) ? companion.JointName : "합공";
             string extra = spec == null ? "" : spec.Effect == SkillEffect.Stun ? "\n적을 굳혀 강타를 끊습니다." : spec.Effect == SkillEffect.GuardParty ? "\n파티 전체가 " + InteractiveBattle.PartyGuardTurns + "차례 동안 방어 태세를 취합니다." : spec.Effect == SkillEffect.HealAlly ? "\n가장 다친 동료를 치유합니다." : spec.Inflict != StatusKind.None ? "\n맞은 적은 반드시 " + Statuses.Name(spec.Inflict) + "에 걸립니다." : "";
-            ShowTip(name + " (" + partner.Name + ")", "기세 " + InteractiveBattle.JointSpiritCost + " · 위력 ×" + (spec != null ? spec.Power.ToString("0.0") : "?") + "\n비류연과 " + partner.Name + "이(가) 연달아 칩니다. " + partner.Name + "은(는) 다음 행동을 씁니다." + extra, ArtLibrary.Icon("cmd_joint"));
+            ShowTip(name + " (" + partner.Name + ")", "기세 " + InteractiveBattle.JointCostFor(_battle != null ? _battle.Player : null) + " · 위력 ×" + (spec != null ? spec.Power.ToString("0.0") : "?") + "\n비류연과 " + partner.Name + "이(가) 연달아 칩니다. " + partner.Name + "은(는) 다음 행동을 씁니다." + extra, ArtLibrary.Icon("cmd_joint"));
         }
 
         /// <summary>Long press on an enemy: level, 무공 경지 and stats.</summary>

@@ -16,7 +16,7 @@ namespace BiRyeoDo.Core
         public List<string> Offer = new List<string>();         // the 가르침 on offer while Pending is a pick
         public List<string> Blessings = new List<string>();     // "id|arg:stacks"
         public List<string> Party = new List<string>();         // "unitId:hpPermil:qiPermil:spirit" after the last fight (empty = fresh)
-        public long EarnedDoo, EarnedExp;
+        public long EarnedDoo;
         public int Wins;
         public bool Repeat;                                     // the tier was already cleared when the run began (rewards halved)
     }
@@ -228,10 +228,14 @@ namespace BiRyeoDo.Core
 
         private static Random Rng(MasterTrialRun run, int salt) { return new Random(unchecked(run.Seed * 31 + run.Floor * 7919 + salt)); }
 
-        private static TrialNode FightNode(List<int[]> ordinary, List<int[]> bosses, TrialNodeKind kind, Random rng)
+        /// <summary>A fighting 관문 from the pool, avoiding a story fight already offered on this floor (unless the pool has nothing else).</summary>
+        private static TrialNode FightNode(List<int[]> ordinary, List<int[]> bosses, HashSet<string> used, TrialNodeKind kind, Random rng)
         {
             var pool = kind == TrialNodeKind.Boss && bosses.Count > 0 ? bosses : ordinary;
+            var fresh = pool.FindAll(c => !used.Contains(c[0] + ":" + c[1]));
+            if (fresh.Count > 0) pool = fresh;
             var pick = pool[rng.Next(pool.Count)];
+            used.Add(pick[0] + ":" + pick[1]);
             string tag = kind == TrialNodeKind.Boss ? "boss" : kind == TrialNodeKind.Elite ? "elite" : "fight";
             return new TrialNode { Kind = kind, Stage = pick[0], Fight = pick[1], Code = tag + ":" + pick[0] + ":" + pick[1] };
         }
@@ -245,24 +249,25 @@ namespace BiRyeoDo.Core
             var rng = Rng(run, 1);
             var list = new List<TrialNode>();
             var ordinary = Candidates(save, false);
+            var used = new HashSet<string>();
             var bosses = run.Floor >= Floors ? Candidates(save, true) : new List<int[]>();
-            if (run.Floor >= Floors) { list.Add(FightNode(ordinary, bosses, TrialNodeKind.Boss, rng)); return list; }
+            if (run.Floor >= Floors) { list.Add(FightNode(ordinary, bosses, used, TrialNodeKind.Boss, rng)); return list; }
             if (run.Floor == 1)
             {
-                list.Add(FightNode(ordinary, bosses, TrialNodeKind.Fight, rng));
-                list.Add(FightNode(ordinary, bosses, TrialNodeKind.Fight, rng));
+                list.Add(FightNode(ordinary, bosses, used, TrialNodeKind.Fight, rng));
+                list.Add(FightNode(ordinary, bosses, used, TrialNodeKind.Fight, rng));
                 return list;
             }
             int count = rng.Next(2) == 0 ? 2 : 3;
-            list.Add(FightNode(ordinary, bosses, TrialNodeKind.Fight, rng));   // a plain fight is always there
+            list.Add(FightNode(ordinary, bosses, used, TrialNodeKind.Fight, rng));   // a plain fight is always there
             bool rest = false, ev = false, elite = false;
             while (list.Count < count)
             {
                 int roll = rng.Next(100);
-                if (roll < 30 && !elite) { list.Add(FightNode(ordinary, bosses, TrialNodeKind.Elite, rng)); elite = true; }
+                if (roll < 30 && !elite) { list.Add(FightNode(ordinary, bosses, used, TrialNodeKind.Elite, rng)); elite = true; }
                 else if (roll < 60 && !rest && run.Floor > 2) { list.Add(new TrialNode { Kind = TrialNodeKind.Rest, Code = "rest" }); rest = true; }
                 else if (roll < 85 && !ev) { string id = EventIds[rng.Next(EventIds.Length)]; list.Add(new TrialNode { Kind = TrialNodeKind.Event, EventId = id, Code = "event:" + id }); ev = true; }
-                else list.Add(FightNode(ordinary, bosses, TrialNodeKind.Fight, rng));
+                else list.Add(FightNode(ordinary, bosses, used, TrialNodeKind.Fight, rng));
             }
             return list;
         }
@@ -282,7 +287,6 @@ namespace BiRyeoDo.Core
             }
         }
 
-        /// <summary>Picks a 관문. A fight returns the stage to play; 휴식 and 기연 wait for their choice (<see cref="MasterTrialRun.Pending"/>).</summary>
         /// <summary>A 관문 fight has begun: until it is won or lost the run cannot pick a path again (leaving the game mid-fight ends the run).</summary>
         public static void BeginFight(SaveData save)
         {
@@ -298,6 +302,7 @@ namespace BiRyeoDo.Core
             return Fail(save) + " 전투 도중 시련을 떠났습니다.";
         }
 
+        /// <summary>Picks a 관문. A fight returns the stage to play; 휴식 and 기연 wait for their choice (<see cref="MasterTrialRun.Pending"/>).</summary>
         public static StageData Choose(SaveData save, TrialNode node)
         {
             var run = Run(save);
@@ -388,14 +393,12 @@ namespace BiRyeoDo.Core
             return false;
         }
 
-        private static SkillSpec Copy(SkillSpec s) { return s.Copy(); }
-
         private static void EditSkills(Combatant unit, Func<SkillSpec, bool> which, Action<SkillSpec> edit)
         {
             for (int i = 0; i < unit.Skills.Count; i++)
             {
                 if (!which(unit.Skills[i])) continue;
-                var c = Copy(unit.Skills[i]);
+                var c = unit.Skills[i].Copy();
                 edit(c);
                 unit.Skills[i] = c;
             }
@@ -500,7 +503,7 @@ namespace BiRyeoDo.Core
             return notes;
         }
 
-        /// <summary>Fills <see cref="MasterTrialRun.Offer"/> with three 가르침 (level 0 = after a fight, 1 = after an 강적 or a rare event).</summary>
+        /// <summary>Fills <see cref="MasterTrialRun.Offer"/> with three 가르침 (level 0 = after a fight, 1 = after an 강적, 2 = 희귀 or better only).</summary>
         public static void OfferPick(SaveData save, int level, IRandom rng)
         {
             var run = Run(save);
@@ -512,7 +515,7 @@ namespace BiRyeoDo.Core
             while (run.Offer.Count < 3 && guard++ < 200)
             {
                 double roll = rng.NextDouble();
-                int rarity = level == 0 ? (roll < .70 ? 0 : roll < .95 ? 1 : 2) : (roll < .30 ? 0 : roll < .85 ? 1 : 2);
+                int rarity = level == 0 ? (roll < .70 ? 0 : roll < .95 ? 1 : 2) : level == 1 ? (roll < .30 ? 0 : roll < .85 ? 1 : 2) : (roll < .80 ? 1 : 2);
                 var pool = new List<TrialBlessing>();
                 foreach (var b in Blessings)
                 {
@@ -629,7 +632,7 @@ namespace BiRyeoDo.Core
             switch (id)
             {
                 case "test":
-                    if (option == 0) { Heal(run, -TestCost, 0f); OfferPick(save, 1, rng); return "사부의 주먹이 매웠다. 가르침을 고르세요."; }
+                    if (option == 0) { Heal(run, -TestCost, 0f); OfferPick(save, 2, rng); return "사부의 주먹이 매웠다. 가르침을 고르세요."; }
                     break;
                 case "herbs":
                     if (option == 0) { Heal(run, HerbHeal, 0f); Advance(run); return "기운이 돌아왔습니다."; }
@@ -652,6 +655,8 @@ namespace BiRyeoDo.Core
 
         public static long ClearDoo(int tier) { return 3000 + 1500L * tier; }
         public static int ClearInsight(int tier) { return tier >= 8 ? 2 : tier >= 4 ? 1 : 0; }
+        /// <summary>심득석 for beating the 우두머리: +1 on a first clear from 4단계, half (rounded down) on a repeat.</summary>
+        public static int ClearStones(int tier, bool first) { int n = ClearInsight(tier) + (first && tier >= 4 ? 1 : 0); return first ? n : n / 2; }
 
         /// <summary>The 우두머리 fell: the tier's reward (double the first time, half on a repeat) and the next tier opens.</summary>
         public static List<string> Finish(SaveData save)
@@ -661,8 +666,7 @@ namespace BiRyeoDo.Core
             bool first = !run.Repeat && run.Tier > save.MasterTrialBest;
             long doo = ClearDoo(run.Tier) * (first ? 2 : 1) / (first ? 1 : 2);
             doo = Income.Boost(doo);
-            int stones = ClearInsight(run.Tier) + (first && run.Tier >= 4 ? 1 : 0);
-            if (!first) stones /= 2;
+            int stones = ClearStones(run.Tier, first);
             save.Doo += doo;
             run.EarnedDoo += doo;
             if (stones > 0) Inventory.Add(save, InnerArts.StoneId, stones);

@@ -300,6 +300,51 @@ namespace BiRyeoDo.Tests
             foreach (var m in MasterTrial.PartyState(run)) Assert.GreaterOrEqual(m.HpPermil, 1, m.Id);
         }
 
+        [Test]
+        public void TheMasterBlowOffersRareOrBetterAndPathsDoNotRepeatAFight()
+        {
+            var save = Save(45);
+            for (int seed = 1; seed <= 30; seed++)
+            {
+                MasterTrial.Start(save, 1, seed);
+                var run = save.MasterTrialRun;
+                run.Party.Add(Inventory.Hero + ":800:800:0");
+                MasterTrial.Choose(save, new TrialNode { Kind = TrialNodeKind.Event, EventId = "test", Code = "event:test" });
+                MasterTrial.ChooseEvent(save, 0, new SeededRandom(seed));
+                Assert.IsTrue(run.Offer.All(o => MasterTrial.RarityOf(o) >= 1), string.Join(",", run.Offer));
+                for (int floor = 1; floor <= MasterTrial.Floors; floor++)
+                {
+                    run.Floor = floor;
+                    var fights = MasterTrial.Options(save).Where(n => n.Kind != TrialNodeKind.Rest && n.Kind != TrialNodeKind.Event).Select(n => n.Stage + ":" + n.Fight).ToList();
+                    Assert.AreEqual(fights.Count, fights.Distinct().Count(), "seed " + seed + " floor " + floor);
+                }
+                MasterTrial.Fail(save); MasterTrial.Close(save);
+            }
+            Assert.AreEqual(0, MasterTrial.ClearStones(5, false), "a repeat of 5단계 gives no 심득석");
+            Assert.AreEqual(2, MasterTrial.ClearStones(5, true));
+        }
+
+        [Test]
+        public void GuardStrikeWaitsForAnAttackAndTakenDamageScalesDamageOverTime()
+        {
+            var hero = new Combatant(Inventory.Hero, "비류연", Team.Player, Stats(100000, 300, 100), null) { GuardStrikeBonus = 1f, CounterStance = true, GuardStrikeReady = true };
+            var e = new Combatant("e", "e", Team.Enemy, Stats(100000, 100, 500), null) { Moves = new List<EnemyMove> { EnemyMove.Attack("주먹", 1f) } };
+            var b = new InteractiveBattle(hero, new[] { e }, new SeededRandom(1));
+            b.Begin();
+            Assert.IsTrue(hero.GuardStrikeReady, "the counter strikes did not spend it");
+
+            var plain = new Combatant(Inventory.Hero, "a", Team.Player, Stats(100000, 300, 100), null);
+            var tough = new Combatant(Inventory.Hero, "b", Team.Player, Stats(100000, 300, 100), null) { DamageTakenMul = .5f };
+            foreach (var u in new[] { plain, tough })
+            {
+                u.AddStatus(StatusKind.Burn, 3, "e");
+                var foe = new Combatant("x", "x", Team.Enemy, Stats(100000, 1, 1), null) { Moves = new List<EnemyMove> { EnemyMove.Attack("주먹", .01f) } };
+                var bb = new InteractiveBattle(u, new[] { foe }, new SeededRandom(1));
+                bb.Begin();
+            }
+            Assert.Less(100000 - tough.Hp, 100000 - plain.Hp, "화상 is cut by 호신강기 too");
+        }
+
         /// <summary>Informational only (not tuning): how often the balance bot clears a run at the stage's bot level, picking the first 가르침 and always resting.</summary>
         [Test, Explicit]
         public void BotRunReport()
