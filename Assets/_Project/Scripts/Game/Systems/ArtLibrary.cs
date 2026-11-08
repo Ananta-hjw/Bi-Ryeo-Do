@@ -402,6 +402,12 @@ namespace BiRyeoDo.Game.Systems
             { "안명후", "an_myeonghu" },
             { "구척철안", "an_myeonghu" },
             { "구척철심안", "an_myeonghu" },
+            { "매화검선", "maehwa_geomseon" },
+            { "유환권", "maehwa_geomseon" },
+            { "매화검선 유환권", "maehwa_geomseon" },
+            { "옥현진인", "okhyeon_jinin" },
+            { "허주운", "heo_juun" },
+            { "천수신의", "heo_juun" },
         };
 
         /// <summary>All compact/combat character contexts stay in Battle/, including the fallback.</summary>
