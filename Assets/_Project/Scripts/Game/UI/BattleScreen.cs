@@ -1067,7 +1067,7 @@ namespace BiRyeoDo.Game.UI
                 string topic = Tutorial.TrialTopic(trial.Kind);
                 if (topic != null && HelpPanel.Instance != null) yield return HelpPanel.Instance.ShowOnce(topic);
             }
-            _beastForFight = trial != null && trial.Kind == TrialKind.Finale ? null : Beasts.LoadoutFor(GameManager.Instance.Save);
+            _beastForFight = trial != null && (trial.Kind == TrialKind.Finale || trial.Kind == TrialKind.Technique) ? null : Beasts.LoadoutFor(GameManager.Instance.Save);   // no 영수 in showdowns or 대응 시험
             if (stage.MasterTrialFloor > 0) MasterTrial.ApplyToBeast(GameManager.Instance.Save, _beastForFight);
             yield return Fight(data, 0, trial);
         }

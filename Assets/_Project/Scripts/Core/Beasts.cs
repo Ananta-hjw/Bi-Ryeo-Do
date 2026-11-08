@@ -76,7 +76,7 @@ namespace BiRyeoDo.Core
                 Skills = new[]
                 {
                     Skill("mukmuk_charm", "애교", BeastTarget.Ally, BeastEffect.Spirit, 0f, 1, 20f, "고른 아군의 기세 +20."),
-                    Skill("mukmuk_claw", "할퀴기", BeastTarget.FrontEnemy, BeastEffect.Bleed, 0.8f, 1, 0f, "맨 앞 줄의 적 하나를 할퀴어 피해를 주고 출혈을 겁니다."),
+                    Skill("mukmuk_claw", "할퀴기", BeastTarget.FrontEnemy, BeastEffect.Bleed, 0.8f, 1, 0f, "맨 앞 줄의 적 하나를 할퀴어 피해를 주고 출혈을 겁니다(강한 보스에게는 잘 걸리지 않습니다)."),
                 }
             },
             new BeastData
@@ -119,7 +119,7 @@ namespace BiRyeoDo.Core
                 Source = "12권: 모사령의 영물 청홍쌍각사. 비류연이 맨손으로 잡아 제압하고, 내기 끝에 뱀들이 그를 택했다. 전투 기술은 게임 각색.",
                 Skills = new[]
                 {
-                    Skill("ssang_fang", "독아", BeastTarget.Enemy, BeastEffect.Poison, 0.4f, 1, 0f, "적 하나를 물어 중독을 반드시 겁니다(이미 다른 상태 이상이 있으면 걸리지 않음). 뒷줄에도 닿습니다."),
+                    Skill("ssang_fang", "독아", BeastTarget.Enemy, BeastEffect.Poison, 0.4f, 1, 0f, "적 하나를 물어 중독을 겁니다(보통 적은 반드시, 강한 보스는 확률이 낮고, 이미 다른 상태 이상이 있으면 걸리지 않음). 뒷줄에도 닿습니다."),
                     Skill("ssang_glare", "요광", BeastTarget.Enemy, BeastEffect.Paralyze, 0.3f, 1, 0f, "눈빛으로 적 하나를 굳힙니다. 보스가 아니면 다음 차례를 잃고, 보스는 준비하던 강타만 끊깁니다. 뒷줄에도 닿습니다."),
                 }
             },
@@ -292,9 +292,9 @@ namespace BiRyeoDo.Core
                 case BeastEffect.Dodge: return "회피 " + Math.Round(s.Value * 100f) + "%";
                 case BeastEffect.PartyQi: return "내공 +" + Math.Round(s.Value * f * 100f) + "% · 상태 이상 하나 해제";
                 case BeastEffect.Scout: return power + " · 다음 행동 정찰";
-                case BeastEffect.Poison: return power + " · 중독 확정";
+                case BeastEffect.Poison: return power + " · 중독";
                 case BeastEffect.Paralyze: return power + " · 마비(보스는 강타 끊기)";
-                case BeastEffect.Bleed: return power + " · 출혈 확정";
+                case BeastEffect.Bleed: return power + " · 출혈";
                 case BeastEffect.Roar: return power + " · 적 기세 -" + s.Value + " · 아군 기세 +" + RoarPartySpirit;
                 default: return power + (s.SureCrit ? " · 치명타 확정" : "");
             }

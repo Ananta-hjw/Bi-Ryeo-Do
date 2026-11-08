@@ -138,10 +138,10 @@ namespace BiRyeoDo.Core
             } };
         }
         private bool _armorNoted;
-        /// <summary>20: 비류연's turn while the enemy winds up (its mouth is open): <see cref="PlayerCommand.Finale"/> ends it.</summary>
         /// <summary>20: how many times the mouth opened on 비류연's turn without 섬뢰창 (the fight's 신속 star asks for none).</summary>
         public int WindowsMissed { get; private set; }
 
+        /// <summary>20: 비류연's turn while the enemy winds up (its mouth is open): <see cref="PlayerCommand.Finale"/> ends it.</summary>
         public bool FinaleWindowOpen
         {
             get
@@ -564,6 +564,7 @@ namespace BiRyeoDo.Core
             }
 
             for (int i = firstEvent; i < events.Count; i++) { events[i].ActorQiAfter = actor.Qi; events[i].ActorSpiritAfter = actor.Spirit; }
+            EndTurnStatuses(actor);
             _counterStrikes.Clear();
             CheckPhases(events);
             if (technique) TechniqueUses++;
@@ -585,10 +586,10 @@ namespace BiRyeoDo.Core
         /// <summary>The 영수's stand-in unit (for statistics and names), or null without a 영수.</summary>
         public Combatant BeastBody { get { return Beast == null ? null : BeastUnit(); } }
 
-        /// <summary>The 영수 can be called now: 비류연's turn, a 영수 along, off cooldown, and not a scripted showdown.</summary>
+        /// <summary>The 영수 can be called now: 비류연's turn, a 영수 along, off cooldown, and not a scripted showdown or a 대응 시험 (its goal is the response, not the kill).</summary>
         public bool CanCallBeast
         {
-            get { return Beast != null && IsPlayerTurn && Current == Player && Player.Id == Inventory.Hero && BeastCooldownLeft <= 0 && !IsFinale; }
+            get { return Beast != null && IsPlayerTurn && Current == Player && Player.Id == Inventory.Hero && BeastCooldownLeft <= 0 && !IsFinale && !(Trial != null && Trial.Kind == TrialKind.Technique); }
         }
 
         /// <summary>The skill can be used now (a target it needs exists).</summary>
@@ -702,8 +703,8 @@ namespace BiRyeoDo.Core
                 if (!t.IsAlive) continue;
                 switch (skill.Effect)
                 {
-                    case BeastEffect.Poison: Inflict(beast, t, StatusKind.Poison, events); break;
-                    case BeastEffect.Bleed: Inflict(beast, t, StatusKind.Bleed, events); break;
+                    case BeastEffect.Poison: if (Rolls(t, StatusKind.Poison, 1f)) Inflict(beast, t, StatusKind.Poison, events); break;   // sure, but the mighty still resist
+                    case BeastEffect.Bleed: if (Rolls(t, StatusKind.Bleed, 1f)) Inflict(beast, t, StatusKind.Bleed, events); break;
                     case BeastEffect.Roar:
                         if (t.UsesResources) t.Spirit = Math.Max(0, t.Spirit - (int)Math.Round(skill.Value));
                         break;
@@ -1096,7 +1097,21 @@ namespace BiRyeoDo.Core
             if (unit.Statuses.Count == 0) return;
             foreach (var k in new[] { StatusKind.Poison, StatusKind.Burn }) if (unit.Has(k)) StatusHurt(unit, k, events);
             for (int i = unit.Statuses.Count - 1; i >= 0; i--)
-                if (--unit.Statuses[i].Turns <= 0) unit.Statuses.RemoveAt(i);
+                if (TicksAtStart(unit.Statuses[i].Kind) && --unit.Statuses[i].Turns <= 0) unit.Statuses.RemoveAt(i);
+        }
+
+        /// <summary>
+        /// 중독·화상 hurt and count down as the turn starts; 출혈 counts down then too (it hurts when struck). Every status that changes what the unit
+        /// does (봉혈·탈기·한기·내상·내공 역류·혈맥 역류·주화입마·환각) counts down when its turn ends, so a 2-turn status shapes two of its actions
+        /// (and a boss's shortened one still shapes one).
+        /// </summary>
+        private static bool TicksAtStart(StatusKind kind) { return kind == StatusKind.Poison || kind == StatusKind.Burn || kind == StatusKind.Bleed; }
+
+        /// <summary>The end of a unit's own turn (acted, skipped or lost to 주화입마): its action-shaping statuses count down.</summary>
+        private static void EndTurnStatuses(Combatant unit)
+        {
+            for (int i = unit.Statuses.Count - 1; i >= 0; i--)
+                if (!TicksAtStart(unit.Statuses[i].Kind) && --unit.Statuses[i].Turns <= 0) unit.Statuses.RemoveAt(i);
         }
 
         /// <summary>The living member carrying the most statuses, or null when nobody carries any.</summary>
@@ -1159,6 +1174,7 @@ namespace BiRyeoDo.Core
                 if (actor.Team == Team.Player && !actor.Stunned && actor.Has(StatusKind.Deviation))
                 {
                     DeviationTurn(actor, events);   // 주화입마: the member is not the player's to command this turn
+                    EndTurnStatuses(actor);
                     continue;
                 }
                 if (actor.Team == Team.Player && actor.Stunned)
@@ -1166,6 +1182,7 @@ namespace BiRyeoDo.Core
                     // 한기로 얼어붙은 아군: this turn is lost (its cooldowns and 내공 do not move either)
                     actor.Stunned = false;
                     events.Add(new BattleEvent { Turn = Turn, ActorId = actor.Id, TargetId = actor.Id, SkillId = "stun", Kind = EventKind.StunSkip, Tag = "빙결", TargetHpAfter = actor.Hp, Message = actor.Name + "은(는) 얼어붙어 움직이지 못한다! (차례를 넘깁니다)" });
+                    EndTurnStatuses(actor);
                     continue;
                 }
                 if (actor.Team == Team.Player)
@@ -1181,6 +1198,7 @@ namespace BiRyeoDo.Core
                 }
                 if (IsUnavoidable) UnavoidableBlow(actor, events);
                 else EnemyAct(actor, events, wounded);
+                if (actor.Team == Team.Enemy) EndTurnStatuses(actor);
             }
             Current = null;
             return events;
@@ -1328,9 +1346,10 @@ namespace BiRyeoDo.Core
                     if (enemy.Qi >= cost) enemy.Qi -= cost;
                     else { dry = true; enemy.Qi = 0; power *= EnemyDryFactor; }
                 }
-                if (enemy.Spirit >= MaxSpirit) { burst = true; enemy.Spirit = 0; power *= EnemyBurstFactor; }
+                if (enemy.Spirit >= MaxSpirit) { burst = true; enemy.Spirit = 0; }
             }
             var spec = new SkillSpec { Id = move.Name, Name = move.Name, Power = power };
+            var burstSpec = burst ? new SkillSpec { Id = move.Name, Name = move.Name, Power = power * EnemyBurstFactor } : spec;   // 기세 폭발: the move's first blow only
             bool hurt = false, struck = false;   // struck: at least one hit landed without a guard (only those leave a 상태 이상)
             int selfHurt = 0;   // 환각: what the enemy's own blows send back to it
             bool bled = target.Has(StatusKind.Bleed);
@@ -1352,7 +1371,7 @@ namespace BiRyeoDo.Core
                 else
                 {
                     ev.IsCrit = _rng.NextDouble() < enemy.Stats.CritRate;
-                    int dmg = BattleEngine.CalcDamage(enemy.Stats, target.Stats, spec, ev.IsCrit);
+                    int dmg = BattleEngine.CalcDamage(enemy.Stats, target.Stats, h == 0 ? burstSpec : spec, ev.IsCrit);
                     if (enemy.Has(StatusKind.Chill)) dmg = (int)Math.Round(dmg * ChillAttackFactor);
                     if (enemy.Has(StatusKind.Disarm)) dmg = (int)Math.Round(dmg * Statuses.DisarmFactor);
                     if (enemy.Has(StatusKind.Illusion)) { int back = (int)Math.Round(dmg * Statuses.IllusionSelfShare); selfHurt += back; dmg -= back; }
@@ -1402,6 +1421,7 @@ namespace BiRyeoDo.Core
                 var back = DealHit(target, enemy, new SkillSpec { Id = "counter_stance", Name = "반격", Power = CounterStancePower, Tuned = true }, 0, 1, false, events);
                 back.Counter = true;
                 AddNotice(back, target.Name + "의 반격 태세! " + enemy.Name + "에게 되받아친다");
+                CheckPhases(events);   // the counter can push a boss into its next phase right away
             }
             if (enemy.UsesResources && !burst) enemy.Spirit = Math.Min(MaxSpirit, enemy.Spirit + EnemySpiritOnDealt);
             for (int i = firstHit; i < events.Count; i++) events[i].TargetSpiritAfter = target.Spirit;
@@ -1458,7 +1478,9 @@ namespace BiRyeoDo.Core
                 foreach (var status in _units[i].Statuses)
                     if (status.Kind == StatusKind.Chill) chillTurns[i] = status.Turns;
             }
-            // Current has already spent its gauge and ticked its statuses in RunUntilParty.
+            // Current has already spent its gauge; its 한기 counts down when this turn ends (EndTurnStatuses), before it gathers gauge again.
+            if (IsPlayerTurn)
+                for (int i = 0; i < _units.Count; i++) if (_units[i] == Current && chillTurns[i] > 0) chillTurns[i]--;
             if (IsPlayerTurn && count > 0) order.Add(Current);
 
             int guard = 0;
