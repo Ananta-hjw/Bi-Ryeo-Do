@@ -19,14 +19,32 @@ namespace BiRyeoDo.Game.Systems
         public static SaveData Load()
         {
             // the main file first; a temp file left by a swap that was cut short is newer than the backup
+            var unreadable = new System.Collections.Generic.List<string>();
             foreach (var path in new[] { Path_, TempPath, BackupPath })
             {
                 var data = TryRead(path);
-                if (data == null) continue;
+                if (data == null) { if (File.Exists(path)) unreadable.Add(path); continue; }
                 if (path != Path_) Debug.LogWarning("Save restored from " + System.IO.Path.GetFileName(path));
                 return data;
             }
+            // Nothing could be read: keep every unreadable file aside before a new game is saved over them (later saves rotate main and backup).
+            foreach (var path in unreadable) Preserve(path);
             return new SaveData();
+        }
+
+        /// <summary>Copies a file that could not be loaded to "&lt;name&gt;.broken-&lt;time&gt;" so no later save destroys it.</summary>
+        private static void Preserve(string path)
+        {
+            try
+            {
+                string kept = path + ".broken-" + DateTime.Now.ToString("yyyyMMddHHmmss");
+                File.Copy(path, kept, false);
+                Debug.LogError("Save could not be loaded; kept a copy as " + System.IO.Path.GetFileName(kept));
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Could not keep the unreadable save " + System.IO.Path.GetFileName(path) + ": " + e.Message);
+            }
         }
 
         private static SaveData TryRead(string path)
@@ -36,7 +54,12 @@ namespace BiRyeoDo.Game.Systems
                 if (!File.Exists(path)) return null;
                 var json = File.ReadAllText(path);
                 var data = JsonUtility.FromJson<SaveData>(json);
-                if (data == null || data.Version != SaveData.CurrentVersion) return null;
+                if (data == null) return null;
+                if (data.Version != SaveData.CurrentVersion)
+                {
+                    Debug.LogWarning("Save " + System.IO.Path.GetFileName(path) + " has version " + data.Version + ", expected " + SaveData.CurrentVersion + "; not loaded.");
+                    return null;
+                }
                 if (!json.Contains("\"StoryContentRevision\"")) data.StoryContentRevision = 0;
                 StoryContentMigration.Apply(data);
                 Gear.EnsureProgression(data);

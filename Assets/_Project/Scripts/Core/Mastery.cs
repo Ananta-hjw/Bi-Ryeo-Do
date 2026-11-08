@@ -26,7 +26,7 @@ namespace BiRyeoDo.Core
     public enum ArtVariant { None = 0, Power = 1, Swift = 2, Flurry = 3 }
 
     /// <summary>
-    /// 무공 숙련: the protagonist's arts grow with use (입문 → 소성 10 → 대성 25 → 극성 50 → 극의 80 uses; power +3/7/15/30%). From 극성 on the player
+    /// 무공 숙련: the protagonist's arts grow with use (입문 → 소성 10 → 대성 25 → 극성 50 → 극의 80 uses; power +5/10/20/40%). From 극성 on the player
     /// may pick a 변초 that reshapes the art: 강 (+50% power, costlier), 쾌 (cheaper, shorter cooldown) or 연 (one more, weaker hit).
     /// 극의 also recharges one turn faster and costs 20% less qi.
     /// Pure upside for the balance bot, which ignores mastery on purpose.
@@ -185,23 +185,66 @@ namespace BiRyeoDo.Core
             return lv >= steps.Length - 1 ? -1 : Math.Max(0, steps[lv + 1] - Uses(save, artId));   // 0: the uses are there, the step waits for its stage or level
         }
 
-        /// <summary>One line listing every step for the 무공 tab: "소성 10회(위력 +3%) · 대성 25회(+7%) · 극성 50회(+15%, 변초) · 극의 80회(+30%, 재사용 -1턴, 내공 -20%)".</summary>
-        /// <summary>The 숙련 explanation behind the ? button of the 무공 tab (player-facing, one rule per line).</summary>
+        private static string PctText(float v) { return "+" + Math.Round(v * 100f) + "%"; }
+
+        /// <summary>"· 소성 10회　 위력 +5%" … one line per step after 입문, built from <see cref="Thresholds"/> and <see cref="PowerBonus"/>.</summary>
+        public static string StepLines()
+        {
+            var sb = new System.Text.StringBuilder();
+            for (int i = 1; i < Thresholds.Length; i++)
+            {
+                sb.Append("· ").Append(LevelNames[i]).Append(" ").Append(Thresholds[i]).Append("회　 위력 ").Append(PctText(PowerBonus[i]));
+                if (i == VariantLevel) sb.Append(", 변초");
+                if (i == MasterLevel) sb.Append(", 재사용 -1턴, 내공 -").Append(Math.Round((1f - MasterQiFactor) * 100f)).Append("%");
+                if (i < Thresholds.Length - 1) sb.Append("\n");
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>"2 · 5 · 10 · 20" (or with step names) for the 비기 steps.</summary>
+        public static string UltimateStepText(bool names)
+        {
+            var parts = new List<string>();
+            for (int i = 1; i < UltimateThresholds.Length; i++) parts.Add((names ? LevelNames[i] + " " : "") + UltimateThresholds[i]);
+            return string.Join(" · ", parts) + "회";
+        }
+
+        /// <summary>"+10 / 20 / 40 / 80%" for the 비기 steps.</summary>
+        public static string UltimatePowerText()
+        {
+            var parts = new List<string>();
+            for (int i = 1; i < UltimatePowerBonus.Length; i++) parts.Add(Math.Round(UltimatePowerBonus[i] * 100f).ToString());
+            return "+" + string.Join(" / ", parts) + "%";
+        }
+
+        /// <summary>The 숙련 explanation (player-facing, one rule per line); numbers come from the tables above.</summary>
         public static string HelpText()
         {
-            return "<color=#D4B87A>숙련 (사용 횟수)</color>\n"
-                + "· " + LevelNames[1] + " " + Thresholds[1] + "회　 위력 +3%\n"
-                + "· " + LevelNames[2] + " " + Thresholds[2] + "회　 위력 +7%\n"
-                + "· " + LevelNames[3] + " " + Thresholds[3] + "회　 위력 +15%, 변초\n"
-                + "· " + LevelNames[4] + " " + Thresholds[4] + "회　 위력 +30%, 재사용 -1턴, 내공 -20%\n\n"
-                + "비기(필살기): " + string.Join(" / ", new[] { UltimateThresholds[1], UltimateThresholds[2], UltimateThresholds[3], UltimateThresholds[4] }) + "회마다 단계, 변초 없음, 위력 +5 / 10 / 20 / 40%\n"
+            return "<color=#D4B87A>숙련 (사용 횟수)</color>\n" + StepLines() + "\n\n"
+                + "비기(필살기): " + UltimateStepText(false) + "마다 단계, 변초 없음, 위력 " + UltimatePowerText() + "\n"
                 + "변초는 무공을 눌러 상세 창에서 바꿉니다.";
         }
 
+        /// <summary>One line listing every step: "소성 10회(위력 +5%) · 대성 25회(+10%) · 극성 50회(+20%, 변초) · 극의 80회(+40%, 재사용 -1턴, 내공 -20%)".</summary>
         public static string ConditionText()
         {
-            return LevelNames[1] + " " + Thresholds[1] + "회(위력 +3%) · " + LevelNames[2] + " " + Thresholds[2] + "회(+7%) · "
-                + LevelNames[3] + " " + Thresholds[3] + "회(+15%, 변초) · " + LevelNames[4] + " " + Thresholds[4] + "회(+30%, 재사용 -1턴, 내공 -20%)";
+            var parts = new List<string>();
+            for (int i = 1; i < Thresholds.Length; i++)
+            {
+                string bonus = (i == 1 ? "위력 " : "") + PctText(PowerBonus[i]);
+                if (i == VariantLevel) bonus += ", 변초";
+                if (i == MasterLevel) bonus += ", 재사용 -1턴, 내공 -" + Math.Round((1f - MasterQiFactor) * 100f) + "%";
+                parts.Add(LevelNames[i] + " " + Thresholds[i] + "회(" + bonus + ")");
+            }
+            return string.Join(" · ", parts);
+        }
+
+        /// <summary>True when the uses already reach the art's last step, so more uses (a 수련서) would add nothing.</summary>
+        public static bool UsesMaxed(SaveData save, ArtData art)
+        {
+            if (art == null) return false;
+            var steps = ThresholdsFor(art);
+            return Uses(save, art.Id) >= steps[steps.Length - 1];
         }
 
         public static int Uses(SaveData save, string artId) { var e = Find(save, artId); return e != null ? e.Uses : 0; }
@@ -332,6 +375,7 @@ namespace BiRyeoDo.Core
             if (Inventory.Count(save, itemId) <= 0) return "수련서가 없습니다.";
             var art = EarlyGameContent.FindArt(artId);
             if (art == null || art.OwnerId != null || !save.LearnedArts.Contains(artId)) return "배운 무공을 골라 주세요.";
+            if (UsesMaxed(save, art)) return art.Name + "은(는) 이미 사용 횟수를 모두 채웠습니다. 수련서를 쓰지 않았습니다.";
             Inventory.Remove(save, itemId, 1);
             int before = Level(save, artId), gain = ScrollUses(item, art);
             for (int i = 0; i < gain; i++) RecordUse(save, artId);

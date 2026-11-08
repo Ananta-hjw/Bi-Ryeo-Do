@@ -299,9 +299,39 @@ namespace BiRyeoDo.Tests
             var text = Mastery.HelpText();
             for (int i = 1; i < Mastery.Thresholds.Length; i++)
                 StringAssert.Contains(Mastery.LevelNames[i] + " " + Mastery.Thresholds[i] + "회", text);
-            StringAssert.Contains("+3%", text);
-            StringAssert.Contains("+30%", text);
+            for (int i = 1; i < Mastery.PowerBonus.Length; i++)
+                StringAssert.Contains("+" + System.Math.Round(Mastery.PowerBonus[i] * 100f) + "%", text);
+            StringAssert.Contains("+10 / 20 / 40 / 80%", text);
+            StringAssert.DoesNotContain("+3%", text);
             StringAssert.Contains("변초", text);
+        }
+
+        [Test]
+        public void TheMasteryHelpTopicShowsTheRealPowerBonuses()
+        {
+            var topic = Tutorial.Find("mastery");
+            foreach (var page in new[] { topic.Pages[0], topic.Details[0] })
+            {
+                StringAssert.Contains("소성 10회　 위력 +5%", page);
+                StringAssert.Contains("극의 80회　 위력 +40%", page);
+                StringAssert.Contains("+10 / 20 / 40 / 80%", page);
+                StringAssert.DoesNotContain("+3%", page);
+            }
+        }
+
+        [Test]
+        public void AScrollIsNotSpentOnAnArtWhoseUsesAreComplete()
+        {
+            var save = new SaveData();
+            save.LearnedArts.Add("bunroesu");
+            Inventory.Add(save, "art_scroll_5", 2);
+            for (int i = 0; i < Mastery.Thresholds[Mastery.Thresholds.Length - 1]; i++) Mastery.RecordUse(save, "bunroesu");
+            Assert.IsTrue(Mastery.UsesMaxed(save, EarlyGameContent.FindArt("bunroesu")));
+            bool used;
+            Mastery.UseScroll(save, "art_scroll_5", "bunroesu", out used);
+            Assert.IsFalse(used);
+            Assert.AreEqual(2, Inventory.Count(save, "art_scroll_5"));
+            Assert.AreEqual(Mastery.Thresholds[Mastery.Thresholds.Length - 1], Mastery.Uses(save, "bunroesu"));
         }
     }
 }

@@ -342,7 +342,10 @@ namespace BiRyeoDo.Game.UI
                 var art = arts[i];
                 int lv = Mastery.Level(save, art.Id);
                 int toNext = Mastery.UsesToNext(save, art.Id);
-                string progress = Mastery.LevelNames[lv] + "  ·  " + Mastery.Uses(save, art.Id) + "회" + (toNext >= 0 ? " (다음 단계까지 " + toNext + "회)" : " (최고 단계)") + "  ·  +" + Mastery.ScrollUses(scroll, art) + "회";
+                bool maxed = Mastery.UsesMaxed(save, art);
+                string progress = Mastery.LevelNames[lv] + "  ·  " + Mastery.Uses(save, art.Id) + "회"
+                    + (maxed ? (toNext >= 0 ? " (횟수 완료 — " + Mastery.GateText(art, lv + 1) + " 필요)" : " (최고 단계)") + "  ·  더 쓸 수 없음"
+                        : (toNext >= 0 ? " (다음 단계까지 " + toNext + "회)" : " (최고 단계)") + "  ·  +" + Mastery.ScrollUses(scroll, art) + "회");
                 var rt = UiFactory.Rect("Pick" + i, content, new Vector2(0.02f, 1f), new Vector2(0.98f, 1f));
                 rt.pivot = new Vector2(0.5f, 1f);
                 rt.anchoredPosition = new Vector2(0f, -(gap + i * (rowH + gap)));
@@ -350,7 +353,7 @@ namespace BiRyeoDo.Game.UI
                 ReadingList.Register(rt, rowH, gap);
                 string artId = art.Id;
                 var btn = UiFactory.Button("PickBtn" + i, rt, Vector2.zero, Vector2.one, "", UiFactory.Ink, () => ApplyScroll(scroll, artId), 28);
-                btn.interactable = available;
+                btn.interactable = available && !maxed;
                 UiFactory.Frame(btn.transform, UiFactory.GoldDim, 2f);
                 var pic = ArtLibrary.Art(art.Id);
                 float textX = 0.04f;
@@ -364,11 +367,11 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Label("Progress", btn.transform, new Vector2(textX, 0.02f), new Vector2(0.96f, 0.5f), progress, 30, UiFactory.Dim, TextAnchor.MiddleLeft, FontStyle.Normal);
             }
             if (arts.Count == 0) UiFactory.Label("None", card.transform, new Vector2(0.05f, 0.4f), new Vector2(0.95f, 0.6f), "배운 무공이 없습니다.", 32, UiFactory.Dim);
-            UiFactory.Button("Close", card.transform, new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.10f), "닫기", UiFactory.InkSoft, () =>
+            UiFactory.BackButton(card.transform, new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.10f), () =>
             {
                 if (Inventory.Count(save, scroll.Id) > 0) OpenDetail(scroll.Id);
                 else CloseDetail();
-            }, 34);
+            });
             Canvas.ForceUpdateCanvases();
             content.GetComponent<ReadingList>()?.Reflow();
             Canvas.ForceUpdateCanvases();
