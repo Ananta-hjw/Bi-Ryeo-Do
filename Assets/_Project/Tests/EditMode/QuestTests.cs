@@ -98,6 +98,36 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void EveryFortuneShowsItsExpOnItsOwnLine()
+        {
+            foreach (var ev in Fortunes.All)
+                for (int i = 0; i < ev.Choices.Length; i++)
+                {
+                    var c = ev.Choices[i];
+                    if (c.ExpLevels <= 0) continue;
+                    var save = new SaveData { ClearedStage = 66, Level = 20, Doo = 1000000 };
+                    string text = Fortunes.Resolve(save, ev, c, null);
+                    StringAssert.IsMatch(@"\n경험 \+[0-9,]+", text, ev.Id + " " + i);
+                    StringAssert.DoesNotContain("경험 +\n", text, ev.Id + " " + i);
+                    Assert.IsFalse(c.Result.EndsWith("경험 +"), ev.Id + " " + i);
+                }
+        }
+
+        [Test]
+        public void ShopTrainingIsRefusedWhenNoEquippedArtCanGrow()
+        {
+            var save = new SaveData { Doo = 1000000 };
+            save.Reputation.Add(new ReputationEntry { Id = "wudang", Points = 1000 });
+            save.LearnedArts.Add("bunroesu");
+            save.EquippedArts.Add("bunroesu");
+            for (int i = 0; i < Mastery.Thresholds[Mastery.Thresholds.Length - 1]; i++) Mastery.RecordUse(save, "bunroesu");
+            string error;
+            Assert.IsNull(Shop.Buy(save, "wud_train1", out error));
+            StringAssert.Contains("사용 횟수", error);
+            Assert.AreEqual(1000000, save.Doo);
+        }
+
+        [Test]
         public void FortunePricesNeedEnoughDoo()
         {
             var save = new SaveData { ClearedStage = 4, Doo = 100 };

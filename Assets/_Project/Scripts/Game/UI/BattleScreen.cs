@@ -583,7 +583,7 @@ namespace BiRyeoDo.Game.UI
                         // Reputation, 수련서 and full 경험/두 come from the first win of each fight on each difficulty, so replaying one fight cannot farm them
                         // (losing a later fight and retrying the stage replays the fights already won).
                         firstWin = (StageStars.MaskOf(save, stage.Number, i, diff) & 1) == 0;
-                        if (firstWin && storyEvent == null)
+                        if (firstWin)   // choice events too: reputation follows the star record (see Factions.SyncFromStars)
                         {
                             var rises = Factions.OnFightWon(save, stage.Number, diff);
                             string gains = Factions.GainText(stage.Number, diff);

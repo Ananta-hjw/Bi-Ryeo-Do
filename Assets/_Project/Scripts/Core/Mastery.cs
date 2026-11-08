@@ -386,13 +386,24 @@ namespace BiRyeoDo.Core
             return art.Name + "의 숙련 +" + gain + "회 (" + Uses(save, artId) + "회)" + (after > before ? "  " + LevelNames[after] + "에 올랐습니다!" : "");
         }
 
+        /// <summary>True when free practice (<see cref="Train"/>) would raise at least one equipped art of the protagonist.</summary>
+        public static bool CanTrain(SaveData save)
+        {
+            foreach (var artId in save.EquippedArts)
+            {
+                var art = EarlyGameContent.FindArt(artId);
+                if (art != null && art.OwnerId == null && !UsesMaxed(save, art)) return true;
+            }
+            return false;
+        }
+
         /// <summary>Free practice: counts <paramref name="uses"/> uses for every equipped art of the protagonist (a 비기 gets a fifth, at least one, like the 수련서).</summary>
         public static void Train(SaveData save, int uses)
         {
             foreach (var artId in save.EquippedArts)
             {
                 var art = EarlyGameContent.FindArt(artId);
-                if (art == null || art.OwnerId != null) continue;
+                if (art == null || art.OwnerId != null || UsesMaxed(save, art)) continue;
                 int n = art.SpiritCost > 0 ? Math.Max(1, (int)Math.Round(uses / 5.0)) : uses;
                 for (int i = 0; i < n; i++) RecordUse(save, artId);
             }

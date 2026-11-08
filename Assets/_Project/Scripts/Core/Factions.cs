@@ -286,6 +286,7 @@ namespace BiRyeoDo.Core
                     break;
                 case ShopKind.Training:
                     if (Progression.EquippedCount(save, false) == 0 && Progression.EquippedCount(save, true) == 0) { error = "장착한 무공이 있어야 수련할 수 있습니다."; return null; }
+                    if (!Mastery.CanTrain(save)) { error = "장착한 무공이 모두 사용 횟수를 채워 더 수련할 수 없습니다."; return null; }
                     Mastery.Train(save, g.Amount);
                     note = NameOf(g) + ": 장착 무공 숙련 +" + g.Amount + "회";
                     break;
