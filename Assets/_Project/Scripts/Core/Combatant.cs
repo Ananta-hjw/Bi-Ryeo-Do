@@ -53,6 +53,13 @@ namespace BiRyeoDo.Core
         public float GuardStrikeBonus;     // after a guard, the next attack deals this much more
         public bool GuardStrikeReady;
         public int JointCostCut;           // 기세 off the 합공 cost
+        // 기경팔맥 완성 효과 (Meridians; neutral by default)
+        public float GuardCut;             // taken off the guard damage factor (0.4 → 0.35)
+        public float MeditateHealBonus;    // extra share of max HP healed by 운기
+        public int StartGauge;             // action gauge at the start of a fight
+        public float StatusResist;         // share taken off the chance of a 상태 이상 taking hold
+        public int StatusTurnCut;          // turns taken off every 상태 이상 that takes hold (at least 1 remains)
+        public float UltimateDamageBonus;  // extra damage of 비기 (기세 100)
         public bool Charging;              // enemy is winding up its next move (telegraph)
         public Combatant ChargeTarget;     // who the wound-up move will hit
         public bool Stunned;               // loses its next action
@@ -87,7 +94,7 @@ namespace BiRyeoDo.Core
                 QiRegenBonus = QiRegenBonus, SpiritDealtBonus = SpiritDealtBonus, SpiritTakenBonus = SpiritTakenBonus,
                 StoryArtId = StoryArtId, StartSpirit = StartSpirit, Lifesteal = Lifesteal, RescuerId = RescuerId, RescueUsed = RescueUsed,
                 Col = Col, Row = Row, Range = Range, Guarding = Guarding, Evading = Evading, EvadeChance = EvadeChance,
-                Stealthed = Stealthed, StealthCrit = StealthCrit, Covering = Covering, CounterStance = CounterStance, WardTurns = WardTurns, Focused = Focused, ShellFactor = ShellFactor, DodgeBonus = DodgeBonus, DamageDealtMul = DamageDealtMul, DamageTakenMul = DamageTakenMul, VsAfflictedBonus = VsAfflictedBonus, HealTakenBonus = HealTakenBonus, MeditateSpiritBonus = MeditateSpiritBonus, GuardStrikeBonus = GuardStrikeBonus, GuardStrikeReady = GuardStrikeReady, JointCostCut = JointCostCut,
+                Stealthed = Stealthed, StealthCrit = StealthCrit, Covering = Covering, CounterStance = CounterStance, WardTurns = WardTurns, Focused = Focused, ShellFactor = ShellFactor, DodgeBonus = DodgeBonus, DamageDealtMul = DamageDealtMul, DamageTakenMul = DamageTakenMul, VsAfflictedBonus = VsAfflictedBonus, HealTakenBonus = HealTakenBonus, MeditateSpiritBonus = MeditateSpiritBonus, GuardStrikeBonus = GuardStrikeBonus, GuardStrikeReady = GuardStrikeReady, JointCostCut = JointCostCut, GuardCut = GuardCut, MeditateHealBonus = MeditateHealBonus, StartGauge = StartGauge, StatusResist = StatusResist, StatusTurnCut = StatusTurnCut, UltimateDamageBonus = UltimateDamageBonus,
                 Charging = Charging, Stunned = Stunned, StunReason = StunReason, ChillHits = ChillHits, MovePowerFactor = MovePowerFactor, StatusTier = StatusTier, CleansesLeft = CleansesLeft, CleanseChance = CleanseChance, Rank = Rank, IsBoss = IsBoss, RetreatHpPct = RetreatHpPct, HoldsAtOneHp = HoldsAtOneHp, RetreatLines = RetreatLines,
                 MoveIndex = MoveIndex, Moves = Moves, Phases = Phases, PhaseIndex = PhaseIndex, AwakeningStrike = AwakeningStrike
             };

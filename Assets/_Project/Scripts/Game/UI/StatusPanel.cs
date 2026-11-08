@@ -109,6 +109,18 @@ namespace BiRyeoDo.Game.UI
                 Text(block, 0.04f, 0.97f, 0f, 1f, line, 28, UiFactory.PaperText, TextAnchor.MiddleLeft);
             }
 
+            // 기경팔맥: one row per meridian with points, then 소주천 / 대주천
+            var meridianLines = Meridians.SummaryLines(save);
+            if (meridianLines.Count > 0)
+            {
+                Section("기경팔맥");
+                foreach (var line in meridianLines)
+                {
+                    var block = Block(72f);
+                    Text(block, 0.04f, 0.97f, 0f, 1f, line, 26, UiFactory.PaperText, TextAnchor.MiddleLeft);
+                }
+            }
+
             // Party
             var party = EarlyGameContent.Companions.Where(c => c.JoinStage <= save.HighestUnlockedStage).ToList();
             if (party.Count > 0)

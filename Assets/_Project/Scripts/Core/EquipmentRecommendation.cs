@@ -54,7 +54,7 @@ namespace BiRyeoDo.Core
                     total.SpeedAdd += bonus.SpeedAdd; total.CritAdd += bonus.CritAdd;
                 }
                 var stats = Inventory.ApplyGearEffects(BaseStats, total);
-                if (Companion == null) stats = InnerArts.Apply(Academy.Apply(Promotion.ApplyRankBonus(stats, Promotion.EffectiveRank(Save)), Save), Save.EquippedInner, Save.InnerLevels);
+                if (Companion == null) stats = InnerArts.Apply(Meridians.Apply(Academy.Apply(Promotion.ApplyRankBonus(stats, Promotion.EffectiveRank(Save)), Save), Save), Save.EquippedInner, Save.InnerLevels);
                 return Realm.ApplyBonus(stats, Realm.StepOf(Realm.Power(stats)));
             }
 
@@ -122,11 +122,12 @@ namespace BiRyeoDo.Core
             else
             {
                 reference = new Combatant(owner, "비류연", Team.Player,
-                    InnerArts.Apply(Academy.Apply(Promotion.ApplyRankBonus(Progression.HeroStatsFor(level), Promotion.EffectiveRank(save)), save), save.EquippedInner, save.InnerLevels), null, true);
+                    InnerArts.Apply(Meridians.Apply(Academy.Apply(Promotion.ApplyRankBonus(Progression.HeroStatsFor(level), Promotion.EffectiveRank(save)), save), save), save.EquippedInner, save.InnerLevels), null, true);
                 var actual = Formation.BuildHero(save);
                 reference.Skills.Clear(); reference.Skills.AddRange(actual.Skills);
                 InnerArts.ApplyPerks(reference, save.EquippedInner, save.InnerLevels);
                 Academy.ApplyPerks(reference, save);
+                Meridians.ApplyPerks(reference, save);
             }
             var context = new Context
             {

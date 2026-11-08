@@ -57,7 +57,7 @@ namespace BiRyeoDo.Core
         }
     }
 
-    public enum AchMetric { StageCleared, TowerFloor, Level, SwordRank, EnemiesSeen, ItemsSeen, ArtsLearned, GachaPulls, BattleWins, QuestsDone, FortunesDone, TrustedBonds, LegendarySeen, TotalStars, FactionsRespected, CompanionTraining, Memories, DailyStreak, MasterTrialTier }
+    public enum AchMetric { StageCleared, TowerFloor, Level, SwordRank, EnemiesSeen, ItemsSeen, ArtsLearned, GachaPulls, BattleWins, QuestsDone, FortunesDone, TrustedBonds, LegendarySeen, TotalStars, FactionsRespected, CompanionTraining, Memories, DailyStreak, MasterTrialTier, MeridiansComplete, SmallCircuit }
 
     public sealed class AchievementData
     {
@@ -96,6 +96,9 @@ namespace BiRyeoDo.Core
             A("trial_1", "사부의 첫 매", "사부의 시련 1단계 돌파", AchMetric.MasterTrialTier, 1, 3000),
             A("trial_5", "매를 버티다", "사부의 시련 5단계 돌파", AchMetric.MasterTrialTier, 5, 9000, "ginseng"),
             A("trial_10", "청출어람?", "사부의 시련 10단계 돌파", AchMetric.MasterTrialTier, 10, 20000, "ilgeup_yeongdan"),
+            A("meridian_1", "첫 경맥 타통", "경맥 하나를 모두 타통", AchMetric.MeridiansComplete, 1, 4000),
+            A("meridian_small", "소주천", "임맥과 독맥을 모두 타통", AchMetric.SmallCircuit, 1, 9000, "ginseng"),
+            A("meridian_grand", "대주천", "여덟 경맥을 모두 타통", AchMetric.MeridiansComplete, 8, 30000, "ilgeup_yeongdan"),
             A("rank_3", "삼검룡", "검룡위 3 달성", AchMetric.SwordRank, 3, 800),
             A("rank_5", "오검룡", "검룡위 5 달성", AchMetric.SwordRank, 5, 2000),
             A("rank_8", "팔검룡", "검룡위 8 달성", AchMetric.SwordRank, 8, 5000),
@@ -166,6 +169,8 @@ namespace BiRyeoDo.Core
                 case AchMetric.StageCleared: return save.ClearedStage;
                 case AchMetric.TowerFloor: return save.TowerBest;
                 case AchMetric.MasterTrialTier: return save.MasterTrialBest;
+                case AchMetric.MeridiansComplete: return Meridians.CompletedCount(save);
+                case AchMetric.SmallCircuit: return Meridians.SmallCircuit(save) ? 1 : 0;
                 case AchMetric.Level: return save.Level;
                 case AchMetric.SwordRank: return Promotion.EffectiveRank(save);
                 case AchMetric.EnemiesSeen: return save.SeenEnemies.Count;

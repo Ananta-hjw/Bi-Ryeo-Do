@@ -23,14 +23,15 @@ namespace BiRyeoDo.Game.UI
         private readonly List<Row> _rows = new List<Row>();
         private Text _header, _hint;
         private bool _built;
-        private int _page;   // 0 arts, 1 inner arts
-        private static readonly string[] PageNames = { "무공", "심법" };
+        private int _page;   // 0 arts, 1 inner arts, 2 meridians
+        private static readonly string[] PageNames = { "무공", "심법", "경맥" };
         private readonly Image[] _pageTabs = new Image[PageNames.Length];
         private readonly GameObject[] _pageDots = new GameObject[PageNames.Length];
         private readonly Text[] _pageDotTexts = new Text[PageNames.Length];
         private readonly HashSet<string> _newArtIds = new HashSet<string>();   // arts flagged new when this page was opened (tagged in the list)
         private RectTransform _artsRoot, _slotBar;
         private InnerArtPanel _inner;
+        private MeridianPanel _meridians;
 
         public void Build(RectTransform tab)
         {
@@ -41,10 +42,9 @@ namespace BiRyeoDo.Game.UI
             for (int p = 0; p < PageNames.Length; p++)
             {
                 int page = p;
-                float x0 = 0.04f + p * .47f;
-                var btn = UiFactory.Button("Page" + p, tab, new Vector2(x0, .015f), new Vector2(x0 + .45f, .115f), PageNames[p], UiFactory.InkSoft, () => ShowPage(page), 30);
+                float x0 = 0.04f + p * .31f;
+                var btn = UiFactory.Button("Page" + p, tab, new Vector2(x0, .015f), new Vector2(x0 + .30f, .115f), PageNames[p], UiFactory.InkSoft, () => ShowPage(page), 30);
                 _pageTabs[p] = btn.GetComponent<Image>();
-                if (p < 2)
                 {
                     var dot = UiFactory.Panel("NewDot", btn.transform, new Vector2(0.80f, 0.55f), new Vector2(.98f, .98f), UiFactory.Red);
                     _pageDotTexts[p] = UiFactory.Label("Count", dot.transform, Vector2.zero, Vector2.one, "", 30, UiFactory.PaperText);
@@ -55,6 +55,7 @@ namespace BiRyeoDo.Game.UI
             var root = UiFactory.Rect("ArtsPage", tab, new Vector2(0f, .13f), new Vector2(.645f, .985f));
             _artsRoot = root;
             _inner = new InnerArtPanel(UiFactory.Rect("InnerArtPage", tab, new Vector2(0f, .13f), new Vector2(1f, .985f)), Refresh) { Embedded = true };
+            _meridians = new MeridianPanel(UiFactory.Rect("MeridianPage", tab, new Vector2(0f, .13f), new Vector2(1f, .985f)), RefreshDots) { Embedded = true };
 
             _header = UiFactory.TabHeader(root, "arts");
             root.offsetMax = Vector2.zero;   // The workspace already reaches the screen header.
@@ -238,7 +239,7 @@ namespace BiRyeoDo.Game.UI
         private void RefreshDots()
         {
             var save = GameManager.Instance.Save;
-            int[] counts = { Discovery.NewArts(save).Count, Discovery.NewInner(save).Count };
+            int[] counts = { Discovery.NewArts(save).Count, Discovery.NewInner(save).Count, Meridians.NewlyOpened(save).Count };
             for (int i = 0; i < counts.Length; i++)
             {
                 _pageDots[i].SetActive(counts[i] > 0);
@@ -247,7 +248,7 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <param name="seen">true when the page is really being looked at: its red dot is cleared.</param>
-        /// <summary>Opens on the given page (0 무공, 1 심법), now if the tab is showing or the next time it is.</summary>
+        /// <summary>Opens on the given page (0 무공, 1 심법, 2 경맥), now if the tab is showing or the next time it is.</summary>
         public void OpenPage(int page)
         {
             _page = page;
@@ -273,12 +274,21 @@ namespace BiRyeoDo.Game.UI
                 Discovery.MarkInnerSeen(save);
                 GameManager.Instance.SaveNow();
             }
+            else if (seen && page == 2)
+            {
+                _meridians.NewIds.Clear();
+                foreach (var m in Meridians.NewlyOpened(save)) _meridians.NewIds.Add(m.Id);
+                Meridians.MarkSeen(save);
+                GameManager.Instance.SaveNow();
+            }
             RefreshDots();
             _artsRoot.gameObject.SetActive(page == 0);
             _detail.transform.parent.Find("InspectorPlaceholder").gameObject.SetActive(page == 0);
             _inner.Hide();
+            _meridians.Hide();
             if (page == 0) Refresh();
             else if (page == 1) _inner.Open();
+            else if (page == 2) _meridians.Open();
             for (int i = 0; i < _pageTabs.Length; i++) _pageTabs[i].color = i == page ? new Color(0.56f, 0.44f, 0.22f, 1f) : UiFactory.InkSoft;
         }
 

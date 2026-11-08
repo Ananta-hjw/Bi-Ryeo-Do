@@ -56,6 +56,9 @@ namespace BiRyeoDo.Core
         public MasterTrialRun MasterTrialRun = new MasterTrialRun();  // the run in progress (or the last one, until closed)
         public int MasterTrialBest;                                   // highest tier cleared
         public int MasterTrialRuns;                                   // runs finished (cleared or fallen)
+        // 기경팔맥 (see Meridians; additive fields)
+        public List<string> Meridians = new List<string>();           // "meridianId:points" opened (0..5)
+        public List<string> SeenMeridians = new List<string>();       // opened meridians whose red dot was already looked at
         public List<string> SeenEnemies = new List<string>();      // 도감: enemies fought and beaten (additive field)
         public List<string> SeenItems = new List<string>();        // 도감: items ever owned or pulled (additive field)
         public List<string> ClaimedAchievements = new List<string>();   // 업적 rewards already taken (additive field)

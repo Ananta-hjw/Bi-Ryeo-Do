@@ -24,7 +24,7 @@ namespace BiRyeoDo.Core
             return list;
         }
 
-        public static int Count(SaveData save) { return NewArts(save).Count + NewInner(save).Count; }
+        public static int Count(SaveData save) { return NewArts(save).Count + NewInner(save).Count + Meridians.NewlyOpened(save).Count; }
 
         public static void MarkArtsSeen(SaveData save) { foreach (var a in NewArts(save)) save.SeenArts.Add(a.Id); }
         public static void MarkInnerSeen(SaveData save) { foreach (var a in NewInner(save)) save.SeenInner.Add(a.Id); }
@@ -36,6 +36,7 @@ namespace BiRyeoDo.Core
             save.DiscoveryInit = true;
             MarkArtsSeen(save);
             MarkInnerSeen(save);
+            Meridians.MarkSeen(save);
         }
     }
 }

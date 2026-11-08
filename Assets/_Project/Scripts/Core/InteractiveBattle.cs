@@ -371,6 +371,7 @@ namespace BiRyeoDo.Core
             _counterStrikes.Clear();
             foreach (var m in _party) m.RescueUsed = false;
             foreach (var m in _party) if (m.Spirit < m.StartSpirit) m.Spirit = m.StartSpirit;
+            foreach (var m in _party) if (m.StartGauge > 0 && m.Gauge < m.StartGauge) m.Gauge = Math.Min(GaugeThreshold - 1, m.StartGauge);   // 양유맥
             return RunUntilParty();
         }
 
@@ -385,7 +386,7 @@ namespace BiRyeoDo.Core
         public float GuardFactorFor(Combatant unit)
         {
             float f = 1f;
-            if (unit.Guarding) f = GuardDamageFactor;
+            if (unit.Guarding) f = Math.Max(0.05f, GuardDamageFactor - unit.GuardCut);   // 대맥 cuts it further
             if (_partyGuardOwner != null && unit.IsAlive && _party.Contains(unit)) f = Math.Min(f, PartyGuardDamageFactor);
             return f;
         }
@@ -525,7 +526,7 @@ namespace BiRyeoDo.Core
                     break;
                 case CommandKind.Meditate:
                     {
-                        int heal = Healed(actor, (int)Math.Round(actor.Stats.MaxHp * MeditateHealPct));
+                        int heal = Healed(actor, (int)Math.Round(actor.Stats.MaxHp * (MeditateHealPct + actor.MeditateHealBonus)));
                         actor.Hp = Math.Min(actor.Stats.MaxHp, actor.Hp + heal);
                         int qi = MeditateQiFor(actor.Stats.MaxQi);
                         actor.Qi = Math.Min(actor.Stats.MaxQi, actor.Qi + qi);
@@ -850,6 +851,7 @@ namespace BiRyeoDo.Core
             // the guard strike waits for the unit's own attack (not a 반격 태세 counter)
             float run = actor.DamageDealtMul * (actor.GuardStrikeReady && skill.Id != "counter_stance" ? 1f + actor.GuardStrikeBonus : 1f) * (t.Statuses.Count > 0 ? 1f + actor.VsAfflictedBonus : 1f);
             if (run != 1f) dmg = (int)Math.Round(dmg * run);   // 사부의 시련 가르침
+            if (skill.SpiritCost > 0 && actor.UltimateDamageBonus > 0f) dmg = (int)Math.Round(dmg * (1f + actor.UltimateDamageBonus));   // 대주천
             if (actor.Has(StatusKind.Chill)) dmg = (int)Math.Round(dmg * ChillAttackFactor);
             if (actor.Has(StatusKind.Disarm)) dmg = (int)Math.Round(dmg * Statuses.DisarmFactor);
             int illusionBack = actor.Has(StatusKind.Illusion) ? (int)Math.Round(dmg * Statuses.IllusionSelfShare) : 0;   // 환각: part of the blow lands on the attacker
@@ -990,6 +992,7 @@ namespace BiRyeoDo.Core
         {
             if (kind == StatusKind.Deviation) chance = Statuses.DeviationChance;
             chance *= Statuses.ChanceFactor(target);
+            if (target.StatusResist > 0f) chance *= Math.Max(0f, 1f - target.StatusResist);   // 음유맥
             return chance >= 1f || _rng.NextDouble() < chance;
         }
 
@@ -1050,7 +1053,7 @@ namespace BiRyeoDo.Core
         {
             if (kind == StatusKind.None || !target.IsAlive) return;
             if (target.WardTurns > 0) return;   // 은하밀밀
-            if (!target.AddStatus(kind, Statuses.TurnsFor(target, kind), source.Id)) return;   // already carries a status: nothing new takes hold
+            if (!target.AddStatus(kind, Math.Max(1, Statuses.TurnsFor(target, kind) - target.StatusTurnCut), source.Id)) return;   // already carries a status: nothing new takes hold
             events.Add(new BattleEvent { Turn = Turn, ActorId = source.Id, TargetId = target.Id, SkillId = "status", Kind = EventKind.Status, Status = kind, TargetHpAfter = target.Hp, Message = target.Name + ": " + Statuses.Name(kind) + "!" });
         }
 

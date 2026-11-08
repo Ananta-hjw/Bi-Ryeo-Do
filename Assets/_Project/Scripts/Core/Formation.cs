@@ -248,6 +248,7 @@ namespace BiRyeoDo.Core
             var hero = new Combatant(HeroId, "비류연", Team.Player, statsBeforeRealm, skills, true);
             InnerArts.ApplyPerks(hero, save.EquippedInner, save.InnerLevels);
             Academy.ApplyPerks(hero, save);
+            Meridians.ApplyPerks(hero, save);
             return hero;
         }
 
