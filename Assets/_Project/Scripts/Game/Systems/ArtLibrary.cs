@@ -396,6 +396,12 @@ namespace BiRyeoDo.Game.Systems
             { "여제갈", "gal_hyo_hye" },
             { "불락구척", "bullak_gucheok" },
             { "생사무허가", "bullak_gucheok" },
+            { "고약한", "go_yakhan" },
+            { "마검자", "go_yakhan" },
+            { "몽환장주", "monghwan_jangju" },
+            { "안명후", "an_myeonghu" },
+            { "구척철안", "an_myeonghu" },
+            { "구척철심안", "an_myeonghu" },
         };
 
         /// <summary>All compact/combat character contexts stay in Battle/, including the fallback.</summary>
