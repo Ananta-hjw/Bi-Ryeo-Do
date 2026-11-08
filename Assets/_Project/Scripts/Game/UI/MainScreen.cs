@@ -172,6 +172,7 @@ namespace BiRyeoDo.Game.UI
 
         private void ReturnFromBattle()
         {
+            if (GameManager.Instance != null) GameManager.Instance.SaveIfDirty();   // a fight left midway (포기) still keeps what it counted
             _battleOverlay.SetActive(false);
             _world.AfterBattle();
             _worldModal.SetActive(_world.HasOpenOverlay);
@@ -217,6 +218,26 @@ namespace BiRyeoDo.Game.UI
             if (_currentTab != (int)TabRouter.Tab.World) Select((int)TabRouter.Tab.World);
         }
 
+        /// <summary>
+        /// The Android back key first closes the window on top of the current screen by pressing its own back arrow
+        /// (<see cref="UiFactory.BackCorner"/> "Back" or <see cref="UiFactory.BackButton"/> "Close"); returns false when no window is open.
+        /// </summary>
+        private bool PressTopBack()
+        {
+            if (_router == null || _router.panels == null || _currentTab < 0 || _currentTab >= _router.panels.Length || _router.panels[_currentTab] == null) return false;
+            Button top = null;
+            // Active buttons in hierarchy order: a later one is drawn above an earlier one, so the last match is the topmost window's arrow.
+            foreach (var button in _router.panels[_currentTab].GetComponentsInChildren<Button>(false))
+            {
+                if ((button.name != "Back" && button.name != "Close") || !button.interactable || !button.isActiveAndEnabled) continue;
+                if (button.transform.parent != null && button.transform.parent.name == "BackBar") continue;   // the screen's own arrow (that is GoBack)
+                top = button;
+            }
+            if (top == null) return false;
+            top.onClick.Invoke();
+            return true;
+        }
+
         private void Update()
         {
             if (_worldModal != null && _worldModal.activeSelf && !_world.HasOpenOverlay)
@@ -225,7 +246,9 @@ namespace BiRyeoDo.Game.UI
             if (Input.GetKeyDown(KeyCode.Escape) && !(_battleOverlay != null && _battleOverlay.activeSelf)
                 && !(HelpPanel.Instance != null && HelpPanel.Instance.IsOpen) && !(_realmModal != null && _realmModal.activeSelf)
                 && !(_masteryModal != null && _masteryModal.activeSelf))
-                GoBack();
+            {
+                if (!PressTopBack()) GoBack();
+            }
             _dotTimer -= Time.unscaledDeltaTime;
             if (_dotTimer > 0f || _realmModal == null || GameManager.Instance == null) return;
             _dotTimer = 0.4f;

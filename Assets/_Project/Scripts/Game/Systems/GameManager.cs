@@ -50,7 +50,14 @@ namespace BiRyeoDo.Game.Systems
                 }
         }
 
-        public void SaveNow() { SaveService.Save(Save); }
+        private bool _dirty;
+
+        public void SaveNow() { _dirty = false; SaveService.Save(Save); }
+
+        /// <summary>Notes a change that can wait (in-battle 숙련 counts, a used item): written by <see cref="SaveIfDirty"/>, the next <see cref="SaveNow"/> or when the app is paused.</summary>
+        public void MarkDirty() { _dirty = true; }
+
+        public void SaveIfDirty() { if (_dirty) SaveNow(); }
 
         private void OnApplicationPause(bool paused) { if (paused) SaveNow(); }
 

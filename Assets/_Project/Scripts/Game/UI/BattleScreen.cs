@@ -1163,7 +1163,7 @@ namespace BiRyeoDo.Game.UI
                 if (_command.Kind == CommandKind.Skill && actor != null && _command.Skill != null && _command.Skill.Id != "basic")
                 {
                     int rose = Daily.RecordPlayerSkill(GameManager.Instance.Save, actor, _command.Skill);
-                    GameManager.Instance.SaveNow();
+                    GameManager.Instance.MarkDirty();   // written when the fight ends, not on every action (a full save flushes to disk)
                     if (rose >= 0)
                     {
                         SoundManager.Sfx("levelup");
@@ -1174,7 +1174,7 @@ namespace BiRyeoDo.Game.UI
                 if (_command.Kind == CommandKind.Item)
                 {
                     Inventory.Remove(GameManager.Instance.Save, _command.Item.Id, 1);
-                    GameManager.Instance.SaveNow();
+                    GameManager.Instance.MarkDirty();
                 }
                 _statsCommand = _command;
                 yield return PlayEvents(events);
@@ -1202,6 +1202,7 @@ namespace BiRyeoDo.Game.UI
             RefreshParty();
             RefreshCards();
             SetCommandsVisible(false);
+            GameManager.Instance.SaveIfDirty();   // the fight's 숙련 counts and used items
             yield return new WaitForSeconds(Wait(0.25f));
         }
 
