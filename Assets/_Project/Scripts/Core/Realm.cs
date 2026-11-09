@@ -80,18 +80,23 @@ namespace BiRyeoDo.Core
         public static int StepOf(SaveData save) { return StepOf(Power(InnerArts.HeroStatsBeforeRealm(save))); }
 
         public const float BonusPerStep = 0.05f;
+        /// <summary>내공 and 속도 grow less per step (2026-11): 2%.</summary>
+        public const float QiSpeedBonusPerStep = 0.02f;
 
-        /// <summary>Each step above 삼급 raises HP, Qi, attack, defense and speed by 5% (step 4 = +20%).</summary>
+        /// <summary>Each step above 삼급 raises HP, attack and defense by 5% (step 4 = +20%).</summary>
         public static float Bonus(int step) { return BonusPerStep * Math.Max(0, step); }
+
+        /// <summary>The 내공 and 속도 share of a step's bonus: 2% each (step 4 = +8%).</summary>
+        public static float QiSpeedBonus(int step) { return QiSpeedBonusPerStep * Math.Max(0, step); }
 
         public static CombatStats ApplyBonus(CombatStats stats, int step)
         {
-            float m = 1f + Bonus(step);
+            float m = 1f + Bonus(step), qs = 1f + QiSpeedBonus(step);
             stats.MaxHp = (int)Math.Round(stats.MaxHp * m);
-            stats.MaxQi = (int)Math.Round(stats.MaxQi * m);
+            stats.MaxQi = (int)Math.Round(stats.MaxQi * qs);
             stats.Attack = (int)Math.Round(stats.Attack * m);
             stats.Defense = (int)Math.Round(stats.Defense * m);
-            stats.Speed = Math.Max(1, (int)Math.Round(stats.Speed * m));
+            stats.Speed = Math.Max(1, (int)Math.Round(stats.Speed * qs));
             return stats;
         }
 

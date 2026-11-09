@@ -369,7 +369,7 @@ namespace BiRyeoDo.Game.UI
             int rank = Promotion.EffectiveRank(save);
             UiFactory.Label("Title", _promoOverlay, new Vector2(0.05f, 0.92f), new Vector2(0.95f, 0.99f), "승급 시험장 · 현재 " + Promotion.RankName(rank), 44, UiFactory.Gold);
             UiFactory.ScrollBody(UiFactory.Label("Rules", _promoOverlay, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.92f),
-                "상대 둘을 혼자서 연달아 꺾어야 합니다. 한 판은 " + Promotion.TurnLimit + "턴(상위 단계일수록 조금 깁니다) 안에 끝내야 하며, 시간 초과는 무승부(상금 절반)입니다. 패배하면 입장료는 돌려받지 못합니다.\n단계가 오를수록 상대는 훨씬 강해지지만, 검룡위 1당 모든 능력치 +3% (지금 +" + Math.Round(Promotion.StatBonusPerRank * 100f * rank) + "%).", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 32);
+                "상대 둘을 혼자서 연달아 꺾어야 합니다. 한 판은 " + Promotion.TurnLimit + "턴(상위 단계일수록 조금 깁니다) 안에 끝내야 하며, 시간 초과는 무승부(상금 절반)입니다. 패배하면 입장료는 돌려받지 못합니다.\n단계가 오를수록 상대는 훨씬 강해지지만, 검룡위 1당 체력·공격·방어 +3%, 내공·속도 +1% (지금 +" + Math.Round(Promotion.StatBonusPerRank * 100f * rank) + "% / +" + Math.Round(Promotion.QiSpeedBonusPerRank * 100f * rank) + "%).", 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 32);
 
             var targets = Promotion.TargetRanks(save);
             if (targets.Count == 0)

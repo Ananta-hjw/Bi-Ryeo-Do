@@ -470,7 +470,7 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(100000000 - totalDoo, save.Doo);
             Assert.AreEqual(600000 - totalStones, Gear.Materials.Sum(m => Inventory.Count(save, m.Id)));
             var actual = Inventory.ApplyGear(new CombatStats { MaxHp = 1000, MaxQi = 100, Attack = 1000, Defense = 100, Speed = 100 }, save.EquippedGear, Gear.LevelsFor(save, Inventory.Hero));
-            Assert.AreEqual(1177, actual.Attack, "3.5% base weapon (2026-11 rebalance) x 5.05 contributes 17.7%");
+            Assert.AreEqual(1124, actual.Attack, "2.45% base weapon (3.5% x0.7, 2026-11) x 5.05 contributes 12.4%");
         }
 
         [Test]

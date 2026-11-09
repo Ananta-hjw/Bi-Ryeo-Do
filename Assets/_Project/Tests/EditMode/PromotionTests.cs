@@ -139,10 +139,10 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(103, r1.Attack);
             var r10 = Promotion.ApplyRankBonus(b, 10);
             Assert.AreEqual(1300, r10.MaxHp);
-            Assert.AreEqual(260, r10.MaxQi);
+            Assert.AreEqual(220, r10.MaxQi);   // 내공·속도 +1% per rank
             Assert.AreEqual(130, r10.Attack);
             Assert.AreEqual(130, r10.Defense);
-            Assert.AreEqual(130, r10.Speed);
+            Assert.AreEqual(110, r10.Speed);
             Assert.AreEqual(0.05f, r10.CritRate, 0.0001f);
             // The bonus reaches what battles and the 상태창 use.
             var low = new SaveData { Level = 20, SwordRank = 1 };

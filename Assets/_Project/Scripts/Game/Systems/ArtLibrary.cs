@@ -80,6 +80,14 @@ namespace BiRyeoDo.Game.Systems
         // Exact SD identities only. Do not use title substrings or Standing-only aliases.
         private static readonly Dictionary<string, string> BattleKeys = new Dictionary<string, string>
         {
+            { "채이수", "chae_isu" },
+            { "문진 채이수", "chae_isu" },
+            { "여홍아", "merchant_yeo" },
+            { "금홍의복점주 여홍아", "merchant_yeo" },
+            { "팽유경", "pae_yugyeong" },
+            { "단옥도 팽유경", "pae_yugyeong" },
+            { "혈창", "hyeol_chang" },
+            { "혈창조 조장", "hyeol_chang" },
             { "등여운", "deung_yeoun" },
             { "쾌창 등여운", "deung_yeoun" },
             { "등여호", "deung_yeoho" },
@@ -450,6 +458,28 @@ namespace BiRyeoDo.Game.Systems
         // Standing-only display-name aliases. Keep SD identity and default selection independent.
         private static readonly Dictionary<string, string> StandingKeys = new Dictionary<string, string>
         {
+            { "강씨", "gang_ssi" },
+            { "어부 강씨", "gang_ssi" },
+            { "호철", "ho_cheol" },
+            { "화평장 무사 호철", "ho_cheol" },
+            { "두칠", "du_chil" },
+            { "구이관 두칠", "du_chil" },
+            { "채이수", "chae_isu" },
+            { "문진 채이수", "chae_isu" },
+            { "여홍아", "merchant_yeo" },
+            { "금홍의복점주 여홍아", "merchant_yeo" },
+            { "팽유경", "pae_yugyeong" },
+            { "단옥도 팽유경", "pae_yugyeong" },
+            { "이무강", "i_mugang" },
+            { "영뇌 이무강", "i_mugang" },
+            { "영뇌", "i_mugang" },
+            { "혈창", "hyeol_chang" },
+            { "혈창조 조장", "hyeol_chang" },
+            { "도남포", "do_nampo" },
+            { "십자검 도남포", "do_nampo" },
+            { "십자검", "do_nampo" },
+            { "주월산", "ju_wolsan" },
+            { "환월주루 주인", "ju_wolsan" },
             { "마하령", "ma_haryeong" },
             { "철옥잠", "ma_haryeong" },
             { "군웅회주", "ma_haryeong" },

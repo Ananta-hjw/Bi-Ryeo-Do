@@ -110,11 +110,11 @@ namespace BiRyeoDo.Tests
         {
             var baseStats = new CombatStats { MaxHp = 1000, MaxQi = 100, Attack = 100, Defense = 50, Speed = 100, CritRate = 0.01f, CritDamage = 1.5f };
             var s = Inventory.ApplyGear(baseStats, new[] { "jin_biroedo", "mukryonghwan" });
-            Assert.AreEqual(406, s.Attack);   // five-star +298.15% (2026-11: -5%) and 묵룡환 +8.2%
-            Assert.AreEqual(111, s.Defense);   // Jin +113.12% and 묵룡환 +8.2% (2026-11 rebalance)
-            Assert.AreEqual(143, s.Speed);    // +49.23 -6, rounded after summing
-            Assert.AreEqual(.01f + .34667f * 1.5f / 1.3f, s.CritRate, 0.0001f);   // 40% at five stars
-            Assert.AreEqual(1745, s.MaxHp);   // five-star +74.54%
+            Assert.AreEqual(285, s.Attack);   // five-star +178.89% (2026-11: x0.6) and 묵룡환
+            Assert.AreEqual(87, s.Defense);   // Jin +67.87% and 묵룡환 (2026-11: x0.6 / x0.7)
+            Assert.AreEqual(123, s.Speed);    // +29.23 -6, rounded after summing
+            Assert.AreEqual(.01f + .208f * 1.5f / 1.3f, s.CritRate, 0.0001f);   // 24% at five stars (40% before the x0.6 치명타 cut)
+            Assert.AreEqual(1447, s.MaxHp);   // five-star +44.72%
             Assert.AreEqual(112, s.MaxQi);   // 진비뢰도 내공 +12.14% (gear 내공 halved, x1.7 초월 grade scale, then cut to 30%)
             Assert.AreEqual(1.5f + .8075f * 2f / 1.3f, s.CritDamage, 0.0001f);
         }
