@@ -2,6 +2,16 @@
 
 경로: `Assets/_Project/Resources/Art/Standing/`
 
+2026-11-09 추가 5종(강씨·호철·두칠·채이수·여홍아): 1024×1536 투명 RGBA 전신 원화와 개별 Unity 메타파일을 추가했다. 원작 근거와 창작 외형은 `ART_LOOKS.md`의 해당 인물 항목에 기록했다.
+
+| 대상 | 파일 | 분류 |
+|---|---|---|
+| 어부 강씨 | [`gang_ssi.png`](../Assets/_Project/Resources/Art/Standing/gang_ssi.png) | 파양호 어부 |
+| 호철 | [`ho_cheol.png`](../Assets/_Project/Resources/Art/Standing/ho_cheol.png) | 화평장 하급 무사 |
+| 두칠 | [`du_chil.png`](../Assets/_Project/Resources/Art/Standing/du_chil.png) | 두노이의 아들 |
+| 문진 채이수 | [`chae_isu.png`](../Assets/_Project/Resources/Art/Standing/chae_isu.png) | 의료미숙조 의원 |
+| 여홍아 | [`merchant_yeo.png`](../Assets/_Project/Resources/Art/Standing/merchant_yeo.png) | 금홍의복점주 |
+
 2026-11-09 추가 5종: 모두 1024×1536 투명 RGBA 전신 입화이며 개별 Unity 메타파일과 대화 별칭을 갖는다. 원작 묘사와 창작 세부는 `ART_LOOKS.md`의 같은 인물 항목에 기록했다.
 
 | 대상 | 파일 | 분류 |
