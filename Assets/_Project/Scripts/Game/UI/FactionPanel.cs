@@ -32,9 +32,17 @@ namespace BiRyeoDo.Game.UI
             if (!Tutorial.IsDone(save, "faction") && HelpPanel.Instance != null) HelpPanel.Instance.Show("faction", true);
 
             UiFactory.Label("Title", Root, new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.99f), (_shop ? "객잔 · " + save.Doo.ToString("N0") + "은자" : "세력 평판"), 40, UiFactory.Gold);
-            UiFactory.ScrollBody(UiFactory.Label("Toast", Root, new Vector2(0.05f, .80f), new Vector2(0.95f, .89f), toast ?? (_shop ? "세력 평판이 오르면 그 세력의 선반이 열립니다. 평판은 기록 탭 「세력 평판」에서 봅니다." : RiseSummary() ?? "세력을 누르면 평판을 얻는 스테이지와 적용 중인 효과를 볼 수 있습니다."), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+            UiFactory.ScrollBody(UiFactory.Label("Toast", Root, new Vector2(_shop ? .32f : .05f, .80f), new Vector2(0.95f, .89f), toast ?? (_shop ? "세력 평판이 오르면 그 세력의 선반이 열립니다. 평판은 기록 탭 「세력 평판」에서 봅니다." : RiseSummary() ?? "세력을 누르면 평판을 얻는 스테이지와 적용 중인 효과를 볼 수 있습니다."), 30, UiFactory.PaperText, TextAnchor.MiddleCenter, FontStyle.Normal), 30);
+
+            if (_shop) DrawInnHostess();
 
             var content = CodexPanel.Scroller(Root, .02f, .79f);
+            if (_shop)
+            {
+                var viewport = (RectTransform)content.parent;
+                viewport.anchorMin = new Vector2(.31f, .02f);
+                viewport.anchorMax = new Vector2(.99f, .79f);
+            }
             _scroll = content.parent.GetComponent<ScrollRect>();
             if (_shop) DrawShop(content, save);
             else DrawReputation(content, save);
@@ -143,6 +151,26 @@ namespace BiRyeoDo.Game.UI
         }
 
         private const int ShopColumns = 5;
+
+        /// <summary>A separate inn attendant portrait, cropped to the upper body inside the left column.</summary>
+        private void DrawInnHostess()
+        {
+            var viewport = UiFactory.Rect("InnHostessViewport", Root, new Vector2(.015f, .02f), new Vector2(.295f, .76f));
+            viewport.gameObject.AddComponent<RectMask2D>();
+            const float crop = .63f;
+            var portrait = UiFactory.Panel("InnHostess", viewport, new Vector2(-.5f, 1f - 1f / crop), new Vector2(1.5f, 1f), Color.white);
+            portrait.sprite = ArtLibrary.StandingPortrait("inn_hostess");
+            portrait.preserveAspect = true;
+            portrait.raycastTarget = false;
+            if (portrait.sprite == null) portrait.color = Color.clear;
+
+            var speech = UiFactory.Panel("HostessSpeech", Root, new Vector2(.03f, .76f), new Vector2(.29f, .89f), UiFactory.ModalInk);
+            UiFactory.Frame(speech.transform, UiFactory.GoldDim, 2f);
+            UiFactory.Label("Name", speech.transform, new Vector2(.05f, .68f), new Vector2(.95f, .96f), "객잔 주인", 30, UiFactory.Gold, TextAnchor.MiddleLeft);
+            UiFactory.Body(UiFactory.Label("Greeting", speech.transform, new Vector2(.05f, .04f), new Vector2(.95f, .66f),
+                "어서 오세요.\n어떤 물건을 찾으시나요?", 26, UiFactory.PaperText, TextAnchor.MiddleLeft, FontStyle.Normal));
+            UiFactory.Panel("HostessDivider", Root, new Vector2(.305f, .02f), new Vector2(.306f, .89f), UiFactory.GoldDim);
+        }
 
         /// <summary>객잔 shelf: five compact cards per row (big icon, name, price); tapping one opens its details and the buy button.</summary>
         private int DrawShop(RectTransform content, SaveData save)
