@@ -44,6 +44,9 @@ namespace BiRyeoDo.Game.Systems
         }
         /// <summary>Individual passive-method icon, shared with the martial-arts workspace.</summary>
         public static Sprite InnerArt(string id) { return ReadableIconLibrary.Find("Inner", id); }
+        /// <summary>Dedicated exploration art, independent of combat SD assets.</summary>
+        public static Sprite Exploration(string id) { return string.IsNullOrEmpty(id) ? null : Load("Exploration/" + id); }
+
         /// <summary>SD figure source: <c>Battle/&lt;id&gt;.png</c>, used on the field, combat summaries and compact character pickers.</summary>
         public static Sprite Chibi(string id) { return string.IsNullOrEmpty(id) ? null : Load("Battle/" + id); }
         /// <summary>Stand-in SD figure when a dedicated <c>Battle/</c> picture is missing: <c>Battle/default_assassin.png</c> for bandits and assassins, <c>default_woman.png</c> for the women listed in <c>Genders</c>, else <c>default_man.png</c> (all under <c>Battle/</c>). Null when that file is missing too.</summary>

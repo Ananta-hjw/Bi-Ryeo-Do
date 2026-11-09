@@ -16,6 +16,7 @@ namespace BiRyeoDo.Game.UI
         private enum Page { Courses, Clubs, League }
 
         private readonly Action<StageData> _start;
+        private readonly AcademyWalk _walk = new AcademyWalk();
         private Page _page = Page.Courses;
         private readonly List<string> _picked = new List<string>();
 
@@ -29,6 +30,17 @@ namespace BiRyeoDo.Game.UI
         }
 
         public void Open(string toast = null)
+        {
+            if (!Academy.Unlocked(GameManager.Instance.Save)) { OpenMenu(toast); return; }
+            Begin();
+            UiFactory.Label("Title", Root, new Vector2(.15f, .90f), new Vector2(.95f, .99f), "천무학관 · 마당", 40, UiFactory.Gold);
+            var host = UiFactory.Rect("Campus", Root, Vector2.zero, Vector2.one);
+            host.gameObject.AddComponent<AcademyCampus>().Build(host, _walk, page => { _page = (Page)page; OpenMenu(); });
+            UiFactory.HelpButton(Root, () => { if (HelpPanel.Instance != null) HelpPanel.Instance.Show("academy"); });
+            AddClose();
+        }
+
+        private void OpenMenu(string toast = null)
         {
             var save = GameManager.Instance.Save;
             Begin();
@@ -49,7 +61,7 @@ namespace BiRyeoDo.Game.UI
             {
                 var page = (Page)i;
                 UiFactory.Button("Page" + i, Root, new Vector2(.05f + i * .305f, .79f), new Vector2(.34f + i * .305f, .855f), names[i],
-                    page == _page ? UiFactory.Red : UiFactory.InkSoft, () => { _page = page; Open(); }, 30);
+                    page == _page ? UiFactory.Red : UiFactory.InkSoft, () => { _page = page; OpenMenu(); }, 30);
             }
             T("Toast", Root, .04f, .015f, .96f, .075f, toast ?? Hint(save), 26, toast != null ? UiFactory.Gold : UiFactory.Dim, TextAnchor.MiddleCenter);
 
@@ -61,7 +73,7 @@ namespace BiRyeoDo.Game.UI
                 default: DrawLeague(save, content); break;
             }
             UiFactory.HelpButton(Root, () => { if (HelpPanel.Instance != null) HelpPanel.Instance.Show("academy"); });
-            AddClose();
+            UiFactory.BackCorner(Root, () => Open());
             if (!Tutorial.IsDone(save, "academy") && HelpPanel.Instance != null) HelpPanel.Instance.Show("academy", true);
         }
 
@@ -143,7 +155,7 @@ namespace BiRyeoDo.Game.UI
             if (!signedUp)
             {
                 label = picked ? "선택 해제" : "선택";
-                action = () => { if (!_picked.Remove(c.Id) && _picked.Count < Academy.CoursesPerSemester) _picked.Add(c.Id); Open(); };
+                action = () => { if (!_picked.Remove(c.Id) && _picked.Count < Academy.CoursesPerSemester) _picked.Add(c.Id); OpenMenu(); };
             }
             else
             {
@@ -156,11 +168,11 @@ namespace BiRyeoDo.Game.UI
         private void SignUp()
         {
             var save = GameManager.Instance.Save;
-            if (!Academy.SignUp(save, _picked)) { Open("수강신청을 할 수 없습니다."); return; }
+            if (!Academy.SignUp(save, _picked)) { OpenMenu("수강신청을 할 수 없습니다."); return; }
             _picked.Clear();
             GameManager.Instance.SaveNow();
             SoundManager.Sfx("levelup");
-            Open("수강신청을 마쳤습니다. 과목을 골라 수업을 들어 주세요.");
+            OpenMenu("수강신청을 마쳤습니다. 과목을 골라 수업을 들어 주세요.");
         }
 
         // ------------------------------------------------------------------ 동호회
@@ -188,10 +200,10 @@ namespace BiRyeoDo.Game.UI
         private void Join(string clubId)
         {
             var save = GameManager.Instance.Save;
-            if (!Academy.JoinClub(save, clubId)) { Open("지금은 동호회를 바꿀 수 없습니다."); return; }
+            if (!Academy.JoinClub(save, clubId)) { OpenMenu("지금은 동호회를 바꿀 수 없습니다."); return; }
             GameManager.Instance.SaveNow();
             SoundManager.Sfx("levelup");
-            Open(Academy.FindClub(clubId).Name + "에 가입했습니다.");
+            OpenMenu(Academy.FindClub(clubId).Name + "에 가입했습니다.");
         }
 
         // ------------------------------------------------------------------ 단 대항전
