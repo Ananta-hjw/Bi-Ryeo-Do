@@ -135,6 +135,16 @@ namespace BiRyeoDo.Core
             return result;
         }
 
+        /// <summary>Shares of the enhancement gain (Multiplier - 1) some effects receive: 치명타 10%, 치명타 피해 30%, 내공 · 속도 20% (the rest get all of it).</summary>
+        public const float CritEnhanceShare = .10f, CritDamageEnhanceShare = .30f, QiEnhanceShare = .20f, SpeedEnhanceShare = .20f;
+
+        /// <summary>1 + share of the enhancement gain + share of the breakthrough bonus; innate five-star (초월) definitions keep the old /1.3 reference.</summary>
+        public static float PartialMultiplier(ItemData item, int enhance, int stars, float enhanceShare, float starShare)
+        {
+            float v = 1f + (Multiplier(enhance) - 1f) * enhanceShare + StarBonusFor(item, stars) * starShare;
+            return item != null && item.Grade == ItemGrade.Transcendent ? v / 1.3f : v;
+        }
+
         public static GearEffects EffectsFor(ItemData item, int enhance = 0, int stars = 0)
         {
             if (item == null) return new GearEffects();
@@ -142,14 +152,17 @@ namespace BiRyeoDo.Core
             // Transcendent gear is always five-star, including previews without an explicit star count.
             if (item.Grade == ItemGrade.Transcendent) stars = MaxStars;
             float m = EffectMultiplier(item, enhance, stars);
-            // Critical chance gets 10% of enhancement gains and 50% of breakthrough bonuses.
-            float critMultiplier = 1f + (Multiplier(enhance) - 1f) * .10f + StarBonusFor(item, stars) * .50f;
-            // Innate five-star definitions retain their original reference denominator.
-            if (item.Grade == ItemGrade.Transcendent) critMultiplier /= 1.3f;
+            // Critical chance gets 10% of enhancement gains and 50% of breakthrough bonuses;
+            // 2026-11: critical damage 30% / 50%, 내공 and 속도 20% of enhancement gains (full breakthrough bonus).
+            float critMultiplier = PartialMultiplier(item, enhance, stars, CritEnhanceShare, .50f);
+            // 초월 keeps its innate five-star bonus in full so its +0 effects match the definition (as before)
+            float critDmgMultiplier = PartialMultiplier(item, enhance, stars, CritDamageEnhanceShare, item.Grade == ItemGrade.Transcendent ? 1f : .50f);
+            float qiMultiplier = PartialMultiplier(item, enhance, stars, QiEnhanceShare, 1f);
+            float speedMultiplier = PartialMultiplier(item, enhance, stars, SpeedEnhanceShare, 1f);
             var effects = new GearEffects
             {
-                HpPct = item.HpPct * m, QiPct = item.QiPct * m, AtkPct = item.AtkPct * m, DefPct = item.DefPct * m,
-                SpeedAdd = item.SpeedAdd * m, CritAdd = item.CritAdd * critMultiplier, CritDmgAdd = item.CritDmgAdd * m
+                HpPct = item.HpPct * m, QiPct = item.QiPct * qiMultiplier, AtkPct = item.AtkPct * m, DefPct = item.DefPct * m,
+                SpeedAdd = item.SpeedAdd * speedMultiplier, CritAdd = item.CritAdd * critMultiplier, CritDmgAdd = item.CritDmgAdd * critDmgMultiplier
             };
             if (stars == 0) return effects;
             foreach (var trait in BreakthroughTraits(item))

@@ -50,12 +50,13 @@ namespace BiRyeoDo.Tests
                 var effects = Gear.EffectsFor(item, 100, 5);
                 float multiplier = Gear.Multiplier(100, 5);
                 Assert.AreEqual(item.HpPct * multiplier, effects.HpPct, .00001f, item.Id);
-                Assert.AreEqual(item.QiPct * multiplier, effects.QiPct, .00001f, item.Id);
+                float gain = Gear.Multiplier(100) - 1f;   // 내공·속도 20%, 치명타 피해 30% (돌파 50%), 치명타 10% (돌파 50%) of the enhancement gain
+                Assert.AreEqual(item.QiPct * (1f + gain * .20f + 1f), effects.QiPct, .00001f, item.Id);
                 Assert.AreEqual(item.AtkPct * multiplier, effects.AtkPct, .00001f, item.Id);
                 Assert.AreEqual(item.DefPct * multiplier, effects.DefPct, .00001f, item.Id);
-                Assert.AreEqual(item.SpeedAdd * multiplier, effects.SpeedAdd, .00001f, item.Id);
+                Assert.AreEqual(item.SpeedAdd * (1f + gain * .20f + 1f), effects.SpeedAdd, .00001f, item.Id);
                 Assert.AreEqual(item.CritAdd * (1.5f + (multiplier - 2f) * .10f), effects.CritAdd, .00001f, item.Id);
-                Assert.AreEqual(item.CritDmgAdd * multiplier, effects.CritDmgAdd, .00001f, item.Id);
+                Assert.AreEqual(item.CritDmgAdd * (1f + gain * .30f + .5f), effects.CritDmgAdd, .00001f, item.Id);
                 Assert.AreEqual(0, effects.StartSpirit, item.Id);
             }
         }
@@ -187,11 +188,12 @@ namespace BiRyeoDo.Tests
             float current = (Gear.Multiplier(level) + 1f) / 1.3f;
             Assert.AreEqual(item.AtkPct * current, effects.AtkPct, .00001f);
             Assert.AreEqual(item.HpPct * current, effects.HpPct, .00001f);
-            Assert.AreEqual(item.SpeedAdd * current, effects.SpeedAdd, .00001f);
+            float gain = Gear.Multiplier(level) - 1f;
+            Assert.AreEqual(item.SpeedAdd * (2f + gain * .20f) / 1.3f, effects.SpeedAdd, .00001f);
             Assert.AreEqual(item.CritAdd * ((1.5f + (Gear.Multiplier(level) - 1f) * .10f) / 1.3f), effects.CritAdd, .00001f);
-            Assert.AreEqual(item.CritDmgAdd * current, effects.CritDmgAdd, .00001f);
+            Assert.AreEqual(item.CritDmgAdd * (2f + gain * .30f) / 1.3f, effects.CritDmgAdd, .00001f);
             Assert.AreEqual(item.DefPct * current, effects.DefPct, .00001f);
-            Assert.AreEqual(item.QiPct * current, effects.QiPct, .00001f);
+            Assert.AreEqual(item.QiPct * (2f + gain * .20f) / 1.3f, effects.QiPct, .00001f);
             Assert.AreEqual(0, effects.StartSpirit);
         }
 
@@ -203,28 +205,28 @@ namespace BiRyeoDo.Tests
             var enhanced = Gear.EffectsFor(item, 100);
             Assert.AreEqual(.0789f * 2f / 1.3f, fresh.QiPct, .00001f);   // +12.14% at five stars, no enhancement (2026-11: -5%)
             Assert.AreEqual(.7353f * 2f / 1.3f, fresh.DefPct, .00001f);   // +113.12%
-            Assert.AreEqual(.0789f * 6.9f / 1.3f, enhanced.QiPct, .00001f);
-            Assert.AreEqual(.7353f * 6.9f / 1.3f, enhanced.DefPct, .00001f);
-            StringAssert.Contains("내공 +41.9%", StatusSheet.EffectText(item, 100));
-            StringAssert.Contains("방어 +390.3%", StatusSheet.EffectText(item, 100));
+            Assert.AreEqual(.0789f * (2f + 3.05f * .20f) / 1.3f, enhanced.QiPct, .00001f);   // 내공 takes 20% of the enhancement gain (x4.05 at +100)
+            Assert.AreEqual(.7353f * 5.05f / 1.3f, enhanced.DefPct, .00001f);
+            StringAssert.Contains("내공 +15.8%", StatusSheet.EffectText(item, 100));
+            StringAssert.Contains("방어 +285.6%", StatusSheet.EffectText(item, 100));
             Assert.IsEmpty(Gear.BreakthroughTraits(item), "these are base effects, not fixed breakthrough traits");
         }
 
         // 비뢰도 낙뢰 base 치명타 .136 (.08 x the 신화 x1.7 grade scale)
         [TestCase(0, 0, .136f)]
-        [TestCase(20, 0, .14144f)]
-        [TestCase(30, 0, .14552f)]
-        [TestCase(50, 0, .1564f)]
-        [TestCase(70, 0, .17f)]
-        [TestCase(90, 0, .18904f)]
-        [TestCase(100, 0, .20264f)]
+        [TestCase(20, 0, .13872f)]
+        [TestCase(30, 0, .14076f)]
+        [TestCase(50, 0, .1462f)]
+        [TestCase(70, 0, .15436f)]
+        [TestCase(90, 0, .16796f)]
+        [TestCase(100, 0, .17748f)]
         [TestCase(0, 1, .1428f)]
-        [TestCase(100, 1, .20944f)]
+        [TestCase(100, 1, .18428f)]
         [TestCase(0, 2, .1496f)]
         [TestCase(0, 3, .1632f)]
         [TestCase(0, 4, .1802f)]
         [TestCase(0, 5, .204f)]
-        [TestCase(100, 5, .27064f)]
+        [TestCase(100, 5, .24548f)]
         public void CriticalChanceKeepsBaseWithHalfStarBonusAndOneTenthEnhancement(int level, int stars, float expected)
         {
             var item = EarlyGameContent.FindItem("biroe_blade");
