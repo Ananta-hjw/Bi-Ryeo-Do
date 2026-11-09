@@ -386,3 +386,15 @@ AI 프롬프트 예시: "wuxia ink-wash style icon of <아이템 설명>, single
 ### 강호 여정 지도
 
 `Resources/Art/Backgrounds/world_journey_01.png`~`world_journey_11.png`는 스테이지 선택 전용 가로 산수화 지도입니다. 6지역씩 총 11페이지이며, 31장 이후는 표국·학관 / 마천각 입성 / 강호란도 비무 / 네 해도 / 출항과 무한 / 남문과 대난원으로 구분합니다. `SceneryArt.JourneyPageCount`와 `StageMapPanel`이 페이지 수와 그림 선택 범위를 공유합니다. 글자·표식·길을 그림에 합치지 않고 `StageMapPanel`/`StageMapRoute`가 표시하므로 진행 상태와 해상도에 맞게 갱신됩니다. 그림 속 지형·건물은 장식이며 원작의 실제 지리 관계를 정의하지 않습니다. 기존 전투 배경은 선택한 지역의 오른쪽 상세 그림에 사용합니다.
+
+## 탐색용 SD (`Resources/Art/Exploration/`)
+
+- 비류연 기본 대기: `player.png`, 투명 PNG. 기존 흑금 의복·붉은 장식·묵금 외형을 참고한 별도 생성 아트다.
+- `ArtLibrary.Exploration("player")`로 읽고, 천무학관 마당의 플레이어에게 적용한다. 전투 SD·로비 입화 경로와 독립적이다.
+- `player_walk.png`는 4×4 방향별 애니메이션 시트다. 행은 아래·왼쪽·오른쪽·위, 열은 대기·걷기 3포즈이며 기본 대기는 `player.png`에 유지한다.
+- `player_walk_atlas.json`은 측정한 프레임 좌표다. PNG를 교체하면 좌표도 함께 갱신해야 한다. 자동 리사이즈 없이 원본 해상도로 임포트한다.
+- 추가 인물의 걷기 시트도 같은 행·열 순서와 발 기준점·투명 배경으로 준비한다.
+
+## 천무학관 탐색 배경과 시설
+
+`Resources/Art/Exploration/Academy/courtyard.png`는 탐색용 마당 바닥, `facilities.png`는 수강·수업/동호회/단 대항전 외관 시트다. `facilities_atlas.json`과 PNG를 함께 관리하며 `AcademyScenery`가 분리해 표시한다. 지붕·장식·공간 배치는 원작 지형 확정이 아닌 게임 미술 해석이다. 배경에는 이동 장애물이 되는 새 나무·연못·담장을 넣지 않고 기존 화단만 표현했다. 자세한 임포트·검증 기준은 `Docs/ACADEMY_CAMPUS.md`를 따른다.
