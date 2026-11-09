@@ -60,7 +60,7 @@ namespace BiRyeoDo.Game.UI
             }
             _figure = UiFactory.Rect("Player", _world, Vector2.zero, Vector2.zero);
             _figure.pivot = new Vector2(.5f, 0f);
-            _figure.sizeDelta = new Vector2(140f, 160f);
+            _figure.sizeDelta = new Vector2(AcademyWalk.FigureWidth, AcademyWalk.FigureHeight);
             var art = UiFactory.Panel("SD", _figure, Vector2.zero, Vector2.one, Color.white);
             _playerArt = art;
             _walkFrames = ExplorationSprites.Player();
@@ -127,11 +127,9 @@ namespace BiRyeoDo.Game.UI
         private void RefreshView()
         {
             _figure.anchoredPosition = new Vector2(_walk.X, _walk.Y);
-            float halfW = Mathf.Min(_viewport.rect.width * .5f, AcademyWalk.Width * .5f);
-            float halfH = Mathf.Min(_viewport.rect.height * .5f, AcademyWalk.Height * .5f);
-            float cameraX = Mathf.Clamp(_walk.X, halfW, AcademyWalk.Width - halfW);
-            float cameraY = Mathf.Clamp(_walk.Y, halfH, AcademyWalk.Height - halfH);
-            _world.anchoredPosition = new Vector2(AcademyWalk.Width * .5f - cameraX, AcademyWalk.Height * .5f - cameraY);
+            _world.anchoredPosition = new Vector2(
+                ExplorationInput.CameraOffset(_walk.X, _viewport.rect.width, AcademyWalk.Width),
+                ExplorationInput.CameraOffset(_walk.Y, _viewport.rect.height, AcademyWalk.Height));
             int nearby = _walk.NearbyFacility();
             _interact.interactable = nearby >= 0;
             _action.text = nearby >= 0 ? _names[nearby] + " 입장" : "다가가 주세요";

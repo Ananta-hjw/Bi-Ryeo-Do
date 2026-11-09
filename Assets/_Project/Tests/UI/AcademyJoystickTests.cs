@@ -45,6 +45,20 @@ namespace BiRyeoDo.Tests.UI
         }
 
         [Test]
+        public void SmallTouchNoiseStaysNeutralAndLosingFocusReleasesTheStick()
+        {
+            var rect = (RectTransform)_root.transform;
+            var center = RectTransformUtility.WorldToScreenPoint(null, rect.TransformPoint(rect.rect.center));
+            _stick.OnPointerDown(Touch(1, center + new Vector2(4f, 3f)));
+            Assert.AreEqual(Vector2.zero, _stick.Direction);
+            _stick.OnDrag(Touch(1, center + new Vector2(1000f, 0f)));
+            Assert.Greater(_stick.Direction.x, 0f);
+            _stick.SendMessage("OnApplicationFocus", false);
+            Assert.AreEqual(Vector2.zero, _stick.Direction);
+            Assert.AreEqual(Vector2.zero, _stick.Knob.anchoredPosition);
+        }
+
+        [Test]
         public void DragIsClampedAndReleaseStopsMovement()
         {
             var touch = Touch(1, new Vector2(1000f, 0f));

@@ -52,6 +52,32 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void MapEdgesKeepTheFigureAndNamePlateInsideTheGround()
+        {
+            var walk = new AcademyWalk();
+            for (int i = 0; i < 200; i++) walk.Move(-1f, 0f, .1f);
+            for (int i = 0; i < 200; i++) walk.Move(0f, 1f, .1f);
+            Assert.GreaterOrEqual(walk.X - AcademyWalk.SideClearance, 0f);
+            Assert.LessOrEqual(walk.Y + AcademyWalk.TopClearance, AcademyWalk.Height);
+            Assert.IsFalse(AcademyWalk.Walkable(1200f, 1570f));
+            for (int i = 0; i < 200; i++) walk.Move(1f, 0f, .1f);
+            Assert.LessOrEqual(walk.X + AcademyWalk.SideClearance, AcademyWalk.Width);
+        }
+
+        [Test]
+        public void AllThreeEntrancesRemainReachableWithVisualClearance()
+        {
+            var walk = new AcademyWalk();
+            for (int i = 0; i < 23; i++) walk.Move(-1f, 0f, .1f);
+            for (int i = 0; i < 23; i++) walk.Move(0f, 1f, .1f);
+            Assert.AreEqual(0, walk.NearbyFacility());
+            for (int i = 0; i < 23; i++) walk.Move(1f, 0f, .1f);
+            Assert.AreEqual(1, walk.NearbyFacility());
+            for (int i = 0; i < 23; i++) walk.Move(1f, 0f, .1f);
+            Assert.AreEqual(2, walk.NearbyFacility());
+        }
+
+        [Test]
         public void LongFramesAndInvalidInputCannotTeleportThePlayer()
         {
             var walk = new AcademyWalk();

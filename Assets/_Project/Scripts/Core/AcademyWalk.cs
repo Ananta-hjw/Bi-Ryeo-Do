@@ -6,6 +6,9 @@ namespace BiRyeoDo.Core
     public sealed class AcademyWalk
     {
         public const float Width = 2400f, Height = 1600f, Speed = 300f, Radius = 24f;
+        // Reserve the full 140px figure and its 1.6-width name plate / 1.3-height top edge.
+        public const float FigureWidth = 140f, FigureHeight = 160f;
+        public const float SideClearance = FigureWidth * .8f, TopClearance = FigureHeight * 1.3f;
         public float X { get; private set; } = 1200f;
         public float Y { get; private set; } = 400f;
         public static readonly float[] FacilityX = { 500f, 1200f, 1900f };
@@ -13,7 +16,7 @@ namespace BiRyeoDo.Core
 
         public static bool Walkable(float x, float y)
         {
-            if (x < Radius || y < Radius || x > Width - Radius || y > Height - Radius) return false;
+            if (x < SideClearance || y < Radius || x > Width - SideClearance || y > Height - TopClearance) return false;
             for (int i = 0; i < 3; i++)
                 if (x > FacilityX[i] - 200f - Radius && x < FacilityX[i] + 200f + Radius
                     && y > 1150f - Radius && y < 1450f + Radius) return false;

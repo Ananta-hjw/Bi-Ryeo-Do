@@ -1,3 +1,4 @@
+using BiRyeoDo.Core;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -22,7 +23,10 @@ namespace BiRyeoDo.Game.UI
             Vector2 point;
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(rect, e.position, e.pressEventCamera, out point)) return;
             float radius = Mathf.Max(1f, Mathf.Min(rect.rect.width, rect.rect.height) * .35f);
-            Direction = Vector2.ClampMagnitude((point - rect.rect.center) / radius, 1f);
+            var raw = (point - rect.rect.center) / radius;
+            float horizontal, vertical;
+            ExplorationInput.Stick(raw.x, raw.y, out horizontal, out vertical);
+            Direction = new Vector2(horizontal, vertical);
             if (Knob != null) Knob.anchoredPosition = Direction * radius;
         }
         public void OnPointerUp(PointerEventData e) { if (_pointer == e.pointerId) ResetStick(); }
