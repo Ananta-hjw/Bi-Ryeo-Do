@@ -13,7 +13,7 @@ namespace BiRyeoDo.Tests
             var storm = EarlyGameContent.FindItem("storm_blade");
             Assert.AreEqual(ItemGrade.Legendary, crimson.Grade);
             Assert.AreEqual(.297f, crimson.AtkPct);   // 전설 x1.5 grade scale, then the 2026-11 rebalance (x0.9)
-            Assert.AreEqual(.041f, crimson.CritAdd);
+            Assert.AreEqual(.0246f, crimson.CritAdd);   // .041 before the 2026-11 x0.6 치명타 cut
             Assert.AreEqual(5, crimson.SpeedAdd);
             Assert.AreEqual(0f, crimson.HpPct);
             Assert.AreEqual(ItemGrade.Epic, storm.Grade);

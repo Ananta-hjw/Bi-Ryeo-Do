@@ -113,7 +113,7 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual(406, s.Attack);   // five-star +298.15% (2026-11: -5%) and 묵룡환 +8.2%
             Assert.AreEqual(111, s.Defense);   // Jin +113.12% and 묵룡환 +8.2% (2026-11 rebalance)
             Assert.AreEqual(143, s.Speed);    // +49.23 -6, rounded after summing
-            Assert.AreEqual(.01f + .34667f * 1.5f / 1.3f, s.CritRate, 0.0001f);   // 40% at five stars
+            Assert.AreEqual(.01f + .208f * 1.5f / 1.3f, s.CritRate, 0.0001f);   // 24% at five stars (40% before the x0.6 치명타 cut)
             Assert.AreEqual(1745, s.MaxHp);   // five-star +74.54%
             Assert.AreEqual(112, s.MaxQi);   // 진비뢰도 내공 +12.14% (gear 내공 halved, x1.7 초월 grade scale, then cut to 30%)
             Assert.AreEqual(1.5f + .8075f * 2f / 1.3f, s.CritDamage, 0.0001f);

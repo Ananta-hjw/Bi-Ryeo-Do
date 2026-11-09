@@ -53,16 +53,19 @@ namespace BiRyeoDo.Core
         public static int TurnLimitFor(int rank) { return TurnLimit + Math.Max(0, rank - 1); }
 
         public const float StatBonusPerRank = 0.03f;
+        /// <summary>내공 and 속도 grow less per rank (2026-11): 1%.</summary>
+        public const float QiSpeedBonusPerRank = 0.01f;
 
-        /// <summary>The reward for rising: every stat of the protagonist grows 3% per 검룡위 (rank 10 = +30%).</summary>
+        /// <summary>The reward for rising: 체력·공격·방어 +3% and 내공·속도 +1% per 검룡위 (rank 10 = +30% / +10%).</summary>
         public static CombatStats ApplyRankBonus(CombatStats stats, int rank)
         {
-            float m = 1f + StatBonusPerRank * Math.Max(1, Math.Min(MaxRank, rank));
+            int r = Math.Max(1, Math.Min(MaxRank, rank));
+            float m = 1f + StatBonusPerRank * r, qs = 1f + QiSpeedBonusPerRank * r;
             stats.MaxHp = (int)Math.Round(stats.MaxHp * m);
-            stats.MaxQi = (int)Math.Round(stats.MaxQi * m);
+            stats.MaxQi = (int)Math.Round(stats.MaxQi * qs);
             stats.Attack = (int)Math.Round(stats.Attack * m);
             stats.Defense = (int)Math.Round(stats.Defense * m);
-            stats.Speed = Math.Max(1, (int)Math.Round(stats.Speed * m));
+            stats.Speed = Math.Max(1, (int)Math.Round(stats.Speed * qs));
             return stats;
         }
 

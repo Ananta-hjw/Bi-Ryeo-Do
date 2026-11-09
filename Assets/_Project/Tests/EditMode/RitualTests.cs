@@ -36,7 +36,7 @@ public class RitualTests
         Assert.AreEqual(1745, actual.MaxHp);   // 2026-11: every effect -5%, 치명타 40%
         Assert.AreEqual(3982, actual.Attack);
         Assert.AreEqual(149, actual.Speed);
-        Assert.AreEqual(.34667f * 1.5f / 1.3f, actual.CritRate, .00001f);
+        Assert.AreEqual(.208f * 1.5f / 1.3f, actual.CritRate, .00001f);   // 24% (x0.6 치명타 cut)
         Assert.AreEqual(1.5f + .8075f * 2f / 1.3f, actual.CritDamage, .00001f);
         Assert.AreEqual(213, actual.Defense);
         Assert.AreEqual(112, actual.MaxQi);
@@ -47,7 +47,7 @@ public class RitualTests
         StringAssert.Contains("내공 +12.1%", effects);
         StringAssert.Contains("방어 +113.1%", effects);
         StringAssert.Contains("속도 +49", effects);
-        StringAssert.Contains("치명타 +40%", effects);
+        StringAssert.Contains("치명타 +24%", effects);
         StringAssert.Contains("치명타 피해 +124.2%", effects);
         Assert.AreEqual(effects, StatusSheet.EffectText(item));
         Assert.AreEqual(2f / 1.3f, Gear.EffectMultiplier(item, 0, 5), .00001f);

@@ -86,7 +86,7 @@ namespace BiRyeoDo.Tests
             // A tuning guard, not a simulation of combat effectiveness.
             // 내공 was halved and later cut to 30% (rounded to 0.001); the guard keeps the earlier budget, so it allows that rounding
             double budget = (item.HpPct + item.QiPct * 2d / .3d + item.AtkPct + item.DefPct) * 100d
-                + item.SpeedAdd + item.CritAdd * 200d + item.CritDmgAdd * 25d;
+                + item.SpeedAdd + item.CritAdd / .6d * 200d + item.CritDmgAdd * 25d;   // 2026-11: every base 치명타 was cut to x0.6 after these budgets
             Assert.AreEqual(expected, budget, item.QiPct > 0f ? .34d : .0001d, id);
         }
     }

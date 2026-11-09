@@ -18,7 +18,7 @@ namespace BiRyeoDo.Tests
                 var c = e.CreateCombatant("t");
                 Assert.AreEqual(e.Rank != EnemyRank.Normal, c.UsesResources, e.Id);
                 int baseQi = e.QiPool;
-                int expectedQi = Realm.HasRealm(e) ? (int)System.Math.Round(baseQi * (1f + Realm.Bonus(c.RealmStep))) : baseQi;
+                int expectedQi = Realm.HasRealm(e) ? (int)System.Math.Round(baseQi * (1f + Realm.QiSpeedBonus(c.RealmStep))) : baseQi;
                 Assert.AreEqual(expectedQi, c.Stats.MaxQi, e.Id);
             }
         }

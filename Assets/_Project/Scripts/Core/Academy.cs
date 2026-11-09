@@ -53,7 +53,7 @@ namespace BiRyeoDo.Core
                 Brief = "모두가 끊김 없이 공격하면 다음 일격이 크게 강해집니다. 정해진 행동 안에 이겨야 합니다.", GoalText = "신속: 기준 행동 이내" },
             new CourseData { Id = "qinggong", Name = "경공", Teacher = "경공 교관", Rule = TrialKind.Survive, BonusName = "속도", Bonus = new[] { 2f, 4f, 6f }, PercentBonus = false,
                 Brief = "적의 공세를 정해진 횟수만큼 버티면 통과합니다.", GoalText = "여유: 파티 체력 50% 이상 남기기" },
-            new CourseData { Id = "hidden", Name = "암기술", Teacher = "당평", Rule = TrialKind.Deadline, BonusName = "치명타", Bonus = new[] { .01f, .02f, .03f },
+            new CourseData { Id = "hidden", Name = "암기술", Teacher = "당평", Rule = TrialKind.Deadline, BonusName = "치명타", Bonus = new[] { .01f, .015f, .02f },
                 Brief = "당평 교관의 암기 수업입니다. 짧은 행동 안에 끝내야 합니다.", GoalText = "신속: 기준 행동보다 2행동 빨리" },
             new CourseData { Id = "theory", Name = "무도총론", Teacher = "무도총론 교관", Rule = TrialKind.Deadline, BonusName = "체력", Bonus = new[] { .03f, .06f, .09f },
                 Brief = "배운 것을 차분히 실전에 옮기는 시험입니다. 행동 제한이 넉넉합니다.", GoalText = "여유: 파티 체력 60% 이상 남기기" },
@@ -61,7 +61,7 @@ namespace BiRyeoDo.Core
 
         public static readonly ClubData[] Clubs =
         {
-            new ClubData { Id = "geomhon", Name = "검혼회", PerkName = "치명타", Perk = new[] { .02f, .03f, .04f }, PercentPerk = true,
+            new ClubData { Id = "geomhon", Name = "검혼회", PerkName = "치명타", Perk = new[] { .01f, .02f, .03f }, PercentPerk = true,
                 Brief = "검을 숭상하는 학관 최대의 동호회입니다." },
             new ClubData { Id = "dobaek", Name = "도백회", PerkName = "시작 기세", Perk = new[] { 10f, 15f, 20f },
                 Brief = "검혼회를 견제하는 또 하나의 큰 동호회입니다." },

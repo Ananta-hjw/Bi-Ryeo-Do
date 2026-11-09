@@ -117,8 +117,9 @@ namespace BiRyeoDo.Tests
             Assert.AreEqual((int)System.Math.Round(before.MaxHp * m), after.MaxHp);
             Assert.AreEqual((int)System.Math.Round(before.Attack * m), after.Attack);
             Assert.AreEqual((int)System.Math.Round(before.Defense * m), after.Defense);
-            Assert.AreEqual((int)System.Math.Round(before.MaxQi * m), after.MaxQi);
-            Assert.AreEqual((int)System.Math.Round(before.Speed * m), after.Speed);
+            float qs = 1f + 0.02f * step;   // 내공·속도 +2% per step
+            Assert.AreEqual((int)System.Math.Round(before.MaxQi * qs), after.MaxQi);
+            Assert.AreEqual((int)System.Math.Round(before.Speed * qs), after.Speed);
             Assert.AreEqual(step, Realm.StepOf(save));   // the realm is read before the bonus, so it does not feed on itself
             var fresh = new SaveData { Level = 1 };
             Assert.AreEqual(InnerArts.HeroStatsBeforeRealm(fresh).Attack, InnerArts.HeroStats(fresh).Attack);   // 삼급 has no bonus

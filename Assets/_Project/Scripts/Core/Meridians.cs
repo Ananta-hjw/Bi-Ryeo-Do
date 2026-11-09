@@ -27,7 +27,7 @@ namespace BiRyeoDo.Core
 
         public static readonly MeridianData[] All =
         {
-            M("im", "임맥", 0, "내공 +5%", "매 차례 내공 회복 +2"),
+            M("im", "임맥", 0, "내공 +2.5%", "매 차례 내공 회복 +2"),
             M("dok", "독맥", 1, "체력 +4%", "운기할 때 체력 회복 +5%"),
             M("chung", "충맥", 2, "공격 +2.5%", "치명타 피해 +15%p"),
             M("dae", "대맥", 3, "방어 +3%", "방어 명령 피해 x0.4 → x0.35"),
@@ -43,7 +43,7 @@ namespace BiRyeoDo.Core
         }
 
         // per-point and completion values
-        public const float QiPerPoint = .05f, HpPerPoint = .04f, AtkPerPoint = .025f, DefPerPoint = .03f, ResistPerPoint = .04f, CritPerPoint = .01f;
+        public const float QiPerPoint = .025f, HpPerPoint = .04f, AtkPerPoint = .025f, DefPerPoint = .03f, ResistPerPoint = .04f, CritPerPoint = .01f;
         public const int SpeedPerPoint = 1, SpiritPerPoint = 1;
         public const int QiRegenFinish = 2, StartSpiritFinish = 20;
         public const float MeditateHealFinish = .05f, CritDamageFinish = .15f, GuardCutFinish = .05f, HealTakenFinish = .10f;

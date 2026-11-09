@@ -79,7 +79,7 @@ namespace BiRyeoDo.Tests
             var fury = InnerArts.Apply(Base(), new[] { "fury" });
             Assert.AreEqual(900, fury.MaxHp);
             Assert.AreEqual(2.1f, fury.CritDamage, 0.001f);
-            Assert.AreEqual(0.11f, fury.CritRate, 0.001f);
+            Assert.AreEqual(0.086f, fury.CritRate, 0.001f);   // +3.6% (x0.6 of the old +6%)
             var both = InnerArts.Apply(Base(), new[] { "tiger", "vigor" });
             Assert.AreEqual(115, both.Attack);
             Assert.AreEqual(1150, both.MaxHp);
