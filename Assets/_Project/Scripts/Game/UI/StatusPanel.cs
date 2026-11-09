@@ -185,7 +185,9 @@ namespace BiRyeoDo.Game.UI
             UiFactory.Frame(cell.transform, UiFactory.GoldDim, 2f);
             Text(cell.rectTransform, 0.05f, 0.40f, 0f, 1f, line.Label, 28, UiFactory.Dim);
             Text(cell.rectTransform, 0.40f, 0.95f, 0.45f, 1f, line.Value, 34, UiFactory.PaperText, TextAnchor.MiddleRight);
-            if (!string.IsNullOrEmpty(line.Bonus))
+            if (!string.IsNullOrEmpty(line.Note))
+                Text(cell.rectTransform, 0.30f, 0.95f, 0f, 0.45f, line.Note, 22, UiFactory.Dim, TextAnchor.MiddleRight);
+            else if (!string.IsNullOrEmpty(line.Bonus))
                 Text(cell.rectTransform, 0.40f, 0.95f, 0f, 0.45f, "장비 " + line.Bonus, 22, Green, TextAnchor.MiddleRight);
         }
 

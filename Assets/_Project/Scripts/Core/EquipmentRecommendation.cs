@@ -82,7 +82,7 @@ namespace BiRyeoDo.Core
                     double benefit = 0;
                     if (InteractiveBattle.NeedsTarget(skill))
                     {
-                        double crit = Math.Max(0, Math.Min(1, stats.CritRate));
+                        double crit = CritRules.Chance(stats.CritRate);
                         benefit = (BattleEngine.CalcDamage(stats, Reference.Stats, skill, false) * (1 - crit)
                             + BattleEngine.CalcDamage(stats, Reference.Stats, skill, true) * crit) * Math.Max(1, skill.Hits);
                         if (skill.AllEnemies) benefit *= 1.8;

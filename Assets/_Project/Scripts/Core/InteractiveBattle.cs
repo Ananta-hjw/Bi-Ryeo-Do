@@ -845,7 +845,7 @@ namespace BiRyeoDo.Core
 
         private BattleEvent DealHit(Combatant actor, Combatant t, SkillSpec skill, int h, int hits, bool stun, List<BattleEvent> events, bool triggerBleed = true)
         {
-            bool crit = actor.StealthCrit || _rng.NextDouble() < actor.Stats.CritRate;
+            bool crit = actor.StealthCrit || _rng.NextDouble() < CritRules.Chance(actor.Stats.CritRate);
             int dmg = BattleEngine.CalcDamage(actor.Stats, t.Stats, skill, crit);
             if (actor.Focused) dmg = (int)Math.Round(dmg * FocusDamageFactor);
             // the guard strike waits for the unit's own attack (not a 반격 태세 counter)
@@ -1373,7 +1373,7 @@ namespace BiRyeoDo.Core
                 }
                 else
                 {
-                    ev.IsCrit = _rng.NextDouble() < enemy.Stats.CritRate;
+                    ev.IsCrit = _rng.NextDouble() < CritRules.Chance(enemy.Stats.CritRate);
                     int dmg = BattleEngine.CalcDamage(enemy.Stats, target.Stats, h == 0 ? burstSpec : spec, ev.IsCrit);
                     if (enemy.Has(StatusKind.Chill)) dmg = (int)Math.Round(dmg * ChillAttackFactor);
                     if (enemy.Has(StatusKind.Disarm)) dmg = (int)Math.Round(dmg * Statuses.DisarmFactor);
