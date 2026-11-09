@@ -341,13 +341,13 @@ namespace BiRyeoDo.Core
             return StageStars.StoryEnemy(enemy, st.Number, 0, null).Scaled(st.RunHpMul, st.RunAtkMul);
         }
 
-        /// <summary>Exp of a won 관문: a share of the current level-up cost (half on a tier already cleared).</summary>
+        /// <summary>Exp of a won 관문: a share of the level-up cost at the borrowed fight's level; none on a tier already cleared (only first clears raise the player).</summary>
         public static long NodeExp(SaveData save, StageData st)
         {
             var node = Decode(Run(save).Node);
             double share = node != null && node.Kind == TrialNodeKind.Boss ? .20 : node != null && node.Kind == TrialNodeKind.Elite ? .14 : .10;
-            if (Run(save).Repeat) share *= .5;   // fixed at the start, so the boss win (which raises the best tier) still pays in full
-            return (long)Math.Round(Progression.ExpToNext(save.Level) * share);
+            if (Run(save).Repeat) return 0;   // fixed at the start, so the boss win (which raises the best tier) still pays in full
+            return Progression.ContentExp(Progression.PlayerLevelAt(st.RecommendedLevel), share);
         }
 
         // ------------------------------------------------------------------ the party in a run
@@ -655,8 +655,8 @@ namespace BiRyeoDo.Core
 
         public static long ClearDoo(int tier) { return 3000 + 1500L * tier; }
         public static int ClearInsight(int tier) { return tier >= 8 ? 2 : tier >= 4 ? 1 : 0; }
-        /// <summary>심득석 for beating the 우두머리: +1 on a first clear from 4단계, half (rounded down) on a repeat.</summary>
-        public static int ClearStones(int tier, bool first) { int n = ClearInsight(tier) + (first && tier >= 4 ? 1 : 0); return first ? n : n / 2; }
+        /// <summary>심득석 for beating the 우두머리: only on a tier's first clear (+1 from 4단계); a repeat gives none.</summary>
+        public static int ClearStones(int tier, bool first) { return first ? ClearInsight(tier) + (tier >= 4 ? 1 : 0) : 0; }
 
         /// <summary>The 우두머리 fell: the tier's reward (double the first time, half on a repeat) and the next tier opens.</summary>
         public static List<string> Finish(SaveData save)
@@ -670,7 +670,7 @@ namespace BiRyeoDo.Core
             save.Doo += doo;
             run.EarnedDoo += doo;
             if (stones > 0) Inventory.Add(save, InnerArts.StoneId, stones);
-            notes.Add("시련 " + run.Tier + "단계 돌파" + (first ? " (첫 돌파)" : " (다시 돌파: 보상 절반)") + " · 은자 " + doo.ToString("N0") + (stones > 0 ? " · 심득석 " + stones + "개" : ""));
+            notes.Add("시련 " + run.Tier + "단계 돌파" + (first ? " (첫 돌파)" : " (다시 돌파: 은자 절반, 경험·심득석 없음)") + " · 은자 " + doo.ToString("N0") + (stones > 0 ? " · 심득석 " + stones + "개" : ""));
             if (first) { save.MasterTrialBest = run.Tier; if (run.Tier < MaxTier) notes.Add((run.Tier + 1) + "단계가 열렸습니다."); }
             save.MasterTrialRuns++;
             run.Active = false;

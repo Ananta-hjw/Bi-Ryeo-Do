@@ -214,9 +214,9 @@ namespace BiRyeoDo.Core
             Item("aca_art5", "academy", 2, "art_scroll_5", 4500, 10),
             Item("aca_art10", "academy", 2, "art_scroll_10", 8200, 7),
             Item("aca_art20", "academy", 2, "art_scroll_20", 13000, 5),
-            new ShopGood { Id = "aca_scroll", FactionId = "academy", MinTier = 2, Kind = ShopKind.ExpScroll, Amount = 20, Name = "수련 일지", Description = "한 단계 오르는 데 필요한 경험치의 20%를 얻습니다.", Price = 7500, Limit = 5 },
+            new ShopGood { Id = "aca_scroll", FactionId = "academy", MinTier = 2, Kind = ShopKind.ExpScroll, Amount = 20, Name = "수련 일지", Description = "지금까지 진행한 스테이지의 권장 레벨에서 한 단계 오르는 데 필요한 경험치의 20%를 얻습니다.", Price = 7500, Limit = 5 },
             Item("aca_ginseng", "academy", 3, "ginseng", 5200),
-            new ShopGood { Id = "aca_scroll2", FactionId = "academy", MinTier = 4, Kind = ShopKind.ExpScroll, Amount = 50, Name = "비전 수련 일지", Description = "한 단계 오르는 데 필요한 경험치의 50%를 얻습니다.", Price = 19500, Limit = 3 },
+            new ShopGood { Id = "aca_scroll2", FactionId = "academy", MinTier = 4, Kind = ShopKind.ExpScroll, Amount = 50, Name = "비전 수련 일지", Description = "지금까지 진행한 스테이지의 권장 레벨에서 한 단계 오르는 데 필요한 경험치의 50%를 얻습니다.", Price = 19500, Limit = 3 },
             // 중양표국
             Item("bia_ration", "biaoguk", 1, "biaoguk_ration", 400),
             Item("bia_ginseng", "biaoguk", 2, "ginseng", 4800),
@@ -292,7 +292,7 @@ namespace BiRyeoDo.Core
                     break;
                 default:
                     {
-                        long exp = (long)Math.Round(Progression.ExpToNext(save.Level) * g.Amount / 100.0);
+                        long exp = Progression.ContentExp(StageStars.RecommendedPlayerLevel(Math.Max(1, Math.Min(EarlyGameContent.Stages.Length, save.ClearedStage)), 0), g.Amount / 100.0);   // by story progress, not the player level
                         int levels = Progression.AddExp(save, exp);
                         note = NameOf(g) + ": 경험 +" + exp + (levels > 0 ? " (Lv." + save.Level + " 상승!)" : "");
                         break;

@@ -171,8 +171,71 @@ namespace BiRyeoDo.Tests
         public void QuestDooIsTripledButExpStaysLow()
         {
             Assert.AreEqual(2700, Quests.Find("q_hogol").RewardDoo);
-            var save = new SaveData { Level = 10 };
-            Assert.AreEqual(System.Math.Round(Progression.ExpToNext(10) * 0.30), Quests.ExpReward(save));
+            var st = Quests.ToStage(Quests.Find("q_hogol"));
+            Assert.AreEqual(System.Math.Round(Progression.ExpToNext(Progression.PlayerLevelAt(st.RecommendedLevel)) * 0.30), Quests.ExpReward(st));
+        }
+
+        /// <summary>Side content pays by its own level: a player far above it gains exactly what a player at its level gains.</summary>
+        [Test]
+        public void SideContentExpDoesNotGrowWithThePlayersLevel()
+        {
+            var low = new SaveData { Level = 10, ClearedStage = 30, Doo = 1000000, TowerBest = 0 };
+            var high = new SaveData { Level = 100, ClearedStage = 30, Doo = 1000000, TowerBest = 0 };
+            var quest = Quests.ToStage(Quests.Find("q_hogol"));
+            long e1, d1, e2, d2;
+            Recommend.FightReward(low, quest, 0, false, out e1, out d1);
+            Recommend.FightReward(high, quest, 0, false, out e2, out d2);
+            Assert.AreEqual(e1, e2, "quest");
+            Assert.Greater(e1, 0);
+
+            Assert.AreEqual(Tower.ExpReward(5), Progression.ContentExp(Tower.RecommendedPlayerLevel(5), 0.30));
+            var tower = Tower.ToStage(low, 3);
+            Recommend.FightReward(low, tower, 0, false, out e1, out d1);
+            Recommend.FightReward(high, Tower.ToStage(high, 3), 0, false, out e2, out d2);
+            Assert.AreEqual(e1, e2, "tower");
+
+            Assert.AreEqual(Promotion.BuildOffer(low, 2, 0).ExpReward, Promotion.BuildOffer(new SaveData { Level = 100 }, 2, 0).ExpReward, "promotion");
+
+            var ev = Fortunes.All.First(f => f.Choices.Any(c => c.ExpLevels > 0 && c.Doo >= 0));
+            var choice = ev.Choices.First(c => c.ExpLevels > 0 && c.Doo >= 0);
+            var a = new SaveData { Level = 5, ClearedStage = 66 };
+            var b = new SaveData { Level = 90, ClearedStage = 66 };
+            long ca = 0, cb = 0;
+            for (int l = 1; l < 5; l++) ca += Progression.ExpToNext(l);
+            for (int l = 1; l < 90; l++) cb += Progression.ExpToNext(l);
+            Fortunes.Resolve(a, ev, choice, null);
+            Fortunes.Resolve(b, ev, choice, null);
+            long ta = a.Exp, tb = b.Exp;
+            for (int l = 1; l < a.Level; l++) ta += Progression.ExpToNext(l);
+            for (int l = 1; l < b.Level; l++) tb += Progression.ExpToNext(l);
+            Assert.AreEqual(ta - ca, tb - cb, "fortune");
+        }
+
+        [Test]
+        public void MasterTrialRepeatsPayNoExpOrStones()
+        {
+            Assert.AreEqual(0, MasterTrial.ClearStones(8, false));
+            Assert.Greater(MasterTrial.ClearStones(8, true), 0);
+        }
+
+        [Test]
+        public void AcademySemestersOpenWithStoryProgress()
+        {
+            var save = new SaveData { ClearedStage = 15 };
+            Assert.IsTrue(Academy.SemesterOpen(save));
+            Assert.IsTrue(Academy.SignUp(save, new[] { "sword", "guard", "theory" }));
+            save.AcademyCourses.Clear();
+            save.AcademySemester = 2;
+            Assert.IsFalse(Academy.SemesterOpen(save));
+            StringAssert.Contains("16", Academy.SemesterLockText(save));
+            Assert.IsFalse(Academy.SignUp(save, new[] { "sword", "guard", "theory" }));
+            Assert.IsTrue(Academy.LeagueStage(save, Academy.Houses[0].Id).NoReward, "no league rewards before the 학기 opens");
+            save.ClearedStage = 16;
+            Assert.IsTrue(Academy.SemesterOpen(save));
+            Assert.IsTrue(Academy.SignUp(save, new[] { "sword", "guard", "theory" }));
+            save.AcademySemester = 9;
+            Assert.IsTrue(Academy.AllSemestersDone(save));
+            Assert.AreEqual(64, Academy.SemesterGateStage(8));
         }
     }
 }

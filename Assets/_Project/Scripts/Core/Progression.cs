@@ -51,6 +51,12 @@ namespace BiRyeoDo.Core
         }
 
         /// <summary>
+        /// Exp a side activity pays: a share of the level-up cost at the activity's own level (its reference stage, floor or rank),
+        /// never at the player's level, so out-levelling the content stops it from carrying the player further.
+        /// </summary>
+        public static long ContentExp(int contentLevel, double share) { return (long)Math.Round(ExpToNext(Math.Max(1, contentLevel)) * share); }
+
+        /// <summary>
         /// The stat curve. Enemies and balance clones climb it one step per level (their "curve level"). The protagonist and the companions climb it
         /// <see cref="CurvePerPlayerLevel"/> steps per level: stage 30's enemies stand at curve level 65, which a player reaches at level 25.
         /// </summary>

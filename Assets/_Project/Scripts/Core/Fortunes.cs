@@ -386,7 +386,7 @@ namespace BiRyeoDo.Core
             string text = c.Result;
             if (c.ExpLevels > 0)
             {
-                long exp = (long)Math.Round(Progression.ExpToNext(save.Level) * c.ExpLevels);
+                long exp = Progression.ContentExp(StageStars.RecommendedPlayerLevel(ev.UnlockStage, 0), c.ExpLevels);   // the stage the fortune opens at, not the player level
                 int levels = Progression.AddExp(save, exp);
                 text += "\n경험 +" + exp.ToString("N0") + (levels > 0 ? " (Lv." + save.Level + " 상승!)" : "");
             }

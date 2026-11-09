@@ -88,6 +88,20 @@ namespace BiRyeoDo.Core
 
         public static bool Unlocked(SaveData save) { return save != null && save.ClearedStage >= UnlockStage; }
 
+        /// <summary>A new 학기 opens with story progress, not on its own: 학기 n needs 일반 stage 8n cleared (8 … 64, so eight 학기 in all).</summary>
+        public const int SemesterEvery = 8;
+        public static int SemesterGateStage(int semester) { return UnlockStage + SemesterEvery * (Math.Max(1, semester) - 1); }
+        public static bool SemesterOpen(SaveData save) { return Unlocked(save) && save.ClearedStage >= SemesterGateStage(save.AcademySemester); }
+        public static bool AllSemestersDone(SaveData save) { return SemesterGateStage(save.AcademySemester) > EarlyGameContent.Stages.Length; }
+
+        /// <summary>Why the 학기 cannot start yet ("" when it is open).</summary>
+        public static string SemesterLockText(SaveData save)
+        {
+            if (SemesterOpen(save)) return "";
+            if (AllSemestersDone(save)) return "모든 학기를 마쳤습니다. 대항전은 보상 없이 다시 겨룰 수 있습니다.";
+            return save.AcademySemester + "학기는 일반 스테이지 " + SemesterGateStage(save.AcademySemester) + " 돌파 후 열립니다.";
+        }
+
         /// <summary>The stage whose enemies the 학관 fights borrow: the latest cleared one (lessons grow with the story).</summary>
         public static int ReferenceStage(SaveData save)
         {
@@ -137,7 +151,7 @@ namespace BiRyeoDo.Core
         /// <summary>Signs up for this 학기's courses (once a 학기, exactly three). Returns false when not allowed.</summary>
         public static bool SignUp(SaveData save, IList<string> courseIds)
         {
-            if (!Unlocked(save) || save.AcademyCourses.Count > 0 || courseIds == null || courseIds.Count != CoursesPerSemester) return false;
+            if (!SemesterOpen(save) || save.AcademyCourses.Count > 0 || courseIds == null || courseIds.Count != CoursesPerSemester) return false;
             var picked = new List<string>();
             foreach (var id in courseIds) if (FindCourse(id) != null && !picked.Contains(id)) picked.Add(id);
             if (picked.Count != CoursesPerSemester) return false;
@@ -355,7 +369,7 @@ namespace BiRyeoDo.Core
             st.BestOfThree = true;
             var reference = EarlyGameContent.FindStage(r);
             st.DooTotal = Math.Max(1000, reference != null ? reference.DooTotal * 2 / 3 : 1000);
-            st.NoReward = save.AcademyLeague.Contains(house.Id);
+            st.NoReward = save.AcademyLeague.Contains(house.Id) || !SemesterOpen(save);   // league rewards come with an open 학기
             return st;
         }
 
@@ -465,7 +479,7 @@ namespace BiRyeoDo.Core
             save.AcademyCourses.Clear();
             save.AcademyGrades.Clear();
             save.AcademyLeague.Clear();
-            notes.Add(save.AcademySemester + "학기가 시작되었습니다. 새로 수강신청을 해 주세요.");
+            notes.Add(SemesterOpen(save) ? save.AcademySemester + "학기가 시작되었습니다. 새로 수강신청을 해 주세요." : SemesterLockText(save));
             return notes;
         }
 

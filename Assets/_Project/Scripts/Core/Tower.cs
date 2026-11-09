@@ -32,9 +32,10 @@ namespace BiRyeoDo.Core
             return new ItemStack[0];
         }
 
-        public static long ExpReward(SaveData save, int floor)
+        /// <summary>First-clear exp of a floor: a share of the level-up cost at the floor's recommended level (not the player's).</summary>
+        public static long ExpReward(int floor)
         {
-            return (long)Math.Round(Progression.ExpToNext(save.Level) * (IsBossFloor(floor) ? 0.30 : 0.15));
+            return Progression.ContentExp(RecommendedPlayerLevel(floor), IsBossFloor(floor) ? 0.30 : 0.15);
         }
 
         private static List<EnemyData> _normals, _bosses;

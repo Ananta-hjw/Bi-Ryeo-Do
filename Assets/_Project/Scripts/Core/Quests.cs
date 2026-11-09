@@ -163,8 +163,8 @@ namespace BiRyeoDo.Core
             };
         }
 
-        /// <summary>Exp for a quest fight: a fraction of the current level-up cost.</summary>
-        public static long ExpReward(SaveData save) { return (long)Math.Round(Progression.ExpToNext(save.Level) * 0.30); }
+        /// <summary>Exp for a quest (or 천무학관) fight: 30% of the level-up cost at the borrowed stage's recommended level, whatever the player's level.</summary>
+        public static long ExpReward(StageData st) { return Progression.ContentExp(Progression.PlayerLevelAt(st.RecommendedLevel), 0.30); }
 
         /// <summary>Marks the quest done and hands out the item reward; returns a one-line note.</summary>
         public static string Complete(SaveData save, QuestData q)

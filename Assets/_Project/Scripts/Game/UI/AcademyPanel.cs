@@ -70,12 +70,14 @@ namespace BiRyeoDo.Game.UI
             switch (_page)
             {
                 case Page.Courses:
+                    if (save.AcademyCourses.Count == 0 && !Academy.SemesterOpen(save)) return Academy.SemesterLockText(save);
                     return save.AcademyCourses.Count == 0 ? "이번 학기에 들을 과목 " + Academy.CoursesPerSemester + "개를 골라 주세요."
                         : Academy.ExamOpen(save) ? "세 과목을 모두 이수했습니다. 연말 평가를 치르면 다음 학기로 넘어갑니다."
                         : "과목마다 한 번 이수하면 보상을 받습니다. 다시 치르면 성적만 올릴 수 있습니다.";
                 case Page.Clubs:
                     return "동호회는 한 곳만 가입할 수 있고, 한 학기에 한 번 바꿀 수 있습니다.";
                 default:
+                    if (!Academy.SemesterOpen(save)) return Academy.SemesterLockText(save) + " 그때까지 대항전은 보상이 없습니다.";
                     return "학기마다 세 단을 처음 이길 때 보상을 받습니다. 세 판 가운데 두 판을 이기면 승리합니다.";
             }
         }
@@ -86,7 +88,12 @@ namespace BiRyeoDo.Game.UI
         {
             var grid = new ReadingGrid(content, 3, 330f);
             bool signedUp = save.AcademyCourses.Count > 0;
-            if (!signedUp)
+            if (!signedUp && !Academy.SemesterOpen(save))
+            {
+                grid.Heading(Academy.SemesterLockText(save));
+                foreach (var c in Academy.Courses) CourseCard(save, grid, c, false);
+            }
+            else if (!signedUp)
             {
                 grid.Heading("수강신청 (" + _picked.Count + " / " + Academy.CoursesPerSemester + ")");
                 foreach (var c in Academy.Courses) CourseCard(save, grid, c, false);
@@ -196,10 +203,10 @@ namespace BiRyeoDo.Game.UI
             foreach (var h in Academy.Houses)
             {
                 var card = grid.Add("House_" + h.Id);
-                bool won = save.AcademyLeague.Contains(h.Id);
+                bool won = save.AcademyLeague.Contains(h.Id) || !Academy.SemesterOpen(save);
                 T("Name", card, .05f, .80f, .95f, .97f, h.Name + "  <size=22>· " + h.Style + "</size>", 32, won ? UiFactory.Gold : UiFactory.PaperText);
                 T("Brief", card, .05f, .48f, .95f, .80f, h.Brief + "\n선봉 · 중견 · 대장 세 판", 24, UiFactory.PaperText);
-                T("State", card, .05f, .26f, .95f, .48f, won ? "이번 학기 승리 (다시 겨루면 보상 없음)" : "이번 학기 첫 승리 보상: 경험 · 은자 · 천무학관 평판 +" + Academy.LeagueReputation, 22, won ? UiFactory.Gold : UiFactory.Dim);
+                T("State", card, .05f, .26f, .95f, .48f, !Academy.SemesterOpen(save) ? "학기가 열리면 보상을 받습니다 (지금은 연습)" : won ? "이번 학기 승리 (다시 겨루면 보상 없음)" : "이번 학기 첫 승리 보상: 경험 · 은자 · 천무학관 평판 +" + Academy.LeagueReputation, 22, won ? UiFactory.Gold : UiFactory.Dim);
                 UiFactory.Button("Go", card, new Vector2(.06f, .03f), new Vector2(.94f, .21f), won ? "다시 겨루기" : "도전", won ? UiFactory.InkSoft : UiFactory.Red,
                     () => StartFight(Academy.LeagueStage(save, h.Id)), 28);
             }

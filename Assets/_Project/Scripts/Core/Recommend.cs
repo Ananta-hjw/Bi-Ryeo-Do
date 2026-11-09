@@ -38,8 +38,8 @@ namespace BiRyeoDo.Core
             }
             exp += EarlyGameContent.FollowerExp(st, fight);   // added followers pay a half share each
             doo += EarlyGameContent.FollowerDoo(st, fight);
-            if (st.IsQuest) exp = st.MasterTrialFloor > 0 ? MasterTrial.NodeExp(save, st) : Quests.ExpReward(save);
-            if (st.IsTower) { exp = towerFirst ? Tower.ExpReward(save, st.TowerFloor) : 0; if (!towerFirst) doo = 0; }
+            if (st.IsQuest) exp = st.MasterTrialFloor > 0 ? MasterTrial.NodeExp(save, st) : Quests.ExpReward(st);
+            if (st.IsTower) { exp = towerFirst ? Tower.ExpReward(st.TowerFloor) : 0; if (!towerFirst) doo = 0; }
             if (diff > 0) { exp = (long)Math.Round(exp * StageStars.RewardFactor[diff]); doo = (long)Math.Round(doo * StageStars.RewardFactor[diff]); }
             if (!st.IsTower)
             {

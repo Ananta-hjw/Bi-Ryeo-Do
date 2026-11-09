@@ -89,7 +89,7 @@ namespace BiRyeoDo.Game.UI
                 bool locked = tier > open, cleared = tier <= save.MasterTrialBest;
                 T("Name", card, .05f, .78f, .95f, .97f, tier + "단계" + (cleared ? "  <size=22>· 돌파</size>" : ""), 32, locked ? UiFactory.Dim : UiFactory.Gold);
                 T("Info", card, .05f, .30f, .95f, .78f,
-                    "적 체력 +" + Math.Round((MasterTrial.TierHp(tier) - 1f) * 100f) + "% · 공격 +" + Math.Round((MasterTrial.TierAtk(tier) - 1f) * 100f) + "%\n휴식 회복 " + Math.Round(MasterTrial.RestHeal(tier) * 100f) + "%\n돌파 보상 은자 " + (cleared ? Income.Boost(MasterTrial.ClearDoo(tier) / 2).ToString("N0") + " (다시 돌파 · 관문 보상도 절반)" : Income.Boost(MasterTrial.ClearDoo(tier) * 2).ToString("N0") + " (첫 돌파)") + (MasterTrial.ClearStones(tier, !cleared) > 0 ? " · 심득석 " + MasterTrial.ClearStones(tier, !cleared) + "개" : ""),
+                    "적 체력 +" + Math.Round((MasterTrial.TierHp(tier) - 1f) * 100f) + "% · 공격 +" + Math.Round((MasterTrial.TierAtk(tier) - 1f) * 100f) + "%\n휴식 회복 " + Math.Round(MasterTrial.RestHeal(tier) * 100f) + "%\n돌파 보상 은자 " + (cleared ? Income.Boost(MasterTrial.ClearDoo(tier) / 2).ToString("N0") + " (다시 돌파 · 관문 은자도 절반, 경험치 없음)" : Income.Boost(MasterTrial.ClearDoo(tier) * 2).ToString("N0") + " (첫 돌파)") + (MasterTrial.ClearStones(tier, !cleared) > 0 ? " · 심득석 " + MasterTrial.ClearStones(tier, !cleared) + "개" : ""),
                     22, locked ? UiFactory.Dim : UiFactory.PaperText);
                 var go = UiFactory.Button("Go", card, new Vector2(.08f, .05f), new Vector2(.92f, .26f), locked ? (tier - 1) + "단계 돌파 필요" : "도전", locked ? UiFactory.InkSoft : UiFactory.Red, () =>
                 {

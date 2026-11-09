@@ -268,7 +268,7 @@ namespace BiRyeoDo.Tests
             MasterTrial.BeginFight(save);
             Assert.AreEqual("fight", run.Pending);
             Assert.IsNull(MasterTrial.Choose(save, boss), "no new path while the fight is on");
-            long full = (long)System.Math.Round(Progression.ExpToNext(save.Level) * .20);
+            long full = Progression.ContentExp(Progression.PlayerLevelAt(st.RecommendedLevel), .20);   // the fight's own level, not the player's
             MasterTrial.CompleteFight(save, new List<Combatant> { Formation.BuildHero(save) }, new SeededRandom(1));
             Assert.AreEqual(1, save.MasterTrialBest);
             Assert.AreEqual(full, MasterTrial.NodeExp(save, st), "the boss win raised the best tier but still pays a first clear");
@@ -276,7 +276,8 @@ namespace BiRyeoDo.Tests
             MasterTrial.Close(save);
             MasterTrial.Start(save, 1, 4);
             Assert.IsTrue(save.MasterTrialRun.Repeat);
-            MasterTrial.Choose(save, MasterTrial.Options(save)[0]);
+            var again = MasterTrial.Choose(save, MasterTrial.Options(save)[0]);
+            Assert.AreEqual(0, MasterTrial.NodeExp(save, again), "a tier already cleared pays no exp");
             MasterTrial.BeginFight(save);
             StringAssert.Contains("떠났습니다", MasterTrial.FailAbandoned(save));
             Assert.IsFalse(save.MasterTrialRun.Active);
