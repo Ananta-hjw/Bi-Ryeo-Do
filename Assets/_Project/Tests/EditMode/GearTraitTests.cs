@@ -204,11 +204,11 @@ namespace BiRyeoDo.Tests
             var fresh = Gear.EffectsFor(item);
             var enhanced = Gear.EffectsFor(item, 100);
             Assert.AreEqual(.0789f * 2f / 1.3f, fresh.QiPct, .00001f);   // +12.14% at five stars, no enhancement (2026-11: -5%)
-            Assert.AreEqual(.7353f * 2f / 1.3f, fresh.DefPct, .00001f);   // +113.12%
+            Assert.AreEqual(.44118f * 2f / 1.3f, fresh.DefPct, .00001f);   // +67.87% (x0.6, 2026-11)
             Assert.AreEqual(.0789f * (2f + 3.05f * .20f) / 1.3f, enhanced.QiPct, .00001f);   // 내공 takes 20% of the enhancement gain (x4.05 at +100)
-            Assert.AreEqual(.7353f * 5.05f / 1.3f, enhanced.DefPct, .00001f);
+            Assert.AreEqual(.44118f * 5.05f / 1.3f, enhanced.DefPct, .00001f);
             StringAssert.Contains("내공 +15.8%", StatusSheet.EffectText(item, 100));
-            StringAssert.Contains("방어 +285.6%", StatusSheet.EffectText(item, 100));
+            StringAssert.Contains("방어 +171.4%", StatusSheet.EffectText(item, 100));
             Assert.IsEmpty(Gear.BreakthroughTraits(item), "these are base effects, not fixed breakthrough traits");
         }
 

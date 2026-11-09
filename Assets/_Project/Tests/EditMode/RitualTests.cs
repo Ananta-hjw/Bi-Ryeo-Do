@@ -33,20 +33,20 @@ public class RitualTests
         Assert.AreEqual(5, Gear.Stars(save, item.Id));
         var stats = new CombatStats { MaxHp = 1000, MaxQi = 100, Attack = 1000, Defense = 100, Speed = 100, CritRate = 0f, CritDamage = 1.5f };
         var actual = Inventory.ApplyGear(stats, save.EquippedGear, Gear.LevelsFor(save, Inventory.Hero));
-        Assert.AreEqual(1745, actual.MaxHp);   // 2026-11: every effect -5%, 치명타 40%
-        Assert.AreEqual(3982, actual.Attack);
-        Assert.AreEqual(149, actual.Speed);
+        Assert.AreEqual(1447, actual.MaxHp);   // 2026-11: 체력·공격·방어·속도 x0.6 after the -5%
+        Assert.AreEqual(2789, actual.Attack);
+        Assert.AreEqual(129, actual.Speed);
         Assert.AreEqual(.208f * 1.5f / 1.3f, actual.CritRate, .00001f);   // 24% (x0.6 치명타 cut)
         Assert.AreEqual(1.5f + .8075f * 2f / 1.3f, actual.CritDamage, .00001f);
-        Assert.AreEqual(213, actual.Defense);
+        Assert.AreEqual(168, actual.Defense);
         Assert.AreEqual(112, actual.MaxQi);
         Assert.AreEqual(0, actual.StartSpirit);
         var effects = StatusSheet.EffectText(item, 0, Gear.MaxStars);
-        StringAssert.Contains("체력 +74.5%", effects);
-        StringAssert.Contains("공격 +298.2%", effects);
+        StringAssert.Contains("체력 +44.7%", effects);
+        StringAssert.Contains("공격 +178.9%", effects);
         StringAssert.Contains("내공 +12.1%", effects);
-        StringAssert.Contains("방어 +113.1%", effects);
-        StringAssert.Contains("속도 +49", effects);
+        StringAssert.Contains("방어 +67.9%", effects);
+        StringAssert.Contains("속도 +29", effects);
         StringAssert.Contains("치명타 +24%", effects);
         StringAssert.Contains("치명타 피해 +124.2%", effects);
         Assert.AreEqual(effects, StatusSheet.EffectText(item));
