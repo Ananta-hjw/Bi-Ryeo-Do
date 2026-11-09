@@ -2,6 +2,16 @@
 
 경로: `Assets/_Project/Resources/Art/Standing/`
 
+2026-11-09 추가 5종: 모두 1024×1536 투명 RGBA 전신 입화이며 개별 Unity 메타파일과 대화 별칭을 갖는다. 원작 묘사와 창작 세부는 `ART_LOOKS.md`의 같은 인물 항목에 기록했다.
+
+| 대상 | 파일 | 분류 |
+|---|---|---|
+| 단옥도 팽유경 | [`pae_yugyeong.png`](../Assets/_Project/Resources/Art/Standing/pae_yugyeong.png) | 여성 호위 |
+| 영뇌 이무강 | [`i_mugang.png`](../Assets/_Project/Resources/Art/Standing/i_mugang.png) | 책사 |
+| 혈창 | [`hyeol_chang.png`](../Assets/_Project/Resources/Art/Standing/hyeol_chang.png) | 복면 창수 |
+| 십자검 도남포 | [`do_nampo.png`](../Assets/_Project/Resources/Art/Standing/do_nampo.png) | 수호대 부대주 |
+| 주월산 | [`ju_wolsan.png`](../Assets/_Project/Resources/Art/Standing/ju_wolsan.png) | 주루 주인 |
+
 2026-11-09 객잔 UI: [`inn_hostess.png`](../Assets/_Project/Resources/Art/Standing/inn_hostess.png)는 마하령 수정 이전 원화를 그대로 재사용한 「객잔 주인」 전용 입화다. 새 Unity GUID를 사용하며 `FactionPanel` 객잔 왼쪽에 표시한다. 현재 마하령 파일과 별개다.
 
 2026-11-09: 아래 대화 전신 입화 5종을 추가하고 마하령을 평소 모습으로 재제작했다. 모두 1024×1536 투명 RGBA이며 원작 근거와 미술 해석은 `ART_LOOKS.md`의 같은 날짜 항목에 기록했다.
