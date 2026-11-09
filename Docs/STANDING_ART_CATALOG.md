@@ -2,6 +2,17 @@
 
 경로: `Assets/_Project/Resources/Art/Standing/`
 
+2026-11-09: 아래 대화 전신 입화 5종을 추가하고 마하령을 평소 모습으로 재제작했다. 모두 1024×1536 투명 RGBA이며 원작 근거와 미술 해석은 `ART_LOOKS.md`의 같은 날짜 항목에 기록했다.
+
+| 대상 | 파일 | 작업 |
+|---|---|---|
+| 쾌창 등여운 | [`deung_yeoun.png`](../Assets/_Project/Resources/Art/Standing/deung_yeoun.png) | 신규 |
+| 섬연창 등여호 | [`deung_yeoho.png`](../Assets/_Project/Resources/Art/Standing/deung_yeoho.png) | 신규 |
+| 적웅산도 막적 | [`mak_jeok.png`](../Assets/_Project/Resources/Art/Standing/mak_jeok.png) | 신규 |
+| 쾌창 조걸 | [`jo_geol.png`](../Assets/_Project/Resources/Art/Standing/jo_geol.png) | 신규 |
+| 검마 초월 | [`cho_wol.png`](../Assets/_Project/Resources/Art/Standing/cho_wol.png) | 신규 |
+| 철옥잠 마하령 | [`ma_haryeong.png`](../Assets/_Project/Resources/Art/Standing/ma_haryeong.png) | 교체·기존 GUID 유지 |
+
 기존 비류연·동료 5명을 보존하고 옛 `Characters` 폴더에만 있던 51개를 추가했다(이후 `Characters` 폴더와 그 코드는 삭제했다). 인물 45명(집단은 대표 1명), 야수 3종, 기관 소품 3종이다. 새 파일은 1024×1536 RGBA PNG이며 개별 Unity 메타데이터를 갖는다.
 
 원작 확인 외형은 `ART_LOOKS.md`·`Story/CHARACTERS.md` 및 관련 권 분석을 참고했다. 자세·의상 장식·조명은 게임용 창작 표현이다. SD는 변경하지 않는다.
