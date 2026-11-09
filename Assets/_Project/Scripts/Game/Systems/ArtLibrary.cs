@@ -77,6 +77,17 @@ namespace BiRyeoDo.Game.Systems
         // Exact SD identities only. Do not use title substrings or Standing-only aliases.
         private static readonly Dictionary<string, string> BattleKeys = new Dictionary<string, string>
         {
+            { "등여운", "deung_yeoun" },
+            { "쾌창 등여운", "deung_yeoun" },
+            { "등여호", "deung_yeoho" },
+            { "섬연창 등여호", "deung_yeoho" },
+            { "막적", "mak_jeok" },
+            { "적웅산도 막적", "mak_jeok" },
+            { "조걸", "jo_geol" },
+            { "쾌창 조걸", "jo_geol" },
+            { "초월", "cho_wol" },
+            { "검마", "cho_wol" },
+            { "검마 초월", "cho_wol" },
             { "변장한 비류연", "biry_old_master" },
             { "비류연(노사부)", "biry_old_master" },
             { "가짜 노사부", "biry_old_master" },
@@ -436,6 +447,20 @@ namespace BiRyeoDo.Game.Systems
         // Standing-only display-name aliases. Keep SD identity and default selection independent.
         private static readonly Dictionary<string, string> StandingKeys = new Dictionary<string, string>
         {
+            { "마하령", "ma_haryeong" },
+            { "철옥잠", "ma_haryeong" },
+            { "군웅회주", "ma_haryeong" },
+            { "등여운", "deung_yeoun" },
+            { "쾌창 등여운", "deung_yeoun" },
+            { "등여호", "deung_yeoho" },
+            { "섬연창 등여호", "deung_yeoho" },
+            { "막적", "mak_jeok" },
+            { "적웅산도 막적", "mak_jeok" },
+            { "조걸", "jo_geol" },
+            { "쾌창 조걸", "jo_geol" },
+            { "초월", "cho_wol" },
+            { "검마", "cho_wol" },
+            { "검마 초월", "cho_wol" },
             { "남궁진", "namgung_jin" },
             { "전광검", "namgung_jin" },
             { "전광검 남궁진", "namgung_jin" },
