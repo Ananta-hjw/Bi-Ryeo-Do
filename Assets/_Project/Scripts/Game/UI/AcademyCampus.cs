@@ -43,6 +43,7 @@ namespace BiRyeoDo.Game.UI
             _walk = walk; _enter = enter;
             _viewport = UiFactory.Rect("CampusViewport", root, new Vector2(0f, .07f), new Vector2(1f, .88f));
             _viewport.gameObject.AddComponent<RectMask2D>();
+            UiFactory.OwnCanvas(_viewport.gameObject, true);   // the scrolling courtyard re-batches on its own; residents are tappable
             _world = UiFactory.Rect("CampusWorld", _viewport, new Vector2(.5f, .5f), new Vector2(.5f, .5f));
             _world.sizeDelta = new Vector2(AcademyWalk.Width, AcademyWalk.Height);
             var ground = UiFactory.Panel("Ground", _world, Vector2.zero, Vector2.one, new Color(.36f, .39f, .25f));

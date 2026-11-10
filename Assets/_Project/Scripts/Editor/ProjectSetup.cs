@@ -35,6 +35,9 @@ namespace BiRyeoDo.Editor
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
             PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel24;
             EditorUserBuildSettings.buildAppBundle = false; // sideload APK; personal use only
+            // ASTC compresses textures of any size; with ETC2, art whose sides are not multiples of 4 (about a third of it)
+            // would fall back to uncompressed RGBA and use several times the memory.
+            EditorUserBuildSettings.androidBuildSubtarget = MobileTextureSubtarget.ASTC;
         }
 
         private static void CreateBootScene()

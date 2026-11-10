@@ -662,12 +662,58 @@ namespace BiRyeoDo.Game.Systems
         private static Sprite Load(string path)
         {
             Sprite sprite;
-            if (Cache.TryGetValue(path, out sprite)) return sprite;
+            if (Cache.TryGetValue(path, out sprite))
+            {
+                if (sprite != null && IsHeavy(path)) Touch(path);
+                return sprite;
+            }
 
             var tex = Resources.Load<Texture2D>("Art/" + path);
             sprite = tex == null ? null : Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
             Cache[path] = sprite;
+            if (sprite != null && IsHeavy(path)) Touch(path);
             return sprite;
+        }
+
+        // ------------------------------------------------------------------ memory: large single-image art
+
+        /// <summary>
+        /// Full-screen backgrounds, standing portraits and battle figures are megabytes each and there are hundreds of them;
+        /// keeping every one ever shown made memory grow for the whole session. Only the most recently used ones stay cached.
+        /// Dropped entries are not destroyed (an Image may still show them); <see cref="ReleaseUnused"/> lets Unity unload
+        /// the ones nothing references any more, at a moment where a short pause is acceptable.
+        /// </summary>
+        public const int HeavyCacheLimit = 40;
+        private static readonly LinkedList<string> HeavyOrder = new LinkedList<string>();
+        private static readonly Dictionary<string, LinkedListNode<string>> HeavyNodes = new Dictionary<string, LinkedListNode<string>>();
+        private static bool _releasePending;
+
+        private static bool IsHeavy(string path)
+        {
+            return path.StartsWith("Backgrounds/") || path.StartsWith("Standing/") || path.StartsWith("Battle/");
+        }
+
+        private static void Touch(string path)
+        {
+            LinkedListNode<string> node;
+            if (HeavyNodes.TryGetValue(path, out node)) HeavyOrder.Remove(node);
+            HeavyNodes[path] = HeavyOrder.AddFirst(path);
+            while (HeavyOrder.Count > HeavyCacheLimit)
+            {
+                string oldest = HeavyOrder.Last.Value;
+                HeavyOrder.RemoveLast();
+                HeavyNodes.Remove(oldest);
+                Cache.Remove(oldest);
+                _releasePending = true;
+            }
+        }
+
+        /// <summary>Unloads art dropped from the cache, if any. Call only at transitions (after a battle, on a screen change).</summary>
+        public static void ReleaseUnused()
+        {
+            if (!_releasePending) return;
+            _releasePending = false;
+            Resources.UnloadUnusedAssets();
         }
     }
 }

@@ -22,7 +22,11 @@ namespace BiRyeoDo.Game.UI
         private Text _portraitGlyph;
         private UiFactory.Bar _experience;
         private bool _built;
-        private float _refreshTimer, _lobbyTimer;
+        private float _refreshTimer, _lobbyTimer, _fullRefreshTimer;
+        private long _shownFingerprint;
+        /// <summary>A full badge refresh costs a few milliseconds on a phone (achievements, record updates...), so the
+        /// lobby polls the cheap save fingerprint and only refreshes when it moved, plus a slow safety refresh.</summary>
+        private const float PollSeconds = .5f, SafetyRefreshSeconds = 6f;
         private int _lobbyStep;
         // The speaker and line change with a short cross-fade: portrait, name card and speech fade out (the portrait drifting left),
         // then the next one fades in drifting from the right.
@@ -57,6 +61,7 @@ namespace BiRyeoDo.Game.UI
 
             _portraitViewport = UiFactory.Rect("CharacterViewport", root, new Vector2(.112f, .005f), new Vector2(.525f, .89f));
             _portraitViewport.gameObject.AddComponent<RectMask2D>();
+            UiFactory.OwnCanvas(_portraitViewport.gameObject, true);   // the character cross-fades and drifts on its own canvas
             _portrait = UiFactory.Panel("Character", _portraitViewport, Vector2.zero, Vector2.one, Color.white);
             _portrait.preserveAspect = true;
             _portraitFade = _portrait.gameObject.AddComponent<CanvasGroup>();
@@ -236,15 +241,20 @@ namespace BiRyeoDo.Game.UI
         {
             if (!_built || GameManager.Instance == null) return;
             _refreshTimer -= Time.unscaledDeltaTime;
+            _fullRefreshTimer -= Time.unscaledDeltaTime;
             _lobbyTimer += Time.unscaledDeltaTime;
             if (_lobbyTimer >= 12f) { _lobbyTimer = 0f; _lobbyStep++; RefreshLobby(); }
-            if (_refreshTimer <= 0f) { _refreshTimer = .5f; Refresh(); }
+            if (_refreshTimer > 0f) return;
+            _refreshTimer = PollSeconds;
+            if (_fullRefreshTimer <= 0f || SaveFingerprint.Of(GameManager.Instance.Save) != _shownFingerprint) Refresh();
         }
 
         public void Refresh()
         {
             if (!_built || GameManager.Instance == null) return;
             var save = GameManager.Instance.Save;
+            _shownFingerprint = SaveFingerprint.Of(save);
+            _fullRefreshTimer = SafetyRefreshSeconds;
             if (!ReferenceEquals(save, _shownSave)) { _shownSave = save; _world.Refresh(); _lobbyStep = 0; }
             _identity.text = "비류연  Lv." + save.Level + " · " + Promotion.RankName(Promotion.EffectiveRank(save));
             _doo.text = save.Doo.ToString("N0") + " 은자";

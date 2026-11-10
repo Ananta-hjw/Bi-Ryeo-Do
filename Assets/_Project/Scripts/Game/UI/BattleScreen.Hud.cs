@@ -120,6 +120,7 @@ namespace BiRyeoDo.Game.UI
                 label.fontSize = label.resizeTextMaxSize = 24;
                 label.resizeTextMinSize = 22;
                 var detail = UiFactory.Label("Detail", btn.transform, Vector2.zero, Vector2.one, "", 22, UiFactory.Dim, TextAnchor.MiddleCenter, FontStyle.Normal);
+                detail.resizeTextForBestFit = true;
                 detail.resizeTextMinSize = 20;
                 var clip = UiFactory.Rect("IconClip", btn.transform, Vector2.zero, Vector2.one);
                 var silhouette = clip.gameObject.AddComponent<Image>();

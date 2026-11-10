@@ -130,10 +130,14 @@ namespace BiRyeoDo.Game.UI
 
             _cardsRoot = UiFactory.Rect("Cards", root, Vector2.zero, Vector2.one);
             _partyRoot = UiFactory.Rect("Party", root, Vector2.zero, Vector2.one);
+            // Cards lunge, shake and update their gauges every action: each side re-batches on its own.
+            UiFactory.OwnCanvas(_cardsRoot.gameObject, true);
+            UiFactory.OwnCanvas(_partyRoot.gameObject, true);
             BuildBattleHud(root);
 
             // Effects layers (above everything except panels)
             _fx = UiFactory.Rect("Fx", root, Vector2.zero, Vector2.one);
+            UiFactory.OwnCanvas(_fx.gameObject, false);   // damage numbers and effects animate every frame
             _flash = UiFactory.Panel("Flash", root, Vector2.zero, Vector2.one, new Color(0.8f, 0.1f, 0.1f, 0f));
             BuildFeel(root);
             _bannerBg = UiFactory.Panel("BannerBg", root, new Vector2(FieldLeft, .45f), new Vector2(FieldRight, .57f), new Color(0f, 0f, 0f, 0f));

@@ -243,7 +243,9 @@ namespace BiRyeoDo.Game.UI
             t.alignment = anchor;
             t.horizontalOverflow = HorizontalWrapMode.Wrap;
             t.verticalOverflow = VerticalWrapMode.Truncate;
-            t.resizeTextForBestFit = true;
+            // Best fit only when it can shrink (min 28 < size): at 28 or less min == max, so it would only add the
+            // costly fitting pass of the dynamic CJK font without changing anything. Callers that lower the minimum turn it on.
+            t.resizeTextForBestFit = size > 28;
             t.resizeTextMinSize = Mathf.Min(size, 28);
             t.resizeTextMaxSize = size;
             t.raycastTarget = false;
@@ -281,6 +283,19 @@ namespace BiRyeoDo.Game.UI
         }
 
         /// <summary>Reading-text style: a fixed font size (no shrink-to-fit, so sizes match across rows) with roomier lines.</summary>
+        /// <summary>
+        /// Gives a frequently changing part of the UI its own nested canvas, so moving or fading it re-batches only that part
+        /// instead of every visible graphic on the single root canvas. It still draws in hierarchy order (no sorting override).
+        /// A nested canvas needs its own raycaster for taps on its children.
+        /// </summary>
+        public static Canvas OwnCanvas(GameObject go, bool clickable)
+        {
+            var canvas = go.GetComponent<Canvas>();
+            if (canvas == null) canvas = go.AddComponent<Canvas>();
+            if (clickable && go.GetComponent<GraphicRaycaster>() == null) go.AddComponent<GraphicRaycaster>();
+            return canvas;
+        }
+
         public static Text Body(Text t, float lineSpacing = 1.25f)
         {
             t.resizeTextForBestFit = false;

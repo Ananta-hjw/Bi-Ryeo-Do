@@ -105,6 +105,7 @@ namespace BiRyeoDo.Game.UI
             // The battle host blocks navigation throughout combat and story playback.
             var overlay = UiFactory.Panel("BattleOverlay", safe, Vector2.zero, Vector2.one, UiFactory.Parchment).rectTransform;
             overlay.GetComponent<Image>().raycastTarget = true;
+            UiFactory.OwnCanvas(overlay.gameObject, true);   // battle animations re-batch only the battle
             var battleRoot = UiFactory.Rect("BattleLandscape", overlay, Vector2.zero, Vector2.one);
             _battle = battleRoot.gameObject.AddComponent<BattleScreen>();
             _battle.Build(battleRoot);
@@ -115,13 +116,13 @@ namespace BiRyeoDo.Game.UI
             {
                 _world.CloseOverlays();
                 _worldModal.SetActive(false);
-                _battleOverlay.SetActive(true);
+                ShowBattleOverlay();
                 _battle.Open(stage, ReturnFromBattle);
             }, offer =>
             {
                 _world.CloseOverlays();
                 _worldModal.SetActive(false);
-                _battleOverlay.SetActive(true);
+                ShowBattleOverlay();
                 _battle.OpenPromotion(offer, ReturnFromBattle);
             }, () => Select((int)TabRouter.Tab.Companions));
 
@@ -170,10 +171,37 @@ namespace BiRyeoDo.Game.UI
             _world.OpenMenu(menu);
         }
 
+        private GameObject _hiddenForBattle;
+
+        /// <summary>
+        /// Opens the battle host for a fight. The 강호 lobby underneath is switched off for the whole fight: everything sits
+        /// on one canvas, so a lobby left on would be drawn (full-screen art, overdraw) and re-batched on every animated frame,
+        /// and its badge refresh would keep running. Only the lobby is hidden; other tabs keep their open windows
+        /// (the record tab's story playback goes through its own path and is left as it was).
+        /// </summary>
+        private void ShowBattleOverlay()
+        {
+            _battleOverlay.SetActive(true);
+            if (_router == null || _router.panels == null || _currentTab != (int)TabRouter.Tab.World) return;
+            var panel = _router.panels[_currentTab];
+            if (panel == null || !panel.activeSelf) return;
+            panel.SetActive(false);
+            _hiddenForBattle = panel;
+        }
+
+        private void HideBattleOverlay()
+        {
+            _battleOverlay.SetActive(false);
+            if (_hiddenForBattle == null) return;
+            _hiddenForBattle.SetActive(true);   // OnEnable refreshes the lobby
+            _hiddenForBattle = null;
+        }
+
         private void ReturnFromBattle()
         {
             if (GameManager.Instance != null) GameManager.Instance.SaveIfDirty();   // a fight left midway (포기) still keeps what it counted
-            _battleOverlay.SetActive(false);
+            HideBattleOverlay();
+            ArtLibrary.ReleaseUnused();   // the fight's backgrounds and figures that left the cache
             _world.AfterBattle();
             _worldModal.SetActive(_world.HasOpenOverlay);
             _home.Refresh();
@@ -437,6 +465,7 @@ namespace BiRyeoDo.Game.UI
             if (index < 0 || index >= TabNames.Length) index = (int)TabRouter.Tab.World;
             _currentTab = index;
             _router.Show(index);
+            ArtLibrary.ReleaseUnused();   // screen change: unload large art the cache already let go
             if (index == (int)TabRouter.Tab.Gacha && HelpPanel.Instance != null && !Tutorial.IsDone(GameManager.Instance.Save, "gacha"))
                 HelpPanel.Instance.Show("gacha", true);
         }

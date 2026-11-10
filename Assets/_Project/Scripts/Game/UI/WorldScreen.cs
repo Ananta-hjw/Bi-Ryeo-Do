@@ -247,15 +247,23 @@ namespace BiRyeoDo.Game.UI
         {
             if (_dooText == null || GameManager.Instance == null) return;
             var save = GameManager.Instance.Save;
+            int rankValue = Promotion.EffectiveRank(save);
+            // Runs every frame: only build strings and touch the UI when a value changed (no per-frame garbage or canvas work).
+            if (save == _chipSave && save.Doo == _chipDoo && save.Level == _chipLevel && save.Exp == _chipExp && rankValue == _chipRank) return;
+            _chipSave = save; _chipDoo = save.Doo; _chipLevel = save.Level; _chipExp = save.Exp; _chipRank = rankValue;
             string doo = save.Doo.ToString("N0");
             if (_dooText.text != doo) _dooText.text = doo;
             string lv = "Lv." + save.Level;
             if (_lvText.text != lv) _lvText.text = lv;
             long need = Progression.ExpToNext(save.Level);
             _expBar.SetPct(need > 0 ? Mathf.Clamp01((float)save.Exp / need) : 0f);
-            string rank = Promotion.RankName(Promotion.EffectiveRank(save));
+            string rank = Promotion.RankName(rankValue);
             if (_rankText.text != rank) _rankText.text = rank;
         }
+
+        private SaveData _chipSave;
+        private long _chipDoo = -1, _chipExp = -1;
+        private int _chipLevel = -1, _chipRank = -1;
 
         /// <summary>Puts the current lobby character and line on the card.</summary>
         private void ShowLobby(bool animate)

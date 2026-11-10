@@ -25,6 +25,7 @@ namespace BiRyeoDo.Tests.UI
                 var icon = UiFactory.Rect("Icon", row, new Vector2(0f, .5f), new Vector2(.2f, .5f));
                 icon.sizeDelta = new Vector2(0f, 120f);
                 var tag = UiFactory.Label("Tag", icon, Vector2.zero, new Vector2(1f, .26f), "장착 중", 22, Color.white);
+                bool tagFit = tag.resizeTextForBestFit;
                 var button = UiFactory.Button("Mastery", row, new Vector2(.75f, .5f), new Vector2(1f, .5f), "★☆☆☆☆ 입문\n0/10회", Color.white, () => { }, 24);
                 button.GetComponent<RectTransform>().sizeDelta = new Vector2(0f, 128f);
                 var body = UiFactory.Label("Body", row, new Vector2(.22f, .1f), new Vector2(.72f, .9f), new string('가', 80), 30, Color.white);
@@ -47,7 +48,7 @@ namespace BiRyeoDo.Tests.UI
                     Assert.That(content.sizeDelta.y, Is.EqualTo(contentHeight).Within(.5f));
                     Assert.AreEqual(position, row.anchoredPosition);
                 }
-                Assert.IsTrue(tag.resizeTextForBestFit, "Fixed controls keep their own fitting policy");
+                Assert.AreEqual(tagFit, tag.resizeTextForBestFit, "Fixed controls keep their own fitting policy");
                 body.text = "짧은 글";
                 layout.SendMessage("Invalidate");
                 layout.Reflow();
