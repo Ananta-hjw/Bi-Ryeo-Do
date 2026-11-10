@@ -56,7 +56,9 @@ namespace BiRyeoDo.Tests.UI
                 EventSystem.current = system;
                 host.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
                 var root = host.GetComponent<RectTransform>();
-                host.AddComponent<AcademyCampus>().Build(root, new AcademyWalk(), page => { });
+                var walk = new AcademyWalk();
+                var campus = host.AddComponent<AcademyCampus>();
+                campus.Build(root, walk, page => { });
                 Canvas.ForceUpdateCanvases();
                 var stick = root.Find("MoveStick").GetComponent<AcademyJoystick>();
                 var surface = stick.GetComponent<Image>();
@@ -76,8 +78,16 @@ namespace BiRyeoDo.Tests.UI
                 ExecuteEvents.Execute(owner, pointer, ExecuteEvents.dragHandler);
                 Assert.Greater(stick.Direction.x, .9f);
                 Assert.AreEqual(0f, stick.Direction.y, .001f);
+                var advance = typeof(AcademyCampus).GetMethod("AdvanceMovement", BindingFlags.Instance | BindingFlags.NonPublic);
+                float before = walk.X;
+                advance.Invoke(campus, new object[] { stick.Direction, .05f });
+                Assert.Greater(walk.X, before, "The raycast-delivered input must move the actual campus model.");
+                Assert.AreEqual(walk.X, ((RectTransform)root.Find("CampusViewport/CampusWorld/Player")).anchoredPosition.x);
                 ExecuteEvents.Execute(owner, pointer, ExecuteEvents.pointerUpHandler);
                 Assert.AreEqual(Vector2.zero, stick.Direction);
+                before = walk.X;
+                advance.Invoke(campus, new object[] { stick.Direction, .05f });
+                Assert.AreEqual(before, walk.X, "Releasing the pointer must stop campus movement.");
             }
             finally
             {

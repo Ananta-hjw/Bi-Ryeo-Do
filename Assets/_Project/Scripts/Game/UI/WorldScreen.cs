@@ -897,7 +897,9 @@ namespace BiRyeoDo.Game.UI
                     "이야기 시점\n\n" + storyParty + "\n\n사건 속 인물로 전투를 진행합니다. " + (pastStory ? "어린 시절 회상은 당시의 고정 능력치와 무공을 사용합니다. " : "동료는 기존 육성을, 임시 인물은 비류연의 육성 능력치를 사용합니다. ") + "편성과 배치는 이야기에 따라 정해집니다.", 30, UiFactory.PaperText, TextAnchor.UpperLeft, FontStyle.Normal), 32));
             else BuildFormationBlock(formation, new List<CompanionData>(active), () => OpenPrep(st, go), .18f, .72f, st);
             UiFactory.Button("Go", _prepOverlay, new Vector2(0.52f, .015f), new Vector2(0.95f, .12f), "출전", UiFactory.Red, () => { _prepOverlay.gameObject.SetActive(false); go(); }, 38);
-            UiFactory.Button("Cancel", _prepOverlay, new Vector2(0.05f, .015f), new Vector2(0.48f, .12f), "취소", UiFactory.InkSoft, () => { _prepOverlay.gameObject.SetActive(false); _placeSelected = null; }, 34);
+            UnityEngine.Events.UnityAction cancel = () => { _prepOverlay.gameObject.SetActive(false); _placeSelected = null; };
+            UiFactory.Button("Cancel", _prepOverlay, new Vector2(0.05f, .015f), new Vector2(0.48f, .12f), "취소", UiFactory.InkSoft, cancel, 34);
+            UiFactory.BackCorner(_prepOverlay, cancel);
         }
 
         private void ShowRequiredNotice(CompanionData c, StageData next)

@@ -29,11 +29,11 @@ namespace BiRyeoDo.Game.UI
             Direction = new Vector2(horizontal, vertical);
             if (Knob != null) Knob.anchoredPosition = Direction * radius;
         }
-        public void OnPointerUp(PointerEventData e) { if (_pointer == e.pointerId) ResetStick(); }
-        private void OnDisable() { ResetStick(); }
-        private void OnApplicationPause(bool paused) { if (paused) ResetStick(); }
-        private void OnApplicationFocus(bool focused) { if (!focused) ResetStick(); }
-        private void ResetStick()
+        public void OnPointerUp(PointerEventData e) { if (_pointer == e.pointerId) ResetInput(); }
+        private void OnDisable() { ResetInput(); }
+        private void OnApplicationPause(bool paused) { if (paused) ResetInput(); }
+        private void OnApplicationFocus(bool focused) { if (!focused) ResetInput(); }
+        public void ResetInput()
         {
             _pointer = null; Direction = Vector2.zero;
             if (Knob != null) Knob.anchoredPosition = Vector2.zero;

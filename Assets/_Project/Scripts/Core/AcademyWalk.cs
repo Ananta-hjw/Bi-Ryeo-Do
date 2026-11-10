@@ -20,6 +20,7 @@ namespace BiRyeoDo.Core
             for (int i = 0; i < 3; i++)
                 if (x > FacilityX[i] - 200f - Radius && x < FacilityX[i] + 200f + Radius
                     && y > 1150f - Radius && y < 1450f + Radius) return false;
+            if (AcademyResidents.Blocks(x, y)) return false;
             // A small garden separates the two paths through the courtyard.
             return !(x > 880f - Radius && x < 1520f + Radius && y > 650f - Radius && y < 800f + Radius);
         }

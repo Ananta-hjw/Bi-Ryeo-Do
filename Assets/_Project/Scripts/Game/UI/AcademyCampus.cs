@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using BiRyeoDo.Core;
 using BiRyeoDo.Game.Systems;
 using UnityEngine;
@@ -20,6 +21,17 @@ namespace BiRyeoDo.Game.UI
         private Image _playerArt;
         private Sprite[] _walkFrames;
         private int _shownFrame = -1;
+        private readonly List<RectTransform> _depthFigures = new List<RectTransform>();
+        private AcademyResident _activeResident;
+        private Text _guideName, _guideAction;
+        private static readonly Comparison<RectTransform> DepthOrder = (a, b) =>
+        {
+            int order = b.anchoredPosition.y.CompareTo(a.anchoredPosition.y);
+            return order != 0 ? order : string.CompareOrdinal(a.name, b.name);
+        };
+        private GameObject _guideDialog;
+        private Text _guideText;
+        private int _beforeDialogSibling = -1;
 
         public void Build(RectTransform root, AcademyWalk walk, Action<int> enter)
         {
@@ -58,7 +70,20 @@ namespace BiRyeoDo.Game.UI
                 UiFactory.Label("Text", entrance, Vector2.zero, Vector2.one, "입구", 24,
                     UiFactory.Gold, TextAnchor.MiddleCenter).raycastTarget = false;
             }
+            foreach (var resident in AcademyResidents.All)
+            {
+                var figure = UiFactory.Rect("Resident_" + resident.Id, _world, Vector2.zero, Vector2.zero);
+                figure.pivot = new Vector2(.5f, 0f);
+                figure.anchoredPosition = new Vector2(resident.X, resident.Y);
+                figure.sizeDelta = new Vector2(AcademyWalk.FigureWidth, AcademyWalk.FigureHeight);
+                var npcArt = UiFactory.Panel("SD", figure, Vector2.zero, Vector2.one, Color.white);
+                npcArt.sprite = ArtLibrary.Exploration(resident.Art); npcArt.preserveAspect = true;
+                if (npcArt.sprite == null) UiFactory.Label("Fallback", figure, Vector2.zero, Vector2.one, "안내", 40, UiFactory.Gold);
+                UiFactory.Label("Name", figure, new Vector2(-.3f, 1f), new Vector2(1.3f, 1.3f), resident.Name, 25, UiFactory.Gold);
+                _depthFigures.Add(figure);
+            }
             _figure = UiFactory.Rect("Player", _world, Vector2.zero, Vector2.zero);
+            _depthFigures.Add(_figure);
             _figure.pivot = new Vector2(.5f, 0f);
             _figure.sizeDelta = new Vector2(AcademyWalk.FigureWidth, AcademyWalk.FigureHeight);
             var art = UiFactory.Panel("SD", _figure, Vector2.zero, Vector2.one, Color.white);
@@ -79,7 +104,49 @@ namespace BiRyeoDo.Game.UI
             _interact = UiFactory.Button("Interact", root, new Vector2(.78f, .10f), new Vector2(.97f, .24f), "다가가 주세요", UiFactory.Red, Interact, 30);
             _action = _interact.GetComponentInChildren<Text>();
             _hint = UiFactory.Body(UiFactory.Label("WalkHint", root, new Vector2(.18f, .01f), new Vector2(.98f, .065f), "", 25, UiFactory.PaperText, TextAnchor.MiddleCenter));
+            BuildGuideDialog(root);
             RefreshView();
+        }
+
+        private void BuildGuideDialog(RectTransform root)
+        {
+            var shade = UiFactory.Panel("GuideDialog", root, Vector2.zero, Vector2.one, new Color(0f, 0f, 0f, .72f));
+            shade.raycastTarget = true; _guideDialog = shade.gameObject;
+            var card = UiFactory.Panel("Card", shade.transform, new Vector2(.18f, .18f), new Vector2(.82f, .72f), UiFactory.ModalInk);
+            UiFactory.Frame(card.transform, UiFactory.GoldDim, 3f);
+            _guideName = UiFactory.Label("Name", card.transform, new Vector2(.05f, .78f), new Vector2(.95f, .96f), "", 36, UiFactory.Gold);
+            _guideText = UiFactory.ScrollBody(UiFactory.Label("Greeting", card.transform, new Vector2(.06f, .30f), new Vector2(.94f, .76f), "", 30, UiFactory.PaperText), 30);
+            var open = UiFactory.Button("OpenFacility", card.transform, new Vector2(.06f, .06f), new Vector2(.62f, .24f), "", UiFactory.Red, () =>
+            {
+                if (_activeResident == null) return;
+                int facility = _activeResident.Facility;
+                CloseGuideDialog(); _enter(facility);
+            }, 30);
+            _guideAction = open.GetComponentInChildren<Text>();
+            UiFactory.Button("Leave", card.transform, new Vector2(.66f, .06f), new Vector2(.94f, .24f), "나중에", UiFactory.InkSoft, CloseGuideDialog, 28);
+            UiFactory.BackCorner(shade.transform, CloseGuideDialog);
+            _guideDialog.SetActive(false);
+        }
+
+        private void OpenGuideDialog(AcademyResident resident)
+        {
+            _activeResident = resident;
+            _guideName.text = resident.Name;
+            _guideAction.text = resident.ActionLabel;
+            _stick.ResetInput(); _motion.Stop(); ApplyMotion();
+            _guideText.text = AcademyResidents.Greeting(resident, GameManager.Instance.Save);
+            // Raise this branch above AcademyPanel's back/help controls while the modal is open.
+            _beforeDialogSibling = transform.GetSiblingIndex();
+            transform.SetAsLastSibling();
+            _guideDialog.transform.SetAsLastSibling();
+            _guideDialog.SetActive(true);
+        }
+
+        private void CloseGuideDialog()
+        {
+            _stick.ResetInput(); _guideDialog.SetActive(false); _activeResident = null;
+            if (_beforeDialogSibling >= 0) transform.SetSiblingIndex(_beforeDialogSibling);
+            _beforeDialogSibling = -1;
         }
 
         private RectTransform Block(string name, float x, float y, float w, float h, Color color)
@@ -93,6 +160,7 @@ namespace BiRyeoDo.Game.UI
         private void Update()
         {
             if (_walk == null) return;
+            if (_guideDialog != null && _guideDialog.activeSelf) return;
             if (HelpPanel.Instance != null && HelpPanel.Instance.IsOpen)
             {
                 _motion.Stop(); ApplyMotion(); return;
@@ -102,12 +170,18 @@ namespace BiRyeoDo.Game.UI
             if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) input.x += 1f;
             if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) input.y -= 1f;
             if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) input.y += 1f;
+            AdvanceMovement(input, Time.unscaledDeltaTime);
+            if (Input.GetKeyDown(KeyCode.E)) Interact();
+        }
+
+        private void AdvanceMovement(Vector2 input, float seconds)
+        {
+            if (_guideDialog != null && _guideDialog.activeSelf) return;
             float previousX = _walk.X, previousY = _walk.Y;
-            _walk.Move(input.x, input.y, Time.unscaledDeltaTime);
-            _motion.Advance(_walk.X - previousX, _walk.Y - previousY, Time.unscaledDeltaTime);
+            _walk.Move(input.x, input.y, seconds);
+            _motion.Advance(_walk.X - previousX, _walk.Y - previousY, seconds);
             ApplyMotion();
             RefreshView();
-            if (Input.GetKeyDown(KeyCode.E)) Interact();
         }
 
         private void ApplyMotion()
@@ -133,14 +207,20 @@ namespace BiRyeoDo.Game.UI
             _world.anchoredPosition = new Vector2(
                 ExplorationInput.CameraOffset(_walk.X, _viewport.rect.width, AcademyWalk.Width),
                 ExplorationInput.CameraOffset(_walk.Y, _viewport.rect.height, AcademyWalk.Height));
+            _depthFigures.Sort(DepthOrder);
+            foreach (var figure in _depthFigures) figure.SetAsLastSibling();
             int nearby = _walk.NearbyFacility();
-            _interact.interactable = nearby >= 0;
-            _action.text = nearby >= 0 ? _names[nearby] + " 입장" : "다가가 주세요";
-            _hint.text = nearby >= 0 ? "입장 버튼 또는 E키를 눌러 주세요." : "조이스틱 또는 WASD·방향키로 이동해 북쪽 시설 입구에 다가가 주세요.";
+            var resident = AcademyResidents.Nearby(_walk.X, _walk.Y);
+            _interact.interactable = resident != null || nearby >= 0;
+            _action.text = resident != null ? "대화하기" : nearby >= 0 ? _names[nearby] + " 입장" : "다가가 주세요";
+            _hint.text = resident != null ? resident.Name + "에게 말을 걸 수 있습니다." : nearby >= 0 ? "입장 버튼 또는 E키를 눌러 주세요." : "조이스틱 또는 WASD·방향키로 이동해 북쪽 시설이나 안내원에게 다가가 주세요.";
         }
 
         private void Interact()
         {
+            if (_guideDialog != null && _guideDialog.activeSelf) return;
+            var resident = AcademyResidents.Nearby(_walk.X, _walk.Y);
+            if (resident != null) { OpenGuideDialog(resident); return; }
             int nearby = _walk.NearbyFacility();
             if (nearby >= 0) _enter(nearby);
         }

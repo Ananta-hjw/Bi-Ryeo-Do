@@ -398,3 +398,14 @@ AI 프롬프트 예시: "wuxia ink-wash style icon of <아이템 설명>, single
 ## 천무학관 탐색 배경과 시설
 
 `Resources/Art/Exploration/Academy/courtyard.png`는 탐색용 마당 바닥, `facilities.png`는 수강·수업/동호회/단 대항전 외관 시트다. `facilities_atlas.json`과 PNG를 함께 관리하며 `AcademyScenery`가 분리해 표시한다. 지붕·장식·공간 배치는 원작 지형 확정이 아닌 게임 미술 해석이다. 배경에는 이동 장애물이 되는 새 나무·연못·담장을 넣지 않고 기존 화단만 표현했다. 자세한 임포트·검증 기준은 `Docs/ACADEMY_CAMPUS.md`를 따른다.
+
+### 학관 안내원 탐색 SD
+
+`Resources/Art/Exploration/academy_guide.png`: 청옥색·연한 의복, 수강 책자를 든 이름 없는 학관 안내 역할의 정지 SD. 기존 탐색 SD의 화풍을 참고한 별도 생성 아트이며 원작 인물 외형의 확정 설정이 아니다. 대기 한 장만 사용한다.
+
+### 동호회·대항전 탐색 SD
+
+- `Resources/Art/Exploration/academy_club_guide.png`: 청색·연한 의복과 책자·등록 두루마리를 든 동호회 안내 역할.
+- `Resources/Art/Exploration/academy_league_instructor.png`: 붉은 수련복과 목제 수련 도구를 든 대항전 안내 역할.
+
+두 인물 모두 기존 탐색 SD 화풍을 참고한 별도 생성 아트이며, 성별·복식·외형은 게임 창작이다. 원작 실명 인물·정복 설정을 확정하지 않는다. 대기 한 장씩 사용한다.
