@@ -38,6 +38,23 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void NearDiagonalInputKeepsTheCurrentRowAndWalkCycle()
+        {
+            var motion = new ExplorationMotion();
+            motion.Advance(1f, 0f, .05f);
+            for (int i = 0; i < 20; i++)
+            {
+                // jitter around 45 degrees: neither axis is 1.25 times the other
+                motion.Advance(1f, i % 2 == 0 ? 1.05f : .95f, .05f);
+                Assert.AreEqual(ExplorationFacing.Right, motion.Facing);
+            }
+            motion.Advance(.5f, 1f, .05f);
+            Assert.AreEqual(ExplorationFacing.Up, motion.Facing);
+            motion.Stop(); motion.Advance(1f, 1.05f, .05f);
+            Assert.AreEqual(ExplorationFacing.Up, motion.Facing, "from a standstill the larger axis decides");
+        }
+
+        [Test]
         public void ChangingDirectionRestartsTheCycleAndInvalidInputStopsIt()
         {
             var motion = new ExplorationMotion();

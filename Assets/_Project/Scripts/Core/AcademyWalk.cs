@@ -13,10 +13,14 @@ namespace BiRyeoDo.Core
         public float Y { get; private set; } = 400f;
         public static readonly float[] FacilityX = { 500f, 1200f, 1900f };
         public static readonly float[] FacilityY = { 1100f, 1100f, 1100f };
+        /// <summary>The front edge of the building row. Nothing north of it is walkable, so the figure never passes behind a facade
+        /// (the scenery is not depth-sorted with the figures).</summary>
+        public const float FacilityFrontY = 1150f;
 
         public static bool Walkable(float x, float y)
         {
             if (x < SideClearance || y < Radius || x > Width - SideClearance || y > Height - TopClearance) return false;
+            if (y > FacilityFrontY - Radius) return false;
             for (int i = 0; i < 3; i++)
                 if (x > FacilityX[i] - 200f - Radius && x < FacilityX[i] + 200f + Radius
                     && y > 1150f - Radius && y < 1450f + Radius) return false;
@@ -41,12 +45,21 @@ namespace BiRyeoDo.Core
             }
         }
 
+        /// <summary>Squared distance to a facility's entrance as a share of the entrance range (1 = at the edge of the range).</summary>
+        public float FacilityReach(int i)
+        {
+            float dx = X - FacilityX[i], dy = Y - FacilityY[i];
+            return (dx * dx + dy * dy) / (EntranceRange * EntranceRange);
+        }
+
+        public const float EntranceRange = 180f;
+
         public int NearbyFacility()
         {
             for (int i = 0; i < 3; i++)
             {
                 float dx = X - FacilityX[i], dy = Y - FacilityY[i];
-                if (dx * dx + dy * dy <= 180f * 180f) return i;
+                if (dx * dx + dy * dy <= EntranceRange * EntranceRange) return i;
             }
             return -1;
         }

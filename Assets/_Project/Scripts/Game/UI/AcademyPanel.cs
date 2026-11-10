@@ -38,6 +38,14 @@ namespace BiRyeoDo.Game.UI
             host.gameObject.AddComponent<AcademyCampus>().Build(host, _walk, page => { _page = (Page)page; OpenMenu(); });
             UiFactory.HelpButton(Root, () => { if (HelpPanel.Instance != null) HelpPanel.Instance.Show("academy"); });
             AddClose();
+            // The first page of the topic explains walking, so it opens on the first visit to the courtyard.
+            if (!Tutorial.IsDone(GameManager.Instance.Save, "academy") && HelpPanel.Instance != null) HelpPanel.Instance.Show("academy", true);
+        }
+
+        /// <summary>After an academy fight: back to the menu page the fight was started from (its back arrow leads to the courtyard).</summary>
+        public void OpenAfterBattle()
+        {
+            OpenMenu();
         }
 
         private void OpenMenu(string toast = null)

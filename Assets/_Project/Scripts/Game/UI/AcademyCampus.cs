@@ -32,6 +32,11 @@ namespace BiRyeoDo.Game.UI
         private GameObject _guideDialog;
         private Text _guideText;
         private int _beforeDialogSibling = -1;
+        private readonly List<RectTransform> _sorted = new List<RectTransform>();
+        private int _depthBase = -1;
+        private string _notice;
+        private float _noticeUntil;
+        private const float NoticeSeconds = 2f;
 
         public void Build(RectTransform root, AcademyWalk walk, Action<int> enter)
         {
@@ -78,6 +83,12 @@ namespace BiRyeoDo.Game.UI
                 figure.sizeDelta = new Vector2(AcademyWalk.FigureWidth, AcademyWalk.FigureHeight);
                 var npcArt = UiFactory.Panel("SD", figure, Vector2.zero, Vector2.one, Color.white);
                 npcArt.sprite = ArtLibrary.Exploration(resident.Art); npcArt.preserveAspect = true;
+                // Tapping a resident talks to them when the player stands close enough.
+                npcArt.raycastTarget = true;
+                var tap = npcArt.gameObject.AddComponent<Button>();
+                tap.targetGraphic = npcArt; tap.transition = Selectable.Transition.None;
+                var tapped = resident;
+                tap.onClick.AddListener(() => TapResident(tapped));
                 if (npcArt.sprite == null) UiFactory.Label("Fallback", figure, Vector2.zero, Vector2.one, "안내", 40, UiFactory.Gold);
                 UiFactory.Label("Name", figure, new Vector2(-.3f, 1f), new Vector2(1.3f, 1.3f), resident.Name, 25, UiFactory.Gold);
                 _depthFigures.Add(figure);
@@ -207,21 +218,50 @@ namespace BiRyeoDo.Game.UI
             _world.anchoredPosition = new Vector2(
                 ExplorationInput.CameraOffset(_walk.X, _viewport.rect.width, AcademyWalk.Width),
                 ExplorationInput.CameraOffset(_walk.Y, _viewport.rect.height, AcademyWalk.Height));
-            _depthFigures.Sort(DepthOrder);
-            foreach (var figure in _depthFigures) figure.SetAsLastSibling();
-            int nearby = _walk.NearbyFacility();
-            var resident = AcademyResidents.Nearby(_walk.X, _walk.Y);
+            SortDepth();
+            AcademyResident resident; int nearby;
+            AcademyResidents.Pick(_walk, out resident, out nearby);
             _interact.interactable = resident != null || nearby >= 0;
             _action.text = resident != null ? "대화하기" : nearby >= 0 ? _names[nearby] + " 입장" : "다가가 주세요";
-            _hint.text = resident != null ? resident.Name + "에게 말을 걸 수 있습니다." : nearby >= 0 ? "입장 버튼 또는 E키를 눌러 주세요." : "조이스틱 또는 WASD·방향키로 이동해 북쪽 시설이나 안내원에게 다가가 주세요.";
+            if (_notice != null && Time.unscaledTime < _noticeUntil) _hint.text = _notice;
+            else
+            {
+                _notice = null;
+                _hint.text = resident != null ? resident.Name + "에게 말을 걸 수 있습니다. 인물을 눌러도 됩니다." : nearby >= 0 ? "입장 버튼 또는 E키를 눌러 주세요." : "조이스틱 또는 WASD·방향키로 이동해 북쪽 시설이나 안내원에게 다가가 주세요.";
+            }
+        }
+
+        /// <summary>Front-to-back order of the figures; the hierarchy only changes when that order does, so walking does not rebuild the canvas every frame.</summary>
+        private void SortDepth()
+        {
+            _sorted.Clear(); _sorted.AddRange(_depthFigures);
+            _sorted.Sort(DepthOrder);
+            if (_depthBase < 0)
+            {
+                // Figures are drawn after all scenery: they occupy the last sibling slots of the world.
+                _depthBase = _world.childCount - _sorted.Count;
+                for (int i = 0; i < _sorted.Count; i++) _sorted[i].SetSiblingIndex(_depthBase + i);
+                return;
+            }
+            for (int i = 0; i < _sorted.Count; i++)
+                if (_sorted[i].GetSiblingIndex() != _depthBase + i) { _sorted[i].SetSiblingIndex(_depthBase + i); }
+        }
+
+        private void TapResident(AcademyResident resident)
+        {
+            if (_guideDialog != null && _guideDialog.activeSelf) return;
+            if (AcademyResidents.Nearby(_walk.X, _walk.Y) == resident) { OpenGuideDialog(resident); return; }
+            _notice = resident.Name + "에게 조금 더 가까이 다가가 주세요.";
+            _noticeUntil = Time.unscaledTime + NoticeSeconds;
+            RefreshView();
         }
 
         private void Interact()
         {
             if (_guideDialog != null && _guideDialog.activeSelf) return;
-            var resident = AcademyResidents.Nearby(_walk.X, _walk.Y);
+            AcademyResident resident; int nearby;
+            AcademyResidents.Pick(_walk, out resident, out nearby);
             if (resident != null) { OpenGuideDialog(resident); return; }
-            int nearby = _walk.NearbyFacility();
             if (nearby >= 0) _enter(nearby);
         }
     }

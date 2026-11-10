@@ -109,6 +109,10 @@ namespace BiRyeoDo.Tests.UI
             // Only simulate the battle-return callback; no combat, rewards or disk writes.
             _world.AfterBattle();
             Assert.IsTrue(_panel.IsOpen);
+            // The fight returns to the menu it was started from; its back arrow leads to the same spot in the courtyard.
+            Assert.IsNull(_root.GetComponentInChildren<AcademyCampus>());
+            Assert.IsTrue(_root.GetComponentsInChildren<Button>().Any(item => item.name == action));
+            Click(_root, "Back");
             Assert.IsNotNull(_root.GetComponentInChildren<AcademyCampus>());
             Assert.AreEqual(x, _walk.X); Assert.AreEqual(y, _walk.Y);
         }

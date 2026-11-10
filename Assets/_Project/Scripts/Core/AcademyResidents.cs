@@ -34,6 +34,19 @@ namespace BiRyeoDo.Core
             return nearest;
         }
 
+        /// <summary>What the 대화/입장 button acts on: the nearer of a resident in talk range and an entrance in range
+        /// (each measured against its own range), or neither.</summary>
+        public static void Pick(AcademyWalk walk, out AcademyResident resident, out int facility)
+        {
+            resident = Nearby(walk.X, walk.Y);
+            facility = walk.NearbyFacility();
+            if (resident == null || facility < 0) return;
+            float dx = walk.X - resident.X, dy = walk.Y - resident.Y;
+            float talk = (dx * dx + dy * dy) / (AcademyGuide.TalkRange * AcademyGuide.TalkRange);
+            if (walk.FacilityReach(facility) < talk) resident = null;
+            else facility = -1;
+        }
+
         public static bool Blocks(float x, float y)
         {
             float radius = AcademyWalk.Radius + AcademyGuide.Radius;

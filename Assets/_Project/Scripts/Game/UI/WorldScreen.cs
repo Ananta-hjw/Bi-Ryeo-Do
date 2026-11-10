@@ -595,7 +595,7 @@ namespace BiRyeoDo.Game.UI
             CloseOverlays();
             Refresh();
             if (_reopenTower) { _reopenTower = false; OpenTowerOverlay(); }
-            else if (_reopenAcademy) { _reopenAcademy = false; _academy.Open(); }
+            else if (_reopenAcademy) { _reopenAcademy = false; _academy.OpenAfterBattle(); }
             else if (_reopenTrial) { _reopenTrial = false; _masterTrial.Open(); }
             else if (_reopenStages) { _reopenStages = false; OpenStageOverlay(); }
         }

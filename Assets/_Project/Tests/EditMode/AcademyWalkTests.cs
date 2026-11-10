@@ -78,6 +78,40 @@ namespace BiRyeoDo.Tests
         }
 
         [Test]
+        public void NobodyWalksBehindTheBuildingRow()
+        {
+            // Gaps between facades and the side passages used to lead north of the row, where the figure overlapped the roofs.
+            foreach (float x in new[] { 200f, 850f, 1550f, 2200f })
+            {
+                Assert.IsFalse(AcademyWalk.Walkable(x, 1300f), x.ToString());
+                Assert.IsTrue(AcademyWalk.Walkable(x, AcademyWalk.FacilityFrontY - AcademyWalk.Radius - 1f), x.ToString());
+            }
+            var walk = new AcademyWalk();
+            for (int i = 0; i < 12; i++) walk.Move(-1f, 0f, .1f);   // x 840: the gap between facilities 0 and 1
+            for (int i = 0; i < 200; i++) walk.Move(0f, 1f, .1f);
+            Assert.LessOrEqual(walk.Y, AcademyWalk.FacilityFrontY - AcademyWalk.Radius);
+        }
+
+        [Test]
+        public void TheNearerOfAResidentAndAnEntranceIsChosen()
+        {
+            const float ten = 10f / AcademyWalk.Speed;   // seconds for a 10px step
+            var walk = new AcademyWalk();
+            for (int i = 0; i < 18; i++) walk.Move(-1f, 0f, .1f);
+            for (int i = 0; i < 64; i++) walk.Move(0f, 1f, ten);
+            Assert.AreEqual(660f, walk.X, .1f); Assert.AreEqual(1040f, walk.Y, .1f);
+            AcademyResident resident; int facility;
+            // both in range; the entrance (170px of 180) is relatively nearer than the guide (146px of 150)
+            Assert.IsNotNull(AcademyResidents.Nearby(walk.X, walk.Y)); Assert.AreEqual(0, walk.NearbyFacility());
+            AcademyResidents.Pick(walk, out resident, out facility);
+            Assert.AreEqual(0, facility); Assert.IsNull(resident);
+            walk.Move(1f, 0f, ten); walk.Move(0f, 1f, ten);   // (670, 1050): now the guide is relatively nearer
+            Assert.AreEqual(0, walk.NearbyFacility());
+            AcademyResidents.Pick(walk, out resident, out facility);
+            Assert.AreEqual(-1, facility); Assert.AreEqual("courses", resident.Id);
+        }
+
+        [Test]
         public void LongFramesAndInvalidInputCannotTeleportThePlayer()
         {
             var walk = new AcademyWalk();
