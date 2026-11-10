@@ -63,7 +63,7 @@ namespace BiRyeoDo.Core
             actor.Qi -= skill.QiCost;
             if (skill.Cooldown > 0) actor.Cooldowns[skill.Id] = skill.Cooldown;
 
-            ev.IsCrit = _rng.NextDouble() < actor.Stats.CritRate;
+            ev.IsCrit = _rng.NextDouble() < CritRules.Chance(actor.Stats.CritRate);
             ev.Damage = CalcDamage(actor.Stats, target.Stats, skill, ev.IsCrit);
             target.Hp = Math.Max(0, target.Hp - ev.Damage);
             ev.TargetHpAfter = target.Hp;
@@ -85,7 +85,7 @@ namespace BiRyeoDo.Core
         public static int CalcDamage(CombatStats attacker, CombatStats defender, SkillSpec skill, bool crit)
         {
             double raw = attacker.EffAttack * skill.Power / AttackScale;
-            if (crit) raw *= Math.Max(1f, attacker.CritDamage);
+            if (crit) raw *= Math.Max(1f, CritRules.Damage(attacker));
             double reduced = raw * DefenseConstant / (DefenseConstant + Math.Max(0.0, defender.EffDefense));
             return Math.Max(1, (int)Math.Round(reduced));
         }

@@ -183,7 +183,7 @@ namespace BiRyeoDo.Game.UI
             if (_owner != Inventory.Hero)
             {
                 var stats = CompanionGrowth.Create(Save, Companion).Stats;
-                Reading(_page, "Critical", 0f, .005f, 1f, .20f, "치명타율 " + (stats.CritRate * 100f).ToString("0.#") + "% · 치명타 피해 x" + stats.CritDamage.ToString("0.##") + "\n장비·인연·수련을 반영한 전투 능력치입니다.");
+                Reading(_page, "Critical", 0f, .005f, 1f, .20f, "치명타율 " + (CritRules.Chance(stats.CritRate) * 100f).ToString("0.#") + "%" + (stats.CritRate > CritRules.SoftCap ? " (합계 " + (stats.CritRate * 100f).ToString("0.#") + "%)" : "") + " · 치명타 피해 x" + CritRules.Damage(stats).ToString("0.##") + "\n장비·인연·수련을 반영한 전투 능력치입니다.");
             }
         }
 

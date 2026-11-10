@@ -34,7 +34,7 @@ namespace BiRyeoDo.Core
 
         private static double Crit(CombatStats s)
         {
-            return 1.0 + Math.Max(0.0, Math.Min(1.0, s.CritRate)) * (Math.Max(1.0, s.CritDamage) - 1.0);
+            return 1.0 + CritRules.Chance(s.CritRate) * (Math.Max(1.0, CritRules.Damage(s)) - 1.0);
         }
 
         private static Profile Describe(Combatant c)
@@ -254,7 +254,7 @@ namespace BiRyeoDo.Core
 
         private static double Damage(Combatant actor, Combatant target, SkillSpec skill)
         {
-            double crit = Math.Max(0, Math.Min(1, actor.Stats.CritRate));
+            double crit = CritRules.Chance(actor.Stats.CritRate);
             return (BattleEngine.CalcDamage(actor.Stats, target.Stats, skill, false) * (1 - crit)
                 + BattleEngine.CalcDamage(actor.Stats, target.Stats, skill, true) * crit) * Math.Max(1, skill.Hits);
         }

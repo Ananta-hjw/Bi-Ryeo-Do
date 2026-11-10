@@ -7,6 +7,8 @@ namespace BiRyeoDo.Core
     public sealed class StatLine
     {
         public string Label, Value, Bonus;
+        /// <summary>Shown instead of the green 장비 bonus when set (the crit conversion of <see cref="CritRules"/>).</summary>
+        public string Note;
     }
 
     /// <summary>Builds the text of the 상태창 (stat sheet) from the save, so the numbers match what the battle uses.</summary>
@@ -16,6 +18,24 @@ namespace BiRyeoDo.Core
         {
             int diff = finalValue - baseValue;
             return new StatLine { Label = label, Value = finalValue.ToString("N0"), Bonus = diff == 0 ? "" : (diff > 0 ? "+" : "") + diff };
+        }
+
+        /// <summary>Effective crit chance; over the soft cap the summed value is shown as a note.</summary>
+        public static StatLine CritLine(CombatStats f, CombatStats b)
+        {
+            float chance = CritRules.Chance(f.CritRate);
+            var line = new StatLine { Label = "치명타율", Value = Math.Round(chance * 100f, 1) + "%", Bonus = f.CritRate > b.CritRate + 0.0001f ? "+" + Math.Round((f.CritRate - b.CritRate) * 100f, 1) + "%" : "" };
+            if (f.CritRate > CritRules.SoftCap) line.Note = "합계 " + Math.Round(f.CritRate * 100f, 1) + "%";
+            return line;
+        }
+
+        /// <summary>Crit damage including what the crit stat above the soft cap turned into.</summary>
+        public static StatLine CritDamageLine(CombatStats f)
+        {
+            float extra = CritRules.ExtraDamage(f.CritRate);
+            var line = new StatLine { Label = "치명타 피해", Value = "x" + CritRules.Damage(f).ToString("0.00"), Bonus = "" };
+            if (extra > 0f) line.Note = "치명타 전환 +" + Math.Round(extra * 100f, 1) + "%p";
+            return line;
         }
 
         /// <summary>The protagonist's stats with equipped gear applied.</summary>
@@ -30,8 +50,8 @@ namespace BiRyeoDo.Core
                 Line("공격력", b.Attack, f.Attack),
                 Line("방어력", b.Defense, f.Defense),
                 Line("속도", b.Speed, f.Speed),
-                new StatLine { Label = "치명타율", Value = Math.Round(f.CritRate * 100f, 1) + "%", Bonus = f.CritRate > b.CritRate + 0.0001f ? "+" + Math.Round((f.CritRate - b.CritRate) * 100f, 1) + "%" : "" },
-                new StatLine { Label = "치명타 피해", Value = "x" + f.CritDamage.ToString("0.0"), Bonus = "" },
+                CritLine(f, b),
+                CritDamageLine(f),
             };
             return list;
         }
