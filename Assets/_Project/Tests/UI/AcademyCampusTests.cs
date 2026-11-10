@@ -1,9 +1,12 @@
 #if UNITY_EDITOR
 using System.Reflection;
+using System.Collections.Generic;
 using BiRyeoDo.Core;
 using BiRyeoDo.Game.UI;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace BiRyeoDo.Tests.UI
@@ -39,6 +42,49 @@ namespace BiRyeoDo.Tests.UI
                 AssertInside(root, (RectTransform)root.Find("Interact"));
             }
             finally { Object.DestroyImmediate(host); }
+        }
+
+        [Test]
+        public void VisibleJoystickReceivesRaycastPointerInputAndRelease()
+        {
+            var previous = EventSystem.current;
+            var events = new GameObject("CampusInputEvents", typeof(EventSystem));
+            var host = new GameObject("CampusInputTest", typeof(RectTransform), typeof(Canvas), typeof(GraphicRaycaster));
+            try
+            {
+                var system = events.GetComponent<EventSystem>();
+                EventSystem.current = system;
+                host.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+                var root = host.GetComponent<RectTransform>();
+                host.AddComponent<AcademyCampus>().Build(root, new AcademyWalk(), page => { });
+                Canvas.ForceUpdateCanvases();
+                var stick = root.Find("MoveStick").GetComponent<AcademyJoystick>();
+                var surface = stick.GetComponent<Image>();
+                Assert.IsTrue(surface.raycastTarget, "The visible control must opt into UiFactory.Panel's disabled raycast default.");
+                Assert.IsFalse(stick.Knob.GetComponent<Image>().raycastTarget, "The knob must pass touches to the surface.");
+                var rect = (RectTransform)stick.transform;
+                var center = RectTransformUtility.WorldToScreenPoint(null, rect.TransformPoint(rect.rect.center));
+                var pointer = new PointerEventData(system) { pointerId = 31, position = center };
+                var hits = new List<RaycastResult>();
+                host.GetComponent<GraphicRaycaster>().Raycast(pointer, hits);
+                Assert.IsNotEmpty(hits, "The raycaster must see the joystick at its screen position.");
+                Assert.AreEqual(stick.gameObject, hits[0].gameObject);
+                pointer.pointerPressRaycast = pointer.pointerCurrentRaycast = hits[0];
+                var owner = ExecuteEvents.ExecuteHierarchy(hits[0].gameObject, pointer, ExecuteEvents.pointerDownHandler);
+                Assert.AreEqual(stick.gameObject, owner);
+                pointer.position = center + Vector2.right * 80f;
+                ExecuteEvents.Execute(owner, pointer, ExecuteEvents.dragHandler);
+                Assert.Greater(stick.Direction.x, .9f);
+                Assert.AreEqual(0f, stick.Direction.y, .001f);
+                ExecuteEvents.Execute(owner, pointer, ExecuteEvents.pointerUpHandler);
+                Assert.AreEqual(Vector2.zero, stick.Direction);
+            }
+            finally
+            {
+                Object.DestroyImmediate(host);
+                Object.DestroyImmediate(events);
+                EventSystem.current = previous;
+            }
         }
 
         private static void AssertInside(RectTransform viewport, RectTransform child)

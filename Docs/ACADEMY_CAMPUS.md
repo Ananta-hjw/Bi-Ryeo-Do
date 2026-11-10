@@ -103,3 +103,11 @@ Unity에서 기존 학관 확인 항목에 더해 배경과 화단 충돌의 일
 6. 도움말, 시설 입장·뒤로 가기, 전투 준비 취소·전투 종료 후 위치 복귀를 확인한다.
 
 이 실행 확인이 끝나기 전까지 다음 NPC 단계의 전제인 실제 플레이 검증은 미완료다.
+
+## 터치 이동 불가 코드 리뷰와 수정
+
+학관 조이스틱의 Image가 `UiFactory.Panel()`에서 만들어졌지만 기본 `raycastTarget=false`를 그대로 유지하고 있었다. 따라서 모바일 터치가 조이스틱에 도달하지 않아 OnPointerDown/OnDrag가 호출되지 않았다. 이는 이동 수학·감도·충돌 문제가 아니라 UI 입력 연결 오류다.
+
+`AcademyCampus.Build`에서 조이스틱 표면만 `raycastTarget=true`로 설정했다. 장식용 손잡이는 false를 유지한다. 기존 테스트는 핸들러를 직접 호출해 이 누락을 발견하지 못했다. `AcademyCampusTests.VisibleJoystickReceivesRaycastPointerInputAndRelease`는 실제 캠퍼스를 구성하고 GraphicRaycaster 결과에서 포인터 누름·드래그·해제를 전달하는 회귀 검사다.
+
+수정 후 Game 전체와 변경 UI 테스트의 참조 컴파일은 통과했다. 이 환경에는 Unity Editor가 없어 해당 UI 테스트 실행과 Android 터치 확인은 미실행이다. Core 로직 변경이 없어 Core 전체 테스트는 재실행하지 않았다.

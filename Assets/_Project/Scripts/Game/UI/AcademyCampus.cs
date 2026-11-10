@@ -69,6 +69,9 @@ namespace BiRyeoDo.Game.UI
             if (art.sprite == null) UiFactory.Label("Fallback", _figure, Vector2.zero, Vector2.one, "비", 64, UiFactory.Gold, TextAnchor.MiddleCenter);
             UiFactory.Label("PlayerName", _figure, new Vector2(-.3f, 1f), new Vector2(1.3f, 1.3f), "비류연", 25, UiFactory.Gold, TextAnchor.MiddleCenter).raycastTarget = false;
             var stick = UiFactory.Panel("MoveStick", root, new Vector2(.02f, .09f), new Vector2(.02f, .09f), UiFactory.Ink);
+            // UiFactory.Panel creates decorative, non-raycast graphics by default.
+            // The joystick surface must receive pointer events from GraphicRaycaster.
+            stick.raycastTarget = true;
             stick.rectTransform.pivot = Vector2.zero; stick.rectTransform.sizeDelta = new Vector2(210f, 210f);
             _stick = stick.gameObject.AddComponent<AcademyJoystick>();
             var knob = UiFactory.Panel("Knob", stick.transform, new Vector2(.5f, .5f), new Vector2(.5f, .5f), UiFactory.GoldDim);
